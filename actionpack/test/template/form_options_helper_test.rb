@@ -7,7 +7,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
 
   silence_warnings do
-    Post        = Struct.new('Post', :title, :author_name, :body, :secret, :written_on, :category, :origin)
+    Post        = Struct.new('Post', :title, :author_name, :body, :secret, :written_on, :category, :origin, :allow_comments)
     Continent   = Struct.new('Continent', :continent_name, :countries)
     Country     = Struct.new('Country', :country_id, :country_name)
     Firm        = Struct.new('Firm', :time_zone)
@@ -130,6 +130,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_boolean_array_options_for_select_with_selection_and_disabled_value
+    assert_dom_equal(
+      "<option value=\"true\">true</option>\n<option value=\"false\" selected=\"selected\">false</option>",
+      options_for_select([ true, false ], :selected => false, :disabled => nil)
+    )
+  end
+
   def test_array_options_for_string_include_in_other_string_bug_fix
       assert_dom_equal(
         "<option value=\"ruby\">ruby</option>\n<option value=\"rubyonrails\" selected=\"selected\">rubyonrails</option>",
@@ -177,7 +184,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_string_and_option_value_is_integer
-    albums = [ Album.new(1, "first","rap"), Album.new(2, "second","pop")] 
+    albums = [ Album.new(1, "first","rap"), Album.new(2, "second","pop")]
     assert_dom_equal(
     %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
     options_from_collection_for_select(albums, "id", "genre", :selected => "1")
@@ -185,7 +192,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_integer_and_option_value_is_string
-    albums = [ Album.new("1", "first","rap"), Album.new("2", "second","pop")] 
+    albums = [ Album.new("1", "first","rap"), Album.new("2", "second","pop")]
 
     assert_dom_equal(
     %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
@@ -194,7 +201,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_string_and_option_value_is_float
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0" selected="selected">pop</option>),
@@ -203,7 +210,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_value_as_nil
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
@@ -212,7 +219,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_disabled_value_as_nil
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
 
     assert_dom_equal(
     %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
@@ -221,7 +228,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_disabled_value_as_array
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")] 
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop")]
 
     assert_dom_equal(
     %(<option disabled="disabled" value="1.0">rap</option>\n<option disabled="disabled" value="2.0">pop</option>),
@@ -230,7 +237,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_preselected_values_as_string_array_and_option_value_is_float
-    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop"), Album.new(3.0, "third","country") ] 
+    albums = [ Album.new(1.0, "first","rap"), Album.new(2.0, "second","pop"), Album.new(3.0, "third","country") ]
 
     assert_dom_equal(
     %(<option value="1.0" selected="selected">rap</option>\n<option value="2.0">pop</option>\n<option value="3.0" selected="selected">country</option>),
@@ -361,6 +368,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       select("post", "category", %w( abe <mus> hest))
+    )
+  end
+
+  def test_select_with_boolean_method
+    @post = Post.new
+    @post.allow_comments = false
+    assert_dom_equal(
+      "<select id=\"post_allow_comments\" name=\"post[allow_comments]\"><option value=\"true\">true</option>\n<option value=\"false\" selected=\"selected\">false</option></select>",
+      select("post", "allow_comments", %w( true false ))
     )
   end
 

@@ -4,9 +4,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     def clear_aggregation_cache #:nodoc:
-      self.class.reflect_on_all_aggregations.to_a.each do |assoc|
-        instance_variable_set "@#{assoc.name}", nil
-      end if self.persisted?
+      @aggregation_cache.clear if persisted?
     end
 
     # Active Record implements aggregation through a macro-like class method called +composed_of+
@@ -222,53 +220,32 @@ module ActiveRecord
 
       private
         def reader_method(name, class_name, mapping, allow_nil, constructor)
-          module_eval do
-            define_method(name) do |*args|
-              force_reload = args.first || false
-
-              unless instance_variable_defined?("@#{name}")
-                instance_variable_set("@#{name}", nil)
-              end
-
-              if (instance_variable_get("@#{name}").nil? || force_reload) && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
-                attrs = mapping.collect {|pair| read_attribute(pair.first)}
-                object = case constructor
-                  when Symbol
-                    class_name.constantize.send(constructor, *attrs)
-                  when Proc, Method
-                    constructor.call(*attrs)
-                  else
-                    raise ArgumentError, 'Constructor must be a symbol denoting the constructor method to call or a Proc to be invoked.'
-                  end
-                instance_variable_set("@#{name}", object)
-              end
-              instance_variable_get("@#{name}")
+          define_method(name) do
+            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
+              attrs = mapping.collect {|pair| read_attribute(pair.first)}
+              object = constructor.respond_to?(:call) ?
+                constructor.call(*attrs) :
+                class_name.constantize.send(constructor, *attrs)
+              @aggregation_cache[name] = object
             end
+            @aggregation_cache[name]
           end
-
         end
 
         def writer_method(name, class_name, mapping, allow_nil, converter)
-          module_eval do
-            define_method("#{name}=") do |part|
-              if part.nil? && allow_nil
-                mapping.each { |pair| self[pair.first] = nil }
-                instance_variable_set("@#{name}", nil)
-              else
-                unless part.is_a?(class_name.constantize) || converter.nil?
-                  part = case converter
-                    when Symbol
-                     class_name.constantize.send(converter, part)
-                    when Proc, Method
-                      converter.call(part)
-                    else
-                      raise ArgumentError, 'Converter must be a symbol denoting the converter method to call or a Proc to be invoked.'
-                    end
-                end
-
-                mapping.each { |pair| self[pair.first] = part.send(pair.last) }
-                instance_variable_set("@#{name}", part.freeze)
+          define_method("#{name}=") do |part|
+            if part.nil? && allow_nil
+              mapping.each { |pair| self[pair.first] = nil }
+              @aggregation_cache[name] = nil
+            else
+              unless part.is_a?(class_name.constantize) || converter.nil?
+                part = converter.respond_to?(:call) ?
+                  converter.call(part) :
+                  class_name.constantize.send(converter, part)
               end
+
+              mapping.each { |pair| self[pair.first] = part.send(pair.last) }
+              @aggregation_cache[name] = part.freeze
             end
           end
         end

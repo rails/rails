@@ -43,7 +43,7 @@ module ActionDispatch
         alias :etag? :etag
 
         def initialize(*)
-          status, header, body = super
+          super
 
           @cache_control = {}
           @etag = self["ETag"]

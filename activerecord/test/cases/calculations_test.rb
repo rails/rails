@@ -23,6 +23,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 53.0, value
   end
 
+  def test_should_return_decimal_average_of_integer_field
+    value = Account.average(:id)
+    assert_equal 3.5, value
+  end
+
+  def test_should_return_integer_average_if_db_returns_such
+    Account.connection.stubs :select_value => 3
+    value = Account.average(:id)
+    assert_equal 3, value
+  end
+
   def test_should_return_nil_as_average
     assert_nil NumericData.average(:bank_balance)
   end

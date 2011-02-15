@@ -146,8 +146,10 @@ module ActiveModel
       end
 
       # List all validators that being used to validate a specific attribute.
-      def validators_on(attribute)
-        _validators[attribute.to_sym]
+      def validators_on(*attributes)
+        attributes.map do |attribute|
+          _validators[attribute.to_sym]
+        end.flatten
       end
 
       # Check if method is an attribute method or not.
@@ -207,7 +209,7 @@ module ActiveModel
   protected
 
     def run_validations!
-      _run_validate_callbacks
+      run_callbacks :validate
       errors.empty?
     end
   end

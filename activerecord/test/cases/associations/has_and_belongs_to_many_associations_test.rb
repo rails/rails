@@ -72,7 +72,7 @@ class DeveloperWithCounterSQL < ActiveRecord::Base
     :join_table => "developers_projects",
     :association_foreign_key => "project_id",
     :foreign_key => "developer_id",
-    :counter_sql => 'SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}'
+    :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
@@ -99,38 +99,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     record = con.select_rows(sql).last
     assert_equal 'c1', record[0]
     assert_equal 't1', record[1]
-  end
-
-  def test_should_record_timestamp_for_join_table
-    setup_data_for_habtm_case
-
-    con = ActiveRecord::Base.connection
-    sql = 'select * from countries_treaties'
-    record = con.select_rows(sql).last
-    assert_not_nil record[2]
-    assert_not_nil record[3]
-    if current_adapter?(:Mysql2Adapter, :OracleAdapter)
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2].to_s(:db)
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3].to_s(:db)
-    else
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[2]
-      assert_match %r{\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}}, record[3]
-    end
-  end
-
-  def test_should_record_timestamp_for_join_table_only_if_timestamp_should_be_recorded
-    begin
-      Treaty.record_timestamps = false
-      setup_data_for_habtm_case
-
-      con = ActiveRecord::Base.connection
-      sql = 'select * from countries_treaties'
-      record = con.select_rows(sql).last
-      assert_nil record[2]
-      assert_nil record[3]
-    ensure
-      Treaty.record_timestamps = true
-    end
   end
 
   def test_has_and_belongs_to_many
@@ -216,34 +184,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     aredridel.projects.concat([Project.find(1), Project.find(2)])
     assert_equal 2, aredridel.projects.size
     assert_equal 2, aredridel.projects(true).size
-  end
-
-  def test_adding_uses_default_values_on_join_table
-    ac = projects(:action_controller)
-    assert !developers(:jamis).projects.include?(ac)
-    developers(:jamis).projects << ac
-
-    assert developers(:jamis, :reload).projects.include?(ac)
-    project = developers(:jamis).projects.detect { |p| p == ac }
-    assert_equal 1, project.access_level.to_i
-  end
-
-  def test_habtm_attribute_access_and_respond_to
-    project = developers(:jamis).projects[0]
-    assert project.has_attribute?("name")
-    assert project.has_attribute?("joined_on")
-    assert project.has_attribute?("access_level")
-    assert project.respond_to?("name")
-    assert project.respond_to?("name=")
-    assert project.respond_to?("name?")
-    assert project.respond_to?("joined_on")
-    # given that the 'join attribute' won't be persisted, I don't
-    # think we should define the mutators
-    #assert project.respond_to?("joined_on=")
-    assert project.respond_to?("joined_on?")
-    assert project.respond_to?("access_level")
-    #assert project.respond_to?("access_level=")
-    assert project.respond_to?("access_level?")
   end
 
   def test_habtm_adding_before_save
@@ -425,37 +365,40 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_removing_associations_on_destroy
     david = DeveloperWithBeforeDestroyRaise.find(1)
     assert !david.projects.empty?
-    assert_raise(RuntimeError) { david.destroy }
+    david.destroy
     assert david.projects.empty?
     assert DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
   end
 
-  def test_additional_columns_from_join_table
-    assert_date_from_db Date.new(2004, 10, 10), Developer.find(1).projects.first.joined_on.to_date
-  end
-
   def test_destroying
     david = Developer.find(1)
-    active_record = Project.find(1)
+    project = Project.find(1)
     david.projects.reload
     assert_equal 2, david.projects.size
-    assert_equal 3, active_record.developers.size
+    assert_equal 3, project.developers.size
 
-    assert_difference "Project.count", -1 do
-      david.projects.destroy(active_record)
+    assert_no_difference "Project.count" do
+      david.projects.destroy(project)
     end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
+    assert join_records.empty?
 
     assert_equal 1, david.reload.projects.size
     assert_equal 1, david.projects(true).size
   end
 
-  def test_destroying_array
+  def test_destroying_many
     david = Developer.find(1)
     david.projects.reload
+    projects = Project.all
 
-    assert_difference "Project.count", -Project.count do
-      david.projects.destroy(Project.find(:all))
+    assert_no_difference "Project.count" do
+      david.projects.destroy(*projects)
     end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    assert join_records.empty?
 
     assert_equal 0, david.reload.projects.size
     assert_equal 0, david.projects(true).size
@@ -465,7 +408,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david = Developer.find(1)
     david.projects.reload
     assert !david.projects.empty?
-    david.projects.destroy_all
+
+    assert_no_difference "Project.count" do
+      david.projects.destroy_all
+    end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    assert join_records.empty?
+
     assert david.projects.empty?
     assert david.projects(true).empty?
   end
@@ -675,25 +625,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_respond_to categories(:technology).select_testing_posts.find(:first), :correctness_marker
   end
 
-  def test_updating_attributes_on_rich_associations
-    david = projects(:action_controller).developers.first
-    david.name = "DHH"
-    assert_raise(ActiveRecord::ReadOnlyRecord) { david.save! }
-  end
-
-  def test_updating_attributes_on_rich_associations_with_limited_find_from_reflection
-    david = projects(:action_controller).selected_developers.first
-    david.name = "DHH"
-    assert_nothing_raised { david.save! }
-  end
-
-
-  def test_updating_attributes_on_rich_associations_with_limited_find
-    david = projects(:action_controller).developers.find(:all, :select => "developers.*").first
-    david.name = "DHH"
-    assert david.save!
-  end
-
   def test_join_table_alias
     assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL').size
   end
@@ -840,10 +771,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david = Developer.find(1)
     # clear cache possibly created by other tests
     david.projects.reset_column_information
-    assert_queries(0) { david.projects.columns; david.projects.columns }
-    # and again to verify that reset_column_information clears the cache correctly
+
+    # One query for columns, one for primary key
+    assert_queries(2) { david.projects.columns; david.projects.columns }
+
+    ## and again to verify that reset_column_information clears the cache correctly
     david.projects.reset_column_information
-    assert_queries(0) { david.projects.columns; david.projects.columns }
+    assert_queries(2) { david.projects.columns; david.projects.columns }
   end
 
   def test_attributes_are_being_set_when_initialized_from_habm_association_with_where_clause

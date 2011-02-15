@@ -1,77 +1,33 @@
 module ActiveRecord
   # = Active Record Belongs To Polymorphic Association
   module Associations
-    class BelongsToPolymorphicAssociation < AssociationProxy #:nodoc:
-      def replace(record)
-        if record.nil?
-          @target = @owner[@reflection.primary_key_name] = @owner[@reflection.options[:foreign_type]] = nil
-        else
-          @target = (AssociationProxy === record ? record.target : record)
-
-          @owner[@reflection.primary_key_name] = record_id(record)
-          @owner[@reflection.options[:foreign_type]] = record.class.base_class.name.to_s
-
-          @updated = true
-        end
-
-        set_inverse_instance(record, @owner)
-        loaded
-        record
-      end
-
-      def updated?
-        @updated
-      end
-
+    class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       private
 
-        # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
-        # has_one associations.
-        def we_can_set_the_inverse_on_this?(record)
-          if @reflection.has_inverse?
-            inverse_association = @reflection.polymorphic_inverse_of(record.class)
-            inverse_association && inverse_association.macro == :has_one
-          else
-            false
-          end
+        def replace_keys(record)
+          super
+          @owner[@reflection.foreign_type] = record && record.class.base_class.name
         end
 
-        def set_inverse_instance(record, instance)
-          return if record.nil? || !we_can_set_the_inverse_on_this?(record)
-          inverse_relationship = @reflection.polymorphic_inverse_of(record.class)
-          if inverse_relationship
-            record.send(:"set_#{inverse_relationship.name}_target", instance)
-          end
+        def different_target?(record)
+          super || record.class != target_klass
         end
 
-        def construct_find_scope
-          { :conditions => conditions }
+        def inverse_reflection_for(record)
+          @reflection.polymorphic_inverse_of(record.class)
         end
 
-        def find_target
-          return nil if association_class.nil?
-
-          target = association_class.send(:with_scope, :find => @scope[:find]) do
-            association_class.find(
-              @owner[@reflection.primary_key_name],
-              :select  => @reflection.options[:select],
-              :include => @reflection.options[:include]
-            )
-          end
-          set_inverse_instance(target, @owner)
-          target
+        def target_klass
+          type = @owner[@reflection.foreign_type]
+          type && type.constantize
         end
 
-        def foreign_key_present
-          !@owner[@reflection.primary_key_name].nil?
+        def raise_on_type_mismatch(record)
+          # A polymorphic association cannot have a type mismatch, by definition
         end
 
-        def record_id(record)
-          record.send(@reflection.options[:primary_key] || :id)
-        end
-
-        def association_class
-          @owner[@reflection.options[:foreign_type]] ? @owner[@reflection.options[:foreign_type]].constantize : nil
+        def stale_state
+          [super, @owner[@reflection.foreign_type].to_s]
         end
     end
   end

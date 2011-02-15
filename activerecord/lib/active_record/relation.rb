@@ -10,7 +10,9 @@ module ActiveRecord
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
+    # These are explicitly delegated to improve performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
+    delegate :table_name, :primary_key, :to => :klass
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions
@@ -30,13 +32,19 @@ module ActiveRecord
     def insert(values)
       im = arel.compile_insert values
       im.into @table
-      primary_key_name = @klass.primary_key
-      primary_key_value = Hash === values ? values[primary_key_name] : nil
+
+      primary_key_value = nil
+
+      if primary_key && Hash === values
+        primary_key_value = values[values.keys.find { |k|
+          k.name == primary_key
+        }]
+      end
 
       @klass.connection.insert(
         im.to_sql,
         'SQL',
-        primary_key_name,
+        primary_key,
         primary_key_value)
     end
 
@@ -172,13 +180,19 @@ module ActiveRecord
       if conditions || options.present?
         where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
       else
+        limit = nil
+        order = []
         # Apply limit and order only if they're both present
         if @limit_value.present? == @order_values.present?
-          stmt = arel.compile_update(Arel::SqlLiteral.new(@klass.send(:sanitize_sql_for_assignment, updates)))
-          @klass.connection.update stmt.to_sql
-        else
-          except(:limit, :order).update_all(updates)
+          limit = arel.limit
+          order = arel.orders
         end
+
+        stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
+        stmt.take limit
+        stmt.order(*order)
+        stmt.key = table[primary_key]
+        @klass.connection.update stmt.to_sql
       end
     end
 
@@ -320,7 +334,7 @@ module ActiveRecord
     #   # Delete multiple rows
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
-      where(@klass.primary_key => id_or_array).delete_all
+      where(primary_key => id_or_array).delete_all
     end
 
     def reload
@@ -334,10 +348,6 @@ module ActiveRecord
       @should_eager_load = @join_dependency = nil
       @records = []
       self
-    end
-
-    def primary_key
-      @primary_key ||= table[@klass.primary_key]
     end
 
     def to_sql
@@ -371,10 +381,6 @@ module ActiveRecord
 
     def inspect
       to_a.inspect
-    end
-
-    def table_name
-      @klass.table_name
     end
 
     protected

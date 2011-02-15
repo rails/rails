@@ -82,11 +82,11 @@ module ActiveRecord
               connection = active_record.connection
 
               name = connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
-              table_index = aliases[name] + 1
-              name = name[0, connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
+              aliases[name] += 1
+              name = name[0, connection.table_alias_length-3] + "_#{aliases[name]}" if aliases[name] > 1
+            else
+              aliases[name] += 1
             end
-
-            aliases[name] += 1
 
             name
           end
@@ -108,6 +108,10 @@ module ActiveRecord
           end
 
           def process_conditions(conditions, table_name)
+            if conditions.respond_to?(:to_proc)
+              conditions = instance_eval(&conditions)
+            end
+
             Arel.sql(sanitize_sql(conditions, table_name))
           end
 
@@ -190,17 +194,20 @@ module ActiveRecord
             ).alias @aliased_join_table_name
 
             jt_conditions = []
-            jt_foreign_key = first_key = second_key = nil
+            first_key = second_key = nil
 
-            if through_reflection.options[:as] # has_many :through against a polymorphic join
-              as_key         = through_reflection.options[:as].to_s
-              jt_foreign_key = as_key + '_id'
-
-              jt_conditions <<
-              join_table[as_key + '_type'].
-                eq(parent.active_record.base_class.name)
+            if through_reflection.macro == :belongs_to
+              jt_primary_key = through_reflection.foreign_key
+              jt_foreign_key = through_reflection.association_primary_key
             else
-              jt_foreign_key = through_reflection.primary_key_name
+              jt_primary_key = through_reflection.active_record_primary_key
+              jt_foreign_key = through_reflection.foreign_key
+
+              if through_reflection.options[:as] # has_many :through against a polymorphic join
+                jt_conditions <<
+                join_table["#{through_reflection.options[:as]}_type"].
+                  eq(parent.active_record.base_class.name)
+              end
             end
 
             case source_reflection.macro
@@ -225,15 +232,15 @@ module ActiveRecord
                 second_key = source_reflection.association_foreign_key
 
                 jt_conditions <<
-                join_table[reflection.source_reflection.options[:foreign_type]].
+                join_table[reflection.source_reflection.foreign_type].
                   eq(reflection.options[:source_type])
               else
-                second_key = source_reflection.primary_key_name
+                second_key = source_reflection.foreign_key
               end
             end
 
             jt_conditions <<
-            parent_table[parent.primary_key].
+            parent_table[jt_primary_key].
               eq(join_table[jt_foreign_key])
 
             if through_reflection.options[:conditions]
@@ -259,7 +266,7 @@ module ActiveRecord
           end
 
           def join_belongs_to_to(relation)
-            foreign_key = options[:foreign_key] || reflection.primary_key_name
+            foreign_key = options[:foreign_key] || reflection.foreign_key
             primary_key = options[:primary_key] || reflection.klass.primary_key
 
             join_target_table(

@@ -21,7 +21,7 @@ module Rails
         request = ActionDispatch::Request.new(env)
         path = request.fullpath
 
-        info "\n\nStarted #{env["REQUEST_METHOD"]} \"#{path}\" " \
+        info "\n\nStarted #{request.request_method} \"#{path}\" " \
              "for #{request.ip} at #{Time.now.to_default_s}"
       end
 

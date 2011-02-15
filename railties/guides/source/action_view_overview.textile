@@ -231,7 +231,7 @@ input("post", "title") # =>
 
 h4. AssetTagHelper
 
-This module provides methods for generating HTML that links views to assets such as images, javascripts, stylesheets, and feeds.
+This module provides methods for generating HTML that links views to assets such as images, JavaScript files, stylesheets, and feeds.
 
 By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting +ActionController::Base.asset_host+ in the application configuration, typically in +config/environments/production.rb+. For example, let's say your asset host is +assets.example.com+:
 
@@ -242,7 +242,7 @@ image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png
 
 h5. register_javascript_expansion
 
-Register one or more javascript files to be included when symbol is passed to javascript_include_tag. This method is typically intended to be called from plugin initialization to register javascript files that the plugin installed in public/javascripts.
+Register one or more JavaScript files to be included when symbol is passed to javascript_include_tag. This method is typically intended to be called from plugin initialization to register JavaScript files that the plugin installed in +public/javascripts+.
 
 <ruby>
 ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
@@ -278,7 +278,7 @@ auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS
 
 h5. image_path
 
-Computes the path to an image asset in the public images directory. Full paths from the document root will be passed through. Used internally by +image_tag+ to build the image path.
+Computes the path to an image asset in the +public/images+ directory. Full paths from the document root will be passed through. Used internally by +image_tag+ to build the image path.
 
 <ruby>
 image_path("edit.png") # => /images/edit.png
@@ -286,7 +286,7 @@ image_path("edit.png") # => /images/edit.png
 
 h5. image_tag
 
-Returns an html image tag for the source. The source can be a full path or a file that exists in your public images directory.
+Returns an html image tag for the source. The source can be a full path or a file that exists in your +public/images+ directory.
 
 <ruby>
 image_tag("icon.png") # => <img src="/images/icon.png" alt="Icon" />
@@ -294,26 +294,26 @@ image_tag("icon.png") # => <img src="/images/icon.png" alt="Icon" />
 
 h5. javascript_include_tag
 
-Returns an html script tag for each of the sources provided. You can pass in the filename (+.js+ extension is optional) of javascript files that exist in your +public/javascripts+ directory for inclusion into the current page or you can pass the full path relative to your document root.
+Returns an html script tag for each of the sources provided. You can pass in the filename (+.js+ extension is optional) of JavaScript files that exist in your +public/javascripts+ directory for inclusion into the current page or you can pass the full path relative to your document root.
 
 <ruby>
 javascript_include_tag "common" # =>
   <script type="text/javascript" src="/javascripts/common.js"></script>
 </ruby>
 
-To include the Prototype and Scriptaculous javascript libraries in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +public/javascripts+ directory, it will be included as well.
+To include the Prototype and Scriptaculous JavaScript libraries in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +public/javascripts+ directory, it will be included as well.
 
 <ruby>
 javascript_include_tag :defaults
 </ruby>
 
-You can also include all javascripts in the javascripts directory using +:all+ as the source.
+You can also include all JavaScript files in the +public/javascripts+ directory using +:all+ as the source.
 
 <ruby>
 javascript_include_tag :all
 </ruby>
 
-You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if +ActionController::Base.perform_caching+ is set to true (which is the case by default for the Rails production environment, but not for the development environment).
+You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if +ActionController::Base.perform_caching+ is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
 <ruby>
 javascript_include_tag :all, :cache => true # =>
@@ -322,7 +322,7 @@ javascript_include_tag :all, :cache => true # =>
 
 h5. javascript_path
 
-Computes the path to a javascript asset in the +public/javascripts+ directory. If the source filename has no extension, +.js+ will be appended. Full paths from the document root will be passed through. Used internally by +javascript_include_tag+ to build the script path.
+Computes the path to a JavaScript asset in the +public/javascripts+ directory. If the source filename has no extension, +.js+ will be appended. Full paths from the document root will be passed through. Used internally by +javascript_include_tag+ to build the script path.
 
 <ruby>
 javascript_path "common" # => /javascripts/common.js
@@ -352,7 +352,7 @@ stylesheet_link_tag :all, :cache => true
 
 h5. stylesheet_path
 
-Computes the path to a stylesheet asset in the public stylesheets directory. If the source filename has no extension, .css will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
+Computes the path to a stylesheet asset in the +public/stylesheets+ directory. If the source filename has no extension, .css will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
 
 <ruby>
 stylesheet_path "application" # => /stylesheets/application.css
@@ -367,14 +367,14 @@ This helper makes building an ATOM feed easy. Here's a full usage example:
 *config/routes.rb*
 
 <ruby>
-map.resources :posts
+resources :posts
 </ruby>
 
 *app/controllers/posts_controller.rb*
 
 <ruby>
 def index
-  @posts = Post.find(:all)
+  @posts = Post.all
 
   respond_to do |format|
     format.html
@@ -439,7 +439,7 @@ The +capture+ method allows you to extract part of a template into a variable. Y
 <% @greeting = capture do %>
   <p>Welcome! The date and time is <%= Time.now %></p>
 <% end %>
-<ruby>
+</ruby>
 
 The captured variable can then be used anywhere else.
 
@@ -809,7 +809,7 @@ end
 Sample usage (selecting the associated Author for an instance of Post, +@post+):
 
 <ruby>
-collection_select(:post, :author_id, Author.find(:all), :id, :name_with_initial, {:prompt => true})
+collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {:prompt => true})
 </ruby>
 
 If @post.author_id is already 1, this would return:
@@ -910,7 +910,7 @@ Create a select tag and a series of contained option tags for the provided objec
 Example with @post.person_id => 1:
 
 <ruby>
-select("post", "person_id", Person.find(:all).collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
 </ruby>
 
 could become:
@@ -1076,7 +1076,7 @@ h4. JavaScriptHelper
 
 Provides functionality for working with JavaScript in your views.
 
-Rails includes the Prototype JavaScript framework and the Scriptaculous JavaScript controls and visual effects library. If you wish to use these libraries and their helpers, make sure +&lt;%= javascript_include_tag :defaults, :cache => true %&gt;+ is in the HEAD section of your page. This function will include the necessary JavaScript files Rails generated in the public/javascripts directory.
+Rails includes the Prototype JavaScript framework and the Scriptaculous JavaScript controls and visual effects library. If you wish to use these libraries and their helpers, make sure +&lt;%= javascript_include_tag :defaults, :cache => true %&gt;+ is in the HEAD section of your page. This function will include the necessary JavaScript files Rails generated in the +public/javascripts+ directory.
 
 h5. button_to_function
 

@@ -1,5 +1,5 @@
 require 'date'
-require 'active_support/inflector'
+require 'active_support/inflector/methods'
 require 'active_support/core_ext/date/zones'
 
 class Date
@@ -92,6 +92,12 @@ class Date
   def to_datetime
     ::DateTime.civil(year, month, day, 0, 0, 0, 0)
   end if RUBY_VERSION < '1.9'
+
+  def iso8601
+    strftime('%F')
+  end if RUBY_VERSION < '1.9'
+
+  alias_method :rfc3339, :iso8601 if RUBY_VERSION < '1.9'
 
   def xmlschema
     to_time_in_current_zone.xmlschema

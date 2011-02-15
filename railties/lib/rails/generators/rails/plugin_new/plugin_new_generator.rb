@@ -16,7 +16,7 @@ module Rails
     end
 
     def readme
-      copy_file "README.rdoc"
+      template "README.rdoc"
     end
 
     def gemfile
@@ -44,7 +44,7 @@ module Rails
     end
 
     def config
-      template "config/routes.rb" if mountable?
+      template "config/routes.rb" if full?
     end
 
     def test

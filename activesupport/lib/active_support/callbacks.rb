@@ -5,27 +5,28 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module ActiveSupport
-  # Callbacks are hooks into the life cycle of an object that allow you to trigger logic
-  # before or after an alteration of the object state.
+  # \Callbacks are code hooks that are run at key points in an object's lifecycle.
+  # The typical use case is to have a base class define a set of callbacks relevant
+  # to the other functionality it supplies, so that subclasses can install callbacks
+  # that enhance or modify the base functionality without needing to override
+  # or redefine methods of the base class.
   #
-  # Mixing in this module allows you to define callbacks in your class.
+  # Mixing in this module allows you to define the events in the object's lifecycle
+  # that will support callbacks (via +ClassMethods.define_callbacks+), set the instance
+  # methods, procs, or callback objects to be called (via +ClassMethods.set_callback+),
+  # and run the installed callbacks at the appropriate times (via +run_callbacks+).
   #
-  # Example:
-  #   class Storage
+  # Three kinds of callbacks are supported: before callbacks, run before a certain event;
+  # after callbacks, run after the event; and around callbacks, blocks that surround the
+  # event, triggering it when they yield. Callback code can be contained in instance
+  # methods, procs or lambdas, or callback objects that respond to certain predetermined
+  # methods. See +ClassMethods.set_callback+ for details.
+  #
+  # ==== Example
+  #
+  #   class Record
   #     include ActiveSupport::Callbacks
-  #
   #     define_callbacks :save
-  #   end
-  #
-  #   class ConfigStorage < Storage
-  #     set_callback :save, :before, :saving_message
-  #     def saving_message
-  #       puts "saving..."
-  #     end
-  #
-  #     set_callback :save, :after do |object|
-  #       puts "saved"
-  #     end
   #
   #     def save
   #       run_callbacks :save do
@@ -34,29 +35,7 @@ module ActiveSupport
   #     end
   #   end
   #
-  #   config = ConfigStorage.new
-  #   config.save
-  #
-  # Output:
-  #   saving...
-  #   - save
-  #   saved
-  #
-  # Callbacks from parent classes are inherited.
-  #
-  # Example:
-  #   class Storage
-  #     include ActiveSupport::Callbacks
-  #
-  #     define_callbacks :save
-  #
-  #     set_callback :save, :before, :prepare
-  #     def prepare
-  #       puts "preparing save"
-  #     end
-  #   end
-  #
-  #   class ConfigStorage < Storage
+  #   class PersonRecord < Record
   #     set_callback :save, :before, :saving_message
   #     def saving_message
   #       puts "saving..."
@@ -65,19 +44,12 @@ module ActiveSupport
   #     set_callback :save, :after do |object|
   #       puts "saved"
   #     end
-  #
-  #     def save
-  #       run_callbacks :save do
-  #         puts "- save"
-  #       end
-  #     end
   #   end
   #
-  #   config = ConfigStorage.new
-  #   config.save
+  #   person = PersonRecord.new
+  #   person.save
   #
   # Output:
-  #   preparing save
   #   saving...
   #   - save
   #   saved
@@ -89,11 +61,25 @@ module ActiveSupport
       extend ActiveSupport::DescendantsTracker
     end
 
+    # Runs the callbacks for the given event.
+    #
+    # Calls the before and around callbacks in the order they were set, yields
+    # the block (if given one), and then runs the after callbacks in reverse order.
+    # Optionally accepts a key, which will be used to compile an optimized callback
+    # method for each key. See +ClassMethods.define_callbacks+ for more information.
+    #
+    # If the callback chain was halted, returns +false+. Otherwise returns the result
+    # of the block, or +true+ if no block is given.
+    #
+    #   run_callbacks :save do
+    #     save
+    #   end
+    #
     def run_callbacks(kind, *args, &block)
       send("_run_#{kind}_callbacks", *args, &block)
     end
 
-    class Callback
+    class Callback #:nodoc:#
       @@_callback_sequence = 0
 
       attr_accessor :chain, :filter, :kind, :options, :per_key, :klass, :raw_filter
@@ -185,7 +171,11 @@ module ActiveSupport
           # end
           filter = <<-RUBY_EVAL
             unless halted
-              result = #{@filter}
+              # This double assignment is to prevent warnings in 1.9.3.  I would
+              # remove the `result` variable, but apparently some other
+              # generated code is depending on this variable being set sometimes
+              # and sometimes not.
+              result = result = #{@filter}
               halted = (#{chain.config[:terminator]})
             end
           RUBY_EVAL
@@ -328,7 +318,7 @@ module ActiveSupport
     end
 
     # An Array with a compile method
-    class CallbackChain < Array
+    class CallbackChain < Array #:nodoc:#
       attr_reader :name, :config
 
       def initialize(name, config)
@@ -373,18 +363,7 @@ module ActiveSupport
     end
 
     module ClassMethods
-      # Make the run_callbacks :save method. The generated method takes
-      # a block that it'll yield to. It'll call the before and around filters
-      # in order, yield the block, and then run the after filters.
-      #
-      # run_callbacks :save do
-      #   save
-      # end
-      #
-      # The run_callbacks :save method can optionally take a key, which
-      # will be used to compile an optimized callback method for each
-      # key. See #define_callbacks for more information.
-      #
+      # Generate the internal runner method called by +run_callbacks+.
       def __define_runner(symbol) #:nodoc:
         body = send("_#{symbol}_callbacks").compile
 
@@ -440,14 +419,42 @@ module ActiveSupport
         end
       end
 
-      # Set callbacks for a previously defined callback.
+      # Install a callback for the given event.
       #
-      # Syntax:
       #   set_callback :save, :before, :before_meth
       #   set_callback :save, :after,  :after_meth, :if => :condition
       #   set_callback :save, :around, lambda { |r| stuff; yield; stuff }
       #
-      # Use skip_callback to skip any defined one.
+      # The second arguments indicates whether the callback is to be run +:before+,
+      # +:after+, or +:around+ the event. If omitted, +:before+ is assumed. This
+      # means the first example above can also be written as:
+      #
+      #   set_callback :save, :before_meth
+      #
+      # The callback can specified as a symbol naming an instance method; as a proc,
+      # lambda, or block; as a string to be instance evaluated; or as an object that
+      # responds to a certain method determined by the <tt>:scope</tt> argument to
+      # +define_callback+.
+      #
+      # If a proc, lambda, or block is given, its body is evaluated in the context
+      # of the current object. It can also optionally accept the current object as
+      # an argument.
+      #
+      # Before and around callbacks are called in the order that they are set; after
+      # callbacks are called in the reverse order.
+      #
+      # ===== Options
+      #
+      # * <tt>:if</tt> - A symbol naming an instance method or a proc; the callback
+      #   will be called only when it returns a true value.
+      # * <tt>:unless</tt> - A symbol naming an instance method or a proc; the callback
+      #   will be called only when it returns a false value.
+      # * <tt>:prepend</tt> - If true, the callback will be prepended to the existing
+      #   chain rather than appended.
+      # * <tt>:per_key</tt> - A hash with <tt>:if</tt> and <tt>:unless</tt> options;
+      #   see "Per-key conditions" below.
+      #
+      # ===== Per-key conditions
       #
       # When creating or skipping callbacks, you can specify conditions that
       # are always the same for a given key. For instance, in Action Pack,
@@ -459,7 +466,7 @@ module ActiveSupport
       #
       #   set_callback :process_action, :before, :authenticate, :per_key => {:unless => proc {|c| c.action_name == "index"}}
       #
-      # Per-Key conditions are evaluated only once per use of a given key.
+      # Per-key conditions are evaluated only once per use of a given key.
       # In the case of the above example, you would do:
       #
       #   run_callbacks(:process_action, action_name) { ... dispatch stuff ... }
@@ -486,7 +493,8 @@ module ActiveSupport
         end
       end
 
-      # Skip a previously defined callback.
+      # Skip a previously set callback. Like +set_callback+, <tt>:if</tt> or <tt>:unless</tt>
+      # options may be passed in order to control when the callback is skipped.
       #
       #   class Writer < Person
       #      skip_callback :validate, :before, :check_membership, :if => lambda { self.age > 18 }
@@ -509,7 +517,7 @@ module ActiveSupport
         end
       end
 
-      # Reset callbacks for a given type.
+      # Remove all set callbacks for the given event.
       #
       def reset_callbacks(symbol)
         callbacks = send("_#{symbol}_callbacks")
@@ -526,68 +534,71 @@ module ActiveSupport
         __define_runner(symbol)
       end
 
-      # Defines callbacks types:
+      # Define sets of events in the object lifecycle that support callbacks.
       #
       #   define_callbacks :validate
+      #   define_callbacks :initialize, :save, :destroy
       #
-      # This macro accepts the following options:
+      # ===== Options
       #
-      # * <tt>:terminator</tt> - Indicates when a before filter is considered
-      # to halted. This is a string to be eval'ed and has the result of the
-      # very filter available in the <tt>result</tt> variable:
+      # * <tt>:terminator</tt> - Determines when a before filter will halt the callback
+      #   chain, preventing following callbacks from being called and the event from being
+      #   triggered. This is a string to be eval'ed. The result of the callback is available
+      #   in the <tt>result</tt> variable.
       #
-      #   define_callbacks :validate, :terminator => "result == false"
+      #     define_callbacks :validate, :terminator => "result == false"
       #
-      # In the example above, if any before validate callbacks returns +false+,
-      # other callbacks are not executed. Defaults to "false", meaning no value
-      # halts the chain.
+      #   In this example, if any before validate callbacks returns +false+,
+      #   other callbacks are not executed. Defaults to "false", meaning no value
+      #   halts the chain.
       #
       # * <tt>:rescuable</tt> - By default, after filters are not executed if
-      # the given block or a before filter raises an error. Set this option to
-      # true to change this behavior.
+      #   the given block or a before filter raises an error. By setting this option
+      #   to <tt>true</tt> exception raised by given block is stored and after
+      #   executing all the after callbacks the stored exception is raised.
       #
-      # * <tt>:scope</tt> - Indicates which methods should be executed when a class
-      # is given as callback. Defaults to <tt>[:kind]</tt>.
+      # * <tt>:scope</tt> - Indicates which methods should be executed when an object
+      #   is used as a callback.
       #
-      #  class Audit
-      #    def before(caller)
-      #      puts 'Audit: before is called'
-      #    end
+      #     class Audit
+      #       def before(caller)
+      #         puts 'Audit: before is called'
+      #       end
       #
-      #    def before_save(caller)
-      #      puts 'Audit: before_save is called'
-      #    end
-      #  end
+      #       def before_save(caller)
+      #         puts 'Audit: before_save is called'
+      #       end
+      #     end
       #
-      #  class Account
-      #    include ActiveSupport::Callbacks
+      #     class Account
+      #       include ActiveSupport::Callbacks
       #
-      #    define_callbacks :save
-      #    set_callback :save, :before, Audit.new
+      #       define_callbacks :save
+      #       set_callback :save, :before, Audit.new
       #
-      #    def save
-      #      run_callbacks :save do
-      #        puts 'save in main'
-      #      end
-      #    end
-      #  end
+      #       def save
+      #         run_callbacks :save do
+      #           puts 'save in main'
+      #         end
+      #       end
+      #     end
       #
-      # In the above case whenever you save an account the method <tt>Audit#before</tt> will
-      # be called. On the other hand
+      #   In the above case whenever you save an account the method <tt>Audit#before</tt> will
+      #   be called. On the other hand
       #
-      #   define_callbacks :save, :scope => [:kind, :name]
+      #     define_callbacks :save, :scope => [:kind, :name]
       #
-      # would trigger <tt>Audit#before_save</tt> instead. That's constructed by calling
-      # <tt>"#{kind}_#{name}"</tt> on the given instance. In this case "kind" is "before" and
-      # "name" is "save". In this context ":kind" and ":name" have special meanings: ":kind"
-      # refers to the kind of callback (before/after/around) and ":name" refers to the
-      # method on which callbacks are being defined.
+      #   would trigger <tt>Audit#before_save</tt> instead. That's constructed by calling
+      #   <tt>#{kind}_#{name}</tt> on the given instance. In this case "kind" is "before" and
+      #   "name" is "save". In this context +:kind+ and +:name+ have special meanings: +:kind+
+      #   refers to the kind of callback (before/after/around) and +:name+ refers to the
+      #   method on which callbacks are being defined.
       #
-      # A declaration like
+      #   A declaration like
       #
-      #   define_callbacks :save, :scope => [:name]
+      #     define_callbacks :save, :scope => [:name]
       #
-      # would call <tt>Audit#save</tt>.
+      #   would call <tt>Audit#save</tt>.
       #
       def define_callbacks(*callbacks)
         config = callbacks.last.is_a?(Hash) ? callbacks.pop : {}

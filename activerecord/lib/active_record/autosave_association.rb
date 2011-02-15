@@ -321,27 +321,30 @@ module ActiveRecord
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
           begin
-            records.each do |record|
-              next if record.destroyed?
+          records.each do |record|
+            next if record.destroyed?
 
-              if autosave && record.marked_for_destruction?
-                association.destroy(record)
-              elsif autosave != false && (@new_record_before_save || record.new_record?)
-                if autosave
-                  saved = association.send(:insert_record, record, false, false)
-                else
-                  association.send(:insert_record, record)
-                end
-              elsif autosave
-                saved = record.save(:validate => false)
+            saved = true
+
+            if autosave && record.marked_for_destruction?
+              association.destroy(record)
+            elsif autosave != false && (@new_record_before_save || record.new_record?)
+              if autosave
+                saved = association.send(:insert_record, record, false)
+              else
+                association.send(:insert_record, record)
               end
-
-              raise ActiveRecord::Rollback if saved == false
+            elsif autosave
+              saved = record.save(:validate => false)
             end
+
+            raise ActiveRecord::Rollback unless saved
+          end
           rescue
             records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
             raise
           end
+
         end
 
         # reconstruct the scope now that we know the owner's id
@@ -365,8 +368,8 @@ module ActiveRecord
           association.destroy
         else
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-          if autosave != false && (new_record? || association.new_record? || association[reflection.primary_key_name] != key || autosave)
-            association[reflection.primary_key_name] = key
+          if autosave != false && (new_record? || association.new_record? || association[reflection.foreign_key] != key || autosave)
+            association[reflection.foreign_key] = key
             saved = association.save(:validate => !autosave)
             raise ActiveRecord::Rollback if !saved && autosave
             saved
@@ -389,7 +392,8 @@ module ActiveRecord
 
           if association.updated?
             association_id = association.send(reflection.options[:primary_key] || :id)
-            self[reflection.primary_key_name] = association_id
+            self[reflection.foreign_key] = association_id
+            association.loaded!
           end
 
           saved if autosave

@@ -28,8 +28,11 @@ module ActionDispatch
           rewritten_url = ""
 
           unless options[:only_path]
-            rewritten_url << (options[:protocol] || "http")
-            rewritten_url << "://" unless rewritten_url.match("://")
+            unless options[:protocol] == false
+              rewritten_url << (options[:protocol] || "http")
+              rewritten_url << ":" unless rewritten_url.match(%r{:|//})
+            end
+            rewritten_url << "//" unless rewritten_url.match("//")
             rewritten_url << rewrite_authentication(options)
             rewritten_url << host_or_subdomain_and_domain(options)
             rewritten_url << ":#{options.delete(:port)}" if options[:port]

@@ -6,25 +6,28 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :cache_classes, :cache_store,
                     :encoding, :consider_all_requests_local, :dependency_loading,
-                    :filter_parameters, :helpers_paths, :log_level, :logger,
+                    :filter_parameters, :helpers_paths, :logger,
                     :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils
 
+      attr_writer :log_level
+
       def initialize(*)
         super
         self.encoding = "utf-8"
-        @allow_concurrency = false
+        @allow_concurrency           = false
         @consider_all_requests_local = false
-        @filter_parameters = []
-        @helpers_paths = []
-        @dependency_loading = true
-        @serve_static_assets = true
-        @session_store = :cookie_store
-        @session_options = {}
-        @time_zone = "UTC"
-        @middleware = app_middleware
-        @generators = app_generators
+        @filter_parameters           = []
+        @helpers_paths               = []
+        @dependency_loading          = true
+        @serve_static_assets         = true
+        @session_store               = :cookie_store
+        @session_options             = {}
+        @time_zone                   = "UTC"
+        @log_level                   = nil
+        @middleware                  = app_middleware
+        @generators                  = app_generators
       end
 
       def compiled_asset_path

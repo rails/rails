@@ -22,14 +22,14 @@ module ActionView
     def render_once(options)
       paths, locals = options[:once], options[:locals] || {}
       layout, keys  = options[:layout], locals.keys
-      prefix = options.fetch(:prefix, @view.controller_prefix)
+      prefixes = options.fetch(:prefixes, @view.controller_prefixes)
 
       raise "render :once expects a String or an Array to be given" unless paths
 
       render_with_layout(layout, locals) do
         contents = []
         Array.wrap(paths).each do |path|
-          template = find_template(path, prefix, false, keys)
+          template = find_template(path, prefixes, false, keys)
           contents << render_template(template, nil, locals) if @rendered.add?(template)
         end
         contents.join("\n")
@@ -43,13 +43,13 @@ module ActionView
       if options.key?(:text)
         Template::Text.new(options[:text], formats.try(:first))
       elsif options.key?(:file)
-        with_fallbacks { find_template(options[:file], options[:prefix], false, keys) }
+        with_fallbacks { find_template(options[:file], options[:prefixes], false, keys) }
       elsif options.key?(:inline)
         handler = Template.handler_for_extension(options[:type] || "erb")
         Template.new(options[:inline], "inline template", handler, :locals => keys)
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
-          options[:template] : find_template(options[:template], options[:prefix], false, keys)
+          options[:template] : find_template(options[:template], options[:prefixes], false, keys)
       end
     end
 

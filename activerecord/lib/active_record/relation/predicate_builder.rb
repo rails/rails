@@ -15,18 +15,18 @@ module ActiveRecord
             table = Arel::Table.new(table_name, :engine => engine)
           end
 
-          attribute = table[column] || Arel::Attribute.new(table, column)
+          attribute = table[column.to_sym]
 
           case value
           when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
             values = value.to_a.map { |x|
-              x.respond_to?(:quoted_id) ? x.quoted_id : x
+              x.is_a?(ActiveRecord::Base) ? x.id : x
             }
             attribute.in(values)
           when Range, Arel::Relation
             attribute.in(value)
           when ActiveRecord::Base
-            attribute.eq(Arel.sql(value.quoted_id))
+            attribute.eq(value.id)
           when Class
             # FIXME: I think we need to deprecate this behavior
             attribute.eq(value.name)

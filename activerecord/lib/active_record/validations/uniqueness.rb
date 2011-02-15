@@ -15,8 +15,10 @@ module ActiveRecord
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
 
-        if value && record.class.serialized_attributes.key?(attribute.to_s)
-          value = YAML.dump value
+        coder = record.class.serialized_attributes[attribute.to_s]
+
+        if value && coder
+          value = coder.dump value
         end
 
         sql, params = mount_sql_and_params(finder_class, record.class.quoted_table_name, attribute, value)
@@ -85,11 +87,16 @@ module ActiveRecord
       # can be named "davidhh".
       #
       #   class Person < ActiveRecord::Base
-      #     validates_uniqueness_of :user_name, :scope => :account_id
+      #     validates_uniqueness_of :user_name
       #   end
       #
-      # It can also validate whether the value of the specified attributes are unique based on multiple
-      # scope parameters.  For example, making sure that a teacher can only be on the schedule once
+      # It can also validate whether the value of the specified attributes are unique based on a scope parameter:
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_uniqueness_of :user_name, :scope => :account_id
+      #   end 
+      #
+      # Or even multiple scope parameters.  For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.
       #
       #   class TeacherSchedule < ActiveRecord::Base

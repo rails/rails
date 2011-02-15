@@ -5,7 +5,7 @@ require 'active_record/session_store'
 module ActiveRecord
   class SessionStore
     class SessionTest < ActiveRecord::TestCase
-      self.use_transactional_fixtures = false
+      self.use_transactional_fixtures = false unless supports_savepoints? && ActiveRecord::Base.connection.supports_ddl_transactions?
 
       def setup
         super
@@ -60,6 +60,7 @@ module ActiveRecord
       end
 
       def test_loaded?
+        Session.create_table!
         s = Session.new
         assert !s.loaded?, 'session is not loaded'
       end

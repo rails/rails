@@ -201,7 +201,7 @@ module ActionMailer
       if String === @body
         @parts.unshift create_inline_part(@body)
       elsif @parts.empty? || @parts.all? { |p| p.content_disposition =~ /^attachment/ }
-        lookup_context.find_all(@template, @mailer_name).each do |template|
+        lookup_context.find_all(@template, [@mailer_name]).each do |template|
           self.formats = template.formats
           @parts << create_inline_part(render(:template => template), template.mime_type)
         end
@@ -242,12 +242,12 @@ module ActionMailer
       ct.to_s.split("/")
     end
 
-    def parse_content_type(defaults=nil)
+    def parse_content_type
       if @content_type.blank?
         [ nil, {} ]
       else
         ctype, *attrs = @content_type.split(/;\s*/)
-        attrs = Hash[attrs.map { |attr| attr.split(/\=/, 2) }]
+        attrs = Hash[attrs.map { |attr| attr.split(/=/, 2) }]
         [ctype, {"charset" => @charset}.merge!(attrs)]
       end
     end

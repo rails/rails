@@ -4,6 +4,7 @@ require 'bigdecimal'
 require 'active_support/core_ext/string/access'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/conversions'
+require 'active_support/inflections'
 
 class HashExtTest < Test::Unit::TestCase
   class IndifferentHash < HashWithIndifferentAccess

@@ -616,7 +616,7 @@ h5(#sql-injection-introduction). Introduction
 SQL injection attacks aim at influencing database queries by manipulating web application parameters. A popular goal of SQL injection attacks is to bypass authorization. Another goal is to carry out data manipulation or reading arbitrary data. Here is an example of how not to use user input data in a query:
 
 <ruby>
-Project.find(:all, :conditions => "name = '#{params[:name]}'")
+Project.all(:conditions => "name = '#{params[:name]}'")
 </ruby>
 
 This could be in a search action and the user may enter a project's name that he wants to find. If a malicious user enters ' OR 1 --, the resulting SQL query will be:
@@ -632,7 +632,7 @@ h5. Bypassing Authorization
 Usually a web application includes access control. The user enters his login credentials, the web application tries to find the matching record in the users table. The application grants access when it finds a record. However, an attacker may possibly bypass this check with SQL injection. The following shows a typical database query in Rails to find the first record in the users table which matches the login credentials parameters supplied by the user.
 
 <ruby>
-User.find(:first, "login = '#{params[:name]}' AND password = '#{params[:password]}'")
+User.first("login = '#{params[:name]}' AND password = '#{params[:password]}'")
 </ruby>
 
 If an attacker enters ' OR '1'='1 as the name, and ' OR '2'>'1 as the password, the resulting SQL query will be:
@@ -648,7 +648,7 @@ h5. Unauthorized Reading
 The UNION statement connects two SQL queries and returns the data in one set. An attacker can use it to read arbitrary data from the database. Let's take the example from above:
 
 <ruby>
-Project.find(:all, :conditions => "name = '#{params[:name]}'")
+Project.all(:conditions => "name = '#{params[:name]}'")
 </ruby>
 
 And now let's inject another query using the UNION statement:
@@ -675,13 +675,13 @@ Ruby on Rails has a built-in filter for special SQL characters, which will escap
 Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
 
 <ruby>
-Model.find(:first, :conditions => ["login = ? AND password = ?", entered_user_name, entered_password])
+Model.first(:conditions => ["login = ? AND password = ?", entered_user_name, entered_password])
 </ruby>
 
 As you can see, the first part of the array is an SQL fragment with question marks. The sanitized versions of the variables in the second part of the array replace the question marks. Or you can pass a hash for the same result:
 
 <ruby>
-Model.find(:first, :conditions => {:login => entered_user_name, :password => entered_password})
+Model.first(:conditions => {:login => entered_user_name, :password => entered_password})
 </ruby>
 
 The array or hash form is only available in model instances. You can try +sanitize_sql()+ elsewhere. _(highlight)Make it a habit to think about the security consequences when using an external string in SQL_.

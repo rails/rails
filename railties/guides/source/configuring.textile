@@ -154,7 +154,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * +Rails::Rack::Logger+ Will notify the logs that the request has began. After request is complete, flushes all the logs.
 * +ActionDispatch::ShowExceptions+ rescues any exception returned by the application and renders nice exception pages if the request is local or if +config.consider_all_requests_local+ is set to _true_. If +config.action_dispatch.show_exceptions+ is set to _false_, exceptions will be raised regardless.
 * +ActionDispatch::RemoteIp+ checks for IP spoofing attacks. Configurable with the +config.action_dispatch.ip_spoofing_check+ and +config.action_dispatch.trusted_proxies+ settings.
-* +Rack::Sendfile+ The Sendfile middleware intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with +config.action_dispatch_
+* +Rack::Sendfile+ The Sendfile middleware intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with +config.action_dispatch.x_sendfile_header+
 * +ActionDispatch::Callbacks+ Runs the prepare callbacks before serving the request.
 * +ActiveRecord::ConnectionAdapters::ConnectionManagement+ cleans active connections after each request, unless the +rack.test+ key in the request environment is set to _true_.
 * +ActiveRecord::QueryCache+ caches all +SELECT+ queries generated in a request. If an +INSERT+ or +UPDATE+ takes place then the cache is cleaned.
@@ -188,6 +188,12 @@ Middlewares can also be completely swapped out and replaced with others:
 
 <ruby>
   config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
+</ruby>
+
+They can also be removed from the stack completely:
+
+<ruby>
+  config.middleware.delete ActionDispatch::BestStandardsSupport
 </ruby>
 
 h4. Configuring i18n
@@ -272,11 +278,11 @@ h4. Configuring Action Dispatch
 
 * +config.action_dispatch.tld_length+ sets the TLD (top-level domain) length for the application. Defaults to +1+.
 
-* +ActionDispatch::Callbacks.before+ takes a block of code to run before the request. 
+* +ActionDispatch::Callbacks.before+ takes a block of code to run before the request.
 
 * +ActionDispatch::Callbacks.to_prepare+ takes a block to run after +ActionDispatch::Callbacks.before+, but before the request. Runs for every request in +development+ mode, but only once for +production+ or environments with +cache_classes+ set to +true+.
 
-* +ActionDispatch::Callbacks.after+ takes a block of code to run after the request. 
+* +ActionDispatch::Callbacks.after+ takes a block of code to run after the request.
 
 h4. Configuring Action View
 
@@ -370,7 +376,14 @@ There are a few configuration options available in Active Support:
 
 * +ActiveSupport::Cache::Store.logger+ specifies the logger to use within cache store operations.
 
+* +ActiveSupport::Deprecation.behavior+ alternative setter to +config.active_support.deprecation+ which configures the behavior of deprecation warnings for Rails.
+
+* +ActiveSupport::Deprecation.silence+ takes a block in which all deprecation warnings are silenced.
+
+* +ActiveSupport::Deprecation.silenced+ sets whether or not to display deprecation warnings.
+
 * +ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
+
 
 h3. Rails Environment Settings
 
@@ -384,6 +397,15 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 * +ENV["RAILS_CACHE_ID"]+ and +ENV["RAILS_APP_VERSION"]+ are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
+
+h3. Using Initializer Files
+
+After loading the framework and any gems and plugins in your application, Rails turns to loading initializers. An initializer is any file of Ruby code stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks, plugins and gems are loaded, such as options to configure settings for these parts.
+
+NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
+
+TIP: If you have any ordering dependency in your initializers, you can control the load order by naming. For example, +01_critical.rb+ will be loaded before +02_normal.rb+.
+
 h3. Initialization events
 
 Rails has 5 initialization events which can be hooked into (listed in order that they are ran):
@@ -392,7 +414,7 @@ Rails has 5 initialization events which can be hooked into (listed in order that
 
 * +before_initialize+: This is run directly before the initialization process of the application occurs with the +:bootstrap_hook+ initializer near the beginning of the Rails initialization process.
 
-* +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built. 
+* +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built.
 
 * +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ enviroment.
 
@@ -411,7 +433,7 @@ initializer "active_support.initialize_whiny_nils" do |app|
 end
 </ruby>
 
-The +initializer+ method takes three arguments with the first being the name for the initializer and the second being an options hash (not shown here) and the third being a block. The +:before+ key in the options hash can be specified to specify which initializer this new initializer must run before, and the +:after+ key will specify which initializer to run this initializer _after_. 
+The +initializer+ method takes three arguments with the first being the name for the initializer and the second being an options hash (not shown here) and the third being a block. The +:before+ key in the options hash can be specified to specify which initializer this new initializer must run before, and the +:after+ key will specify which initializer to run this initializer _after_.
 
 Initializers defined using the +initializer+ method will be ran in the order they are defined in, with the exception of ones that use the +:before+ or +:after+ methods.
 
@@ -458,7 +480,7 @@ You might have expected an instance of Array.
 The error occurred while evaluating nil.each
 </plain>
 
-*+active_support.deprecation_behavior+* Sets up deprecation reporting for environments, defaulting to +log+ for development, +notify+ for production and +stderr+ for test. If a value isn't set for +config.active_support.deprecation+ then this initializer will prompt the user to configure this line in the current environment's +config/environments+ file.
+*+active_support.deprecation_behavior+* Sets up deprecation reporting for environments, defaulting to +:log+ for development, +:notify+ for production and +:stderr+ for test. If a value isn't set for +config.active_support.deprecation+ then this initializer will prompt the user to configure this line in the current environment's +config/environments+ file. Can be set to an array of values.
 
 *+active_support.initialize_time_zone+* Sets the default time zone for the application based off the +config.time_zone+ setting, which defaults to "UTC".
 
@@ -538,8 +560,7 @@ TIP: If you have any ordering dependency in your initializers, you can control t
 
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
-*+disable_dependency_loading+*
-
+*+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to +true+ and +config.dependency_loading+ is set to +false+.
 
 h3. Changelog
 

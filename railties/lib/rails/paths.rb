@@ -134,10 +134,10 @@ module Rails
         @root     = root
         @glob     = options[:glob]
 
-        autoload_once! if options[:autoload_once]
-        eager_load!    if options[:eager_load]
-        autoload!      if options[:autoload]
-        load_path!     if options[:load_path]
+        options[:autoload_once] ? autoload_once! : skip_autoload_once!
+        options[:eager_load]    ? eager_load!    : skip_eager_load!
+        options[:autoload]      ? autoload!      : skip_autoload!
+        options[:load_path]     ? load_path!     : skip_load_path!
       end
 
       def children

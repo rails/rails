@@ -65,7 +65,7 @@ To learn more about the different types of associations, read the next section o
 
 h3. The Types of Associations
 
-In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model +belongs_to+ another, you instruct Rails to maintain Primary Key–Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of association:
+In Rails, an _association_ is a connection between two Active Record models. Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model +belongs_to+ another, you instruct Rails to maintain Primary Key–Foreign Key information between instances of the two models, and you also get a number of utility methods added to your model. Rails supports six types of associations:
 
 * +belongs_to+
 * +has_one+
@@ -1135,7 +1135,7 @@ h6(#has_many-collection-find). <tt><em>collection</em>.find(...)</tt>
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+.
 
 <ruby>
-@open_orders = @customer.orders.find(:all, :conditions => "open = 1")
+@open_orders = @customer.orders.all(:conditions => "open = 1")
 </ruby>
 
 NOTE: Starting Rails 3, supplying options to +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
@@ -1564,7 +1564,7 @@ h6(#has_and_belongs_to_many-collection-find). <tt><em>collection</em>.find(...)<
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+. It also adds the additional condition that the object must be in the collection.
 
 <ruby>
-@new_assemblies = @part.assemblies.find(:all,
+@new_assemblies = @part.assemblies.all(
   :conditions => ["created_at > ?", 2.days.ago])
 </ruby>
 

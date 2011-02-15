@@ -176,7 +176,7 @@ module ActiveRecord
 
             join_part = join_parts.detect { |j|
               j.reflection.name.to_s == name &&
-                j.parent_table_name    == parent.class.table_name }
+                j.parent_table_name == parent.class.table_name }
 
               raise(ConfigurationError, "No such association") unless join_part
 
@@ -201,7 +201,7 @@ module ActiveRecord
 
           macro = join_part.reflection.macro
           if macro == :has_one
-            return if record.instance_variable_defined?("@#{join_part.reflection.name}")
+            return if record.association_cache.key?(join_part.reflection.name)
             association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
             set_target_and_inverse(join_part, association, record)
           else
@@ -210,9 +210,9 @@ module ActiveRecord
             case macro
             when :has_many, :has_and_belongs_to_many
               collection = record.send(join_part.reflection.name)
-              collection.loaded
+              collection.loaded!
               collection.target.push(association)
-              collection.__send__(:set_inverse_instance, association, record)
+              collection.send(:set_inverse_instance, association)
             when :belongs_to
               set_target_and_inverse(join_part, association, record)
             else
@@ -223,8 +223,9 @@ module ActiveRecord
         end
 
         def set_target_and_inverse(join_part, association, record)
-          association_proxy = record.send("set_#{join_part.reflection.name}_target", association)
-          association_proxy.__send__(:set_inverse_instance, association, record)
+          association_proxy = record.send(:association_proxy, join_part.reflection.name)
+          association_proxy.target = association
+          association_proxy.send(:set_inverse_instance, association)
         end
       end
     end

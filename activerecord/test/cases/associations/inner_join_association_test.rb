@@ -4,6 +4,7 @@ require 'models/comment'
 require 'models/author'
 require 'models/category'
 require 'models/categorization'
+require 'models/person'
 require 'models/tagging'
 require 'models/tag'
 
@@ -14,6 +15,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).to_a
     assert_equal authors(:david), result.first
+  end
+
+  def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
+    assert_nothing_raised do
+      sql = Person.joins(:agents => {:agents => :agents}).joins(:agents => {:agents => {:primary_contact => :agents}}).to_sql
+      assert_match(/agents_people_4/i, sql)
+    end
   end
 
   def test_construct_finder_sql_ignores_empty_joins_hash

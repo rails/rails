@@ -33,8 +33,9 @@ module ActiveRecord
         when BigDecimal then value.to_s('F')
         when Numeric    then value.to_s
         when Date, Time then "'#{quoted_date(value)}'"
+        when Symbol     then "'#{quote_string(value.to_s)}'"
         else
-          "'#{quote_string(value.to_s)}'"
+          "'#{quote_string(value.to_yaml)}'"
         end
       end
 

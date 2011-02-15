@@ -10,7 +10,7 @@ So, in the process of _internationalizing_ your Rails application you have to:
 * Tell Rails where to find locale dictionaries
 * Tell Rails how to set, preserve and switch locale
 
-In the process of _localizing_ your application you'll probably want to do following three things:
+In the process of _localizing_ your application you'll probably want to do the following three things:
 
 * Replace or supplement Rails' default locale -- e.g. date and time formats, month names, Active Record model names, etc
 * Abstract strings in your application into keyed dictionaries -- e.g. flash messages, static text in your views, etc.
@@ -305,12 +305,12 @@ end
 # app/controllers/home_controller.rb
 class HomeController < ApplicationController
   def index
-    flash[:notice] = "Hello flash!"
+    flash[:notice] = "Hello Flash"
   end
 end
 
 # app/views/home/index.html.erb
-<h1>Hello world!</h1>
+<h1>Hello World</h1>
 <p><%= flash[:notice] %></p>
 </ruby>
 
@@ -344,8 +344,8 @@ So let's add the missing translations into the dictionary files (i.e. do the "lo
 <ruby>
 # config/locales/en.yml
 en:
-  hello_world: Hello World
-  hello_flash: Hello Flash
+  hello_world: Hello world!
+  hello_flash: Hello flash!
 
 # config/locales/pirate.yml
 pirate:
@@ -586,7 +586,7 @@ I18n.t :foo
 I18n.l Time.now
 </ruby>
 
-Explicitely passing a locale:
+Explicitly passing a locale:
 
 <ruby>
 I18n.t :foo, :locale => :de
@@ -623,7 +623,7 @@ pt:
     bar: baz
 </ruby>
 
-As you see, in both cases the toplevel key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
+As you see, in both cases the top level key is the locale. +:foo+ is a namespace key and +:bar+ is the key for the translation "baz".
 
 Here is a "real" example from the Active Support +en.yml+ translations YAML file:
 
@@ -713,12 +713,12 @@ end
 Then Active Record will look for messages in this order:
 
 <ruby>
-activerecord.errors.models.admin.attributes.title.blank
+activerecord.errors.models.admin.attributes.name.blank
 activerecord.errors.models.admin.blank
-activerecord.errors.models.user.attributes.title.blank
+activerecord.errors.models.user.attributes.name.blank
 activerecord.errors.models.user.blank
 activerecord.errors.messages.blank
-errors.attributes.title.blank
+errors.attributes.name.blank
 errors.messages.blank
 </ruby>
 
@@ -852,7 +852,7 @@ h3. Conclusion
 
 At this point you should have a good overview about how I18n support in Ruby on Rails works and are ready to start translating your project.
 
-If you find anything missing or wrong in this guide please file a ticket on "our issue tracker":http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview. If you want to discuss certain portions or have questions please sign up to our "mailinglist":http://groups.google.com/group/rails-i18n.
+If you find anything missing or wrong in this guide, please file a ticket on our "issue tracker":http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview. If you want to discuss certain portions or have questions, please sign up to our "mailing list":http://groups.google.com/group/rails-i18n.
 
 
 h3. Contributing to Rails I18n
@@ -867,10 +867,10 @@ If you find your own locale (language) missing from our "example translations da
 h3. Resources
 
 * "rails-i18n.org":http://rails-i18n.org - Homepage of the rails-i18n project. You can find lots of useful resources on the "wiki":http://rails-i18n.org/wiki.
-* "rails-i18n Google group":http://groups.google.com/group/rails-i18n - The project's mailing list.
+* "Google group: rails-i18n":http://groups.google.com/group/rails-i18n - The project's mailing list.
 * "Github: rails-i18n":http://github.com/svenfuchs/rails-i18n/tree/master - Code repository for the rails-i18n project. Most importantly you can find lots of "example translations":http://github.com/svenfuchs/rails-i18n/tree/master/rails/locale for Rails that should work for your application in most cases.
-* "Lighthouse: rails-i18n":http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview - Issue tracker for the rails-i18n project.
 * "Github: i18n":http://github.com/svenfuchs/i18n/tree/master - Code repository for the i18n gem.
+* "Lighthouse: rails-i18n":http://i18n.lighthouseapp.com/projects/14948-rails-i18n/overview - Issue tracker for the rails-i18n project.
 * "Lighthouse: i18n":http://i18n.lighthouseapp.com/projects/14947-ruby-i18n/overview - Issue tracker for the i18n gem.
 
 
@@ -879,7 +879,7 @@ h3. Authors
 * "Sven Fuchs":http://www.workingwithrails.com/person/9963-sven-fuchs (initial author)
 * "Karel Minařík":http://www.workingwithrails.com/person/7476-karel-mina-k
 
-If you found this guide useful please consider recommending its authors on "workingwithrails":http://www.workingwithrails.com.
+If you found this guide useful, please consider recommending its authors on "workingwithrails":http://www.workingwithrails.com.
 
 
 h3. Footnotes

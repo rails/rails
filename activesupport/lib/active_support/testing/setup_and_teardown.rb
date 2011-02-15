@@ -31,14 +31,14 @@ module ActiveSupport
         def run(runner)
           result = '.'
           begin
-            _run_setup_callbacks do
+            run_callbacks :setup do
               result = super
             end
           rescue Exception => e
             result = runner.puke(self.class, method_name, e)
           ensure
             begin
-              _run_teardown_callbacks
+              run_callbacks :teardown
             rescue Exception => e
               result = runner.puke(self.class, method_name, e)
             end
@@ -62,7 +62,7 @@ module ActiveSupport
 
           begin
             begin
-              _run_setup_callbacks do
+              run_callbacks :setup do
                 setup
                 __send__(@method_name)
                 mocha_verify(mocha_counter) if mocha_counter
@@ -77,7 +77,7 @@ module ActiveSupport
             ensure
               begin
                 teardown
-                _run_teardown_callbacks
+                run_callbacks :teardown
               rescue Test::Unit::AssertionFailedError => e
                 add_failure(e.message, e.backtrace)
               rescue Exception => e

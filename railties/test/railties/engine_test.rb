@@ -306,6 +306,34 @@ module RailtiesTest
       assert_equal File.read(File.join(app_path, "public/bukkits/file_from_app.html")), last_response.body
     end
 
+    test "an applications files are given priority over an engines files when served via ActionDispatch::Static" do
+      add_to_config "config.serve_static_assets = true"
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            engine_name :bukkits
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
+      @plugin.write "public/bukkits.html", "in engine"
+
+      app_file "public/bukkits/bukkits.html", "in app"
+
+      boot_rails
+
+      get('/bukkits/bukkits.html')
+
+      assert_equal 'in app', last_response.body.strip
+    end
+
     test "shared engine should include application's helpers and own helpers" do
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do

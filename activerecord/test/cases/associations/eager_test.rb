@@ -21,12 +21,13 @@ require 'models/member'
 require 'models/membership'
 require 'models/club'
 require 'models/categorization'
+require 'models/sponsor'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects, :members, :memberships, :clubs
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
 
   def setup
     # preheat table existence caches
@@ -208,6 +209,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = assert_queries(1) { Post.find(post.id, :include => {:author_with_address => :author_address}) } # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
       assert_equal nil, post.author_with_address
+    end
+  end
+
+  def test_finding_with_includes_on_null_belongs_to_polymorphic_association
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    sponsor.update_attributes!(:sponsorable => nil)
+    sponsor = assert_queries(1) { Sponsor.find(sponsor.id, :include => :sponsorable) }
+    assert_no_queries do
+      assert_equal nil, sponsor.sponsorable
     end
   end
 
@@ -659,7 +669,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preload_with_interpolation
-    assert_equal [comments(:greetings)], Post.find(posts(:welcome).id, :include => :comments_with_interpolated_conditions).comments_with_interpolated_conditions
+    post = Post.includes(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+
+    post = Post.joins(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
   end
 
   def test_polymorphic_type_condition
@@ -845,6 +859,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_join_model_preloads
+    Author.columns
+
     authors = assert_queries(2) do
       Author.find(:all, :include => :author_address, :joins => :comments, :conditions => "posts.title like 'Welcome%'")
     end
@@ -890,31 +906,55 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preload_has_one_using_primary_key
-    expected = Firm.find(:first).account_using_primary_key
-    firm = Firm.find :first, :include => :account_using_primary_key
+    expected = accounts(:signals37)
+    firm = Firm.find :first, :include => :account_using_primary_key, :order => 'companies.id'
     assert_no_queries do
       assert_equal expected, firm.account_using_primary_key
     end
   end
 
   def test_include_has_one_using_primary_key
-    expected = Firm.find(1).account_using_primary_key
+    expected = accounts(:signals37)
     firm = Firm.find(:all, :include => :account_using_primary_key, :order => 'accounts.id').detect {|f| f.id == 1}
     assert_no_queries do
       assert_equal expected, firm.account_using_primary_key
     end
   end
 
-  def test_preloading_empty_polymorphic_parent
+  def test_preloading_empty_belongs_to
+    c = Client.create!(:name => 'Foo', :client_of => Company.maximum(:id) + 1)
+
+    client = assert_queries(2) { Client.preload(:firm).find(c.id) }
+    assert_no_queries { assert_nil client.firm }
+  end
+
+  def test_preloading_empty_belongs_to_polymorphic
     t = Tagging.create!(:taggable_type => 'Post', :taggable_id => Post.maximum(:id) + 1, :tag => tags(:general))
 
-    assert_queries(2) { @tagging = Tagging.preload(:taggable).find(t.id) }
-    assert_no_queries { assert ! @tagging.taggable }
+    tagging = assert_queries(1) { Tagging.preload(:taggable).find(t.id) }
+    assert_no_queries { assert_nil tagging.taggable }
+  end
+
+  def test_preloading_through_empty_belongs_to
+    c = Client.create!(:name => 'Foo', :client_of => Company.maximum(:id) + 1)
+
+    client = assert_queries(2) { Client.preload(:accounts).find(c.id) }
+    assert_no_queries { assert client.accounts.empty? }
   end
 
   def test_preloading_has_many_through_with_uniq
     mary = Author.includes(:unique_categorized_posts).where(:id => authors(:mary).id).first
     assert_equal 1, mary.unique_categorized_posts.length
     assert_equal 1, mary.unique_categorized_post_ids.length
+  end
+
+  def test_preloading_polymorphic_with_custom_foreign_type
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    groucho = members(:groucho)
+
+    sponsor = assert_queries(2) {
+      Sponsor.includes(:thing).where(:id => sponsor.id).first
+    }
+    assert_no_queries { assert_equal groucho, sponsor.thing }
   end
 end

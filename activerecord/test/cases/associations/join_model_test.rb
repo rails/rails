@@ -13,7 +13,8 @@ require 'models/book'
 require 'models/citation'
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_fixtures = false unless supports_savepoints?
+
   fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
     # Reload edges table from fixtures as otherwise repeated test was failing
     :edges
@@ -81,13 +82,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection_with_find
     assert_equal tags(:general), tag = posts(:welcome).funky_tags.find(:first)
     assert_no_queries do
-      tag.tagging
-    end
-  end
-
-  def test_polymorphic_has_many_going_through_join_model_with_disabled_include
-    assert_equal tags(:general), tag = posts(:welcome).tags.add_joins_and_select.first
-    assert_queries 1 do
       tag.tagging
     end
   end
@@ -340,11 +334,16 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_polymorphic
-    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicError do
-      assert_equal posts(:welcome, :thinking), tags(:general).taggables
+    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicSourceError do
+      tags(:general).taggables
     end
+
+    assert_raise ActiveRecord::HasManyThroughAssociationPolymorphicThroughError do
+      taggings(:welcome_general).things
+    end
+
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      assert_equal posts(:welcome, :thinking), tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
+      tags(:general).taggings.find(:all, :include => :taggable, :conditions => 'bogus_table.column = 1')
     end
   end
 
@@ -512,6 +511,10 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
   end
 
+  def test_add_to_join_table_with_no_id
+    assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
+  end
+
   def test_has_many_through_collection_size_doesnt_load_target_if_not_loaded
     author = authors(:david)
     assert_equal 10, author.comments.size
@@ -520,7 +523,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_through_collection_size_uses_counter_cache_if_it_exists
     author = authors(:david)
-    author.stubs(:read_attribute).with('comments_count').returns(100)
+    author.stubs(:_read_attribute).with('comments_count').returns(100)
     assert_equal 100, author.comments.size
     assert !author.comments.loaded?
   end

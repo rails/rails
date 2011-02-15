@@ -274,7 +274,7 @@ module Rails
         # Use Rails default banner.
         #
         def self.banner
-          "rails generate #{generator_name} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]"
+          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]".gsub(/\s+/, ' ')
         end
 
         # Sets the base_name taking into account the current class namespace.

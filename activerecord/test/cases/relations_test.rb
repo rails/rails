@@ -27,6 +27,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal van.id, Minivan.where(:minivan_id => van).to_a.first.minivan_id
   end
 
+  def test_do_not_double_quote_string_id_with_array
+    van = Minivan.last
+    assert van
+    assert_equal van, Minivan.where(:minivan_id => [van]).to_a.first
+  end
+
   def test_bind_values
     relation = Post.scoped
     assert_equal [], relation.bind_values
@@ -539,17 +545,17 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging
-    devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
+    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order('id ASC').where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*')
+    dev_with_count = Developer.limit(1).merge(Developer.order('id DESC')).merge(Developer.select('developers.*'))
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
   def test_relation_merging_with_eager_load
     relations = []
-    relations << (Post.order('comments.id DESC') & Post.eager_load(:last_comment) & Post.scoped)
-    relations << (Post.eager_load(:last_comment) & Post.order('comments.id DESC') & Post.scoped)
+    relations << Post.order('comments.id DESC').merge(Post.eager_load(:last_comment)).merge(Post.scoped)
+    relations << Post.eager_load(:last_comment).merge(Post.order('comments.id DESC')).merge(Post.scoped)
 
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
@@ -558,20 +564,20 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_locks
-    devs = Developer.lock.where("salary >= 80000").order("id DESC") & Developer.limit(2)
+    devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
     assert_present devs.locked
   end
 
   def test_relation_merging_with_preload
     ActiveRecord::IdentityMap.without do
-    [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
-      assert_queries(2) { assert posts.first.author }
-    end
+      [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
+        assert_queries(2) { assert posts.first.author }
+      end
     end
   end
 
   def test_relation_merging_with_joins
-    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome') & Post.where(:body => 'Such a lovely day')
+    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
     assert_equal 1, comments.count
   end
 
@@ -635,6 +641,14 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_any
     posts = Post.scoped
+
+    # This test was failing when run on its own (as opposed to running the entire suite).
+    # The second line in the assert_queries block was causing visit_Arel_Attributes_Attribute
+    # in Arel::Visitors::ToSql to trigger a SHOW TABLES query. Running that line here causes
+    # the SHOW TABLES result to be cached so we don't have to do it again in the block.
+    #
+    # This is obviously a rubbish fix but it's the best I can come up with for now...
+    posts.where(:id => nil).any?
 
     assert_queries(3) do
       assert posts.any? # Uses COUNT()
@@ -793,5 +807,13 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal [rails_author], [rails_author] & relation
     assert_equal [rails_author], relation & [rails_author]
+  end
+
+  def test_removing_limit_with_options
+    assert_not_equal 1, Post.limit(1).all(:limit => nil).count
+  end
+
+  def test_primary_key
+    assert_equal "id", Post.scoped.primary_key
   end
 end

@@ -128,7 +128,7 @@ module ActiveRecord
 
     def create_with(value)
       relation = clone
-      relation.create_with_value = value
+      relation.create_with_value = value && (@create_with_value || {}).merge(value)
       relation
     end
 
@@ -152,7 +152,7 @@ module ActiveRecord
       order_clause = arel.order_clauses
 
       order = order_clause.empty? ?
-        "#{@klass.table_name}.#{@klass.primary_key} DESC" :
+        "#{table_name}.#{primary_key} DESC" :
         reverse_sql_order(order_clause).join(', ')
 
       except(:order).order(Arel.sql(order))
@@ -171,7 +171,7 @@ module ActiveRecord
 
       arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
-      arel.take(@limit_value) if @limit_value
+      arel.take(connection.sanitize_limit(@limit_value)) if @limit_value
       arel.skip(@offset_value) if @offset_value
 
       arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?

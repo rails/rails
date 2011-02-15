@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 
 class TestJSONEncoding < Test::Unit::TestCase
@@ -214,6 +215,36 @@ class TestJSONEncoding < Test::Unit::TestCase
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
 
+  def test_struct_encoding
+    Struct.new('UserNameAndEmail', :name, :email)
+    Struct.new('UserNameAndDate', :name, :date)
+    Struct.new('Custom', :name, :sub)
+    user_email = Struct::UserNameAndEmail.new 'David', 'sample@example.com'
+    user_birthday = Struct::UserNameAndDate.new 'David', Date.new(2010, 01, 01)
+    custom = Struct::Custom.new 'David', user_birthday
+
+
+    json_strings = ""
+    json_string_and_date = ""
+    json_custom = ""
+
+    assert_nothing_raised do
+      json_strings = user_email.to_json
+      json_string_and_date = user_birthday.to_json
+      json_custom = custom.to_json
+    end
+
+    assert_equal({"name" => "David",
+                  "sub" => {
+                    "name" => "David",
+                    "date" => "2010/01/01" }}, JSON.parse(json_custom))
+
+    assert_equal({"name" => "David", "email" => "sample@example.com"},
+                 JSON.parse(json_strings))
+
+    assert_equal({"name" => "David", "date" => "2010/01/01"},
+                 JSON.parse(json_string_and_date))
+  end
 
   protected
 

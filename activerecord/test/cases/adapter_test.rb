@@ -141,16 +141,4 @@ class AdapterTest < ActiveRecord::TestCase
       end
     end
   end
-
-  def test_add_limit_offset_should_sanitize_sql_injection_for_limit_without_comas
-    sql_inject = "1 select * from schema"
-    assert_no_match(/schema/, @connection.add_limit_offset!("", :limit=>sql_inject))
-    assert_no_match(/schema/, @connection.add_limit_offset!("", :limit=>sql_inject, :offset=>7))
-  end
-
-  def test_add_limit_offset_should_sanitize_sql_injection_for_limit_with_comas
-    sql_inject = "1, 7 procedure help()"
-    assert_no_match(/procedure/, @connection.add_limit_offset!("", :limit=>sql_inject))
-    assert_no_match(/procedure/, @connection.add_limit_offset!("", :limit=>sql_inject, :offset=>7))
-  end
 end

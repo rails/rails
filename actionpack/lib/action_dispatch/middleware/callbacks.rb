@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActionDispatch
   # Provide callbacks to be executed before and after the request dispatch.
   class Callbacks
@@ -5,10 +7,8 @@ module ActionDispatch
 
     define_callbacks :call, :rescuable => true
 
-    def self.to_prepare(*args, &block)
-      ActiveSupport::Deprecation.warn "ActionDispatch::Callbacks.to_prepare is deprecated. " <<
-        "Please use ActionDispatch::Reloader.to_prepare instead."
-      ActionDispatch::Reloader.to_prepare(*args, &block)
+    class << self
+      delegate :to_prepare, :to_cleanup, :to => "ActionDispatch::Reloader"
     end
 
     def self.before(*args, &block)
@@ -25,7 +25,7 @@ module ActionDispatch
     end
 
     def call(env)
-      _run_call_callbacks do
+      run_callbacks :call do
         @app.call(env)
       end
     end

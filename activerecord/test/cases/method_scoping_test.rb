@@ -14,7 +14,7 @@ class MethodScopingTest < ActiveRecord::TestCase
 
   def test_set_conditions
     Developer.send(:with_scope, :find => { :conditions => 'just a test...' }) do
-      assert_equal '(just a test...)', Developer.scoped.arel.send(:where_clauses).join(' AND ')
+      assert_match '(just a test...)', Developer.scoped.arel.to_sql
     end
   end
 
@@ -227,7 +227,7 @@ class MethodScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_create_with_join_and_merge
-    (Comment.where(:body => "but Who's Buying?").joins(:post) & Post.where(:body => 'Peace Sells...')).with_scope do
+    Comment.where(:body => "but Who's Buying?").joins(:post).merge(Post.where(:body => 'Peace Sells...')).with_scope do
       assert_equal({:body => "but Who's Buying?"}, Comment.scoped.scope_for_create)
     end
   end
@@ -275,7 +275,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
       Developer.send(:with_scope, :find => { :limit => 10 }) do
         devs = Developer.scoped
-        assert_equal '(salary = 80000)', devs.arel.send(:where_clauses).join(' AND ')
+        assert_match '(salary = 80000)', devs.arel.to_sql
         assert_equal 10, devs.taken
       end
     end
@@ -309,7 +309,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
       Developer.send(:with_scope, :find => { :conditions => 'salary = 80000' }) do
         devs = Developer.scoped
-        assert_equal "(name = 'David') AND (salary = 80000)", devs.arel.send(:where_clauses).join(' AND ')
+        assert_match "(name = 'David') AND (salary = 80000)", devs.arel.to_sql
         assert_equal(1, Developer.count)
       end
       Developer.send(:with_scope, :find => { :conditions => "name = 'Maiha'" }) do
@@ -322,7 +322,7 @@ class NestedScopingTest < ActiveRecord::TestCase
     Developer.send(:with_scope, :find => { :conditions => 'salary = 80000', :limit => 10 }) do
       Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
         devs = Developer.scoped
-        assert_equal "(salary = 80000) AND (name = 'David')", devs.arel.send(:where_clauses).join(' AND ')
+        assert_match "(salary = 80000) AND (name = 'David')", devs.arel.to_sql
         assert_equal 10, devs.taken
       end
     end

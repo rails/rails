@@ -81,7 +81,9 @@ module ActiveRecord
         @changed_attributes.update(coder['attributes'].slice(*dirty))
         @changed_attributes.delete_if{|k,v| v.eql? @attributes[k]}
 
-        _run_find_callbacks
+        set_serialized_attributes
+
+        run_callbacks :find
 
         self
       end

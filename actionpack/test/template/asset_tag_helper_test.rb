@@ -54,6 +54,9 @@ class AssetTagHelperTest < ActionView::TestCase
   def teardown
     config.perform_caching = false
     ENV.delete('RAILS_ASSET_ID')
+
+    JavascriptIncludeTag.expansions.clear
+    StylesheetIncludeTag.expansions.clear
   end
 
   AutoDiscoveryToTag = {
@@ -92,6 +95,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(javascript_include_tag(:all)) => %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/version.1.0.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>),
     %(javascript_include_tag(:all, :recursive => true)) => %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/subdir/subdir.js" type="text/javascript"></script>\n<script src="/javascripts/version.1.0.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>),
     %(javascript_include_tag(:defaults, "bank")) => %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>),
+    %(javascript_include_tag(:defaults, "application")) => %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>),
     %(javascript_include_tag("bank", :defaults)) => %(<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>),
 
     %(javascript_include_tag("http://example.com/all")) => %(<script src="http://example.com/all" type="text/javascript"></script>),
@@ -262,15 +266,53 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>), javascript_include_tag('controls', :robbery, 'effects')
   end
 
+  def test_custom_javascript_expansions_return_unique_set
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :defaults => %w(prototype effects dragdrop controls rails application)
+    assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults)
+  end
+
   def test_custom_javascript_expansions_and_defaults_puts_application_js_at_the_end
     ENV["RAILS_ASSET_ID"] = ""
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :robbery => ["bank", "robber"]
-    assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag('controls',:defaults, :robbery, 'effects')
+    assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag('controls',:defaults, :robbery, 'effects')
+  end
+
+  def test_javascript_include_tag_should_not_output_the_same_asset_twice
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag('prototype', 'effects', :defaults)
+  end
+
+  def test_javascript_include_tag_should_not_output_the_same_expansion_twice
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_dom_equal  %(<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag(:defaults, :defaults)
+  end
+
+  def test_single_javascript_asset_keys_should_take_precedence_over_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag('controls', :defaults, 'effects')
+    assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>\n<script src="/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/javascripts/rails.js" type="text/javascript"></script>\n<script src="/javascripts/application.js" type="text/javascript"></script>), javascript_include_tag('controls', 'effects', :defaults)
+  end
+
+  def test_registering_javascript_expansions_merges_with_existing_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['bank']
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['robber']
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :can_merge => ['bank']
+    assert_dom_equal  %(<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>), javascript_include_tag(:can_merge)
   end
 
   def test_custom_javascript_expansions_with_undefined_symbol
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => nil
     assert_raise(ArgumentError) { javascript_include_tag('first', :monkey, 'last') }
+  end
+
+  def test_custom_javascript_and_stylesheet_expansion_with_same_name
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :robbery => ["bank", "robber"]
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :robbery => ["money", "security"]
+    assert_dom_equal  %(<script src="/javascripts/controls.js" type="text/javascript"></script>\n<script src="/javascripts/bank.js" type="text/javascript"></script>\n<script src="/javascripts/robber.js" type="text/javascript"></script>\n<script src="/javascripts/effects.js" type="text/javascript"></script>), javascript_include_tag('controls', :robbery, 'effects')
+    assert_dom_equal  %(<link href="/stylesheets/style.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/money.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/security.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/print.css" rel="stylesheet" type="text/css" media="screen" />), stylesheet_link_tag('style', :robbery, 'print')
   end
 
   def test_reset_javascript_expansions
@@ -314,9 +356,40 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal  %(<link href="/stylesheets/version.1.0.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag('version.1.0', :robbery, 'subdir/subdir')
   end
 
+  def test_custom_stylesheet_expansions_return_unique_set
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :cities => %w(wellington amsterdam london)
+    assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/london.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag(:cities)
+  end
+
+  def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
+    ENV["RAILS_ASSET_ID"] = ""
+    assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag('wellington', 'wellington', 'amsterdam')
+  end
+
+  def test_stylesheet_link_tag_should_not_output_the_same_expansion_twice
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :cities => %w(wellington amsterdam london)
+    assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/london.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag(:cities, :cities)
+  end
+
+  def test_single_stylesheet_asset_keys_should_take_precedence_over_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :cities => %w(wellington amsterdam london)
+    assert_dom_equal  %(<link href="/stylesheets/london.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag('london', :cities)
+  end
+
   def test_custom_stylesheet_expansions_with_undefined_symbol
     ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :monkey => nil
     assert_raise(ArgumentError) { stylesheet_link_tag('first', :monkey, 'last') }
+  end
+
+  def test_registering_stylesheet_expansions_merges_with_existing_expansions
+    ENV["RAILS_ASSET_ID"] = ""
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['bank']
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['robber']
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :can_merge => ['bank']
+    assert_dom_equal  %(<link href="/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />), stylesheet_link_tag(:can_merge)
   end
 
   def test_image_path

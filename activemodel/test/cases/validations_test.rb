@@ -254,6 +254,24 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 10, Topic.validators_on(:title).first.options[:minimum]
   end
 
+  def test_list_of_validators_on_multiple_attributes
+    Topic.validates :title, :length => { :minimum => 10 }
+    Topic.validates :author_name, :presence => true, :format => /a/
+
+    validators = Topic.validators_on(:title, :author_name)
+
+    assert_equal [
+      ActiveModel::Validations::FormatValidator,
+      ActiveModel::Validations::LengthValidator,
+      ActiveModel::Validations::PresenceValidator
+    ], validators.map { |v| v.class }.sort_by { |c| c.to_s }
+  end
+
+  def test_list_of_validators_will_be_empty_when_empty
+    Topic.validates :title, :length => { :minimum => 10 }
+    assert_equal [], Topic.validators_on(:author_name)
+  end
+
   def test_validations_on_the_instance_level
     auto = Automobile.new
 

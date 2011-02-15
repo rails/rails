@@ -83,7 +83,7 @@ HEADER
 
           # first dump primary key column
           if @connection.respond_to?(:pk_and_sequence_for)
-            pk, pk_seq = @connection.pk_and_sequence_for(table)
+            pk, _ = @connection.pk_and_sequence_for(table)
           elsif @connection.respond_to?(:primary_key)
             pk = @connection.primary_key(table)
           end

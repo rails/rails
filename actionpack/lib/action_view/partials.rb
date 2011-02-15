@@ -12,19 +12,19 @@ module ActionView
   #
   #  <%= render :partial => "account" %>
   #
-  # This would render "advertiser/_account.erb" and pass the instance variable @account in as a local variable
+  # This would render "advertiser/_account.html.erb" and pass the instance variable @account in as a local variable
   # +account+ to the template for display.
   #
   # In another template for Advertiser#buy, we could have:
   #
   #   <%= render :partial => "account", :locals => { :account => @buyer } %>
   #
-  #   <% for ad in @advertisements %>
+  #   <% @advertisements.each do |ad| %>
   #     <%= render :partial => "ad", :locals => { :ad => ad } %>
   #   <% end %>
   #
-  # This would first render "advertiser/_account.erb" with @buyer passed in as the local variable +account+, then
-  # render "advertiser/_ad.erb" and pass the local variable +ad+ to the template for display.
+  # This would first render "advertiser/_account.html.erb" with @buyer passed in as the local variable +account+, then
+  # render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display.
   #
   # == The :as and :object options
   #
@@ -40,16 +40,16 @@ module ActionView
   # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
   # wanted it to be +agreement+ instead of +contract+ we'd do:
   #
-  #   <%= render :partial => "contract", :as => :agreement %>
+  #   <%= render :partial => "contract", :as => 'agreement' %>
   #
   # The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial;
   # useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
-  # 
+  #
   # Revisiting a previous example we could have written this code:
-  # 
+  #
   #   <%= render :partial => "account", :object => @buyer %>
   #
-  #   <% for ad in @advertisements %>
+  #   <% @advertisements.each do |ad| %>
   #     <%= render :partial => "ad", :object => ad %>
   #   <% end %>
   #
@@ -64,12 +64,12 @@ module ActionView
   #
   #   <%= render :partial => "ad", :collection => @advertisements %>
   #
-  # This will render "advertiser/_ad.erb" and pass the local variable +ad+ to the template for display. An
+  # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
   # iteration counter will automatically be made available to the template with a name of the form
   # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
   #
   # The <tt>:as</tt> option may be used when rendering partials.
-  # 
+  #
   # You can specify a partial to be rendered between elements via the <tt>:spacer_template</tt> option.
   # The following example will render <tt>advertiser/_ad_divider.html.erb</tt> between each ad partial:
   #
@@ -89,7 +89,7 @@ module ActionView
   #
   #   <%= render :partial => "advertisement/ad", :locals => { :ad => @advertisement } %>
   #
-  # This will render the partial "advertisement/_ad.erb" regardless of which controller this is being called from.
+  # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
   #
   # == Rendering objects with the RecordIdentifier
   #

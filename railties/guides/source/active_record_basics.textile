@@ -180,7 +180,7 @@ Active Record provides a rich API for accessing data within a database. Below ar
 
 <ruby>
   # find all users named David who are Code Artists and sort by created_at in reverse chronological order
-  users = User.all(:conditions => { :name => 'David', :occupation => 'Code Artist'}, :order => 'created_at DESC')
+  users = User.where(:name => 'David', :occupation => 'Code Artist').order('created_at DESC')
 </ruby>
 
 You can learn more about querying an Active Record model in the "Active Record Query Interface":"active_record_querying.html" guide.

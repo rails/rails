@@ -152,7 +152,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     Developer.where('salary = 80000').scoping do
       Developer.limit(10).scoping do
         devs = Developer.scoped
-        assert_equal '(salary = 80000)', devs.arel.send(:where_clauses).join(' AND ')
+        assert_match '(salary = 80000)', devs.arel.to_sql
         assert_equal 10, devs.taken
       end
     end
@@ -259,7 +259,8 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 
   def test_should_default_scope_on_associations_is_overriden_by_association_conditions
-    assert_equal [], people(:michael).fixed_bad_references
+    reference = references(:michael_unicyclist).becomes(BadReference)
+    assert_equal [reference], people(:michael).fixed_bad_references
   end
 
   def test_should_maintain_default_scope_on_eager_loaded_associations
@@ -484,5 +485,22 @@ class DefaultScopingTest < ActiveRecord::TestCase
     posts_limit_offset = Post.limit(3).offset(2)
     posts_offset_limit = Post.offset(2).limit(3)
     assert_equal posts_limit_offset, posts_offset_limit
+  end
+
+  def test_create_with_merge
+    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).merge(
+              PoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+
+    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).
+                                     create_with(:name => 'Aaron').new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_create_with_reset
+    jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with(nil).new
+    assert_equal 'Jamis', jamis.name
   end
 end

@@ -82,6 +82,10 @@ module ActiveRecord
     autoload :IdentityMap
   end
 
+  module Coders
+    autoload :YAMLColumn, 'active_record/coders/yaml_column'
+  end
+
   module AttributeMethods
     extend ActiveSupport::Autoload
 

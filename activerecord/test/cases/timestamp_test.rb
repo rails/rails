@@ -140,4 +140,34 @@ class TimestampTest < ActiveRecord::TestCase
   ensure
     Toy.belongs_to :pet
   end
+
+  def test_timestamp_attributes_for_create
+    toy = Toy.first
+    assert_equal toy.send(:timestamp_attributes_for_create), [:created_at, :created_on]
+  end
+
+  def test_timestamp_attributes_for_update
+    toy = Toy.first
+    assert_equal toy.send(:timestamp_attributes_for_update), [:updated_at, :updated_on]
+  end
+
+  def test_all_timestamp_attributes
+    toy = Toy.first
+    assert_equal toy.send(:all_timestamp_attributes), [:created_at, :created_on, :updated_at, :updated_on]
+  end
+
+  def test_timestamp_attributes_for_create_in_model
+    toy = Toy.first
+    assert_equal toy.send(:timestamp_attributes_for_create_in_model), [:created_at]
+  end
+
+  def test_timestamp_attributes_for_update_in_model
+    toy = Toy.first
+    assert_equal toy.send(:timestamp_attributes_for_update_in_model), [:updated_at]
+  end
+
+  def test_all_timestamp_attributes_in_model
+    toy = Toy.first
+    assert_equal toy.send(:all_timestamp_attributes_in_model), [:created_at, :updated_at]
+  end
 end

@@ -1,0 +1,370 @@
+h2. Contributing to Ruby on Rails
+
+This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails. After reading it, you should be familiar with:
+
+* Using Lighthouse to report issues
+* Cloning master and running the test suite
+* Helping to resolve existing issues
+* Contributing to the Ruby on Rails documentation
+* Contributing to the Ruby on Rails code
+
+Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation. All with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+
+endprologue.
+
+h3. Reporting an Issue
+
+Ruby on Rails uses a "Lighthouse project":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/ to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) Lighthouse account in order to comment on issues or to upload patches.
+
+NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide you'll find out how to get edge Rails for testing.
+
+h4. Creating a Bug Report
+
+If you've found a problem in Ruby on Rails which is not a security risk do a search in Lighthouse in case it was already reported. If you find no ticket addressing it you can "add a new one":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/new. (See the next section for reporting security issues.)
+
+At the minimum, your ticket needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need to at least post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
+
+You shouldn't assign the bug to a particular core developer unless you know for sure which developer will be handling that issue. The core team periodically reviews issues and assigns developers and milestones to them.
+
+You should set tags for your issue. Use the "bug" tag for a bug report, and add the "patch" tag if you are attaching a patch. Try to find some relevant tags from the existing tag list (which will appear as soon as you start typing in the "Choose some tags" textbox), rather than creating new tags.
+
+Then don't get your hopes up. Unless you have a "Code Red, Mission Critical, The World is Coming to an End" kind of bug, you're creating this ticket in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the ticket automatically will see any activity or that others will jump to fix it. Creating a ticket like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with a "I'm having this problem too" comment.
+
+h4. Special Treatment for Security Issues
+
+WARNING: Please do not report security vulnerabilities on public Lighthouse tickets. The "Rails security policy page":http://rubyonrails.org/security details the procedure to follow for security issues.
+
+h4. What About Feature Requests?
+
+Please don't put "feature request" tickets into Lighthouse. If there's a new feature that you want to see added to Ruby on Rails, you'll need to write the code yourself - or convince someone else to partner with you to write the code. Later in this guide you'll find detailed instructions for proposing a patch to Ruby on Rails. If you enter a wishlist item in Lighthouse with no code, you can expect it to be marked "invalid" as soon as it's reviewed.
+
+h3. Running the Test Suite
+
+To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide you'll learn how to set up the tests on your own computer.
+
+h4. Install git
+
+Ruby on Rails uses git for source code control. The "git homepage":http://git-scm.com/ has installation instructions. There are a variety of resources on the net that will help you get familiar with git:
+
+* "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by.
+* The "PeepCode screencast":https://peepcode.com/products/git on git ($9) is easier to follow.
+* "GitHub":http://github.com/guides/home offers links to a variety of git resources.
+* "Pro Git":http://progit.org/book/ is an entire book about git with a Creative Commons license.
+
+h4. Clone the Ruby on Rails Repository
+
+Navigate to the folder where you want the Ruby on Rails source code (it will create its own +rails+ subdirectory) and run:
+
+<shell>
+git clone git://github.com/rails/rails.git
+cd rails
+</shell>
+
+h4. Set up and Run the Tests
+
+The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
+
+Install first libxml2 and libxslt together with their development files for Nokogiri. In Ubuntu that's
+
+<shell>
+sudo apt-get install libxml2 libxml2-dev libxslt1-dev
+</shell>
+
+Also, SQLite3 and its development files for the +sqlite3-ruby+ gem, in Ubuntu you're done with
+
+<shell>
+sudo apt-get install sqlite3 libsqlite3-dev
+</shell>
+
+Get a recent version of "Bundler":http://gembundler.com/:
+
+<shell>
+gem install bundler
+</shell>
+
+and run:
+
+<shell>
+bundle install --without db
+</shell>
+
+This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back at these soon. With dependencies installed, you can run the test suite with:
+
+<shell>
+rake test
+</shell>
+
+You can also run tests for an specific framework, like Action Pack, by going into its directory and executing the same command:
+
+<shell>
+cd actionpack
+rake test
+</shell>
+
+h4. Warnings
+
+The test suite runs with warnings enabled. Ideally Ruby on Rails should issue no warning, but there may be a few, and also some from third-party libraries. Please ignore (or fix!) them if any, and submit patches that do not issue new warnings.
+
+As of this writing they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
+
+<shell>
+RUBYOPT=-W0 rake test
+</shell>
+
+h4. Testing Active Record
+
+The test suite of Active Record attempts to run four times, once for SQLite3, once for each of the two MySQL gems (+mysql+ and +mysql2+), and once for PostgreSQL. We are going to see now how to setup the environment for them.
+
+WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
+
+h5. SQLite3
+
+The gem +sqlite3-ruby+ does not belong to the "db" group indeed, if you followed the instructions above you're ready. This is how you run the Active Record test suite only for SQLite3:
+
+<shell>
+cd activerecord
+rake test_sqlite3
+</shell>
+
+h5. MySQL and PostgreSQL
+
+To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
+
+<shell>
+sudo apt-get install mysql-server libmysqlclient15-dev
+sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
+</shell>
+
+After that run:
+
+<shell>
+rm .bundle/config
+bundle install
+</shell>
+
+We need first to delete +.bundle/config+ because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
+
+In order to be able to run the test suite against MySQL you need to create a user named +rails+ with privileges on the test databases:
+
+<shell>
+mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
+       to 'rails'@'localhost';
+mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
+       to 'rails'@'localhost';
+</shell>
+
+and create the test databases:
+
+<shell>
+cd activerecord
+rake mysql:build_databases
+</shell>
+
+PostgreSQL's authentication works differently. A simple way to setup the development environment for example is to run with your development account
+
+<shell>
+sudo -u postgres createuser --superuser $USER
+</shell>
+
+and after that create the test databases with
+
+<shell>
+cd activerecord
+rake postgresql:build_databases
+</shell>
+
+NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
+
+If you’re using another database, check the files under +activerecord/test/connections+ for default connection information. You can edit these files if you _must_ on your machine to provide different credentials, but obviously you should not push any such changes back to Rails.
+
+You can now run tests as you did for +sqlite3+, the tasks are
+
+<shell>
+test_mysql
+test_mysql2
+test_postgresql
+</shell>
+
+respectively. As we mentioned before
+
+<shell>
+rake test
+</shell>
+
+will now run the four of them in turn.
+
+You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the continuous integration server runs.
+
+h4. Older versions of Ruby on Rails
+
+If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 2-3-stable branch:
+
+<shell>
+git branch --track 2-3-stable origin/2-3-stable
+git checkout 2-3-stable
+</shell>
+
+TIP: You may want to "put your git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
+
+h3. Helping to Resolve Existing Issues
+
+As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the "open tickets":https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets?q=state%3Aopen list in Lighthouse, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
+
+h4. Verifying Bug Reports
+
+For starters, it helps to just verify bug reports. Can you reproduce the reported issue on your own computer? If so, you can add a comment to the ticket saying that you're seeing the same thing.
+
+If something is very vague, can you help squish it down into something specific? Maybe you can provide additional information to help reproduce a bug, or eliminate needless steps that aren't required to help demonstrate the problem.
+
+If you find a bug report without a test, it's very useful to contribute a failing test. This is also a great way to get started exploring the source code: looking at the existing test files will teach you how to write more tests. New tests are best contributed in the form of a patch, as explained later on in the "Contributing to the Rails Code" section.
+
+Anything you can do to make bug reports more succinct or easier to reproduce is a help to folks trying to write code to fix those bugs - whether you end up writing the code yourself or not.
+
+h4. Testing Patches
+
+You can also help out by examining patches that have been submitted to Ruby on Rails via Lighthouse. To apply someone's changes you need to first create a dedicated branch:
+
+<shell>
+git checkout -b testing_branch
+</shell>
+
+Then you can apply their patch:
+
+<shell>
+git am their-patch-file.diff
+</shell>
+
+After applying a patch, test it out! Here are some things to think about:
+
+* Does the patch actually work?
+* Are you happy with the tests? Can you follow what they're testing? Are there any tests missing?
+* Does it have proper documentation coverage? Should documentation elsewhere be updated?
+* Do you like the implementation? Can you think of a nicer or faster way to implement a part of their change?
+
+Once you're happy that the patch contains a good change, comment on the Lighthouse ticket indicating your approval. Your comment should indicate that you like the change and what you like about it. Something like:
+
+<blockquote>
+I like the way you've restructured that code in generate_finder_sql, much nicer. The tests look good too.
+</blockquote>
+
+If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the patch. Once three people have approved it, add the "verified" tag. This will bring it to the attention of a core team member who will review the changes looking for the same kinds of things.
+
+h3. Contributing to the Rails Documentation
+
+Ruby on Rails has two main sets of documentation: The guides help you to learn Ruby on Rails, and the API is a reference.
+
+You can create a ticket in Lighthouse to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":http://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+
+When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
+
+NOTE: As explained above, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
+
+WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails.
+
+If you have an idea for a new guide you can refer to the "contribution page":contribute.html for instructions on getting involved.
+
+h3. Contributing to the Rails Code
+
+h4. Clone the Rails Repository
+
+The first thing you need to do to be able to contribute code is to clone the repository:
+
+<shell>
+git clone git://github.com/rails/rails.git
+</shell>
+
+and create a dedicated branch:
+
+<shell>
+cd rails
+git checkout -b my_new_branch
+</shell>
+
+It doesn’t really matter what name you use, because this branch will only exist on your local computer.
+
+h4. Write Your Code
+
+Now get busy and add or edit code. You’re on your branch now, so you can write whatever you want (you can check to make sure you’re on the right branch with +git branch -a+). But if you’re planning to submit your change back for inclusion in Rails, keep a few things in mind:
+
+* Get the code right
+* Use Rails idioms and helpers
+* Include tests that fail without your code, and pass with it
+* Update the documentation, the surrounding one, examples elsewhere, guides, whatever is affected by your contribution
+
+h4. Follow the Coding Conventions
+
+Rails follows a simple set of coding style conventions.
+
+* Two spaces, no tabs
+* Prefer +&amp;&amp;+/+||+ over +and+/+or+
+* +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+
+* Follow the conventions you see used in the source already
+
+h4. Sanity Check
+
+You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
+
+You might also want to check out the "RailsBridge BugMash":http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash as a way to get involved in a group effort to improve Rails. This can help you get started and help check your code when you're writing your first patches.
+
+h4. Commit Your Changes
+
+When you're happy with the code on your computer, you need to commit the changes to git:
+
+<shell>
+git commit -a -m "Here is a commit message"
+</shell>
+
+h4. Update master
+
+It’s pretty likely that other changes to master have happened while you were working. Go get them:
+
+<shell>
+git checkout master
+git pull
+</shell>
+
+Now reapply your patch on top of the latest changes:
+
+<shell>
+git checkout my_new_branch
+git rebase master
+</shell>
+
+No conflicts? Tests still pass? Change still seems reasonable to you? Then move on.
+
+h4. Create a Patch
+
+Now you can create a patch file to share with other developers (and with the core team). Still in your branch, run
+
+<shell>
+git commit -a
+git format-patch master --stdout > my_new_patch.diff
+</shell>
+
+Sanity check the results of this operation: open the diff file in your text editor of choice and make sure that no unintended changes crept in.
+
+h4. Create a Lighthouse Ticket
+
+Now create a ticket with your patch. Go to the "new ticket":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/new page at Lighthouse. Fill in a reasonable title and description, remember to attach your patch file, and tag the ticket with the ‘patch’ tag and whatever other subject area tags make sense.
+
+h4. Get Some Feedback
+
+Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the rubyonrails-core mailing list or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
+
+h4. Iterate as Necessary
+
+It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a plugin.
+
+And then...think about your next contribution!
+
+h3. Rails Contributors
+
+All contributions, either via master or docrails, get credit in "Rails Contributors":http://contributors.rubyonrails.org.
+
+h3. Changelog
+
+* December 28, 2010: Complete revision by "Xavier Noria":credits.html#fxn
+* April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
+* August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
+* March 2, 2009: Initial draft by "Mike Gunderloy":credits.html#mgunderloy
+

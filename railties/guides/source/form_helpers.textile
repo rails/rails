@@ -9,6 +9,7 @@ In this guide you will:
 * Generate select boxes from multiple types of data
 * Understand the date and time helpers Rails provides
 * Learn what makes a file upload form different
+* Learn some cases of building forms to external resources
 * Find out where to look for complex forms
 
 endprologue.
@@ -644,7 +645,7 @@ Fundamentally HTML forms don't know about any sort of structured data, all they 
 TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example,
 
 <ruby>
-ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" 
+ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789"
 # => {"name"=>"fred", "phone"=>"0123456789"}
 </ruby>
 
@@ -763,6 +764,40 @@ As a shortcut you can append [] to the name and omit the +:index+ option. This i
 
 produces exactly the same output as the previous example.
 
+h3. Forms to external resources
+
+If you need to post some data to an external resource it is still great to build your from using rails form helpers. But sometimes you need to set an +authenticity_token+ for this resource. You can do it by passing an +:authenticity_token => 'your_external_token'+ parameter to the +form_tag+ options:
+
+<erb>
+<%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
+  Form contents
+<% end %>
+</erb>
+
+Sometimes when you submit data to an external resource, like payment gateway, fields you can use in your form are limited by an external API. So you may want not to generate an +authenticity_token+ hidden field at all. For doing this just pass +false+ to the +:authenticity_token+ option:
+
+<erb>
+<%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
+  Form contents
+<% end %>
+</erb>
+
+The same technique is available for the +form_for+ too:
+
+<erb>
+<%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f|
+  Form contents
+<% end %>
+</erb>
+
+Or if you don't want to render an +authenticity_token+ field:
+
+<erb>
+<%= form_for @invoice, :url => external_url, :authenticity_token => false do |f|
+  Form contents
+<% end %>
+</erb>
+
 h3. Building Complex Forms
 
 Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:
@@ -776,6 +811,7 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 
 h3. Changelog
 
+* February 5, 2011: Added 'Forms to external resources' section. Timothy N. Tsvetkov <timothy.tsvetkov@gmail.com>
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 
 h3. Authors

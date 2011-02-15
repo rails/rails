@@ -1,4 +1,10 @@
 require 'erb'
+
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'yaml'
 require 'optparse'
 require 'rbconfig'
@@ -74,7 +80,7 @@ module Rails
 
         exec(find_cmd('mysql', 'mysql5'), *args)
 
-      when "postgresql"
+      when "postgresql", "postgres"
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
@@ -113,5 +119,5 @@ end
 
 # Has to set the RAILS_ENV before config/application is required
 if ARGV.first && !ARGV.first.index("-") && env = ARGV.first
-  ENV['RAILS_ENV'] = %w(production development test).find { |e| e.index(env) } || env
+  ENV['RAILS_ENV'] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
 end

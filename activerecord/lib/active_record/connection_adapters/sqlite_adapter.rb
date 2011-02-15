@@ -62,6 +62,10 @@ module ActiveRecord
         sqlite_version >= '2.0.0'
       end
 
+      def supports_savepoints?
+        sqlite_version >= '3.6.8'
+      end
+
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+
       def supports_statement_cache?
@@ -144,12 +148,15 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
 
       def exec_query(sql, name = nil, binds = [])
-        log(sql, name) do
+        log(sql, name, binds) do
 
           # Don't cache statements without bind values
           if binds.empty?
-            stmt = @connection.prepare(sql)
-            cols = stmt.columns
+            stmt    = @connection.prepare(sql)
+            cols    = stmt.columns
+            records = stmt.to_a
+            stmt.close
+            stmt = records
           else
             cache = @statements[sql] ||= {
               :stmt => @connection.prepare(sql)
@@ -189,6 +196,18 @@ module ActiveRecord
         exec_query(sql, name).rows
       end
 
+      def create_savepoint
+        execute("SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def rollback_to_savepoint
+        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      end
+
+      def release_savepoint
+        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      end
+
       def begin_db_transaction #:nodoc:
         @connection.transaction
       end
@@ -217,6 +236,15 @@ module ActiveRecord
 
       def columns(table_name, name = nil) #:nodoc:
         table_structure(table_name).map do |field|
+          case field["dflt_value"]
+          when /^null$/i
+            field["dflt_value"] = nil
+          when /^'(.*)'$/
+            field["dflt_value"] = $1.gsub(/''/, "'")
+          when /^"(.*)"$/
+            field["dflt_value"] = $1.gsub(/""/, '"')
+          end
+
           SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
         end
       end
@@ -314,16 +342,11 @@ module ActiveRecord
 
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
-          result = exec_query(sql, name, binds)
-          columns = result.columns.map { |column|
-            column.sub(/^"?\w+"?\./, '')
-          }
-
-          result.rows.map { |row| Hash[columns.zip(row)] }
+          exec_query(sql, name, binds).to_a
         end
 
         def table_structure(table_name)
-          structure = @connection.table_info(quote_table_name(table_name))
+          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})").to_hash
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           structure
         end

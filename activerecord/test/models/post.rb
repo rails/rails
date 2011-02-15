@@ -38,9 +38,11 @@ class Post < ActiveRecord::Base
   end
 
   has_many :author_favorites, :through => :author
+  has_many :author_categorizations, :through => :author, :source => :categorizations
+  has_many :author_addresses, :through => :author
 
   has_many :comments_with_interpolated_conditions, :class_name => 'Comment',
-      :conditions => ['#{"#{aliased_table_name}." rescue ""}body = ?', 'Thank you for the welcome']
+    :conditions => proc { ["#{"#{aliased_table_name}." rescue ""}body = ?", 'Thank you for the welcome'] }
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post
@@ -53,10 +55,20 @@ class Post < ActiveRecord::Base
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings do
     def add_joins_and_select
-      find :all, :select => 'tags.*, authors.id as author_id', :include => false,
+      find :all, :select => 'tags.*, authors.id as author_id',
         :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
     end
   end
+
+  has_many :interpolated_taggings, :class_name => 'Tagging', :as => :taggable, :conditions => proc { "1 = #{1}" }
+  has_many :interpolated_tags, :through => :taggings
+  has_many :interpolated_tags_2, :through => :interpolated_taggings, :source => :tag
+
+  has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
+  has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy
+
+  has_many :tags_with_destroy, :through => :taggings, :source => :tag, :dependent => :destroy
+  has_many :tags_with_nullify, :through => :taggings, :source => :tag, :dependent => :nullify
 
   has_many :misc_tags, :through => :taggings, :source => :tag, :conditions => "tags.name = 'Misc'"
   has_many :funky_tags, :through => :taggings, :source => :tag

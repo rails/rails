@@ -53,8 +53,8 @@ more separate. Each of these packages can be used independently outside of
 * The README file created within your application.
 * The {Getting Started with Rails}[http://guides.rubyonrails.org/getting_started.html].
 * The {Ruby on Rails Tutorial}[http://railstutorial.org/book].
-* The {Ruby on Rails guides}[http://guides.rubyonrails.org/getting_started.html].
-* The {API documentation}[http://api.rubyonrails.org].
+* The {Ruby on Rails Guides}[http://guides.rubyonrails.org].
+* The {API Documentation}[http://api.rubyonrails.org].
 
 
 == Contributing

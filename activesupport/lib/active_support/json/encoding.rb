@@ -23,7 +23,7 @@ module ActiveSupport
 
   module JSON
     # matches YAML-formatted dates
-    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[ \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
+    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
 
     # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
     def self.encode(value, options = nil)
@@ -150,6 +150,12 @@ class Object
     else
       instance_values
     end
+  end
+end
+
+class Struct
+  def as_json(options = nil) #:nodoc:
+    Hash[members.zip(values)]
   end
 end
 

@@ -147,6 +147,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.ship_attributes = { :id => "" }
     assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.save! }
   end
+
+  def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
+    Man.accepts_nested_attributes_for(:interests)
+    man = Man.create(:name => "John")
+    interest = man.interests.create :topic => 'gardning'
+    man = Man.find man.id
+    man.interests_attributes = [{:id => interest.id, :topic => 'gardening'}]
+    assert_equal man.interests.first.topic, man.interests[0].topic
+  end  
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
@@ -298,7 +307,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
     @ship.delete
-    
+
     @pirate.reload.update_attributes(:update_only_ship_attributes => { :name => 'Mayflower' })
 
     assert_not_nil @pirate.ship
@@ -451,7 +460,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     pirate = @ship.pirate
-    
+
     @ship.attributes = { :pirate_attributes => { :id => pirate.id, '_destroy' => true } }
     assert_nothing_raised(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
     @ship.save
@@ -859,7 +868,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
 end
 
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_fixtures = false unless supports_savepoints?
 
   def setup
     @pirate = Pirate.create!(:catchphrase => "My baby takes tha mornin' train!")
@@ -899,7 +908,7 @@ class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRe
 end
 
 class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_fixtures = false unless supports_savepoints?
 
   def setup
     @ship = Ship.create!(:name => "The good ship Dollypop")

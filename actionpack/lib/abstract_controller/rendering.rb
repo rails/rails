@@ -13,14 +13,15 @@ module AbstractController
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
   # it will trigger the lookup_context and consequently expire the cache.
   class I18nProxy < ::I18n::Config #:nodoc:
-    attr_reader :i18n_config, :lookup_context
+    attr_reader :original_config, :lookup_context
 
-    def initialize(i18n_config, lookup_context)
-      @i18n_config, @lookup_context = i18n_config, lookup_context
+    def initialize(original_config, lookup_context)
+      original_config = original_config.original_config if original_config.respond_to?(:original_config)
+      @original_config, @lookup_context = original_config, lookup_context
     end
 
     def locale
-      @i18n_config.locale
+      @original_config.locale
     end
 
     def locale=(value)
@@ -58,6 +59,20 @@ module AbstractController
               self.helpers = controller._helpers
             end
           end
+        end
+      end
+
+      def parent_prefixes
+        @parent_prefixes ||= begin
+          parent_controller = superclass
+          prefixes = []
+
+          until parent_controller.abstract?
+            prefixes << parent_controller.controller_path
+            parent_controller = parent_controller.superclass
+          end
+
+          prefixes
         end
       end
     end
@@ -98,7 +113,7 @@ module AbstractController
     def render_to_string(*args, &block)
       options = _normalize_args(*args, &block)
       _normalize_options(options)
-      render_to_body(options)
+      render_to_body(options).tap { self.response_body = nil }
     end
 
     # Raw rendering of a template to a Rack-compatible body.
@@ -114,9 +129,12 @@ module AbstractController
       view_context.render(options)
     end
 
-    # The prefix used in render "foo" shortcuts.
-    def _prefix
-      controller_path
+    # The prefixes used in render "foo" shortcuts.
+    def _prefixes
+      @_prefixes ||= begin
+        parent_prefixes = self.class.parent_prefixes
+        parent_prefixes.dup.unshift(controller_path)
+      end
     end
 
     private
@@ -156,7 +174,7 @@ module AbstractController
       end
 
       if (options.keys & [:partial, :file, :template, :once]).empty?
-        options[:prefix] ||= _prefix
+        options[:prefixes] ||= _prefixes
       end
 
       options[:template] ||= (options[:action] || action_name).to_s

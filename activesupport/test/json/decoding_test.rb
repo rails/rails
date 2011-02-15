@@ -19,6 +19,12 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %({"a": "2007-01-01 01:12:34 Z"})            => {'a' => Time.utc(2007, 1, 1, 1, 12, 34)},
     # no time zone
     %({"a": "2007-01-01 01:12:34"})              => {'a' => "2007-01-01 01:12:34"},
+    # invalid date
+    %({"a": "1089-10-40"})                       => {'a' => "1089-10-40"},
+    # xmlschema date notation
+    %({"a": "2009-08-10T19:01:02Z"})             => {'a' => Time.utc(2009, 8, 10, 19, 1, 2)},
+    %({"a": "2009-08-10T19:01:02+02:00"})        => {'a' => Time.utc(2009, 8, 10, 17, 1, 2)},
+    %({"a": "2009-08-10T19:01:02-05:00"})        => {'a' => Time.utc(2009, 8, 11, 00, 1, 2)},
     # needs to be *exact*
     %({"a": " 2007-01-01 01:12:34 Z "})          => {'a' => " 2007-01-01 01:12:34 Z "},
     %({"a": "2007-01-01 : it's your birthday"})  => {'a' => "2007-01-01 : it's your birthday"},
@@ -41,7 +47,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
       [{'d' => Date.new(1970, 1, 1), 's' => ' escape'},{'d' => Date.new(1970, 1, 1), 's' => ' escape'}],
     %q([{"d":"1970-01-01","s":"http:\/\/example.com"},{"d":"1970-01-01","s":"http:\/\/example.com"}]) =>
       [{'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'},
-       {'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'}]
+       {'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'}],
+    # tests escaping of "\n" char with Yaml backend
+    %q({"a":"\n"})  => {"a"=>"\n"},
+    %q({"a":"\u000a"}) => {"a"=>"\n"},
+    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
   }
 
   # load the default JSON backend
@@ -57,9 +67,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
         ActiveSupport.parse_json_times = true
         silence_warnings do
           ActiveSupport::JSON.with_backend backend do
-            assert_nothing_raised do
-              assert_equal expected, ActiveSupport::JSON.decode(json)
-            end
+            assert_equal expected, ActiveSupport::JSON.decode(json)
           end
         end
       end

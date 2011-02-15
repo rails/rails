@@ -211,7 +211,7 @@ h5. Wrapping it up
 
 The above three ways of rendering (rendering another template within the controller, rendering a template within another controller and rendering an arbitrary file on the file system) are actually variants of the same action.
 
-In fact, in the BooksController class, inside of the edit action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the +edit.html.erb+ template in the +views/books+ directory:
+In fact, in the BooksController class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the +edit.html.erb+ template in the +views/books+ directory:
 
 <ruby>
 render :edit
@@ -681,7 +681,7 @@ There are three tag options available for +auto_discovery_link_tag+:
 * +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
 * +:title+ specifies the title of the link
 
-h5. Linking to Javascript Files with +javascript_include_tag+
+h5. Linking to JavaScript Files with +javascript_include_tag+
 
 The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided. Rails looks in +public/javascripts+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/javascripts/main.js+:
 

@@ -450,7 +450,7 @@ module ActionDispatch
         end
 
         def raise_routing_error
-          raise ActionController::RoutingError.new("No route matches #{options.inspect}")
+          raise ActionController::RoutingError, "No route matches #{options.inspect}"
         end
 
         def different_controller?
@@ -540,7 +540,9 @@ module ActionDispatch
           end
 
           dispatcher = route.app
-          dispatcher = dispatcher.app while dispatcher.is_a?(Mapper::Constraints)
+          while dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env) do
+            dispatcher = dispatcher.app
+          end
 
           if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)

@@ -114,7 +114,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
   end
 
   def test_parent_instance_should_be_shared_with_newly_built_child
-    m = men(:gordon)
+    m = Man.find(:first)
     f = m.build_face(:description => 'haunted')
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
@@ -125,7 +125,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
   end
 
   def test_parent_instance_should_be_shared_with_newly_created_child
-    m = men(:gordon)
+    m = Man.find(:first)
     f = m.create_face(:description => 'haunted')
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
@@ -138,39 +138,6 @@ class InverseHasOneTests < ActiveRecord::TestCase
   def test_parent_instance_should_be_shared_with_newly_created_child_via_bang_method
     m = Man.find(:first)
     f = m.face.create!(:description => 'haunted')
-    assert_not_nil f.man
-    assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
-  end
-
-  def test_parent_instance_should_be_shared_with_newly_built_child_when_we_dont_replace_existing
-    m = Man.find(:first)
-    f = m.build_face({:description => 'haunted'}, false)
-    assert_not_nil f.man
-    assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to just-built-child-owned instance"
-  end
-
-  def test_parent_instance_should_be_shared_with_newly_created_child_when_we_dont_replace_existing
-    m = Man.find(:first)
-    f = m.create_face({:description => 'haunted'}, false)
-    assert_not_nil f.man
-    assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
-  end
-
-  def test_parent_instance_should_be_shared_with_newly_created_child_via_bang_method_when_we_dont_replace_existing
-    m = Man.find(:first)
-    f = m.face.create!({:description => 'haunted'}, false)
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -195,18 +162,6 @@ class InverseHasOneTests < ActiveRecord::TestCase
     m = Man.find(:first)
     f = Face.new(:description => 'haunted')
     m.face.replace(f)
-    assert_not_nil f.man
-    assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
-  end
-
-  def test_parent_instance_should_be_shared_with_replaced_via_method_child_when_we_dont_replace_existing
-    m = Man.find(:first)
-    f = Face.new(:description => 'haunted')
-    m.face.replace(f, false)
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -257,17 +212,6 @@ class InverseHasManyTests < ActiveRecord::TestCase
     end
   end
 
-  def test_parent_instance_should_be_shared_with_newly_built_child
-    m = men(:gordon)
-    i = m.interests.build(:topic => 'Industrial Revolution Re-enactment')
-    assert_not_nil i.man
-    assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
-    assert_equal m.name, i.man.name, "Name of man should be the same after changes to just-built-child-owned instance"
-  end
-
   def test_parent_instance_should_be_shared_with_newly_block_style_built_child
     m = Man.find(:first)
     i = m.interests.build {|ii| ii.topic = 'Industrial Revolution Re-enactment'}
@@ -278,17 +222,6 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
     i.man.name = 'Mungo'
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to just-built-child-owned instance"
-  end
-
-  def test_parent_instance_should_be_shared_with_newly_created_child
-    m = men(:gordon)
-    i = m.interests.create(:topic => 'Industrial Revolution Re-enactment')
-    assert_not_nil i.man
-    assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
-    assert_equal m.name, i.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_newly_created_via_bang_method_child

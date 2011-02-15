@@ -246,7 +246,7 @@ module ActionMailer #:nodoc:
   # but Action Mailer translates them appropriately and sets the correct values.
   #
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
-  # an underscorised symbol, so the following will work:
+  # an underscored symbol, so the following will work:
   #
   #   class Notifier < ActionMailer::Base
   #     default 'Content-Transfer-Encoding' => '7bit',
@@ -298,7 +298,7 @@ module ActionMailer #:nodoc:
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
-  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt> with <tt>-f sender@addres</tt>
+  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt> with <tt>-f sender@address</tt>
   #     added automatically before the message is sent.
   #
   # * <tt>file_settings</tt> - Allows you to override options for the <tt>:file</tt> delivery method.
@@ -404,7 +404,7 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def respond_to?(method, *args) #:nodoc:
+      def respond_to?(method, include_private = false) #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
@@ -693,15 +693,8 @@ module ActionMailer #:nodoc:
     end
 
     def each_template(paths, name, &block) #:nodoc:
-      Array.wrap(paths).each do |path|
-        templates = lookup_context.find_all(name, path)
-        templates = templates.uniq_by { |t| t.formats }
-
-        unless templates.empty?
-          templates.each(&block)
-          return
-        end
-      end
+      templates = lookup_context.find_all(name, Array.wrap(paths))
+      templates.uniq_by { |t| t.formats }.each(&block)
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:

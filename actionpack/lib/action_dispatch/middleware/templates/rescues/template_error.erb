@@ -13,9 +13,5 @@
 
 <p><%=h @exception.sub_template_message %></p>
 
-<% @real_exception = @exception
-   @exception = @exception.original_exception || @exception %>
-<%= render :file => "rescues/_trace.erb" %>
-<% @exception = @real_exception %>
-
-<%= render :file => "rescues/_request_and_response.erb" %>
+<%= render :template => "rescues/_trace" %>
+<%= render :template => "rescues/_request_and_response" %>

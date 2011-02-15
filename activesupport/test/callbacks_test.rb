@@ -3,6 +3,27 @@ require 'test/unit'
 require 'active_support'
 
 module CallbacksTest
+  class Phone
+    include ActiveSupport::Callbacks
+    define_callbacks :save, :rescuable => true
+
+    set_callback :save, :before, :before_save1
+    set_callback :save, :after, :after_save1
+
+    def before_save1; self.history << :before; end
+    def after_save1; self.history << :after; end
+
+    def save
+      run_callbacks :save do
+        raise 'boom'
+      end
+    end
+
+    def history
+      @history ||= []
+    end
+  end
+
   class Record
     include ActiveSupport::Callbacks
 
@@ -338,6 +359,14 @@ module CallbacksTest
   end
 
   class CallbacksTest < Test::Unit::TestCase
+    def test_save_phone
+      phone = Phone.new
+      assert_raise RuntimeError do
+        phone.save
+      end
+      assert_equal [:before, :after], phone.history
+    end
+
     def test_save_person
       person = Person.new
       assert_equal [], person.history
@@ -573,5 +602,5 @@ module CallbacksTest
       ], writer.history
     end
   end
-  
+
 end

@@ -14,7 +14,7 @@ if ActiveRecord::Base.connection.supports_migrations?
   class Reminder < ActiveRecord::Base; end
 
   class ActiveRecord::Migration
-    class <<self
+    class << self
       attr_accessor :message_count
     end
 
@@ -1923,6 +1923,149 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 
+  if ActiveRecord::Base.connection.supports_bulk_alter?
+    class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
+      def setup
+        @connection = Person.connection
+        @connection.create_table(:delete_me, :force => true) {|t| }
+      end
+
+      def teardown
+        Person.connection.drop_table(:delete_me) rescue nil
+      end
+
+      def test_adding_multiple_columns
+        assert_queries(1) do
+          with_bulk_change_table do |t|
+            t.column :name, :string
+            t.string :qualification, :experience
+            t.integer :age, :default => 0
+            t.date :birthdate
+            t.timestamps
+          end
+        end
+
+        assert_equal 8, columns.size
+        [:name, :qualification, :experience].each {|s| assert_equal :string, column(s).type }
+        assert_equal 0, column(:age).default
+      end
+
+      def test_removing_columns
+        with_bulk_change_table do |t|
+          t.string :qualification, :experience
+        end
+
+        [:qualification, :experience].each {|c| assert column(c) }
+
+        assert_queries(1) do
+          with_bulk_change_table do |t|
+            t.remove :qualification, :experience
+            t.string :qualification_experience
+          end
+        end
+
+        [:qualification, :experience].each {|c| assert ! column(c) }
+        assert column(:qualification_experience)
+      end
+
+      def test_adding_indexes
+        with_bulk_change_table do |t|
+          t.string :username
+          t.string :name
+          t.integer :age
+        end
+
+        # Adding an index fires a query everytime to check if an index already exists or not
+        assert_queries(3) do
+          with_bulk_change_table do |t|
+            t.index :username, :unique => true, :name => :awesome_username_index
+            t.index [:name, :age]
+          end
+        end
+
+        assert_equal 2, indexes.size
+
+        name_age_index = index(:index_delete_me_on_name_and_age)
+        assert_equal ['name', 'age'].sort, name_age_index.columns.sort
+        assert ! name_age_index.unique
+
+        assert index(:awesome_username_index).unique
+      end
+
+      def test_removing_index
+        with_bulk_change_table do |t|
+          t.string :name
+          t.index :name
+        end
+
+        assert index(:index_delete_me_on_name)
+
+        assert_queries(3) do
+          with_bulk_change_table do |t|
+            t.remove_index :name
+            t.index :name, :name => :new_name_index, :unique => true
+          end
+        end
+
+        assert ! index(:index_delete_me_on_name)
+
+        new_name_index = index(:new_name_index)
+        assert new_name_index.unique
+      end
+
+      def test_changing_columns
+        with_bulk_change_table do |t|
+          t.string :name
+          t.date :birthdate
+        end
+
+        assert ! column(:name).default
+        assert_equal :date, column(:birthdate).type
+
+        # One query for columns (delete_me table)
+        # One query for primary key (delete_me table)
+        # One query to do the bulk change
+        assert_queries(3) do
+          with_bulk_change_table do |t|
+            t.change :name, :string, :default => 'NONAME'
+            t.change :birthdate, :datetime
+          end
+        end
+
+        assert_equal 'NONAME', column(:name).default
+        assert_equal :datetime, column(:birthdate).type
+      end
+
+      protected
+
+      def with_bulk_change_table
+        # Reset columns/indexes cache as we're changing the table
+        @columns = @indexes = nil
+
+        Person.connection.change_table(:delete_me, :bulk => true) do |t|
+          yield t
+        end
+      end
+
+      def column(name)
+        columns.detect {|c| c.name == name.to_s }
+      end
+
+      def columns
+        @columns ||= Person.connection.columns('delete_me')
+      end
+
+      def index(name)
+        indexes.detect {|i| i.name == name.to_s }
+      end
+
+      def indexes
+        @indexes ||= Person.connection.indexes('delete_me')
+      end
+    end # AlterTableMigrationsTest
+
+  end
+
   class CopyMigrationsTest < ActiveRecord::TestCase
     def setup
     end
@@ -2083,4 +2226,3 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
   end
 end
-

@@ -371,16 +371,16 @@ h3. Application templates
 Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template".
 
 <ruby>
-  gem("rspec-rails", :group => "test")
-  gem("cucumber-rails", :group => "test")
+gem("rspec-rails", :group => "test")
+gem("cucumber-rails", :group => "test")
 
-  if yes?("Would you like to install Devise?")
-    gem("devise")
-    generate("devise:install")
-    model_name = ask("What would you like the user model to be called? [user]")
-    model_name = "user" if model_name.blank?
-    generate("devise", model_name)
-  end
+if yes?("Would you like to install Devise?")
+  gem("devise")
+  generate("devise:install")
+  model_name = ask("What would you like the user model to be called? [user]")
+  model_name = "user" if model_name.blank?
+  generate("devise", model_name)
+end
 </ruby>
 
 In the above template we specify that the application relies on the +rspec-rails+ and +cucumber-rails+ gem so these two will be added to the +test+ group in the +Gemfile+. Then we pose a question to the user about whether or not they would like to install Devise. If the user replies "y" or "yes" to this question, then the template will add Devise to the +Gemfile+ outside of any group and then runs the +devise:install+ generator. This template then takes the users input and runs the  +devise+ generator, with the user's answer from the last question being passed to this generator.
@@ -396,14 +396,14 @@ This command will generate the +Thud+ application, and then apply the template t
 Templates don't have to be stored on the local system, the +-m+ option also supports online templates:
 
 <shell>
-  rails new thud -m https://gist.github.com/722911
+  rails new thud -m https://gist.github.com/722911.txt
 </shell>
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
 
 h3. Generator methods
 
-The following are methods available for both generators and templates for Rails. 
+The following are methods available for both generators and templates for Rails.
 
 NOTE: Methods provided by Thor are not covered this guide and can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
 
@@ -428,8 +428,8 @@ h4. +gem+
 Specifies a gem dependency of the application.
 
 <ruby>
-  gem("rspec", :group => "test", :version => "2.1.0")
-  gem("devise", "1.1.5")
+gem("rspec", :group => "test", :version => "2.1.0")
+gem("devise", "1.1.5")
 </ruby>
 
 Available options are:
@@ -470,10 +470,9 @@ Adds a line to +config/application.rb+ directly after the application class defi
 This method can also take a block:
 
 <ruby>
-  application do
-    "config.asset_host = 'http://example.com'"
-    end
-  end
+application do
+  "config.asset_host = 'http://example.com'"
+end
 </ruby>
 
 Available options are:
@@ -481,9 +480,9 @@ Available options are:
 * +:env+ - Specify an environment for this configuration option. If you wish to use this option with the block syntax the recommended syntax is as follows:
 
 <ruby>
-  application(nil, :env => "development") do
-    "config.asset_host = 'http://localhost:3000'"
-  end
+application(nil, :env => "development") do
+  "config.asset_host = 'http://localhost:3000'"
+end
 </ruby>
 
 h4. +git+
@@ -526,9 +525,9 @@ Places a file into +lib+ which contains the specified code.
 This method also takes a block:
 
 <ruby>
-  lib("super_special.rb") do
-    puts "Super special!"
-  end
+lib("super_special.rb") do
+  puts "Super special!"
+end
 </ruby>
 
 h4. +rakefile+
@@ -542,13 +541,13 @@ Creates a Rake file in the +lib/tasks+ directory of the application.
 This method also takes a block:
 
 <ruby>
-  rakefile("test.rake") do
-    %Q{
-     task :rock => :environment do
-       puts "Rockin'"
-     end 
-    }
-  end
+rakefile("test.rake") do
+  %Q{
+    task :rock => :environment do
+      puts "Rockin'"
+    end
+  }
+end
 </ruby>
 
 h4. +initializer+
@@ -562,9 +561,9 @@ Creates an initializer in the +config/initializers+ directory of the application
 This method also takes a block:
 
 <ruby>
-  initializer("begin.rb") do
-    puts "Almost done!"
-  end
+initializer("begin.rb") do
+  puts "Almost done!"
+end
 </ruby>
 
 h4. +generate+

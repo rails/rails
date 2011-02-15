@@ -630,7 +630,7 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
-      "<input name='commit' id='post_submit' type='submit' value='Create post' />"
+      "<input name='commit' type='submit' value='Create post' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -709,7 +709,7 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='other_name[secret]' value='0' type='hidden' />" +
       "<input name='other_name[secret]' checked='checked' id='other_name_secret' value='1' type='checkbox' />" +
-      "<input name='commit' id='other_name_submit' value='Create post' type='submit' />"
+      "<input name='commit' value='Create post' type='submit' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -731,7 +731,7 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, output_buffer
   end
-  
+
   def test_form_for_with_search_field
     # Test case for bug which would emit an "object" attribute
     # when used with form_for using a search_field form helper
@@ -843,7 +843,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form('/posts', 'new_post', 'new_post') do
-      "<input name='commit' id='post_submit' type='submit' value='Create Post' />"
+      "<input name='commit' type='submit' value='Create Post' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -859,7 +859,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
-      "<input name='commit' id='post_submit' type='submit' value='Confirm Post changes' />"
+      "<input name='commit' type='submit' value='Confirm Post changes' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -875,7 +875,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form do
-      "<input name='commit' class='extra' id='post_submit' type='submit' value='Save changes' />"
+      "<input name='commit' class='extra' type='submit' value='Save changes' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -891,7 +891,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected = whole_form('/posts/123', 'another_post_edit', 'another_post_edit', :method => 'put') do
-      "<input name='commit' id='another_post_submit' type='submit' value='Update your Post' />"
+      "<input name='commit' type='submit' value='Update your Post' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1084,6 +1084,25 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_using_erb_and_inline_block
+    @post.author = Author.new(321)
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author) { |af|
+        af.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />' +
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for_with_existing_records_on_a_nested_attributes_one_to_one_association_with_explicit_hidden_field_placement
     @post.author = Author.new(321)
 
@@ -1112,6 +1131,29 @@ class FormHelperTest < ActionView::TestCase
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
           concat cf.text_field(:name)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #1" />' +
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" />' +
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_using_erb_and_inline_block
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        concat f.fields_for(:comments, comment) { |cf|
+          cf.text_field(:name)
         }
       end
     end

@@ -278,7 +278,7 @@ Mime::JS =~ "text/javascript"        => true
 Mime::JS =~ "application/javascript" => true
 </ruby>
 
-The other change is that the framework now uses the +Mime::JS+ when checking for javascript in various spots, making it handle those alternatives cleanly.
+The other change is that the framework now uses the +Mime::JS+ when checking for JavaScript in various spots, making it handle those alternatives cleanly.
 
 * Lead Contributor: "Seth Fitzsimmons":http://www.workingwithrails.com/person/5510-seth-fitzsimmons
 
