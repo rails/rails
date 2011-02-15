@@ -132,7 +132,6 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_complete_instantiation
-    assert_equal 4, @topics.size
     assert_equal "The First Topic", @first.title
   end
 
@@ -142,7 +141,6 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_erb_in_fixtures
-    assert_equal 11, @developers.size
     assert_equal "fixture_5", @dev_5.name
   end
 
@@ -199,7 +197,6 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_binary_in_fixtures
-    assert_equal 1, @binaries.size
     data = File.open(ASSETS_ROOT + "/flowers.jpg", 'rb') { |f| f.read }
     data.force_encoding('ASCII-8BIT') if data.respond_to?(:force_encoding)
     data.freeze
@@ -304,9 +301,6 @@ class FixturesWithoutInstanceInstantiationTest < ActiveRecord::TestCase
 
   def test_without_instance_instantiation
     assert !defined?(@first), "@first is not defined"
-    assert_not_nil @topics
-    assert_not_nil @developers
-    assert_not_nil @accounts
   end
 end
 

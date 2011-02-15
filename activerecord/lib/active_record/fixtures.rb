@@ -479,8 +479,7 @@ class Fixtures
     cache_for_connection(connection).update(fixtures_map)
   end
 
-  def self.instantiate_fixtures(object, table_name, fixtures, load_instances = true)
-    object.instance_variable_set "@#{table_name.to_s.gsub('.','_')}", fixtures
+  def self.instantiate_fixtures(object, fixture_name, fixtures, load_instances = true)
     if load_instances
       fixtures.each do |name, fixture|
         begin
@@ -840,17 +839,17 @@ module ActiveRecord
         self.fixture_class_names = self.fixture_class_names.merge(class_names)
       end
 
-      def fixtures(*table_names)
-        if table_names.first == :all
-          table_names = Dir["#{fixture_path}/**/*.{yml,csv}"]
-          table_names.map! { |f| f[(fixture_path.size + 1)..-5] }
+      def fixtures(*fixture_names)
+        if fixture_names.first == :all
+          fixture_names = Dir["#{fixture_path}/**/*.{yml,csv}"]
+          fixture_names.map! { |f| f[(fixture_path.size + 1)..-5] }
         else
-          table_names = table_names.flatten.map { |n| n.to_s }
+          fixture_names = fixture_names.flatten.map { |n| n.to_s }
         end
 
-        self.fixture_table_names |= table_names
-        require_fixture_classes(table_names)
-        setup_fixture_accessors(table_names)
+        self.fixture_table_names |= fixture_names
+        require_fixture_classes(fixture_names)
+        setup_fixture_accessors(fixture_names)
       end
 
       def try_to_load_dependency(file_name)
@@ -865,9 +864,9 @@ module ActiveRecord
         end
       end
 
-      def require_fixture_classes(table_names = nil)
-        (table_names || fixture_table_names).each do |table_name|
-          file_name = table_name.to_s
+      def require_fixture_classes(fixture_names = nil)
+        (fixture_names || fixture_table_names).each do |fixture_name|
+          file_name = fixture_name.to_s
           file_name = file_name.singularize if ActiveRecord::Base.pluralize_table_names
           try_to_load_dependency(file_name)
         end
@@ -981,8 +980,8 @@ module ActiveRecord
           Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)
         else
           raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
-          @loaded_fixtures.each do |table_name, fixtures|
-            Fixtures.instantiate_fixtures(self, table_name, fixtures, load_instances?)
+          @loaded_fixtures.each do |fixture_name, fixtures|
+            Fixtures.instantiate_fixtures(self, fixture_name, fixtures, load_instances?)
           end
         end
       end
