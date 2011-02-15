@@ -253,7 +253,7 @@ h3. Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: The guides help you to learn Ruby on Rails, and the API is a reference.
 
-You can create a ticket in Lighthouse to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":http://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+You can create a ticket in Lighthouse to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":http://github.com/lifo/docrails/tree/master. docrails is a fork of the Rails repository with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
 When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
 
