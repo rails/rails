@@ -25,6 +25,10 @@ class IdentityMapTest < ActiveRecord::TestCase
     :developers_projects, :computers, :authors, :author_addresses,
     :posts, :tags, :taggings, :comments, :subscribers
 
+  def setup
+    skip unless ActiveRecord::IdentityMap.enabled?
+  end
+
   ##############################################################################
   # Basic tests checking if IM is functioning properly on basic find operations#
   ##############################################################################

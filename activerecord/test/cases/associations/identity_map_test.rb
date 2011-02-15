@@ -5,6 +5,10 @@ require 'models/post'
 class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
   fixtures :authors, :posts
 
+  def setup
+    skip unless ActiveRecord::IdentityMap.enabled?
+  end
+
   def test_parent_instance_should_be_shared_with_every_child_on_find
     m = Author.first
     is = m.posts
