@@ -1,7 +1,7 @@
 module ActiveRecord
   # = Active Record Through Association
   module Associations
-    module ThroughAssociation
+    module ThroughAssociation #:nodoc:
 
       protected
 
