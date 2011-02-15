@@ -446,7 +446,6 @@ class FixturesFileNotFound < StandardError; end
 
 class Fixtures
   MAX_ID = 2 ** 30 - 1
-  DEFAULT_FILTER_RE = /\.ya?ml$/
 
   @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
 
@@ -567,11 +566,10 @@ class Fixtures
 
   attr_reader :table_name, :name, :fixtures, :model_class
 
-  def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
+  def initialize(connection, table_name, class_name, fixture_path)
     @connection   = connection
     @table_name   = table_name
     @fixture_path = fixture_path
-    @file_filter  = file_filter
     @name         = table_name # preserve fixture base name
     @class_name   = class_name
 
