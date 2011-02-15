@@ -568,7 +568,6 @@ class Fixtures
   attr_reader :table_name, :name, :fixtures, :model_class
 
   def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
-    raise if file_filter != DEFAULT_FILTER_RE
     @connection   = connection
     @table_name   = table_name
     @fixture_path = fixture_path
