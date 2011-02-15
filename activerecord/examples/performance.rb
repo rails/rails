@@ -73,16 +73,9 @@ puts 'Inserting 10,000 users and exhibits...'
   )
 end
 
-ActiveRecord::IdentityMap.enabled = true unless ENV['IM'] == "disabled"
-
-def clear_identity_map!
-  ActiveRecord::IdentityMap.clear
-end
-
 require 'benchmark'
 
 Benchmark.bm(46) do |x|
-  clear_identity_map!
   ar_obj       = Exhibit.find(1)
   attrs        = { :name => 'sam' }
   attrs_first  = { :name => 'sam' }
