@@ -401,7 +401,7 @@ begin
             Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
             # Ruby 1.9 with GC::Profiler
-            if GC.respond_to?(:total_time)
+            if defined?(GC::Profiler) && GC::Profiler.respond_to?(:total_time)
               def measure
                 GC::Profiler.total_time
               end
