@@ -378,6 +378,21 @@ class ForeignKeyFixturesTest < ActiveRecord::TestCase
   end
 end
 
+class OverRideFixtureMethodTest < ActiveRecord::TestCase
+  fixtures :topics
+
+  def topics(name)
+    topic = super
+    topic.title = 'omg'
+    topic
+  end
+
+  def test_fixture_methods_can_be_overridden
+    x = topics :first
+    assert_equal 'omg', x.title
+  end
+end
+
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes

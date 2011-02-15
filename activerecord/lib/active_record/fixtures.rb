@@ -874,28 +874,31 @@ module ActiveRecord
 
       def setup_fixture_accessors(fixture_names = nil)
         fixture_names = Array.wrap(fixture_names || fixture_table_names)
-        fixture_names.each do |fixture_name|
-          fixture_name = fixture_name.to_s.tr('./', '_')
+        methods = Module.new do
+          fixture_names.each do |fixture_name|
+            fixture_name = fixture_name.to_s.tr('./', '_')
 
-          redefine_method(fixture_name) do |*fixtures|
-            force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
+            define_method(fixture_name) do |*fixtures|
+              force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
 
-            @fixture_cache[fixture_name] ||= {}
+              @fixture_cache[fixture_name] ||= {}
 
-            instances = fixtures.map do |fixture|
-              @fixture_cache[fixture_name].delete(fixture) if force_reload
+              instances = fixtures.map do |fixture|
+                @fixture_cache[fixture_name].delete(fixture) if force_reload
 
-              if @loaded_fixtures[fixture_name][fixture.to_s]
-                @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
-              else
-                raise StandardError, "No fixture with name '#{fixture}' found for table '#{fixture_name}'"
+                if @loaded_fixtures[fixture_name][fixture.to_s]
+                  @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
+                else
+                  raise StandardError, "No fixture with name '#{fixture}' found for table '#{fixture_name}'"
+                end
               end
-            end
 
-            instances.size == 1 ? instances.first : instances
+              instances.size == 1 ? instances.first : instances
+            end
+            private fixture_name
           end
-          private fixture_name
         end
+        include methods
       end
 
       def uses_transaction(*methods)
