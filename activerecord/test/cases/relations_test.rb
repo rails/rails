@@ -300,7 +300,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 2 : 3) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
       posts = Post.preload(:author, :comments).to_a
       assert posts.first.author
       assert posts.first.comments.first
@@ -323,7 +323,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(ActiveRecord::IdentityMap.enabled? ? 2 : 3) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
       posts = Post.includes(:author, :comments).to_a
       assert posts.first.author
       assert posts.first.comments.first
