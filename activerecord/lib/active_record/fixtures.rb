@@ -872,29 +872,29 @@ module ActiveRecord
         end
       end
 
-      def setup_fixture_accessors(table_names = nil)
-        table_names = Array.wrap(table_names || fixture_table_names)
-        table_names.each do |table_name|
-          table_name = table_name.to_s.tr('./', '_')
+      def setup_fixture_accessors(fixture_names = nil)
+        fixture_names = Array.wrap(fixture_names || fixture_table_names)
+        fixture_names.each do |fixture_name|
+          fixture_name = fixture_name.to_s.tr('./', '_')
 
-          redefine_method(table_name) do |*fixtures|
+          redefine_method(fixture_name) do |*fixtures|
             force_reload = fixtures.pop if fixtures.last == true || fixtures.last == :reload
 
-            @fixture_cache[table_name] ||= {}
+            @fixture_cache[fixture_name] ||= {}
 
             instances = fixtures.map do |fixture|
-              @fixture_cache[table_name].delete(fixture) if force_reload
+              @fixture_cache[fixture_name].delete(fixture) if force_reload
 
-              if @loaded_fixtures[table_name][fixture.to_s]
-                @fixture_cache[table_name][fixture] ||= @loaded_fixtures[table_name][fixture.to_s].find
+              if @loaded_fixtures[fixture_name][fixture.to_s]
+                @fixture_cache[fixture_name][fixture] ||= @loaded_fixtures[fixture_name][fixture.to_s].find
               else
-                raise StandardError, "No fixture with name '#{fixture}' found for table '#{table_name}'"
+                raise StandardError, "No fixture with name '#{fixture}' found for table '#{fixture_name}'"
               end
             end
 
             instances.size == 1 ? instances.first : instances
           end
-          private table_name
+          private fixture_name
         end
       end
 
