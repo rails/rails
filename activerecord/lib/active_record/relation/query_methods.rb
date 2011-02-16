@@ -209,16 +209,7 @@ module ActiveRecord
     def collapse_wheres(arel, wheres)
       equalities = wheres.grep(Arel::Nodes::Equality)
 
-      groups = equalities.group_by do |equality|
-        equality.left
-      end
-
-      groups.each do |_, eqls|
-        test = eqls.inject(eqls.shift) do |memo, expr|
-          memo.or(expr)
-        end
-        arel.where(test)
-      end
+      arel.where(Arel::Nodes::And.new(equalities)) unless equalities.empty?
 
       (wheres - equalities).each do |where|
         where = Arel.sql(where) if String === where
