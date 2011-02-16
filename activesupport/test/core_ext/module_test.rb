@@ -26,9 +26,6 @@ module Yz
   end
 end
 
-class De
-end
-
 Somewhere = Struct.new(:street, :city)
 
 Someone   = Struct.new(:name, :place) do
