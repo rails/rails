@@ -467,7 +467,7 @@ class RelationTest < ActiveRecord::TestCase
     authors = Author.find_by_id([author])
     assert_equal author, authors
   end
-  
+
   def test_find_all_using_where_twice_should_or_the_relation
     david = authors(:david)
     relation = Author.unscoped
@@ -488,7 +488,7 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_equal [david], relation.all
   end
-  
+
   def test_find_all_using_where_with_relation
     david = authors(:david)
     # switching the lines below would succeed in current rails
@@ -507,7 +507,7 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
-  
+
   def test_find_all_using_where_with_relation_with_select_to_build_subquery
     david = authors(:david)
     assert_queries(1) {
