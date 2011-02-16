@@ -156,6 +156,10 @@ module ActiveModel
   # The AuditObserver will now act on both updates to Account and Balance by treating
   # them both as records.
   #
+  # If you're using an Observer in a Rails application with Active Record, be sure to
+  # read about the necessary configuration in the documentation for
+  # ActiveRecord::Observer.
+  #
   class Observer
     include Singleton
 
