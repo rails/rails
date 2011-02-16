@@ -206,7 +206,7 @@ module ActiveRecord
 
       groups.each do |_, eqls|
         test = eqls.inject(eqls.shift) do |memo, expr|
-          memo.or(expr)
+          memo.and(expr)
         end
         arel = arel.where(test)
       end

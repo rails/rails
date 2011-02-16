@@ -465,10 +465,17 @@ class RelationTest < ActiveRecord::TestCase
     relation = relation.where(:name => david.name)
     relation = relation.where(:name => 'Santiago')
     relation = relation.where(:id => david.id)
-    assert_equal [david], relation.all
+    assert_equal [], relation.all
   end
 
-  def test_find_all_with_multiple_ors
+  def test_multi_where_ands_queries
+    relation = Author.unscoped
+    david = authors(:david)
+    sql = relation.where(:name => david.name).where(:name => 'Santiago').to_sql
+    assert_match('AND', sql)
+  end
+
+  def test_find_all_with_multiple_should_use_and
     david = authors(:david)
     relation = [
       { :name => david.name },
@@ -477,7 +484,7 @@ class RelationTest < ActiveRecord::TestCase
     ].inject(Author.unscoped) do |memo, param|
       memo.where(param)
     end
-    assert_equal [david], relation.all
+    assert_equal [], relation.all
   end
 
   def test_exists
