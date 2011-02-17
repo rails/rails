@@ -1,5 +1,17 @@
 *Rails 3.1.0 (unreleased)*
 
+* ActiveRecord::Associations::AssociationProxy has been split. There is now an Association class
+  (and subclasses) which are responsible for operating on associations, and then a separate,
+  thin wrapper called CollectionProxy, which proxies collection associations.
+
+  This prevents namespace pollution, separates concerns, and will allow further refactorings.
+
+  Singular associations (has_one, belongs_to) no longer have a proxy at all. They simply return
+  the associated record or nil. This means that you should not use undocumented methods such
+  as bob.mother.create - use bob.create_mother instead.
+
+  [Jon Leighton]
+
 * Make has_many :through associations work correctly when you build a record and then save it. This
   requires you to set the :inverse_of option on the source reflection on the join model, like so:
 

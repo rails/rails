@@ -5,13 +5,11 @@ module ActiveRecord
     #
     # If the association has a <tt>:through</tt> option further specialization
     # is provided by its child HasManyThroughAssociation.
-    class HasManyAssociation < AssociationCollection #:nodoc:
-      protected
-
-        def insert_record(record, validate = true)
-          set_owner_attributes(record)
-          record.save(:validate => validate)
-        end
+    class HasManyAssociation < CollectionAssociation #:nodoc:
+      def insert_record(record, validate = true)
+        set_owner_attributes(record)
+        record.save(:validate => validate)
+      end
 
       private
 

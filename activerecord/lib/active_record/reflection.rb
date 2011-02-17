@@ -313,7 +313,7 @@ module ActiveRecord
         macro == :belongs_to
       end
 
-      def proxy_class
+      def association_class
         case macro
         when :belongs_to
           if options[:polymorphic]

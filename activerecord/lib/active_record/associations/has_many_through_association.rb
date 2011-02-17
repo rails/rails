@@ -22,7 +22,7 @@ module ActiveRecord
         end
       end
 
-      def <<(*records)
+      def concat(*records)
         unless @owner.new_record?
           records.flatten.each do |record|
             raise_on_type_mismatch(record)
@@ -33,19 +33,17 @@ module ActiveRecord
         super
       end
 
-      protected
-
-        def insert_record(record, validate = true)
-          return if record.new_record? && !record.save(:validate => validate)
-          through_record(record).save!
-          update_counter(1)
-          record
-        end
+      def insert_record(record, validate = true)
+        return if record.new_record? && !record.save(:validate => validate)
+        through_record(record).save!
+        update_counter(1)
+        record
+      end
 
       private
 
         def through_record(record)
-          through_association = @owner.send(:association_proxy, @reflection.through_reflection.name)
+          through_association = @owner.association(@reflection.through_reflection.name)
           attributes = construct_join_attributes(record)
 
           through_record = Array.wrap(through_association.target).find { |candidate|
@@ -95,7 +93,7 @@ module ActiveRecord
         end
 
         def delete_records(records, method)
-          through = @owner.send(:association_proxy, @reflection.through_reflection.name)
+          through = @owner.association(@reflection.through_reflection.name)
           scope   = through.scoped.where(construct_join_attributes(*records))
 
           case method

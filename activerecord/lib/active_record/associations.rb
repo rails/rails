@@ -118,17 +118,19 @@ module ActiveRecord
 
     # These classes will be loaded when associations are created.
     # So there is no need to eager load them.
-    autoload :AssociationCollection, 'active_record/associations/association_collection'
-    autoload :SingularAssociation, 'active_record/associations/singular_association'
-    autoload :AssociationProxy, 'active_record/associations/association_proxy'
-    autoload :ThroughAssociation, 'active_record/associations/through_association'
-    autoload :BelongsToAssociation, 'active_record/associations/belongs_to_association'
+    autoload :Association,           'active_record/associations/association'
+    autoload :SingularAssociation,   'active_record/associations/singular_association'
+    autoload :CollectionAssociation, 'active_record/associations/collection_association'
+    autoload :CollectionProxy,       'active_record/associations/collection_proxy'
+
+    autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
     autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
-    autoload :HasAndBelongsToManyAssociation, 'active_record/associations/has_and_belongs_to_many_association'
-    autoload :HasManyAssociation, 'active_record/associations/has_many_association'
-    autoload :HasManyThroughAssociation, 'active_record/associations/has_many_through_association'
-    autoload :HasOneAssociation, 'active_record/associations/has_one_association'
-    autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
+    autoload :HasAndBelongsToManyAssociation,  'active_record/associations/has_and_belongs_to_many_association'
+    autoload :HasManyAssociation,              'active_record/associations/has_many_association'
+    autoload :HasManyThroughAssociation,       'active_record/associations/has_many_through_association'
+    autoload :HasOneAssociation,               'active_record/associations/has_one_association'
+    autoload :HasOneThroughAssociation,        'active_record/associations/has_one_through_association'
+    autoload :ThroughAssociation,              'active_record/associations/through_association'
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:
@@ -138,29 +140,23 @@ module ActiveRecord
     # :nodoc:
     attr_reader :association_cache
 
-    protected
+    # Returns the association instance for the given name, instantiating it if it doesn't already exist
+    def association(name) #:nodoc:
+      association = association_instance_get(name)
 
-      # Returns the proxy for the given association name, instantiating it if it doesn't
-      # already exist
-      def association_proxy(name)
-        association = association_instance_get(name)
-
-        if association.nil?
-          reflection  = self.class.reflect_on_association(name)
-          association = reflection.proxy_class.new(self, reflection)
-          association_instance_set(name, association)
-        end
-
-        association
+      if association.nil?
+        reflection  = self.class.reflect_on_association(name)
+        association = reflection.association_class.new(self, reflection)
+        association_instance_set(name, association)
       end
+
+      association
+    end
 
     private
       # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
-        if @association_cache.key? name
-          association = @association_cache[name]
-          association if association.respond_to?(:loaded?)
-        end
+        @association_cache[name]
       end
 
       # Set the specified association instance.
@@ -1574,7 +1570,7 @@ module ActiveRecord
         def association_accessor_methods(reflection)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association  = association_proxy(reflection.name)
+            association  = association(reflection.name)
 
             if force_reload
               reflection.klass.uncached { association.reload }
@@ -1582,18 +1578,18 @@ module ActiveRecord
               association.reload
             end
 
-            association.target.nil? ? nil : association
+            association.target
           end
 
           redefine_method("#{reflection.name}=") do |record|
-            association_proxy(reflection.name).replace(record)
+            association(reflection.name).replace(record)
           end
         end
 
         def collection_reader_method(reflection)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association  = association_proxy(reflection.name)
+            association  = association(reflection.name)
 
             if force_reload
               reflection.klass.uncached { association.reload }
@@ -1601,7 +1597,7 @@ module ActiveRecord
               association.reload
             end
 
-            association
+            association.proxy
           end
 
           redefine_method("#{reflection.name.to_s.singularize}_ids") do
@@ -1621,7 +1617,7 @@ module ActiveRecord
 
           if writer
             redefine_method("#{reflection.name}=") do |new_value|
-              association_proxy(reflection.name).replace(new_value)
+              association(reflection.name).replace(new_value)
             end
 
             redefine_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
@@ -1643,7 +1639,7 @@ module ActiveRecord
           constructors.each do |name, proxy_name|
             redefine_method(name) do |*params|
               attributes = params.first unless params.empty?
-              association_proxy(reflection.name).send(proxy_name, attributes)
+              association(reflection.name).send(proxy_name, attributes)
             end
           end
         end

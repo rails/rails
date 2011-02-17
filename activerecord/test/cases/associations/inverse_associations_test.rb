@@ -137,7 +137,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_child_via_bang_method
     m = Man.find(:first)
-    f = m.face.create!(:description => 'haunted')
+    f = m.create_face!(:description => 'haunted')
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -150,18 +150,6 @@ class InverseHasOneTests < ActiveRecord::TestCase
     m = Man.find(:first)
     f = Face.new(:description => 'haunted')
     m.face = f
-    assert_not_nil f.man
-    assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
-    assert_equal m.name, f.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
-  end
-
-  def test_parent_instance_should_be_shared_with_replaced_via_method_child
-    m = Man.find(:first)
-    f = Face.new(:description => 'haunted')
-    m.face.replace(f)
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
@@ -271,18 +259,6 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
   end
 
-  def test_parent_instance_should_be_shared_with_replaced_via_method_children
-    m = Man.find(:first)
-    i = Interest.new(:topic => 'Industrial Revolution Re-enactment')
-    m.interests.replace([i])
-    assert_not_nil i.man
-    assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
-    assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
-    assert_equal m.name, i.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
-  end
-
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.find(:first).secret_interests }
   end
@@ -366,19 +342,6 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
-  def test_child_instance_should_be_shared_with_replaced_via_method_parent
-    f = faces(:trusting)
-    assert_not_nil f.man
-    m = Man.new(:name => 'Charles')
-    f.man.replace(m)
-    assert_not_nil m.face
-    assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
-    assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
-    m.face.description = 'pleasing'
-    assert_equal f.description, m.face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
-  end
-
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.find(:first).horrible_man }
   end
@@ -434,7 +397,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     new_man = Man.new
 
     assert_not_nil face.polymorphic_man
-    face.polymorphic_man.replace(new_man)
+    face.polymorphic_man = new_man
 
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same before changes to parent instance"
     face.description = 'Bongo'

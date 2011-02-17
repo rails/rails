@@ -21,7 +21,7 @@ module ActiveRecord
           when ActiveRecord::Relation
             value.select_values = [value.klass.arel_table['id']] if value.select_values.empty?
             attribute.in(value.arel.ast)
-          when Array, ActiveRecord::Associations::AssociationCollection
+          when Array, ActiveRecord::Associations::CollectionProxy
             values = value.to_a.map { |x|
               x.is_a?(ActiveRecord::Base) ? x.id : x
             }

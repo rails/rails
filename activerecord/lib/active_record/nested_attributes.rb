@@ -387,13 +387,13 @@ module ActiveRecord
         end
       end
 
-      association = send(association_name)
+      association = association(association_name)
 
       existing_records = if association.loaded?
-        association.to_a
+        association.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
-        attribute_ids.empty? ? [] : association.all(:conditions => {association.primary_key => attribute_ids})
+        attribute_ids.empty? ? [] : association.scoped.where(association.klass.primary_key => attribute_ids)
       end
 
       attributes_collection.each do |attributes|
@@ -408,12 +408,12 @@ module ActiveRecord
           unless association.loaded? || call_reject_if(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
-            target_record = association.proxy_target.detect { |record| record == existing_record }
+            target_record = association.target.detect { |record| record == existing_record }
 
             if target_record
               existing_record = target_record
             else
-              association.send(:add_to_target, existing_record)
+              association.add_to_target(existing_record)
             end
           end
 

@@ -66,11 +66,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { company.account = company.account }
   end
 
-  def test_triple_equality
-    assert Account === companies(:first_firm).account
-    assert companies(:first_firm).account === Account
-  end
-
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = Project.find(1) }
@@ -320,7 +315,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_creation_failure_without_dependent_option
     pirate = pirates(:blackbeard)
-    orig_ship = pirate.ship.target
+    orig_ship = pirate.ship
 
     assert_equal ships(:black_pearl), orig_ship
     new_ship = pirate.create_ship
@@ -333,7 +328,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_creation_failure_with_dependent_option
     pirate = pirates(:blackbeard).becomes(DestructivePirate)
-    orig_ship = pirate.dependent_ship.target
+    orig_ship = pirate.dependent_ship
 
     new_ship = pirate.create_dependent_ship
     assert new_ship.new_record?

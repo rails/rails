@@ -1,6 +1,6 @@
 module ActiveRecord
   module Associations
-    class SingularAssociation < AssociationProxy #:nodoc:
+    class SingularAssociation < Association #:nodoc:
       def create(attributes = {})
         new_record(:create, attributes)
       end
@@ -29,7 +29,7 @@ module ActiveRecord
         end
 
         def check_record(record)
-          record = record.target if AssociationProxy === record
+          record = record.target if Association === record
           raise_on_type_mismatch(record) if record
           record
         end

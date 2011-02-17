@@ -1,7 +1,7 @@
 module ActiveRecord
   # = Active Record Has And Belongs To Many Association
   module Associations
-    class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
+    class HasAndBelongsToManyAssociation < CollectionAssociation #:nodoc:
       attr_reader :join_table
 
       def initialize(owner, reflection)
@@ -9,28 +9,26 @@ module ActiveRecord
         super
       end
 
-      protected
+      def insert_record(record, validate = true)
+        return if record.new_record? && !record.save(:validate => validate)
 
-        def insert_record(record, validate = true)
-          return if record.new_record? && !record.save(:validate => validate)
+        if @reflection.options[:insert_sql]
+          @owner.connection.insert(interpolate(@reflection.options[:insert_sql], record))
+        else
+          stmt = join_table.compile_insert(
+            join_table[@reflection.foreign_key]             => @owner.id,
+            join_table[@reflection.association_foreign_key] => record.id
+          )
 
-          if @reflection.options[:insert_sql]
-            @owner.connection.insert(interpolate(@reflection.options[:insert_sql], record))
-          else
-            stmt = join_table.compile_insert(
-              join_table[@reflection.foreign_key]             => @owner.id,
-              join_table[@reflection.association_foreign_key] => record.id
-            )
-
-            @owner.connection.insert stmt.to_sql
-          end
-
-          record
+          @owner.connection.insert stmt.to_sql
         end
 
-        def association_scope
-          super.joins(construct_joins)
-        end
+        record
+      end
+
+      def association_scope
+        super.joins(construct_joins)
+      end
 
       private
 

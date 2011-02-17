@@ -17,8 +17,26 @@ module ActiveRecord
     #
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
-    class AssociationCollection < AssociationProxy #:nodoc:
-      delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :to => :scoped
+    class CollectionAssociation < Association #:nodoc:
+      attr_reader :proxy
+
+      def initialize(owner, reflection)
+        # When scopes are created via method_missing on the proxy, they are stored so that
+        # any records fetched from the database are kept around for future use.
+        @scopes_cache = Hash.new do |hash, method|
+          hash[method] = { }
+        end
+
+        super
+
+        @proxy = CollectionProxy.new(self)
+      end
+
+      def reset
+        @loaded = false
+        @target = []
+        @scopes_cache.clear
+      end
 
       def select(select = nil)
         if block_given?
@@ -44,17 +62,6 @@ module ActiveRecord
         first_or_last(:last, *args)
       end
 
-      def to_ary
-        load_target.dup
-      end
-      alias_method :to_a, :to_ary
-
-      def reset
-        @_scopes_cache = {}
-        @loaded        = false
-        @target        = []
-      end
-
       def build(attributes = {}, &block)
         build_or_create(attributes, :build, &block)
       end
@@ -75,7 +82,7 @@ module ActiveRecord
 
       # Add +records+ to this association.  Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
-      def <<(*records)
+      def concat(*records)
         result = true
         load_target if @owner.new_record?
 
@@ -88,11 +95,8 @@ module ActiveRecord
           end
         end
 
-        result && self
+        result && records
       end
-
-      alias_method :push, :<<
-      alias_method :concat, :<<
 
       # Starts a transaction in the association class's database connection.
       #
@@ -117,13 +121,6 @@ module ActiveRecord
           reset
           loaded!
         end
-      end
-
-      # Identical to delete_all, except that the return value is the association (for chaining)
-      # rather than the records which have been removed.
-      def clear
-        delete_all
-        self
       end
 
       # Destroy all the records from this association.
@@ -254,7 +251,7 @@ module ActiveRecord
         end
       end
 
-      def uniq(collection = self)
+      def uniq(collection = load_target)
         seen = {}
         collection.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
@@ -291,69 +288,49 @@ module ActiveRecord
         end
       end
 
-      def respond_to?(method, include_private = false)
-        super || @reflection.klass.respond_to?(method, include_private)
+      def cached_scope(method, args)
+        @scopes_cache[method][args] ||= scoped.readonly(nil).send(method, *args)
       end
 
-      def method_missing(method, *args, &block)
-        match = DynamicFinderMatch.match(method)
-        if match && match.creator?
-          attributes = match.attribute_names
-          return send(:"find_by_#{attributes.join('_and_')}", *args) || create(Hash[attributes.zip(args)])
-        end
-
-        if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
-          super
-        elsif @reflection.klass.scopes[method]
-          @_scopes_cache ||= {}
-          @_scopes_cache[method] ||= {}
-          @_scopes_cache[method][args] ||= scoped.readonly(nil).send(method, *args)
-        else
-          scoped.readonly(nil).send(method, *args, &block)
-        end
+      def association_scope
+        options = @reflection.options.slice(:order, :limit, :joins, :group, :having, :offset)
+        super.apply_finder_options(options)
       end
 
-      protected
+      def load_target
+        if find_target?
+          targets = []
 
-        def association_scope
-          options = @reflection.options.slice(:order, :limit, :joins, :group, :having, :offset)
-          super.apply_finder_options(options)
-        end
-
-        def load_target
-          if find_target?
-            targets = []
-
-            begin
-              targets = find_target
-            rescue ActiveRecord::RecordNotFound
-              reset
-            end
-
-            @target = merge_target_lists(targets, @target)
+          begin
+            targets = find_target
+          rescue ActiveRecord::RecordNotFound
+            reset
           end
 
-          loaded!
-          target
+          @target = merge_target_lists(targets, @target)
         end
 
-        def add_to_target(record)
-          transaction do
-            callback(:before_add, record)
-            yield(record) if block_given?
+        loaded!
+        target
+      end
 
-            if @reflection.options[:uniq] && index = @target.index(record)
-              @target[index] = record
-            else
-              @target << record
-            end
+      def add_to_target(record)
+        transaction do
+          callback(:before_add, record)
+          yield(record) if block_given?
 
-            callback(:after_add, record)
-            set_inverse_instance(record)
+          if @reflection.options[:uniq] && index = @target.index(record)
+            @target[index] = record
+          else
+            @target << record
           end
 
-          record
+          callback(:after_add, record)
+          set_inverse_instance(record)
         end
+
+        record
+      end
 
       private
 
@@ -498,8 +475,8 @@ module ActiveRecord
 
         def include_in_memory?(record)
           if @reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
-            @owner.send(proxy_reflection.through_reflection.name).any? { |source|
-              target = source.send(proxy_reflection.source_reflection.name)
+            @owner.send(@reflection.through_reflection.name).any? { |source|
+              target = source.send(@reflection.source_reflection.name)
               target.respond_to?(:include?) ? target.include?(record) : target == record
             } || @target.include?(record)
           else
