@@ -1,8 +1,8 @@
 == Creating the test database
 
 The default names for the test databases are "activerecord_unittest" and
-"activerecord_unittest2". If you want to use another database name then be sure
-to update the connection adapter setups you want to test with in
+"activerecord_unittest2". If you want to use another database name, then be sure
+to update the connection adapter setups you want to test within
 test/connections/<your database>/connection.rb.
 When you have the database online, you can import the fixture tables with
 the test/schema/*.sql files.
@@ -32,7 +32,7 @@ being initialized - you can initialize the schema with:
 
   rake test_mysql TEST=test/cases/aaa_create_tables_test.rb
   rake mysql:build_databases
-  
+
 To setup the testing environment for PostgreSQL use this command:
 
   rake postgresql:build_databases
