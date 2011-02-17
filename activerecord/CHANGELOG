@@ -1,5 +1,10 @@
 *Rails 3.0.5 (unreleased)*
 
+* Model.where(:column => 1).where(:column => 2) will always produce an AND
+query.
+
+  [Aaron Patterson]
+
 * Deprecated support for interpolated association conditions in the form of :conditions => 'foo = #{bar}'.
 
   Instead, you should use a proc, like so:
