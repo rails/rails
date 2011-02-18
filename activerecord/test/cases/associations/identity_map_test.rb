@@ -128,7 +128,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
   def test_parent_instance_should_be_shared_with_replaced_via_method_children
     m = Author.first
     i = Post.new(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
-    m.posts.replace([i])
+    m.posts = [i]
     assert_not_nil i.author
     assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
