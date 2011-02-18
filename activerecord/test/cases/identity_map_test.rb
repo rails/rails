@@ -176,7 +176,7 @@ class IdentityMapTest < ActiveRecord::TestCase
     pirate.reload
 
     pirate.birds_attributes = [{ :id => posideons.id, :name => 'Grace OMalley' }]
-    assert_equal 'Grace OMalley', pirate.birds.send(:load).find { |r| r.id == posideons.id }.name
+    assert_equal 'Grace OMalley', pirate.birds.to_a.find { |r| r.id == posideons.id }.name
   end
 
   def test_changing_associations
