@@ -183,7 +183,7 @@ module ActiveRecord #:nodoc:
   #  Person.find_by_user_name_and_password #with dynamic finder
   #
   #  Person.where(:user_name => user_name, :password => password, :gender => 'male').first
-  #  Payment.find_by_user_name_and_password_and_gender
+  #  Payment.find_by_user_name_and_password_and_gender(user_name, password, 'male')
   #
   # It's even possible to call these dynamic finder methods on relations and named scopes.
   #
