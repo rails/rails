@@ -24,6 +24,7 @@ module ActiveRecord
       def initialize(owner, reflection)
         reflection.check_validity!
 
+        @target = nil
         @owner, @reflection = owner, reflection
         @updated = false
 
@@ -42,7 +43,7 @@ module ActiveRecord
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
-        IdentityMap.remove(@target) if defined?(@target) && @target && IdentityMap.enabled?
+        IdentityMap.remove(@target) if IdentityMap.enabled? && @target
         @target = nil
       end
 
