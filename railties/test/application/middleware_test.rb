@@ -116,7 +116,7 @@ module ApplicationTests
 
     test "identity map is inserted" do
       boot!
-      assert_equal "ActiveRecord::IdentityMap::Middleware", middleware[9]
+      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "insert middleware before" do
