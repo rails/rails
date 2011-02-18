@@ -105,15 +105,15 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_no_queries do
       comment.post
     end
-    assert_same post, comment.post.target
+    assert_same post, comment.post
   end
 
   def test_associated_object_are_assigned_from_identity_map
     post = Post.find(1)
 
     post.comments.each do |comment|
-      assert_same post, comment.post.target
-      assert_equal post.object_id, comment.post.target.object_id
+      assert_same post, comment.post
+      assert_equal post.object_id, comment.post.object_id
     end
   end
 
@@ -176,7 +176,7 @@ class IdentityMapTest < ActiveRecord::TestCase
     pirate.reload
 
     pirate.birds_attributes = [{ :id => posideons.id, :name => 'Grace OMalley' }]
-    assert_equal 'Grace OMalley', pirate.birds.send(:load_target).find { |r| r.id == posideons.id }.name
+    assert_equal 'Grace OMalley', pirate.birds.send(:load).find { |r| r.id == posideons.id }.name
   end
 
   def test_changing_associations
@@ -267,20 +267,20 @@ class IdentityMapTest < ActiveRecord::TestCase
     posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
-    assert_same posts.first.author.target, Author.first
+    assert_same posts.first.author, Author.first
 
     posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
-    assert_same posts.first.author.target, Author.first
+    assert_same posts.first.author, Author.first
 
     posts = Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id')
     assert_equal posts(:welcome, :thinking), posts
-    assert_same posts.first.author.target, Author.first
+    assert_same posts.first.author, Author.first
 
     posts = Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
     assert_equal posts(:welcome, :thinking), posts
-    assert_same posts.first.author.target, Author.first
+    assert_same posts.first.author, Author.first
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
