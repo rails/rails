@@ -144,16 +144,15 @@ module ActiveRecord
       def load_target
         if find_target?
           begin
-          if IdentityMap.enabled? && association_class && association_class.respond_to?(:base_class)
-            @target = IdentityMap.get(association_class, @owner[@reflection.foreign_key])
-          end
+            if IdentityMap.enabled? && association_class && association_class.respond_to?(:base_class)
+              @target = IdentityMap.get(association_class, @owner[@reflection.foreign_key])
+            end
           rescue NameError
             nil
           ensure
             @target ||= find_target
           end
         end
-        @target = find_target if find_target?
         loaded!
         target
       rescue ActiveRecord::RecordNotFound
