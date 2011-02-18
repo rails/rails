@@ -39,7 +39,7 @@ module ActiveRecord
     # ascending on the primary key ("id ASC") to make the batch ordering
     # work. This also mean that this method only works with integer-based
     # primary keys. You can't set the limit either, that's used to control
-    # the the batch sizes.
+    # the batch sizes.
     #
     # Example:
     #
