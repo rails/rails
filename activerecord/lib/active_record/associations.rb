@@ -804,7 +804,7 @@ module ActiveRecord
     #      belongs_to :dungeon
     #    end
     #
-    # The +traps+ association on +Dungeon+ and the the +dungeon+ association on +Trap+ are
+    # The +traps+ association on +Dungeon+ and the +dungeon+ association on +Trap+ are
     # the inverse of each other and the inverse of the +dungeon+ association on +EvilWizard+
     # is the +evil_wizard+ association on +Dungeon+ (and vice-versa).  By default,
     # Active Record doesn't know anything about these inverse relationships and so no object

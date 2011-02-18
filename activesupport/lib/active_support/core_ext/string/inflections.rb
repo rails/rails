@@ -3,7 +3,7 @@ require 'active_support/inflector/inflections'
 require 'active_support/inflector/transliterate'
 
 # String inflections define new methods on the String class to transform names for different purposes.
-# For instance, you can figure out the name of a database from the name of a class.
+# For instance, you can figure out the name of a table from the name of a class.
 #
 #   "ScaleScore".tableize # => "scale_scores"
 #

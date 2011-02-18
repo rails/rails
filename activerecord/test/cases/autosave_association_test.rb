@@ -793,6 +793,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_destroy_habtm_as_part_of_the_save_transaction_if_they_were_marked_for_destruction
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
 
+<<<<<<< HEAD
     assert !@pirate.parrots.any? { |parrot| parrot.marked_for_destruction? }
     @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
 
@@ -808,6 +809,15 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
   def test_should_skip_validation_on_habtm_if_marked_for_destruction
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
+=======
+      # Stub the destroy method of the second child to raise an exception
+      class << before.last
+        def destroy(*args)
+          super
+          raise 'Oh noes!'
+        end
+      end
+>>>>>>> 220cb107b672d65fdc0488d4ff310ab04b62b463
 
     @pirate.parrots.each { |parrot| parrot.name = '' }
     assert !@pirate.valid?

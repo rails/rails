@@ -180,10 +180,7 @@ module ActiveRecord #:nodoc:
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
   #
   #  Person.where(:user_name => user_name, :password => password).first
-  #  Person.find_by_user_name_and_password #with dynamic finder
-  #
-  #  Person.where(:user_name => user_name, :password => password, :gender => 'male').first
-  #  Payment.find_by_user_name_and_password_and_gender
+  #  Person.find_by_user_name_and_password(user_name, password) # with dynamic finder
   #
   # It's even possible to call these dynamic finder methods on relations and named scopes.
   #

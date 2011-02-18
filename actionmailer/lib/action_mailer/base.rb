@@ -222,7 +222,7 @@ module ActionMailer #:nodoc:
   #
   # An interceptor object must implement the <tt>:delivering_email(message)</tt> method which will be
   # called before the email is sent, allowing you to make modifications to the email before it hits
-  # the delivery agents.  Your object should make and needed modifications directly to the passed
+  # the delivery agents.  Your object should make any needed modifications directly to the passed
   # in Mail::Message instance.
   #
   # = Default Hash
