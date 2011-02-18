@@ -313,7 +313,7 @@ module ActiveRecord
         macro == :belongs_to
       end
 
-      def proxy_class
+      def association_class
         case macro
         when :belongs_to
           if options[:polymorphic]
@@ -392,6 +392,10 @@ module ActiveRecord
       #
       def source_reflection_names
         @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
+      end
+
+      def association_primary_key
+        source_reflection.association_primary_key
       end
 
       def check_validity!

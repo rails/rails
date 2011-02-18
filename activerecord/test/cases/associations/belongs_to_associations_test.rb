@@ -50,11 +50,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { account.firm = account.firm }
   end
 
-  def test_triple_equality
-    assert Client.find(3).firm === Firm
-    assert Firm === Client.find(3).firm
-  end
-
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = Project.find(1) }
@@ -569,13 +564,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_reloading_association_with_key_change
     client = companies(:second_client)
-    firm = client.firm # note this is a proxy object
+    firm = client.association(:firm)
 
     client.firm = companies(:another_firm)
-    assert_equal companies(:another_firm), firm.reload
+    firm.reload
+    assert_equal companies(:another_firm), firm.target
 
     client.client_of = companies(:first_firm).id
-    assert_equal companies(:first_firm), firm.reload
+    firm.reload
+    assert_equal companies(:first_firm), firm.target
   end
 
   def test_polymorphic_counter_cache

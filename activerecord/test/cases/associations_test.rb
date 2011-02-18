@@ -133,25 +133,6 @@ end
 class AssociationProxyTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
 
-  def test_proxy_accessors
-    welcome = posts(:welcome)
-    assert_equal  welcome, welcome.author.proxy_owner
-    assert_equal  welcome.class.reflect_on_association(:author), welcome.author.proxy_reflection
-    welcome.author.class  # force load target
-    assert_equal  welcome.author, welcome.author.proxy_target
-
-    david = authors(:david)
-    assert_equal  david, david.posts.proxy_owner
-    assert_equal  david.class.reflect_on_association(:posts), david.posts.proxy_reflection
-    david.posts.class   # force load target
-    assert_equal  david.posts, david.posts.proxy_target
-
-    assert_equal  david, david.posts_with_extension.testing_proxy_owner
-    assert_equal  david.class.reflect_on_association(:posts_with_extension), david.posts_with_extension.testing_proxy_reflection
-    david.posts_with_extension.class   # force load target
-    assert_equal  david.posts_with_extension, david.posts_with_extension.testing_proxy_target
-  end
-
   def test_push_does_not_load_target
     david = authors(:david)
 
@@ -216,16 +197,6 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal post.body, "More cool stuff!"
   end
 
-  def test_failed_reload_returns_nil
-    p = setup_dangling_association
-    assert_nil p.author.reload
-  end
-
-  def test_failed_reset_returns_nil
-    p = setup_dangling_association
-    assert_nil p.author.reset
-  end
-
   def test_reload_returns_assocition
     david = developers(:david)
     assert_nothing_raised do
@@ -239,13 +210,6 @@ class AssociationProxyTest < ActiveRecord::TestCase
       author.reload.target.expects(:to_a).never
       [*author]
     end
-  end
-
-  def setup_dangling_association
-    josh = Author.create(:name => "Josh")
-    p = Post.create(:title => "New on Edge", :body => "More cool stuff!", :author => josh)
-    josh.destroy
-    p
   end
 end
 

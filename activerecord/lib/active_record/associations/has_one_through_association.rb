@@ -1,7 +1,7 @@
 module ActiveRecord
   # = Active Record Has One Through Association
   module Associations
-    class HasOneThroughAssociation < HasOneAssociation
+    class HasOneThroughAssociation < HasOneAssociation #:nodoc:
       include ThroughAssociation
 
       def replace(record)
@@ -12,7 +12,7 @@ module ActiveRecord
       private
 
         def create_through_record(record)
-          through_proxy  = @owner.send(:association_proxy, @reflection.through_reflection.name)
+          through_proxy  = @owner.association(@reflection.through_reflection.name)
           through_record = through_proxy.send(:load_target)
 
           if through_record && !record

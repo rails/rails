@@ -112,7 +112,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   def test_build_before_child_saved
     firm = Firm.find(1)
 
-    account = firm.account.build("credit_limit" => 1000)
+    account = firm.build_account("credit_limit" => 1000)
     assert_equal account, firm.account
     assert !account.persisted?
     assert firm.save

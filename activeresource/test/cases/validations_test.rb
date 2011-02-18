@@ -48,6 +48,12 @@ class ValidationsTest < ActiveModel::TestCase
     assert p.save, "should have saved after fixing the validation, but had: #{p.errors.inspect}"
   end
 
+  def test_client_side_validation_maximum
+    project = Project.new(:description => '123456789012345')
+    assert ! project.valid?
+    assert_equal ['is too long (maximum is 10 characters)'], project.errors[:description]
+  end
+
   protected
 
   # quickie helper to create a new project with all the required

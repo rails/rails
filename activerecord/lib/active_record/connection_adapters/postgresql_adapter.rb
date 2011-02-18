@@ -845,14 +845,18 @@ module ActiveRecord
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
-        default = options[:default]
-        notnull = options[:null] == false
+        add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        add_column_options!(add_column_sql, options)
 
-        # Add the column.
-        execute("ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}")
+        begin
+          execute add_column_sql
+        rescue ActiveRecord::StatementInvalid => e
+          raise e if postgresql_version > 80000
 
-        change_column_default(table_name, column_name, default) if options_include_default?(options)
-        change_column_null(table_name, column_name, false, default) if notnull
+          execute("ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}")
+          change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
+          change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+        end
       end
 
       # Changes the column of a table.

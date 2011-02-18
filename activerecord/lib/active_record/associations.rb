@@ -118,17 +118,19 @@ module ActiveRecord
 
     # These classes will be loaded when associations are created.
     # So there is no need to eager load them.
-    autoload :AssociationCollection, 'active_record/associations/association_collection'
-    autoload :SingularAssociation, 'active_record/associations/singular_association'
-    autoload :AssociationProxy, 'active_record/associations/association_proxy'
-    autoload :ThroughAssociation, 'active_record/associations/through_association'
-    autoload :BelongsToAssociation, 'active_record/associations/belongs_to_association'
+    autoload :Association,           'active_record/associations/association'
+    autoload :SingularAssociation,   'active_record/associations/singular_association'
+    autoload :CollectionAssociation, 'active_record/associations/collection_association'
+    autoload :CollectionProxy,       'active_record/associations/collection_proxy'
+
+    autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
     autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
-    autoload :HasAndBelongsToManyAssociation, 'active_record/associations/has_and_belongs_to_many_association'
-    autoload :HasManyAssociation, 'active_record/associations/has_many_association'
-    autoload :HasManyThroughAssociation, 'active_record/associations/has_many_through_association'
-    autoload :HasOneAssociation, 'active_record/associations/has_one_association'
-    autoload :HasOneThroughAssociation, 'active_record/associations/has_one_through_association'
+    autoload :HasAndBelongsToManyAssociation,  'active_record/associations/has_and_belongs_to_many_association'
+    autoload :HasManyAssociation,              'active_record/associations/has_many_association'
+    autoload :HasManyThroughAssociation,       'active_record/associations/has_many_through_association'
+    autoload :HasOneAssociation,               'active_record/associations/has_one_association'
+    autoload :HasOneThroughAssociation,        'active_record/associations/has_one_through_association'
+    autoload :ThroughAssociation,              'active_record/associations/through_association'
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:
@@ -138,29 +140,23 @@ module ActiveRecord
     # :nodoc:
     attr_reader :association_cache
 
-    protected
+    # Returns the association instance for the given name, instantiating it if it doesn't already exist
+    def association(name) #:nodoc:
+      association = association_instance_get(name)
 
-      # Returns the proxy for the given association name, instantiating it if it doesn't
-      # already exist
-      def association_proxy(name)
-        association = association_instance_get(name)
-
-        if association.nil?
-          reflection  = self.class.reflect_on_association(name)
-          association = reflection.proxy_class.new(self, reflection)
-          association_instance_set(name, association)
-        end
-
-        association
+      if association.nil?
+        reflection  = self.class.reflect_on_association(name)
+        association = reflection.association_class.new(self, reflection)
+        association_instance_set(name, association)
       end
+
+      association
+    end
 
     private
       # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
-        if @association_cache.key? name
-          association = @association_cache[name]
-          association if association.respond_to?(:loaded?)
-        end
+        @association_cache[name]
       end
 
       # Set the specified association instance.
@@ -522,6 +518,22 @@ module ActiveRecord
     #
     #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
     #   @group.avatars.delete(@group.avatars.last)  # so would this
+    #
+    # If you are using a +belongs_to+ on the join model, it is a good idea to set the
+    # <tt>:inverse_of</tt> option on the +belongs_to+, which will mean that the following example
+    # works correctly (where <tt>tags</tt> is a +has_many+ <tt>:through</tt> association):
+    #
+    #   @post = Post.first
+    #   @tag = @post.tags.build :name => "ruby"
+    #   @tag.save
+    #
+    # The last line ought to save the through record (a <tt>Taggable</tt>). This will only work if the
+    # <tt>:inverse_of</tt> is set:
+    #
+    #   class Taggable < ActiveRecord::Base
+    #     belongs_to :post
+    #     belongs_to :tag, :inverse_of => :taggings
+    #   end
     #
     # === Polymorphic Associations
     #
@@ -1043,13 +1055,21 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
-      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt>
-      #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You
-      #   can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>, <tt>has_one</tt>
-      #   or <tt>has_many</tt> association on the join model. The collection of join models
-      #   can be managed via the collection API. For example, new join models are created for
-      #   newly associated objects, and if some are gone their rows are deleted (directly,
-      #   no destroy callbacks are triggered).
+      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt>,
+      #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
+      #   source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>,
+      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model.
+      #
+      #   If the association on the join model is a +belongs_to+, the collection can be modified
+      #   and the records on the <tt>:through</tt> model will be automatically created and removed
+      #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
+      #   <tt>:through</tt> association directly.
+      #
+      #   If you are going to modify the association (rather than just read from it), then it is
+      #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
+      #   join model. This allows associated records to be built which will automatically create
+      #   the appropriate join model records when they are saved. (See the 'Association Join Models'
+      #   section above.)
       # [:source]
       #   Specifies the source association name used by <tt>has_many :through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.
@@ -1550,7 +1570,7 @@ module ActiveRecord
         def association_accessor_methods(reflection)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association  = association_proxy(reflection.name)
+            association  = association(reflection.name)
 
             if force_reload
               reflection.klass.uncached { association.reload }
@@ -1558,18 +1578,18 @@ module ActiveRecord
               association.reload
             end
 
-            association.target.nil? ? nil : association
+            association.target
           end
 
           redefine_method("#{reflection.name}=") do |record|
-            association_proxy(reflection.name).replace(record)
+            association(reflection.name).replace(record)
           end
         end
 
         def collection_reader_method(reflection)
           redefine_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association  = association_proxy(reflection.name)
+            association  = association(reflection.name)
 
             if force_reload
               reflection.klass.uncached { association.reload }
@@ -1577,14 +1597,17 @@ module ActiveRecord
               association.reload
             end
 
-            association
+            association.proxy
           end
 
           redefine_method("#{reflection.name.to_s.singularize}_ids") do
             if send(reflection.name).loaded? || reflection.options[:finder_sql]
-              send(reflection.name).map { |r| r.id }
+              records = send(reflection.name)
+              records.map { |r| r.send(reflection.association_primary_key) }
             else
-              send(reflection.name).select("#{reflection.quoted_table_name}.#{reflection.klass.primary_key}").except(:includes).map! { |r| r.id }
+              column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
+              records = send(reflection.name).select(column).except(:includes)
+              records.map! { |r| r.send(reflection.association_primary_key) }
             end
           end
         end
@@ -1594,7 +1617,7 @@ module ActiveRecord
 
           if writer
             redefine_method("#{reflection.name}=") do |new_value|
-              association_proxy(reflection.name).replace(new_value)
+              association(reflection.name).replace(new_value)
             end
 
             redefine_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
@@ -1616,7 +1639,7 @@ module ActiveRecord
           constructors.each do |name, proxy_name|
             redefine_method(name) do |*params|
               attributes = params.first unless params.empty?
-              association_proxy(reflection.name).send(proxy_name, attributes)
+              association(reflection.name).send(proxy_name, attributes)
             end
           end
         end

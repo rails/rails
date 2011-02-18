@@ -26,14 +26,10 @@ module Yz
   end
 end
 
-class De
-end
-
 Somewhere = Struct.new(:street, :city)
 
 Someone   = Struct.new(:name, :place) do
   delegate :street, :city, :to_f, :to => :place
-  delegate :state, :to => :@place
   delegate :upcase, :to => "place.city"
 end
 

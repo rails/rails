@@ -153,7 +153,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_create_polymorphic_has_one_with_scope
     old_count = Tagging.count
-    tagging = posts(:welcome).tagging.create(:tag => tags(:misc))
+    tagging = posts(:welcome).create_tagging(:tag => tags(:misc))
     assert_equal "Post", tagging.taggable_type
     assert_equal old_count+1, Tagging.count
   end
