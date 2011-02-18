@@ -69,7 +69,7 @@ module ActiveModel
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test.  So either extending the provided
-  # method below, or rolling your own is required..
+  # method below, or rolling your own is required.
   module Naming
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information.
