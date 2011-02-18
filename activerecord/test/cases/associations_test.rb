@@ -203,14 +203,6 @@ class AssociationProxyTest < ActiveRecord::TestCase
       assert_equal david.projects, david.projects.reload.reload
     end
   end
-
-  if RUBY_VERSION < '1.9'
-    def test_splat_does_not_invoke_to_a_on_singular_targets
-      author = posts(:welcome).author
-      author.reload.target.expects(:to_a).never
-      [*author]
-    end
-  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase

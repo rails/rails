@@ -10,7 +10,7 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods
-        super(columns_hash.keys)
+        super(column_names)
       end
 
       # Checks whether the method is defined in the model or any of its subclasses
