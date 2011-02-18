@@ -42,7 +42,7 @@ You are ready to add some AJAX love to your Rails app!
 
 h4. The Quintessential AJAX Rails Helper: link_to_remote
 
-Let's start with the the probably most often used helper: +link_to_remote+, which has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
+Let's start with what is probably the most often used helper: +link_to_remote+.  It has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
 
 The signature of +link_to_remote+ function is the same as that of the standard +link_to+ helper:
 
