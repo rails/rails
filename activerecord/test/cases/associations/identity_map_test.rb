@@ -116,7 +116,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
     m = Author.first
     i = Post.new(:title => 'Industrial Revolution Re-enactment', :body => 'Lorem ipsum')
     m.posts = [i]
-    assert_same m, i.author.target
+    assert_same m, i.author
     assert_not_nil i.author
     assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
     m.name = 'Bongo'
