@@ -168,7 +168,7 @@ end
 With +:through => :sections+ specified, Rails will now understand:
 
 <ruby>
-  @document.paragraphs
+@document.paragraphs
 </ruby>
 
 h4. The +has_one :through+ Association
