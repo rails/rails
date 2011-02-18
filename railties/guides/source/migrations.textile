@@ -82,7 +82,7 @@ On databases that support transactions with statements that change the schema (s
 
 h4. What's in a Name
 
-Migrations are stored in files in +db/migrate+, one for each migration class. The name of the file is of the form +YYYYMMDDHHMMSS_create_products.rb+, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The name of the migration class (CamelCased version) should match the latter part of the file name. For example +20080906120000_create_products.rb+ should define +CreateProducts+ and +20080906120001_add_details_to_products.rb+ should define +AddDetailsToProducts+. If you do feel the need to change the file name then you <em>have to</em> update the name of the class inside or Rails will complain about a "missing class":#missing-class-while-running-a-migration.
+Migrations are stored in files in +db/migrate+, one for each migration class. The name of the file is of the form +YYYYMMDDHHMMSS_create_products.rb+, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The name of the migration class (CamelCased version) should match the latter part of the file name. For example +20080906120000_create_products.rb+ should define +CreateProducts+ and +20080906120001_add_details_to_products.rb+ should define +AddDetailsToProducts+. If you do feel the need to change the file name then you <em>have to</em> update the name of the class inside or Rails will complain about a missing class.
 
 Internally Rails only uses the migration's number (the timestamp) to identify them. Prior to Rails 2.1 the migration number started at 1 and was incremented each time a migration was generated. With multiple developers it was easy for these to clash requiring you to rollback migrations and renumber them. With Rails 2.1 this is largely avoided by using the creation time of the migration to identify them. You can revert to the old numbering scheme by adding the following line to +config/application.rb+.
 
@@ -587,19 +587,6 @@ The Active Record way claims that intelligence belongs in your models, not in th
 Validations such as +validates :foreign_key, :uniqueness => true+ are one way in which models can enforce data integrity. The +:dependent+ option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level these cannot guarantee referential integrity and so some people augment them with foreign key constraints.
 
 Although Active Record does not provide any tools for working directly with such features, the +execute+ method can be used to execute arbitrary SQL. There are also a number of plugins such as "foreign_key_migrations":http://github.com/harukizaemon/redhillonrails/tree/master/foreign_key_migrations/ which add foreign key support to Active Record (including support for dumping foreign keys in +db/schema.rb+).
-
-h3. Troubleshooting
-
-h4. Missing Class While Running a Migration
-
-Sometimes the names of the migration classes and migration files don't match. In such cases, +rake db:migrate+ generates the following error: 
-<shell>
-rake aborted!
-An error has occurred, this and all later migrations canceled:
-
-uninitialized constant CreateOs
-</shell>
-When you get such an error, make sure the names match. For example, in above case, name of the migration class was +CreateOs+, and the name of the migration file was +20110217235207_create_oses.rb+. One possible way to fix this is to delete the migration file, modify pluralization rules for your model and recreate and rerun the migration. 
 
 h3. Changelog
 
