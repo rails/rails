@@ -70,23 +70,21 @@ module ActiveRecord
       end
     end
 
-    module InstanceMethods
-      # Reinitialize an Identity Map model object from +coder+.
-      # +coder+ must contain the attributes necessary for initializing an empty
-      # model object.
-      def reinit_with(coder)
-        @attributes_cache = {}
-        dirty = @changed_attributes.keys
-        @attributes.update(coder['attributes'].except(*dirty))
-        @changed_attributes.update(coder['attributes'].slice(*dirty))
-        @changed_attributes.delete_if{|k,v| v.eql? @attributes[k]}
+    # Reinitialize an Identity Map model object from +coder+.
+    # +coder+ must contain the attributes necessary for initializing an empty
+    # model object.
+    def reinit_with(coder)
+      @attributes_cache = {}
+      dirty = @changed_attributes.keys
+      @attributes.update(coder['attributes'].except(*dirty))
+      @changed_attributes.update(coder['attributes'].slice(*dirty))
+      @changed_attributes.delete_if{|k,v| v.eql? @attributes[k]}
 
-        set_serialized_attributes
+      set_serialized_attributes
 
-        run_callbacks :find
+      run_callbacks :find
 
-        self
-      end
+      self
     end
 
     class Middleware
