@@ -28,7 +28,6 @@ module ActiveRecord
           end
 
           def self.columns_hash
-            puts caller
             Hash[column_names.map { |name|
               [name, FakeColumn.new(name)]
             }]
