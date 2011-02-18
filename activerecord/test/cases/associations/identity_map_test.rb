@@ -2,12 +2,9 @@ require "cases/helper"
 require 'models/author'
 require 'models/post'
 
+if ActiveRecord::IdentityMap.enabled?
 class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
   fixtures :authors, :posts
-
-  def setup
-    skip unless ActiveRecord::IdentityMap.enabled?
-  end
 
   def test_parent_instance_should_be_shared_with_every_child_on_find
     m = Author.first
@@ -136,4 +133,5 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
     i.author.name = 'Mungo'
     assert_equal m.name, i.author.name, "Name of man should be the same after changes to replaced-child-owned instance"
   end
+end
 end

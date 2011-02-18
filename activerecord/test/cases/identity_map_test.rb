@@ -20,14 +20,11 @@ require "models/pirate"
 require "models/bird"
 require "models/parrot"
 
+if ActiveRecord::IdentityMap.enabled?
 class IdentityMapTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
     :developers_projects, :computers, :authors, :author_addresses,
     :posts, :tags, :taggings, :comments, :subscribers
-
-  def setup
-    skip unless ActiveRecord::IdentityMap.enabled?
-  end
 
   ##############################################################################
   # Basic tests checking if IM is functioning properly on basic find operations#
@@ -401,4 +398,5 @@ class IdentityMapTest < ActiveRecord::TestCase
 #    assert_same(s, stj)
 #  end
 
+end
 end
