@@ -46,7 +46,7 @@ module ActiveModel
       # * <tt>:message</tt> - A custom error message (default is: "doesn't match
       #   confirmation").
       # * <tt>:on</tt> - Specifies when this validation is active (default is
-      #   <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      #   <tt>:nil</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
       #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The

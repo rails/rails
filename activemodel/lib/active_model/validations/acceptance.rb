@@ -38,7 +38,7 @@ module ActiveModel
       # * <tt>:message</tt> - A custom error message (default is: "must be
       #   accepted").
       # * <tt>:on</tt> - Specifies when this validation is active (default is
-      #   <tt>:save</tt>, other options are <tt>:create</tt> and
+      #   <tt>nil</tt>, other options are <tt>:create</tt> and
       #   <tt>:update</tt>).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default
       #   is true).
