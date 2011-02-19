@@ -33,11 +33,19 @@ module ActionView
               all_asset_files = (collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}") - ['application']) << 'application'
               ((determine_source(:defaults, expansions).dup & all_asset_files) + all_asset_files).uniq
             else
-              expanded_sources = sources.collect do |source|
-                determine_source(source, expansions)
-              end.flatten
-              expanded_sources << "application" if sources.include?(:defaults) && File.exist?(File.join(custom_dir, "application.#{extension}"))
+              expanded_sources = sources.inject([]) do |list, source|
+                determined_source = determine_source(source, expansions)
+                update_source_list(list, determined_source)
+              end
+              add_application_js(expanded_sources, sources)
               expanded_sources
+            end
+          end
+
+          def add_application_js(expanded_sources, sources)
+            if sources.include?(:defaults) && File.exist?(File.join(custom_dir, "application.#{extension}"))
+              expanded_sources.delete('application')
+              expanded_sources << "application"
             end
           end
       end

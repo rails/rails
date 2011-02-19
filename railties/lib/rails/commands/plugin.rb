@@ -276,12 +276,11 @@ end
 require 'optparse'
 module Commands
   class Plugin
-    attr_reader :environment, :script_name, :sources
+    attr_reader :environment, :script_name
     def initialize
       @environment = RailsEnvironment.default
       @rails_root = RailsEnvironment.default.root
       @script_name = File.basename($0)
-      @sources = []
     end
 
     def environment=(value)
@@ -301,8 +300,6 @@ module Commands
         o.on("-r", "--root=DIR", String,
              "Set an explicit rails app directory.",
              "Default: #{@rails_root}") { |rails_root| @rails_root = rails_root; self.environment = RailsEnvironment.new(@rails_root) }
-        o.on("-s", "--source=URL1,URL2", Array,
-             "Use the specified plugin repositories instead of the defaults.") { |sources| @sources = sources}
 
         o.on("-v", "--verbose", "Turn on verbose output.") { |verbose| $verbose = verbose }
         o.on("-h", "--help", "Show this help message.") { puts o; exit }
@@ -315,8 +312,6 @@ module Commands
 
         o.separator ""
         o.separator "EXAMPLES"
-        o.separator "  Install a plugin:"
-        o.separator "    #{@script_name} plugin install continuous_builder\n"
         o.separator "  Install a plugin from a subversion URL:"
         o.separator "    #{@script_name} plugin install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
         o.separator "  Install a plugin from a git URL:"

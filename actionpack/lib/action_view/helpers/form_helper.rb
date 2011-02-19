@@ -298,6 +298,23 @@ module ActionView
       #
       # If you don't need to attach a form to a model instance, then check out
       # FormTagHelper#form_tag.
+      #
+      # === Form to external resources
+      #
+      # When you build forms to external resources sometimes you need to set an authenticity token or just render a form
+      # without it, for example when you submit data to a payment gateway number and types of fields could be limited.
+      #
+      # To set an authenticity token you need to pass an <tt>:authenticity_token</tt> parameter
+      #
+      #   <%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f|
+      #     ...
+      #   <% end %>
+      #
+      # If you don't want to an authenticity token field be rendered at all just pass <tt>false</tt>:
+      #
+      #   <%= form_for @invoice, :url => external_url, :authenticity_token => false do |f|
+      #     ...
+      #   <% end %>
       def form_for(record, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
 
@@ -314,6 +331,8 @@ module ActionView
         end
 
         options[:html][:remote] = options.delete(:remote)
+        options[:html][:authenticity_token] = options.delete(:authenticity_token)
+        
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)
         fields_for = fields_for(object_name, object, options, &proc)
         default_options = builder.multipart? ? { :multipart => true } : {}
@@ -530,8 +549,11 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
-      def fields_for(record, record_object = nil, options = nil, &block)
-        capture(instantiate_builder(record, record_object, options, &block), &block)
+      def fields_for(record, record_object = nil, options = {}, &block)
+        builder = instantiate_builder(record, record_object, options, &block)
+        output = capture(builder, &block)
+        output.concat builder.hidden_field(:id) if output && options[:hidden_field_id] && !builder.emitted_hidden_id?
+        output
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
@@ -1243,7 +1265,7 @@ module ActionView
       def submit(value=nil, options={})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
+        @template.submit_tag(value, options)
       end
 
       def emitted_hidden_id?
@@ -1304,14 +1326,8 @@ module ActionView
         def fields_for_nested_model(name, object, options, block)
           object = convert_to_model(object)
 
-          if object.persisted?
-            @template.fields_for(name, object, options) do |builder|
-              block.call(builder)
-              @template.concat builder.hidden_field(:id) unless builder.emitted_hidden_id?
-            end
-          else
-            @template.fields_for(name, object, options, &block)
-          end
+          options[:hidden_field_id] = object.persisted?
+          @template.fields_for(name, object, options, &block)
         end
 
         def nested_child_index(name)

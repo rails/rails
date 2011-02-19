@@ -40,7 +40,7 @@ module ActionView
   # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
   # wanted it to be +agreement+ instead of +contract+ we'd do:
   #
-  #   <%= render :partial => "contract", :as => :agreement %>
+  #   <%= render :partial => "contract", :as => 'agreement' %>
   #
   # The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial;
   # useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.

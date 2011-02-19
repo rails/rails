@@ -18,7 +18,7 @@ class ResponseTest < ActiveSupport::TestCase
     body.each { |part| parts << part }
     assert_equal ["Hello, World!"], parts
   end
-  
+
   test "status handled properly in initialize" do
     assert_equal 200, ActionDispatch::Response.new('200 OK').status
   end
@@ -26,7 +26,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "utf8 output" do
     @response.body = [1090, 1077, 1089, 1090].pack("U*")
 
-    status, headers, body = @response.to_a
+    status, headers, _ = @response.to_a
     assert_equal 200, status
     assert_equal({
       "Content-Type" => "text/html; charset=utf-8"
@@ -52,20 +52,20 @@ class ResponseTest < ActiveSupport::TestCase
   test "content type" do
     [204, 304].each do |c|
       @response.status = c.to_s
-      status, headers, body = @response.to_a
+      _, headers, _ = @response.to_a
       assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
       @response.status = c.to_s
-      status, headers, body = @response.to_a
+      _, headers, _ = @response.to_a
       assert headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
     end
   end
 
   test "does not include Status header" do
     @response.status = "200 OK"
-    status, headers, body = @response.to_a
+    _, headers, _ = @response.to_a
     assert !headers.has_key?('Status')
   end
 

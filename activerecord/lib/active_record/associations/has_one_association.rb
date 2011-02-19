@@ -26,10 +26,13 @@ module ActiveRecord
         self.target = record
       end
 
-      private
+      protected
+
         def association_scope
           super.order(@reflection.options[:order])
         end
+
+      private
 
         alias creation_attributes construct_owner_attributes
 

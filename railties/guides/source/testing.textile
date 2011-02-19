@@ -582,7 +582,7 @@ assert_select "ol" do
 end
 </ruby>
 
-The +assert_select+ assertion is quite powerful. For more advanced usage, refer to its "documentation":http://api.rubyonrails.org/classes/ActionController/Assertions/SelectorAssertions.html.
+The +assert_select+ assertion is quite powerful. For more advanced usage, refer to its "documentation":http://api.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html.
 
 h5. Additional View-Based Assertions
 

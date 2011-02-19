@@ -147,6 +147,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.ship_attributes = { :id => "" }
     assert_nothing_raised(ActiveRecord::RecordNotFound) { pirate.save! }
   end
+
+  def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
+    Man.accepts_nested_attributes_for(:interests)
+    man = Man.create(:name => "John")
+    interest = man.interests.create :topic => 'gardning'
+    man = Man.find man.id
+    man.interests_attributes = [{:id => interest.id, :topic => 'gardening'}]
+    assert_equal man.interests.first.topic, man.interests[0].topic
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
@@ -909,16 +918,16 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
 
   test "if association is not loaded and association record is saved and then in memory record attributes should be saved" do
     @ship.parts_attributes=[{:id => @part.id,:name =>'Deck'}]
-    assert_equal 1, @ship.parts.proxy_target.size
+    assert_equal 1, @ship.association(:parts).target.size
     assert_equal 'Deck', @ship.parts[0].name
   end
 
   test "if association is not loaded and child doesn't change and I am saving a grandchild then in memory record should be used" do
     @ship.parts_attributes=[{:id => @part.id,:trinkets_attributes =>[{:id => @trinket.id, :name => 'Ruby'}]}]
-    assert_equal 1, @ship.parts.proxy_target.size
+    assert_equal 1, @ship.association(:parts).target.size
     assert_equal 'Mast', @ship.parts[0].name
-    assert_no_difference("@ship.parts[0].trinkets.proxy_target.size") do
-      @ship.parts[0].trinkets.proxy_target.size
+    assert_no_difference("@ship.parts[0].association(:trinkets).target.size") do
+      @ship.parts[0].association(:trinkets).target.size
     end
     assert_equal 'Ruby', @ship.parts[0].trinkets[0].name
     @ship.save

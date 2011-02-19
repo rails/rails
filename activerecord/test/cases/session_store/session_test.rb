@@ -60,6 +60,7 @@ module ActiveRecord
       end
 
       def test_loaded?
+        Session.create_table!
         s = Session.new
         assert !s.loaded?, 'session is not loaded'
       end

@@ -37,7 +37,7 @@ class CallbacksTest < ActiveModel::TestCase
     end
 
     def create
-      _run_create_callbacks do
+      run_callbacks :create do
         @callbacks << :create
         @valid
       end
@@ -92,7 +92,7 @@ class CallbacksTest < ActiveModel::TestCase
     def callback1; self.history << 'callback1'; end
     def callback2; self.history << 'callback2'; end
     def create
-      _run_create_callbacks {}
+      run_callbacks(:create) {}
       self
     end
   end

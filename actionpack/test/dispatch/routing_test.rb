@@ -187,7 +187,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       resources :posts, :only => [:index, :show] do
-        resources :comments, :except => :destroy
+        namespace :admin do
+          root :to => "index#index"
+        end
+        resources :comments, :except => :destroy do
+          get "views" => "comments#views", :as => :views
+        end
       end
 
       resource  :past, :only => :destroy
@@ -201,6 +206,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           resources :teams do
             resources :players
             resource :captain
+          end
+        end
+      end
+
+      scope '/hello' do
+        shallow do
+          resources :notes do
+            resources :trackbacks
           end
         end
       end
@@ -1676,6 +1689,60 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_shallow_nested_resources_within_scope
+    with_test_routes do
+
+      get '/hello/notes/1/trackbacks'
+      assert_equal 'trackbacks#index', @response.body
+      assert_equal '/hello/notes/1/trackbacks', note_trackbacks_path(:note_id => 1)
+
+      get '/hello/notes/1/edit'
+      assert_equal 'notes#edit', @response.body
+      assert_equal '/hello/notes/1/edit', edit_note_path(:id => '1')
+
+      get '/hello/notes/1/trackbacks/new'
+      assert_equal 'trackbacks#new', @response.body
+      assert_equal '/hello/notes/1/trackbacks/new', new_note_trackback_path(:note_id => 1)
+
+      get '/hello/trackbacks/1'
+      assert_equal 'trackbacks#show', @response.body
+      assert_equal '/hello/trackbacks/1', trackback_path(:id => '1')
+
+      get '/hello/trackbacks/1/edit'
+      assert_equal 'trackbacks#edit', @response.body
+      assert_equal '/hello/trackbacks/1/edit', edit_trackback_path(:id => '1')
+
+      put '/hello/trackbacks/1'
+      assert_equal 'trackbacks#update', @response.body
+
+      post '/hello/notes/1/trackbacks'
+      assert_equal 'trackbacks#create', @response.body
+
+      delete '/hello/trackbacks/1'
+      assert_equal 'trackbacks#destroy', @response.body
+
+      get '/hello/notes'
+      assert_equal 'notes#index', @response.body
+
+      post '/hello/notes'
+      assert_equal 'notes#create', @response.body
+
+      get '/hello/notes/new'
+      assert_equal 'notes#new', @response.body
+      assert_equal '/hello/notes/new', new_note_path
+
+      get '/hello/notes/1'
+      assert_equal 'notes#show', @response.body
+      assert_equal '/hello/notes/1', note_path(:id => 1)
+
+      put '/hello/notes/1'
+      assert_equal 'notes#update', @response.body
+
+      delete '/hello/notes/1'
+      assert_equal 'notes#destroy', @response.body
+    end
+  end
+
   def test_custom_resource_routes_are_scoped
     with_test_routes do
       assert_equal '/customers/recent', recent_customers_path
@@ -2244,6 +2311,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         routes.draw { resources :feeds, :controller => '/feeds' }
       end
     end
+  end
+
+  def test_nested_route_in_nested_resource
+    get "/posts/1/comments/2/views"
+    assert_equal "comments#views", @response.body
+    assert_equal "/posts/1/comments/2/views", post_comment_views_path(:post_id => '1', :comment_id => '2')
+  end
+
+  def test_root_in_deeply_nested_scope
+    get "/posts/1/admin"
+    assert_equal "admin/index#index", @response.body
+    assert_equal "/posts/1/admin", post_admin_root_path(:post_id => '1')
   end
 
 private

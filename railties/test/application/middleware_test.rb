@@ -29,6 +29,7 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::IdentityMap::Middleware",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
@@ -56,6 +57,7 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
+      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "removes lock if allow concurrency is set" do
@@ -110,6 +112,11 @@ module ApplicationTests
     test "RAILS_CACHE does respond to middleware" do
       boot!
       assert_equal "Rack::Runtime", middleware.fourth
+    end
+
+    test "identity map is inserted" do
+      boot!
+      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "insert middleware before" do

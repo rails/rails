@@ -193,7 +193,7 @@ db_namespace = namespace :db do
       file_list = []
       Dir.foreach(File.join(Rails.root, 'db', 'migrate')) do |file|
         # only files matching "20091231235959_some_name.rb" pattern
-        if match_data = /(\d{14})_(.+)\.rb/.match(file)
+        if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
           status = db_list.delete(match_data[1]) ? 'up' : 'down'
           file_list << [status, match_data[1], match_data[2]]
         end
@@ -296,8 +296,8 @@ db_namespace = namespace :db do
       base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
       fixtures_dir = ENV['FIXTURES_DIR'] ? File.join(base_dir, ENV['FIXTURES_DIR']) : base_dir
 
-      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/).map {|f| File.join(fixtures_dir, f) } : Dir["#{fixtures_dir}/**/*.{yml,csv}"]).each do |fixture_file|
-        Fixtures.create_fixtures(fixtures_dir, fixture_file[(fixtures_dir.size + 1)..-5])
+      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.{yml,csv}"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
+        Fixtures.create_fixtures(fixtures_dir, fixture_file)
       end
     end
 

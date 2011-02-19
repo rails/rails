@@ -112,7 +112,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   def test_build_before_child_saved
     firm = Firm.find(1)
 
-    account = firm.account.build("credit_limit" => 1000)
+    account = firm.build_account("credit_limit" => 1000)
     assert_equal account, firm.account
     assert !account.persisted?
     assert firm.save
@@ -585,7 +585,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.ship.mark_for_destruction
 
     assert !@pirate.reload.marked_for_destruction?
-    assert !@pirate.ship.marked_for_destruction?
+    assert !@pirate.ship.reload.marked_for_destruction?
   end
 
   # has_one
@@ -689,109 +689,206 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_equal 'NewName', @parrot.reload.name
   end
 
-  # has_many & has_and_belongs_to
-  %w{ parrots birds }.each do |association_name|
-    define_method("test_should_destroy_#{association_name}_as_part_of_the_save_transaction_if_they_were_marked_for_destroyal") do
-      2.times { |i| @pirate.send(association_name).create!(:name => "#{association_name}_#{i}") }
+  def test_should_destroy_has_many_as_part_of_the_save_transaction_if_they_were_marked_for_destruction
+    2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
 
-      assert !@pirate.send(association_name).any? { |child| child.marked_for_destruction? }
+    assert !@pirate.birds.any? { |child| child.marked_for_destruction? }
 
-      @pirate.send(association_name).each { |child| child.mark_for_destruction }
-      klass = @pirate.send(association_name).first.class
-      ids = @pirate.send(association_name).map(&:id)
+    @pirate.birds.each { |child| child.mark_for_destruction }
+    klass = @pirate.birds.first.class
+    ids = @pirate.birds.map(&:id)
 
-      assert @pirate.send(association_name).all? { |child| child.marked_for_destruction? }
-      ids.each { |id| assert klass.find_by_id(id) }
+    assert @pirate.birds.all? { |child| child.marked_for_destruction? }
+    ids.each { |id| assert klass.find_by_id(id) }
 
+    @pirate.save
+    assert @pirate.reload.birds.empty?
+    ids.each { |id| assert_nil klass.find_by_id(id) }
+  end
+
+  def test_should_skip_validation_on_has_many_if_marked_for_destruction
+    2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
+
+    @pirate.birds.each { |bird| bird.name = '' }
+    assert !@pirate.valid?
+
+    @pirate.birds.each do |bird|
+      bird.mark_for_destruction
+      bird.expects(:valid?).never
+    end
+    assert_difference("Bird.count", -2) { @pirate.save! }
+  end
+
+  def test_should_skip_validation_on_has_many_if_destroyed
+    @pirate.birds.create!(:name => "birds_1")
+
+    @pirate.birds.each { |bird| bird.name = '' }
+    assert !@pirate.valid?
+
+    @pirate.birds.each { |bird| bird.destroy }
+    assert @pirate.valid?
+  end
+
+  def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_has_many
+    @pirate.birds.create!(:name => "birds_1")
+
+    @pirate.birds.each { |bird| bird.mark_for_destruction }
+    assert @pirate.save
+
+    @pirate.birds.each { |bird| bird.expects(:destroy).never }
+    assert @pirate.save
+  end
+
+  def test_should_rollback_destructions_if_an_exception_occurred_while_saving_has_many
+    2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
+    before = @pirate.birds.map { |c| c.mark_for_destruction ; c }
+
+    # Stub the destroy method of the the second child to raise an exception
+    class << before.last
+      def destroy(*args)
+        super
+        raise 'Oh noes!'
+      end
+    end
+
+    assert_raise(RuntimeError) { assert !@pirate.save }
+    assert_equal before, @pirate.reload.birds
+  end
+
+  # Add and remove callbacks tests for association collections.
+  %w{ method proc }.each do |callback_type|
+    define_method("test_should_run_add_callback_#{callback_type}s_for_has_many") do
+      association_name_with_callbacks = "birds_with_#{callback_type}_callbacks"
+
+      pirate = Pirate.new(:catchphrase => "Arr")
+      pirate.send(association_name_with_callbacks).build(:name => "Crowe the One-Eyed")
+
+      expected = [
+        "before_adding_#{callback_type}_bird_<new>",
+        "after_adding_#{callback_type}_bird_<new>"
+      ]
+
+      assert_equal expected, pirate.ship_log
+    end
+
+    define_method("test_should_run_remove_callback_#{callback_type}s_for_has_many") do
+      association_name_with_callbacks = "birds_with_#{callback_type}_callbacks"
+
+      @pirate.send(association_name_with_callbacks).create!(:name => "Crowe the One-Eyed")
+      @pirate.send(association_name_with_callbacks).each { |c| c.mark_for_destruction }
+      child_id = @pirate.send(association_name_with_callbacks).first.id
+
+      @pirate.ship_log.clear
       @pirate.save
-      assert @pirate.reload.send(association_name).empty?
-      ids.each { |id| assert_nil klass.find_by_id(id) }
+
+      expected = [
+        "before_removing_#{callback_type}_bird_#{child_id}",
+        "after_removing_#{callback_type}_bird_#{child_id}"
+      ]
+
+      assert_equal expected, @pirate.ship_log
+    end
+  end
+
+  def test_should_destroy_habtm_as_part_of_the_save_transaction_if_they_were_marked_for_destruction
+    2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
+
+    assert !@pirate.parrots.any? { |parrot| parrot.marked_for_destruction? }
+    @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
+
+    assert_no_difference "Parrot.count" do
+      @pirate.save
     end
 
-    define_method("test_should_skip_validation_on_the_#{association_name}_association_if_marked_for_destruction") do
-      2.times { |i| @pirate.send(association_name).create!(:name => "#{association_name}_#{i}") }
-      children = @pirate.send(association_name)
+    assert @pirate.reload.parrots.empty?
 
-      children.each { |child| child.name = '' }
-      assert !@pirate.valid?
+    join_records = Pirate.connection.select_all("SELECT * FROM parrots_pirates WHERE pirate_id = #{@pirate.id}")
+    assert join_records.empty?
+  end
 
-      children.each do |child|
-        child.mark_for_destruction
-        child.expects(:valid?).never
-      end
-      assert_difference("#{association_name.classify}.count", -2) { @pirate.save! }
+  def test_should_skip_validation_on_habtm_if_marked_for_destruction
+    2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
+
+    @pirate.parrots.each { |parrot| parrot.name = '' }
+    assert !@pirate.valid?
+
+    @pirate.parrots.each do |parrot|
+      parrot.mark_for_destruction
+      parrot.expects(:valid?).never
     end
 
-    define_method("test_should_skip_validation_on_the_#{association_name}_association_if_destroyed") do
-      @pirate.send(association_name).create!(:name => "#{association_name}_1")
-      children = @pirate.send(association_name)
+    @pirate.save!
+    assert @pirate.reload.parrots.empty?
+  end
 
-      children.each { |child| child.name = '' }
-      assert !@pirate.valid?
+  def test_should_skip_validation_on_habtm_if_destroyed
+    @pirate.parrots.create!(:name => "parrots_1")
 
-      children.each { |child| child.destroy }
-      assert @pirate.valid?
-    end
+    @pirate.parrots.each { |parrot| parrot.name = '' }
+    assert !@pirate.valid?
 
-    define_method("test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_#{association_name}") do
-      @pirate.send(association_name).create!(:name => "#{association_name}_1")
-      children = @pirate.send(association_name)
+    @pirate.parrots.each { |parrot| parrot.destroy }
+    assert @pirate.valid?
+  end
 
-      children.each { |child| child.mark_for_destruction }
+  def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_habtm
+    @pirate.parrots.create!(:name => "parrots_1")
+
+    @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
+    assert @pirate.save
+
+    assert_no_queries do
       assert @pirate.save
-      children.each { |child| child.expects(:destroy).never }
-      assert @pirate.save
+    end
+  end
+
+  def test_should_rollback_destructions_if_an_exception_occurred_while_saving_habtm
+    2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
+    before = @pirate.parrots.map { |c| c.mark_for_destruction ; c }
+
+    class << @pirate.parrots
+      def destroy(*args)
+        super
+        raise 'Oh noes!'
+      end
     end
 
-    define_method("test_should_rollback_destructions_if_an_exception_occurred_while_saving_#{association_name}") do
-      2.times { |i| @pirate.send(association_name).create!(:name => "#{association_name}_#{i}") }
-      before = @pirate.send(association_name).map { |c| c.mark_for_destruction ; c }
+    assert_raise(RuntimeError) { assert !@pirate.save }
+    assert_equal before, @pirate.reload.parrots
+  end
 
-      # Stub the destroy method of the the second child to raise an exception
-      class << before.last
-        def destroy(*args)
-          super
-          raise 'Oh noes!'
-        end
-      end
+  # Add and remove callbacks tests for association collections.
+  %w{ method proc }.each do |callback_type|
+    define_method("test_should_run_add_callback_#{callback_type}s_for_habtm") do
+      association_name_with_callbacks = "parrots_with_#{callback_type}_callbacks"
 
-      assert_raise(RuntimeError) { assert !@pirate.save }
-      assert_equal before, @pirate.reload.send(association_name)
+      pirate = Pirate.new(:catchphrase => "Arr")
+      pirate.send(association_name_with_callbacks).build(:name => "Crowe the One-Eyed")
+
+      expected = [
+        "before_adding_#{callback_type}_parrot_<new>",
+        "after_adding_#{callback_type}_parrot_<new>"
+      ]
+
+      assert_equal expected, pirate.ship_log
     end
 
-    # Add and remove callbacks tests for association collections.
-    %w{ method proc }.each do |callback_type|
-      define_method("test_should_run_add_callback_#{callback_type}s_for_#{association_name}") do
-        association_name_with_callbacks = "#{association_name}_with_#{callback_type}_callbacks"
+    define_method("test_should_run_remove_callback_#{callback_type}s_for_habtm") do
+      association_name_with_callbacks = "parrots_with_#{callback_type}_callbacks"
 
-        pirate = Pirate.new(:catchphrase => "Arr")
-        pirate.send(association_name_with_callbacks).build(:name => "Crowe the One-Eyed")
+      @pirate.send(association_name_with_callbacks).create!(:name => "Crowe the One-Eyed")
+      @pirate.send(association_name_with_callbacks).each { |c| c.mark_for_destruction }
+      child_id = @pirate.send(association_name_with_callbacks).first.id
 
-        expected = [
-          "before_adding_#{callback_type}_#{association_name.singularize}_<new>",
-          "after_adding_#{callback_type}_#{association_name.singularize}_<new>"
-        ]
+      @pirate.ship_log.clear
+      @pirate.save
 
-        assert_equal expected, pirate.ship_log
-      end
+      expected = [
+        "before_removing_#{callback_type}_parrot_#{child_id}",
+        "after_removing_#{callback_type}_parrot_#{child_id}"
+      ]
 
-      define_method("test_should_run_remove_callback_#{callback_type}s_for_#{association_name}") do
-        association_name_with_callbacks = "#{association_name}_with_#{callback_type}_callbacks"
-
-        @pirate.send(association_name_with_callbacks).create!(:name => "Crowe the One-Eyed")
-        @pirate.send(association_name_with_callbacks).each { |c| c.mark_for_destruction }
-        child_id = @pirate.send(association_name_with_callbacks).first.id
-
-        @pirate.ship_log.clear
-        @pirate.save
-
-        expected = [
-          "before_removing_#{callback_type}_#{association_name.singularize}_#{child_id}",
-          "after_removing_#{callback_type}_#{association_name.singularize}_#{child_id}"
-        ]
-
-        assert_equal expected, @pirate.ship_log
-      end
+      assert_equal expected, @pirate.ship_log
     end
   end
 end
@@ -1214,6 +1311,7 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
   def setup
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @pirate.create_ship(:name => 'titanic')
+    super
   end
 
   test "should automatically validate associations with :validate => true" do
@@ -1222,7 +1320,7 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
     assert !@pirate.valid?
   end
 
-  test "should not automatically validate associations without :validate => true" do
+  test "should not automatically asd validate associations without :validate => true" do
     assert @pirate.valid?
     @pirate.non_validated_ship.name = ''
     assert @pirate.valid?

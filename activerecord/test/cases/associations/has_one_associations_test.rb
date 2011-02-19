@@ -4,6 +4,7 @@ require 'models/project'
 require 'models/company'
 require 'models/ship'
 require 'models/pirate'
+require 'models/bulb'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false unless supports_savepoints?
@@ -63,11 +64,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_proxy_assignment
     company = companies(:first_firm)
     assert_nothing_raised { company.account = company.account }
-  end
-
-  def test_triple_equality
-    assert Account === companies(:first_firm).account
-    assert companies(:first_firm).account === Account
   end
 
   def test_type_mismatch
@@ -167,6 +163,20 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.account
   end
 
+  def test_build_and_create_should_not_happen_within_scope
+    pirate = pirates(:blackbeard)
+    original_scoped_methods = Bulb.scoped_methods.dup
+
+    bulb = pirate.build_bulb
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = pirate.create_bulb
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = pirate.create_bulb!
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+  end
+
   def test_create_association
     firm = Firm.create(:name => "GlobalMegaCorp")
     account = firm.create_account(:credit_limit => 1000)
@@ -226,6 +236,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm = DependentFirm.find(:first)
     assert_nil firm.account
     firm.destroy
+  end
+
+  def test_finding_with_interpolated_condition
+    firm = Firm.find(:first)
+    superior = firm.clients.create(:name => 'SuperiorCo')
+    superior.rating = 10
+    superior.save
+    assert_equal 10, firm.clients_with_interpolated_conditions.first.rating
   end
 
   def test_assignment_before_child_saved
@@ -297,7 +315,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_creation_failure_without_dependent_option
     pirate = pirates(:blackbeard)
-    orig_ship = pirate.ship.target
+    orig_ship = pirate.ship
 
     assert_equal ships(:black_pearl), orig_ship
     new_ship = pirate.create_ship
@@ -310,7 +328,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_creation_failure_with_dependent_option
     pirate = pirates(:blackbeard).becomes(DestructivePirate)
-    orig_ship = pirate.dependent_ship.target
+    orig_ship = pirate.dependent_ship
 
     new_ship = pirate.create_dependent_ship
     assert new_ship.new_record?

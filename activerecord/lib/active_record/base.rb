@@ -180,10 +180,7 @@ module ActiveRecord #:nodoc:
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
   #
   #  Person.where(:user_name => user_name, :password => password).first
-  #  Person.find_by_user_name_and_password #with dynamic finder
-  #
-  #  Person.where(:user_name => user_name, :password => password, :gender => 'male').first
-  #  Payment.find_by_user_name_and_password_and_gender
+  #  Person.find_by_user_name_and_password(user_name, password) # with dynamic finder
   #
   # It's even possible to call these dynamic finder methods on relations and named scopes.
   #
@@ -248,6 +245,17 @@ module ActiveRecord #:nodoc:
   #
   #   user = User.create(:preferences => %w( one two three ))
   #   User.find(user.id).preferences    # raises SerializationTypeMismatch
+  #
+  # When you specify a class option, the default value for that attribute will be a new
+  # instance of that class.
+  #
+  #   class User < ActiveRecord::Base
+  #     serialize :preferences, OpenStruct
+  #   end
+  #
+  #   user = User.new
+  #   user.preferences.theme_color = "red"
+  #
   #
   # == Single table inheritance
   #
@@ -536,7 +544,15 @@ module ActiveRecord #:nodoc:
       #     serialize :preferences
       #   end
       def serialize(attr_name, class_name = Object)
-        serialized_attributes[attr_name.to_s] = class_name
+        coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
+                  class_name
+                else
+                  Coders::YAMLColumn.new(class_name)
+                end
+
+        # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
+        # has its own hash of own serialized attributes
+        self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -619,6 +635,9 @@ module ActiveRecord #:nodoc:
       def set_table_name(value = nil, &block)
         @quoted_table_name = nil
         define_attr_method :table_name, value, &block
+
+        @arel_table = Arel::Table.new(table_name, :engine => arel_engine)
+        @relation = Relation.new(self, arel_table)
       end
       alias :table_name= :set_table_name
 
@@ -662,16 +681,12 @@ module ActiveRecord #:nodoc:
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        unless defined?(@columns) && @columns
-          @columns = connection.columns(table_name, "#{name} Columns")
-          @columns.each { |column| column.primary = column.name == primary_key }
-        end
-        @columns
+        connection_pool.columns[table_name]
       end
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        @columns_hash ||= Hash[columns.map { |column| [column.name, column] }]
+        connection_pool.columns_hash[table_name]
       end
 
       # Returns an array of column names as strings.
@@ -728,8 +743,14 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
-        @arel_engine = @relation = @arel_table = nil
+        connection_pool.clear_table_cache!(table_name) if table_exists?
+
+        @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
+        @arel_engine = @relation = nil
+      end
+
+      def clear_cache! # :nodoc:
+        connection_pool.clear_cache!
       end
 
       def attribute_method?(attribute)
@@ -767,7 +788,7 @@ module ActiveRecord #:nodoc:
         :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
       end
 
-      # Returns a string like 'Post id:integer, title:string, body:text'
+      # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect
         if self == Base
           super
@@ -793,6 +814,10 @@ module ActiveRecord #:nodoc:
       # Overwrite the default class equality method to provide support for association proxies.
       def ===(object)
         object.is_a?(self)
+      end
+
+      def symbolized_base_class
+        @symbolized_base_class ||= base_class.to_s.to_sym
       end
 
       # Returns the base AR subclass that this class descends from. If A
@@ -828,7 +853,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table
-        @arel_table ||= Arel::Table.new(table_name, arel_engine)
+        Arel::Table.new(table_name, arel_engine)
       end
 
       def arel_engine
@@ -889,10 +914,25 @@ module ActiveRecord #:nodoc:
       # Finder methods must instantiate through this method to work with the
       # single-table inheritance model that makes it possible to create
       # objects of different types from the same table.
-      def instantiate(record) # :nodoc:
-        model = find_sti_class(record[inheritance_column]).allocate
-        model.init_with('attributes' => record)
-        model
+      def instantiate(record)
+        sti_class = find_sti_class(record[inheritance_column])
+        record_id = sti_class.primary_key && record[sti_class.primary_key]
+
+        if ActiveRecord::IdentityMap.enabled? && record_id
+          if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
+            record_id = record_id.to_i
+          end
+          if instance = IdentityMap.get(sti_class, record_id)
+            instance.reinit_with('attributes' => record)
+          else
+            instance = sti_class.allocate.init_with('attributes' => record)
+            IdentityMap.add(instance)
+          end
+        else
+          instance = sti_class.allocate.init_with('attributes' => record)
+        end
+
+        instance
       end
 
       private
@@ -1395,12 +1435,13 @@ MSG
         @changed_attributes = {}
 
         ensure_proper_type
+        set_serialized_attributes
 
         populate_with_current_scope_attributes
         self.attributes = attributes unless attributes.nil?
 
         result = yield self if block_given?
-        _run_initialize_callbacks
+        run_callbacks :initialize
         result
       end
 
@@ -1432,13 +1473,18 @@ MSG
       #   post.title # => 'hello world'
       def init_with(coder)
         @attributes = coder['attributes']
+
+        set_serialized_attributes
+
         @attributes_cache, @previously_changed, @changed_attributes = {}, {}, {}
         @association_cache = {}
         @aggregation_cache = {}
         @readonly = @destroyed = @marked_for_destruction = false
         @new_record = false
-        _run_find_callbacks
-        _run_initialize_callbacks
+        run_callbacks :find
+        run_callbacks :initialize
+
+        self
       end
 
       # Specifies how the record is dumped by +Marshal+.
@@ -1704,6 +1750,13 @@ MSG
 
     private
 
+      def set_serialized_attributes
+        (@attributes.keys & self.class.serialized_attributes.keys).each do |key|
+          coder = self.class.serialized_attributes[key]
+          @attributes[key] = coder.load @attributes[key]
+        end
+      end
+
       # Sets the attribute used for single table inheritance to this class name if this is not the
       # ActiveRecord::Base descendant.
       # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
@@ -1725,17 +1778,25 @@ MSG
       # Returns a copy of the attributes hash where all the values have been safely quoted for use in
       # an Arel insert/update method.
       def arel_attributes_values(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
-        attrs = {}
+        attrs      = {}
+        klass      = self.class
+        arel_table = klass.arel_table
+
         attribute_names.each do |name|
           if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
 
             if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
-              value = read_attribute(name)
 
-              if !value.nil? && self.class.serialized_attributes.key?(name)
-                value = YAML.dump value
-              end
-              attrs[self.class.arel_table[name]] = value
+              value = if coder = klass.serialized_attributes[name]
+                        coder.dump @attributes[name]
+                      else
+                        # FIXME: we need @attributes to be used consistently.
+                        # If the values stored in @attributes were already type
+                        # casted, this code could be simplified
+                        read_attribute(name)
+                      end
+
+              attrs[arel_table[name]] = value
             end
           end
         end
@@ -1745,12 +1806,6 @@ MSG
       # Quote strings appropriately for SQL statements.
       def quote_value(value, column = nil)
         self.class.connection.quote(value, column)
-      end
-
-      # Interpolate custom SQL string in instance context.
-      # Optional record argument is meant for custom insert_sql.
-      def interpolate_sql(sql, record = nil)
-        instance_eval("%@#{sql.gsub('@', '\@')}@", __FILE__, __LINE__)
       end
 
       # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
@@ -1859,11 +1914,6 @@ MSG
         end
       end
 
-      def object_from_yaml(string)
-        return string unless string.is_a?(String) && string =~ /^---/
-        YAML::load(string) rescue string
-      end
-
       def populate_with_current_scope_attributes
         if scope = self.class.send(:current_scoped_methods)
           create_with = scope.scope_for_create
@@ -1875,11 +1925,9 @@ MSG
 
       # Clear attributes and changed_attributes
       def clear_timestamp_attributes
-        %w(created_at created_on updated_at updated_on).each do |attribute_name|
-          if has_attribute?(attribute_name)
-            self[attribute_name] = nil
-            changed_attributes.delete(attribute_name)
-          end
+        all_timestamp_attributes_in_model.each do |attribute_name|
+          self[attribute_name] = nil
+          changed_attributes.delete(attribute_name)
         end
       end
   end
@@ -1903,6 +1951,7 @@ MSG
     include ActiveModel::MassAssignmentSecurity
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, AssociationPreload, NamedScope
+    include IdentityMap
     include ActiveModel::SecurePassword
 
     # AutosaveAssociation needs to be included before Transactions, because we want

@@ -195,7 +195,7 @@ h4. Installing the Required Gems
 Rails applications manage gem dependencies with "Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
 
 <shell>
-# bundle install
+$ bundle install
 </shell>
 
 to have them ready.
@@ -274,7 +274,7 @@ TIP: Rake is a general-purpose command-runner that Rails uses for many things. Y
 
 h3. Hello, Rails!
 
-One of the traditional places to start with a new language is by getting some text up on screen quickly, to do this, you need to get your Rails application server running.
+One of the traditional places to start with a new language is by getting some text up on screen quickly. To do this, you need to get your Rails application server running.
 
 h4. Starting up the Web Server
 
@@ -411,7 +411,7 @@ Rails will execute this migration command and tell you it created the Posts tabl
 ==  CreatePosts: migrated (0.0020s) ===========================================
 </shell>
 
-NOTE. Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file. If you would like to execute migrations in other environment, for instance in production, you must explicitely pass it when invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
+NOTE. Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file. If you would like to execute migrations in other environment, for instance in production, you must explicitly pass it when invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
 h4. Adding a Link
 
@@ -468,6 +468,8 @@ To see your validations in action, you can use the console. The console is a com
 <shell>
 $ rails console
 </shell>
+
+TIP: The default console will make changes to your database. You can instead open a console that will roll back any changes you make by using +rails console --sandbox+.
 
 After the console loads, you can use it to work with your application's models:
 

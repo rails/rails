@@ -29,7 +29,6 @@ class ActionController::TestRequestTest < ActiveSupport::TestCase
   end
 
   def test_session_id_different_on_each_call
-    prev_id =
     assert_not_equal(@request.session_options[:id], ActionController::TestRequest.new.session_options[:id])
   end
 

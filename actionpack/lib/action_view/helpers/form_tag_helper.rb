@@ -414,7 +414,8 @@ module ActionView
       # <tt>reset</tt>button or a generic button which can be used in
       # JavaScript, for example. You can use the button tag as a regular
       # submit tag but it isn't supported in legacy browsers. However,
-      # button tag allows richer labels such as images and emphasis.
+      # the button tag allows richer labels such as images and emphasis,
+      # so this helper will also accept a block.
       #
       # ==== Options
       # * <tt>:confirm => 'question?'</tt> - If present, the
@@ -431,18 +432,22 @@ module ActionView
       #
       # ==== Examples
       #   button_tag
-      #   # => <button name="button" type="button">Button</button>
+      #   # => <button name="button" type="submit">Button</button>
       #
-      #   button_tag "<strong>Ask me!</strong>"
+      #   button_tag(:type => 'button') do
+      #     content_tag(:strong, 'Ask me!')
+      #   end
       #   # => <button name="button" type="button">
       #          <strong>Ask me!</strong>
       #        </button>
       #
       #   button_tag "Checkout", :disable_with => "Please wait..."
       #   # => <button data-disable-with="Please wait..." name="button"
-      #                type="button">Checkout</button>
+      #                type="submit">Checkout</button>
       #
-      def button_tag(label = "Button", options = {})
+      def button_tag(content_or_options = nil, options = nil, &block)
+        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
+        options ||= {}
         options.stringify_keys!
 
         if disable_with = options.delete("disable_with")
@@ -453,11 +458,9 @@ module ActionView
           options["data-confirm"] = confirm
         end
 
-        ["type", "name"].each do |option|
-          options[option] = "button" unless options[option]
-        end
+        options.reverse_merge! 'name' => 'button', 'type' => 'submit'
 
-        content_tag :button, label, { "type" => options.delete("type") }.update(options)
+        content_tag :button, content_or_options || 'Button', options, &block
       end
 
       # Displays an image which when clicked will submit the form.

@@ -72,7 +72,7 @@ class DeveloperWithCounterSQL < ActiveRecord::Base
     :join_table => "developers_projects",
     :association_foreign_key => "project_id",
     :foreign_key => "developer_id",
-    :counter_sql => 'SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}'
+    :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
@@ -365,33 +365,40 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_removing_associations_on_destroy
     david = DeveloperWithBeforeDestroyRaise.find(1)
     assert !david.projects.empty?
-    assert_raise(RuntimeError) { david.destroy }
+    david.destroy
     assert david.projects.empty?
     assert DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
   end
 
   def test_destroying
     david = Developer.find(1)
-    active_record = Project.find(1)
+    project = Project.find(1)
     david.projects.reload
     assert_equal 2, david.projects.size
-    assert_equal 3, active_record.developers.size
+    assert_equal 3, project.developers.size
 
-    assert_difference "Project.count", -1 do
-      david.projects.destroy(active_record)
+    assert_no_difference "Project.count" do
+      david.projects.destroy(project)
     end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
+    assert join_records.empty?
 
     assert_equal 1, david.reload.projects.size
     assert_equal 1, david.projects(true).size
   end
 
-  def test_destroying_array
+  def test_destroying_many
     david = Developer.find(1)
     david.projects.reload
+    projects = Project.all
 
-    assert_difference "Project.count", -Project.count do
-      david.projects.destroy(Project.find(:all))
+    assert_no_difference "Project.count" do
+      david.projects.destroy(*projects)
     end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    assert join_records.empty?
 
     assert_equal 0, david.reload.projects.size
     assert_equal 0, david.projects(true).size
@@ -401,7 +408,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david = Developer.find(1)
     david.projects.reload
     assert !david.projects.empty?
-    david.projects.destroy_all
+
+    assert_no_difference "Project.count" do
+      david.projects.destroy_all
+    end
+
+    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    assert join_records.empty?
+
     assert david.projects.empty?
     assert david.projects(true).empty?
   end
@@ -757,10 +771,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david = Developer.find(1)
     # clear cache possibly created by other tests
     david.projects.reset_column_information
-    assert_queries(0) { david.projects.columns; david.projects.columns }
-    # and again to verify that reset_column_information clears the cache correctly
+
+    # One query for columns, one for primary key
+    assert_queries(2) { david.projects.columns; david.projects.columns }
+
+    ## and again to verify that reset_column_information clears the cache correctly
     david.projects.reset_column_information
-    assert_queries(0) { david.projects.columns; david.projects.columns }
+    assert_queries(2) { david.projects.columns; david.projects.columns }
   end
 
   def test_attributes_are_being_set_when_initialized_from_habm_association_with_where_clause

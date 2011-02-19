@@ -10,6 +10,15 @@ class InclusionValidationTest < ActiveModel::TestCase
     Topic.reset_callbacks(:validate)
   end
 
+  def test_validates_inclusion_of_range
+    Topic.validates_inclusion_of( :title, :in => 'aaa'..'bbb' )
+    assert Topic.new("title" => "bbc", "content" => "abc").invalid?
+    assert Topic.new("title" => "aa", "content" => "abc").invalid?
+    assert Topic.new("title" => "aaa", "content" => "abc").valid?
+    assert Topic.new("title" => "abc", "content" => "abc").valid?
+    assert Topic.new("title" => "bbb", "content" => "abc").valid?
+  end
+
   def test_validates_inclusion_of
     Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ) )
 

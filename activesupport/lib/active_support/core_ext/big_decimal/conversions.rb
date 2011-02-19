@@ -11,8 +11,6 @@ class BigDecimal
   YAML_TAG = 'tag:yaml.org,2002:float'
   YAML_MAPPING = { 'Infinity' => '.Inf', '-Infinity' => '-.Inf', 'NaN' => '.NaN' }
 
-  yaml_as YAML_TAG
-
   # This emits the number without any scientific notation.
   # This is better than self.to_f.to_s since it doesn't lose precision.
   #

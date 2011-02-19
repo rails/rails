@@ -27,6 +27,12 @@ class ErrorsTest < ActiveModel::TestCase
     end
   end
 
+  def test_include?
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = 'omg'
+    assert errors.include?(:foo), 'errors should include :foo'
+  end
+
   test "should return true if no errors" do
     person = Person.new
     person.errors[:foo]

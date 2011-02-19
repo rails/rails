@@ -88,12 +88,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     # conditions on the through table
     assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :favourite_club).favourite_club
     memberships(:membership_of_favourite_club).update_attribute(:favourite, false)
-    assert_equal nil,                    Member.find(@member.id, :include => :favourite_club).favourite_club
+    assert_equal nil,                    Member.find(@member.id, :include => :favourite_club).reload.favourite_club
 
     # conditions on the source table
     assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :hairy_club).hairy_club
     clubs(:moustache_club).update_attribute(:name, "Association of Clean-Shaven Persons")
-    assert_equal nil,                    Member.find(@member.id, :include => :hairy_club).hairy_club
+    assert_equal nil,                    Member.find(@member.id, :include => :hairy_club).reload.hairy_club
   end
 
   def test_has_one_through_polymorphic_with_source_type
@@ -139,7 +139,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_assigning_association_correctly_assigns_target
     new_member = Member.create(:name => "Chris")
     new_member.club = new_club = Club.create(:name => "LRUG")
-    assert_equal new_club, new_member.club.target
+    assert_equal new_club, new_member.association(:club).target
   end
 
   def test_has_one_through_proxy_should_not_respond_to_private_methods
@@ -197,7 +197,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       MemberDetail.find(:all, :include => :member_type)
     end
     @new_detail = @member_details[0]
-    assert @new_detail.send(:association_proxy, :member_type).loaded?
+    assert @new_detail.send(:association, :member_type).loaded?
     assert_not_nil assert_no_queries { @new_detail.member_type }
   end
 

@@ -6,7 +6,7 @@ require 'rails/script_rails_loader'
 Rails::ScriptRailsLoader.exec_script_rails!
 
 require 'rails/ruby_version_check'
-Signal.trap("INT") { puts; exit }
+Signal.trap("INT") { puts; exit(1) }
 
 if ARGV.first == 'plugin'
   ARGV.shift

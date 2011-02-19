@@ -4,6 +4,7 @@ require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 
 # TODO: Autoload these files
+require 'active_record/connection_adapters/column'
 require 'active_record/connection_adapters/abstract/schema_definitions'
 require 'active_record/connection_adapters/abstract/schema_statements'
 require 'active_record/connection_adapters/abstract/database_statements'
@@ -74,6 +75,10 @@ module ActiveRecord
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?  PostgreSQL,
       # SQL Server, and others support this.  MySQL and others do not.
       def supports_ddl_transactions?
+        false
+      end
+
+      def supports_bulk_alter?
         false
       end
 
@@ -204,11 +209,13 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name = "SQL")
-          @instrumenter.instrument("sql.active_record",
-            :sql => sql, :name => name, :connection_id => object_id) do
-            yield
-          end
+        def log(sql, name = "SQL", binds = [])
+          @instrumenter.instrument(
+            "sql.active_record",
+            :sql           => sql,
+            :name          => name,
+            :connection_id => object_id,
+            :binds         => binds) { yield }
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
           @logger.debug message if @logger

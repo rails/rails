@@ -61,8 +61,6 @@ module ActiveRecord
       merged_relation
     end
 
-    alias :& :merge
-
     # Removes from the query the condition(s) specified in +skips+.
     #
     # Example:

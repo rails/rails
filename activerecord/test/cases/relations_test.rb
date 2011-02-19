@@ -285,7 +285,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
       posts = Post.preload(:comments).to_a
       assert posts.first.comments.first
     end
@@ -295,12 +295,12 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(2) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
       posts = Post.preload(:author).to_a
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
       posts = Post.preload(:author, :comments).to_a
       assert posts.first.author
       assert posts.first.comments.first
@@ -313,7 +313,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
       posts = Post.scoped.includes(:comments)
       assert posts.first.comments.first
     end
@@ -323,7 +323,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
       posts = Post.includes(:author, :comments).to_a
       assert posts.first.author
       assert posts.first.comments.first
@@ -474,10 +474,17 @@ class RelationTest < ActiveRecord::TestCase
     relation = relation.where(:name => david.name)
     relation = relation.where(:name => 'Santiago')
     relation = relation.where(:id => david.id)
-    assert_equal [david], relation.all
+    assert_equal [], relation.all
   end
 
-  def test_find_all_with_multiple_ors
+  def test_multi_where_ands_queries
+    relation = Author.unscoped
+    david = authors(:david)
+    sql = relation.where(:name => david.name).where(:name => 'Santiago').to_sql
+    assert_match('AND', sql)
+  end
+
+  def test_find_all_with_multiple_should_use_and
     david = authors(:david)
     relation = [
       { :name => david.name },
@@ -486,7 +493,34 @@ class RelationTest < ActiveRecord::TestCase
     ].inject(Author.unscoped) do |memo, param|
       memo.where(param)
     end
-    assert_equal [david], relation.all
+    assert_equal [], relation.all
+  end
+
+  def test_find_all_using_where_with_relation
+    david = authors(:david)
+    # switching the lines below would succeed in current rails
+    # assert_queries(2) {
+    assert_queries(1) {
+      relation = Author.where(:id => Author.where(:id => david.id))
+      assert_equal [david], relation.all
+    }
+  end
+
+  def test_find_all_using_where_with_relation_with_joins
+    david = authors(:david)
+    assert_queries(1) {
+      relation = Author.where(:id => Author.joins(:posts).where(:id => david.id))
+      assert_equal [david], relation.all
+    }
+  end
+
+
+  def test_find_all_using_where_with_relation_with_select_to_build_subquery
+    david = authors(:david)
+    assert_queries(1) {
+      relation = Author.where(:name => Author.where(:id => david.id).select(:name))
+      assert_equal [david], relation.all
+    }
   end
 
   def test_exists
@@ -545,17 +579,17 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging
-    devs = Developer.where("salary >= 80000") & Developer.limit(2) & Developer.order('id ASC').where("id < 3")
+    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order('id ASC').where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1) & Developer.order('id DESC') & Developer.select('developers.*')
+    dev_with_count = Developer.limit(1).merge(Developer.order('id DESC')).merge(Developer.select('developers.*'))
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
   def test_relation_merging_with_eager_load
     relations = []
-    relations << (Post.order('comments.id DESC') & Post.eager_load(:last_comment) & Post.scoped)
-    relations << (Post.eager_load(:last_comment) & Post.order('comments.id DESC') & Post.scoped)
+    relations << Post.order('comments.id DESC').merge(Post.eager_load(:last_comment)).merge(Post.scoped)
+    relations << Post.eager_load(:last_comment).merge(Post.order('comments.id DESC')).merge(Post.scoped)
 
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
@@ -564,18 +598,20 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_locks
-    devs = Developer.lock.where("salary >= 80000").order("id DESC") & Developer.limit(2)
+    devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
     assert_present devs.locked
   end
 
   def test_relation_merging_with_preload
-    [Post.scoped & Post.preload(:author), Post.preload(:author) & Post.scoped].each do |posts|
-      assert_queries(2) { assert posts.first.author }
+    ActiveRecord::IdentityMap.without do
+      [Post.scoped.merge(Post.preload(:author)), Post.preload(:author).merge(Post.scoped)].each do |posts|
+        assert_queries(2) { assert posts.first.author }
+      end
     end
   end
 
   def test_relation_merging_with_joins
-    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome') & Post.where(:body => 'Such a lovely day')
+    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
     assert_equal 1, comments.count
   end
 

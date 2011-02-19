@@ -36,7 +36,7 @@ module ActiveSupport
                   quoting = char
                   pos = scanner.pos
                 elsif quoting == char
-                  if json[pos..scanner.pos-2] =~ DATE_REGEX
+                  if valid_date?(json[pos..scanner.pos-2])
                     # found a date, track the exact positions of the quotes so we can
                     # overwrite them with spaces later.
                     times << pos
@@ -54,7 +54,9 @@ module ActiveSupport
               json.gsub(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                 ustr = $1
                 if ustr.start_with?('u')
-                  [ustr[1..-1].to_i(16)].pack("U")
+                  char = [ustr[1..-1].to_i(16)].pack("U")
+                  # "\n" needs extra escaping due to yaml formatting
+                  char == "\n" ? "\\n" : char
                 elsif ustr == '\\'
                   '\\\\'
                 else
@@ -75,7 +77,9 @@ module ActiveSupport
                 chunk.gsub!(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                   ustr = $1
                   if ustr.start_with?('u')
-                    [ustr[1..-1].to_i(16)].pack("U")
+                    char = [ustr[1..-1].to_i(16)].pack("U")
+                    # "\n" needs extra escaping due to yaml formatting
+                    char == "\n" ? "\\n" : char
                   elsif ustr == '\\'
                     '\\\\'
                   else
@@ -90,6 +94,16 @@ module ActiveSupport
               output
             end
           end
+
+        private
+          def valid_date?(date_string)
+            begin
+              date_string =~ DATE_REGEX && DateTime.parse(date_string)
+            rescue ArgumentError
+              false
+            end
+          end
+
       end
     end
   end

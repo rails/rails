@@ -16,7 +16,7 @@ module ActiveRecord
 
       def test_send_calls_super
         assert_raises(NoMethodError) do
-          @recorder.send(:create_table, :horses)
+          @recorder.send(:non_existing_method, :horses)
         end
       end
 

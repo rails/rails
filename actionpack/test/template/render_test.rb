@@ -146,7 +146,12 @@ module RenderTestCases
     assert_equal "Hello: davidHello: mary", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), Customer.new("mary") ])
   end
 
-  def test_render_partial_collection_as
+  def test_render_partial_collection_as_by_string
+    assert_equal "david david davidmary mary mary",
+      @view.render(:partial => "test/customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => 'customer')
+  end
+
+  def test_render_partial_collection_as_by_symbol
     assert_equal "david david davidmary mary mary",
       @view.render(:partial => "test/customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer)
   end
@@ -202,6 +207,11 @@ module RenderTestCases
     assert_raise(ActionView::MissingTemplate) { @view.render(:partial => "test/layout_for_partial") }
   ensure
     @view.formats = nil
+  end
+
+  def test_render_layout_with_block_and_other_partial_inside
+    render = @view.render(:layout => "test/layout_with_partial_and_yield.html.erb") { "Yield!" }
+    assert_equal "Before\npartial html\nYield!\nAfter\n", render
   end
 
   def test_render_inline

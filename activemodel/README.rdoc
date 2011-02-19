@@ -41,7 +41,7 @@ modules:
       define_model_callbacks :create
 
       def create
-        _run_create_callbacks do
+        run_callbacks :create do
           # Your create action methods here
         end
       end

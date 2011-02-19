@@ -57,7 +57,9 @@ module ActiveRecord
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
     class ConnectionPool
+      attr_accessor :automatic_reconnect
       attr_reader :spec, :connections
+      attr_reader :columns, :columns_hash, :primary_keys, :tables
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -81,6 +83,63 @@ module ActiveRecord
 
         @connections = []
         @checked_out = []
+        @automatic_reconnect = true
+        @tables = {}
+
+        @columns     = Hash.new do |h, table_name|
+          h[table_name] = with_connection do |conn|
+
+            # Fetch a list of columns
+            conn.columns(table_name, "#{table_name} Columns").tap do |columns|
+
+              # set primary key information
+              columns.each do |column|
+                column.primary = column.name == primary_keys[table_name]
+              end
+            end
+          end
+        end
+
+        @columns_hash = Hash.new do |h, table_name|
+          h[table_name] = Hash[columns[table_name].map { |col|
+            [col.name, col]
+          }]
+        end
+
+        @primary_keys = Hash.new do |h, table_name|
+          h[table_name] = with_connection do |conn|
+            table_exists?(table_name) ? conn.primary_key(table_name) : 'id'
+          end
+        end
+      end
+
+      # A cached lookup for table existence
+      def table_exists?(name)
+        return true if @tables.key? name
+
+        with_connection do |conn|
+          conn.tables.each { |table| @tables[table] = true }
+        end
+
+        @tables.key? name
+      end
+
+      # Clears out internal caches:
+      #
+      #   * columns
+      #   * columns_hash
+      #   * tables
+      def clear_cache!
+        @columns.clear
+        @columns_hash.clear
+        @tables.clear
+      end
+
+      # Clear out internal caches for table with +table_name+
+      def clear_table_cache!(table_name)
+        @columns.delete table_name
+        @columns_hash.delete table_name
+        @primary_keys.delete table_name
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -212,7 +271,7 @@ module ActiveRecord
       # calling +checkout+ on this pool.
       def checkin(conn)
         @connection_mutex.synchronize do
-          conn.send(:_run_checkin_callbacks) do
+          conn.run_callbacks :checkin do
             @checked_out.delete conn
             @queue.signal
           end
@@ -232,6 +291,8 @@ module ActiveRecord
       end
 
       def checkout_new_connection
+        raise ConnectionNotEstablished unless @automatic_reconnect
+
         c = new_connection
         @connections << c
         checkout_and_verify(c)
@@ -330,7 +391,7 @@ module ActiveRecord
         pool = @connection_pools[klass.name]
         return nil unless pool
 
-        @connection_pools.delete_if { |key, value| value == pool }
+        pool.automatic_reconnect = false
         pool.disconnect!
         pool.spec.config
       end

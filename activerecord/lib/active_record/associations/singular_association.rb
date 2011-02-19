@@ -1,10 +1,8 @@
 module ActiveRecord
   module Associations
-    class SingularAssociation < AssociationProxy #:nodoc:
+    class SingularAssociation < Association #:nodoc:
       def create(attributes = {})
-        record = scoped.scoping { @reflection.create_association(attributes) }
-        set_new_record(record)
-        record
+        new_record(:create, attributes)
       end
 
       def create!(attributes = {})
@@ -12,12 +10,11 @@ module ActiveRecord
       end
 
       def build(attributes = {})
-        record = scoped.scoping { @reflection.build_association(attributes) }
-        set_new_record(record)
-        record
+        new_record(:build, attributes)
       end
 
       private
+
         def find_target
           scoped.first.tap { |record| set_inverse_instance(record) }
         end
@@ -32,8 +29,15 @@ module ActiveRecord
         end
 
         def check_record(record)
-          record = record.target if AssociationProxy === record
+          record = record.target if Association === record
           raise_on_type_mismatch(record) if record
+          record
+        end
+
+        def new_record(method, attributes)
+          attributes = scoped.scope_for_create.merge(attributes || {})
+          record = @reflection.send("#{method}_association", attributes)
+          set_new_record(record)
           record
         end
     end

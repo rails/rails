@@ -387,13 +387,13 @@ module ActiveRecord
         end
       end
 
-      association = send(association_name)
+      association = association(association_name)
 
       existing_records = if association.loaded?
-        association.to_a
+        association.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
-        attribute_ids.empty? ? [] : association.all(:conditions => {association.primary_key => attribute_ids})
+        attribute_ids.empty? ? [] : association.scoped.where(association.klass.primary_key => attribute_ids)
       end
 
       attributes_collection.each do |attributes|
@@ -403,22 +403,29 @@ module ActiveRecord
           unless reject_new_record?(association_name, attributes)
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
-
+        elsif existing_records.count == 0 #Existing record but not yet associated
+          existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
+          if !call_reject_if(association_name, attributes)
+            association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded?
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
           unless association.loaded? || call_reject_if(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
-            target_record = association.proxy_target.detect { |record| record == existing_record }
+            target_record = association.target.detect { |record| record == existing_record }
 
             if target_record
               existing_record = target_record
             else
-              association.send(:add_record_to_target_with_callbacks, existing_record)
+              association.add_to_target(existing_record)
             end
+
           end
 
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-
+          if !call_reject_if(association_name, attributes)
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          end
         else
           raise_nested_attributes_record_not_found(association_name, attributes['id'])
         end

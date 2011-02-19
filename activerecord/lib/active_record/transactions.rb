@@ -251,6 +251,7 @@ module ActiveRecord
       remember_transaction_record_state
       yield
     rescue Exception
+      IdentityMap.remove(self) if IdentityMap.enabled?
       restore_transaction_record_state
       raise
     ensure
@@ -259,7 +260,7 @@ module ActiveRecord
 
     # Call the after_commit callbacks
     def committed! #:nodoc:
-      _run_commit_callbacks
+      run_callbacks :commit
     ensure
       clear_transaction_record_state
     end
@@ -267,7 +268,7 @@ module ActiveRecord
     # Call the after rollback callbacks. The restore_state argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state = false) #:nodoc:
-      _run_rollback_callbacks
+      run_callbacks :rollback
     ensure
       restore_transaction_record_state(force_restore_state)
     end

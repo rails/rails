@@ -20,6 +20,7 @@ require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/loose_person'
 require 'models/edge'
+require 'models/joke'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -49,8 +50,55 @@ class Boolean < ActiveRecord::Base; end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
+  def test_columns_should_obey_set_primary_key
+    pk = Subscriber.columns.find { |x| x.name == 'nick' }
+    assert pk.primary, 'nick should be primary key'
+  end
+
   def test_primary_key_with_no_id
     assert_nil Edge.primary_key
+  end
+
+  unless current_adapter?(:PostgreSQLAdapter,:OracleAdapter,:SQLServerAdapter)
+    def test_limit_with_comma
+      assert_nothing_raised do
+        Topic.limit("1,2").all
+      end
+    end
+  end
+
+  def test_limit_without_comma
+    assert_nothing_raised do
+      assert_equal 1, Topic.limit("1").all.length
+    end
+
+    assert_nothing_raised do
+      assert_equal 1, Topic.limit(1).all.length
+    end
+  end
+
+  def test_invalid_limit
+    assert_raises(ArgumentError) do
+      Topic.limit("asdfadf").all
+    end
+  end
+
+  def test_limit_should_sanitize_sql_injection_for_limit_without_comas
+    assert_raises(ArgumentError) do
+      Topic.limit("1 select * from schema").all
+    end
+  end
+
+  def test_limit_should_sanitize_sql_injection_for_limit_with_comas
+    assert_raises(ArgumentError) do
+      Topic.limit("1, 7 procedure help()").all
+    end
+  end
+
+  unless current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+    def test_limit_should_allow_sql_literal
+      assert_equal 1, Topic.limit(Arel.sql('2-1')).all.length
+    end
   end
 
   def test_select_symbol
@@ -1002,6 +1050,25 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.serialize(:content)
   end
 
+  def test_serialized_default_class
+    Topic.serialize(:content, Hash)
+    topic = Topic.new
+    assert_equal Hash, topic.content.class
+    assert_equal Hash, topic.read_attribute(:content).class
+    topic.content["beer"] = "MadridRb"
+    assert topic.save
+    topic.reload
+    assert_equal Hash, topic.content.class
+    assert_equal "MadridRb", topic.content["beer"]
+  ensure
+    Topic.serialize(:content)
+  end
+
+  def test_serialized_no_default_class_for_object
+    topic = Topic.new
+    assert_nil topic.content
+  end
+
   def test_serialized_boolean_value_true
     Topic.serialize(:content)
     topic = Topic.new(:content => true)
@@ -1016,6 +1083,52 @@ class BasicsTest < ActiveRecord::TestCase
     assert topic.save
     topic = topic.reload
     assert_equal topic.content, false
+  end
+
+  def test_serialize_with_coder
+    coder = Class.new {
+      # Identity
+      def load(thing)
+        thing
+      end
+
+      # base 64
+      def dump(thing)
+        [thing].pack('m')
+      end
+    }.new
+
+    Topic.serialize(:content, coder)
+    s = 'hello world'
+    topic = Topic.new(:content => s)
+    assert topic.save
+    topic = topic.reload
+    assert_equal [s].pack('m'), topic.content
+  ensure
+    Topic.serialize(:content)
+  end
+
+  def test_serialize_with_bcrypt_coder
+    crypt_coder = Class.new {
+      def load(thing)
+        return unless thing
+        BCrypt::Password.new thing
+      end
+
+      def dump(thing)
+        BCrypt::Password.create(thing).to_s
+      end
+    }.new
+
+    Topic.serialize(:content, crypt_coder)
+    password = 'password'
+    topic = Topic.new(:content => password)
+    assert topic.save
+    topic = topic.reload
+    assert_kind_of BCrypt::Password, topic.content
+    assert_equal(true, topic.content == password, 'password should equal')
+  ensure
+    Topic.serialize(:content)
   end
 
   def test_quote
@@ -1089,6 +1202,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "foo", k.table_name
     k.set_table_name "bar"
     assert_equal "bar", k.table_name
+  end
+
+  def test_switching_between_table_name
+    assert_difference("GoodJoke.count") do
+      Joke.set_table_name "cold_jokes"
+      Joke.create
+
+      Joke.set_table_name "funny_jokes"
+      Joke.create
+    end
   end
 
   def test_quoted_table_name_after_set_table_name
@@ -1170,12 +1293,6 @@ class BasicsTest < ActiveRecord::TestCase
                         :distinct => true)
     end
     assert_equal res6, res7
-  end
-
-  def test_interpolate_sql
-    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo@bar') }
-    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar) baz') }
-    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar} baz') }
   end
 
   def test_scoped_find_conditions
@@ -1486,6 +1603,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_raises NoMethodError do
       ActiveRecord::Base.send :compute_type, 'InvalidModel'
     end
+  end
+
+  def test_clear_cache!
+    # preheat cache
+    c1 = Post.columns
+    ActiveRecord::Base.clear_cache!
+    c2 = Post.columns
+    assert_not_equal c1, c2
   end
 
   def test_default_scope_is_reset

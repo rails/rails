@@ -20,10 +20,13 @@ require 'models/subscription'
 require 'models/categorization'
 require 'models/category'
 require 'models/essay'
+require 'models/member'
+require 'models/membership'
+require 'models/club'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :readers, :people, :comments, :authors, :categories,
-           :owners, :pets, :toys, :jobs, :references, :companies,
+  fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
+           :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations
 
   # Dummies to force column loads so query counts are clean.
@@ -110,6 +113,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Ted")
   end
 
+  def test_build_then_save_with_has_many_inverse
+    post   = posts(:thinking)
+    person = post.people.build(:first_name => "Bob")
+    person.save
+    post.reload
+
+    assert post.people.include?(person)
+  end
+
+  def test_build_then_save_with_has_one_inverse
+    post   = posts(:thinking)
+    person = post.single_people.build(:first_name => "Bob")
+    person.save
+    post.reload
+
+    assert post.single_people.include?(person)
+  end
+
   def test_delete_association
     assert_queries(2){posts(:welcome);people(:michael); }
 
@@ -125,8 +146,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_association
-    assert_difference ["Person.count", "Reader.count"], -1 do
-      posts(:welcome).people.destroy(people(:michael))
+    assert_no_difference "Person.count" do
+      assert_difference "Reader.count", -1 do
+        posts(:welcome).people.destroy(people(:michael))
+      end
     end
 
     assert posts(:welcome).reload.people.empty?
@@ -134,8 +157,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_all
-    assert_difference ["Person.count", "Reader.count"], -1 do
-      posts(:welcome).people.destroy_all
+    assert_no_difference "Person.count" do
+      assert_difference "Reader.count", -1 do
+        posts(:welcome).people.destroy_all
+      end
     end
 
     assert posts(:welcome).reload.people.empty?
@@ -145,6 +170,137 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_should_raise_exception_for_destroying_mismatching_records
     assert_no_difference ["Person.count", "Reader.count"] do
       assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:welcome).people.destroy(posts(:thinking)) }
+    end
+  end
+
+  def test_delete_through_belongs_to_with_dependent_nullify
+    Reference.make_comments = true
+
+    person    = people(:michael)
+    job       = jobs(:magician)
+    reference = Reference.where(:job_id => job.id, :person_id => person.id).first
+
+    assert_no_difference ['Job.count', 'Reference.count'] do
+      assert_difference 'person.jobs.count', -1 do
+        person.jobs_with_dependent_nullify.delete(job)
+      end
+    end
+
+    assert_equal nil, reference.reload.job_id
+  ensure
+    Reference.make_comments = false
+  end
+
+  def test_delete_through_belongs_to_with_dependent_delete_all
+    Reference.make_comments = true
+
+    person = people(:michael)
+    job    = jobs(:magician)
+
+    # Make sure we're not deleting everything
+    assert person.jobs.count >= 2
+
+    assert_no_difference 'Job.count' do
+      assert_difference ['person.jobs.count', 'Reference.count'], -1 do
+        person.jobs_with_dependent_delete_all.delete(job)
+      end
+    end
+
+    # Check that the destroy callback on Reference did not run
+    assert_equal nil, person.reload.comments
+  ensure
+    Reference.make_comments = false
+  end
+
+  def test_delete_through_belongs_to_with_dependent_destroy
+    Reference.make_comments = true
+
+    person = people(:michael)
+    job    = jobs(:magician)
+
+    # Make sure we're not deleting everything
+    assert person.jobs.count >= 2
+
+    assert_no_difference 'Job.count' do
+      assert_difference ['person.jobs.count', 'Reference.count'], -1 do
+        person.jobs_with_dependent_destroy.delete(job)
+      end
+    end
+
+    # Check that the destroy callback on Reference ran
+    assert_equal "Reference destroyed", person.reload.comments
+  ensure
+    Reference.make_comments = false
+  end
+
+  def test_belongs_to_with_dependent_destroy
+    person = PersonWithDependentDestroyJobs.find(1)
+
+    # Create a reference which is not linked to a job. This should not be destroyed.
+    person.references.create!
+
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -person.jobs.count do
+        person.destroy
+      end
+    end
+  end
+
+  def test_belongs_to_with_dependent_delete_all
+    person = PersonWithDependentDeleteAllJobs.find(1)
+
+    # Create a reference which is not linked to a job. This should not be destroyed.
+    person.references.create!
+
+    assert_no_difference 'Job.count' do
+      assert_difference 'Reference.count', -person.jobs.count do
+        person.destroy
+      end
+    end
+  end
+
+  def test_belongs_to_with_dependent_nullify
+    person = PersonWithDependentNullifyJobs.find(1)
+
+    references = person.references.to_a
+
+    assert_no_difference ['Reference.count', 'Job.count'] do
+      person.destroy
+    end
+
+    references.each do |reference|
+      assert_equal nil, reference.reload.job_id
+    end
+  end
+
+  def test_update_counter_caches_on_delete
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+
+    assert_difference ['post.reload.taggings_count', 'post.reload.tags_count'], -1 do
+      posts(:welcome).tags.delete(tag)
+    end
+  end
+
+  def test_update_counter_caches_on_delete_with_dependent_destroy
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+    post.update_attribute(:tags_with_destroy_count, post.tags.count)
+
+    assert_difference ['post.reload.taggings_count', 'post.reload.tags_with_destroy_count'], -1 do
+      posts(:welcome).tags_with_destroy.delete(tag)
+    end
+  end
+
+  def test_update_counter_caches_on_delete_with_dependent_nullify
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+    post.update_attribute(:tags_with_nullify_count, post.tags.count)
+
+    assert_no_difference 'post.reload.taggings_count' do
+      assert_difference 'post.reload.tags_with_nullify_count', -1 do
+        posts(:welcome).tags_with_nullify.delete(tag)
+      end
     end
   end
 
@@ -556,5 +712,38 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert proxy.stale_target?
     assert_equal authors(:david).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
+  end
+
+  def test_create_with_conditions_hash_on_through_association
+    member = members(:groucho)
+    club   = member.clubs.create!
+
+    assert_equal true, club.reload.membership.favourite
+  end
+
+  def test_deleting_from_has_many_through_a_belongs_to_should_not_try_to_update_counter
+    post    = posts(:welcome)
+    address = author_addresses(:david_address)
+
+    assert post.author_addresses.include?(address)
+    post.author_addresses.delete(address)
+    assert post[:author_count].nil?
+  end
+
+  def test_interpolated_conditions
+    post = posts(:welcome)
+    assert !post.tags.empty?
+    assert_equal post.tags, post.interpolated_tags
+    assert_equal post.tags, post.interpolated_tags_2
+  end
+
+  def test_primary_key_option_on_source
+    post     = posts(:welcome)
+    category = categories(:general)
+    categorization = Categorization.create!(:post_id => post.id, :named_category_name => category.name)
+
+    assert_equal [category], post.named_categories
+    assert_equal [category.name], post.named_category_ids # checks when target loaded
+    assert_equal [category.name], post.reload.named_category_ids # checks when target no loaded
   end
 end

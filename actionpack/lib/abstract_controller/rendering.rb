@@ -113,7 +113,7 @@ module AbstractController
     def render_to_string(*args, &block)
       options = _normalize_args(*args, &block)
       _normalize_options(options)
-      render_to_body(options)
+      render_to_body(options).tap { self.response_body = nil }
     end
 
     # Raw rendering of a template to a Rack-compatible body.

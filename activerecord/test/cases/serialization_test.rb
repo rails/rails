@@ -23,6 +23,12 @@ class SerializationTest < ActiveRecord::TestCase
     @contact = Contact.new(@contact_attributes)
   end
 
+  def test_serialized_init_with
+    topic = Topic.allocate
+    topic.init_with('attributes' => { 'content' => '--- foo' })
+    assert_equal 'foo', topic.content
+  end
+
   def test_to_xml
     xml = REXML::Document.new(topics(:first).to_xml(:indent => 0))
     bonus_time_in_current_timezone = topics(:first).bonus_time.xmlschema

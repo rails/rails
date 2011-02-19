@@ -64,7 +64,10 @@ module ActiveRecord
     # callbacks, Observer methods, or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      self.class.delete(id) if persisted?
+      if persisted?
+        self.class.delete(id)
+        IdentityMap.remove(self) if IdentityMap.enabled?
+      end
       @destroyed = true
       freeze
     end
@@ -73,6 +76,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     def destroy
       if persisted?
+        IdentityMap.remove(self) if IdentityMap.enabled?
         self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
       end
 
@@ -196,7 +200,12 @@ module ActiveRecord
     def reload(options = nil)
       clear_aggregation_cache
       clear_association_cache
-      @attributes.update(self.class.unscoped { self.class.find(self.id, options) }.instance_variable_get('@attributes'))
+
+      IdentityMap.without do
+        fresh_object = self.class.unscoped { self.class.find(self.id, options) }
+        @attributes.update(fresh_object.instance_variable_get('@attributes'))
+      end
+
       @attributes_cache = {}
       self
     end
@@ -224,6 +233,7 @@ module ActiveRecord
     def touch(name = nil)
       attributes = timestamp_attributes_for_update_in_model
       attributes << name if name
+
       unless attributes.empty?
         current_time = current_time_from_proper_timezone
         changes = {}
@@ -231,6 +241,8 @@ module ActiveRecord
         attributes.each do |column|
           changes[column.to_s] = write_attribute(column.to_s, current_time)
         end
+
+        changes[self.class.locking_column] = increment_lock if locking_enabled?
 
         @changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
@@ -272,6 +284,7 @@ module ActiveRecord
 
       self.id ||= new_id
 
+      IdentityMap.add(self) if IdentityMap.enabled?
       @new_record = false
       id
     end

@@ -1,3 +1,8 @@
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'yaml'
 
 YAML.add_builtin_type("omap") do |type, val|
@@ -132,15 +137,21 @@ module ActiveSupport
       end
 
       def each_key
+        return to_enum(:each_key) unless block_given?
         @keys.each { |key| yield key }
+        self
       end
 
       def each_value
+        return to_enum(:each_value) unless block_given?
         @keys.each { |key| yield self[key]}
+        self
       end
 
       def each
+        return to_enum(:each) unless block_given?
         @keys.each {|key| yield [key, self[key]]}
+        self
       end
 
       alias_method :each_pair, :each

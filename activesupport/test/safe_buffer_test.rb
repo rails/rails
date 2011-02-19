@@ -1,4 +1,10 @@
 require 'abstract_unit'
+begin
+  require 'psych'
+rescue LoadError
+end
+
+require 'yaml'
 
 class SafeBufferTest < ActiveSupport::TestCase
   def setup
@@ -37,5 +43,21 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should return a safe buffer when calling to_s" do
     new_buffer = @buffer.to_s
     assert_equal ActiveSupport::SafeBuffer, new_buffer.class
+  end
+
+  def test_to_yaml
+    str  = 'hello!'
+    buf  = ActiveSupport::SafeBuffer.new str
+    yaml = buf.to_yaml
+
+    assert_match(/^--- #{str}/, yaml)
+    assert_equal 'hello!', YAML.load(yaml)
+  end
+
+  def test_nested
+    str  = 'hello!'
+    data = { 'str' => ActiveSupport::SafeBuffer.new(str) }
+    yaml = YAML.dump data
+    assert_equal({'str' => str}, YAML.load(yaml))
   end
 end

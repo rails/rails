@@ -888,7 +888,7 @@ Note: Only the +option+ tags are returned, you have to wrap this call in a regul
 
 h5. options_from_collection_for_select
 
-Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
+Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
 
 <ruby>
 # options_from_collection_for_select(collection, value_method, text_method, selected = nil)

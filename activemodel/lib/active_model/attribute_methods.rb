@@ -98,7 +98,7 @@ module ActiveModel
       def define_attr_method(name, value=nil, &block)
         sing = singleton_class
         sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
-          if method_defined?(:'original_#{name}')
+          if method_defined?('original_#{name}')
             undef :'original_#{name}'
           end
           alias_method :'original_#{name}', :'#{name}'
@@ -229,15 +229,13 @@ module ActiveModel
 
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
-          module_eval <<-STR, __FILE__, __LINE__ + 1
-            def #{matcher.method_name(new_name)}(*args)
-              send(:#{matcher.method_name(old_name)}, *args)
-            end
-          STR
+          define_method(matcher.method_name(new_name)) do |*args|
+            send(matcher.method_name(old_name), *args)
+          end
         end
       end
 
-      # Declares a the attributes that should be prefixed and suffixed by
+      # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
       # To use, pass in an array of attribute names (as strings or symbols),
@@ -274,11 +272,11 @@ module ActiveModel
                 method_name = matcher.method_name(attr_name)
 
                 generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-                  if method_defined?(:'#{method_name}')
+                  if method_defined?('#{method_name}')
                     undef :'#{method_name}'
                   end
-                  def #{method_name}(*args)
-                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
+                  define_method('#{method_name}') do |*args|
+                    send('#{matcher.method_missing_target}', '#{attr_name}', *args)
                   end
                 STR
               end

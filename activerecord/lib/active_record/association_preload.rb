@@ -124,16 +124,16 @@ module ActiveRecord
 
       def add_preloaded_records_to_collection(parent_records, reflection_name, associated_record)
         parent_records.each do |parent_record|
-          association_proxy = parent_record.send(reflection_name)
-          association_proxy.loaded
-          association_proxy.target.concat(Array.wrap(associated_record))
-          association_proxy.send(:set_inverse_instance, associated_record)
+          association = parent_record.association(reflection_name)
+          association.loaded!
+          association.target.concat(Array.wrap(associated_record))
+          association.set_inverse_instance(associated_record)
         end
       end
 
       def add_preloaded_record_to_collection(parent_records, reflection_name, associated_record)
         parent_records.each do |parent_record|
-          parent_record.send(:association_proxy, reflection_name).target = associated_record
+          parent_record.association(reflection_name).target = associated_record
         end
       end
 
@@ -158,7 +158,7 @@ module ActiveRecord
           seen_keys[seen_key] = true
           mapped_records = id_to_record_map[seen_key]
           mapped_records.each do |mapped_record|
-            association_proxy = mapped_record.send(:association_proxy, reflection_name)
+            association_proxy = mapped_record.association(reflection_name)
             association_proxy.target = associated_record
             association_proxy.send(:set_inverse_instance, associated_record)
           end
@@ -187,7 +187,7 @@ module ActiveRecord
 
         id_to_record_map = construct_id_map(records)
 
-        records.each {|record| record.send(reflection.name).loaded}
+        records.each { |record| record.association(reflection.name).loaded! }
         options = reflection.options
 
         right = Arel::Table.new(options[:join_table]).alias('t0')
@@ -233,7 +233,7 @@ module ActiveRecord
       end
 
       def preload_has_one_association(records, reflection, preload_options={})
-        return if records.first.send(:association_proxy, reflection.name).loaded?
+        return if records.first.association(reflection.name).loaded?
         id_to_record_map = construct_id_map(records, reflection.options[:primary_key])
         options = reflection.options
 
@@ -268,7 +268,7 @@ module ActiveRecord
 
         foreign_key = reflection.through_reflection_foreign_key
         id_to_record_map = construct_id_map(records, foreign_key || reflection.options[:primary_key])
-        records.each {|record| record.send(reflection.name).loaded}
+        records.each { |record| record.association(reflection.name).loaded! }
 
         if options[:through]
           through_records = preload_through_records(records, reflection, options[:through])
@@ -298,7 +298,7 @@ module ActiveRecord
 
           # Dont cache the association - we would only be caching a subset
           records.map { |record|
-            proxy = record.send(through_association)
+            proxy = record.association(through_association)
 
             if proxy.respond_to?(:target)
               Array.wrap(proxy.target).tap { proxy.reset }
@@ -320,7 +320,7 @@ module ActiveRecord
       end
 
       def preload_belongs_to_association(records, reflection, preload_options={})
-        return if records.first.send(:association_proxy, reflection.name).loaded?
+        return if records.first.association(reflection.name).loaded?
         options = reflection.options
 
         klasses_and_ids = {}
@@ -399,10 +399,18 @@ module ActiveRecord
         end
       end
 
+      def process_conditions(conditions, klass = self)
+        if conditions.respond_to?(:to_proc)
+          conditions = instance_eval(&conditions)
+        end
+
+        klass.send(:sanitize_sql, conditions)
+      end
+
       def append_conditions(reflection, preload_options)
         [
-          ("(#{reflection.sanitized_conditions})" if reflection.sanitized_conditions),
-          ("(#{sanitize_sql preload_options[:conditions]})" if preload_options[:conditions]),
+          ('(' + process_conditions(reflection.options[:conditions], reflection.klass) + ')' if reflection.options[:conditions]),
+          ('(' + process_conditions(preload_options[:conditions]) + ')' if preload_options[:conditions]),
         ].compact.map { |x| Arel.sql x }
       end
 

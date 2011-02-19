@@ -177,7 +177,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     old_migration = Dir["#{destination_root}/db/migrate/*_create_accounts.rb"].first
     error = capture(:stderr) { run_generator ["Account", "--force"] }
-    assert_no_match /Another migration is already named create_foos/, error
+    assert_no_match /Another migration is already named create_accounts/, error
     assert_no_file old_migration
     assert_migration 'db/migrate/create_accounts.rb'
   end
@@ -203,4 +203,45 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     content = capture(:stderr){ run_generator ["object"] }
     assert_match /The name 'Object' is either already used in your application or reserved/, content
   end
+
+  def test_index_is_added_for_belongs_to_association
+    run_generator ["account", "supplier:belongs_to"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match /add_index/, up
+      end
+    end
+  end
+
+  def test_index_is_added_for_references_association
+    run_generator ["account", "supplier:references"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match /add_index/, up
+      end
+    end
+  end
+
+  def test_index_is_skipped_for_belongs_to_association
+    run_generator ["account", "supplier:belongs_to", "--no-indexes"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match /add_index/, up
+      end
+    end
+  end
+
+  def test_index_is_skipped_for_references_association
+    run_generator ["account", "supplier:references", "--no-indexes"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match /add_index/, up
+      end
+    end
+  end
+
 end

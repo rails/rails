@@ -261,7 +261,15 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+        columns = Hash[columns(table_name).map { |c| [c.name, c] }]
+
+        key_list   = []
+        value_list = fixture.map do |name, value|
+          key_list << quote_column_name(name)
+          quote(value, columns[name])
+        end
+
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
       end
 
       def empty_insert_statement_value
@@ -274,6 +282,25 @@ module ActiveRecord
 
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
         "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"
+      end
+
+      # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
+      #
+      # The +limit+ may be anything that can evaluate to a string via #to_s. It
+      # should look like an integer, or a comma-delimited list of integers, or 
+      # an Arel SQL literal.
+      #
+      # Returns Integer and Arel::Nodes::SqlLiteral limits as is. 
+      # Returns the sanitized limit parameter, either as an integer, or as a
+      # string which contains a comma-delimited list of integers.
+      def sanitize_limit(limit)
+        if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
+          limit
+        elsif limit.to_s =~ /,/
+          Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
+        else
+          Integer(limit)
+        end
       end
 
       protected
@@ -297,21 +324,6 @@ module ActiveRecord
         # Executes the delete statement and returns the number of rows affected.
         def delete_sql(sql, name = nil)
           update_sql(sql, name)
-        end
-
-        # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
-        #
-        # +limit+ may be anything that can evaluate to a string via #to_s. It
-        # should look like an integer, or a comma-delimited list of integers.
-        #
-        # Returns the sanitized limit parameter, either as an integer, or as a
-        # string which contains a comma-delimited list of integers.
-        def sanitize_limit(limit)
-          if limit.to_s =~ /,/
-            limit.to_s.split(',').map{ |i| i.to_i }.join(',')
-          else
-            limit.to_i
-          end
         end
 
         # Send a rollback message to all records after they have been rolled back. If rollback

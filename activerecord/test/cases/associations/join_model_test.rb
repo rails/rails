@@ -88,7 +88,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_polymorphic_has_many_going_through_join_model_with_custom_select_and_joins
     assert_equal tags(:general), tag = posts(:welcome).tags.add_joins_and_select.first
-    tag.author_id
+    assert_nothing_raised(NoMethodError) { tag.author_id }
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_custom_foreign_key
@@ -153,7 +153,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_create_polymorphic_has_one_with_scope
     old_count = Tagging.count
-    tagging = posts(:welcome).tagging.create(:tag => tags(:misc))
+    tagging = posts(:welcome).create_tagging(:tag => tags(:misc))
     assert_equal "Post", tagging.taggable_type
     assert_equal old_count+1, Tagging.count
   end

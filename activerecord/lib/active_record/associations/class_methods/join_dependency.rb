@@ -187,8 +187,8 @@ module ActiveRecord
               construct(parent, association, join_parts, row)
             end
           when Hash
-            associations.sort_by { |k,_| k.to_s }.each do |name, assoc|
-              association = construct(parent, name, join_parts, row)
+            associations.sort_by { |k,_| k.to_s }.each do |association_name, assoc|
+              association = construct(parent, association_name, join_parts, row)
               construct(association, assoc, join_parts, row) if association
             end
           else
@@ -209,10 +209,10 @@ module ActiveRecord
             association = join_part.instantiate(row)
             case macro
             when :has_many, :has_and_belongs_to_many
-              collection = record.send(join_part.reflection.name)
-              collection.loaded
-              collection.target.push(association)
-              collection.send(:set_inverse_instance, association)
+              other = record.association(join_part.reflection.name)
+              other.loaded!
+              other.target.push(association)
+              other.set_inverse_instance(association)
             when :belongs_to
               set_target_and_inverse(join_part, association, record)
             else
@@ -223,9 +223,9 @@ module ActiveRecord
         end
 
         def set_target_and_inverse(join_part, association, record)
-          association_proxy = record.send(:association_proxy, join_part.reflection.name)
-          association_proxy.target = association
-          association_proxy.send(:set_inverse_instance, association)
+          other = record.association(join_part.reflection.name)
+          other.target = association
+          other.set_inverse_instance(association)
         end
       end
     end

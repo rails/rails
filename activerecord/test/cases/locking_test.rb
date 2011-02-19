@@ -1,6 +1,7 @@
 require 'thread'
 require "cases/helper"
 require 'models/person'
+require 'models/job'
 require 'models/reader'
 require 'models/legacy_thing'
 require 'models/reference'
@@ -95,6 +96,14 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1.save!
     p1.lock_version = nil # simulate bad fixture or column with no default
     p1.save!
+    assert_equal 1, p1.lock_version
+  end
+
+  def test_touch_existing_lock
+    p1 = Person.find(1)
+    assert_equal 0, p1.lock_version
+
+    p1.touch
     assert_equal 1, p1.lock_version
   end
 

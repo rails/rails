@@ -95,13 +95,26 @@ module AbstractController
         )
       end
 
-      def test_protocol_with_and_without_separator
+      def test_protocol_with_and_without_separators
         add_host!
         assert_equal('https://www.basecamphq.com/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
         )
         assert_equal('https://www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https:')
+        )
+        assert_equal('https://www.basecamphq.com/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https://')
+        )
+      end
+
+      def test_without_protocol
+        add_host!
+        assert_equal('//www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => '//')
+        )
+        assert_equal('//www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => false)
         )
       end
 

@@ -17,19 +17,11 @@ gem "mocha", ">= 0.9.8"
 group :doc do
   gem "rdoc",  "~> 3.4"
   gem "horo",  "= 1.0.3"
-  gem "RedCloth", "~> 4.2"
+  gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
 end
-
-# for perf tests
-gem "faker"
-gem "rbench"
-gem "addressable"
 
 # AS
 gem "memcache-client", ">= 1.8.5"
-
-# AM
-gem "text-format", "~> 1.0.0"
 
 platforms :mri_18 do
   gem "system_timer"
@@ -39,7 +31,7 @@ end
 
 platforms :mri_19 do
   # TODO: Remove the conditional when ruby-debug19 supports Ruby >= 1.9.3
-  gem "ruby-debug19" if RUBY_VERSION < "1.9.3"
+  gem "ruby-debug19", :require => 'ruby-debug' if RUBY_VERSION < "1.9.3"
 end
 
 platforms :ruby do
@@ -53,7 +45,7 @@ platforms :ruby do
   group :db do
     gem "pg", ">= 0.9.0"
     gem "mysql", ">= 2.8.1"
-    gem "mysql2", ">= 0.2.6"
+    gem "mysql2", :git => "git://github.com/brianmario/mysql2.git"
   end
 end
 

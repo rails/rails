@@ -1,6 +1,7 @@
 class Comment < ActiveRecord::Base
   scope :limit_by, lambda {|l| limit(l) }
   scope :containing_the_letter_e, :conditions => "comments.body LIKE '%e%'"
+  scope :not_again, where("comments.body NOT LIKE '%again%'")
   scope :for_first_post, :conditions => { :post_id => 1 }
   scope :for_first_author,
               :joins => :post,

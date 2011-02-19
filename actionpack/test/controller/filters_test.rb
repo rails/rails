@@ -664,7 +664,7 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_prepending_and_appending_around_filter
-    controller = test_process(MixedFilterController)
+    test_process(MixedFilterController)
     assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
                  " after appended aroundfilter  after procfilter  after aroundfilter ",
                  MixedFilterController.execution_log
@@ -677,26 +677,26 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_before_filter_rendering_breaks_filtering_chain_for_after_filter
-    response = test_process(RenderingController)
+    test_process(RenderingController)
     assert_equal %w( before_filter_rendering ), assigns["ran_filter"]
     assert !assigns["ran_action"]
   end
 
   def test_before_filter_redirects_breaks_filtering_chain_for_after_filter
-    response = test_process(BeforeFilterRedirectionController)
+    test_process(BeforeFilterRedirectionController)
     assert_response :redirect
     assert_equal "http://test.host/filter_test/before_filter_redirection/target_of_redirection", redirect_to_url
     assert_equal %w( before_filter_redirects ), assigns["ran_filter"]
   end
 
   def test_before_filter_rendering_breaks_filtering_chain_for_preprend_after_filter
-    response = test_process(RenderingForPrependAfterFilterController)
+    test_process(RenderingForPrependAfterFilterController)
     assert_equal %w( before_filter_rendering ), assigns["ran_filter"]
     assert !assigns["ran_action"]
   end
 
   def test_before_filter_redirects_breaks_filtering_chain_for_preprend_after_filter
-    response = test_process(BeforeFilterRedirectionForPrependAfterFilterController)
+    test_process(BeforeFilterRedirectionForPrependAfterFilterController)
     assert_response :redirect
     assert_equal "http://test.host/filter_test/before_filter_redirection_for_prepend_after_filter/target_of_redirection", redirect_to_url
     assert_equal %w( before_filter_redirects ), assigns["ran_filter"]

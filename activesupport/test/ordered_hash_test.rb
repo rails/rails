@@ -78,20 +78,26 @@ class OrderedHashTest < Test::Unit::TestCase
 
   def test_each_key
     keys = []
-    @ordered_hash.each_key { |k| keys << k }
+    assert_equal @ordered_hash, @ordered_hash.each_key { |k| keys << k }
     assert_equal @keys, keys
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
+    assert_kind_of expected_class, @ordered_hash.each_key
   end
 
   def test_each_value
     values = []
-    @ordered_hash.each_value { |v| values << v }
+    assert_equal @ordered_hash, @ordered_hash.each_value { |v| values << v }
     assert_equal @values, values
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
+    assert_kind_of expected_class, @ordered_hash.each_value
   end
 
   def test_each
     values = []
-    @ordered_hash.each {|key, value| values << value}
+    assert_equal @ordered_hash, @ordered_hash.each {|key, value| values << value}
     assert_equal @values, values
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
+    assert_kind_of expected_class, @ordered_hash.each
   end
 
   def test_each_with_index

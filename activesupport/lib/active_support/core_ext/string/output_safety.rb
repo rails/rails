@@ -101,7 +101,13 @@ module ActiveSupport #:nodoc:
       self
     end
 
+    def encode_with(coder)
+      coder.represent_scalar nil, to_str
+    end
+
     def to_yaml(*args)
+      return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+
       to_str.to_yaml(*args)
     end
   end

@@ -229,6 +229,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :cold_jokes, :force => true do |t|
+    t.string :name
+  end
+
   create_table :goofy_string_id, :force => true, :id => false do |t|
     t.string :id, :null => false
     t.string :info
@@ -277,6 +281,15 @@ ActiveRecord::Schema.define do
   create_table :legacy_things, :force => true do |t|
     t.integer :tps_report_number
     t.integer :version, :null => false, :default => 0
+  end
+
+  create_table :lessons, :force => true do |t|
+    t.string :name
+  end
+
+  create_table :lessons_students, :id => false, :force => true do |t|
+    t.references :lesson
+    t.references :student
   end
 
   create_table :line_items, :force => true do |t|
@@ -416,6 +429,8 @@ ActiveRecord::Schema.define do
     t.string     :gender, :limit => 1
     t.references :number1_fan
     t.integer    :lock_version, :null => false, :default => 0
+    t.string     :comments
+    t.timestamps
   end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|
@@ -445,6 +460,10 @@ ActiveRecord::Schema.define do
     t.integer :comments_count, :default => 0
     t.integer :taggings_count, :default => 0
     t.integer :taggings_with_delete_all_count, :default => 0
+    t.integer :taggings_with_destroy_count, :default => 0
+    t.integer :tags_count, :default => 0
+    t.integer :tags_with_destroy_count, :default => 0
+    t.integer :tags_with_nullify_count, :default => 0
   end
 
   create_table :price_estimates, :force => true do |t|
@@ -507,6 +526,10 @@ ActiveRecord::Schema.define do
     t.integer :club_id
     t.integer :sponsorable_id
     t.string :sponsorable_type
+  end
+
+  create_table :students, :force => true do |t|
+    t.string :name
   end
 
   create_table :subscribers, :force => true, :id => false do |t|

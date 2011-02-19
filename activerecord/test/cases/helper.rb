@@ -11,13 +11,23 @@ require 'mocha'
 
 require 'active_record'
 require 'active_support/dependencies'
-require 'connection'
+begin
+  require 'connection'
+rescue LoadError
+  # If we cannot load connection we assume that driver was not loaded for this test case, so we load sqlite3 as default one.
+  # This allows for running separate test cases by simply running test file.
+  connection_type = defined?(JRUBY_VERSION) ? 'jdbc' : 'native'
+  require "test/connections/#{connection_type}_sqlite3/connection"
+end
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
+
+# Enable Identity Map for testing
+ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "false" ? false : true)
 
 def current_adapter?(*types)
   types.any? do |type|
@@ -49,41 +59,30 @@ ensure
   ActiveRecord::Base.default_timezone = old_zone
 end
 
-ActiveRecord::Base.connection.class.class_eval do
-  IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /SHOW FIELDS/]
+module ActiveRecord
+  class SQLCounter
+    IGNORED_SQL = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/]
 
-  # FIXME: this needs to be refactored so specific database can add their own
-  # ignored SQL.  This ignored SQL is for Oracle.
-  IGNORED_SQL.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from ((all|user)_tab_columns|(all|user)_triggers|(all|user)_constraints)/im]
+    # FIXME: this needs to be refactored so specific database can add their own
+    # ignored SQL.  This ignored SQL is for Oracle.
+    IGNORED_SQL.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
 
-  def execute_with_query_record(sql, name = nil, &block)
-    $queries_executed ||= []
-    $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    execute_without_query_record(sql, name, &block)
+    def initialize
+      $queries_executed = []
+    end
+
+    def call(name, start, finish, message_id, values)
+      sql = values[:sql]
+
+      # FIXME: this seems bad. we should probably have a better way to indicate
+      # the query was cached
+      unless 'CACHE' == values[:name]
+        $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
+      end
+    end
   end
-
-  alias_method_chain :execute, :query_record
-
-  def exec_query_with_query_record(sql, name = nil, binds = [], &block)
-    $queries_executed ||= []
-    $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    exec_query_without_query_record(sql, name, binds, &block)
-  end
-
-  alias_method_chain :exec_query, :query_record
+  ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
-
-ActiveRecord::Base.connection.class.class_eval {
-  attr_accessor :column_calls
-
-  def columns_with_calls(*args)
-    @column_calls ||= 0
-    @column_calls += 1
-    columns_without_calls(*args)
-  end
-
-  alias_method_chain :columns, :calls
-}
 
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods
@@ -105,7 +104,7 @@ class ActiveSupport::TestCase
   self.use_transactional_fixtures = true
 
   def create_fixtures(*table_names, &block)
-    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
+    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
   end
 end
 

@@ -78,24 +78,6 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
-  #fixtures :group
-
-  def test_fixtures
-    f = create_test_fixtures :select, :distinct, :group, :values, :distincts_selects
-
-    assert_nothing_raised {
-      f.each do |x|
-        x.delete_existing_fixtures
-      end
-    }
-
-    assert_nothing_raised {
-      f.each do |x|
-        x.insert_fixtures
-      end
-    }
-  end
-
   #activerecord model class with reserved-word table name
   def test_activerecord_model
     create_test_fixtures :select, :distinct, :group, :values, :distincts_selects

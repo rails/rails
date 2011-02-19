@@ -56,6 +56,7 @@ module ActiveRecord
           @primary_key ||= ''
           self.original_primary_key = @primary_key
           value &&= value.to_s
+          connection_pool.primary_keys[table_name] = value
           self.primary_key = block_given? ? instance_eval(&block) : value
         end
       end

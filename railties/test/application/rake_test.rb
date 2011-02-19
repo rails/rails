@@ -82,5 +82,22 @@ module ApplicationTests
       assert_match /remove_column\("users", :email\)/, output
       assert_match /AddEmailToUsers: reverted/, output
     end
+
+    def test_loading_specific_fixtures
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate model product name:string`
+        `rake db:migrate`
+      end
+
+      require "#{rails_root}/config/environment"
+      
+      # loading a specific fixture
+      errormsg = Dir.chdir(app_path) { `rake db:fixtures:load FIXTURES=products` }
+      assert $?.success?, errormsg
+
+      assert_equal 2, ::AppTemplate::Application::Product.count
+      assert_equal 0, ::AppTemplate::Application::User.count
+    end
   end
 end
