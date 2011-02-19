@@ -1,5 +1,5 @@
 module ActiveRecord
-  # = Active Record Validations
+  # = Active Record RecordInvalid
   #
   # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
   # +record+ method to retrieve the record which did not validate.
@@ -18,6 +18,13 @@ module ActiveRecord
     end
   end
 
+  # = Active Record Validations
+  #
+  # Active Record includes the majority of its validations from ActiveModel::Validations
+  # all of which accept the <tt>:on</tt> argument to define the context where the
+  # validations are active. Active Record will always supply either the context of
+  # <tt>:create</tt> or <tt>:update</tt> dependent on whether the model is a
+  # <tt>new_record?</tt>.
   module Validations
     extend ActiveSupport::Concern
     include ActiveModel::Validations
@@ -50,6 +57,13 @@ module ActiveRecord
     end
 
     # Runs all the specified validations and returns true if no errors were added otherwise false.
+    #
+    # ==== Arguments
+    #
+    # * <tt>context</tt> - Context to scope the execution of the validations. Default is <tt>nil</tt>.
+    #   If <tt>nil</tt> then the response of <tt>new_record?</tt> will determine the context. If <tt>new_record?</tt>
+    #   returns true the the context will be <tt>:create</tt>, otherwise <tt>:update</tt>.  Validation contexts
+    #   for each validation can be defined using the <tt>:on</tt> option
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
       output = super(context)
