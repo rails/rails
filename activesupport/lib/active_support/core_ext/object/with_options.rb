@@ -27,7 +27,7 @@ class Object
   #     end
   #   end
   #
-  # It also be used with an explicit receiver:
+  # It can also be used with an explicit receiver:
   #
   #   map.with_options :controller => "people" do |people|
   #     people.connect "/people",     :action => "index"
