@@ -31,9 +31,8 @@ module ActiveRecord
       def defined_activerecord_methods
         active_record = ActiveRecord::Base
         super_klass   = ActiveRecord::Base.superclass
-        methods =  active_record.public_instance_methods - super_klass.public_instance_methods
-        methods += active_record.private_instance_methods - super_klass.private_instance_methods
-        methods += active_record.protected_instance_methods - super_klass.protected_instance_methods
+        methods = (active_record.instance_methods - super_klass.instance_methods) +
+                  (active_record.private_instance_methods - super_klass.private_instance_methods)
         methods.map {|m| m.to_s }.to_set
       end
     end
