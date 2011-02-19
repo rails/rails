@@ -1,3 +1,5 @@
+require 'active_support/core_ext/range.rb'
+
 module ActiveModel
 
   # == Active Model Inclusion Validator
@@ -8,27 +10,15 @@ module ActiveModel
                               ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
       end
 
+      def validate_each(record, attribute, value)
+        record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value)) unless options[:in].send(include?, value)
+      end
+
       # On Ruby 1.9 Range#include? checks all possible values in the range for equality,
       # so it may be slow for large ranges. The new Range#cover? uses the previous logic
       # of comparing a value with the range endpoints.
-      if (1..2).respond_to?(:cover?)
-        def validate_each(record, attribute, value)
-          included = if options[:in].is_a?(Range)
-            options[:in].cover?(value)
-          else
-            options[:in].include?(value)
-          end
-
-          unless included
-            record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
-          end
-        end
-      else
-        def validate_each(record, attribute, value)
-          unless options[:in].include?(value)
-            record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
-          end
-        end
+      def include?
+        options[:in].is_a?(Range) ? :cover? : :include?
       end
     end
 
