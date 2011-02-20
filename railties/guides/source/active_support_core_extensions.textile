@@ -528,7 +528,7 @@ The default value can be also specified with a block, which is called in the con
 class User
   attr_accessor :name, :surname
   attr_accessor_with_default(:full_name) {
-	[name, surname].compact.join(" ")
+  [name, surname].compact.join(" ")
   }
 end
 
@@ -2712,6 +2712,14 @@ Active Support extends this method so that the argument may be another range in 
 WARNING: The original +Range#include?+ is still the one aliased to +Range#===+.
 
 NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
+
+h4. +cover?+
+
+Ruby 1.9 provides +cover?+, and Active Support defines it for previous versions as an alias for +include?+.
+
+The method +include?+ in Ruby 1.9 is different from the one in 1.8 for non-numeric ranges: instead of being based on comparisons between the value and the range's endpoints, it walks the range with +succ+ looking for value. This works better for ranges with holes, but it has different complexity and may not finish in some other cases.
+
+In Ruby 1.9 the old behavior is still available in the new +cover?+, which Active Support backports for forward compatibility. For example, Rails uses +cover?+ for ranges in +validates_inclusion_of+.
 
 h4. +overlaps?+
 
