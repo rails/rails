@@ -12,7 +12,7 @@ module ActiveRecord
       private
 
         def create_through_record(record)
-          through_proxy  = owner.association(reflection.through_reflection.name)
+          through_proxy  = owner.association(through_reflection.name)
           through_record = through_proxy.send(:load_target)
 
           if through_record && !record
