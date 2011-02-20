@@ -743,7 +743,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
     before = @pirate.birds.map { |c| c.mark_for_destruction ; c }
 
-    # Stub the destroy method of the the second child to raise an exception
+    # Stub the destroy method of the second child to raise an exception
     class << before.last
       def destroy(*args)
         super

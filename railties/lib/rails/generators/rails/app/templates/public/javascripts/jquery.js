@@ -2136,7 +2136,7 @@ jQuery.event = {
 			eventHandle = elemData.handle;
 
 		if ( typeof events === "function" ) {
-			// On plain objects events is a fn that holds the the data
+			// On plain objects events is a fn that holds the data
 			// which prevents this data from being JSON serialized
 			// the function does not need to be called, it just contains the data
 			eventHandle = events.handle;
