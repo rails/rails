@@ -3,7 +3,7 @@ module ActiveRecord
   module Associations
     class BelongsToAssociation < SingularAssociation #:nodoc:
       def replace(record)
-        record = check_record(record)
+        raise_on_type_mismatch(record) if record
 
         update_counters(record)
         replace_keys(record)
