@@ -1,4 +1,7 @@
 require 'abstract_unit'
+require 'fssm'
+require "fileutils"
+
 
 class FileWatcherTest < ActiveSupport::TestCase
   class DumbBackend < ActiveSupport::FileWatcher::Backend
@@ -71,5 +74,155 @@ class FileWatcherTest < ActiveSupport::TestCase
     @backend.trigger "app/assets/print.scss" => :changed, "app/assets/main.scss" => :changed
     assert_equal [:changed => ["app/assets/main.scss"]], payload
     assert_equal [:changed => ["app/assets/main.scss", "app/assets/print.scss"]], @payload
+  end
+end
+
+module FSSM::Backends
+  class Polling
+    def initialize(options={})
+      @handlers = []
+      @latency  = options[:latency] || 0.1
+    end
+
+    def add_handler(handler, preload=true)
+      handler.refresh(nil, true) if preload
+      @handlers << handler
+    end
+
+    def run
+      begin
+        loop do
+          start = Time.now.to_f
+          @handlers.each { |handler| handler.refresh }
+          nap_time = @latency - (Time.now.to_f - start)
+          sleep nap_time if nap_time > 0
+        end
+      rescue Interrupt
+      end
+    end
+  end
+end
+
+class FSSMFileWatcherTest < ActiveSupport::TestCase
+  class FSSMBackend < ActiveSupport::FileWatcher::Backend
+    def initialize(path, watcher)
+      super
+
+      monitor = FSSM::Monitor.new
+      monitor.path(path, '**/*') do |monitor|
+        monitor.update { |base, relative| trigger relative => :changed }
+        monitor.delete { |base, relative| trigger relative => :deleted }
+        monitor.create { |base, relative| trigger relative => :created }
+      end
+
+      @thread = Thread.new do
+        monitor.run
+      end
+    end
+
+    def stop
+      @thread.kill
+    end
+  end
+
+  def setup
+    Thread.abort_on_exception = true
+
+    @watcher = ActiveSupport::FileWatcher.new
+
+    @path = path = File.expand_path("../tmp", __FILE__)
+    FileUtils.rm_rf path
+
+    create "app/assets/main.scss", true
+    create "app/assets/javascripts/foo.coffee", true
+    create "app/assets/print.scss", true
+    create "app/assets/videos.scss", true
+
+    @backend = FSSMBackend.new(path, @watcher)
+
+    @payload = []
+
+    @watcher.watch %r{^app/assets/.*\.scss$} do |pay|
+      pay.each do |status, files|
+        files.sort!
+      end
+      @payload << pay
+    end
+  end
+
+  def teardown
+    @backend.stop
+    Thread.abort_on_exception = false
+  end
+
+  def create(path, past = false)
+    path = File.join(@path, path)
+    FileUtils.mkdir_p(File.dirname(path))
+
+    FileUtils.touch(path)
+    File.utime(Time.now - 100, Time.now - 100, path) if past
+    sleep 0.1 unless past
+  end
+
+  def change(path)
+    FileUtils.touch(File.join(@path, path))
+    sleep 0.1
+  end
+
+  def delete(path)
+    FileUtils.rm(File.join(@path, path))
+    sleep 0.1
+  end
+
+  def test_one_change
+    change "app/assets/main.scss"
+    assert_equal({:changed => ["app/assets/main.scss"]}, @payload.first)
+  end
+
+  def test_multiple_changes
+    change "app/assets/main.scss"
+    change "app/assets/javascripts/foo.coffee"
+    assert_equal([{:changed => ["app/assets/main.scss"]}], @payload)
+  end
+
+  def test_multiple_changes_match
+    change "app/assets/main.scss"
+    change "app/assets/print.scss"
+    change "app/assets/javascripts/foo.coffee"
+    assert_equal([{:changed => ["app/assets/main.scss"]}, {:changed => ["app/assets/print.scss"]}], @payload)
+  end
+
+  def test_multiple_state_changes
+    create "app/assets/new.scss"
+    change "app/assets/print.scss"
+    delete "app/assets/videos.scss"
+    assert_equal([{:created => ["app/assets/new.scss"]}, {:changed => ["app/assets/print.scss"]}, {:deleted => ["app/assets/videos.scss"]}], @payload)
+  end
+
+  def test_delete
+
+  end
+
+  def test_more_blocks
+    payload = []
+    @watcher.watch %r{^config/routes\.rb$} do |pay|
+      payload << pay
+    end
+
+    create "config/routes.rb"
+    assert_equal [{:created => ["config/routes.rb"]}], payload
+    assert_equal [], @payload
+  end
+
+  def test_overlapping_watchers
+    payload = []
+    @watcher.watch %r{^app/assets/main\.scss$} do |pay|
+      payload << pay
+    end
+
+    change "app/assets/main.scss"
+    change "app/assets/print.scss"
+    assert_equal [{:changed => ["app/assets/main.scss"]}], payload
+    assert_equal [{:changed => ["app/assets/main.scss"]}, {:changed => ["app/assets/print.scss"]}], @payload
   end
 end
