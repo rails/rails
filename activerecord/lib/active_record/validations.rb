@@ -62,7 +62,7 @@ module ActiveRecord
     #
     # * <tt>context</tt> - Context to scope the execution of the validations. Default is <tt>nil</tt>.
     #   If <tt>nil</tt> then the response of <tt>new_record?</tt> will determine the context. If <tt>new_record?</tt>
-    #   returns true the the context will be <tt>:create</tt>, otherwise <tt>:update</tt>.  Validation contexts
+    #   returns true the context will be <tt>:create</tt>, otherwise <tt>:update</tt>.  Validation contexts
     #   for each validation can be defined using the <tt>:on</tt> option
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
