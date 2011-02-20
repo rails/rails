@@ -47,7 +47,7 @@ module ActiveRecord
       end
 
       def find(*args)
-        if reflection.options[:finder_sql]
+        if options[:finder_sql]
           find_by_scan(*args)
         else
           scoped.find(*args)
@@ -145,26 +145,26 @@ module ActiveRecord
       # Count all records using SQL. If the +:counter_sql+ or +:finder_sql+ option is set for the
       # association, it will be used for the query. Otherwise, construct options and pass them with
       # scope to the target class's +count+.
-      def count(column_name = nil, options = {})
-        column_name, options = nil, column_name if column_name.is_a?(Hash)
+      def count(column_name = nil, count_options = {})
+        column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
-        if reflection.options[:counter_sql] || reflection.options[:finder_sql]
-          unless options.blank?
+        if options[:counter_sql] || options[:finder_sql]
+          unless count_options.blank?
             raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
           end
 
           reflection.klass.count_by_sql(custom_counter_sql)
         else
-          if reflection.options[:uniq]
+          if options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
-            options.merge!(:distinct => true)
+            count_options.merge!(:distinct => true)
           end
 
-          value = scoped.count(column_name, options)
+          value = scoped.count(column_name, count_options)
 
-          limit  = reflection.options[:limit]
-          offset = reflection.options[:offset]
+          limit  = options[:limit]
+          offset = options[:offset]
 
           if limit || offset
             [ [value - offset.to_i, 0].max, limit.to_i ].min
@@ -182,7 +182,7 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        delete_or_destroy(records, reflection.options[:dependent])
+        delete_or_destroy(records, options[:dependent])
       end
 
       # Destroy +records+ and remove them from this association calling
@@ -206,11 +206,11 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if owner.new_record? || (loaded? && !reflection.options[:uniq])
+        if owner.new_record? || (loaded? && !options[:uniq])
           target.size
-        elsif !loaded? && reflection.options[:group]
+        elsif !loaded? && options[:group]
           load_target.size
-        elsif !loaded? && !reflection.options[:uniq] && target.is_a?(Array)
+        elsif !loaded? && !options[:uniq] && target.is_a?(Array)
           unsaved_records = target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
@@ -280,7 +280,7 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            load_target if reflection.options[:finder_sql]
+            load_target if options[:finder_sql]
             loaded? ? target.include?(record) : scoped.exists?(record)
           end
         else
@@ -319,7 +319,7 @@ module ActiveRecord
           callback(:before_add, record)
           yield(record) if block_given?
 
-          if reflection.options[:uniq] && index = @target.index(record)
+          if options[:uniq] && index = @target.index(record)
             @target[index] = record
           else
             @target << record
@@ -339,31 +339,31 @@ module ActiveRecord
         end
 
         def uniq_select_value
-          reflection.options[:uniq] && "DISTINCT #{reflection.quoted_table_name}.*"
+          options[:uniq] && "DISTINCT #{reflection.quoted_table_name}.*"
         end
 
         def custom_counter_sql
-          if reflection.options[:counter_sql]
-            interpolate(reflection.options[:counter_sql])
+          if options[:counter_sql]
+            interpolate(options[:counter_sql])
           else
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-            interpolate(reflection.options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+            interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           end
         end
 
         def custom_finder_sql
-          interpolate(reflection.options[:finder_sql])
+          interpolate(options[:finder_sql])
         end
 
         def find_target
           records =
-            if reflection.options[:finder_sql]
+            if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
               find(:all)
             end
 
-          records = reflection.options[:uniq] ? uniq(records) : records
+          records = options[:uniq] ? uniq(records) : records
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -467,7 +467,7 @@ module ActiveRecord
           else
             !(loaded? ||
               owner.new_record? ||
-              reflection.options[:finder_sql] ||
+              options[:finder_sql] ||
               target.any? { |record| record.new_record? || record.changed? } ||
               args.first.kind_of?(Integer))
           end

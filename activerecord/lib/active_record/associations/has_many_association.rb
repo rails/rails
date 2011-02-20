@@ -29,7 +29,7 @@ module ActiveRecord
         def count_records
           count = if has_cached_counter?
             owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif reflection.options[:counter_sql] || reflection.options[:finder_sql]
+          elsif options[:counter_sql] || options[:finder_sql]
             reflection.klass.count_by_sql(custom_counter_sql)
           else
             scoped.count
@@ -40,7 +40,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded! if count == 0
 
-          [reflection.options[:limit], count].compact.min
+          [options[:limit], count].compact.min
         end
 
         def has_cached_counter?(reflection = reflection)

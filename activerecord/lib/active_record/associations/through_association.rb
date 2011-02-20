@@ -3,6 +3,8 @@ module ActiveRecord
   module Associations
     module ThroughAssociation #:nodoc:
 
+      delegate :source_options, :through_options, :to => :reflection
+
       protected
 
         def target_scope
@@ -12,8 +14,8 @@ module ActiveRecord
         def association_scope
           scope = super.joins(construct_joins)
           scope = add_conditions(scope)
-          unless reflection.options[:include]
-            scope = scope.includes(reflection.source_reflection.options[:include])
+          unless options[:include]
+            scope = scope.includes(source_options[:include])
           end
           scope
         end
@@ -50,17 +52,17 @@ module ActiveRecord
             reflection_primary_key = reflection.source_reflection.association_primary_key
             source_primary_key     = reflection.source_reflection.foreign_key
 
-            if reflection.options[:source_type]
+            if options[:source_type]
               column = reflection.source_reflection.foreign_type
               conditions <<
-                right[column].eq(reflection.options[:source_type])
+                right[column].eq(options[:source_type])
             end
           else
             reflection_primary_key = reflection.source_reflection.foreign_key
             source_primary_key     = reflection.source_reflection.active_record_primary_key
 
-            if reflection.source_reflection.options[:as]
-              column = "#{reflection.source_reflection.options[:as]}_type"
+            if source_options[:as]
+              column = "#{source_options[:as]}_type"
               conditions <<
                 left[column].eq(reflection.through_reflection.klass.name)
             end
@@ -98,7 +100,7 @@ module ActiveRecord
               }
           }
 
-          if reflection.options[:source_type]
+          if options[:source_type]
             join_attributes[reflection.source_reflection.foreign_type] =
               records.map { |record| record.class.base_class.name }
           end
@@ -119,14 +121,14 @@ module ActiveRecord
             scope = scope.where(reflection.through_reflection.klass.send(:type_condition))
           end
 
-          scope = scope.where(interpolate(reflection.source_reflection.options[:conditions]))
+          scope = scope.where(interpolate(source_options[:conditions]))
           scope.where(through_conditions)
         end
 
         # If there is a hash of conditions then we make sure the keys are scoped to the
         # through table name if left ambiguous.
         def through_conditions
-          conditions = interpolate(reflection.through_reflection.options[:conditions])
+          conditions = interpolate(through_options[:conditions])
 
           if conditions.is_a?(Hash)
             Hash[conditions.map { |key, value|

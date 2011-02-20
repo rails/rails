@@ -12,8 +12,8 @@ module ActiveRecord
       def insert_record(record, validate = true)
         return if record.new_record? && !record.save(:validate => validate)
 
-        if reflection.options[:insert_sql]
-          owner.connection.insert(interpolate(reflection.options[:insert_sql], record))
+        if options[:insert_sql]
+          owner.connection.insert(interpolate(options[:insert_sql], record))
         else
           stmt = join_table.compile_insert(
             join_table[reflection.foreign_key]             => owner.id,
@@ -37,7 +37,7 @@ module ActiveRecord
         end
 
         def delete_records(records, method)
-          if sql = reflection.options[:delete_sql]
+          if sql = options[:delete_sql]
             records.each { |record| owner.connection.delete(interpolate(sql, record)) }
           else
             relation = join_table

@@ -56,7 +56,7 @@ module ActiveRecord
         end
 
         def target_id
-          if reflection.options[:primary_key]
+          if options[:primary_key]
             owner.send(reflection.name).try(:id)
           else
             owner[reflection.foreign_key]

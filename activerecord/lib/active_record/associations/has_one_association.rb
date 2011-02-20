@@ -8,7 +8,7 @@ module ActiveRecord
 
         reflection.klass.transaction do
           if target && target != record
-            remove_target!(reflection.options[:dependent])
+            remove_target!(options[:dependent])
           end
 
           if record
@@ -29,7 +29,7 @@ module ActiveRecord
       protected
 
         def association_scope
-          super.order(reflection.options[:order])
+          super.order(options[:order])
         end
 
       private

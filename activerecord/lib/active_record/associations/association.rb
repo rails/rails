@@ -99,12 +99,12 @@ module ActiveRecord
       def association_scope
         scope = target_klass.unscoped
         scope = scope.create_with(creation_attributes)
-        scope = scope.apply_finder_options(reflection.options.slice(:readonly, :include))
-        scope = scope.where(interpolate(reflection.options[:conditions]))
+        scope = scope.apply_finder_options(options.slice(:readonly, :include))
+        scope = scope.where(interpolate(options[:conditions]))
         if select = select_value
           scope = scope.select(select)
         end
-        scope = scope.extending(*Array.wrap(reflection.options[:extend]))
+        scope = scope.extending(*Array.wrap(options[:extend]))
         scope.where(construct_owner_conditions)
       end
 
@@ -175,7 +175,7 @@ module ActiveRecord
         end
 
         def select_value
-          reflection.options[:select]
+          options[:select]
         end
 
         # Implemented by (some) subclasses
@@ -191,8 +191,8 @@ module ActiveRecord
           else
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
-            if reflection.options[:as]
-              attributes["#{reflection.options[:as]}_type"] = owner.class.base_class.name
+            if options[:as]
+              attributes["#{options[:as]}_type"] = owner.class.base_class.name
             end
           end
           attributes
