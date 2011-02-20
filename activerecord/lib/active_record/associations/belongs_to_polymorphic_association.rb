@@ -10,14 +10,14 @@ module ActiveRecord
         end
 
         def different_target?(record)
-          super || record.class != target_klass
+          super || record.class != klass
         end
 
         def inverse_reflection_for(record)
           reflection.polymorphic_inverse_of(record.class)
         end
 
-        def target_klass
+        def klass
           type = owner[reflection.foreign_type]
           type && type.constantize
         end

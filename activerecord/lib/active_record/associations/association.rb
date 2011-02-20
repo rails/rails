@@ -19,7 +19,7 @@ module ActiveRecord
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
 
-      delegate :options, :klass, :to => :reflection
+      delegate :options, :to => :reflection
 
       def initialize(owner, reflection)
         reflection.check_validity!
@@ -93,11 +93,11 @@ module ActiveRecord
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
       def construct_scope
-        @association_scope = association_scope if target_klass
+        @association_scope = association_scope if klass
       end
 
       def association_scope
-        scope = target_klass.unscoped
+        scope = klass.unscoped
         scope = scope.create_with(creation_attributes)
         scope = scope.apply_finder_options(options.slice(:readonly, :include))
         scope = scope.where(interpolate(options[:conditions]))
@@ -109,7 +109,7 @@ module ActiveRecord
       end
 
       def aliased_table
-        target_klass.arel_table
+        klass.arel_table
       end
 
       # Set the inverse association, if possible
@@ -122,14 +122,14 @@ module ActiveRecord
 
       # This class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
-      def target_klass
+      def klass
         reflection.klass
       end
 
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        target_klass.scoped
+        klass.scoped
       end
 
       # Loads the \target if needed and returns it.
@@ -163,7 +163,7 @@ module ActiveRecord
       private
 
         def find_target?
-          !loaded? && (!owner.new_record? || foreign_key_present?) && target_klass
+          !loaded? && (!owner.new_record? || foreign_key_present?) && klass
         end
 
         def interpolate(sql, record = nil)

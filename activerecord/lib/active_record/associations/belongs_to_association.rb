@@ -29,7 +29,7 @@ module ActiveRecord
             end
 
             if foreign_key_present?
-              target_klass.decrement_counter(counter_cache_name, target_id)
+              klass.decrement_counter(counter_cache_name, target_id)
             end
           end
         end
