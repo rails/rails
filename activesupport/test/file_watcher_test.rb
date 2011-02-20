@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'fssm'
 require "fileutils"
+require "timeout"
 
 
 class FileWatcherTest < ActiveSupport::TestCase
@@ -128,6 +129,9 @@ class FSSMFileWatcherTest < ActiveSupport::TestCase
   def setup
     Thread.abort_on_exception = true
 
+    @payload = []
+    @triggered = false
+
     @watcher = ActiveSupport::FileWatcher.new
 
     @path = path = File.expand_path("../tmp", __FILE__)
@@ -140,13 +144,12 @@ class FSSMFileWatcherTest < ActiveSupport::TestCase
 
     @backend = FSSMBackend.new(path, @watcher)
 
-    @payload = []
-
     @watcher.watch %r{^app/assets/.*\.scss$} do |pay|
       pay.each do |status, files|
         files.sort!
       end
       @payload << pay
+      trigger
     end
   end
 
@@ -156,22 +159,43 @@ class FSSMFileWatcherTest < ActiveSupport::TestCase
   end
 
   def create(path, past = false)
-    path = File.join(@path, path)
-    FileUtils.mkdir_p(File.dirname(path))
+    wait(past) do
+      path = File.join(@path, path)
+      FileUtils.mkdir_p(File.dirname(path))
 
-    FileUtils.touch(path)
-    File.utime(Time.now - 100, Time.now - 100, path) if past
-    sleep 0.1 unless past
+      FileUtils.touch(path)
+      File.utime(Time.now - 100, Time.now - 100, path) if past
+    end
   end
 
   def change(path)
-    FileUtils.touch(File.join(@path, path))
-    sleep 0.1
+    wait do
+      FileUtils.touch(File.join(@path, path))
+    end
   end
 
   def delete(path)
-    FileUtils.rm(File.join(@path, path))
-    sleep 0.1
+    wait do
+      FileUtils.rm(File.join(@path, path))
+    end
+  end
+
+  def wait(past = false)
+    yield
+    return if past
+
+    begin
+      Timeout.timeout(1) do
+        sleep 0.05 until @triggered
+      end
+    rescue Timeout::Error
+    end
+
+    @triggered = false
+  end
+
+  def trigger
+    @triggered = true
   end
 
   def test_one_change
@@ -199,14 +223,11 @@ class FSSMFileWatcherTest < ActiveSupport::TestCase
     assert_equal([{:created => ["app/assets/new.scss"]}, {:changed => ["app/assets/print.scss"]}, {:deleted => ["app/assets/videos.scss"]}], @payload)
   end
 
-  def test_delete
-
-  end
-
   def test_more_blocks
     payload = []
     @watcher.watch %r{^config/routes\.rb$} do |pay|
       payload << pay
+      trigger
     end
 
     create "config/routes.rb"
@@ -218,6 +239,7 @@ class FSSMFileWatcherTest < ActiveSupport::TestCase
     payload = []
     @watcher.watch %r{^app/assets/main\.scss$} do |pay|
       payload << pay
+      trigger
     end
 
     change "app/assets/main.scss"
