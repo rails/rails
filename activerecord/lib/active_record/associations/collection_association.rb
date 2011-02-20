@@ -47,7 +47,7 @@ module ActiveRecord
       end
 
       def find(*args)
-        if @reflection.options[:finder_sql]
+        if reflection.options[:finder_sql]
           find_by_scan(*args)
         else
           scoped.find(*args)
@@ -67,7 +67,7 @@ module ActiveRecord
       end
 
       def create(attributes = {}, &block)
-        unless @owner.persisted?
+        unless owner.persisted?
           raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
         end
 
@@ -84,13 +84,13 @@ module ActiveRecord
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
         result = true
-        load_target if @owner.new_record?
+        load_target if owner.new_record?
 
         transaction do
           records.flatten.each do |record|
             raise_on_type_mismatch(record)
             add_to_target(record) do |r|
-              result &&= insert_record(record) unless @owner.new_record?
+              result &&= insert_record(record) unless owner.new_record?
             end
           end
         end
@@ -108,7 +108,7 @@ module ActiveRecord
       #     # same effect as calling Book.transaction
       #   end
       def transaction(*args)
-        @reflection.klass.transaction(*args) do
+        reflection.klass.transaction(*args) do
           yield
         end
       end
@@ -148,23 +148,23 @@ module ActiveRecord
       def count(column_name = nil, options = {})
         column_name, options = nil, column_name if column_name.is_a?(Hash)
 
-        if @reflection.options[:counter_sql] || @reflection.options[:finder_sql]
+        if reflection.options[:counter_sql] || reflection.options[:finder_sql]
           unless options.blank?
             raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
           end
 
-          @reflection.klass.count_by_sql(custom_counter_sql)
+          reflection.klass.count_by_sql(custom_counter_sql)
         else
-          if @reflection.options[:uniq]
+          if reflection.options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
-            column_name ||= @reflection.klass.primary_key
+            column_name ||= reflection.klass.primary_key
             options.merge!(:distinct => true)
           end
 
           value = scoped.count(column_name, options)
 
-          limit  = @reflection.options[:limit]
-          offset = @reflection.options[:offset]
+          limit  = reflection.options[:limit]
+          offset = reflection.options[:offset]
 
           if limit || offset
             [ [value - offset.to_i, 0].max, limit.to_i ].min
@@ -182,7 +182,7 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        delete_or_destroy(records, @reflection.options[:dependent])
+        delete_or_destroy(records, reflection.options[:dependent])
       end
 
       # Destroy +records+ and remove them from this association calling
@@ -206,12 +206,12 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if @owner.new_record? || (loaded? && !@reflection.options[:uniq])
-          @target.size
-        elsif !loaded? && @reflection.options[:group]
+        if owner.new_record? || (loaded? && !reflection.options[:uniq])
+          target.size
+        elsif !loaded? && reflection.options[:group]
           load_target.size
-        elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
-          unsaved_records = @target.select { |r| r.new_record? }
+        elsif !loaded? && !reflection.options[:uniq] && target.is_a?(Array)
+          unsaved_records = target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
           count_records
@@ -265,23 +265,23 @@ module ActiveRecord
         original_target = load_target.dup
 
         transaction do
-          delete(@target - other_array)
+          delete(target - other_array)
 
-          unless concat(other_array - @target)
+          unless concat(other_array - target)
             @target = original_target
-            raise RecordNotSaved, "Failed to replace #{@reflection.name} because one or more of the " \
+            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
                                   "new records could not be saved."
           end
         end
       end
 
       def include?(record)
-        if record.is_a?(@reflection.klass)
+        if record.is_a?(reflection.klass)
           if record.new_record?
             include_in_memory?(record)
           else
-            load_target if @reflection.options[:finder_sql]
-            loaded? ? @target.include?(record) : scoped.exists?(record)
+            load_target if reflection.options[:finder_sql]
+            loaded? ? target.include?(record) : scoped.exists?(record)
           end
         else
           false
@@ -293,7 +293,7 @@ module ActiveRecord
       end
 
       def association_scope
-        options = @reflection.options.slice(:order, :limit, :joins, :group, :having, :offset)
+        options = reflection.options.slice(:order, :limit, :joins, :group, :having, :offset)
         super.apply_finder_options(options)
       end
 
@@ -307,7 +307,7 @@ module ActiveRecord
             reset
           end
 
-          @target = merge_target_lists(targets, @target)
+          @target = merge_target_lists(targets, target)
         end
 
         loaded!
@@ -319,7 +319,7 @@ module ActiveRecord
           callback(:before_add, record)
           yield(record) if block_given?
 
-          if @reflection.options[:uniq] && index = @target.index(record)
+          if reflection.options[:uniq] && index = @target.index(record)
             @target[index] = record
           else
             @target << record
@@ -339,31 +339,31 @@ module ActiveRecord
         end
 
         def uniq_select_value
-          @reflection.options[:uniq] && "DISTINCT #{@reflection.quoted_table_name}.*"
+          reflection.options[:uniq] && "DISTINCT #{reflection.quoted_table_name}.*"
         end
 
         def custom_counter_sql
-          if @reflection.options[:counter_sql]
-            interpolate(@reflection.options[:counter_sql])
+          if reflection.options[:counter_sql]
+            interpolate(reflection.options[:counter_sql])
           else
             # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-            interpolate(@reflection.options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+            interpolate(reflection.options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
           end
         end
 
         def custom_finder_sql
-          interpolate(@reflection.options[:finder_sql])
+          interpolate(reflection.options[:finder_sql])
         end
 
         def find_target
           records =
-            if @reflection.options[:finder_sql]
-              @reflection.klass.find_by_sql(custom_finder_sql)
+            if reflection.options[:finder_sql]
+              reflection.klass.find_by_sql(custom_finder_sql)
             else
               find(:all)
             end
 
-          records = @reflection.options[:uniq] ? uniq(records) : records
+          records = reflection.options[:uniq] ? uniq(records) : records
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -408,7 +408,7 @@ module ActiveRecord
         end
 
         def build_record(attributes)
-          @reflection.build_association(scoped.scope_for_create.merge(attributes))
+          reflection.build_association(scoped.scope_for_create.merge(attributes))
         end
 
         def delete_or_destroy(records, method)
@@ -420,7 +420,7 @@ module ActiveRecord
             records.each { |record| callback(:before_remove, record) }
 
             delete_records(existing_records, method) if existing_records.any?
-            records.each { |record| @target.delete(record) }
+            records.each { |record| target.delete(record) }
 
             records.each { |record| callback(:after_remove, record) }
           end
@@ -436,18 +436,18 @@ module ActiveRecord
           callbacks_for(method).each do |callback|
             case callback
             when Symbol
-              @owner.send(callback, record)
+              owner.send(callback, record)
             when Proc
-              callback.call(@owner, record)
+              callback.call(owner, record)
             else
-              callback.send(method, @owner, record)
+              callback.send(method, owner, record)
             end
           end
         end
 
         def callbacks_for(callback_name)
-          full_callback_name = "#{callback_name}_for_#{@reflection.name}"
-          @owner.class.send(full_callback_name.to_sym) || []
+          full_callback_name = "#{callback_name}_for_#{reflection.name}"
+          owner.class.send(full_callback_name.to_sym) || []
         end
 
         # Should we deal with assoc.first or assoc.last by issuing an independent query to
@@ -466,21 +466,21 @@ module ActiveRecord
             true
           else
             !(loaded? ||
-              @owner.new_record? ||
-              @reflection.options[:finder_sql] ||
-              @target.any? { |record| record.new_record? || record.changed? } ||
+              owner.new_record? ||
+              reflection.options[:finder_sql] ||
+              target.any? { |record| record.new_record? || record.changed? } ||
               args.first.kind_of?(Integer))
           end
         end
 
         def include_in_memory?(record)
-          if @reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
-            @owner.send(@reflection.through_reflection.name).any? { |source|
-              target = source.send(@reflection.source_reflection.name)
+          if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
+            owner.send(reflection.through_reflection.name).any? { |source|
+              target = source.send(reflection.source_reflection.name)
               target.respond_to?(:include?) ? target.include?(record) : target == record
-            } || @target.include?(record)
+            } || target.include?(record)
           else
-            @target.include?(record)
+            target.include?(record)
           end
         end
 

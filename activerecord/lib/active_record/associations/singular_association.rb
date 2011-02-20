@@ -36,7 +36,7 @@ module ActiveRecord
 
         def new_record(method, attributes)
           attributes = scoped.scope_for_create.merge(attributes || {})
-          record = @reflection.send("#{method}_association", attributes)
+          record = reflection.send("#{method}_association", attributes)
           set_new_record(record)
           record
         end
