@@ -198,15 +198,13 @@ route "root :to => 'person#index'"
 
 h4. inside(dir)
 
-I have my edge rails lying at +~/commit-rails/rails+. So every time i have to manually symlink edge from my new app. But now :
+Enables you to run a command from the given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
 
 <ruby>
 inside('vendor') do
   run "ln -s ~/commit-rails/rails rails"
 end
 </ruby>
-
-So +inside()+ runs the command from the given directory.
 
 h4. ask(question)
 
