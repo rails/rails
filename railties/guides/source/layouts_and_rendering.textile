@@ -1006,10 +1006,12 @@ h5. Partial Layouts
 A partial can use its own layout file, just as a view can use a layout. For example, you might call a partial like this:
 
 <erb>
-<%= render "link_area", :layout => "graybar" %>
+<%= render :partial => "link_area", :layout => "graybar" %>
 </erb>
 
 This would look for a partial named +_link_area.html.erb+ and render it using the layout +_graybar.html.erb+. Note that layouts for partials follow the same leading-underscore naming as regular partials, and are placed in the same folder with the partial that they belong to (not in the master +layouts+ folder).
+
+Also note that explicitly specifying +:partial+ is required when passing additional options such as +:layout+.
 
 h5. Passing Local Variables
 
