@@ -116,29 +116,28 @@ module ActiveRecord
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
-    ASSOCIATION_TYPES = %w{ has_one belongs_to has_many has_and_belongs_to_many }
+    ASSOCIATION_TYPES = %w{ HasOne HasMany BelongsTo HasAndBelongsToMany }
+
+    module AssociationBuilderExtension #:nodoc:
+      def self.included(base)
+        base.valid_options << :autosave
+      end
+
+      def build
+        reflection = super
+        model.send(:add_autosave_association_callbacks, reflection)
+        reflection
+      end
+    end
 
     included do
       ASSOCIATION_TYPES.each do |type|
-        send("valid_keys_for_#{type}_association") << :autosave
+        Associations::Builder.const_get(type).send(:include, AssociationBuilderExtension)
       end
     end
 
     module ClassMethods
       private
-
-      # def belongs_to(name, options = {})
-      #   super
-      #   add_autosave_association_callbacks(reflect_on_association(name))
-      # end
-      ASSOCIATION_TYPES.each do |type|
-        module_eval <<-CODE, __FILE__, __LINE__ + 1
-          def #{type}(name, options = {})
-            super
-            add_autosave_association_callbacks(reflect_on_association(name))
-          end
-        CODE
-      end
 
       def define_non_cyclic_method(name, reflection, &block)
         define_method(name) do |*args|

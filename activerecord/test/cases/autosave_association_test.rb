@@ -21,19 +21,19 @@ require 'models/eye'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_should_be_a_valid_option_for_has_one
-    assert base.valid_keys_for_has_one_association.include?(:autosave)
+    assert ActiveRecord::Associations::Builder::HasOne.valid_options.include?(:autosave)
   end
 
   def test_autosave_should_be_a_valid_option_for_belongs_to
-    assert base.valid_keys_for_belongs_to_association.include?(:autosave)
+    assert ActiveRecord::Associations::Builder::BelongsTo.valid_options.include?(:autosave)
   end
 
   def test_autosave_should_be_a_valid_option_for_has_many
-    assert base.valid_keys_for_has_many_association.include?(:autosave)
+    assert ActiveRecord::Associations::Builder::HasMany.valid_options.include?(:autosave)
   end
 
   def test_autosave_should_be_a_valid_option_for_has_and_belongs_to_many
-    assert base.valid_keys_for_has_and_belongs_to_many_association.include?(:autosave)
+    assert ActiveRecord::Associations::Builder::HasAndBelongsToMany.valid_options.include?(:autosave)
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one

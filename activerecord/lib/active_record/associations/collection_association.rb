@@ -32,6 +32,45 @@ module ActiveRecord
         @proxy = CollectionProxy.new(self)
       end
 
+      # Implements the reader method, e.g. foo.items for Foo.has_many :items
+      def reader(force_reload = false)
+        if force_reload
+          klass.uncached { reload }
+        elsif stale_target?
+          reload
+        end
+
+        proxy
+      end
+
+      # Implements the writer method, e.g. foo.items= for Foo.has_many :items
+      def writer(records)
+        replace(records)
+      end
+
+      # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
+      def ids_reader
+        if loaded? || options[:finder_sql]
+          load_target.map do |record|
+            record.send(reflection.association_primary_key)
+          end
+        else
+          column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
+
+          scoped.select(column).except(:includes).map! do |record|
+            record.send(reflection.association_primary_key)
+          end
+        end
+      end
+
+      # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
+      def ids_writer(ids)
+        pk_column = reflection.primary_key_column
+        ids = Array.wrap(ids).reject { |id| id.blank? }
+        ids.map! { |i| pk_column.type_cast(i) }
+        replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
+      end
+
       def reset
         @loaded = false
         @target = []

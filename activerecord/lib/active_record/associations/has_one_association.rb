@@ -26,11 +26,22 @@ module ActiveRecord
         self.target = record
       end
 
-      protected
-
-        def association_scope
-          super.order(options[:order])
+      def delete(method = options[:dependent])
+        if load_target
+          case method
+            when :delete
+              target.delete
+            when :destroy
+              target.destroy
+            when :nullify
+              target.update_attribute(reflection.foreign_key, nil)
+          end
         end
+      end
+
+      def association_scope
+        super.order(options[:order])
+      end
 
       private
 
