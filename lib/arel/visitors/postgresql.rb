@@ -3,7 +3,11 @@ module Arel
     class PostgreSQL < Arel::Visitors::ToSql
       private
       def visit_Arel_Nodes_Lock o
-        "FOR UPDATE"
+        if o.locking.is_a?(String)
+          o.locking
+        else
+          "FOR UPDATE"
+        end
       end
 
       def visit_Arel_Nodes_SelectStatement o

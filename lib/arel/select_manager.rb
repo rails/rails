@@ -40,7 +40,7 @@ module Arel
     def lock locking = true
       # FIXME: do we even need to store this?  If locking is +false+ shouldn't
       # we just remove the node from the AST?
-      @ast.lock = Nodes::Lock.new
+      @ast.lock = Nodes::Lock.new(locking)
       self
     end
 

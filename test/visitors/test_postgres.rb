@@ -7,10 +7,19 @@ module Arel
         @visitor = PostgreSQL.new Table.engine
       end
 
-      it 'should produce a lock value' do
-        @visitor.accept(Nodes::Lock.new).must_be_like %{
-          FOR UPDATE
-        }
+      describe 'locking' do
+        it 'defaults to FOR UPDATE' do
+          @visitor.accept(Nodes::Lock.new).must_be_like %{
+            FOR UPDATE
+          }
+        end
+
+        it 'allows a custom string to be used as a lock' do
+          node = Nodes::Lock.new('FOR SHARE')
+          @visitor.accept(node).must_be_like %{
+            FOR SHARE
+          }
+        end
       end
 
       it "should escape LIMIT" do

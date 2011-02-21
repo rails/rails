@@ -3,7 +3,11 @@ module Arel
     class MySQL < Arel::Visitors::ToSql
       private
       def visit_Arel_Nodes_Lock o
-        "FOR UPDATE"
+        if o.locking.is_a?(String)
+          o.locking
+        else
+          "FOR UPDATE"
+        end
       end
 
       ###
