@@ -51,7 +51,9 @@ module ActiveModel
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
       # * <tt>:with</tt> - Regular expression that if the attribute matches will result in a successful validation.
       # * <tt>:without</tt> - Regular expression that if the attribute does not match will result in a successful validation.
-      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>nil</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
+      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
+      #   and <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.

@@ -20,7 +20,7 @@ module ActiveRecord
 
   # = Active Record Validations
   #
-  # Active Record includes the majority of its validations from ActiveModel::Validations
+  # Active Record includes the majority of its validations from <tt>ActiveModel::Validations</tt>
   # all of which accept the <tt>:on</tt> argument to define the context where the
   # validations are active. Active Record will always supply either the context of
   # <tt>:create</tt> or <tt>:update</tt> dependent on whether the model is a
@@ -56,14 +56,14 @@ module ActiveRecord
       perform_validations(options) ? super : raise(RecordInvalid.new(self))
     end
 
-    # Runs all the specified validations and returns true if no errors were added otherwise false.
+    # Runs all the validations within the specified context. Returns true if no errors are found,
+    # false otherwise.
     #
-    # ==== Arguments
+    # If the argument is false (default is +nil+), the context is set to <tt>:create</tt> if
+    # <tt>new_record?</tt> is true, and to <tt>:update</tt> if it is not.
     #
-    # * <tt>context</tt> - Context to scope the execution of the validations. Default is <tt>nil</tt>.
-    #   If <tt>nil</tt> then the response of <tt>new_record?</tt> will determine the context. If <tt>new_record?</tt>
-    #   returns true the context will be <tt>:create</tt>, otherwise <tt>:update</tt>.  Validation contexts
-    #   for each validation can be defined using the <tt>:on</tt> option
+    # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
+    # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
       output = super(context)
