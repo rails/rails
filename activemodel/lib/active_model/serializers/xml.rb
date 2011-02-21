@@ -146,19 +146,17 @@ module ActiveModel
       #     <id type="integer">1</id>
       #     <name>David</name>
       #     <age type="integer">16</age>
-      #     <created-at type="datetime">2011-01-30T22:29:23Z</created-at>  
+      #     <created-at type="datetime">2011-01-30T22:29:23Z</created-at>
       #   </user>
       #
       # The <tt>:only</tt> and <tt>:except</tt> options can be used to limit the attributes
       # included, and work similar to the +attributes+ method.
-      # 
-      # To include the result of some method calls on the model use <tt>:methods</tt>
       #
-      # To include associations use <tt>:include</tt>
+      # To include the result of some method calls on the model use <tt>:methods</tt>.
       #
-      # For further documentation see activerecord/lib/active_record/serializers/xml_serializer.xml
-      
-      
+      # To include associations use <tt>:include</tt>.
+      #
+      # For further documentation see activerecord/lib/active_record/serializers/xml_serializer.xml.
       def to_xml(options = {}, &block)
         Serializer.new(self, options).serialize(&block)
       end
