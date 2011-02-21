@@ -18,6 +18,7 @@ module Arel
       Offset
       On
       Top
+      Lock
     }.each do |name|
       const_set(name, Class.new(Unary))
     end

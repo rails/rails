@@ -9,7 +9,7 @@ module Arel
 
       describe 'locking' do
         it 'defaults to FOR UPDATE' do
-          @visitor.accept(Nodes::Lock.new).must_be_like %{
+          @visitor.accept(Nodes::Lock.new(true)).must_be_like %{
             FOR UPDATE
           }
         end

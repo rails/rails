@@ -31,7 +31,7 @@ module Arel
 
       describe 'locking' do
         it 'defaults to FOR UPDATE when locking' do
-          node = Nodes::Lock.new
+          node = Nodes::Lock.new true
           @visitor.accept(node).must_be_like "FOR UPDATE"
         end
 

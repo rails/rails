@@ -1,6 +1,5 @@
 # node
 require 'arel/nodes/node'
-require 'arel/nodes/lock'
 require 'arel/nodes/select_statement'
 require 'arel/nodes/select_core'
 require 'arel/nodes/insert_statement'
