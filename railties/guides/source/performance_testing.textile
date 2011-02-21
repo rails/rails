@@ -316,16 +316,16 @@ Compile Ruby and apply this "GC Patch":http://rubyforge.org/tracker/download.php
 h5. Download and Extract
 
 <shell>
-[lifo@null ~]$ mkdir rubygc
-[lifo@null ~]$ wget <download the latest stable ruby from ftp://ftp.ruby-lang.org/pub/ruby>
-[lifo@null ~]$ tar -xzvf <ruby-version.tar.gz>
-[lifo@null ~]$ cd <ruby-version>
+$ mkdir rubygc
+$ wget <download the latest stable ruby from ftp://ftp.ruby-lang.org/pub/ruby>
+$ tar -xzvf <ruby-version.tar.gz>
+$ cd <ruby-version>
 </shell>
 
 h5. Apply the Patch
 
 <shell>
-[lifo@null ruby-version]$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
+$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
 </shell>
 
 h5. Configure and Install
@@ -333,8 +333,8 @@ h5. Configure and Install
 The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home directory.
 
 <shell>
-[lifo@null ruby-version]$ ./configure --prefix=/<homedir>/rubygc
-[lifo@null ruby-version]$ make && make install
+$ ./configure --prefix=/<homedir>/rubygc
+$ make && make install
 </shell>
 
 h5. Prepare Aliases
@@ -364,8 +364,8 @@ Additionally, install the following gems:
 If installing +mysql+ fails, you can try to install it manually:
 
 <shell>
-[lifo@null mysql]$ gcruby extconf.rb --with-mysql-config
-[lifo@null mysql]$ make && make install
+$ gcruby extconf.rb --with-mysql-config
+$ make && make install
 </shell>
 
 And you're ready to go. Don't forget to use +gcruby+ and +gcrake+ aliases when running the performance tests.
