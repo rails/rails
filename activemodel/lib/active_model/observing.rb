@@ -48,7 +48,7 @@ module ActiveModel
         observers.each { |o| instantiate_observer(o) }
       end
 
-      # Add a new Observer to the pool
+      # Add a new observer to the pool.
       def add_observer(observer)
         unless observer.respond_to? :update
           raise ArgumentError, "observer needs to respond to `update'"
@@ -56,14 +56,14 @@ module ActiveModel
         observer_instances << observer
       end
 
-      # Notify list of observers of a change
+      # Notify list of observers of a change.
       def notify_observers(*arg)
         for observer in observer_instances
           observer.update(*arg)
         end
       end
 
-      # Total number of observers
+      # Total number of observers.
       def count_observers
         observer_instances.size
       end
