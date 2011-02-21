@@ -9,13 +9,13 @@ module Arel
 
       describe 'locking' do
         it 'defaults to FOR UPDATE' do
-          @visitor.accept(Nodes::Lock.new(true)).must_be_like %{
+          @visitor.accept(Nodes::Lock.new(Arel.sql('FOR UPDATE'))).must_be_like %{
             FOR UPDATE
           }
         end
 
         it 'allows a custom string to be used as a lock' do
-          node = Nodes::Lock.new('FOR SHARE')
+          node = Nodes::Lock.new(Arel.sql('FOR SHARE'))
           @visitor.accept(node).must_be_like %{
             FOR SHARE
           }

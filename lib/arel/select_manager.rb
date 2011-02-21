@@ -37,9 +37,15 @@ module Arel
       @ctx.wheres.map { |c| to_sql.accept c }
     end
 
-    def lock locking = true
-      # FIXME: do we even need to store this?  If locking is +false+ shouldn't
-      # we just remove the node from the AST?
+    def lock locking = Arel.sql('FOR UPDATE')
+      case locking
+      when true
+        locking = Arel.sql('FOR UPDATE')
+      when Arel::Nodes::SqlLiteral
+      when String
+        locking = Arel.sql locking
+      end
+
       @ast.lock = Nodes::Lock.new(locking)
       self
     end
