@@ -176,6 +176,12 @@ module ActiveRecord
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
+    #
+    #   # Conditions from the current relation also works
+    #   Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
+    #
+    #   # The same idea applies to limit and order
+    #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
     def update_all(updates, conditions = nil, options = {})
       if conditions || options.present?
         where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
