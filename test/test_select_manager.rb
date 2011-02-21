@@ -126,6 +126,24 @@ module Arel
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
         end
       end
+
+      describe 'on' do
+        it 'converts to sqlliterals' do
+          table = Table.new :users
+          right = table.alias
+          mgr   = table.from table
+          mgr.join(right).on("omg")
+          mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg }
+        end
+
+        it 'converts to sqlliterals' do
+          table = Table.new :users
+          right = table.alias
+          mgr   = table.from table
+          mgr.join(right).on("omg", "123")
+          mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg AND 123 }
+        end
+      end
     end
 
     describe 'clone' do
