@@ -339,7 +339,7 @@ render :layout => false
 
 h6. The +:status+ Option
 
-Rails will automatically generate a response with the correct HTML status code (in most cases, this is +200 OK+). You can use the +:status+ option to change this:
+Rails will automatically generate a response with the correct HTTP status code (in most cases, this is +200 OK+). You can use the +:status+ option to change this:
 
 <ruby>
 render :status => 500
