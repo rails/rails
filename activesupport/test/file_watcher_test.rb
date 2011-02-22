@@ -80,27 +80,10 @@ end
 
 module FSSM::Backends
   class Polling
-    def initialize(options={})
-      @handlers = []
-      @latency  = options[:latency] || 0.1
+    def initialize_with_low_latency(options={})
+      initialize_without_low_latency(options.merge(:latency => 0.1))
     end
-
-    def add_handler(handler, preload=true)
-      handler.refresh(nil, true) if preload
-      @handlers << handler
-    end
-
-    def run
-      begin
-        loop do
-          start = Time.now.to_f
-          @handlers.each { |handler| handler.refresh }
-          nap_time = @latency - (Time.now.to_f - start)
-          sleep nap_time if nap_time > 0
-        end
-      rescue Interrupt
-      end
-    end
+    alias_method_chain :initialize, :low_latency
   end
 end
 
@@ -110,10 +93,10 @@ class FSSMFileWatcherTest < ActiveSupport::TestCase
       super
 
       monitor = FSSM::Monitor.new
-      monitor.path(path, '**/*') do |monitor|
-        monitor.update { |base, relative| trigger relative => :changed }
-        monitor.delete { |base, relative| trigger relative => :deleted }
-        monitor.create { |base, relative| trigger relative => :created }
+      monitor.path(path, '**/*') do |p|
+        p.update { |base, relative| trigger relative => :changed }
+        p.delete { |base, relative| trigger relative => :deleted }
+        p.create { |base, relative| trigger relative => :created }
       end
 
       @thread = Thread.new do
