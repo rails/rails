@@ -69,14 +69,11 @@ module ActiveModel
     def serializable_hash(options = nil)
       options ||= {}
 
-      only   = Array.wrap(options[:only]).map(&:to_s)
-      except = Array.wrap(options[:except]).map(&:to_s)
-
       attribute_names = attributes.keys.sort
-      if only.any?
-        attribute_names &= only
-      elsif except.any?
-        attribute_names -= except
+      if only = options[:only]
+        attribute_names &= Array.wrap(only).map(&:to_s)
+      elsif except = options[:except]
+        attribute_names -= Array.wrap(except).map(&:to_s)
       end
 
       method_names = Array.wrap(options[:methods]).map { |n| n if respond_to?(n.to_s) }.compact
