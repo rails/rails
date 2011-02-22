@@ -77,7 +77,38 @@ module ActiveModel
       end
 
       method_names = Array.wrap(options[:methods]).select { |n| respond_to?(n) }
-      Hash[(attribute_names + method_names).map { |n| [n, send(n)] }]
+      hash = Hash[(attribute_names + method_names).map { |n| [n, send(n)] }]
+
+      serializable_add_includes(options) do |association, records, opts|
+        hash[association] = if records.is_a?(Enumerable)
+          records.map { |a| a.serializable_hash(opts) }
+        else
+          records.serializable_hash(opts)
+        end
+      end
+
+      hash
     end
+
+    private
+      # Add associations specified via the <tt>:include</tt> option.
+      #
+      # Expects a block that takes as arguments:
+      #   +association+ - name of the association
+      #   +records+     - the association record(s) to be serialized
+      #   +opts+        - options for the association records
+      def serializable_add_includes(options = {})
+        return unless include = options[:include]
+
+        unless include.is_a?(Hash)
+          include = Hash[Array.wrap(include).map { |n| [n, {}] }]
+        end
+
+        include.each do |association, opts|
+          if records = send(association)
+            yield association, records, opts
+          end
+        end
+      end
   end
 end
