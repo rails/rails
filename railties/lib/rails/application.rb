@@ -157,7 +157,7 @@ module Rails
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rails::Rack::Logger
-        middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local if config.action_dispatch.show_exceptions
+        middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
         middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
         middleware.use ::ActionDispatch::Reloader unless config.cache_classes
