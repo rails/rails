@@ -52,4 +52,9 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected , @user.serializable_hash(:except => [:name, :email], :methods => [:foo])
   end
 
+  def test_should_not_call_methods_that_dont_respond
+    expected =  {"name"=>"David", "gender"=>"male", "email"=>"david@example.com"}
+    assert_equal expected , @user.serializable_hash(:methods => [:bar])
+  end
+
 end
