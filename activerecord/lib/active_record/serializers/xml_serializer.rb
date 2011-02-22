@@ -219,8 +219,8 @@ module ActiveRecord #:nodoc:
             end
           end
         end
-      elsif record = @serializable.send(association)
-        record.to_xml(merged_options)
+      else
+        records.to_xml(merged_options)
       end
     end
 
