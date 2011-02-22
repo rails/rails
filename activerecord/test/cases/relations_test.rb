@@ -781,8 +781,10 @@ class RelationTest < ActiveRecord::TestCase
     relation = Author.where(:name => "David")
     rails_author = relation.first
 
-    assert_equal [rails_author], [rails_author] & relation
-    assert_equal [rails_author], relation & [rails_author]
+    assert_deprecated do
+      assert_equal [rails_author], [rails_author] & relation
+      assert_equal [rails_author], relation & [rails_author]
+    end
   end
 
 end
