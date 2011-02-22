@@ -67,15 +67,10 @@ module ActiveRecord
     end
 
     def respond_to?(method, include_private = false)
-      return true if arel.respond_to?(method, include_private) || Array.method_defined?(method) || @klass.respond_to?(method, include_private)
-
-      if match = DynamicFinderMatch.match(method)
-        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
-      elsif match = DynamicScopeMatch.match(method)
-        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
-      else
+      arel.respond_to?(method, include_private)     ||
+        Array.method_defined?(method)               ||
+        @klass.respond_to?(method, include_private) ||
         super
-      end
     end
 
     def to_a
