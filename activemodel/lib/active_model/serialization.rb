@@ -76,7 +76,7 @@ module ActiveModel
         attribute_names -= Array.wrap(except).map(&:to_s)
       end
 
-      method_names = Array.wrap(options[:methods]).map { |n| n if respond_to?(n.to_s) }.compact
+      method_names = Array.wrap(options[:methods]).select { |n| respond_to?(n) }
       Hash[(attribute_names + method_names).map { |n| [n, send(n)] }]
     end
   end
