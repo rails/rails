@@ -143,6 +143,8 @@ module ActiveRecord
       autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
+    autoload :Preloader, 'active_record/associations/preloader'
+
     # Clears out the association cache.
     def clear_association_cache #:nodoc:
       @association_cache.clear if persisted?

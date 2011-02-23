@@ -210,6 +210,10 @@ module ActiveRecord
         @foreign_type ||= options[:foreign_type] || "#{name}_type"
       end
 
+      def type
+        @type ||= "#{options[:as]}_type"
+      end
+
       def primary_key_column
         @primary_key_column ||= klass.columns.find { |c| c.name == klass.primary_key }
       end
@@ -359,6 +363,8 @@ module ActiveRecord
     # Holds all the meta-data about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
+      delegate :association_primary_key, :foreign_type, :to => :source_reflection
+
       # Gets the source of the through reflection.  It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
@@ -400,10 +406,6 @@ module ActiveRecord
 
       def through_options
         through_reflection.options
-      end
-
-      def association_primary_key
-        source_reflection.association_primary_key
       end
 
       def check_validity!
