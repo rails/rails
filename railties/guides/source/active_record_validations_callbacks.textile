@@ -436,7 +436,7 @@ class Person < ActiveRecord::Base
   validates_with GoodnessValidator, :fields => [:first_name, :last_name]
 end
 
-class GoodnessValidator < ActiveRecord::Validator
+class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
       record.errors[:base] << "This person is evil"
