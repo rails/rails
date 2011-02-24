@@ -1108,6 +1108,28 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.serialize(:content)
   end
 
+  def test_serialize_with_json_hash
+    Topic.serialize(:content, Object, :format => :json)
+    s = { 'hello' => 'world' }
+    topic = Topic.new(:content => s)
+    assert topic.save
+    topic = topic.reload
+    assert_equal({ 'hello' => 'world' }, topic.content)
+  ensure
+    Topic.serialize(:content)
+  end
+
+  def test_serialize_with_json_array
+    Topic.serialize(:content, Array, :format => :json)
+    s = [1, 2, 3, "foo", "bar", "baz"]
+    topic = Topic.new(:content => s)
+    assert topic.save
+    topic = topic.reload
+    assert_equal([1, 2, 3, "foo", "bar", "baz"], topic.content)
+  ensure
+    Topic.serialize(:content)
+  end
+
   def test_serialize_with_bcrypt_coder
     crypt_coder = Class.new {
       def load(thing)

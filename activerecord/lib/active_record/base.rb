@@ -537,15 +537,19 @@ module ActiveRecord #:nodoc:
       #
       # * +attr_name+ - The field name that should be serialized.
       # * +class_name+ - Optional, class name that the object type should be equal to.
+      # * +options+ - Optional, hash allowing the :format option. Available formats are :json and :yaml, the latter
+      #   being default.
       #
       # ==== Example
       #   # Serialize a preferences attribute
       #   class User
       #     serialize :preferences
       #   end
-      def serialize(attr_name, class_name = Object)
+      def serialize(attr_name, class_name = Object, options = {})
         coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
                   class_name
+                elsif options[:format] == :json
+                  Coders::JSONColumn.new(class_name)
                 else
                   Coders::YAMLColumn.new(class_name)
                 end
