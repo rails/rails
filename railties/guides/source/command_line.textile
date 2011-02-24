@@ -539,7 +539,7 @@ Rake is a standalone Ruby utility that replaces the Unix utility 'make', and use
 You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing +rake --tasks+. Each task has a description, and should help you find the thing you need.
 
 <shell>
- rake --tasks
+$ rake --tasks
 (in /home/foobar/commandsapp)
 rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
 rake db:charset                           # Retrieves the charset for the current environment's database

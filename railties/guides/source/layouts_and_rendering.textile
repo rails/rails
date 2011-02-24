@@ -109,7 +109,7 @@ render :nothing => true
 If you look at the response for this using cURL, you will see the following:
 
 <shell>
- $ curl -i 127.0.0.1:3000/books
+$ curl -i 127.0.0.1:3000/books
 HTTP/1.1 200 OK
 Connection: close
 Date: Sun, 24 Jan 2010 09:25:18 GMT

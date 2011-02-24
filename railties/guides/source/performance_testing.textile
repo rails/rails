@@ -37,7 +37,7 @@ h4. Generating Performance Tests
 Rails provides a generator called +test_unit:performance+ for creating new performance tests:
 
 <shell>
-rails generate test_unit:performance homepage
+$ rails generate test_unit:performance homepage
 </shell>
 
 This generates +homepage_test.rb+ in the +test/performance+ directory:

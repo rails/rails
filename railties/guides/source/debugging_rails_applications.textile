@@ -251,7 +251,7 @@ If you see the message in the console or logs:
 Make sure you have started your web server with the option +--debugger+:
 
 <shell>
-~/PathTo/rails_project$ rails server --debugger
+$ rails server --debugger
 => Booting WEBrick
 => Rails 3.0.0 application starting on http://0.0.0.0:3000
 => Debugger enabled
@@ -477,7 +477,7 @@ end
 TIP: You can use ruby-debug while using +rails console+. Just remember to +require "ruby-debug"+ before calling the +debugger+ method.
 
 <shell>
-/PathTo/project $ rails console
+$ rails console
 Loading development environment (Rails 2.1.0)
 >> require "ruby-debug"
 => []
@@ -626,7 +626,7 @@ If a Ruby object does not go out of scope, the Ruby Garbage Collector won't swee
 To install it run:
 
 <shell>
-sudo gem install bleak_house
+$ sudo gem install bleak_house
 </shell>
 
 Then setup your application for profiling. Then add the following at the bottom of config/environment.rb:
@@ -638,7 +638,7 @@ require 'bleak_house' if ENV['BLEAK_HOUSE']
 Start a server instance with BleakHouse integration:
 
 <shell>
-RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house rails server
+$ RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house rails server
 </shell>
 
 Make sure to run a couple hundred requests to get better data samples, then press +CTRL-C+. The server will stop and Bleak House will produce a dumpfile in +/tmp+:
