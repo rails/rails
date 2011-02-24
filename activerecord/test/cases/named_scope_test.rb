@@ -64,6 +64,10 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert Reply.scopes.include?(:base)
     assert_equal Reply.find(:all), Reply.base
   end
+  
+  def test_classes_dont_inherit_subclasses_scopes
+    assert !ActiveRecord::Base.scopes.include?(:base)
+  end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
     assert !Topic.find(:all, :conditions => {:approved => true}).empty?
