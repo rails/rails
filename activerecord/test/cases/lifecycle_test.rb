@@ -8,8 +8,12 @@ require 'models/comment'
 class SpecialDeveloper < Developer; end
 
 class DeveloperObserver < ActiveRecord::Observer
+  def calls
+    @calls ||= []
+  end
+
   def before_save(developer)
-    developer.salary += 1
+    calls << developer
   end
 end
 
@@ -201,12 +205,14 @@ class LifecycleTest < ActiveRecord::TestCase
     assert_equal developer, SalaryChecker.instance.last_saved
   end
 
-  test "callback observing the ancestor does not fire multiple times on descendent" do
-    DeveloperObserver.instance # activate
+  def test_observer_is_called_once
+    observer = DeveloperObserver.instance # activate
+    observer.calls.clear
+
     developer = Developer.create! :name => 'Ancestor', :salary => 100000
-    assert_equal 100001, developer.salary, 'ancestor callback fired multiple times'
-    developer = SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
-    assert_equal 100001, developer.salary, 'descendent callback fired multiple times'
+    special_developer = SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
+
+    assert_equal [developer, special_developer], observer.calls
   end
 
 end
