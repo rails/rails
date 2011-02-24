@@ -27,7 +27,6 @@ lib/arel/nodes/in.rb
 lib/arel/nodes/inner_join.rb
 lib/arel/nodes/insert_statement.rb
 lib/arel/nodes/join_source.rb
-lib/arel/nodes/lock.rb
 lib/arel/nodes/named_function.rb
 lib/arel/nodes/node.rb
 lib/arel/nodes/ordering.rb
