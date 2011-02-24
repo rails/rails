@@ -63,13 +63,13 @@ run ActionController::Dispatcher.new
 And start the server:
 
 <shell>
-[lifo@null application]$ rackup config.ru
+$ rackup config.ru
 </shell>
 
 To find out more about different +rackup+ options:
 
 <shell>
-[lifo@null application]$ rackup --help
+$ rackup --help
 </shell>
 
 h3. Action Controller Middleware Stack

@@ -12,15 +12,15 @@ module ActiveRecord
       def insert_record(record, validate = true)
         return if record.new_record? && !record.save(:validate => validate)
 
-        if @reflection.options[:insert_sql]
-          @owner.connection.insert(interpolate(@reflection.options[:insert_sql], record))
+        if options[:insert_sql]
+          owner.connection.insert(interpolate(options[:insert_sql], record))
         else
           stmt = join_table.compile_insert(
-            join_table[@reflection.foreign_key]             => @owner.id,
-            join_table[@reflection.association_foreign_key] => record.id
+            join_table[reflection.foreign_key]             => owner.id,
+            join_table[reflection.association_foreign_key] => record.id
           )
 
-          @owner.connection.insert stmt.to_sql
+          owner.connection.insert stmt.to_sql
         end
 
         record
@@ -37,23 +37,23 @@ module ActiveRecord
         end
 
         def delete_records(records, method)
-          if sql = @reflection.options[:delete_sql]
-            records.each { |record| @owner.connection.delete(interpolate(sql, record)) }
+          if sql = options[:delete_sql]
+            records.each { |record| owner.connection.delete(interpolate(sql, record)) }
           else
             relation = join_table
-            stmt = relation.where(relation[@reflection.foreign_key].eq(@owner.id).
-              and(relation[@reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
+            stmt = relation.where(relation[reflection.foreign_key].eq(owner.id).
+              and(relation[reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
             ).compile_delete
-            @owner.connection.delete stmt.to_sql
+            owner.connection.delete stmt.to_sql
           end
         end
 
         def construct_joins
           right = join_table
-          left  = @reflection.klass.arel_table
+          left  = reflection.klass.arel_table
 
-          condition = left[@reflection.klass.primary_key].eq(
-            right[@reflection.association_foreign_key])
+          condition = left[reflection.klass.primary_key].eq(
+            right[reflection.association_foreign_key])
 
           right.create_join(right, right.create_on(condition))
         end
@@ -63,7 +63,7 @@ module ActiveRecord
         end
 
         def select_value
-          super || @reflection.klass.arel_table[Arel.star]
+          super || reflection.klass.arel_table[Arel.star]
         end
 
         def invertible_for?(record)

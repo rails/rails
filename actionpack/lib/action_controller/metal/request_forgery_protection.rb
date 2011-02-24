@@ -66,7 +66,7 @@ module ActionController #:nodoc:
       # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call.  Set which actions are verified.
       def protect_from_forgery(options = {})
         self.request_forgery_protection_token ||= :authenticity_token
-        before_filter :verify_authenticity_token, options
+        prepend_before_filter :verify_authenticity_token, options
       end
     end
 

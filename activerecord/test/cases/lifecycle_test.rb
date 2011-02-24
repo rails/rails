@@ -7,6 +7,16 @@ require 'models/comment'
 
 class SpecialDeveloper < Developer; end
 
+class DeveloperObserver < ActiveRecord::Observer
+  def calls
+    @calls ||= []
+  end
+
+  def before_save(developer)
+    calls << developer
+  end
+end
+
 class SalaryChecker < ActiveRecord::Observer
   observe :special_developer
   attr_accessor :last_saved
@@ -194,6 +204,16 @@ class LifecycleTest < ActiveRecord::TestCase
     SalaryChecker.instance # activate
     developer = SpecialDeveloper.create! :name => 'Roger', :salary => 100000
     assert_equal developer, SalaryChecker.instance.last_saved
+  end
+
+  def test_observer_is_called_once
+    observer = DeveloperObserver.instance # activate
+    observer.calls.clear
+
+    developer = Developer.create! :name => 'Ancestor', :salary => 100000
+    special_developer = SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
+
+    assert_equal [developer, special_developer], observer.calls
   end
 
 end

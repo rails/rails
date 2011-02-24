@@ -4,7 +4,7 @@ rescue LoadError
   begin
     # bust gem prelude
     if defined? Gem
-      Gem.cache
+      Gem.source_index
       gem 'bundler'
     else
       require 'rubygems'

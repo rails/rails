@@ -3,7 +3,7 @@ module ActiveRecord
   module Associations
     class BelongsToAssociation < SingularAssociation #:nodoc:
       def replace(record)
-        record = check_record(record)
+        raise_on_type_mismatch(record) if record
 
         update_counters(record)
         replace_keys(record)
@@ -21,31 +21,31 @@ module ActiveRecord
       private
 
         def update_counters(record)
-          counter_cache_name = @reflection.counter_cache_column
+          counter_cache_name = reflection.counter_cache_column
 
-          if counter_cache_name && @owner.persisted? && different_target?(record)
+          if counter_cache_name && owner.persisted? && different_target?(record)
             if record
               record.class.increment_counter(counter_cache_name, record.id)
             end
 
             if foreign_key_present?
-              target_klass.decrement_counter(counter_cache_name, target_id)
+              klass.decrement_counter(counter_cache_name, target_id)
             end
           end
         end
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          record.nil? && @owner[@reflection.foreign_key] ||
-          record.id   != @owner[@reflection.foreign_key]
+          record.nil? && owner[reflection.foreign_key] ||
+          record.id   != owner[reflection.foreign_key]
         end
 
         def replace_keys(record)
-          @owner[@reflection.foreign_key] = record && record[@reflection.association_primary_key]
+          owner[reflection.foreign_key] = record && record[reflection.association_primary_key]
         end
 
         def foreign_key_present?
-          @owner[@reflection.foreign_key]
+          owner[reflection.foreign_key]
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
@@ -56,15 +56,15 @@ module ActiveRecord
         end
 
         def target_id
-          if @reflection.options[:primary_key]
-            @owner.send(@reflection.name).try(:id)
+          if options[:primary_key]
+            owner.send(reflection.name).try(:id)
           else
-            @owner[@reflection.foreign_key]
+            owner[reflection.foreign_key]
           end
         end
 
         def stale_state
-          @owner[@reflection.foreign_key].to_s
+          owner[reflection.foreign_key].to_s
         end
     end
   end

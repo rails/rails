@@ -14,16 +14,16 @@ module ActiveRecord
       # SELECT query if you use #length.
       def size
         if has_cached_counter?
-          @owner.send(:read_attribute, cached_counter_attribute_name)
+          owner.send(:read_attribute, cached_counter_attribute_name)
         elsif loaded?
-          @target.size
+          target.size
         else
           count
         end
       end
 
       def concat(*records)
-        unless @owner.new_record?
+        unless owner.new_record?
           records.flatten.each do |record|
             raise_on_type_mismatch(record)
             record.save! if record.new_record?
@@ -43,7 +43,7 @@ module ActiveRecord
       private
 
         def through_record(record)
-          through_association = @owner.association(@reflection.through_reflection.name)
+          through_association = owner.association(through_reflection.name)
           attributes = construct_join_attributes(record)
 
           through_record = Array.wrap(through_association.target).find { |candidate|
@@ -52,7 +52,7 @@ module ActiveRecord
 
           unless through_record
             through_record = through_association.build(attributes)
-            through_record.send("#{@reflection.source_reflection.name}=", record)
+            through_record.send("#{source_reflection.name}=", record)
           end
 
           through_record
@@ -61,7 +61,7 @@ module ActiveRecord
         def build_record(attributes)
           record = super(attributes)
 
-          inverse = @reflection.source_reflection.inverse_of
+          inverse = source_reflection.inverse_of
           if inverse
             if inverse.macro == :has_many
               record.send(inverse.name) << through_record(record)
@@ -74,7 +74,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          if @reflection.through_reflection.macro == :belongs_to && @owner[@reflection.through_reflection.foreign_key].blank?
+          if through_reflection.macro == :belongs_to && owner[through_reflection.foreign_key].blank?
             false
           else
             true
@@ -84,7 +84,7 @@ module ActiveRecord
         def update_through_counter?(method)
           case method
           when :destroy
-            !inverse_updates_counter_cache?(@reflection.through_reflection)
+            !inverse_updates_counter_cache?(through_reflection)
           when :nullify
             false
           else
@@ -93,29 +93,29 @@ module ActiveRecord
         end
 
         def delete_records(records, method)
-          through = @owner.association(@reflection.through_reflection.name)
+          through = owner.association(through_reflection.name)
           scope   = through.scoped.where(construct_join_attributes(*records))
 
           case method
           when :destroy
             count = scope.destroy_all.length
           when :nullify
-            count = scope.update_all(@reflection.source_reflection.foreign_key => nil)
+            count = scope.update_all(source_reflection.foreign_key => nil)
           else
             count = scope.delete_all
           end
 
           delete_through_records(through, records)
 
-          if @reflection.through_reflection.macro == :has_many && update_through_counter?(method)
-            update_counter(-count, @reflection.through_reflection)
+          if through_reflection.macro == :has_many && update_through_counter?(method)
+            update_counter(-count, through_reflection)
           end
 
           update_counter(-count)
         end
 
         def delete_through_records(through, records)
-          if @reflection.through_reflection.macro == :has_many
+          if through_reflection.macro == :has_many
             records.each do |record|
               through.target.delete(through_record(record))
             end

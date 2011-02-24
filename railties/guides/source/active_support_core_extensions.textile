@@ -20,7 +20,7 @@ Thus, after a simple require like:
 require 'active_support'
 </ruby>
 
-objects do not even respond to +blank?+, let's see how to load its definition.
+objects do not even respond to +blank?+. Let's see how to load its definition.
 
 h5. Cherry-picking a Definition
 
@@ -42,7 +42,7 @@ h5. Loading Grouped Core Extensions
 
 The next level is to simply load all extensions to +Object+. As a rule of thumb, extensions to +SomeClass+ are available in one shot by loading +active_support/core_ext/some_class+.
 
-Thus, if that would do, to have +blank?+ available we could just load all extensions to +Object+:
+Thus, to load all extensions to +Object+ (including +blank?+):
 
 <ruby>
 require 'active_support/core_ext/object'
@@ -432,7 +432,7 @@ h4. +require_library_or_gem+
 
 The convenience method +require_library_or_gem+ tries to load its argument with a regular +require+ first. If it fails loads +rubygems+ and tries again.
 
-If the first attempt is a failure and +rubygems+ can't be loaded the method raises +LoadError+. On the other hand, if +rubygems+ is available but the argument is not loadable as a gem, the method gives up and +LoadError+ is also raised.
+If the first attempt is a failure and +rubygems+ can't be loaded the method raises +LoadError+. A +LoadError+ is also raised if +rubygems+ is available but the argument is not loadable as a gem.
 
 For example, that's the way the MySQL adapter loads the MySQL library:
 
@@ -503,7 +503,7 @@ Model attributes have a reader, a writer, and a predicate. You can alias a model
 <ruby>
 class User < ActiveRecord::Base
   # let me refer to the email column as "login",
-  # much meaningful for authentication code
+  # possibly meaningful for authentication code
   alias_attribute :login, :email
 end
 </ruby>
@@ -528,7 +528,7 @@ The default value can be also specified with a block, which is called in the con
 class User
   attr_accessor :name, :surname
   attr_accessor_with_default(:full_name) {
-	[name, surname].compact.join(" ")
+  [name, surname].compact.join(" ")
   }
 end
 
@@ -2712,6 +2712,14 @@ Active Support extends this method so that the argument may be another range in 
 WARNING: The original +Range#include?+ is still the one aliased to +Range#===+.
 
 NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
+
+h4. +cover?+
+
+Ruby 1.9 provides +cover?+, and Active Support defines it for previous versions as an alias for +include?+.
+
+The method +include?+ in Ruby 1.9 is different from the one in 1.8 for non-numeric ranges: instead of being based on comparisons between the value and the range's endpoints, it walks the range with +succ+ looking for value. This works better for ranges with holes, but it has different complexity and may not finish in some other cases.
+
+In Ruby 1.9 the old behavior is still available in the new +cover?+, which Active Support backports for forward compatibility. For example, Rails uses +cover?+ for ranges in +validates_inclusion_of+.
 
 h4. +overlaps?+
 

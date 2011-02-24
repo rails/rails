@@ -3,17 +3,19 @@ module ActiveRecord
   module Associations
     module ThroughAssociation #:nodoc:
 
+      delegate :source_options, :through_options, :source_reflection, :through_reflection, :to => :reflection
+
       protected
 
         def target_scope
-          super.merge(@reflection.through_reflection.klass.scoped)
+          super.merge(through_reflection.klass.scoped)
         end
 
         def association_scope
           scope = super.joins(construct_joins)
           scope = add_conditions(scope)
-          unless @reflection.options[:include]
-            scope = scope.includes(@reflection.source_reflection.options[:include])
+          unless options[:include]
+            scope = scope.includes(source_options[:include])
           end
           scope
         end
@@ -29,40 +31,40 @@ module ActiveRecord
         end
 
         def aliased_through_table
-          name = @reflection.through_reflection.table_name
+          name = through_reflection.table_name
 
-          @reflection.table_name == name ?
-            @reflection.through_reflection.klass.arel_table.alias(name + "_join") :
-            @reflection.through_reflection.klass.arel_table
+          reflection.table_name == name ?
+            through_reflection.klass.arel_table.alias(name + "_join") :
+            through_reflection.klass.arel_table
         end
 
         def construct_owner_conditions
-          super(aliased_through_table, @reflection.through_reflection)
+          super(aliased_through_table, through_reflection)
         end
 
         def construct_joins
           right = aliased_through_table
-          left  = @reflection.klass.arel_table
+          left  = reflection.klass.arel_table
 
           conditions = []
 
-          if @reflection.source_reflection.macro == :belongs_to
-            reflection_primary_key = @reflection.source_reflection.association_primary_key
-            source_primary_key     = @reflection.source_reflection.foreign_key
+          if source_reflection.macro == :belongs_to
+            reflection_primary_key = source_reflection.association_primary_key
+            source_primary_key     = source_reflection.foreign_key
 
-            if @reflection.options[:source_type]
-              column = @reflection.source_reflection.foreign_type
+            if options[:source_type]
+              column = source_reflection.foreign_type
               conditions <<
-                right[column].eq(@reflection.options[:source_type])
+                right[column].eq(options[:source_type])
             end
           else
-            reflection_primary_key = @reflection.source_reflection.foreign_key
-            source_primary_key     = @reflection.source_reflection.active_record_primary_key
+            reflection_primary_key = source_reflection.foreign_key
+            source_primary_key     = source_reflection.active_record_primary_key
 
-            if @reflection.source_reflection.options[:as]
-              column = "#{@reflection.source_reflection.options[:as]}_type"
+            if source_options[:as]
+              column = "#{source_options[:as]}_type"
               conditions <<
-                left[column].eq(@reflection.through_reflection.klass.name)
+                left[column].eq(through_reflection.klass.name)
             end
           end
 
@@ -87,19 +89,19 @@ module ActiveRecord
         # situation it is more natural for the user to just create or modify their join records
         # directly as required.
         def construct_join_attributes(*records)
-          if @reflection.source_reflection.macro != :belongs_to
-            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(@owner, @reflection)
+          if source_reflection.macro != :belongs_to
+            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
           end
 
           join_attributes = {
-            @reflection.source_reflection.foreign_key =>
+            source_reflection.foreign_key =>
               records.map { |record|
-                record.send(@reflection.source_reflection.association_primary_key)
+                record.send(source_reflection.association_primary_key)
               }
           }
 
-          if @reflection.options[:source_type]
-            join_attributes[@reflection.source_reflection.foreign_type] =
+          if options[:source_type]
+            join_attributes[source_reflection.foreign_type] =
               records.map { |record| record.class.base_class.name }
           end
 
@@ -115,18 +117,18 @@ module ActiveRecord
         # has a different meaning to scope.where(x).where(y) - the first version might
         # perform some substitution if x is a string.
         def add_conditions(scope)
-          unless @reflection.through_reflection.klass.descends_from_active_record?
-            scope = scope.where(@reflection.through_reflection.klass.send(:type_condition))
+          unless through_reflection.klass.descends_from_active_record?
+            scope = scope.where(through_reflection.klass.send(:type_condition))
           end
 
-          scope = scope.where(interpolate(@reflection.source_reflection.options[:conditions]))
+          scope = scope.where(interpolate(source_options[:conditions]))
           scope.where(through_conditions)
         end
 
         # If there is a hash of conditions then we make sure the keys are scoped to the
         # through table name if left ambiguous.
         def through_conditions
-          conditions = interpolate(@reflection.through_reflection.options[:conditions])
+          conditions = interpolate(through_options[:conditions])
 
           if conditions.is_a?(Hash)
             Hash[conditions.map { |key, value|
@@ -142,14 +144,14 @@ module ActiveRecord
         end
 
         def stale_state
-          if @reflection.through_reflection.macro == :belongs_to
-            @owner[@reflection.through_reflection.foreign_key].to_s
+          if through_reflection.macro == :belongs_to
+            owner[through_reflection.foreign_key].to_s
           end
         end
 
         def foreign_key_present?
-          @reflection.through_reflection.macro == :belongs_to &&
-          !@owner[@reflection.through_reflection.foreign_key].nil?
+          through_reflection.macro == :belongs_to &&
+          !owner[through_reflection.foreign_key].nil?
         end
     end
   end

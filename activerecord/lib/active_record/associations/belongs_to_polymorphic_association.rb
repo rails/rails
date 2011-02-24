@@ -6,19 +6,19 @@ module ActiveRecord
 
         def replace_keys(record)
           super
-          @owner[@reflection.foreign_type] = record && record.class.base_class.name
+          owner[reflection.foreign_type] = record && record.class.base_class.name
         end
 
         def different_target?(record)
-          super || record.class != target_klass
+          super || record.class != klass
         end
 
         def inverse_reflection_for(record)
-          @reflection.polymorphic_inverse_of(record.class)
+          reflection.polymorphic_inverse_of(record.class)
         end
 
-        def target_klass
-          type = @owner[@reflection.foreign_type]
+        def klass
+          type = owner[reflection.foreign_type]
           type && type.constantize
         end
 
@@ -27,7 +27,7 @@ module ActiveRecord
         end
 
         def stale_state
-          [super, @owner[@reflection.foreign_type].to_s]
+          [super, owner[reflection.foreign_type].to_s]
         end
     end
   end

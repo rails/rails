@@ -3,55 +3,43 @@ require 'rails/configuration'
 require 'active_support/inflector'
 
 module Rails
-  # Railtie is the core of the Rails Framework and provides several hooks to extend
+  # Railtie is the core of the Rails framework and provides several hooks to extend
   # Rails and/or modify the initialization process.
   #
   # Every major component of Rails (Action Mailer, Action Controller,
-  # Action View, Active Record and Active Resource) are all Railties, so each of
-  # them is responsible to set their own initialization. This makes, for example,
-  # Rails absent of any Active Record hook, allowing any other ORM framework to hook in.
+  # Action View, Active Record and Active Resource) is a Railtie. Each of
+  # them is responsible for their own initialization. This makes Rails itself
+  # absent of any component hooks, allowing other components to be used in
+  # place of any of the Rails defaults.
   #
   # Developing a Rails extension does _not_ require any implementation of
   # Railtie, but if you need to interact with the Rails framework during
-  # or after boot, then Railtie is what you need to do that interaction.
+  # or after boot, then Railtie is needed.
   #
-  # For example, the following would need you to implement Railtie in your
-  # plugin:
+  # For example, an extension doing any of the following would require Railtie:
   #
   # * creating initializers
-  # * configuring a Rails framework or the Application, like setting a generator
-  # * adding Rails config.* keys to the environment
-  # * setting up a subscriber to the Rails +ActiveSupport::Notifications+
-  # * adding rake tasks into rails
+  # * configuring a Rails framework for the application, like setting a generator
+  # * adding config.* keys to the environment
+  # * setting up a subscriber with ActiveSupport::Notifications
+  # * adding rake tasks
   #
   # == Creating your Railtie
   #
-  # Implementing Railtie in your Rails extension is done by creating a class
-  # Railtie that has your extension name and making sure that this gets loaded
-  # during boot time of the Rails stack.
+  # To extend Rails using Railtie, create a Railtie class which inherits
+  # from Rails::Railtie within your extension's namespace. This class must be
+  # loaded during the Rails boot process.
   #
-  # You can do this however you wish, but here is an example if you want to provide
-  # it for a gem that can be used with or without Rails:
+  # The following example demonstrates an extension which can be used with or without Rails.
   #
-  # * Create a file (say, lib/my_gem/railtie.rb) which contains class Railtie inheriting from
-  #   Rails::Railtie and is namespaced to your gem:
-  #
-  #     # lib/my_gem/railtie.rb
-  #     module MyGem
-  #       class Railtie < Rails::Railtie
-  #       end
+  #   # lib/my_gem/railtie.rb
+  #   module MyGem
+  #     class Railtie < Rails::Railtie
   #     end
+  #   end
   #
-  # * Require your own gem as well as rails in this file:
-  #
-  #     # lib/my_gem/railtie.rb
-  #     require 'my_gem'
-  #     require 'rails'
-  #
-  #     module MyGem
-  #       class Railtie < Rails::Railtie
-  #       end
-  #     end
+  #   # lib/my_gem.rb
+  #   require 'my_gem/railtie' if defined?(Rails)
   #
   # == Initializers
   #

@@ -6,6 +6,7 @@ module ActiveRecord
     # If the association has a <tt>:through</tt> option further specialization
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < CollectionAssociation #:nodoc:
+
       def insert_record(record, validate = true)
         set_owner_attributes(record)
         record.save(:validate => validate)
@@ -28,9 +29,9 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if has_cached_counter?
-            @owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif @reflection.options[:counter_sql] || @reflection.options[:finder_sql]
-            @reflection.klass.count_by_sql(custom_counter_sql)
+            owner.send(:read_attribute, cached_counter_attribute_name)
+          elsif options[:counter_sql] || options[:finder_sql]
+            reflection.klass.count_by_sql(custom_counter_sql)
           else
             scoped.count
           end
@@ -40,23 +41,23 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded! if count == 0
 
-          [@reflection.options[:limit], count].compact.min
+          [options[:limit], count].compact.min
         end
 
-        def has_cached_counter?(reflection = @reflection)
-          @owner.attribute_present?(cached_counter_attribute_name(reflection))
+        def has_cached_counter?(reflection = reflection)
+          owner.attribute_present?(cached_counter_attribute_name(reflection))
         end
 
-        def cached_counter_attribute_name(reflection = @reflection)
+        def cached_counter_attribute_name(reflection = reflection)
           "#{reflection.name}_count"
         end
 
-        def update_counter(difference, reflection = @reflection)
+        def update_counter(difference, reflection = reflection)
           if has_cached_counter?(reflection)
             counter = cached_counter_attribute_name(reflection)
-            @owner.class.update_counters(@owner.id, counter => difference)
-            @owner[counter] += difference
-            @owner.changed_attributes.delete(counter) # eww
+            owner.class.update_counters(owner.id, counter => difference)
+            owner[counter] += difference
+            owner.changed_attributes.delete(counter) # eww
           end
         end
 
@@ -64,13 +65,13 @@ module ActiveRecord
         #
         #   * An associated record is deleted via record.destroy
         #   * Hence the callbacks run, and they find a belongs_to on the record with a
-        #     :counter_cache options which points back at our @owner. So they update the
+        #     :counter_cache options which points back at our owner. So they update the
         #     counter cache.
         #   * In which case, we must make sure to *not* update the counter cache, or else
         #     it will be decremented twice.
         #
         # Hence this method.
-        def inverse_updates_counter_cache?(reflection = @reflection)
+        def inverse_updates_counter_cache?(reflection = reflection)
           counter_name = cached_counter_attribute_name(reflection)
           reflection.klass.reflect_on_all_associations(:belongs_to).any? { |inverse_reflection|
             inverse_reflection.counter_cache_column == counter_name
@@ -83,13 +84,13 @@ module ActiveRecord
             records.each { |r| r.destroy }
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            keys  = records.map { |r| r[@reflection.association_primary_key] }
-            scope = scoped.where(@reflection.association_primary_key => keys)
+            keys  = records.map { |r| r[reflection.association_primary_key] }
+            scope = scoped.where(reflection.association_primary_key => keys)
 
             if method == :delete_all
               update_counter(-scope.delete_all)
             else
-              update_counter(-scope.update_all(@reflection.foreign_key => nil))
+              update_counter(-scope.update_all(reflection.foreign_key => nil))
             end
           end
         end

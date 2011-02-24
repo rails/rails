@@ -1,6 +1,22 @@
 module ActiveRecord
   module Associations
     class SingularAssociation < Association #:nodoc:
+      # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
+      def reader(force_reload = false)
+        if force_reload
+          klass.uncached { reload }
+        elsif !loaded? || stale_target?
+          reload
+        end
+
+        target
+      end
+
+      # Implements the writer method, e.g. foo.items= for Foo.has_many :items
+      def writer(record)
+        replace(record)
+      end
+
       def create(attributes = {})
         new_record(:create, attributes)
       end
@@ -28,15 +44,9 @@ module ActiveRecord
           replace(record)
         end
 
-        def check_record(record)
-          record = record.target if Association === record
-          raise_on_type_mismatch(record) if record
-          record
-        end
-
         def new_record(method, attributes)
           attributes = scoped.scope_for_create.merge(attributes || {})
-          record = @reflection.send("#{method}_association", attributes)
+          record = reflection.send("#{method}_association", attributes)
           set_new_record(record)
           record
         end

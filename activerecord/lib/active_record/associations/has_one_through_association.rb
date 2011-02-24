@@ -12,7 +12,7 @@ module ActiveRecord
       private
 
         def create_through_record(record)
-          through_proxy  = @owner.association(@reflection.through_reflection.name)
+          through_proxy  = owner.association(through_reflection.name)
           through_record = through_proxy.send(:load_target)
 
           if through_record && !record
@@ -22,7 +22,7 @@ module ActiveRecord
 
             if through_record
               through_record.update_attributes(attributes)
-            elsif @owner.new_record?
+            elsif owner.new_record?
               through_proxy.build(attributes)
             else
               through_proxy.create(attributes)
