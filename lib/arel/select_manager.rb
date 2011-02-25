@@ -18,10 +18,19 @@ module Arel
       @ctx.wheres
     end
 
+    def offset
+      @ast.offset && @ast.offset.expr
+    end
+
     def skip amount
-      @ast.offset = Nodes::Offset.new(amount)
+      if amount
+        @ast.offset = Nodes::Offset.new(amount)
+      else
+        @ast.offset = nil
+      end
       self
     end
+    alias :offset= :skip
 
     ###
     # Produces an Arel::Nodes::Exists node

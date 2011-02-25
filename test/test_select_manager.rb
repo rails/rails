@@ -180,6 +180,32 @@ module Arel
       end
     end
 
+    describe 'offset' do
+      it 'should add an offset' do
+        table   = Table.new :users
+        mgr = table.from table
+        mgr.offset = 10
+        mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
+      end
+
+      it 'should remove an offset' do
+        table   = Table.new :users
+        mgr = table.from table
+        mgr.offset = 10
+        mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
+
+        mgr.offset = nil
+        mgr.to_sql.must_be_like %{ SELECT FROM "users" }
+      end
+
+      it 'should return the offset' do
+        table   = Table.new :users
+        mgr = table.from table
+        mgr.offset = 10
+        assert_equal 10, mgr.offset
+      end
+    end
+
     describe 'exists' do
       it 'should create an exists clause' do
         table = Table.new(:users)

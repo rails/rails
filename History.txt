@@ -7,11 +7,14 @@
   * SQL Literals may be used as Attribute names
   * Added Arel::Nodes::NamedFunction for representing generic SQL functions
   * Add Arel::SelectManager#limit=
+  * Add Arel::SelectManager#offset
+  * Add Arel::SelectManager#offset=
 
 * Bug fixes
 
   * MSSQL adds TOP to sub selects
   * Assigning nil to take() removes LIMIT from statement.
+  * Assigning nil to offset() removes OFFSET from statement.
 
 * Deprecations
 
