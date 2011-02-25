@@ -65,10 +65,10 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
-    test "removes show exceptions if action_dispatch.show_exceptions is disabled" do
+    test "includes show exceptions even action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
-      assert !middleware.include?("ActionDispatch::ShowExceptions")
+      assert middleware.include?("ActionDispatch::ShowExceptions")
     end
 
     test "use middleware" do
@@ -193,6 +193,27 @@ module ApplicationTests
       env = Rack::MockRequest.env_for("/")
       Rails.application.call(env)
       assert_no_match(/action_dispatch/, stringio.string)
+    end
+
+    # show_exceptions test
+    test "unspecified route when set action_dispatch.show_exceptions to false" do
+      make_basic_app do |app|
+        app.config.action_dispatch.show_exceptions = false
+      end
+
+      assert_raise(ActionController::RoutingError) do
+        get '/foo'
+      end
+    end
+
+    test "unspecified route when set action_dispatch.show_exceptions to true" do
+      make_basic_app do |app|
+        app.config.action_dispatch.show_exceptions = true
+      end
+
+      assert_nothing_raised(ActionController::RoutingError) do
+        get '/foo'
+      end
     end
 
     private
