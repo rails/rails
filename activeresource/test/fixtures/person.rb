@@ -7,3 +7,8 @@ module External
     self.site = "http://atq.caffeine.intoxication.it"
   end
 end
+
+class SalesMan < ActiveResource::Base
+  self.site = "http://atq.is.hungry.it"
+  has_many :people
+end

@@ -3,10 +3,10 @@ require 'active_support/core_ext/module/deprecation'
 
 module ActiveResource
   # = Active Resource reflection
-  # 
+  #
   # Associations in ActiveResource would be used to resolve nested attributes
   # in a response with correct classes.
-  # Now they could be specify over Associations with the options :class_name 
+  # Now they could be specified over Associations with the options :class_name
   module Reflection # :nodoc:
     extend ActiveSupport::Concern
 
