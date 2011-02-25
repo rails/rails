@@ -29,8 +29,8 @@ Action View works well with Action Record, but it can also be used with other Ru
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
 
 <shell>
-gem install actionpack
-gem install rack
+$ gem install actionpack
+$ gem install rack
 </shell>
 
 Now we'll create a simple "Hello World" application that uses the +titleize+ method provided by Active Support.
@@ -52,7 +52,7 @@ Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
 We can see this all come together by starting up the application and then visiting +http://localhost:4567/+
 
 <shell>
-ruby hello_world.rb
+$ ruby hello_world.rb
 </shell>
 
 TODO needs a screenshot? I have one - not sure where to put it.
@@ -64,8 +64,8 @@ Action View can also be used with "Sinatra":http://www.sinatrarb.com/ in the sam
 Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
 
 <shell>
-gem install actionpack
-gem install sinatra
+$ gem install actionpack
+$ gem install sinatra
 </shell>
 
 Now we'll create the same "Hello World" application in Sinatra.
@@ -85,7 +85,7 @@ end
 Then, we can run the application:
 
 <shell>
-ruby hello_world.rb
+$ ruby hello_world.rb
 </shell>
 
 Once the application is running, you can see Sinatra and Action View working together by visiting +http://localhost:4567/+

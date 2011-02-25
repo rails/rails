@@ -540,7 +540,7 @@ module ActiveRecord #:nodoc:
       #
       # ==== Example
       #   # Serialize a preferences attribute
-      #   class User
+      #   class User < ActiveRecord::Base
       #     serialize :preferences
       #   end
       def serialize(attr_name, class_name = Object)
