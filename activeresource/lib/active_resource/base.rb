@@ -17,6 +17,8 @@ require 'active_resource/connection'
 require 'active_resource/formats'
 require 'active_resource/schema'
 require 'active_resource/log_subscriber'
+require 'active_resource/associations'
+require 'active_resource/reflection'
 
 module ActiveResource
   # ActiveResource::Base is the main class for mapping RESTful resources as models in a Rails application.
@@ -1479,5 +1481,6 @@ module ActiveResource
     include ActiveModel::Conversion
     include ActiveModel::Serializers::JSON
     include ActiveModel::Serializers::Xml
+    include ActiveResource::Reflection
   end
 end
