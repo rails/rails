@@ -505,6 +505,16 @@ class FilterTest < ActionController::TestCase
     end
   end
 
+  class ImplicitActionsController < ActionController::Base
+    before_filter :find_user, :only => :edit
+
+    private
+
+    def find_user
+      @user = 'Jenny'
+    end
+  end
+
   def test_sweeper_should_not_block_rendering
     response = test_process(SweeperTestController)
     assert_equal 'hello world', response.body
@@ -781,6 +791,18 @@ class FilterTest < ActionController::TestCase
 
     assert response.success?
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
+  end
+
+  def test_filter_runs_for_implicitly_defined_action_when_needed
+    test_process(ImplicitActionsController, 'edit')
+    assert_equal 'Jenny', assigns(:user)
+    assert_equal 'edit', response.body
+  end
+
+  def test_filter_does_not_run_for_implicity_defined_action_when_not_needed
+    test_process(ImplicitActionsController, 'show')
+    assert_nil assigns(:user)
+    assert_equal 'show', response.body
   end
 
   private
