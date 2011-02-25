@@ -190,7 +190,7 @@ module ActiveRecord
         end
 
         stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
-        stmt.take limit
+        stmt.take limit if limit
         stmt.order(*order)
         stmt.key = table[primary_key]
         @klass.connection.update stmt.to_sql
