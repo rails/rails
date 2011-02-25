@@ -171,7 +171,8 @@ module Rails
     def env_defaults
       @env_defaults ||= {
         "action_dispatch.parameter_filter" => config.filter_parameters,
-        "action_dispatch.secret_token" => config.secret_token
+        "action_dispatch.secret_token" => config.secret_token,
+        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions
       }
     end
 

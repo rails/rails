@@ -277,5 +277,20 @@ module ApplicationTests
       get "/"
       assert_not_equal res, last_response.body
     end
+
+    test "config.action_dispatch.show_exceptions is sent in env" do
+      make_basic_app do |app|
+        app.config.action_dispatch.show_exceptions = true
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :text => env["action_dispatch.show_exceptions"]
+        end
+      end
+
+      get "/"
+      assert_equal 'true', last_response.body
+    end
   end
 end
