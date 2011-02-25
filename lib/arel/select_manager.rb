@@ -172,10 +172,16 @@ module Arel
     end
 
     def take limit
-      @ast.limit = Nodes::Limit.new(limit)
-      @ctx.top   = Nodes::Top.new(limit)
+      if limit
+        @ast.limit = Nodes::Limit.new(limit)
+        @ctx.top   = Nodes::Top.new(limit)
+      else
+        @ast.limit = nil
+        @ctx.top   = nil
+      end
       self
     end
+    alias limit= take
 
     def join_sql
       return nil if @ctx.source.right.empty?

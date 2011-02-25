@@ -6,10 +6,12 @@
   * AND nodes are now n-ary nodes
   * SQL Literals may be used as Attribute names
   * Added Arel::Nodes::NamedFunction for representing generic SQL functions
+  * Add Arel::SelectManager#limit=
 
 * Bug fixes
 
   * MSSQL adds TOP to sub selects
+  * Assigning nil to take() removes LIMIT from statement.
 
 * Deprecations
 

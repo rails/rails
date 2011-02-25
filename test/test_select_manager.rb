@@ -743,6 +743,15 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.take(1).must_equal manager
       end
+
+      it 'removes LIMIT when nil is passed' do
+        manager = Arel::SelectManager.new Table.engine
+        manager.limit = 10
+        assert_match('LIMIT', manager.to_sql)
+
+        manager.limit = nil
+        refute_match('LIMIT', manager.to_sql)
+      end
     end
 
     describe 'where' do
