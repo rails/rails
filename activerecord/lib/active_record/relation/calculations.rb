@@ -204,7 +204,19 @@ module ActiveRecord
 
       relation.select_values = [select_value]
 
-      type_cast_calculated_value(@klass.connection.select_value(relation.to_sql), column_for(column_name), operation)
+      query_builder = relation.arel
+
+      if operation == "count"
+        limit  = relation.limit_value
+        offset = relation.offset_value
+
+        unless limit && offset
+          query_builder.limit  = nil
+          query_builder.offset = nil
+        end
+      end
+
+      type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
