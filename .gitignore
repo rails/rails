@@ -21,3 +21,6 @@ railties/doc
 railties/guides/output
 railties/tmp
 .rvmrc
+bin/
+tmp/
+vendor/

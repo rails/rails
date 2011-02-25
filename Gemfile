@@ -9,7 +9,7 @@ else
 end
 
 gem "rack", :git => "git://github.com/rack/rack.git"
-gem "rack-test", :git => "git://github.com/brynary/rack-test.git"
+gem "rack-test", :git => "git://github.com/brynary/rack-test.git", :require => "rack/test"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
@@ -77,3 +77,5 @@ if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
     gem "activerecord-oracle_enhanced-adapter", :git => "git://github.com/rsim/oracle-enhanced.git"
   end
 end
+
+
