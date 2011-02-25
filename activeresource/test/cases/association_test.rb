@@ -40,4 +40,14 @@ class AssociationTest < Test::Unit::TestCase
     External::Person.send(:has_one, :customer)
     assert_equal 1, External::Person.reflections.select{|name, reflection| reflection.macro.eql?(:has_one)}.count
   end
+
+  def test_has_many
+    External::Person.send(:has_many, :people)
+    assert_equal 1, External::Person.reflections.select{|name, reflection| reflection.macro.eql?(:has_many)}.count
+  end
+  
+  def test_has_one
+    External::Person.send(:has_one, :customer)
+    assert_equal 1, External::Person.reflections.select{|name, reflection| reflection.macro.eql?(:has_one)}.count
+  end
 end

@@ -8,7 +8,3 @@ module External
   end
 end
 
-class SalesMan < ActiveResource::Base
-  self.site = "http://atq.is.hungry.it"
-  has_many :people
-end

@@ -1,5 +1,5 @@
 module ActiveResource::Associations::Builder 
-  class HasMany < Associations
+  class HasMany < Association
     self.macro = :has_many 
   end
 end

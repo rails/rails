@@ -3,6 +3,7 @@ module ActiveResource::Associations
   module Builder
     autoload :Association, 'active_resource/associations/builder/association'
     autoload :HasMany,     'active_resource/associations/builder/has_many'
+    autoload :HasOne,      'active_resource/associations/builder/has_one'
   end
 
 

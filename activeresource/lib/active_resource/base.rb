@@ -1405,6 +1405,7 @@ module ActiveResource
 
       # Tries to find a resource for a given collection name; if it fails, then the resource is created
       def find_or_create_resource_for_collection(name)
+        return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
         find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
       end
 
@@ -1425,6 +1426,8 @@ module ActiveResource
 
       # Tries to find a resource for a given name; if it fails, then the resource is created
       def find_or_create_resource_for(name)
+        return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
+
         resource_name = name.to_s.camelize
 
         const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
@@ -1477,6 +1480,8 @@ module ActiveResource
 
   class Base
     extend ActiveModel::Naming
+    extend ActiveResource::Associations
+
     include CustomMethods, Observing, Validations
     include ActiveModel::Conversion
     include ActiveModel::Serializers::JSON
