@@ -1045,6 +1045,8 @@ NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
 h4. Class Inheritable Attributes
 
+WARNING: Class Inheritable Attributes are deprecated. It's recommended that you use +Class#class_attribute+ instead.
+
 Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accessors for class-level data which is inherited but not shared with children:
 
 <ruby>
