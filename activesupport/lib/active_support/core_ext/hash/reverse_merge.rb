@@ -6,14 +6,14 @@ class Hash
   #     options.reverse_merge! :size => 25, :velocity => 10
   #   end
   #
-  # Using <tt>merge</tt>, the above example would look as follows:
-  #
-  #   def setup(options = {})
-  #     { :size => 25, :velocity => 10 }.merge(options)
-  #   end
-  #
   # The default <tt>:size</tt> and <tt>:velocity</tt> are only set if the +options+ hash passed in doesn't already
   # have the respective key.
+  #
+  # As contrast, using Ruby's built in <tt>merge</tt> would require writing the following:
+  #
+  #   def setup(options = {})
+  #     options = { :size => 25, :velocity => 10 }.merge(options)
+  #   end
   def reverse_merge(other_hash)
     other_hash.merge(self)
   end
