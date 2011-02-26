@@ -345,7 +345,7 @@ $ rails generate scaffold Comment body:text
       invoke    shoulda
       create      test/unit/comment_test.rb
       create      test/fixtures/comments.yml
-       route  map.resources :comments
+       route    resources :comments
       invoke  scaffold_controller
       create    app/controllers/comments_controller.rb
       invoke    erb
