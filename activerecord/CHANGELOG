@@ -1,5 +1,14 @@
 *Rails 3.1.0 (unreleased)*
 
+* limits and offsets are removed from COUNT queries unless both are supplied.
+  For example:
+
+    People.limit(1).count           # => 'SELECT COUNT(*) FROM people'
+    People.offset(1).count          # => 'SELECT COUNT(*) FROM people'
+    People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET 1'
+
+  [lighthouse #6262]
+
 * ActiveRecord::Associations::AssociationProxy has been split. There is now an Association class
   (and subclasses) which are responsible for operating on associations, and then a separate,
   thin wrapper called CollectionProxy, which proxies collection associations.

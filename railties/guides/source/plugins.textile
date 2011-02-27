@@ -31,7 +31,7 @@ Rails currently ships with a generator to generate a plugin within a Rails appli
 how this generator works.
 
 <shell>
-	rails generate plugin --help
+$ rails generate plugin --help
 </shell>
 
 This generator places the plugin into the vendor/plugins directory.  
@@ -214,18 +214,18 @@ We can easily generate these models in our "dummy" Rails application by running 
 test/dummy directory:
 
 <shell>
-	cd test/dummy
-	rails generate model Hickwall last_squak:string
-	rails generate model Wickwall last_squak:string last_tweet:string
+$ cd test/dummy
+$ rails generate model Hickwall last_squak:string
+$ rails generate model Wickwall last_squak:string last_tweet:string
 </shell>
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
 and migrating the database.  First 
 
 <shell>
-	cd test/dummy
-	rake db:migrate
-	rake db:test:prepare
+$ cd test/dummy
+$ rake db:migrate
+$ rake db:test:prepare
 </shell>
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
@@ -424,9 +424,9 @@ require 'yaffle'
 You can test this by changing to the Rails application that you added the plugin to and starting a rails console.  Once in the 
 console we can check to see if the String has an instance method of to_squawk.
 <shell>
-	cd my_app
-	rails console
-	String.instance_methods.sort
+$ cd my_app
+$ rails console
+$ String.instance_methods.sort
 </shell>
 
 You can also remove the .gemspec, Gemfile and Gemfile.lock files as they will no longer be needed.
@@ -447,7 +447,7 @@ Once your README is solid, go through and add rdoc comments to all of the method
 Once your comments are good to go, navigate to your plugin directory and run:
 
 <shell>
-rake rdoc
+$ rake rdoc
 </shell>
 
 !!!!!!!!!!!!!! Make sure these still make sense. Add any references that you see fit. !!!!!!!!!!!!!

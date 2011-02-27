@@ -417,7 +417,7 @@ class Person < ActiveRecord::Base
 end
 
 class GoodnessValidator < ActiveModel::Validator
-  def validate
+  def validate(record)
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"
     end
@@ -427,10 +427,7 @@ end
 
 The +validates_with+ helper takes a class, or a list of classes to use for validation. There is no default error message for +validates_with+. You must manually add errors to the record's errors collection in the validator class.
 
-The validator class has two attributes by default:
-
-* +record+ - the record to be validated
-* +options+ - the extra options that were passed to +validates_with+
+To implement the validate method, you must have an +record+ parameter defined, which is the record to be validated.
 
 Like all other validations, +validates_with+ takes the +:if+, +:unless+ and +:on+ options. If you pass any other options, it will send those options to the validator class as +options+:
 
@@ -439,8 +436,8 @@ class Person < ActiveRecord::Base
   validates_with GoodnessValidator, :fields => [:first_name, :last_name]
 end
 
-class GoodnessValidator < ActiveRecord::Validator
-  def validate
+class GoodnessValidator < ActiveModel::Validator
+  def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
       record.errors[:base] << "This person is evil"
     end
@@ -1115,7 +1112,7 @@ h4. Creating Observers
 For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we could create an observer to contain this functionality.
 
 <shell>
-rails generate observer User
+$ rails generate observer User
 </shell>
 
 <ruby>

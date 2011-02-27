@@ -109,6 +109,34 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [2, 6], c.keys.compact
   end
 
+  def test_limit_with_offset_is_kept
+    queries = assert_sql { Account.limit(1).offset(1).count }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+    assert_match(/OFFSET/, queries.first)
+  end
+
+  def test_offset_without_limit_removes_offset
+    queries = assert_sql { Account.offset(1).count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_limit_without_offset_removes_limit
+    queries = assert_sql { Account.limit(1).count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_no_limit_no_offset
+    queries = assert_sql { Account.count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.sum(:credit_limit, :group => :firm_id,
                                    :having => 'sum(credit_limit) > 50')

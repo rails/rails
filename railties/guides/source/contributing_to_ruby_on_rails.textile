@@ -56,8 +56,8 @@ h4. Clone the Ruby on Rails Repository
 Navigate to the folder where you want the Ruby on Rails source code (it will create its own +rails+ subdirectory) and run:
 
 <shell>
-git clone git://github.com/rails/rails.git
-cd rails
+$ git clone git://github.com/rails/rails.git
+$ cd rails
 </shell>
 
 h4. Set up and Run the Tests
@@ -67,38 +67,38 @@ The test suite must pass with any submitted code. No matter whether you are writ
 Install first libxml2 and libxslt together with their development files for Nokogiri. In Ubuntu that's
 
 <shell>
-sudo apt-get install libxml2 libxml2-dev libxslt1-dev
+$ sudo apt-get install libxml2 libxml2-dev libxslt1-dev
 </shell>
 
 Also, SQLite3 and its development files for the +sqlite3-ruby+ gem, in Ubuntu you're done with
 
 <shell>
-sudo apt-get install sqlite3 libsqlite3-dev
+$ sudo apt-get install sqlite3 libsqlite3-dev
 </shell>
 
 Get a recent version of "Bundler":http://gembundler.com/:
 
 <shell>
-gem install bundler
+$ gem install bundler
 </shell>
 
 and run:
 
 <shell>
-bundle install --without db
+$ bundle install --without db
 </shell>
 
 This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back at these soon. With dependencies installed, you can run the test suite with:
 
 <shell>
-rake test
+$ rake test
 </shell>
 
 You can also run tests for an specific framework, like Action Pack, by going into its directory and executing the same command:
 
 <shell>
-cd actionpack
-rake test
+$ cd actionpack
+$ rake test
 </shell>
 
 h4. Warnings
@@ -108,7 +108,7 @@ The test suite runs with warnings enabled. Ideally Ruby on Rails should issue no
 As of this writing they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
 <shell>
-RUBYOPT=-W0 rake test
+$ RUBYOPT=-W0 rake test
 </shell>
 
 h4. Testing Active Record
@@ -122,8 +122,8 @@ h5. SQLite3
 The gem +sqlite3-ruby+ does not belong to the "db" group indeed, if you followed the instructions above you're ready. This is how you run the Active Record test suite only for SQLite3:
 
 <shell>
-cd activerecord
-rake test_sqlite3
+$ cd activerecord
+$ rake test_sqlite3
 </shell>
 
 h5. MySQL and PostgreSQL
@@ -131,15 +131,15 @@ h5. MySQL and PostgreSQL
 To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
 
 <shell>
-sudo apt-get install mysql-server libmysqlclient15-dev
-sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
+$ sudo apt-get install mysql-server libmysqlclient15-dev
+$ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
 </shell>
 
 After that run:
 
 <shell>
-rm .bundle/config
-bundle install
+$ rm .bundle/config
+$ bundle install
 </shell>
 
 We need first to delete +.bundle/config+ because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
@@ -156,21 +156,21 @@ mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
 and create the test databases:
 
 <shell>
-cd activerecord
-rake mysql:build_databases
+$ cd activerecord
+$ rake mysql:build_databases
 </shell>
 
 PostgreSQL's authentication works differently. A simple way to setup the development environment for example is to run with your development account
 
 <shell>
-sudo -u postgres createuser --superuser $USER
+$ sudo -u postgres createuser --superuser $USER
 </shell>
 
 and after that create the test databases with
 
 <shell>
-cd activerecord
-rake postgresql:build_databases
+$ cd activerecord
+$ rake postgresql:build_databases
 </shell>
 
 NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
@@ -188,7 +188,7 @@ test_postgresql
 respectively. As we mentioned before
 
 <shell>
-rake test
+$ rake test
 </shell>
 
 will now run the four of them in turn.
@@ -200,8 +200,8 @@ h4. Older versions of Ruby on Rails
 If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 2-3-stable branch:
 
 <shell>
-git branch --track 2-3-stable origin/2-3-stable
-git checkout 2-3-stable
+$ git branch --track 2-3-stable origin/2-3-stable
+$ git checkout 2-3-stable
 </shell>
 
 TIP: You may want to "put your git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
@@ -225,13 +225,13 @@ h4. Testing Patches
 You can also help out by examining patches that have been submitted to Ruby on Rails via Lighthouse. To apply someone's changes you need to first create a dedicated branch:
 
 <shell>
-git checkout -b testing_branch
+$ git checkout -b testing_branch
 </shell>
 
 Then you can apply their patch:
 
 <shell>
-git am their-patch-file.diff
+$ git am their-patch-file.diff
 </shell>
 
 After applying a patch, test it out! Here are some things to think about:
@@ -270,14 +270,14 @@ h4. Clone the Rails Repository
 The first thing you need to do to be able to contribute code is to clone the repository:
 
 <shell>
-git clone git://github.com/rails/rails.git
+$ git clone git://github.com/rails/rails.git
 </shell>
 
 and create a dedicated branch:
 
 <shell>
-cd rails
-git checkout -b my_new_branch
+$ cd rails
+$ git checkout -b my_new_branch
 </shell>
 
 It doesn’t really matter what name you use, because this branch will only exist on your local computer.
@@ -311,7 +311,7 @@ h4. Commit Your Changes
 When you're happy with the code on your computer, you need to commit the changes to git:
 
 <shell>
-git commit -a -m "Here is a commit message"
+$ git commit -a -m "Here is a commit message"
 </shell>
 
 h4. Update master
@@ -319,15 +319,15 @@ h4. Update master
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
 
 <shell>
-git checkout master
-git pull
+$ git checkout master
+$ git pull
 </shell>
 
 Now reapply your patch on top of the latest changes:
 
 <shell>
-git checkout my_new_branch
-git rebase master
+$ git checkout my_new_branch
+$ git rebase master
 </shell>
 
 No conflicts? Tests still pass? Change still seems reasonable to you? Then move on.
@@ -337,8 +337,8 @@ h4. Create a Patch
 Now you can create a patch file to share with other developers (and with the core team). Still in your branch, run
 
 <shell>
-git commit -a
-git format-patch master --stdout > my_new_patch.diff
+$ git commit -a
+$ git format-patch master --stdout > my_new_patch.diff
 </shell>
 
 Sanity check the results of this operation: open the diff file in your text editor of choice and make sure that no unintended changes crept in.

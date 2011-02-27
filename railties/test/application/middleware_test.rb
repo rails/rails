@@ -78,10 +78,10 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
-    test "removes show exceptions if action_dispatch.show_exceptions is disabled" do
+    test "includes show exceptions even action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
-      assert !middleware.include?("ActionDispatch::ShowExceptions")
+      assert middleware.include?("ActionDispatch::ShowExceptions")
     end
 
     test "removes ActionDispatch::Reloader if cache_classes is true" do

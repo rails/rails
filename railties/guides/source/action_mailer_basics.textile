@@ -19,7 +19,7 @@ h4. Walkthrough to Generating a Mailer
 h5. Create the Mailer
 
 <shell>
-rails generate mailer UserMailer
+$ rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 invoke  erb
 create    app/views/user_mailer
