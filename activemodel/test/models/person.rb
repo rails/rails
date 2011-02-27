@@ -15,8 +15,3 @@ end
 
 class Child < Person
 end
-
-module PersonModule
-  class Person < ::Person
-  end
-end
