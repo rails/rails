@@ -134,6 +134,7 @@ class BasicsTest < ActiveRecord::TestCase
     fakepool = Class.new(Struct.new(:spec)) {
       def with_connection; yield self; end
       def connection_pool; self; end
+      def table_exists?(name); false; end
       def quote_table_name(*args); raise "lol quote_table_name"; end
     }
 

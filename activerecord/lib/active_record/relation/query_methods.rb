@@ -284,7 +284,7 @@ module ActiveRecord
         @implicit_readonly = false
         arel.project(*selects)
       else
-        arel.project(Arel.sql(@klass.quoted_table_name + '.*'))
+        arel.project(@klass.arel_table[Arel.star])
       end
     end
 
