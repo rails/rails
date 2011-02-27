@@ -2810,6 +2810,8 @@ h5. +Date.current+
 
 Active Support defines +Date.current+ to be today in the current time zone. That's like +Date.today+, except that it honors the user time zone, if defined. It also defines +Date.yesterday+ and +Date.tomorrow+, and the instance predicates +past?+, +today?+, and +future?+, all of them relative to +Date.current+.
 
+When making Date comparisons using methods which honor the user time zone, make sure to use +Date.current+ and not +Date.today+. There are cases where the user time zone might be in the future compared to the system time zone, which +Date.today+ uses by default. This means +Date.today+ may equal +Date.yesterday+.
+
 h5. Named dates
 
 h6. +prev_year+, +next_year+
@@ -3105,7 +3107,7 @@ h5. Named Datetimes
 
 h6. +DateTime.current+
 
-Active Support defines +DateTime.current+ to be like +Time.now.to_datetime+, except that it honors the user time zone, if defined. It also defines instance predicates +past?+, and +future?+ relative to +DateTime.current+.
+Active Support defines +DateTime.current+ to be like +Time.now.to_datetime+, except that it honors the user time zone, if defined. It also defines +DateTime.yesterday+ and +DateTime.tomorrow+, and the instance predicates +past?+, and +future?+ relative to +DateTime.current+.
 
 h5. Other Extensions
 
@@ -3279,6 +3281,12 @@ t.advance(:seconds => 1)
 </ruby>
 
 * If +since+ or +ago+ jump to a time that can't be expressed with +Time+ a +DateTime+ object is returned instead.
+
+h5. +Time.current+
+
+Active Support defines +Time.current+ to be today in the current time zone. That's like +Time.now+, except that it honors the user time zone, if defined. It also defines +Time.yesterday+ and +Time.tomorrow+, and the instance predicates +past?+, +today?+, and +future?+, all of them relative to +Time.current+.
+
+When making Time comparisons using methods which honor the user time zone, make sure to use +Time.current+ and not +Time.now+. There are cases where the user time zone might be in the future compared to the system time zone, which +Time.today+ uses by default. This means +Time.now+ may equal +Time.yesterday+.
 
 h4. Time Constructors
 
