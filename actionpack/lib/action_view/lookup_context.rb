@@ -169,10 +169,13 @@ module ActionView
 
       # Overload formats= to reject ["*/*"] values.
       def formats=(values)
-        if values && values.size == 1
-          value = values.first
-          values = nil    if value == "*/*"
-          values << :html if value == :js
+        if values
+          values.pop if values.last == "*/*"
+          if values.size == 0
+            values = nil
+          elsif values == [:js]
+            values << :html
+          end
         end
         super(values)
       end

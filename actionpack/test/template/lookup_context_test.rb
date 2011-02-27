@@ -51,6 +51,11 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal Mime::SET, @lookup_context.formats
   end
 
+  test "handles explicitly defined */* formats fallback to :js" do
+    @lookup_context.formats = [:js, Mime::ALL]
+    assert_equal [:js, :html], @lookup_context.formats
+  end
+
   test "adds :html fallback to :js formats" do
     @lookup_context.formats = [:js]
     assert_equal [:js, :html], @lookup_context.formats
