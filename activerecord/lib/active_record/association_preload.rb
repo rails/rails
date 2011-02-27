@@ -85,7 +85,7 @@ module ActiveRecord
       # only one level deep in the +associations+ argument, i.e. it's not passed
       # to the child associations when +associations+ is a Hash.
       def preload_associations(records, associations, preload_options={})
-        records = Array.wrap(records).compact.uniq
+        records = Array.wrap(records).compact
         return if records.empty?
         case associations
         when Array then associations.each {|association| preload_associations(records, association, preload_options)}
@@ -97,6 +97,7 @@ module ActiveRecord
             reflection = reflections[parent]
             parents = records.sum { |record| Array.wrap(record.send(reflection.name)) }
             unless parents.empty?
+              parents = parents.uniq if reflection.macro == :belongs_to
               parents.first.class.preload_associations(parents, child)
             end
           end
