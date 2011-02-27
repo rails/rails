@@ -2011,7 +2011,7 @@ That syntactic sugar is used a lot in Rails to avoid positional arguments where 
 
 If a method expects a variable number of arguments and uses <tt>*</tt> in its declaration, however, such an options hash ends up being an item of the array of arguments, where it loses its role.
 
-In those cases, you may give an options hash a distinguished treatment with +extract_options!+. That method checks the type of the last item of an array. If it is a hash it pops it and returns it, otherwise returns an empty hash.
+In those cases, you may give an options hash a distinguished treatment with +extract_options!+. This method checks the type of the last item of an array. If it is a hash it pops it and returns it, otherwise it returns an empty hash.
 
 Let's see for example the definition of the +caches_action+ controller macro:
 
