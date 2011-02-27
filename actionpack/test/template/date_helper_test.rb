@@ -1885,7 +1885,7 @@ class DateHelperTest < ActionView::TestCase
     time = stub(:year => 2004, :month => 6, :day => 15, :hour => 16, :min => 35, :sec => 0)
     time_zone = mock()
     time_zone.expects(:now).returns time
-    Time.zone_default = time_zone
+    Time.zone = time_zone
     @post = Post.new
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
@@ -1912,7 +1912,7 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, datetime_select("post", "updated_at")
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   def test_datetime_select_with_html_options_within_fields_for

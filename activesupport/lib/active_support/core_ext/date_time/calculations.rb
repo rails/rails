@@ -9,8 +9,9 @@ class DateTime
       ::Time.local(2007).utc_offset.to_r / 86400
     end
 
+    # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise returns <tt>Time.now.to_datetime</tt>.
     def current
-      ::Time.zone_default ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
+      ::Time.zone ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
     end
   end
 
