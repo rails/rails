@@ -2,13 +2,13 @@ require 'active_support/ordered_hash'
 
 # Usually key value pairs are handled something like this:
 #
-#   h = ActiveSupport::OrderedOptions.new
+#   h = {}
 #   h[:boy] = 'John'
 #   h[:girl] = 'Mary'
 #   h[:boy]  # => 'John'
 #   h[:girl] # => 'Mary'
 #
-# Using <tt>OrderedOptions</tt> above code could be reduced to:
+# Using <tt>OrderedOptions</tt>, the above code could be reduced to:
 #
 #   h = ActiveSupport::OrderedOptions.new
 #   h.boy = 'John'
