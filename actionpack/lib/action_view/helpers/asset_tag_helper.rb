@@ -864,7 +864,7 @@ module ActionView
         def determine_source(source, collection)
           case source
           when Symbol
-            collection[source].present? ? collection[source] : raise(ArgumentError, "No expansion found for #{source.inspect}")
+            collection[source] || raise(ArgumentError, "No expansion found for #{source.inspect}")
           else
             source
           end

@@ -283,8 +283,17 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_custom_javascript_expansions_with_undefined_symbol
+    assert_raise(ArgumentError) { javascript_include_tag('first', :unknown, 'last') }
+  end
+
+  def test_custom_javascript_expansions_with_nil_value
     ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => nil
-    assert_raise(ArgumentError) { javascript_include_tag('first', :monkey, 'last') }
+    assert_dom_equal  %(<script src="/javascripts/first.js" type="text/javascript"></script>\n<script src="/javascripts/last.js" type="text/javascript"></script>), javascript_include_tag('first', :monkey, 'last')
+  end
+
+  def test_custom_javascript_expansions_with_empty_array_value
+    ActionView::Helpers::AssetTagHelper::register_javascript_expansion :monkey => []
+    assert_dom_equal  %(<script src="/javascripts/first.js" type="text/javascript"></script>\n<script src="/javascripts/last.js" type="text/javascript"></script>), javascript_include_tag('first', :monkey, 'last')
   end
 
   def test_reset_javascript_expansions
@@ -344,8 +353,17 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_custom_stylesheet_expansions_with_undefined_symbol
+    assert_raise(ArgumentError) { stylesheet_link_tag('first', :unknown, 'last') }
+  end
+
+  def test_custom_stylesheet_expansions_with_nil_value
     ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :monkey => nil
-    assert_raise(ArgumentError) { stylesheet_link_tag('first', :monkey, 'last') }
+    assert_dom_equal  %(<link href="/stylesheets/first.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/last.css" rel="stylesheet" type="text/css" media="screen" />), stylesheet_link_tag('first', :monkey, 'last')
+  end
+
+  def test_custom_stylesheet_expansions_with_empty_array_value
+    ActionView::Helpers::AssetTagHelper::register_stylesheet_expansion :monkey => []
+    assert_dom_equal  %(<link href="/stylesheets/first.css" rel="stylesheet" type="text/css" media="screen" />\n<link href="/stylesheets/last.css" rel="stylesheet" type="text/css" media="screen" />), stylesheet_link_tag('first', :monkey, 'last')
   end
 
   def test_registering_stylesheet_expansions_merges_with_existing_expansions
