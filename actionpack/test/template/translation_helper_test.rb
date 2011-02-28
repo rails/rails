@@ -4,23 +4,29 @@ class TranslationHelperTest < ActiveSupport::TestCase
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TranslationHelper
 
-  attr_reader :request
+  attr_reader :request, :view
+
   def setup
+    I18n.backend.store_translations(:en,
+      :translations => {
+        :templates => {
+          :found => { :foo => 'Foo' },
+          :array => { :foo => { :bar => 'Foo Bar' } }
+        },
+        :foo => 'Foo',
+        :hello => '<a>Hello World</a>',
+        :html => '<a>Hello World</a>',
+        :hello_html => '<a>Hello World</a>',
+        :array_html => %w(foo bar),
+        :array => %w(foo bar)
+      }
+    )
+    @view = ::ActionView::Base.new(ActionController::Base.view_paths, {})
   end
 
-  def test_delegates_to_i18n_setting_the_raise_option
-    I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true).returns("")
+  def test_delegates_to_i18n_setting_the_rescue_format_option_to_html
+    I18n.expects(:translate).with(:foo, :locale => 'en', :rescue_format => :html).returns("")
     translate :foo, :locale => 'en'
-  end
-
-  def test_returns_missing_translation_message_wrapped_into_span
-    expected = '<span class="translation_missing">en, foo</span>'
-    assert_equal expected, translate(:foo)
-  end
-
-  def test_translation_returning_an_array
-    I18n.expects(:translate).with(:foo, :raise => true).returns(["foo", "bar"])
-    assert_equal ["foo", "bar"], translate(:foo)
   end
 
   def test_delegates_localize_to_i18n
@@ -29,35 +35,42 @@ class TranslationHelperTest < ActiveSupport::TestCase
     localize @time
   end
 
-  def test_scoping_by_partial
-    I18n.expects(:translate).with("test.translation.helper", :raise => true).returns("helper")
-    @view = ActionView::Base.new(ActionController::Base.view_paths, {})
-    assert_equal "helper", @view.render(:file => "test/translation")
+  def test_returns_missing_translation_message_wrapped_into_span
+    expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
+    assert_equal expected, translate(:"translations.missing")
   end
 
-  def test_scoping_by_partial_of_an_array
-    I18n.expects(:translate).with("test.scoped_translation.foo.bar", :raise => true).returns(["foo", "bar"])
-    @view = ActionView::Base.new(ActionController::Base.view_paths, {})
-    assert_equal "foobar", @view.render(:file => "test/scoped_translation")
+  def test_translation_returning_an_array
+    expected = %w(foo bar)
+    assert_equal expected, translate(:"translations.array")
+  end
+
+  def test_finds_translation_scoped_by_partial
+    assert_equal 'Foo', view.render(:file => 'translations/templates/found').strip
+  end
+
+  def test_finds_array_of_translations_scoped_by_partial
+    assert_equal 'Foo Bar', @view.render(:file => 'translations/templates/array').strip
+  end
+
+  def test_missing_translation_scoped_by_partial
+    expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
+    assert_equal expected, view.render(:file => 'translations/templates/missing').strip
   end
 
   def test_translate_does_not_mark_plain_text_as_safe_html
-    I18n.expects(:translate).with("hello", :raise => true).returns("Hello World")
-    assert_equal false, translate("hello").html_safe?
+    assert_equal false, translate(:'translations.hello').html_safe?
   end
 
   def test_translate_marks_translations_named_html_as_safe_html
-    I18n.expects(:translate).with("html", :raise => true).returns("<a>Hello World</a>")
-    assert translate("html").html_safe?
+    assert translate(:'translations.html').html_safe?
   end
 
   def test_translate_marks_translations_with_a_html_suffix_as_safe_html
-    I18n.expects(:translate).with("hello_html", :raise => true).returns("<a>Hello World</a>")
-    assert translate("hello_html").html_safe?
+    assert translate(:'translations.hello_html').html_safe?
   end
 
   def test_translation_returning_an_array_ignores_html_suffix
-    I18n.expects(:translate).with(:foo_html, :raise => true).returns(["foo", "bar"])
-    assert_equal ["foo", "bar"], translate(:foo_html)
+    assert_equal ["foo", "bar"], translate(:'translations.array_html')
   end
 end
