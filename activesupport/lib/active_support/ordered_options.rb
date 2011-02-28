@@ -31,7 +31,7 @@ module ActiveSupport #:nodoc:
 
     def method_missing(name, *args)
       if name.to_s =~ /(.*)=$/
-        self[$1.to_sym] = args.first
+        self[$1] = args.first
       else
         self[name]
       end
