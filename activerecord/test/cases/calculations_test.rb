@@ -110,6 +110,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_with_offset_is_kept
+    return if current_adapter?(:OracleAdapter)
+
     queries = assert_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
