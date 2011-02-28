@@ -46,7 +46,7 @@ module ActionView
           def register_stylesheet_expansion(expansions)
             style_expansions = StylesheetIncludeTag.expansions
             expansions.each do |key, values|
-              style_expansions[key] = (style_expansions[key] || []) | Array(values) if values
+              style_expansions[key] = (style_expansions[key] || []) | Array(values)
             end
           end
         end
