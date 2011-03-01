@@ -214,7 +214,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_with_piggyback
-    assert_equal "2", categories(:sti_test).authors.first.post_id.to_s
+    assert_equal "2", categories(:sti_test).authors_with_select.first.post_id.to_s
   end
 
   def test_include_has_many_through
