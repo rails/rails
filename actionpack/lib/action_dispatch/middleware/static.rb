@@ -4,7 +4,7 @@ module ActionDispatch
   class FileHandler
     def initialize(at, root)
       @at, @root     = at.chomp('/'), root.chomp('/')
-      @compiled_at   = /^#{Regexp.escape(at)}/ unless @at.blank?
+      @compiled_at   = @at.blank? ? nil : /^#{Regexp.escape(at)}/
       @compiled_root = /^#{Regexp.escape(root)}/
       @file_server   = ::Rack::File.new(@root)
     end
