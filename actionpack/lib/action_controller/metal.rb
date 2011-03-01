@@ -36,7 +36,7 @@ module ActionController
       action = action.to_s
       raise "MiddlewareStack#build requires an app" unless app
 
-      reverse.inject(app) do |a, middleware|
+      middlewares.reverse.inject(app) do |a, middleware|
         middleware.valid?(action) ?
           middleware.build(a) : a
       end
