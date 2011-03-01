@@ -2,7 +2,7 @@ require "active_support/inflector/methods"
 require "active_support/dependencies"
 
 module ActionDispatch
-  class MiddlewareStack < Array
+  class MiddlewareStack
     class Middleware
       attr_reader :args, :block
 
@@ -41,18 +41,39 @@ module ActionDispatch
       end
     end
 
-    # Use this instead of super to work around a warning.
-    alias :array_initialize :initialize
+    include Enumerable
+
+    attr_accessor :middlewares
 
     def initialize(*args)
-      array_initialize(*args)
+      @middlewares = []
       yield(self) if block_given?
+    end
+
+    def each
+      @middlewares.each { |x| yield x }
+    end
+
+    def size
+      middlewares.size
+    end
+
+    def last
+      middlewares.last
+    end
+
+    def [](i)
+      middlewares[i]
+    end
+
+    def initialize_copy(other)
+      self.middlewares = other.middlewares.dup
     end
 
     def insert(index, *args, &block)
       index = assert_index(index, :before)
       middleware = self.class::Middleware.new(*args, &block)
-      super(index, middleware)
+      middlewares.insert(index, middleware)
     end
 
     alias_method :insert_before, :insert
@@ -67,21 +88,25 @@ module ActionDispatch
       delete(target)
     end
 
+    def delete(target)
+      middlewares.delete target
+    end
+
     def use(*args, &block)
       middleware = self.class::Middleware.new(*args, &block)
-      push(middleware)
+      middlewares.push(middleware)
     end
 
     def build(app = nil, &block)
       app ||= block
       raise "MiddlewareStack#build requires an app" unless app
-      reverse.inject(app) { |a, e| e.build(a) }
+      middlewares.reverse.inject(app) { |a, e| e.build(a) }
     end
 
   protected
 
     def assert_index(index, where)
-      i = index.is_a?(Integer) ? index : self.index(index)
+      i = index.is_a?(Integer) ? index : middlewares.index(index)
       raise "No such middleware to insert #{where}: #{index.inspect}" unless i
       i
     end
