@@ -2,11 +2,16 @@ require 'rack/utils'
 
 module ActionDispatch
   class FileHandler
+    attr_reader :ext
+
     def initialize(at, root)
       @at, @root = at.chomp('/'), root.chomp('/')
       @compiled_at = (Regexp.compile(/^#{Regexp.escape(at)}/) unless @at.blank?)
       @compiled_root = Regexp.compile(/^#{Regexp.escape(root)}/)
       @file_server = ::Rack::File.new(@root)
+
+      ext = ::ActionController::Base.page_cache_extension
+      @ext = "{,#{ext},/index#{ext}}"
     end
 
     def match?(path)
@@ -26,13 +31,6 @@ module ActionDispatch
 
     def call(env)
       @file_server.call(env)
-    end
-
-    def ext
-      @ext ||= begin
-        ext = ::ActionController::Base.page_cache_extension
-        "{,#{ext},/index#{ext}}"
-      end
     end
   end
 
