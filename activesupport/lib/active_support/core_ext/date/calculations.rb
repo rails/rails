@@ -36,9 +36,9 @@ class Date
       ::Date.current.tomorrow
     end
 
-    # Returns Time.zone.today when config.time_zone is set, otherwise just returns Date.today.
+    # Returns Time.zone.today when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns Date.today.
     def current
-      ::Time.zone_default ? ::Time.zone.today : ::Date.today
+      ::Time.zone ? ::Time.zone.today : ::Date.today
     end
   end
 

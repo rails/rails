@@ -120,30 +120,29 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
-    Post.expects(:i_was_called).with([1,2,3,4,5,6,7]).returns([1])
-    associated_records = Post.send(:associated_records, [1,2,3,4,5,6,7]) do |some_ids|
-      Post.i_was_called(some_ids)
+
+    post = posts(:welcome)
+    assert_queries(2) do
+      Post.includes(:comments).where(:id => post.id).to_a
     end
-    assert_equal [1], associated_records
   end
 
   def test_load_associated_records_in_several_queries_when_many_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    Post.expects(:i_was_called).with([1,2,3,4,5]).returns([1])
-    Post.expects(:i_was_called).with([6,7]).returns([6])
-    associated_records = Post.send(:associated_records, [1,2,3,4,5,6,7]) do |some_ids|
-      Post.i_was_called(some_ids)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(1)
+
+    post1, post2 = posts(:welcome), posts(:thinking)
+    assert_queries(3) do
+      Post.includes(:comments).where(:id => [post1.id, post2.id]).to_a
     end
-    assert_equal [1,6], associated_records
   end
 
   def test_load_associated_records_in_one_query_when_a_few_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    Post.expects(:i_was_called).with([1,2,3]).returns([1])
-    associated_records = Post.send(:associated_records, [1,2,3]) do |some_ids|
-      Post.i_was_called(some_ids)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(3)
+
+    post = posts(:welcome)
+    assert_queries(2) do
+      Post.includes(:comments).where(:id => post.id).to_a
     end
-    assert_equal [1], associated_records
   end
 
   def test_including_duplicate_objects_from_belongs_to

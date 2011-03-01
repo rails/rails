@@ -1882,10 +1882,17 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_datetime_select_defaults_to_time_zone_now_when_config_time_zone_is_set
-    time = stub(:year => 2004, :month => 6, :day => 15, :hour => 16, :min => 35, :sec => 0)
-    time_zone = mock()
-    time_zone.expects(:now).returns time
-    Time.zone_default = time_zone
+    # The love zone is UTC+0
+    mytz = Class.new(ActiveSupport::TimeZone) {
+      attr_accessor :now
+    }.create('tenderlove', 0)
+
+    now       = Time.mktime(2004, 6, 15, 16, 35, 0)
+    mytz.now  = now
+    Time.zone = mytz
+
+    assert_equal mytz, Time.zone
+
     @post = Post.new
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
@@ -1912,7 +1919,7 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, datetime_select("post", "updated_at")
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   def test_datetime_select_with_html_options_within_fields_for

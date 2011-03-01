@@ -1950,7 +1950,7 @@ MSG
     include AttributeMethods::Dirty
     include ActiveModel::MassAssignmentSecurity
     include Callbacks, ActiveModel::Observing, Timestamp
-    include Associations, AssociationPreload, NamedScope
+    include Associations, NamedScope
     include IdentityMap
     include ActiveModel::SecurePassword
 
