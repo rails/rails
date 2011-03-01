@@ -66,10 +66,6 @@ module ActionDispatch
       middlewares[i]
     end
 
-    def include?(item)
-      middlewares.include? item
-    end
-
     def initialize_copy(other)
       self.middlewares = other.middlewares.dup
     end
