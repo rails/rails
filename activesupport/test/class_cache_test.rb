@@ -59,8 +59,20 @@ module ActiveSupport
       end
 
       def test_new_rejects_strings
-        @cache.new ClassCacheTest.name
+        assert_deprecated do
+          @cache.new ClassCacheTest.name
+        end
         assert !@cache.key?(ClassCacheTest.name)
+      end
+
+      def test_new_rejects_strings
+        @cache.store ClassCacheTest.name
+        assert !@cache.key?(ClassCacheTest.name)
+      end
+
+      def test_store_returns_self
+        x = @cache.store ClassCacheTest
+        assert_equal @cache, x
       end
 
       def test_new_returns_proxy
@@ -69,17 +81,26 @@ module ActiveSupport
           v = @cache.new ClassCacheTest.name
         end
 
-        assert_equal ClassCacheTest, v.get
+        assert_deprecated do
+          assert_equal ClassCacheTest, v.get
+        end
       end
 
       def test_anonymous_class_fail
         assert_raises(ArgumentError) do
-          @cache.new Class.new
+          assert_deprecated do
+            @cache.new Class.new
+          end
         end
 
         assert_raises(ArgumentError) do
           x = Class.new
           @cache[x] = x
+        end
+
+        assert_raises(ArgumentError) do
+          x = Class.new
+          @cache.store x
         end
       end
     end

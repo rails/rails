@@ -557,6 +557,7 @@ module ActiveSupport #:nodoc:
         def get
           Reference.get @name
         end
+        deprecate :get
       end
 
       def new(name)
@@ -564,6 +565,11 @@ module ActiveSupport #:nodoc:
         Getter.new(name)
       end
       deprecate :new
+
+      def store(name)
+        self[name] = name
+        self
+      end
 
       def clear!
         @store.clear
@@ -575,7 +581,14 @@ module ActiveSupport #:nodoc:
     def ref(name)
       Reference.new(name)
     end
+    deprecate :ref
 
+    # Store a reference to a class +klass+.
+    def reference(klass)
+      Reference.store klass
+    end
+
+    # Get the reference for class named +name+.
     def constantize(name)
       Reference.get(name)
     end
