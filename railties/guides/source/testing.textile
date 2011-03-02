@@ -229,13 +229,13 @@ $ rake db:test:load
 
 Above +rake db:migrate+ runs any pending migrations on the _development_ environment and updates +db/schema.rb+. +rake db:test:load+ recreates the test database from the current +db/schema.rb+. On subsequent attempts, it is a good idea to first run +db:test:prepare+, as it first checks for pending migrations and warns you appropriately.
 
-NOTE: +db:test:prepare+ will fail with an error if +db/schema.rb+ doesn't exists.
+NOTE: +db:test:prepare+ will fail with an error if +db/schema.rb+ doesn't exist.
 
 h5. Rake Tasks for Preparing your Application for Testing
 
 |_.Tasks                         |_.Description|
 |+rake db:test:clone+            |Recreate the test database from the current environment's database schema|
-|+rake db:test:clone_structure+  |Recreate the test databases from the development structure|
+|+rake db:test:clone_structure+  |Recreate the test database from the development structure|
 |+rake db:test:load+             |Recreate the test database from the current +schema.rb+|
 |+rake db:test:prepare+          |Check for pending migrations and load the test schema|
 |+rake db:test:purge+            |Empty the test database.|
@@ -512,12 +512,12 @@ After a request has been made by using one of the 5 methods (+get+, +post+, etc.
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name, except for +assigns+. For example:
 
 <ruby>
-  flash["gordon"]               flash[:gordon]
-  session["shmession"]          session[:shmession]
-  cookies["are_good_for_u"]     cookies[:are_good_for_u]
+flash["gordon"]               flash[:gordon]
+session["shmession"]          session[:shmession]
+cookies["are_good_for_u"]     cookies[:are_good_for_u]
 
 # Because you can't use assigns[:something] for historical reasons:
-  assigns["something"]          assigns(:something)
+assigns["something"]          assigns(:something)
 </ruby>
 
 h4. Instance Variables Available
@@ -582,7 +582,7 @@ assert_select "ol" do
 end
 </ruby>
 
-The +assert_select+ assertion is quite powerful. For more advanced usage, refer to its "documentation":http://api.rubyonrails.org/classes/ActionController/Assertions/SelectorAssertions.html.
+The +assert_select+ assertion is quite powerful. For more advanced usage, refer to its "documentation":http://api.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html.
 
 h5. Additional View-Based Assertions
 

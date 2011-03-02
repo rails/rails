@@ -1,9 +1,7 @@
 module Rails
   class Railtie
     module Configurable
-      def self.included(base)
-        base.extend ClassMethods
-      end
+      extend ActiveSupport::Concern
 
       module ClassMethods
         delegate :config, :to => :instance
@@ -26,9 +24,9 @@ module Rails
 
         protected
 
-          def method_missing(*args, &block)
-            instance.send(*args, &block)
-          end
+        def method_missing(*args, &block)
+          instance.send(*args, &block)
+        end
       end
     end
   end

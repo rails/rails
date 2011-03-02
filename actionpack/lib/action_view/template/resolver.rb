@@ -5,6 +5,13 @@ require "action_view/template"
 module ActionView
   # = Action View Resolver
   class Resolver
+    cattr_accessor :caching
+    self.caching = true
+
+    class << self
+      alias :caching? :caching
+    end
+
     def initialize
       @cached = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
         h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
@@ -23,9 +30,7 @@ module ActionView
 
   private
 
-    def caching?
-      @caching ||= !defined?(Rails.application) || Rails.application.config.cache_classes
-    end
+    delegate :caching?, :to => "self.class"
 
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
@@ -42,7 +47,7 @@ module ActionView
       path
     end
 
-    # Hnadles templates caching. If a key is given and caching is on
+    # Handles templates caching. If a key is given and caching is on
     # always check the cache before hitting the resolver. Otherwise,
     # it always hits the resolver but check if the resolver is fresher
     # before returning it.
@@ -104,18 +109,27 @@ module ActionView
     def query(path, exts, formats)
       query = File.join(@path, path)
 
-      exts.each do |ext|
-        query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << ',}'
-      end
+      query << exts.map { |ext|
+        "{#{ext.compact.map { |e| ".#{e}" }.join(',')},}"
+      }.join
 
-      Dir[query].reject { |p| File.directory?(p) }.map do |p|
+      query.gsub!(/\{\.html,/, "{.html,.text.html,")
+      query.gsub!(/\{\.text,/, "{.text,.text.plain,")
+
+      templates = []
+      sanitizer = Hash.new { |h,k| h[k] = Dir["#{File.dirname(k)}/*"] }
+
+      Dir[query].each do |p|
+        next if File.directory?(p) || !sanitizer[p].include?(p)
+
         handler, format = extract_handler_and_format(p, formats)
-
         contents = File.open(p, "rb") {|io| io.read }
 
-        Template.new(contents, File.expand_path(p), handler,
+        templates << Template.new(contents, File.expand_path(p), handler,
           :virtual_path => path, :format => format, :updated_at => mtime(p))
       end
+
+      templates
     end
 
     # Returns the file mtime from the filesystem.

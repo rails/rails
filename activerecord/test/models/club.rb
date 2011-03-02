@@ -1,4 +1,5 @@
 class Club < ActiveRecord::Base
+  has_one :membership
   has_many :memberships
   has_many :members, :through => :memberships
   has_many :current_memberships

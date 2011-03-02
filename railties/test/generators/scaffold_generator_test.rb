@@ -3,7 +3,7 @@ require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
-  arguments %w(product_line title:string price:integer)
+  arguments %w(product_line title:string product:belongs_to user:references)
 
   setup :copy_routes
 
@@ -14,7 +14,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
     assert_file "test/unit/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
-    assert_migration "db/migrate/create_product_lines.rb"
+    assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /add_index :product_lines, :product_id/
+    assert_migration "db/migrate/create_product_lines.rb", /references :user/
+    assert_migration "db/migrate/create_product_lines.rb", /add_index :product_lines, :user_id/
 
     # Route
     assert_file "config/routes.rb" do |route|

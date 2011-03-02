@@ -26,7 +26,11 @@ module ActiveSupport
           when nil
             nil
           when DATE_REGEX
-            DateTime.parse(data)
+            begin
+              DateTime.parse(data)
+            rescue ArgumentError
+              data
+            end
           when Array
             data.map! { |d| convert_dates_from(d) }
           when Hash

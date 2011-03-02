@@ -10,6 +10,7 @@ activerecord/doc
 actionpack/doc
 actionmailer/doc
 activesupport/doc
+activesupport/test/tmp
 activemodel/test/fixtures/fixture_database.sqlite3
 actionpack/test/tmp
 activesupport/test/fixtures/isolation_test
@@ -20,3 +21,4 @@ railties/test/initializer/root/log
 railties/doc
 railties/guides/output
 railties/tmp
+.rvmrc

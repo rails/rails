@@ -2,6 +2,7 @@ require 'tempfile'
 require 'stringio'
 require 'strscan'
 
+require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
@@ -133,8 +134,9 @@ module ActionDispatch
     end
 
     def forgery_whitelisted?
-      get? || xhr? || content_mime_type.nil? || !content_mime_type.verify_request?
+      get?
     end
+    deprecate :forgery_whitelisted? => "it is just an alias for 'get?' now, update your code"
 
     def media_type
       content_mime_type.to_s

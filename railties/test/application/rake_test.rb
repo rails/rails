@@ -63,5 +63,41 @@ module ApplicationTests
       RUBY
       assert_match 'cart GET /cart(.:format)', Dir.chdir(app_path){ `rake routes` }
     end
+
+    def test_model_and_migration_generator_with_change_syntax
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate migration add_email_to_users email:string`
+      end
+
+      output = Dir.chdir(app_path){ `rake db:migrate` }
+      assert_match /create_table\(:users\)/, output
+      assert_match /CreateUsers: migrated/, output
+      assert_match /add_column\(:users, :email, :string\)/, output
+      assert_match /AddEmailToUsers: migrated/, output
+
+      output = Dir.chdir(app_path){ `rake db:rollback STEP=2` }
+      assert_match /drop_table\("users"\)/, output
+      assert_match /CreateUsers: reverted/, output
+      assert_match /remove_column\("users", :email\)/, output
+      assert_match /AddEmailToUsers: reverted/, output
+    end
+
+    def test_loading_specific_fixtures
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate model product name:string`
+        `rake db:migrate`
+      end
+
+      require "#{rails_root}/config/environment"
+      
+      # loading a specific fixture
+      errormsg = Dir.chdir(app_path) { `rake db:fixtures:load FIXTURES=products` }
+      assert $?.success?, errormsg
+
+      assert_equal 2, ::AppTemplate::Application::Product.count
+      assert_equal 0, ::AppTemplate::Application::User.count
+    end
   end
 end

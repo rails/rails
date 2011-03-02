@@ -1,10 +1,10 @@
 h2. AJAX on Rails
 
-This guide covers the built-in Ajax/Javascript functionality of Rails (and more); it will enable you to create rich and dynamic AJAX applications with ease! We will cover the following topics:
+This guide covers the built-in Ajax/JavaScript functionality of Rails (and more); it will enable you to create rich and dynamic AJAX applications with ease! We will cover the following topics:
 
 * Quick introduction to AJAX and related technologies
-* Handling Javascript the Rails way: Rails helpers, RJS, Prototype and script.aculo.us
-* Testing Javascript functionality
+* Handling JavaScript the Rails way: Rails helpers, RJS, Prototype and script.aculo.us
+* Testing JavaScript functionality
 
 endprologue.
 
@@ -12,7 +12,7 @@ h3. Hello AJAX - a Quick Intro
 
 If you are a 'show me the code' type of person, you might want to skip this part and jump to the RJS section right away. However, I would really recommend to read it - you'll need the basics of DOM, http requests and other topics discussed here to really understand Ajax on Rails.
 
-h4. Asynchronous Javascript + XML
+h4. Asynchronous JavaScript + XML
 
 Basic terminology, new style of creating web apps
 
@@ -31,7 +31,7 @@ How do 'standard' and AJAX requests differ, why does this matter for understandi
 
 h3. Built-in Rails Helpers
 
-Rails' Javascript framework of choice is "Prototype":http://www.prototypejs.org. Prototype is a generic-purpose Javascript framework that aims to ease the development of dynamic web applications by offering DOM manipulation, AJAX and other Javascript functionality ranging from utility functions to object oriented constructs. It is not specifically written for any language, so Rails provides a set of helpers to enable seamless integration of Prototype with your Rails views.
+Rails' JavaScript framework of choice is "Prototype":http://www.prototypejs.org. Prototype is a generic-purpose JavaScript framework that aims to ease the development of dynamic web applications by offering DOM manipulation, AJAX and other JavaScript functionality ranging from utility functions to object oriented constructs. It is not specifically written for any language, so Rails provides a set of helpers to enable seamless integration of Prototype with your Rails views.
 
 To get access to these helpers, all you have to do is to include the prototype framework in your pages - typically in your master layout, application.html.erb - like so:
 <ruby>
@@ -42,7 +42,7 @@ You are ready to add some AJAX love to your Rails app!
 
 h4. The Quintessential AJAX Rails Helper: link_to_remote
 
-Let's start with the the probably most often used helper: +link_to_remote+, which has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
+Let's start with what is probably the most often used helper: +link_to_remote+.  It has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
 
 The signature of +link_to_remote+ function is the same as that of the standard +link_to+ helper:
 
@@ -136,7 +136,7 @@ link_to_remote "Add new item",
   :before => "$('progress').show()",
   :complete => "$('progress').hide()",
   :success => "display_item_added(request)",
-  :failure => "display_error(request)",
+  :failure => "display_error(request)"
 </ruby>
 ** *:type* If you want to fire a synchronous request for some obscure reason (blocking the browser while the request is processed and doesn't return a status code), you can use the +:type+ option with the value of +:synchronous+.
 * Finally, using the +html_options+ parameter you can add HTML attributes to the generated tag. It works like the same parameter of the +link_to+ helper. There are interesting side effects for the +href+ and +onclick+ parameters though:
@@ -153,7 +153,7 @@ There are three different ways of adding AJAX forms to your view using Rails Pro
 * +form_remote_tag+ AJAXifies the form by serializing and sending it's data in the background
 * +submit_to_remote+ and +button_to_remote+ is more rarely used than the previous two. Rather than creating an AJAX form, you add a button/input
 
-Let's se them in action one by one!
+Let's see them in action one by one!
 
 h5. +remote_form_for+
 
@@ -183,7 +183,7 @@ h3. JavaScript the Rails way: RJS
 
 In the last section we sent some AJAX requests to the server, and inserted the HTML response into the page (with the +:update+ option). However, sometimes a more complicated interaction with the page is needed, which you can either achieve with JavaScript... or with RJS! You are sending JavaScript instructions to the server in both cases, but while in the former case you have to write vanilla JavaScript, in the second you can code Rails, and sit back while Rails generates the JavaScript for you - so basically RJS is a Ruby DSL to write JavaScript in your Rails code.
 
-h4. Javascript without RJS
+h4. JavaScript without RJS
 
 First we'll check out how to send JavaScript to the server manually. You are practically never going to need this, but it's interesting to understand what's going on under the hood.
 
@@ -329,9 +329,9 @@ h4. Drag and Drop
 
 
 
-h3. Testing Javascript
+h3. Testing JavaScript
 
-Javascript testing reminds me the definition of the world 'classic' by Mark Twain: "A classic is something that everybody wants to have read and nobody wants to read." It's similar with Javascript testing: everyone would like to have it, yet it's not done by too much developers as it is tedious, complicated, there is a proliferation of tools and no consensus/accepted best practices, but we will nevertheless take a stab at it:
+JavaScript testing reminds me the definition of the world 'classic' by Mark Twain: "A classic is something that everybody wants to have read and nobody wants to read." It's similar with JavaScript testing: everyone would like to have it, yet it's not done by too much developers as it is tedious, complicated, there is a proliferation of tools and no consensus/accepted best practices, but we will nevertheless take a stab at it:
 
 * (Fire)Watir
 * Selenium

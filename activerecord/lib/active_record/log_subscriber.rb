@@ -22,8 +22,16 @@ module ActiveRecord
       self.class.runtime += event.duration
       return unless logger.debug?
 
-      name = '%s (%.1fms)' % [event.payload[:name], event.duration]
-      sql  = event.payload[:sql].squeeze(' ')
+      payload = event.payload
+      name    = '%s (%.1fms)' % [payload[:name], event.duration]
+      sql     = payload[:sql].squeeze(' ')
+      binds   = nil
+
+      unless (payload[:binds] || []).empty?
+        binds = "  " + payload[:binds].map { |col,v|
+          [col.name, v]
+        }.inspect
+      end
 
       if odd?
         name = color(name, CYAN, true)
@@ -32,7 +40,7 @@ module ActiveRecord
         name = color(name, MAGENTA, true)
       end
 
-      debug "  #{name}  #{sql}"
+      debug "  #{name}  #{sql}#{binds}"
     end
 
     def odd?

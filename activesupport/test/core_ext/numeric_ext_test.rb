@@ -89,8 +89,8 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10) + 1.year
   end
 
-  def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
-    Time.zone_default = nil
+  def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
+    Time.zone = nil
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
@@ -102,8 +102,8 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
     end
   end
 
-  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
@@ -116,7 +116,7 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
       assert_equal 'Eastern Time (US & Canada)', 5.ago.time_zone.name
     end
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   protected

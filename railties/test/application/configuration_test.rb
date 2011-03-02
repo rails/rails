@@ -280,5 +280,58 @@ module ApplicationTests
       get "/"
       assert_equal "/omg/images/foo.jpg", last_response.body
     end
+
+    test "config.action_view.cache_template_loading with cache_classes default" do
+      add_to_config "config.cache_classes = true"
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading without cache_classes default" do
+      add_to_config "config.cache_classes = false"
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert !ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading = false" do
+      add_to_config <<-RUBY
+        config.cache_classes = true
+        config.action_view.cache_template_loading = false
+      RUBY
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert !ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading = true" do
+      add_to_config <<-RUBY
+        config.cache_classes = false
+        config.action_view.cache_template_loading = true
+      RUBY
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert ActionView::Resolver.caching?
+    end
+
+    test "config.action_dispatch.show_exceptions is sent in env" do
+      make_basic_app do |app|
+        app.config.action_dispatch.show_exceptions = true
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :text => env["action_dispatch.show_exceptions"]
+        end
+      end
+
+      get "/"
+      assert_equal 'true', last_response.body
+    end
   end
 end

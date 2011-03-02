@@ -215,6 +215,13 @@ module TestHelpers
       end
     end
 
+    def remove_from_config(str)
+      file = "#{app_path}/config/application.rb"
+      contents = File.read(file)
+      contents.sub!(/#{str}/, "")
+      File.open(file, "w+") { |f| f.puts contents }
+    end
+
     def app_file(path, contents)
       FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
       File.open("#{app_path}/#{path}", 'w') do |f|
@@ -231,6 +238,7 @@ module TestHelpers
                     :activemodel,
                     :activerecord,
                     :activeresource] - arr
+      remove_from_config "config.active_record.identity_map = true" if to_remove.include? :activerecord
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 

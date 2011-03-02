@@ -16,7 +16,7 @@ h3. Titles
 
 The title of every guide uses +h2+, guide sections use +h3+, subsections +h4+, etc.
 
-Capitalize all words except for internal articles, prepositions, conjuctions, and forms of the verb to be:
+Capitalize all words except for internal articles, prepositions, conjunctions, and forms of the verb to be:
 
 <plain>
 h5. Middleware Stack is an Array
@@ -45,24 +45,30 @@ h3. HTML Generation
 To generate all the guides just cd into the +railties+ directory and execute
 
 <plain>
-rake generate_guides
+bundle exec rake generate_guides
 </plain>
 
-You'll need the gems erubis, i18n, and RedCloth. 
+You'll need the gems erubis, i18n, and RedCloth.
 
 To process +my_guide.textile+ and nothing else use the +ONLY+ environment variable:
 
 <plain>
-rake generate_guides ONLY=my_guide
+bundle exec rake generate_guides ONLY=my_guide
 </plain>
 
 Although by default guides that have not been modified are not processed, so +ONLY+ is rarely needed in practice.
 
-To force process of al the guides pass +ALL=1+.
+To force process of all the guides, pass +ALL=1+.
 
 It is also recommended that you work with +WARNINGS=1+, this detects duplicate IDs and warns about broken internal links.
 
-h3. HTML validation
+If you want to generate guides in languages other than English, you can keep them in a separate directory under +source+ (eg. <tt>source/es</tt>) and use the +LANGUAGE+ environment variable.
+
+<plain>
+rake generate_guides LANGUAGE=es
+</plain>
+
+h3. HTML Validation
 
 Please do validate the generated HTML with
 

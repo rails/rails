@@ -35,5 +35,13 @@ module ActionView
         end
       end
     end
+
+    initializer "action_view.caching" do |app|
+      ActiveSupport.on_load(:action_view) do
+        if app.config.action_view.cache_template_loading.nil?
+          ActionView::Resolver.caching = app.config.cache_classes
+        end
+      end
+    end
   end
 end

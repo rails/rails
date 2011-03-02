@@ -532,7 +532,7 @@ module ActiveRecord
       def exec_query(sql, name = 'SQL', binds = [])
         return exec_no_cache(sql, name) if binds.empty?
 
-        log(sql, name) do
+        log(sql, name, binds) do
           unless @statements.key? sql
             nextkey = "a#{@statements.length + 1}"
             @connection.prepare nextkey, sql
@@ -786,7 +786,7 @@ module ActiveRecord
       def pk_and_sequence_for(table) #:nodoc:
         # First try looking for a sequence with a dependency on the
         # given table's primary key.
-        result = query(<<-end_sql, 'PK and serial sequence')[0]
+        result = exec_query(<<-end_sql, 'PK and serial sequence').rows.first
           SELECT attr.attname, seq.relname
           FROM pg_class      seq,
                pg_attribute  attr,
@@ -845,14 +845,18 @@ module ActiveRecord
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
-        default = options[:default]
-        notnull = options[:null] == false
+        add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        add_column_options!(add_column_sql, options)
 
-        # Add the column.
-        execute("ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}")
+        begin
+          execute add_column_sql
+        rescue ActiveRecord::StatementInvalid => e
+          raise e if postgresql_version > 80000
 
-        change_column_default(table_name, column_name, default) if options_include_default?(options)
-        change_column_null(table_name, column_name, false, default) if notnull
+          execute("ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}")
+          change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
+          change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+        end
       end
 
       # Changes the column of a table.
@@ -1071,7 +1075,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name) #:nodoc:
-          query <<-end_sql
+          exec_query(<<-end_sql).rows
             SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull
               FROM pg_attribute a LEFT JOIN pg_attrdef d
                 ON a.attrelid = d.adrelid AND a.attnum = d.adnum

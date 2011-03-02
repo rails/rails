@@ -13,14 +13,18 @@ module ActiveModel
       #
       # Activates the observers assigned. Examples:
       #
+      #   class ORM
+      #     include ActiveModel::Observing
+      #   end
+      #
       #   # Calls PersonObserver.instance
-      #   ActiveRecord::Base.observers = :person_observer
+      #   ORM.observers = :person_observer
       #
       #   # Calls Cacher.instance and GarbageCollector.instance
-      #   ActiveRecord::Base.observers = :cacher, :garbage_collector
+      #   ORM.observers = :cacher, :garbage_collector
       #
       #   # Same as above, just using explicit class references
-      #   ActiveRecord::Base.observers = Cacher, GarbageCollector
+      #   ORM.observers = Cacher, GarbageCollector
       #
       # Note: Setting this does not instantiate the observers yet.
       # +instantiate_observers+ is called during startup, and before
@@ -44,6 +48,7 @@ module ActiveModel
         observers.each { |o| instantiate_observer(o) }
       end
 
+      # Add a new observer to the pool.
       def add_observer(observer)
         unless observer.respond_to? :update
           raise ArgumentError, "observer needs to respond to `update'"
@@ -51,12 +56,14 @@ module ActiveModel
         observer_instances << observer
       end
 
+      # Notify list of observers of a change.
       def notify_observers(*arg)
         for observer in observer_instances
           observer.update(*arg)
         end
       end
 
+      # Total number of observers.
       def count_observers
         observer_instances.size
       end
@@ -151,6 +158,10 @@ module ActiveModel
   #
   # The AuditObserver will now act on both updates to Account and Balance by treating
   # them both as records.
+  #
+  # If you're using an Observer in a Rails application with Active Record, be sure to
+  # read about the necessary configuration in the documentation for
+  # ActiveRecord::Observer.
   #
   class Observer
     include Singleton

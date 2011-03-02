@@ -34,14 +34,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string", "body:text"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :up, content do |up|
+      assert_method :change, content do |up|
         assert_match /add_column :posts, :title, :string/, up
         assert_match /add_column :posts, :body, :text/, up
-      end
-
-      assert_method :down, content do |down|
-        assert_match /remove_column :posts, :title/, down
-        assert_match /remove_column :posts, :body/, down
       end
     end
   end

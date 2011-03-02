@@ -1,8 +1,172 @@
 *Rails 3.1.0 (unreleased)*
 
 * Associations with a :through option can now use *any* association as the
-through or source association, including other associations which have a
-:through option and has_and_belongs_to_many associations #1812 [Jon Leighton]
+  through or source association, including other associations which have a
+  :through option and has_and_belongs_to_many associations
+
+  [Jon Leighton]
+
+* limits and offsets are removed from COUNT queries unless both are supplied.
+  For example:
+
+    People.limit(1).count           # => 'SELECT COUNT(*) FROM people'
+    People.offset(1).count          # => 'SELECT COUNT(*) FROM people'
+    People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET 1'
+
+  [lighthouse #6262]
+
+* ActiveRecord::Associations::AssociationProxy has been split. There is now an Association class
+  (and subclasses) which are responsible for operating on associations, and then a separate,
+  thin wrapper called CollectionProxy, which proxies collection associations.
+
+  This prevents namespace pollution, separates concerns, and will allow further refactorings.
+
+  Singular associations (has_one, belongs_to) no longer have a proxy at all. They simply return
+  the associated record or nil. This means that you should not use undocumented methods such
+  as bob.mother.create - use bob.create_mother instead.
+
+  [Jon Leighton]
+
+* Make has_many :through associations work correctly when you build a record and then save it. This
+  requires you to set the :inverse_of option on the source reflection on the join model, like so:
+
+  class Post < ActiveRecord::Base
+    has_many :taggings
+    has_many :tags, :through => :taggings
+  end
+
+  class Tagging < ActiveRecord::Base
+    belongs_to :post
+    belongs_to :tag, :inverse_of => :tagging # :inverse_of must be set!
+  end
+
+  class Tag < ActiveRecord::Base
+    has_many :taggings
+    has_many :posts, :through => :taggings
+  end
+
+  post = Post.first
+  tag = post.tags.build :name => "ruby"
+  tag.save # will save a Taggable linking to the post
+
+  [Jon Leighton]
+
+* Support the :dependent option on has_many :through associations. For historical and practical
+  reasons, :delete_all is the default deletion strategy employed by association.delete(*records),
+  despite the fact that the default strategy is :nullify for regular has_many. Also, this only
+  works at all if the source reflection is a belongs_to. For other situations, you should directly
+  modify the through association.
+
+  [Jon Leighton]
+
+* Changed the behaviour of association.destroy for has_and_belongs_to_many and has_many :through.
+  From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link',
+  not (necessarily) 'get rid of the associated records'.
+
+  Previously, has_and_belongs_to_many.destroy(*records) would destroy the records themselves. It
+  would not delete any records in the join table. Now, it deletes the records in the join table.
+
+  Previously, has_many_through.destroy(*records) would destroy the records themselves, and the
+  records in the join table. [Note: This has not always been the case; previous version of Rails
+  only deleted the records themselves.] Now, it destroys only the records in the join table.
+
+  Note that this change is backwards-incompatible to an extent, but there is unfortunately no
+  way to 'deprecate' it before changing it. The change is being made in order to have
+  consistency as to the meaning of 'destroy' or 'delete' across the different types of associations.
+
+  If you wish to destroy the records themselves, you can do records.association.each(&:destroy)
+
+  [Jon Leighton]
+
+* Add :bulk => true option to change_table to make all the schema changes defined in change_table block using a single ALTER statement. [Pratik Naik]
+
+  Example:
+
+  change_table(:users, :bulk => true) do |t|
+    t.string :company_name
+    t.change :birthdate, :datetime
+  end
+
+  This will now result in:
+
+    ALTER TABLE `users` ADD COLUMN `company_name` varchar(255), CHANGE `updated_at` `updated_at` datetime DEFAULT NULL
+
+* Removed support for accessing attributes on a has_and_belongs_to_many join table. This has been
+  documented as deprecated behaviour since April 2006. Please use has_many :through instead.
+  [Jon Leighton]
+
+* Added a create_association! method for has_one and belongs_to associations. [Jon Leighton]
+
+* Migration files generated from model and constructive migration generators
+  (for example, add_name_to_users) use the reversible migration's `change`
+  method instead of the ordinary `up` and `down` methods. [Prem Sichanugrist]
+
+* Removed support for interpolating string SQL conditions on associations. Instead, you should
+  use a proc, like so:
+
+  Before:
+
+    has_many :things, :conditions => 'foo = #{bar}'
+
+  After:
+
+    has_many :things, :conditions => proc { "foo = #{bar}" }
+
+  Inside the proc, 'self' is the object which is the owner of the association, unless you are
+  eager loading the association, in which case 'self' is the class which the association is within.
+
+  You can have any "normal" conditions inside the proc, so the following will work too:
+
+    has_many :things, :conditions => proc { ["foo = ?", bar] }
+
+  Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call
+  'record' to get the record being inserted or deleted. This is now passed as an argument to
+  the proc.
+
+* Added ActiveRecord::Base#has_secure_password (via ActiveModel::SecurePassword) to encapsulate dead-simple password usage with BCrypt encryption and salting [DHH]. Example:
+
+    # Schema: User(name:string, password_digest:string, password_salt:string)
+    class User < ActiveRecord::Base
+      has_secure_password
+    end
+
+    user = User.new(:name => "david", :password => "", :password_confirmation => "nomatch")
+    user.save                                                      # => false, password required
+    user.password = "mUc3m00RsqyRe"
+    user.save                                                      # => false, confirmation doesn't match
+    user.password_confirmation = "mUc3m00RsqyRe"
+    user.save                                                      # => true
+    user.authenticate("notright")                                  # => false
+    user.authenticate("mUc3m00RsqyRe")                             # => user
+    User.find_by_name("david").try(:authenticate, "notright")      # => nil
+    User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
+
+
+* When a model is generated add_index is added by default for belongs_to or references columns
+
+  rails g model post user:belongs_to will generate the following:
+
+    class CreatePosts < ActiveRecord::Migration
+      def up
+        create_table :posts do |t|
+          t.belongs_to :user
+
+          t.timestamps
+        end
+
+        add_index :posts, :user_id
+      end
+
+      def down
+        drop_table :posts
+      end
+    end
+
+  [Santiago Pastorino]
+<<<<<<< Updated upstream
+>>>>>>> association_fixes
+=======
+>>>>>>> Stashed changes
 
 * Setting the id of a belongs_to object will update the reference to the
 object. [#2989 state:resolved]
@@ -63,7 +227,15 @@ IrreversibleMigration exception will be raised when going down.
 
   [Aaron Patterson]
 
-*Rails 3.0.2 (unreleased)*
+
+*Rails 3.0.3 (November 16, 2010)*
+
+* Support find by class like this: Post.where(:name => Post)
+
+
+*Rails 3.0.2 (November 15, 2010)*
+
+* Dramatic speed increase (see: http://engineering.attinteractive.com/2010/10/arel-two-point-ohhhhh-yaaaaaa/) [Aaron Patterson]
 
 * reorder is deprecated in favor of except(:order).order(...) [Santiago Pastorino]
 

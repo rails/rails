@@ -63,7 +63,7 @@ module ActiveRecord
     end
 
     def joins(*args)
-      return self if args.blank?
+      return self if args.compact.blank?
 
       relation = clone
 
@@ -128,7 +128,7 @@ module ActiveRecord
 
     def create_with(value)
       relation = clone
-      relation.create_with_value = value
+      relation.create_with_value = value && (@create_with_value || {}).merge(value)
       relation
     end
 
@@ -152,7 +152,7 @@ module ActiveRecord
       order_clause = arel.order_clauses
 
       order = order_clause.empty? ?
-        "#{@klass.table_name}.#{@klass.primary_key} DESC" :
+        "#{table_name}.#{primary_key} DESC" :
         reverse_sql_order(order_clause).join(', ')
 
       except(:order).order(Arel.sql(order))
@@ -171,7 +171,7 @@ module ActiveRecord
 
       arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
-      arel.take(@limit_value) if @limit_value
+      arel.take(connection.sanitize_limit(@limit_value)) if @limit_value
       arel.skip(@offset_value) if @offset_value
 
       arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
@@ -191,42 +191,25 @@ module ActiveRecord
     def custom_join_ast(table, joins)
       joins = joins.reject { |join| join.blank? }
 
-      return if joins.empty?
+      return [] if joins.empty?
 
       @implicit_readonly = true
 
-      joins.map! do |join|
+      joins.map do |join|
         case join
         when Array
           join = Arel.sql(join.join(' ')) if array_of_strings?(join)
         when String
           join = Arel.sql(join)
         end
-        join
+        table.create_string_join(join)
       end
-
-      head = table.create_string_join(table, joins.shift)
-
-      joins.inject(head) do |ast, join|
-        ast.right = table.create_string_join(ast.right, join)
-      end
-
-      head
     end
 
     def collapse_wheres(arel, wheres)
       equalities = wheres.grep(Arel::Nodes::Equality)
 
-      groups = equalities.group_by do |equality|
-        equality.left
-      end
-
-      groups.each do |_, eqls|
-        test = eqls.inject(eqls.shift) do |memo, expr|
-          memo.or(expr)
-        end
-        arel.where(test)
-      end
+      arel.where(Arel::Nodes::And.new(equalities)) unless equalities.empty?
 
       (wheres - equalities).each do |where|
         where = Arel.sql(where) if String === where
@@ -247,18 +230,40 @@ module ActiveRecord
     end
 
     def build_joins(manager, joins)
-      joins = joins.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
-
-      association_joins = joins.find_all do |join|
-        [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
+      buckets = joins.group_by do |join|
+        case join
+        when String
+          'string_join'
+        when Hash, Symbol, Array
+          'association_join'
+        when ActiveRecord::Associations::JoinDependency::JoinAssociation
+          'stashed_join'
+        when Arel::Nodes::Join
+          'join_node'
+        else
+          raise 'unknown class: %s' % join.class.name
+        end
       end
 
-      stashed_association_joins = joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
+      association_joins         = buckets['association_join'] || []
+      stashed_association_joins = buckets['stashed_join'] || []
+      join_nodes                = buckets['join_node'] || []
+      string_joins              = (buckets['string_join'] || []).map { |x|
+        x.strip
+      }.uniq
 
-      non_association_joins = (joins - association_joins - stashed_association_joins)
-      join_ast = custom_join_ast(manager.froms.first, non_association_joins)
+      join_list = custom_join_ast(manager, string_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, join_ast)
+      join_dependency = ActiveRecord::Associations::JoinDependency.new(
+        @klass,
+        association_joins,
+        join_list
+      )
+
+      # TODO: Necessary?
+      join_nodes.each do |join|
+        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
+      end
 
       join_dependency.graft(*stashed_association_joins)
 
@@ -269,10 +274,9 @@ module ActiveRecord
         association.join_to(manager)
       end
 
-      return manager unless join_ast
+      manager.join_sources.concat join_nodes.uniq
+      manager.join_sources.concat join_list
 
-      join_ast.left = manager.froms.first
-      manager.from join_ast
       manager
     end
 
@@ -281,7 +285,7 @@ module ActiveRecord
         @implicit_readonly = false
         arel.project(*selects)
       else
-        arel.project(Arel.sql(@klass.quoted_table_name + '.*'))
+        arel.project(@klass.arel_table[Arel.star])
       end
     end
 

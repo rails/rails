@@ -112,12 +112,7 @@ module Rails
       end
 
       def database_gemfile_entry
-        entry = ""
-        unless options[:skip_active_record]
-          entry = "gem '#{gem_for_database}'"
-          entry << ", :require => '#{require_for_database}'" if require_for_database
-        end
-        entry
+        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
       end
 
       def rails_gemfile_entry
@@ -150,16 +145,9 @@ gem 'rails', '#{Rails::VERSION::STRING}'
         case options[:database]
         when "oracle"     then "ruby-oci8"
         when "postgresql" then "pg"
-        when "sqlite3"    then "sqlite3-ruby"
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
         else options[:database]
-        end
-      end
-
-      def require_for_database
-        case options[:database]
-        when "sqlite3" then "sqlite3"
         end
       end
 
@@ -171,6 +159,12 @@ gem 'rails', '#{Rails::VERSION::STRING}'
       def dev_or_edge?
         options.dev? || options.edge?
       end
+
+      def empty_directory_with_gitkeep(destination, config = {})
+        empty_directory(destination, config)
+        create_file("#{destination}/.gitkeep") unless options[:skip_git]
+      end
+
     end
   end
 end

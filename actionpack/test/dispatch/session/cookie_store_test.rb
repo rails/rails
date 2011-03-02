@@ -194,7 +194,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
-      session_payload = response.body
       assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
         headers['Set-Cookie']
 

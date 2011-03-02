@@ -7,11 +7,11 @@ class Module
   #     attr_accessor_with_default :age, 25
   #   end
   #
-  #   some_person.age
-  #   => 25
-  #   some_person.age = 26
-  #   some_person.age
-  #   => 26
+  #   person = Person.new
+  #   person.age # => 25
+  #
+  #   person.age = 26
+  #   person.age # => 26
   #
   # To give attribute <tt>:element_name</tt> a dynamic default value, evaluated
   # in scope of self:

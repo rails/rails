@@ -84,7 +84,7 @@ A short rundown of some of the major features:
 
    class CommentObserver < ActiveRecord::Observer
      def after_create(comment) # is called just after Comment#save
-       Notifications.deliver_new_comment("david@loudthinking.com", comment)
+       CommentMailer.new_comment_email("david@loudthinking.com", comment)
      end
    end
 
@@ -128,7 +128,7 @@ A short rundown of some of the major features:
 
     # connect to MySQL with authentication
     ActiveRecord::Base.establish_connection(
-      :adapter  => "mysql",
+      :adapter  => "mysql2",
       :host     => "localhost",
       :username => "me",
       :password => "secret",

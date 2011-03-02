@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/deprecation'
 
 module ActiveRecord
   # = Active Record Reflection
@@ -196,8 +197,21 @@ module ActiveRecord
         @quoted_table_name ||= klass.quoted_table_name
       end
 
+      def foreign_key
+        @foreign_key ||= options[:foreign_key] || derive_foreign_key
+      end
+
       def primary_key_name
-        @primary_key_name ||= options[:foreign_key] || derive_primary_key_name
+        foreign_key
+      end
+      deprecate :primary_key_name => :foreign_key
+
+      def foreign_type
+        @foreign_type ||= options[:foreign_type] || "#{name}_type"
+      end
+
+      def type
+        @type ||= "#{options[:as]}_type"
       end
 
       def primary_key_column
@@ -205,15 +219,18 @@ module ActiveRecord
       end
 
       def association_foreign_key
-        @association_foreign_key ||= @options[:association_foreign_key] || class_name.foreign_key
+        @association_foreign_key ||= options[:association_foreign_key] || class_name.foreign_key
       end
 
       def association_primary_key
-        @association_primary_key ||= @options[:primary_key] || klass.primary_key
+        @association_primary_key ||=
+          options[:primary_key] ||
+          !options[:polymorphic] && klass.primary_key ||
+          'id'
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||= @options[:primary_key] || active_record.primary_key
+        @active_record_primary_key ||= options[:primary_key] || active_record.primary_key
       end
 
       def counter_cache_column
@@ -300,20 +317,34 @@ module ActiveRecord
         !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || macro == :has_many)
       end
 
-      def dependent_conditions(record, base_class, extra_conditions)
-        dependent_conditions = []
-        dependent_conditions << "#{primary_key_name} = #{record.send(name).send(:owner_quoted_id)}"
-        dependent_conditions << "#{options[:as]}_type = '#{base_class.name}'" if options[:as]
-        dependent_conditions << klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
-        dependent_conditions << extra_conditions if extra_conditions
-        dependent_conditions = dependent_conditions.collect {|where| "(#{where})" }.join(" AND ")
-        dependent_conditions = dependent_conditions.gsub('@', '\@')
-        dependent_conditions
-      end
-
       # Returns +true+ if +self+ is a +belongs_to+ reflection.
       def belongs_to?
         macro == :belongs_to
+      end
+
+      def association_class
+        case macro
+        when :belongs_to
+          if options[:polymorphic]
+            Associations::BelongsToPolymorphicAssociation
+          else
+            Associations::BelongsToAssociation
+          end
+        when :has_and_belongs_to_many
+          Associations::HasAndBelongsToManyAssociation
+        when :has_many
+          if options[:through]
+            Associations::HasManyThroughAssociation
+          else
+            Associations::HasManyAssociation
+          end
+        when :has_one
+          if options[:through]
+            Associations::HasOneThroughAssociation
+          else
+            Associations::HasOneAssociation
+          end
+        end
       end
 
       private
@@ -323,7 +354,7 @@ module ActiveRecord
           class_name
         end
 
-        def derive_primary_key_name
+        def derive_foreign_key
           if belongs_to?
             "#{name}_id"
           elsif options[:as]
@@ -337,7 +368,7 @@ module ActiveRecord
     # Holds all the meta-data about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
-      delegate :primary_key_name, :association_foreign_key, :to => :source_reflection
+      delegate :foreign_key, :foreign_type, :association_foreign_key, :to => :source_reflection
 
       # Gets the source of the through reflection.  It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
@@ -469,9 +500,21 @@ module ActiveRecord
         @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
       end
 
+      def source_options
+        source_reflection.options
+      end
+
+      def through_options
+        through_reflection.options
+      end
+
       def check_validity!
         if through_reflection.nil?
           raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
+        end
+
+        if through_reflection.options[:polymorphic]
+          raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
         end
 
         if source_reflection.nil?
@@ -483,7 +526,11 @@ module ActiveRecord
         end
 
         if source_reflection.options[:polymorphic] && options[:source_type].nil?
-          raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
+          raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
+        end
+
+        if macro == :has_one && through_reflection.collection?
+          raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 
         check_validity_of_inverse!

@@ -19,14 +19,29 @@ module I18n
     # on to_prepare callbacks. This will only happen on the config.after_initialize
     # callback below.
     initializer "i18n.callbacks" do
-      ActionDispatch::Callbacks.to_prepare do
+      ActionDispatch::Reloader.to_prepare do
         I18n::Railtie.reloader.execute_if_updated
       end
     end
 
-    # Set the i18n configuration only after initialization since a lot of
+    # Set the i18n configuration after initialization since a lot of
     # configuration is still usually done in application initializers.
     config.after_initialize do |app|
+      I18n::Railtie.initialize_i18n(app)
+    end
+
+    # Trigger i18n config before any eager loading has happened
+    # so it's ready if any classes require it when eager loaded
+    config.before_eager_load do |app|
+      I18n::Railtie.initialize_i18n(app)
+    end
+
+  protected
+
+    # Setup i18n configuration
+    def self.initialize_i18n(app)
+      return if @i18n_inited
+
       fallbacks = app.config.i18n.delete(:fallbacks)
 
       app.config.i18n.each do |setting, value|
@@ -44,9 +59,9 @@ module I18n
 
       reloader.paths.concat I18n.load_path
       reloader.execute_if_updated
-    end
 
-  protected
+      @i18n_inited = true
+    end
 
     def self.include_fallbacks_module
       I18n.backend.class.send(:include, I18n::Backend::Fallbacks)

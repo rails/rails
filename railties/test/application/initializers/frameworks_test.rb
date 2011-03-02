@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class FrameworlsTest < Test::Unit::TestCase
+  class FrameworksTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -166,7 +166,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
+      expects = [ActiveRecord::IdentityMap::Middleware, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
       middleware = Rails.application.config.middleware.map { |m| m.klass }
       assert_equal expects, middleware & expects
     end

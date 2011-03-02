@@ -39,7 +39,7 @@ module ActiveRecord
     # ascending on the primary key ("id ASC") to make the batch ordering
     # work. This also mean that this method only works with integer-based
     # primary keys. You can't set the limit either, that's used to control
-    # the the batch sizes.
+    # the batch sizes.
     #
     # Example:
     #
@@ -65,7 +65,7 @@ module ActiveRecord
       batch_size = options.delete(:batch_size) || 1000
 
       relation = relation.except(:order).order(batch_order).limit(batch_size)
-      records = relation.where(primary_key.gteq(start)).all
+      records = relation.where(table[primary_key].gteq(start)).all
 
       while records.any?
         yield records
@@ -73,7 +73,7 @@ module ActiveRecord
         break if records.size < batch_size
 
         if primary_key_offset = records.last.id
-          records = relation.where(primary_key.gt(primary_key_offset)).to_a
+          records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
         else
           raise "Primary key not included in the custom select clause"
         end
@@ -83,7 +83,7 @@ module ActiveRecord
     private
 
     def batch_order
-      "#{@klass.table_name}.#{@klass.primary_key} ASC"
+      "#{table_name}.#{primary_key} ASC"
     end
   end
 end

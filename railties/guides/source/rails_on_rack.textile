@@ -17,12 +17,7 @@ bq. Rack provides a minimal, modular and adaptable interface for developing web 
 
 - "Rack API Documentation":http://rack.rubyforge.org/doc/
 
-Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the following links:
-
-* "Official Rack Website":http://rack.github.com
-* "Introducing Rack":http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html
-* "Ruby on Rack #1 - Hello Rack!":http://m.onkey.org/2008/11/17/ruby-on-rack-1
-* "Ruby on Rack #2 - The Builder":http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder
+Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the "Resources":#resources section below.
 
 h3. Rails on Rack
 
@@ -68,13 +63,13 @@ run ActionController::Dispatcher.new
 And start the server:
 
 <shell>
-[lifo@null application]$ rackup config.ru
+$ rackup config.ru
 </shell>
 
 To find out more about different +rackup+ options:
 
 <shell>
-[lifo@null application]$ rackup --help
+$ rackup --help
 </shell>
 
 h3. Action Controller Middleware Stack
@@ -165,7 +160,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 |_.Middleware|_.Purpose|
 |+Rack::Lock+|Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.|
 |+ActionController::Failsafe+|Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.|
-|+ActiveRecord::QueryCache+|Enable the Active Record query cache.|
+|+ActiveRecord::QueryCache+|Enables the Active Record query cache.|
 |+ActionController::Session::CookieStore+|Uses the cookie based session store.|
 |+ActionController::Session::MemCacheStore+|Uses the memcached based session store.|
 |+ActiveRecord::SessionStore+|Uses the database based session store.|
@@ -228,8 +223,8 @@ h4. Learning Rack
 
 * "Official Rack Website":http://rack.github.com
 * "Introducing Rack":http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html
-* "Ruby on Rack #1 - Hello Rack!":http://m.onkey.org/2008/11/17/ruby-on-rack-1
-* "Ruby on Rack #2 - The Builder":http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder
+* "Ruby on Rack #1 - Hello Rack!":http://m.onkey.org/ruby-on-rack-1-hello-rack
+* "Ruby on Rack #2 - The Builder":http://m.onkey.org/ruby-on-rack-2-the-builder
 
 h4. Understanding Middlewares
 

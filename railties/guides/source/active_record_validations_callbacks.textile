@@ -314,6 +314,8 @@ class Essay < ActiveRecord::Base
 end
 </ruby>
 
+Note that the default error messages are plural (e.g., "is too short (minimum is %{count} characters)"). For this reason, when +:minimum+ is 1 you should provide a personalized message or use +validates_presence_of+ instead. When +:in+ or +:within+ have a lower limit of 1, you should either provide a personalized message or call +validates_presence_of+ prior to +validates_length_of+.
+
 The +validates_size_of+ helper is an alias for +validates_length_of+.
 
 h4. +validates_numericality_of+
@@ -414,8 +416,8 @@ class Person < ActiveRecord::Base
   validates_with GoodnessValidator
 end
 
-class GoodnessValidator < ActiveRecord::Validator
-  def validate
+class GoodnessValidator < ActiveModel::Validator
+  def validate(record)
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"
     end
@@ -425,10 +427,7 @@ end
 
 The +validates_with+ helper takes a class, or a list of classes to use for validation. There is no default error message for +validates_with+. You must manually add errors to the record's errors collection in the validator class.
 
-The validator class has two attributes by default:
-
-* +record+ - the record to be validated
-* +options+ - the extra options that were passed to +validates_with+
+To implement the validate method, you must have an +record+ parameter defined, which is the record to be validated.
 
 Like all other validations, +validates_with+ takes the +:if+, +:unless+ and +:on+ options. If you pass any other options, it will send those options to the validator class as +options+:
 
@@ -437,8 +436,8 @@ class Person < ActiveRecord::Base
   validates_with GoodnessValidator, :fields => [:first_name, :last_name]
 end
 
-class GoodnessValidator < ActiveRecord::Validator
-  def validate
+class GoodnessValidator < ActiveModel::Validator
+  def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
       record.errors[:base] << "This person is evil"
     end
@@ -1113,7 +1112,7 @@ h4. Creating Observers
 For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we could create an observer to contain this functionality.
 
 <shell>
-rails generate observer User
+$ rails generate observer User
 </shell>
 
 <ruby>
@@ -1158,8 +1157,43 @@ In this example, the +after_create+ method would be called whenever a +Registrat
 config.active_record.observers = :mailer_observer
 </ruby>
 
+h3. Transaction Callbacks
+
+There are two additional callbacks that are triggered by the completion of a database transaction: +after_commit+ and +after_rollback+. These callbacks are very similar to the +after_save+ callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your active record models need to interact with external systems which are not part of the database transaction.
+
+Consider, for example, the previous example where the +PictureFile+ model needs to delete a file after a record is destroyed. If anything raises an exception after the +after_destroy+ callback is called and the transaction rolls back, the file will have been deleted and the model will be left in an inconsistent state. For example, suppose that +picture_file_2+ in the code below is not valid and the +save!+ method raises an error.
+
+<ruby>
+PictureFile.transaction do
+  picture_file_1.destroy
+  picture_file_2.save!
+end
+</ruby>
+
+By using the +after_commit+ callback we can account for this case.
+
+<ruby>
+class PictureFile < ActiveRecord::Base
+  attr_accessor :delete_file
+
+  after_destroy do |picture_file|
+    picture_file.delete_file = picture_file.filepath
+  end
+
+  after_commit do |picture_file|
+    if picture_file.delete_file && File.exist?(picture_file.delete_file)
+      File.delete(picture_file.delete_file)
+      picture_file.delete_file = nil
+    end
+  end
+end
+</ruby>
+
+The +after_commit+ and +after_rollback+ callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.
+
 h3. Changelog
 
+* February 17, 2011: Add description of transaction callbacks.
 * July 20, 2010: Fixed typos and rephrased some paragraphs for clarity. "Jaime Iniesta":http://jaimeiniesta.com
 * May 24, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * May 15, 2010: Validation Errors section updated by "Emili Parreño":http://www.eparreno.com

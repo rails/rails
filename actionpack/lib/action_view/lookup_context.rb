@@ -78,17 +78,17 @@ module ActionView
         @view_paths = ActionView::Base.process_view_paths(paths)
       end
 
-      def find(name, prefix = nil, partial = false, keys = [])
-        @view_paths.find(*args_for_lookup(name, prefix, partial, keys))
+      def find(name, prefixes = [], partial = false, keys = [])
+        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys))
       end
       alias :find_template :find
 
-      def find_all(name, prefix = nil, partial = false, keys = [])
-        @view_paths.find_all(*args_for_lookup(name, prefix, partial, keys))
+      def find_all(name, prefixes = [], partial = false, keys = [])
+        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys))
       end
 
-      def exists?(name, prefix = nil, partial = false, keys = [])
-        @view_paths.exists?(*args_for_lookup(name, prefix, partial, keys))
+      def exists?(name, prefixes = [], partial = false, keys = [])
+        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys))
       end
       alias :template_exists? :exists?
 
@@ -107,18 +107,26 @@ module ActionView
 
     protected
 
-      def args_for_lookup(name, prefix, partial, keys) #:nodoc:
-        name, prefix = normalize_name(name, prefix)
-        [name, prefix, partial || false, @details, details_key, keys]
+      def args_for_lookup(name, prefixes, partial, keys) #:nodoc:
+        name, prefixes = normalize_name(name, prefixes)
+        [name, prefixes, partial || false, @details, details_key, keys]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
-      def normalize_name(name, prefix) #:nodoc:
+      def normalize_name(name, prefixes) #:nodoc:
         name  = name.to_s.gsub(handlers_regexp, '')
         parts = name.split('/')
-        return parts.pop, [prefix, *parts].compact.join("/")
+        name  = parts.pop
+
+        prefixes = if prefixes.blank?
+          [parts.join('/')]
+        else
+          prefixes.map { |prefix| [prefix, *parts].compact.join('/') }
+        end
+
+        return name, prefixes
       end
 
       def default_handlers #:nodoc:
@@ -156,11 +164,11 @@ module ActionView
         @frozen_formats = true
       end
 
-      # Overload formats= to reject [:"*/*"] values.
+      # Overload formats= to reject ["*/*"] values.
       def formats=(values)
         if values && values.size == 1
           value = values.first
-          values = nil    if value == :"*/*"
+          values = nil    if value == "*/*"
           values << :html if value == :js
         end
         super(values)
@@ -178,11 +186,11 @@ module ActionView
       end
 
       # Overload locale= to also set the I18n.locale. If the current I18n.config object responds
-      # to i18n_config, it means that it's has a copy of the original I18n configuration and it's
+      # to original_config, it means that it's has a copy of the original I18n configuration and it's
       # acting as proxy, which we need to skip.
       def locale=(value)
         if value
-          config = I18n.config.respond_to?(:i18n_config) ? I18n.config.i18n_config : I18n.config
+          config = I18n.config.respond_to?(:original_config) ? I18n.config.original_config : I18n.config
           config.locale = value
         end
 

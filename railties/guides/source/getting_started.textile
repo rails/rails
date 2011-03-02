@@ -163,7 +163,7 @@ $ rails new blog
 
 This will create a Rails application called Blog in a directory called blog.
 
-TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails -h</tt>.
+TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails new -h</tt>.
 
 After you create the blog application, switch to its folder to continue work directly in that application:
 
@@ -184,7 +184,7 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 |doc/|In-depth documentation for your application.|
 |lib/|Extended modules for your application (not covered in this guide).|
 |log/|Application log files.|
-|public/|The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.|
+|public/|The only folder seen to the world as-is.  This is where your images, JavaScript files, stylesheets (CSS), and other static files go.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
@@ -195,7 +195,7 @@ h4. Installing the Required Gems
 Rails applications manage gem dependencies with "Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
 
 <shell>
-# bundle install
+$ bundle install
 </shell>
 
 to have them ready.
@@ -227,7 +227,7 @@ NOTE: In this guide we are using an SQLite3 database for data storage, because i
 
 h5. Configuring a MySQL Database
 
-If you choose to use MySQL instead of the shipped Sqlite3 database, your +config/database.yml+ will look a little different. Here's the development section:
+If you choose to use MySQL instead of the shipped SQLite3 database, your +config/database.yml+ will look a little different. Here's the development section:
 
 <yaml>
 development:
@@ -258,6 +258,8 @@ development:
 
 Change the username and password in the +development+ section as appropriate.
 
+TIP: You don't have to update the database configurations manually. If you had a look at the options of application generator, you have seen that one of them is named <tt>--database</tt>. It lets you choose an adapter for couple of most used relational databases. You can even run the generator repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting of the +config/database.yml+ file, your application will be configured for MySQL instead of SQLite.
+
 h4. Creating the Database
 
 Now that you have your database configured, it's time to have Rails create an empty database for you. You can do this by running a rake command:
@@ -272,7 +274,7 @@ TIP: Rake is a general-purpose command-runner that Rails uses for many things. Y
 
 h3. Hello, Rails!
 
-One of the traditional places to start with a new language is by getting some text up on screen quickly, to do this, you need to get your Rails application server running.
+One of the traditional places to start with a new language is by getting some text up on screen quickly. To do this, you need to get your Rails application server running.
 
 h4. Starting up the Web Server
 
@@ -298,7 +300,7 @@ To get Rails saying "Hello", you need to create at minimum a controller and a vi
 $ rails generate controller home index
 </shell>
 
-TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +rails+ commands to Ruby: +ruby \path\to\rails controller home index+.
+TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby \path\to\your\application\script\rails generate controller home index</tt>.
 
 Rails will create several files for you, including +app/views/home/index.html.erb+. This is the template that will be used to display the results of the +index+ action (method) in the +home+ controller. Open this file in your text editor and edit it to contain a single line of code:
 
@@ -347,7 +349,7 @@ In the case of the blog application, you can start by generating a scaffolded Po
 $ rails generate scaffold Post name:string title:string content:text
 </shell>
 
-NOTE. While scaffolding will get you up and running quickly, the "one size fits all" code that it generates is unlikely to be a perfect fit for your application. In most cases, you'll need to customize the generated code. Many experienced Rails developers avoid scaffolding entirely, preferring to write all or most of their source code from scratch.
+NOTE. While scaffolding will get you up and running quickly, the code it generates is unlikely to be a perfect fit for your application. You'll most probably want to customize the generated code. Many experienced Rails developers avoid scaffolding entirely, preferring to write all or most of their source code from scratch. Rails, however, makes it really simple to customize templates for generated models, controllers, views and other source files. You'll find more information in the "Creating and Customizing Rails Generators & Templates":generators.html guide.
 
 The scaffold generator will build 15 files in your application, along with some folders, and edit one more. Here's a quick overview of what it creates:
 
@@ -409,7 +411,7 @@ Rails will execute this migration command and tell you it created the Posts tabl
 ==  CreatePosts: migrated (0.0020s) ===========================================
 </shell>
 
-NOTE. Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file.
+NOTE. Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file. If you would like to execute migrations in other environment, for instance in production, you must explicitly pass it when invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
 h4. Adding a Link
 
@@ -466,6 +468,8 @@ To see your validations in action, you can use the console. The console is a com
 <shell>
 $ rails console
 </shell>
+
+TIP: The default console will make changes to your database. You can instead open a console that will roll back any changes you make by using +rails console --sandbox+.
 
 After the console loads, you can use it to work with your application's models:
 
@@ -811,6 +815,8 @@ class CreateComments < ActiveRecord::Migration
 
       t.timestamps
     end
+
+    add_index :comments, :post_id
   end
 
   def self.down
@@ -819,7 +825,7 @@ class CreateComments < ActiveRecord::Migration
 end
 </ruby>
 
-The +t.references+ line sets up a foreign key column for the association between the two models. Go ahead and run the migration:
+The +t.references+ line sets up a foreign key column for the association between the two models. And the +add_index+ line sets up an index for this association column. Go ahead and run the migration:
 
 <shell>
 $ rake db:migrate

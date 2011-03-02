@@ -21,7 +21,7 @@
 #
 #     Separate many using commas:
 #
-#       # validates only
+#       # validates only association_basics.html and migrations.html
 #       ONLY=assoc,migrations rake validate_guides
 #
 # ---------------------------------------------------------------------------

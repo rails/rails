@@ -262,7 +262,7 @@ methods:
     layout "weblog/layout"
 
     def index
-      @posts = Post.find(:all)
+      @posts = Post.all
     end
 
     def show

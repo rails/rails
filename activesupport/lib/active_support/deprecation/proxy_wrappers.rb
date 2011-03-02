@@ -1,4 +1,4 @@
-require 'active_support/inflector'
+require 'active_support/inflector/methods'
 
 module ActiveSupport
   module Deprecation

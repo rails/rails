@@ -148,6 +148,14 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validate_block
+    Topic.validate { errors.add("title", "will never be valid") }
+    t = Topic.new("title" => "Title", "content" => "whatever")
+    assert t.invalid?
+    assert t.errors[:title].any?
+    assert_equal ["will never be valid"], t.errors["title"]
+  end
+
+  def test_validate_block_with_params
     Topic.validate { |topic| topic.errors.add("title", "will never be valid") }
     t = Topic.new("title" => "Title", "content" => "whatever")
     assert t.invalid?
@@ -187,7 +195,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
     assert_equal "can't be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
-    Topic.validate {|topic| topic.errors.add('author_email_address', 'will never be valid')}
+    Topic.validate {errors.add('author_email_address', 'will never be valid')}
     Topic.validates_length_of :title, :content, :minimum => 2
 
     t = Topic.new :title => ''
@@ -244,6 +252,24 @@ class ValidationsTest < ActiveModel::TestCase
   def test_accessing_instance_of_validator_on_an_attribute
     Topic.validates_length_of :title, :minimum => 10
     assert_equal 10, Topic.validators_on(:title).first.options[:minimum]
+  end
+
+  def test_list_of_validators_on_multiple_attributes
+    Topic.validates :title, :length => { :minimum => 10 }
+    Topic.validates :author_name, :presence => true, :format => /a/
+
+    validators = Topic.validators_on(:title, :author_name)
+
+    assert_equal [
+      ActiveModel::Validations::FormatValidator,
+      ActiveModel::Validations::LengthValidator,
+      ActiveModel::Validations::PresenceValidator
+    ], validators.map { |v| v.class }.sort_by { |c| c.to_s }
+  end
+
+  def test_list_of_validators_will_be_empty_when_empty
+    Topic.validates :title, :length => { :minimum => 10 }
+    assert_equal [], Topic.validators_on(:author_name)
   end
 
   def test_validations_on_the_instance_level

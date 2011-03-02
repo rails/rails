@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2010 David Heinemeier Hansson
+# Copyright (c) 2004-2011 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -42,6 +42,7 @@ module ActiveModel
   autoload :Naming
   autoload :Observer, 'active_model/observing'
   autoload :Observing
+  autoload :SecurePassword
   autoload :Serialization
   autoload :TestCase
   autoload :Translation

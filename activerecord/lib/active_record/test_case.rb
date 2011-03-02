@@ -3,6 +3,16 @@ module ActiveRecord
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
+    setup :cleanup_identity_map
+
+    def setup
+      cleanup_identity_map
+    end
+
+    def cleanup_identity_map
+      ActiveRecord::IdentityMap.clear
+    end
+
     def assert_date_from_db(expected, actual, message = nil)
       # SybaseAdapter doesn't have a separate column type just for dates,
       # so the time is in the string and incorrectly formatted
@@ -16,6 +26,7 @@ module ActiveRecord
     def assert_sql(*patterns_to_match)
       $queries_executed = []
       yield
+      $queries_executed
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|

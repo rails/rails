@@ -22,7 +22,7 @@ module AbstractController
     class TestCallbacks1 < ActiveSupport::TestCase
       test "basic callbacks work" do
         controller = Callback1.new
-        result = controller.process(:index)
+        controller.process(:index)
         assert_equal "Hello world", controller.response_body
       end
     end
@@ -62,7 +62,7 @@ module AbstractController
       end
 
       test "before_filter works" do
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert_equal "Hello world", @controller.response_body
       end
 
@@ -78,7 +78,7 @@ module AbstractController
 
       test "before_filter with overwritten condition" do
         @controller = Callback2Overwrite.new
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert_equal "", @controller.response_body
       end
     end
@@ -103,12 +103,12 @@ module AbstractController
       end
 
       test "before_filter works with procs" do
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert_equal "Hello world", @controller.response_body
       end
 
       test "after_filter works with procs" do
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert_equal "Goodbye", @controller.instance_variable_get("@second")
       end
     end
@@ -152,7 +152,7 @@ module AbstractController
       end
 
       test "when :except is specified, an after filter is not triggered on that action" do
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert !@controller.instance_variable_defined?("@authenticated")
       end
     end
@@ -186,17 +186,17 @@ module AbstractController
       end
 
       test "when :only is specified with an array, a before filter is triggered on that action" do
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert_equal "Hello, World", @controller.response_body
       end
 
       test "when :only is specified with an array, a before filter is not triggered on other actions" do
-        result = @controller.process(:sekrit_data)
+        @controller.process(:sekrit_data)
         assert_equal "true", @controller.response_body
       end
 
       test "when :except is specified with an array, an after filter is not triggered on that action" do
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert !@controller.instance_variable_defined?("@authenticated")
       end
     end
@@ -216,12 +216,12 @@ module AbstractController
       end
 
       test "when a callback is modified in a child with :only, it works for the :only action" do
-        result = @controller.process(:index)
+        @controller.process(:index)
         assert_equal "Hello world", @controller.response_body
       end
 
       test "when a callback is modified in a child with :only, it does not work for other actions" do
-        result = @controller.process(:not_index)
+        @controller.process(:not_index)
         assert_equal "", @controller.response_body
       end
     end
@@ -245,6 +245,27 @@ module AbstractController
         assert_equal "Success", controller.response_body
       end
     end
+
+    class CallbacksWithArgs < ControllerWithCallbacks
+      set_callback :process_action, :before, :first
+
+      def first
+        @text = "Hello world"
+      end
+
+      def index(text)
+        self.response_body = @text + text
+      end
+    end
+
+    class TestCallbacksWithArgs < ActiveSupport::TestCase
+      test "callbacks still work when invoking process with multiple args" do
+        controller = CallbacksWithArgs.new
+        controller.process(:index, " Howdy!")
+        assert_equal "Hello world Howdy!", controller.response_body
+      end
+    end
+
 
   end
 end

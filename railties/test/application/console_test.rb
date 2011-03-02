@@ -26,14 +26,14 @@ class ConsoleTest < Test::Unit::TestCase
     assert_instance_of ActionDispatch::Integration::Session, session
   end
 
-  def test_reload_should_fire_preparation_callbacks
+  def test_reload_should_fire_preparation_and_cleanup_callbacks
     load_environment
     a = b = c = nil
 
     # TODO: These should be defined on the initializer
-    ActionDispatch::Callbacks.to_prepare { a = b = c = 1 }
-    ActionDispatch::Callbacks.to_prepare { b = c = 2 }
-    ActionDispatch::Callbacks.to_prepare { c = 3 }
+    ActionDispatch::Reloader.to_cleanup { a = b = c = 1 }
+    ActionDispatch::Reloader.to_cleanup { b = c = 2 }
+    ActionDispatch::Reloader.to_prepare { c = 3 }
 
     # Hide Reloading... output
     silence_stream(STDOUT) { reload! }

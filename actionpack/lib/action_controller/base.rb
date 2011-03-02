@@ -24,7 +24,7 @@ module ActionController
   #
   # Actions, by default, render a template in the <tt>app/views</tt> directory corresponding to the name of the controller and action
   # after executing code in the action. For example, the +index+ action of the PostsController would render the
-  # template <tt>app/views/posts/index.erb</tt> by default after populating the <tt>@posts</tt> instance variable.
+  # template <tt>app/views/posts/index.html.erb</tt> by default after populating the <tt>@posts</tt> instance variable.
   #
   # Unlike index, the create action will not render a template. After performing its main purpose (creating a
   # new post), it initiates a redirect instead. This redirect works by returning an external

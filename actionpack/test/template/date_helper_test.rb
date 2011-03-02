@@ -1882,10 +1882,17 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_datetime_select_defaults_to_time_zone_now_when_config_time_zone_is_set
-    time = stub(:year => 2004, :month => 6, :day => 15, :hour => 16, :min => 35, :sec => 0)
-    time_zone = mock()
-    time_zone.expects(:now).returns time
-    Time.zone_default = time_zone
+    # The love zone is UTC+0
+    mytz = Class.new(ActiveSupport::TimeZone) {
+      attr_accessor :now
+    }.create('tenderlove', 0)
+
+    now       = Time.mktime(2004, 6, 15, 16, 35, 0)
+    mytz.now  = now
+    Time.zone = mytz
+
+    assert_equal mytz, Time.zone
+
     @post = Post.new
 
     expected = %{<select id="post_updated_at_1i" name="post[updated_at(1i)]">\n}
@@ -1912,7 +1919,7 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, datetime_select("post", "updated_at")
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   def test_datetime_select_with_html_options_within_fields_for
@@ -2698,6 +2705,32 @@ class DateHelperTest < ActionView::TestCase
 
     assert date_select("post", "written_on", :default => Time.local(2006, 9, 19, 15, 16, 35), :include_blank => true).html_safe?
     assert time_select("post", "written_on", :ignore_date => true).html_safe?
+  end
+
+  def test_time_tag_with_date
+    date = Date.today
+    expected = "<time datetime=\"#{date.rfc3339}\">#{I18n.l(date, :format => :long)}</time>"
+    assert_equal expected, time_tag(date)
+  end
+
+  def test_time_tag_with_time
+    time = Time.now
+    expected = "<time datetime=\"#{time.xmlschema}\">#{I18n.l(time, :format => :long)}</time>"
+    assert_equal expected, time_tag(time)
+  end
+
+  def test_time_tag_pubdate_option
+    assert_match /<time.*pubdate="pubdate">.*<\/time>/, time_tag(Time.now, :pubdate => true)
+  end
+
+  def test_time_tag_with_given_text
+    assert_match /<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now')
+  end
+
+  def test_time_tag_with_different_format
+    time = Time.now
+    expected = "<time datetime=\"#{time.xmlschema}\">#{I18n.l(time, :format => :short)}</time>"
+    assert_equal expected, time_tag(time, :format => :short)
   end
 
   protected

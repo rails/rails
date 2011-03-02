@@ -21,7 +21,7 @@ module Rails
 
       initializer :add_to_prepare_blocks do
         config.to_prepare_blocks.each do |block|
-          ActionDispatch::Callbacks.to_prepare(&block)
+          ActionDispatch::Reloader.to_prepare(&block)
         end
       end
 
@@ -35,6 +35,10 @@ module Rails
 
       initializer :build_middleware_stack do
         build_middleware_stack
+      end
+
+      initializer :run_prepare_callbacks do
+        ActionDispatch::Reloader.prepare!
       end
 
       initializer :eager_load! do
@@ -52,7 +56,7 @@ module Rails
       initializer :set_routes_reloader do |app|
         reloader = lambda { app.routes_reloader.execute_if_updated }
         reloader.call
-        ActionDispatch::Callbacks.to_prepare(&reloader)
+        ActionDispatch::Reloader.to_prepare(&reloader)
       end
 
       # Disable dependency loading during request cycle

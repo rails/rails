@@ -19,8 +19,6 @@ Code examples throughout this guide will refer to one or more of the following m
 
 TIP: All of the following models use +id+ as the primary key, unless specified otherwise.
 
-<br />
-
 <ruby>
 class Client < ActiveRecord::Base
   has_one :address
@@ -150,7 +148,7 @@ SQL equivalent of the above is:
 SELECT * FROM clients WHERE (clients.id IN (1,10))
 </sql>
 
-<tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
+WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
 
 h4. Retrieving Multiple Objects in Batches
 
@@ -337,7 +335,7 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 </sql>
 
-h4. Ordering
+h3. Ordering
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
 
@@ -361,7 +359,7 @@ Or ordering by multiple fields:
 Client.order("orders_count ASC, created_at DESC")
 </ruby>
 
-h4. Selecting Specific Fields
+h3. Selecting Specific Fields
 
 By default, <tt>Model.find</tt> selects all the fields from the result set using +select *+.
 
@@ -397,7 +395,7 @@ You can also call SQL functions within the select option. For example, if you wo
 Client.select("DISTINCT(name)")
 </ruby>
 
-h4. Limit and Offset
+h3. Limit and Offset
 
 To apply +LIMIT+ to the SQL fired by the +Model.find+, you can specify the +LIMIT+ using +limit+ and +offset+ methods on the relation.
 
@@ -425,7 +423,7 @@ will return instead a maximum of 5 clients beginning with the 31st. The SQL look
 SELECT * FROM clients LIMIT 5, 30
 </sql>
 
-h4. Group
+h3. Group
 
 To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
 
@@ -440,10 +438,10 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at)
+SELECT * FROM orders GROUP BY date(created_at) ORDER BY created_at
 </sql>
 
-h4. Having
+h3. Having
 
 SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can add the +HAVING+ clause to the SQL fired by the +Model.find+ by adding the +:having+ option to the find.
 
@@ -461,7 +459,37 @@ SELECT * FROM orders GROUP BY date(created_at) HAVING created_at > '2009-01-15'
 
 This will return single order objects for each day, but only for the last month.
 
-h4. Readonly Objects
+h3. Overriding Conditions
+
+You can specify certain conditions to be excepted by using the +except+ method.
+
+For example:
+
+<ruby>
+Post.where('id > 10').limit(20).order('id asc').except(:order)
+</ruby>
+
+The SQL that would be executed:
+
+<sql>
+SELECT * FROM posts WHERE id > 10 LIMIT 20
+</sql>
+
+You can also override conditions using the +only+ method.
+
+For example:
+
+<ruby>
+Post.where('id > 10').limit(20).order('id desc').only(:order, :where)
+</ruby>
+
+The SQL that would be executed:
+
+<sql>
+SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
+</sql>
+
+h3. Readonly Objects
 
 Active Record provides +readonly+ method on a relation to explicitly disallow modification or deletion of any of the returned object. Any attempt to alter or destroy a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
 
@@ -471,9 +499,9 @@ client.visits += 1
 client.save
 </ruby>
 
-As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visists_.
+As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visits_.
 
-h4. Locking Records for Update
+h3. Locking Records for Update
 
 Locking is helpful for preventing race conditions when updating records in the database and ensuring atomic updates.
 
@@ -482,7 +510,7 @@ Active Record provides two locking mechanisms:
 * Optimistic Locking
 * Pessimistic Locking
 
-h5. Optimistic Locking
+h4. Optimistic Locking
 
 Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data.  It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
 
@@ -517,7 +545,7 @@ class Client < ActiveRecord::Base
 end
 </ruby>
 
-h5. Pessimistic Locking
+h4. Pessimistic Locking
 
 Pessimistic locking uses a locking mechanism provided by the underlying database. Using +lock+ when building a relation obtains an exclusive lock on the selected rows. Relations using +lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
@@ -569,9 +597,7 @@ SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id =
 
 h4. Using Array/Hash of Named Associations
 
-WARNING: This method only works with +INNER JOIN+,
-
-<br />
+WARNING: This method only works with +INNER JOIN+.
 
 Active Record lets you use the names of the "associations":association_basics.html defined on the model as a shortcut for specifying +JOIN+ clause for those associations when using the +joins+ method.
 
@@ -666,7 +692,7 @@ Eager loading is the mechanism for loading the associated records of the objects
 Consider the following code, which finds 10 clients and prints their postcodes:
 
 <ruby>
-clients = Client.all(:limit => 10)
+clients = Client.limit(10)
 
 clients.each do |client|
   puts client.address.postcode
@@ -720,6 +746,92 @@ This will find the category with id 1 and eager load all of the associated posts
 h4. Specifying Conditions on Eager Loaded Associations
 
 Even though Active Record lets you specify conditions on the eager loaded associations just like +joins+, the recommended way is to use "joins":#joining-tables instead.
+
+h3. Scopes
+
+Scoping allows you to specify commonly-used ARel queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as +where+, +joins+ and +includes+. All scope methods will return an +ActiveRecord::Relation+ object which will allow for further methods (such as other scopes) to be called on it.
+
+To define a simple scope, we use the +scope+ method inside the class, passing the ARel query that we'd like run when this scope is called:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :published, where(:published => true)
+end
+</ruby>
+
+Just like before, these methods are also chainable:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :published, where(:published => true).joins(:category)
+end
+</ruby>
+
+Scopes are also chainable within scopes:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :published, where(:published => true)
+  scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+end
+</ruby>
+
+To call this +published+ scope we can call it on either the class:
+
+<ruby>
+Post.published => [published posts]
+</ruby>
+
+Or on an association consisting of +Post+ objects:
+
+<ruby>
+category = Category.first
+category.posts.published => [published posts belonging to this category]
+</ruby>
+
+h4. Working with times
+
+If you're working with dates or times within scopes, due to how they are evaluated, you will need to use a lambda so that the scope is evaluated every time.
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :last_week, lambda { where("created_at < ?", Time.zone.now ) }
+end
+</ruby>
+
+Without the +lambda+, this +Time.zone.now+ will only be called once.
+
+h4. Passing in arguments
+
+When a +lambda+ is used for a +scope+, it can take arguments:
+
+<ruby>
+class Post < ActiveRecord::Base
+  scope :1_week_before, lambda { |time| where("created_at < ?", time)
+end
+</ruby>
+
+This may then be called using this:
+
+<ruby>
+Post.1_week_before(Time.zone.now)
+</ruby>
+
+However, this is just duplicating the functionality that would be provided to you by a class method.
+
+<ruby>
+class Post < ActiveRecord::Base
+  def self.1_week_before(time)
+    where("created_at < ?", time)
+  end
+end
+</ruby>
+
+Using a class method is the preferred way to accept arguments for scopes. These methods will still be accessible on the association objects:
+
+<ruby>
+category.posts.1_week_before(time)
+</ruby>
 
 h3. Dynamic Finders
 
@@ -882,6 +994,7 @@ For options, please see the parent section,  "Calculations":#calculations.
 
 h3. Changelog
 
+* December 23 2010: Add documentation for the +scope+ method. "Ryan Bigg":http://ryanbigg.com
 * April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * February 3, 2010: Update to Rails 3 by "James Miller":credits.html#bensie
 * February 7, 2009: Second version by "Pratik":credits.html#lifo

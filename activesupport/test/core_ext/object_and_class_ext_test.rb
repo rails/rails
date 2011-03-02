@@ -28,18 +28,6 @@ module Nested
   end
 end
 
-module Bar
-  def bar; end
-end
-
-module Baz
-  def baz; end
-end
-
-class Foo
-  include Bar
-end
-
 class ObjectTests < ActiveSupport::TestCase
   class DuckTime
     def acts_like_time?

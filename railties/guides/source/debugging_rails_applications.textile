@@ -48,7 +48,7 @@ Title: Rails debugging guide
 
 h4. +to_yaml+
 
-Displaying an instance variable, or any other object or method, in yaml format can be achieved this way:
+Displaying an instance variable, or any other object or method, in YAML format can be achieved this way:
 
 <html>
 <%= simple_format @post.to_yaml %>
@@ -122,7 +122,7 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 h4. What is the Logger?
 
-Rails makes use of Ruby's standard +logger+ to write log information. You can also substitute another logger such as +Log4R+ if you wish.
+Rails makes use of Ruby's standard +logger+ to write log information. You can also substitute another logger such as +Log4r+ if you wish.
 
 You can specify an alternative logger in your +environment.rb+ or any environment file:
 
@@ -178,7 +178,7 @@ class PostsController < ApplicationController
 
     if @post.save
       flash[:notice] = 'Post was successfully created.'
-      logger.debug "The post was saved and now is the user is going to be redirected..."
+      logger.debug "The post was saved and now the user is going to be redirected..."
       redirect_to(@post)
     else
       render :action => "new"
@@ -204,7 +204,7 @@ Post should be valid: true
   Post Create (0.000443)   INSERT INTO "posts" ("updated_at", "title", "body", "published",
  "created_at") VALUES('2008-09-08 14:52:54', 'Debugging Rails',
  'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')
-The post was saved and now is the user is going to be redirected...
+The post was saved and now the user is going to be redirected...
 Redirected to #<Post:0x20af760>
 Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/posts]
 </shell>
@@ -251,7 +251,7 @@ If you see the message in the console or logs:
 Make sure you have started your web server with the option +--debugger+:
 
 <shell>
-~/PathTo/rails_project$ rails server --debugger
+$ rails server --debugger
 => Booting WEBrick
 => Rails 3.0.0 application starting on http://0.0.0.0:3000
 => Debugger enabled
@@ -269,7 +269,7 @@ If you got there by a browser request, the browser tab containing the request wi
 For example:
 
 <shell>
-@posts = Post.find(:all)
+@posts = Post.all
 (rdb:7)
 </shell>
 
@@ -302,7 +302,7 @@ This command shows you where you are in the code by printing 10 lines centered a
    3    # GET /posts.xml
    4    def index
    5      debugger
-=> 6      @posts = Post.find(:all)
+=> 6      @posts = Post.all
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
@@ -380,7 +380,7 @@ Any expression can be evaluated in the current context. To evaluate an expressio
 This example shows how you can print the instance_variables defined within the current context:
 
 <shell>
-@posts = Post.find(:all)
+@posts = Post.all
 (rdb:11) instance_variables
 ["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
 </shell>
@@ -477,7 +477,7 @@ end
 TIP: You can use ruby-debug while using +rails console+. Just remember to +require "ruby-debug"+ before calling the +debugger+ method.
 
 <shell>
-/PathTo/project $ rails console
+$ rails console
 Loading development environment (Rails 2.1.0)
 >> require "ruby-debug"
 => []
@@ -601,7 +601,7 @@ There are some settings that can be configured in ruby-debug to make it easier t
 
 You can see the full list by using +help set+. Use +help set _subcommand_+ to learn about a particular +set+ command.
 
-TIP: You can include any number of these configuration lines inside a +.rdebugrc+ file in your HOME directory. ruby-debug will read this file every time it is loaded. and configure itself accordingly.
+TIP: You can include any number of these configuration lines inside a +.rdebugrc+ file in your HOME directory. ruby-debug will read this file every time it is loaded and configure itself accordingly.
 
 Here's a good start for an +.rdebugrc+:
 
@@ -615,7 +615,7 @@ h3. Debugging Memory Leaks
 
 A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.
 
-In this section, you will learn how to find and fix such leaks by using Bleak House and Valgrind debugging tools.
+In this section, you will learn how to find and fix such leaks by using tools such as BleakHouse and Valgrind.
 
 h4. BleakHouse
 
@@ -626,7 +626,7 @@ If a Ruby object does not go out of scope, the Ruby Garbage Collector won't swee
 To install it run:
 
 <shell>
-sudo gem install bleak_house
+$ sudo gem install bleak_house
 </shell>
 
 Then setup your application for profiling. Then add the following at the bottom of config/environment.rb:
@@ -638,7 +638,7 @@ require 'bleak_house' if ENV['BLEAK_HOUSE']
 Start a server instance with BleakHouse integration:
 
 <shell>
-RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house rails server
+$ RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house rails server
 </shell>
 
 Make sure to run a couple hundred requests to get better data samples, then press +CTRL-C+. The server will stop and Bleak House will produce a dumpfile in +/tmp+:

@@ -90,17 +90,14 @@ module ActionDispatch
       # **.**, ***.** style TLDs like co.uk or com.au
       #
       # www.example.co.uk gives:
-      # $1 => example
-      # $2 => co.uk
+      # $& => example.co.uk
       #
       # example.com gives:
-      # $1 => example
-      # $2 => com
+      # $& => example.com
       #
       # lots.of.subdomains.example.local gives:
-      # $1 => example
-      # $2 => local
-      DOMAIN_REGEXP = /([^.]*)\.([^.]*|..\...|...\...)$/
+      # $& => example.local
+      DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(request)
         secret = request.env[TOKEN_KEY]
@@ -131,8 +128,17 @@ module ActionDispatch
         options[:path] ||= "/"
 
         if options[:domain] == :all
-          @host =~ DOMAIN_REGEXP
-          options[:domain] = ".#{$1}.#{$2}"
+          # if there is a provided tld length then we use it otherwise default domain regexp
+          domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+
+          # if host is not ip and matches domain regexp
+          # (ip confirms to domain regexp so we explicitly check for ip)
+          options[:domain] = if (@host !~ /^[\d.]+$/) && (@host =~ domain_regexp)
+            ".#{$&}"
+          end
+        elsif options[:domain].is_a? Array
+          # if host matches one of the supplied domains without a dot in front of it
+          options[:domain] = options[:domain].find {|domain| @host.include? domain[/^\.?(.*)$/, 1] }
         end
       end
 

@@ -253,8 +253,9 @@ module ActionView
       # using the +link_to+ method with the <tt>:method</tt> modifier as described in
       # the +link_to+ documentation.
       #
-      # The generated form element has a class name of <tt>button_to</tt>
-      # to allow styling of the form itself and its children. You can control
+      # By default, the generated form element has a class name of <tt>button_to</tt>
+      # to allow styling of the form itself and its children. This can be changed
+      # using the <tt>:form_class</tt> modifier within +html_options+. You can control
       # the form submission and input element behavior using +html_options+.
       # This method accepts the <tt>:method</tt> and <tt>:confirm</tt> modifiers
       # described in the +link_to+ documentation. If no <tt>:method</tt> modifier
@@ -275,10 +276,18 @@ module ActionView
       #   processed normally, otherwise no action is taken.
       # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behaviour. By default this behaviour is an ajax submit.
+      # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
+      #   be placed
       #
       # ==== Examples
       #   <%= button_to "New", :action => "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
+      #   #      <div><input value="New" type="submit" /></div>
+      #   #    </form>"
+      #
+      #
+      #   <%= button_to "New", :action => "new", :form_class => "new-thing" %>
+      #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
@@ -312,6 +321,7 @@ module ActionView
         end
 
         form_method = method.to_s == 'get' ? 'get' : 'post'
+        form_class = html_options.delete('form_class') || 'button_to'
 
         remote = html_options.delete('remote')
 
@@ -327,7 +337,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{ERB::Util.html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{ERB::Util.html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"#{ERB::Util.html_escape(form_class)}\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe
       end
 
@@ -487,13 +497,14 @@ module ActionView
         email_address_obfuscated = email_address.dup
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
-
         case encode
         when "javascript"
-          string =
-            "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))}');".unpack('C*').map { |c|
-            sprintf("%%%x", c)
-          }.join
+          string = ''
+          html   = content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))
+          html   = escape_javascript(html)
+          "document.write('#{html}');".each_byte do |c|
+            string << sprintf("%%%x", c)
+          end
           "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
         when "hex"
           email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|

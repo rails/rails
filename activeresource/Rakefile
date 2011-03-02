@@ -19,7 +19,7 @@ namespace :test do
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     activesupport_path = "#{File.dirname(__FILE__)}/../activesupport/lib"
     Dir.glob("test/**/*_test.rb").all? do |file|
-      system(ruby, '-w', "-Ilib:test:#{activesupport_path}", file)
+      sh(ruby, '-w', "-Ilib:test:#{activesupport_path}", file)
     end or raise "Failures"
   end
 end

@@ -11,7 +11,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
     render :partial => @topic.replies
   end
 
-  def render_with_named_scope
+  def render_with_scope
     render :partial => Reply.base
   end
 
@@ -62,8 +62,8 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     assert_equal 'Birdman is better!', @response.body
   end
 
-  def test_rendering_partial_with_named_scope
-    get :render_with_named_scope
+  def test_rendering_partial_with_scope
+    get :render_with_scope
     assert_template 'replies/_reply'
     assert_equal 'Birdman is better!Nuh uh!', @response.body
   end

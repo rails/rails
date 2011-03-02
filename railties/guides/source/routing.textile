@@ -85,6 +85,9 @@ creates seven different routes in your application, all mapping to the +Photos+ 
 |PUT          |/photos/:id       |update   |update a specific photo                      |
 |DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
+
+NOTE: Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
+
 h4. Paths and URLs
 
 Creating a resourceful route will also expose a number of helpers to the controllers in your application. In the case of +resources :photos+:
@@ -388,6 +391,8 @@ NOTE: You can't use +namespace+ or +:module+ with a +:controller+ path segment. 
 match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
 </ruby>
 
+TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id => /[^\/]+/+ allows anything except a slash.
+
 h4. Static Segments
 
 You can specify static segments when creating a route:
@@ -495,7 +500,7 @@ You specify a request-based constraint the same way that you specify a segment c
 match "photos", :constraints => {:subdomain => "admin"}
 </ruby>
 
-You can also specify constrains in a block form:
+You can also specify constraints in a block form:
 
 <ruby>
 namespace :admin do
@@ -595,7 +600,7 @@ You can specify what Rails should route +"/"+ to with the +root+ method:
 root :to => 'pages#main'
 </ruby>
 
-You should put the +root+ route at the end of the file.
+You should put the +root+ route at the end of the file. You also need to delete the +public/index.html+ file for the root route to take effect.
 
 h3. Customizing Resourceful Routes
 
@@ -630,7 +635,7 @@ You can use the +:constraints+ option to specify a required format on the implic
 resources :photos, :constraints => {:id => /[A-Z][A-Z][0-9]+/}
 </ruby>
 
-This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
+This declaration constraints the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
 
 You can specify a single constraint to apply to a number of routes by using the block form:
 
@@ -642,6 +647,8 @@ end
 </ruby>
 
 NOTE: Of course, you can use the more advanced constraints available in non-resourceful routes in this context.
+
+TIP: By default the +:id+ parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an +:id+ add a constraint which overrides this - for example +:id => /[^\/]+/+ allows anything except a slash.
 
 h4. Overriding the Named Helpers
 
@@ -701,7 +708,7 @@ resources :photos
 
 This will provide route helpers such as +admin_photos_path+, +new_admin_photo_path+ etc.
 
-To prefix a group of routes, use +:as+ with +scope+:
+To prefix a group of route helpers, use +:as+ with +scope+:
 
 <ruby>
 scope "admin", :as => "admin" do
@@ -711,7 +718,19 @@ end
 resources :photos, :accounts
 </ruby>
 
+This will generate routes such as +admin_photos_path+ and +admin_accounts_path+ which map to +/admin/photos+ and +/admin/accounts+ respectively.
+
 NOTE: The +namespace+ scope will automatically add +:as+ as well as +:module+ and +:path+ prefixes.
+
+You can prefix routes with a named parameter also:
+
+<ruby>
+scope ":username" do
+  resources :posts
+end
+</ruby>
+
+This will provide you with URLs such as +/bob/posts/1+ and will allow you to reference the +username+ part of the path as +params[:username]+ in controllers, helpers and views.
 
 h4. Restricting the Routes Created
 
@@ -835,12 +854,6 @@ You can supply a +:method+ argument to specify the HTTP verb:
 
 <ruby>
 assert_recognizes({ :controller => "photos", :action => "create" }, { :path => "photos", :method => :post })
-</ruby>
-
-You can also use the resourceful helpers to test recognition of a RESTful route:
-
-<ruby>
-assert_recognizes new_photo_url, { :path => "photos", :method => :post }
 </ruby>
 
 h5. The +assert_routing+ Assertion

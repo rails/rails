@@ -15,7 +15,7 @@ module ActiveModel
   #     attr_accessor :name
   #
   #     def attributes
-  #       @attributes ||= {'name' => 'nil'}
+  #       {'name' => name}
   #     end
   #
   #   end
@@ -45,7 +45,7 @@ module ActiveModel
   #     attr_accessor :name
   #
   #     def attributes
-  #       @attributes ||= {'name' => 'nil'}
+  #       {'name' => name}
   #     end
   #
   #   end

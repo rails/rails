@@ -9,24 +9,26 @@ module ActiveRecord
   #
   # Timestamping can be turned off by setting:
   #
-  #   <tt>ActiveRecord::Base.record_timestamps = false</tt>
+  #   config.active_record.record_timestamps = false
   #
   # Timestamps are in the local timezone by default but you can use UTC by setting:
   #
-  #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
+  #   config.active_record.default_timezone = :utc
   #
   # == Time Zone aware attributes
   #
   # By default, ActiveRecord::Base keeps all the datetime columns time zone aware by executing following code.
   #
-  #   ActiveRecord::Base.time_zone_aware_attributes = true
+  #   config.active_record.time_zone_aware_attributes = true
   #
   # This feature can easily be turned off by assigning value <tt>false</tt> .
   #
-  # If your attributes are time zone aware and you desire to skip time zone conversion for certain
-  # attributes then you can do following:
+  # If your attributes are time zone aware and you desire to skip time zone conversion to the current Time.zone
+  # when reading certain attributes then you can do following:
   #
-  #   Topic.skip_time_zone_conversion_for_attributes = [:written_on]
+  #   class Topic < ActiveRecord::Base
+  #     self.skip_time_zone_conversion_for_attributes = [:written_on]
+  #   end
   module Timestamp
     extend ActiveSupport::Concern
 
@@ -66,8 +68,16 @@ module ActiveRecord
       self.record_timestamps && (!partial_updates? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
     end
 
+    def timestamp_attributes_for_create_in_model
+      timestamp_attributes_for_create.select { |c| self.class.column_names.include?(c.to_s) }
+    end
+
     def timestamp_attributes_for_update_in_model
-      timestamp_attributes_for_update.select { |c| respond_to?(c) }
+      timestamp_attributes_for_update.select { |c| self.class.column_names.include?(c.to_s) }
+    end
+
+    def all_timestamp_attributes_in_model
+      timestamp_attributes_for_create_in_model + timestamp_attributes_for_update_in_model
     end
 
     def timestamp_attributes_for_update #:nodoc:

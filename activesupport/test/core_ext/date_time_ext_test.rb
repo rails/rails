@@ -38,6 +38,8 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.utc_time(2039, 2, 21, 10, 11, 12), DateTime.new(2039, 2, 21, 10, 11, 12, 0, 0).to_time
     # DateTimes with offsets other than 0 are returned unaltered
     assert_equal DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).to_time
+    # Fractional seconds are preserved
+    assert_equal Time.utc(2005, 2, 21, 10, 11, 12, 256), DateTime.new(2005, 2, 21, 10, 11, 12 + Rational(256, 1000000), 0).to_time
   end
 
   def test_civil_from_format
@@ -280,21 +282,21 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal true,  DateTime.civil(2005,2,10,20,30,46).future?
   end
 
-  def test_current_returns_date_today_when_zone_default_not_set
+  def test_current_returns_date_today_when_zone_is_not_set
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(1999, 12, 31, 23, 59, 59)
       assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
     end
   end
 
-  def test_current_returns_time_zone_today_when_zone_default_set
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+  def test_current_returns_time_zone_today_when_zone_is_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(1999, 12, 31, 23, 59, 59)
       assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
     end
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   def test_current_without_time_zone

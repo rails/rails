@@ -17,6 +17,7 @@ require 'models/book'
 require 'models/subscriber'
 require 'models/subscription'
 require 'models/tag'
+require 'models/sponsor'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -136,11 +137,11 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_belongs_to_inferred_foreign_key_from_assoc_name
     Company.belongs_to :foo
-    assert_equal "foo_id", Company.reflect_on_association(:foo).primary_key_name
+    assert_equal "foo_id", Company.reflect_on_association(:foo).foreign_key
     Company.belongs_to :bar, :class_name => "Xyzzy"
-    assert_equal "bar_id", Company.reflect_on_association(:bar).primary_key_name
+    assert_equal "bar_id", Company.reflect_on_association(:bar).foreign_key
     Company.belongs_to :baz, :class_name => "Xyzzy", :foreign_key => "xyzzy_id"
-    assert_equal "xyzzy_id", Company.reflect_on_association(:baz).primary_key_name
+    assert_equal "xyzzy_id", Company.reflect_on_association(:baz).foreign_key
   end
 
   def test_association_reflection_in_modules
@@ -187,8 +188,8 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 37, Firm.reflect_on_all_associations.size
-    assert_equal 27, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 36, Firm.reflect_on_all_associations.size
+    assert_equal 26, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end
@@ -243,6 +244,7 @@ class ReflectionTest < ActiveRecord::TestCase
     # Normal association
     assert_equal "id",   Author.reflect_on_association(:posts).association_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
+    assert_equal "id",   Tagging.reflect_on_association(:taggable).association_primary_key.to_s
 
     # Through association (uses the :primary_key option from the source reflection)
     assert_equal "nick", Author.reflect_on_association(:subscribers).association_primary_key.to_s
@@ -253,6 +255,11 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_active_record_primary_key
     assert_equal "nick", Subscriber.reflect_on_association(:subscriptions).active_record_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).active_record_primary_key.to_s
+  end
+
+  def test_foreign_type
+    assert_equal "sponsorable_type", Sponsor.reflect_on_association(:sponsorable).foreign_type.to_s
+    assert_equal "sponsorable_type", Sponsor.reflect_on_association(:thing).foreign_type.to_s
   end
 
   def test_collection_association
@@ -290,6 +297,18 @@ class ReflectionTest < ActiveRecord::TestCase
     assert !AssociationReflection.new(:belongs_to, :client, { :autosave => true, :validate => false }, Firm).validate?
     assert !AssociationReflection.new(:has_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
     assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
+  end
+
+  def test_foreign_key
+    assert_equal "author_id", Author.reflect_on_association(:posts).foreign_key.to_s
+    assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
+  end
+
+  def test_primary_key_name
+    assert_deprecated do
+      assert_equal "author_id", Author.reflect_on_association(:posts).primary_key_name.to_s
+      assert_equal "category_id", Post.reflect_on_association(:categorizations).primary_key_name.to_s
+    end
   end
 
   private

@@ -102,7 +102,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   # Test that MySQL allows multiple results for stored procedures
-  if Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
+  if defined?(Mysql) && Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
     def test_multi_results
       rows = ActiveRecord::Base.connection.select_rows('CALL ten();')
       assert_equal 10, rows[0][0].to_i, "ten() did not return 10 as expected: #{rows.inspect}"

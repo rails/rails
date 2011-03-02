@@ -1,6 +1,14 @@
 require 'abstract_unit'
 
 class TmailCompatTest < ActiveSupport::TestCase
+  def setup
+    @silence = ActiveSupport::Deprecation.silenced
+    ActiveSupport::Deprecation.silenced = false
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.silenced = @silence
+  end
 
   def test_set_content_type_raises_deprecation_warning
     mail = Mail.new
@@ -31,5 +39,4 @@ class TmailCompatTest < ActiveSupport::TestCase
     end
     assert_equal mail.content_transfer_encoding, "base64"
   end
-
 end

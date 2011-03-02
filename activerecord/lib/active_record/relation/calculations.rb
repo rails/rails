@@ -168,7 +168,7 @@ module ActiveRecord
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
-          column_name = @klass.primary_key if column_name == :all
+          column_name = primary_key if column_name == :all
         end
 
         distinct = nil if column_name =~ /\s*DISTINCT\s+/i
@@ -204,14 +204,26 @@ module ActiveRecord
 
       relation.select_values = [select_value]
 
-      type_cast_calculated_value(@klass.connection.select_value(relation.to_sql), column_for(column_name), operation)
+      query_builder = relation.arel
+
+      if operation == "count"
+        limit  = relation.limit_value
+        offset = relation.offset_value
+
+        unless limit && offset
+          query_builder.limit  = nil
+          query_builder.offset = nil
+        end
+      end
+
+      type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
       group_attr      = @group_values
       association     = @klass.reflect_on_association(group_attr.first.to_sym)
       associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
-      group_fields  = Array(associated ? association.primary_key_name : group_attr)
+      group_fields  = Array(associated ? association.foreign_key : group_attr)
       group_aliases = group_fields.map { |field| column_alias_for(field) }
       group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
         [aliaz, column_for(field)]
@@ -282,15 +294,11 @@ module ActiveRecord
     end
 
     def type_cast_calculated_value(value, column, operation = nil)
-      if value.is_a?(String) || value.nil?
-        case operation
-          when 'count'   then value.to_i
-          when 'sum'     then type_cast_using_column(value || '0', column)
-          when 'average' then value.try(:to_d)
-          else type_cast_using_column(value, column)
-        end
-      else
-        type_cast_using_column(value, column)
+      case operation
+        when 'count'   then value.to_i
+        when 'sum'     then type_cast_using_column(value || '0', column)
+        when 'average' then value.respond_to?(:to_d) ? value.to_d : value
+        else type_cast_using_column(value, column)
       end
     end
 

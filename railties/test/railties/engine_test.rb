@@ -1,12 +1,15 @@
 require "isolation/abstract_unit"
 require "railties/shared_tests"
 require 'stringio'
+require 'rack/test'
+require 'rack/file'
 
 module RailtiesTest
   class EngineTest < Test::Unit::TestCase
 
     include ActiveSupport::Testing::Isolation
     include SharedTests
+    include Rack::Test::Methods
 
     def setup
       build_app
@@ -87,10 +90,8 @@ module RailtiesTest
 
       boot_rails
 
-      env = Rack::MockRequest.env_for("/bukkits")
-      response = Rails.application.call(env)
-
-      assert_equal ["HELLO WORLD"], response[2]
+      get("/bukkits")
+      assert_equal "HELLO WORLD", last_response.body
     end
 
     test "it provides routes as default endpoint" do
@@ -115,9 +116,8 @@ module RailtiesTest
 
       boot_rails
 
-      env = Rack::MockRequest.env_for("/bukkits/foo")
-      response = Rails.application.call(env)
-      assert_equal ["foo"], response[2]
+      get("/bukkits/foo")
+      assert_equal "foo", last_response.body
     end
 
     test "engine can load its own plugins" do
@@ -191,13 +191,11 @@ module RailtiesTest
       boot_rails
 
       env = Rack::MockRequest.env_for("/")
-      response = Bukkits::Engine.call(env)
-
+      Bukkits::Engine.call(env)
       assert_equal Bukkits::Engine.routes, env['action_dispatch.routes']
 
       env = Rack::MockRequest.env_for("/")
-      response = Rails.application.call(env)
-
+      Rails.application.call(env)
       assert_equal Rails.application.routes, env['action_dispatch.routes']
     end
 
@@ -230,6 +228,12 @@ module RailtiesTest
         <%= stylesheet_link_tag("foo") %>
       ERB
 
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
       add_to_config 'config.asset_path = "/omg%s"'
 
       boot_rails
@@ -239,9 +243,8 @@ module RailtiesTest
 
       ::Bukkits::Engine.config.asset_path = "/bukkits%s"
 
-      env = Rack::MockRequest.env_for("/foo")
-      response = Bukkits::Engine.call(env)
-      stripped_body = response[2].body.split("\n").map(&:strip).join
+      get("/bukkits/foo")
+      stripped_body = last_response.body.split("\n").map(&:strip).join
 
       expected =  "/omg/bukkits/images/foo.png" +
                   "<script src=\"/omg/bukkits/javascripts/foo.js\" type=\"text/javascript\"></script>" +
@@ -264,14 +267,16 @@ module RailtiesTest
         end
       RUBY
 
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
       boot_rails
 
-      env = Rack::MockRequest.env_for("/foo")
-      response = Bukkits::Engine.call(env)
-      stripped_body = response[2].body.strip
-
-      expected =  "/bukkits/images/foo.png"
-      assert_equal expected, stripped_body
+      get("/bukkits/foo")
+      assert_equal "/bukkits/images/foo.png", last_response.body.strip
     end
 
     test "engine's files are served via ActionDispatch::Static" do
@@ -291,25 +296,42 @@ module RailtiesTest
 
       boot_rails
 
-      env = Rack::MockRequest.env_for("/app.html")
-      response = Rails.application.call(env)
-      assert_equal rack_body(response[2]), rack_body(File.open(File.join(app_path, "public/app.html")))
+      get("/app.html")
+      assert_equal File.read(File.join(app_path, "public/app.html")), last_response.body
 
-      env = Rack::MockRequest.env_for("/bukkits/bukkits.html")
-      response = Rails.application.call(env)
-      assert_equal rack_body(response[2]), rack_body(File.open(File.join(@plugin.path, "public/bukkits.html")))
+      get("/bukkits/bukkits.html")
+      assert_equal File.read(File.join(@plugin.path, "public/bukkits.html")), last_response.body
 
-      env = Rack::MockRequest.env_for("/bukkits/file_from_app.html")
-      response = Rails.application.call(env)
-      assert_equal rack_body(response[2]), rack_body(File.open(File.join(app_path, "public/bukkits/file_from_app.html")))
+      get("/bukkits/file_from_app.html")
+      assert_equal File.read(File.join(app_path, "public/bukkits/file_from_app.html")), last_response.body
     end
 
-    def rack_body(obj)
-      buffer = ""
-      obj.each do |part|
-        buffer << part
-      end
-      buffer
+    test "an applications files are given priority over an engines files when served via ActionDispatch::Static" do
+      add_to_config "config.serve_static_assets = true"
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        class Bukkits
+          class Engine < ::Rails::Engine
+            engine_name :bukkits
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
+      @plugin.write "public/bukkits.html", "in engine"
+
+      app_file "public/bukkits/bukkits.html", "in app"
+
+      boot_rails
+
+      get('/bukkits/bukkits.html')
+
+      assert_equal 'in app', last_response.body.strip
     end
 
     test "shared engine should include application's helpers and own helpers" do
@@ -355,17 +377,14 @@ module RailtiesTest
 
       boot_rails
 
-      env = Rack::MockRequest.env_for("/foo")
-      response = Rails.application.call(env)
-      assert_equal ["Something... Something... Something..."], response[2]
+      get("/foo")
+      assert_equal "Something... Something... Something...", last_response.body
 
-      env = Rack::MockRequest.env_for("/foo/show")
-      response = Rails.application.call(env)
-      assert_equal ["/foo"], response[2]
+      get("/foo/show")
+      assert_equal "/foo", last_response.body
 
-      env = Rack::MockRequest.env_for("/foo/bar")
-      response = Rails.application.call(env)
-      assert_equal ["It's a bar."], response[2]
+      get("/foo/bar")
+      assert_equal "It's a bar.", last_response.body
     end
 
     test "isolated engine should include only its own routes and helpers" do
@@ -464,25 +483,20 @@ module RailtiesTest
       assert ::Bukkits::MyMailer.method_defined?(:foo_path)
       assert !::Bukkits::MyMailer.method_defined?(:bar_path)
 
-      env = Rack::MockRequest.env_for("/bukkits/from_app")
-      response = AppTemplate::Application.call(env)
-      assert_equal ["false"], response[2]
+      get("/bukkits/from_app")
+      assert_equal "false", last_response.body
 
-      env = Rack::MockRequest.env_for("/bukkits/foo/show")
-      response = AppTemplate::Application.call(env)
-      assert_equal ["/bukkits/foo"], response[2]
+      get("/bukkits/foo/show")
+      assert_equal "/bukkits/foo", last_response.body
 
-      env = Rack::MockRequest.env_for("/bukkits/foo")
-      response = AppTemplate::Application.call(env)
-      assert_equal ["Helped."], response[2]
+      get("/bukkits/foo")
+      assert_equal "Helped.", last_response.body
 
-      env = Rack::MockRequest.env_for("/bukkits/routes_helpers_in_view")
-      response = AppTemplate::Application.call(env)
-      assert_equal ["/bukkits/foo, /bar"], response[2]
+      get("/bukkits/routes_helpers_in_view")
+      assert_equal "/bukkits/foo, /bar", last_response.body
 
-      env = Rack::MockRequest.env_for("/bukkits/polymorphic_path_without_namespace")
-      response = AppTemplate::Application.call(env)
-      assert_equal ["/bukkits/posts/1"], response[2]
+      get("/bukkits/polymorphic_path_without_namespace")
+      assert_equal "/bukkits/posts/1", last_response.body
     end
 
     test "isolated engine should avoid namespace in names if that's possible" do
@@ -541,9 +555,8 @@ module RailtiesTest
 
       boot_rails
 
-      env = Rack::MockRequest.env_for("/bukkits/posts/new")
-      response = AppTemplate::Application.call(env)
-      assert rack_body(response[2]) =~ /name="post\[title\]"/
+      get("/bukkits/posts/new")
+      assert_match /name="post\[title\]"/, last_response.body
     end
 
     test "loading seed data" do
@@ -612,16 +625,14 @@ module RailtiesTest
         end
       RUBY
 
-      require 'rack/test'
-      extend Rack::Test::Methods
-
       boot_rails
 
       require "#{rails_root}/config/environment"
-      get "/foo"
+
+      get("/foo")
       assert_equal "foo", last_response.body
 
-      get "/bukkits/bar"
+      get("/bukkits/bar")
       assert_equal "bar", last_response.body
     end
 
@@ -720,6 +731,75 @@ module RailtiesTest
       engine_dir = @plugin.path.chomp("/").split("/").last
       engine_path = File.join(@plugin.path, '..', engine_dir)
       assert_equal Bukkits::Engine.instance, Rails::Engine.find(engine_path)
+    end
+
+    test "ensure that engine properly sets assets directories" do
+      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.serve_static_assets = true")
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "public/stylesheets/foo.css", ""
+      @plugin.write "public/javascripts/foo.js", ""
+
+      @plugin.write "app/views/layouts/bukkits/application.html.erb", <<-RUBY
+        <%= stylesheet_link_tag :all %>
+        <%= javascript_include_tag :all %>
+        <%= yield %>
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/home_controller.rb", <<-RUBY
+        module Bukkits
+          class HomeController < ActionController::Base
+            def index
+              render :text => "Good morning!", :layout => "bukkits/application"
+            end
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          match "/home" => "home#index"
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount Bukkits::Engine => "/bukkits"
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+
+      boot_rails
+
+      require "#{rails_root}/config/environment"
+
+      assert_equal File.join(@plugin.path, "public"),             Bukkits::HomeController.assets_dir
+      assert_equal File.join(@plugin.path, "public/stylesheets"), Bukkits::HomeController.stylesheets_dir
+      assert_equal File.join(@plugin.path, "public/javascripts"), Bukkits::HomeController.javascripts_dir
+
+      assert_equal File.join(app_path, "public"),             ActionController::Base.assets_dir
+      assert_equal File.join(app_path, "public/stylesheets"), ActionController::Base.stylesheets_dir
+      assert_equal File.join(app_path, "public/javascripts"), ActionController::Base.javascripts_dir
+
+      get "/bukkits/home"
+
+      assert_match %r{bukkits/stylesheets/foo.css}, last_response.body
+      assert_match %r{bukkits/javascripts/foo.js}, last_response.body
+    end
+
+  private
+    def app
+      Rails.application
     end
   end
 end

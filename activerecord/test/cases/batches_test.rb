@@ -7,6 +7,7 @@ class EachTest < ActiveRecord::TestCase
   def setup
     @posts = Post.order("id asc")
     @total = Post.count
+    Post.count('id') # preheat arel's table cache
   end
 
   def test_each_should_excecute_one_query_per_batch

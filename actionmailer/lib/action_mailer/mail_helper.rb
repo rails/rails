@@ -3,17 +3,8 @@ module ActionMailer
     # Uses Text::Format to take the text and format it, indented two spaces for
     # each line, and wrapped at 72 columns.
     def block_format(text)
-      begin
-        require 'text/format'
-      rescue LoadError => e
-        $stderr.puts "You don't have text-format installed in your application. Please add it to your Gemfile and run bundle install"
-        raise e
-      end unless defined?(Text::Format)
-
       formatted = text.split(/\n\r\n/).collect { |paragraph|
-        Text::Format.new(
-          :columns => 72, :first_indent => 2, :body_indent => 2, :text => paragraph
-        ).format
+        simple_format(paragraph)
       }.join("\n")
 
       # Make list points stand on their own line
@@ -36,6 +27,23 @@ module ActionMailer
     # Access the message attachments list.
     def attachments
       @_message.attachments
+    end
+
+    private
+    def simple_format(text, len = 72, indent = 2)
+      sentences = [[]]
+
+      text.split.each do |word|
+        if (sentences.last + [word]).join(' ').length > len
+          sentences << [word]
+        else
+          sentences.last << word
+        end
+      end
+
+      sentences.map { |sentence|
+        "#{" " * indent}#{sentence.join(' ')}"
+      }.join "\n"
     end
   end
 end

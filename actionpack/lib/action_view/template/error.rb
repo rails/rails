@@ -27,7 +27,7 @@ module ActionView
   class MissingTemplate < ActionViewError #:nodoc:
     attr_reader :path
 
-    def initialize(paths, path, details, partial)
+    def initialize(paths, path, prefixes, partial, details, *)
       @path = path
       display_paths = paths.compact.map{ |p| p.to_s.inspect }.join(", ")
       template_type = if partial
@@ -38,7 +38,11 @@ module ActionView
         'template'
       end
 
-      super("Missing #{template_type} #{path} with #{details.inspect} in view paths #{display_paths}")
+      searched_paths = prefixes.map { |prefix| [prefix, path].join("/") }
+
+      out  = "Missing #{template_type} #{searched_paths.join(", ")} with #{details.inspect}. Searched in:\n"
+      out += paths.compact.map { |p| "  * #{p.to_s.inspect}\n" }.join
+      super out
     end
   end
 
@@ -52,6 +56,7 @@ module ActionView
       attr_reader :original_exception, :backtrace
 
       def initialize(template, assigns, original_exception)
+        super(original_exception.message)
         @template, @assigns, @original_exception = template, assigns.dup, original_exception
         @sub_templates = nil
         @backtrace = original_exception.backtrace
@@ -59,10 +64,6 @@ module ActionView
 
       def file_name
         @template.identifier
-      end
-
-      def message
-        ActiveSupport::Deprecation.silence { original_exception.message }
       end
 
       def sub_template_message

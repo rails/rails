@@ -12,6 +12,7 @@ first_firm:
   type: Firm
   name: 37signals
   ruby_type: Firm
+  firm_id: 1
 
 second_client:
   id: 3

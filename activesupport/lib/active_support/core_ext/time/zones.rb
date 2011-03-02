@@ -19,14 +19,18 @@ class Time
     # * A TZInfo::Timezone object.
     # * An identifier for a TZInfo::Timezone object (e.g., "America/New_York").
     #
-    # Here's an example of how you might set <tt>Time.zone</tt> on a per request basis -- <tt>current_user.time_zone</tt>
-    # just needs to return a string identifying the user's preferred TimeZone:
+    # Here's an example of how you might set <tt>Time.zone</tt> on a per request basis and reset it when the request is done.
+    # <tt>current_user.time_zone</tt> just needs to return a string identifying the user's preferred time zone:
     #
     #   class ApplicationController < ActionController::Base
-    #     before_filter :set_time_zone
+    #     around_filter :set_time_zone
     #
     #     def set_time_zone
-    #       Time.zone = current_user.time_zone
+    #       old_time_zone = Time.zone
+    #       Time.zone = current_user.time_zone if logged_in?
+    #       yield
+    #     ensure
+    #       Time.zone = old_time_zone
     #     end
     #   end
     def zone=(time_zone)

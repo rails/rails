@@ -99,11 +99,9 @@ module ActionDispatch
         record = extract_record(record_or_hash_or_array)
         record = record.to_model if record.respond_to?(:to_model)
 
-        args = case record_or_hash_or_array
-          when Hash;  [ record_or_hash_or_array ]
-          when Array; record_or_hash_or_array.dup
-          else        [ record_or_hash_or_array ]
-        end
+        args = Array === record_or_hash_or_array ?
+          record_or_hash_or_array.dup :
+          [ record_or_hash_or_array ]
 
         inflection = if options[:action] && options[:action].to_s == "new"
           args.pop

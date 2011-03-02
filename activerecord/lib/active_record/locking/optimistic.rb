@@ -58,6 +58,12 @@ module ActiveRecord
       end
 
       private
+        def increment_lock
+          lock_col = self.class.locking_column
+          previous_lock_value = send(lock_col).to_i
+          send(lock_col + '=', previous_lock_value + 1)
+        end
+
         def attributes_from_column_definition
           result = super
 
@@ -78,8 +84,8 @@ module ActiveRecord
           return 0 if attribute_names.empty?
 
           lock_col = self.class.locking_column
-          previous_value = send(lock_col).to_i
-          send(lock_col + '=', previous_value + 1)
+          previous_lock_value = send(lock_col).to_i
+          increment_lock
 
           attribute_names += [lock_col]
           attribute_names.uniq!
@@ -89,7 +95,7 @@ module ActiveRecord
 
             stmt = relation.where(
               relation.table[self.class.primary_key].eq(quoted_id).and(
-                relation.table[lock_col].eq(quote_value(previous_value))
+                relation.table[lock_col].eq(quote_value(previous_lock_value))
               )
             ).arel.compile_update(arel_attributes_values(false, false, attribute_names))
 
@@ -103,7 +109,7 @@ module ActiveRecord
 
           # If something went wrong, revert the version.
           rescue Exception
-            send(lock_col + '=', previous_value)
+            send(lock_col + '=', previous_lock_value)
             raise
           end
         end

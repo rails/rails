@@ -44,7 +44,10 @@ module ActionView
           #     <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
           #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
           def register_stylesheet_expansion(expansions)
-            StylesheetIncludeTag.expansions.merge!(expansions)
+            style_expansions = StylesheetIncludeTag.expansions
+            expansions.each do |key, values|
+              style_expansions[key] = (style_expansions[key] || []) | Array(values) if values
+            end
           end
         end
 

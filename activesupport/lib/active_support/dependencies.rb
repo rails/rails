@@ -5,6 +5,7 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
@@ -46,9 +47,6 @@ module ActiveSupport #:nodoc:
     # this array will cause it to be unloaded the next time Dependencies are cleared.
     mattr_accessor :autoloaded_constants
     self.autoloaded_constants = []
-
-    mattr_accessor :references
-    self.references = {}
 
     # An array of constant names that need to be unloaded on every request. Used
     # to allow arbitrary constants to be marked for unloading.
@@ -524,31 +522,76 @@ module ActiveSupport #:nodoc:
       explicitly_unloadable_constants.each { |const| remove_constant const }
     end
 
-    class Reference
-      @@constants = Hash.new { |h, k| h[k] = Inflector.constantize(k) }
-
-      attr_reader :name
-
-      def initialize(name)
-        @name = name.to_s
-        @@constants[@name] = name if name.respond_to?(:name)
+    class ClassCache
+      def initialize
+        @store = Hash.new { |h, k| h[k] = Inflector.constantize(k) }
       end
 
-      def get
-        @@constants[@name]
+      def empty?
+        @store.empty?
       end
 
-      def self.clear!
-        @@constants.clear
+      def key?(key)
+        @store.key?(key)
+      end
+
+      def []=(key, value)
+        return unless key.respond_to?(:name)
+
+        raise(ArgumentError, 'anonymous classes cannot be cached') if key.name.blank?
+
+        @store[key.name] = value
+      end
+
+      def [](key)
+        key = key.name if key.respond_to?(:name)
+
+        @store[key]
+      end
+      alias :get :[]
+
+      class Getter # :nodoc:
+        def initialize(name)
+          @name = name
+        end
+
+        def get
+          Reference.get @name
+        end
+        deprecate :get
+      end
+
+      def new(name)
+        self[name] = name
+        Getter.new(name)
+      end
+      deprecate :new
+
+      def store(name)
+        self[name] = name
+        self
+      end
+
+      def clear!
+        @store.clear
       end
     end
+
+    Reference = ClassCache.new
 
     def ref(name)
-      references[name] ||= Reference.new(name)
+      Reference.new(name)
+    end
+    deprecate :ref
+
+    # Store a reference to a class +klass+.
+    def reference(klass)
+      Reference.store klass
     end
 
+    # Get the reference for class named +name+.
     def constantize(name)
-      ref(name).get
+      Reference.get(name)
     end
 
     # Determine if the given constant has been automatically loaded.

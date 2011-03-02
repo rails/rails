@@ -7,6 +7,16 @@ require 'models/comment'
 
 class SpecialDeveloper < Developer; end
 
+class DeveloperObserver < ActiveRecord::Observer
+  def calls
+    @calls ||= []
+  end
+
+  def before_save(developer)
+    calls << developer
+  end
+end
+
 class SalaryChecker < ActiveRecord::Observer
   observe :special_developer
   attr_accessor :last_saved
@@ -101,9 +111,10 @@ class LifecycleTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :minimalistics
 
   def test_before_destroy
-    original_count = Topic.count
-    (topic_to_be_destroyed = Topic.find(1)).destroy
-    assert_equal original_count - (1 + topic_to_be_destroyed.replies.size), Topic.count
+    topic = Topic.find(1)
+    assert_difference 'Topic.count', -(1 + topic.replies.size) do
+      topic.destroy
+    end
   end
 
   def test_auto_observer
@@ -193,6 +204,16 @@ class LifecycleTest < ActiveRecord::TestCase
     SalaryChecker.instance # activate
     developer = SpecialDeveloper.create! :name => 'Roger', :salary => 100000
     assert_equal developer, SalaryChecker.instance.last_saved
+  end
+
+  def test_observer_is_called_once
+    observer = DeveloperObserver.instance # activate
+    observer.calls.clear
+
+    developer = Developer.create! :name => 'Ancestor', :salary => 100000
+    special_developer = SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
+
+    assert_equal [developer, special_developer], observer.calls
   end
 
 end

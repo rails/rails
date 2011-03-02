@@ -43,7 +43,7 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings
+           :people, :posts, :readers, :taggings, :cars
 
   def setup
     Client.destroyed_client_ids.clear
@@ -66,13 +66,35 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'exotic', bulb.name
   end
 
+  # When creating objects on the association, we must not do it within a scope (even though it
+  # would be convenient), because this would cause that scope to be applied to any callbacks etc.
+  def test_build_and_create_should_not_happen_within_scope
+    car = cars(:honda)
+    original_scoped_methods = Bulb.scoped_methods
+
+    bulb = car.bulbs.build
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = car.bulbs.create
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = car.bulbs.create!
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+  end
+
   def test_no_sql_should_be_fired_if_association_already_loaded
     Car.create(:name => 'honda')
     bulbs = Car.first.bulbs
     bulbs.inspect # to load all instances of bulbs
+
     assert_no_queries do
       bulbs.first()
       bulbs.first({})
+    end
+
+    assert_no_queries do
+      bulbs.last()
+      bulbs.last({})
     end
   end
 
@@ -257,7 +279,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_counting_using_finder_sql
     assert_equal 2, Firm.find(4).clients_using_sql.count
-    assert_equal 2, Firm.find(4).clients_using_multiline_sql.count
   end
 
   def test_belongs_to_sanity
@@ -608,11 +629,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal topic.replies.to_a.size, topic.replies_count
   end
 
-  def test_deleting_updates_counter_cache_without_dependent_destroy
+  def test_deleting_updates_counter_cache_without_dependent_option
     post = posts(:welcome)
 
     assert_difference "post.reload.taggings_count", -1 do
       post.taggings.delete(post.taggings.first)
+    end
+  end
+
+  def test_deleting_updates_counter_cache_with_dependent_delete_all
+    post = posts(:welcome)
+    post.update_attribute(:taggings_with_delete_all_count, post.taggings_count)
+
+    assert_difference "post.reload.taggings_with_delete_all_count", -1 do
+      post.taggings_with_delete_all.delete(post.taggings_with_delete_all.first)
+    end
+  end
+
+  def test_deleting_updates_counter_cache_with_dependent_destroy
+    post = posts(:welcome)
+    post.update_attribute(:taggings_with_destroy_count, post.taggings_count)
+
+    assert_difference "post.reload.taggings_with_destroy_count", -1 do
+      post.taggings_with_destroy.delete(post.taggings_with_destroy.first)
     end
   end
 
@@ -628,8 +667,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_delete_all
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    assert_equal 2, companies(:first_firm).clients_of_firm.size
-    companies(:first_firm).clients_of_firm.delete_all
+    clients = companies(:first_firm).clients_of_firm.to_a
+    assert_equal 2, clients.count
+    deleted = companies(:first_firm).clients_of_firm.delete_all
+    assert_equal clients.sort_by(&:id), deleted.sort_by(&:id)
     assert_equal 0, companies(:first_firm).clients_of_firm.size
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
@@ -649,11 +690,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client_id = firm.clients_of_firm.first.id
     assert_equal 1, firm.clients_of_firm.size
 
-    firm.clients_of_firm.clear
+    cleared = firm.clients_of_firm.clear
 
     assert_equal 0, firm.clients_of_firm.size
     assert_equal 0, firm.clients_of_firm(true).size
     assert_equal [], Client.destroyed_client_ids[firm.id]
+    assert_equal firm.clients_of_firm.object_id, cleared.object_id
 
     # Should not be destroyed since the association is not dependent.
     assert_nothing_raised do
@@ -664,9 +706,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_clearing_updates_counter_cache
     topic = Topic.first
 
-    topic.replies.clear
-    topic.reload
-    assert_equal 0, topic.replies_count
+    assert_difference 'topic.reload.replies_count', -1 do
+      topic.replies.clear
+    end
   end
 
   def test_clearing_a_dependent_association_collection
@@ -961,6 +1003,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.reload
     assert_equal 2, firm.clients.length
     assert !firm.clients.include?(:first_client)
+  end
+
+  def test_replace_failure
+    firm = companies(:first_firm)
+    account = Account.new
+    orig_accounts = firm.accounts.to_a
+
+    assert !account.valid?
+    assert !orig_accounts.empty?
+    assert_raise ActiveRecord::RecordNotSaved do
+      firm.accounts = [account]
+    end
+    assert_equal orig_accounts, firm.accounts
   end
 
   def test_get_ids
@@ -1301,5 +1356,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     first = topic.replies.to_a.first
     assert_equal reply.id, first.id
     assert_equal true, first.approved?
+  end
+
+  def test_to_a_should_dup_target
+    ary    = topics(:first).replies.to_a
+    target = topics(:first).replies.target
+
+    assert_not_equal target.object_id, ary.object_id
   end
 end

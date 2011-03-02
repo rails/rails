@@ -27,7 +27,9 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
+        "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::IdentityMap::Middleware",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
@@ -55,6 +57,7 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
+      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "removes lock if allow concurrency is set" do
@@ -75,10 +78,16 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
-    test "removes show exceptions if action_dispatch.show_exceptions is disabled" do
+    test "includes show exceptions even action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
-      assert !middleware.include?("ActionDispatch::ShowExceptions")
+      assert middleware.include?("ActionDispatch::ShowExceptions")
+    end
+
+    test "removes ActionDispatch::Reloader if cache_classes is true" do
+      add_to_config "config.cache_classes = true"
+      boot!
+      assert !middleware.include?("ActionDispatch::Reloader")
     end
 
     test "use middleware" do
@@ -103,6 +112,11 @@ module ApplicationTests
     test "RAILS_CACHE does respond to middleware" do
       boot!
       assert_equal "Rack::Runtime", middleware.fourth
+    end
+
+    test "identity map is inserted" do
+      boot!
+      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "insert middleware before" do

@@ -60,9 +60,20 @@ module ActiveResource
         # end
         module_eval <<-EOE, __FILE__, __LINE__ + 1
           def #{method}(path, request_headers = {}, body = nil, status = 200, response_headers = {})
-            @responses << [Request.new(:#{method}, path, nil, request_headers), Response.new(body || "", status, response_headers)]
+            request  = Request.new(:#{method}, path, nil, request_headers)
+            response = Response.new(body || "", status, response_headers)
+
+            delete_duplicate_responses(request)
+
+            @responses << [request, response]
           end
         EOE
+      end
+
+    private
+
+      def delete_duplicate_responses(request)
+        @responses.delete_if {|r| r[0] == request }
       end
     end
 
@@ -181,11 +192,11 @@ module ActiveResource
         pairs = args.first || {}
         reset! if args.last.class != FalseClass
 
-        delete_responses_to_replace pairs.to_a
-        responses.concat pairs.to_a
         if block_given?
           yield Responder.new(responses)
         else
+          delete_responses_to_replace pairs.to_a
+          responses.concat pairs.to_a
           Responder.new(responses)
         end
       end

@@ -137,4 +137,4 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   def add_record(name)
     ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
   end
-end unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
+end unless current_adapter?(:FrontBase) || in_memory_db?

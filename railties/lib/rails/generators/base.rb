@@ -3,7 +3,7 @@ begin
 rescue LoadError
   puts "Thor is not available.\nIf you ran this command from a git checkout " \
        "of Rails, please make sure thor is installed,\nand run this command " \
-       "as `ruby #{$0} #{ARGV.join(" ")} --dev`"
+       "as `ruby #{$0} #{(ARGV | ['--dev']).join(" ")}`"
   exit
 end
 
@@ -274,7 +274,7 @@ module Rails
         # Use Rails default banner.
         #
         def self.banner
-          "rails generate #{generator_name} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]"
+          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]".gsub(/\s+/, ' ')
         end
 
         # Sets the base_name taking into account the current class namespace.

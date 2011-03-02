@@ -1,6 +1,18 @@
 *Rails 3.1.0 (unreleased)*
 
-* url_for and named url helpers now accept :subdomain and :domain as options [Josh Kalderimis]
+* ActionDispatch::MiddlewareStack now uses composition over inheritance. It is
+no longer an array which means there may be methods missing that were not
+tested.
+
+* Add an :authenticity_token option to form_tag for custom handling or to omit the token (pass :authenticity_token => false).  [Jakub Kuźma, Igor Wiedler]
+
+* HTML5 button_tag helper. [Rizwan Reza]
+
+* Template lookup now searches further up in the inheritance chain. [Artemave]
+
+* Brought back config.action_view.cache_template_loading, which allows to decide whether templates should be cached or not. [Piotr Sarnacki]
+
+* url_for and named url helpers now accept :subdomain and :domain as options, [Josh Kalderimis]
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused (check the documentation for examples). [Josh Kalderimis]
 
@@ -29,13 +41,16 @@
 
 * Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. [Yehuda Katz, Carl Lerche]
 
+
 *Rails 3.0.2 (unreleased)*
 
 * The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
 
+
 *Rails 3.0.1 (October 15, 2010)*
 
 * No Changes, just a version bump.
+
 
 *Rails 3.0.0 (August 29, 2010)*
 
@@ -43,9 +58,7 @@
 
 * Symbols and strings in routes should yield the same behavior. Note this may break existing apps that were using symbols with the new routes API. [José Valim]
 
-* Add clear_helpers as a way to clean up all helpers added to this controller, maintaing just the helper with the same name as the controller. [José Valim]
-
-* See http://github.com/rails/rails/compare/v3.0.0_RC...v3.0.0_RC2 for gory details
+* Add clear_helpers as a way to clean up all helpers added to this controller, maintaining just the helper with the same name as the controller. [José Valim]
 
 * Support routing constraints in functional tests. [Andrew White]
 

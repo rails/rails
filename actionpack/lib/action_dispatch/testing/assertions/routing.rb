@@ -37,9 +37,6 @@ module ActionDispatch
       #
       #   # Test a custom route
       #   assert_recognizes({:controller => 'items', :action => 'show', :id => '1'}, 'view/item1')
-      #
-      #   # Check a Simply RESTful generated route
-      #   assert_recognizes list_items_url, 'items/list'
       def assert_recognizes(expected_options, path, extras={}, message=nil)
         request = recognized_request_for(path)
 
@@ -124,7 +121,8 @@ module ActionDispatch
           options[:controller] = "/#{controller}"
         end
 
-        assert_generates(path.is_a?(Hash) ? path[:path] : path, options, defaults, extras, message)
+        generate_options = options.dup.delete_if{ |k,v| defaults.key?(k) }
+        assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
       end
 
       # A helper to make it easier to test different route configurations.

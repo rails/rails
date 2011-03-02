@@ -24,13 +24,10 @@ module ActiveModel
   # you want callbacks on in a block so that the callbacks get a chance to fire:
   #
   #   def create
-  #     _run_create_callbacks do
+  #     run_callbacks :create do
   #       # Your create action methods here
   #     end
   #   end
-  #
-  # The _run_<method_name>_callbacks methods are dynamically created when you extend
-  # the <tt>ActiveModel::Callbacks</tt> module.
   #
   # Then in your class, you can use the +before_create+, +after_create+ and +around_create+
   # methods, just as you would in an Active Record module.
@@ -102,7 +99,7 @@ module ActiveModel
         define_callbacks(callback, options)
 
         types.each do |type|
-          send(:"_define_#{type}_model_callback", self, callback)
+          send("_define_#{type}_model_callback", self, callback)
         end
       end
     end

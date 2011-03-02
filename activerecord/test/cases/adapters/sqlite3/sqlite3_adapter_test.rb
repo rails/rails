@@ -9,6 +9,11 @@ module ActiveRecord
                                        :timeout => 100
       end
 
+      def test_primary_key_returns_nil_for_no_pk
+        @conn.exec_query('create table ex(id int, data string)')
+        assert_nil @conn.primary_key('ex')
+      end
+
       def test_connection_no_db
         assert_raises(ArgumentError) do
           Base.sqlite3_connection {}

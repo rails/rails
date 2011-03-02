@@ -63,7 +63,7 @@ module Rails
     end
 
     def database_yml
-      template "config/databases/#{@options[:database]}.yml", "config/database.yml"
+      template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
 
     def db
@@ -104,18 +104,18 @@ module Rails
 
     def javascripts
       empty_directory "public/javascripts"
-          
+
       unless options[:skip_javascript]
-        copy_file "public/javascripts/#{@options[:javascript]}.js"
-        copy_file "public/javascripts/#{@options[:javascript]}_ujs.js", "public/javascripts/rails.js"
-        
-        if options[:prototype]
+        copy_file "public/javascripts/#{options[:javascript]}.js"
+        copy_file "public/javascripts/#{options[:javascript]}_ujs.js", "public/javascripts/rails.js"
+
+        if options[:javascript] == "prototype"
           copy_file "public/javascripts/controls.js"
           copy_file "public/javascripts/dragdrop.js"
           copy_file "public/javascripts/effects.js"
         end
       end
-      
+
       copy_file "public/javascripts/application.js"
     end
 
@@ -284,6 +284,7 @@ module Rails
       def app_const_base
         @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, '_').squeeze('_').camelize
       end
+      alias :camelized :app_const_base
 
       def app_const
         @app_const ||= "#{app_const_base}::Application"
@@ -315,11 +316,6 @@ module Rails
           "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
           "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
         ].find { |f| File.exist?(f) } unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
-      end
-
-      def empty_directory_with_gitkeep(destination, config = {})
-        empty_directory(destination, config)
-        create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
 
       def get_builder_class

@@ -5,6 +5,7 @@ rescue LoadError => e
   raise e
 end
 require 'active_support/core_ext/object/blank'
+require 'stringio'
 
 # = XmlMini Nokogiri implementation
 module ActiveSupport

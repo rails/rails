@@ -251,6 +251,7 @@ module ActiveRecord
       remember_transaction_record_state
       yield
     rescue Exception
+      IdentityMap.remove(self) if IdentityMap.enabled?
       restore_transaction_record_state
       raise
     ensure
@@ -259,7 +260,7 @@ module ActiveRecord
 
     # Call the after_commit callbacks
     def committed! #:nodoc:
-      _run_commit_callbacks
+      run_callbacks :commit
     ensure
       clear_transaction_record_state
     end
@@ -267,7 +268,7 @@ module ActiveRecord
     # Call the after rollback callbacks. The restore_state argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state = false) #:nodoc:
-      _run_rollback_callbacks
+      run_callbacks :rollback
     ensure
       restore_transaction_record_state(force_restore_state)
     end
@@ -301,8 +302,8 @@ module ActiveRecord
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc
       @_start_transaction_state ||= {}
+      @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
       unless @_start_transaction_state.include?(:new_record)
-        @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
         @_start_transaction_state[:new_record] = @new_record
       end
       unless @_start_transaction_state.include?(:destroyed)
@@ -325,16 +326,14 @@ module ActiveRecord
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         if @_start_transaction_state[:level] < 1
           restore_state = remove_instance_variable(:@_start_transaction_state)
-          if restore_state
-            @attributes = @attributes.dup if @attributes.frozen?
-            @new_record = restore_state[:new_record]
-            @destroyed  = restore_state[:destroyed]
-            if restore_state[:id]
-              self.id = restore_state[:id]
-            else
-              @attributes.delete(self.class.primary_key)
-              @attributes_cache.delete(self.class.primary_key)
-            end
+          @attributes = @attributes.dup if @attributes.frozen?
+          @new_record = restore_state[:new_record]
+          @destroyed  = restore_state[:destroyed]
+          if restore_state.has_key?(:id)
+            self.id = restore_state[:id]
+          else
+            @attributes.delete(self.class.primary_key)
+            @attributes_cache.delete(self.class.primary_key)
           end
         end
       end

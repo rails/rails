@@ -12,6 +12,10 @@ module ActiveSupport
       def puke(klass, name, e)
         @puked << [klass, name, e]
       end
+
+      def options
+        nil
+      end
     end
 
     if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions

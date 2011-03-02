@@ -2,9 +2,13 @@ require "cases/helper"
 require 'models/developer'
 require 'models/project'
 require 'models/company'
+require 'models/ship'
+require 'models/pirate'
+require 'models/bulb'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects
+  self.use_transactional_fixtures = false unless supports_savepoints?
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates
 
   def setup
     Account.destroyed_account_ids.clear
@@ -62,11 +66,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { company.account = company.account }
   end
 
-  def test_triple_equality
-    assert Account === companies(:first_firm).account
-    assert companies(:first_firm).account === Account
-  end
-
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = Project.find(1) }
@@ -91,18 +90,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_nullification_on_association_change
     firm = companies(:rails_core)
     old_account_id = firm.account.id
-    firm.account = Account.new
+    firm.account = Account.new(:credit_limit => 5)
     # account is dependent with nullify, therefore its firm_id should be nil
     assert_nil Account.find(old_account_id).firm_id
   end
 
   def test_association_change_calls_delete
-    companies(:first_firm).deletable_account = Account.new
+    companies(:first_firm).deletable_account = Account.new(:credit_limit => 5)
     assert_equal [], Account.destroyed_account_ids[companies(:first_firm).id]
   end
 
   def test_association_change_calls_destroy
-    companies(:first_firm).account = Account.new
+    companies(:first_firm).account = Account.new(:credit_limit => 5)
     assert_equal [companies(:first_firm).id], Account.destroyed_account_ids[companies(:first_firm).id]
   end
 
@@ -114,35 +113,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     company.reload
     account.reload
     assert_equal company.account, account
-  end
-
-  def test_assignment_without_replacement
-    apple = Firm.create("name" => "Apple")
-    citibank = Account.create("credit_limit" => 10)
-    apple.account = citibank
-    assert_equal apple.id, citibank.firm_id
-
-    hsbc = apple.build_account({ :credit_limit => 20}, false)
-    assert_equal apple.id, hsbc.firm_id
-    hsbc.save
-    assert_equal apple.id, citibank.firm_id
-
-    nykredit = apple.create_account({ :credit_limit => 30}, false)
-    assert_equal apple.id, nykredit.firm_id
-    assert_equal apple.id, citibank.firm_id
-    assert_equal apple.id, hsbc.firm_id
-  end
-
-  def test_assignment_without_replacement_on_create
-    apple = Firm.create("name" => "Apple")
-    citibank = Account.create("credit_limit" => 10)
-    apple.account = citibank
-    assert_equal apple.id, citibank.firm_id
-
-    hsbc = apple.create_account({:credit_limit => 10}, false)
-    assert_equal apple.id, hsbc.firm_id
-    hsbc.save
-    assert_equal apple.id, citibank.firm_id
   end
 
   def test_dependence
@@ -193,18 +163,41 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.account
   end
 
-  def test_build_association_twice_without_saving_affects_nothing
-    count_of_account = Account.count
-    firm = Firm.find(:first)
-    firm.build_account("credit_limit" => 1000)
-    firm.build_account("credit_limit" => 2000)
+  def test_build_and_create_should_not_happen_within_scope
+    pirate = pirates(:blackbeard)
+    original_scoped_methods = Bulb.scoped_methods.dup
 
-    assert_equal count_of_account, Account.count
+    bulb = pirate.build_bulb
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = pirate.create_bulb
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+
+    bulb = pirate.create_bulb!
+    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
   end
 
   def test_create_association
     firm = Firm.create(:name => "GlobalMegaCorp")
     account = firm.create_account(:credit_limit => 1000)
+    assert_equal account, firm.reload.account
+  end
+
+  def test_create_association_with_bang
+    firm = Firm.create(:name => "GlobalMegaCorp")
+    account = firm.create_account!(:credit_limit => 1000)
+    assert_equal account, firm.reload.account
+  end
+
+  def test_create_association_with_bang_failing
+    firm = Firm.create(:name => "GlobalMegaCorp")
+    assert_raise ActiveRecord::RecordInvalid do
+      firm.create_account!
+    end
+    account = firm.account
+    assert_not_nil account
+    account.credit_limit = 5
+    account.save
     assert_equal account, firm.reload.account
   end
 
@@ -216,17 +209,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.account
     assert account.save
     assert_equal account, firm.account
-  end
-
-  def test_failing_build_association
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-
-    firm.account = account = Account.new
-    assert_equal account, firm.account
-    assert !account.save
-    assert_equal account, firm.account
-    assert_equal ["can't be empty"], account.errors["credit_limit"]
   end
 
   def test_create
@@ -329,5 +311,52 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_attributes_are_being_set_when_initialized_from_has_one_association_with_where_clause
     new_account = companies(:first_firm).build_account(:firm_name => 'Account')
     assert_equal new_account.firm_name, "Account"
+  end
+
+  def test_creation_failure_without_dependent_option
+    pirate = pirates(:blackbeard)
+    orig_ship = pirate.ship
+
+    assert_equal ships(:black_pearl), orig_ship
+    new_ship = pirate.create_ship
+    assert_not_equal ships(:black_pearl), new_ship
+    assert_equal new_ship, pirate.ship
+    assert new_ship.new_record?
+    assert_nil orig_ship.pirate_id
+    assert !orig_ship.changed? # check it was saved
+  end
+
+  def test_creation_failure_with_dependent_option
+    pirate = pirates(:blackbeard).becomes(DestructivePirate)
+    orig_ship = pirate.dependent_ship
+
+    new_ship = pirate.create_dependent_ship
+    assert new_ship.new_record?
+    assert orig_ship.destroyed?
+  end
+
+  def test_replacement_failure_due_to_existing_record_should_raise_error
+    pirate = pirates(:blackbeard)
+    pirate.ship.name = nil
+
+    assert !pirate.ship.valid?
+    assert_raise(ActiveRecord::RecordNotSaved) do
+      pirate.ship = ships(:interceptor)
+    end
+    assert_equal ships(:black_pearl), pirate.ship
+    assert_equal pirate.id, pirate.ship.pirate_id
+  end
+
+  def test_replacement_failure_due_to_new_record_should_raise_error
+    pirate = pirates(:blackbeard)
+    new_ship = Ship.new
+
+    assert_raise(ActiveRecord::RecordNotSaved) do
+      pirate.ship = new_ship
+    end
+    assert_equal ships(:black_pearl), pirate.ship
+    assert_equal pirate.id, pirate.ship.pirate_id
+    assert_equal pirate.id, ships(:black_pearl).reload.pirate_id
+    assert_nil new_ship.pirate_id
   end
 end

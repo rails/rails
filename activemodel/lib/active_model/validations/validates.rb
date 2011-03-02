@@ -55,6 +55,10 @@ module ActiveModel
       #     validates :name, :title => true
       #   end
       #
+      # Additionally validator classes may be in another namespace and still used within any class.
+      #
+      #   validates :name, :'file/title' => true
+      #
       # The validators hash can also handle regular expressions, ranges, 
       # arrays and strings in shortcut form, e.g.
       #
@@ -77,17 +81,18 @@ module ActiveModel
       #
       def validates(*attributes)
         defaults = attributes.extract_options!
-        validations = defaults.slice!(:if, :unless, :on, :allow_blank, :allow_nil)
+        validations = defaults.slice!(*_validates_default_keys)
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
-        raise ArgumentError, "Attribute names must be symbols" if attributes.any?{ |attribute| !attribute.is_a?(Symbol) }
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
 
         defaults.merge!(:attributes => attributes)
 
         validations.each do |key, options|
+          key = "#{key.to_s.camelize}Validator"
+
           begin
-            validator = const_get("#{key.to_s.camelize}Validator")
+            validator = key.include?('::') ? key.constantize : const_get(key)
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
@@ -97,6 +102,12 @@ module ActiveModel
       end
 
     protected
+
+      # When creating custom validators, it might be useful to be able to specify
+      # additional default keys. This can be done by overwriting this method.
+      def _validates_default_keys
+        [ :if, :unless, :on, :allow_blank, :allow_nil ]
+      end
 
       def _parse_validates_options(options) #:nodoc:
         case options

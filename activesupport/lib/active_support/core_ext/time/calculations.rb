@@ -41,9 +41,9 @@ class Time
       time_with_datetime_fallback(:local, *args)
     end
 
-    # Returns <tt>Time.zone.now</tt> when <tt>config.time_zone</tt> is set, otherwise just returns <tt>Time.now</tt>.
+    # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
     def current
-      ::Time.zone_default ? ::Time.zone.now : ::Time.now
+      ::Time.zone ? ::Time.zone.now : ::Time.now
     end
   end
 

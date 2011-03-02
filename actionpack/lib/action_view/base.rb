@@ -18,7 +18,7 @@ module ActionView #:nodoc:
   # following loop for names:
   #
   #   <b>Names of all the people</b>
-  #   <% for person in @people %>
+  #   <% @people.each do |person| %>
   #     Name: <%= person.name %><br/>
   #   <% end %>
   #
@@ -172,6 +172,14 @@ module ActionView #:nodoc:
     class << self
       delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
       delegate :logger, :to => 'ActionController::Base', :allow_nil => true
+
+      def cache_template_loading
+        ActionView::Resolver.caching?
+      end
+
+      def cache_template_loading=(value)
+        ActionView::Resolver.caching = value
+      end
     end
 
     attr_accessor :_template
@@ -224,8 +232,8 @@ module ActionView #:nodoc:
       @controller_path ||= controller && controller.controller_path
     end
 
-    def controller_prefix
-      @controller_prefix ||= controller && controller._prefix
+    def controller_prefixes
+      @controller_prefixes ||= controller && controller._prefixes
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

@@ -701,7 +701,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       match '/users/index' => 'users#index'
     end
-    params = set.recognize_path('/users/index', :method => :get)
+    set.recognize_path('/users/index', :method => :get)
     assert_equal 1, set.routes.size
   end
 
@@ -980,7 +980,7 @@ class RouteSetTest < ActiveSupport::TestCase
       match '/profile' => 'profile#index'
     end
 
-    params = set.recognize_path("/profile") rescue nil
+    set.recognize_path("/profile") rescue nil
 
     assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
   end

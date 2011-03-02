@@ -265,11 +265,11 @@ module AbstractController
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         when nil
           if name
-            _prefix = "layouts" unless _implied_layout_name =~ /\blayouts/
+            _prefixes = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
 
             self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _layout
-                if template_exists?("#{_implied_layout_name}", #{_prefix.inspect})
+                if template_exists?("#{_implied_layout_name}", #{_prefixes.inspect})
                   "#{_implied_layout_name}"
                 else
                   super

@@ -50,12 +50,13 @@ module ActionDispatch
       private
 
         def controller_reference(controller_param)
+          controller_name = "#{controller_param.camelize}Controller"
+
           unless controller = @controllers[controller_param]
-            controller_name = "#{controller_param.camelize}Controller"
             controller = @controllers[controller_param] =
-              ActiveSupport::Dependencies.ref(controller_name)
+              ActiveSupport::Dependencies.reference(controller_name)
           end
-          controller.get
+          controller.get(controller_name)
         end
 
         def dispatch(controller, action, env)
@@ -450,7 +451,7 @@ module ActionDispatch
         end
 
         def raise_routing_error
-          raise ActionController::RoutingError.new("No route matches #{options.inspect}")
+          raise ActionController::RoutingError, "No route matches #{options.inspect}"
         end
 
         def different_controller?
@@ -540,7 +541,9 @@ module ActionDispatch
           end
 
           dispatcher = route.app
-          dispatcher = dispatcher.app while dispatcher.is_a?(Mapper::Constraints)
+          while dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env) do
+            dispatcher = dispatcher.app
+          end
 
           if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)

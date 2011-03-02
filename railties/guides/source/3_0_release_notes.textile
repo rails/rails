@@ -22,7 +22,7 @@ To install Rails 3:
 
 <shell>
 # Use sudo if your setup requires it
-gem install rails
+$ gem install rails
 </shell>
 
 
@@ -47,8 +47,8 @@ h4. script/* replaced by script/rails
 The new <tt>script/rails</tt> replaces all the scripts that used to be in the <tt>script</tt> directory. You do not run <tt>script/rails</tt> directly though, the +rails+ command detects it is being invoked in the root of a Rails application and runs the script for you. Intended usage is:
 
 <shell>
-rails console                      # instead of script/console
-rails g scaffold post title:string # instead of script/generate scaffold post title:string
+$ rails console                      # instead of script/console
+$ rails g scaffold post title:string # instead of script/generate scaffold post title:string
 </shell>
 
 Run <tt>rails --help</tt> for a list of all the options.
@@ -64,7 +64,7 @@ To help with the upgrade process, a plugin named "Rails Upgrade":http://github.c
 Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them).  It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one.  To get the plugin, simply run the following:
 
 <shell>
-ruby script/plugin install git://github.com/rails/rails_upgrade.git
+$ ruby script/plugin install git://github.com/rails/rails_upgrade.git
 </shell>
 
 You can see an example of how that works at "Rails Upgrade is now an Official Plugin":http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin
@@ -357,15 +357,15 @@ Validations have been moved from Active Record into Active Model, providing an i
 
 * There is now a <tt>validates :attribute, options_hash</tt> shortcut method that allows you to pass options for all the validates class methods, you can pass more than one option to a validate method.
 * The +validates+ method has the following options:
-  * <tt>:acceptance => Boolean</tt>.
-  * <tt>:confirmation => Boolean</tt>.
-  * <tt>:exclusion => { :in => Enumerable }</tt>.
-  * <tt>:inclusion => { :in => Enumerable }</tt>.
-  * <tt>:format => { :with => Regexp, :on => :create }</tt>.
-  * <tt>:length => { :maximum => Fixnum }</tt>.
-  * <tt>:numericality => Boolean</tt>.
-  * <tt>:presence => Boolean</tt>.
-  * <tt>:uniqueness => Boolean</tt>.
+** <tt>:acceptance => Boolean</tt>.
+** <tt>:confirmation => Boolean</tt>.
+** <tt>:exclusion => { :in => Enumerable }</tt>.
+** <tt>:inclusion => { :in => Enumerable }</tt>.
+** <tt>:format => { :with => Regexp, :on => :create }</tt>.
+** <tt>:length => { :maximum => Fixnum }</tt>.
+** <tt>:numericality => Boolean</tt>.
+** <tt>:presence => Boolean</tt>.
+** <tt>:uniqueness => Boolean</tt>.
 
 NOTE: All the Rails version 2.3 style validation methods are still supported in Rails 3.0, the new validates method is designed as an additional aid in your model validations, not a replacement for the existing API.
 

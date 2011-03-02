@@ -20,10 +20,14 @@ module ActiveRecord
       hash_rows.each { |row| yield row }
     end
 
+    def to_hash
+      hash_rows
+    end
+
     private
     def hash_rows
       @hash_rows ||= @rows.map { |row|
-        ActiveSupport::OrderedHash[@columns.zip(row)]
+        Hash[@columns.zip(row)]
       }
     end
   end

@@ -23,6 +23,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 53.0, value
   end
 
+  def test_should_return_decimal_average_of_integer_field
+    value = Account.average(:id)
+    assert_equal 3.5, value
+  end
+
+  def test_should_return_integer_average_if_db_returns_such
+    Account.connection.stubs :select_value => 3
+    value = Account.average(:id)
+    assert_equal 3, value
+  end
+
   def test_should_return_nil_as_average
     assert_nil NumericData.average(:bank_balance)
   end
@@ -96,6 +107,36 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Account.sum(:credit_limit, :conditions => "firm_id IS NOT NULL",
                     :group => :firm_id, :order => "firm_id", :limit => 2, :offset => 1)
     assert_equal [2, 6], c.keys.compact
+  end
+
+  def test_limit_with_offset_is_kept
+    return if current_adapter?(:OracleAdapter)
+
+    queries = assert_sql { Account.limit(1).offset(1).count }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+    assert_match(/OFFSET/, queries.first)
+  end
+
+  def test_offset_without_limit_removes_offset
+    queries = assert_sql { Account.offset(1).count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_limit_without_offset_removes_limit
+    queries = assert_sql { Account.limit(1).count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_no_limit_no_offset
+    queries = assert_sql { Account.count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
   end
 
   def test_should_group_by_summed_field_having_condition

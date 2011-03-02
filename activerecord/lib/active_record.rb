@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2010 David Heinemeier Hansson
+# Copyright (c) 2004-2011 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -43,7 +43,6 @@ module ActiveRecord
     autoload :ConnectionNotEstablished, 'active_record/errors'
 
     autoload :Aggregations
-    autoload :AssociationPreload
     autoload :Associations
     autoload :AttributeMethods
     autoload :AutosaveAssociation
@@ -79,6 +78,11 @@ module ActiveRecord
     autoload :Timestamp
     autoload :Transactions
     autoload :Validations
+    autoload :IdentityMap
+  end
+
+  module Coders
+    autoload :YAMLColumn, 'active_record/coders/yaml_column'
   end
 
   module AttributeMethods

@@ -123,7 +123,7 @@ module ActionView
       @locals            = details[:locals] || []
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array.wrap(format).map(&:to_sym)
+      @formats = Array.wrap(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
     end
 
     # Render a template. If the template was not compiled yet, it is done
@@ -163,7 +163,7 @@ module ActionView
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
       lookup.disable_cache do
-        lookup.find_template(name, pieces.join('/'), partial, @locals)
+        lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
       end
     end
 

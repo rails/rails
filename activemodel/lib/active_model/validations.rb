@@ -71,8 +71,8 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies when this validation is active (default is
-      #   <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:on</tt> - Specifies the context where this validation is active
+      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
@@ -104,7 +104,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # Or with a block which is passed with the current record to be validated:
+      # With a block which is passed with the current record to be validated:
       #
       #   class Comment
       #     include ActiveModel::Validations
@@ -114,6 +114,16 @@ module ActiveModel
       #     end
       #
       #     def must_be_friends
+      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #     end
+      #   end
+      #
+      # Or with a block where self points to the current record to be validated:
+      #
+      #   class Comment
+      #     include ActiveModel::Validations
+      #
+      #     validate do
       #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
       #     end
       #   end
@@ -136,8 +146,10 @@ module ActiveModel
       end
 
       # List all validators that being used to validate a specific attribute.
-      def validators_on(attribute)
-        _validators[attribute.to_sym]
+      def validators_on(*attributes)
+        attributes.map do |attribute|
+          _validators[attribute.to_sym]
+        end.flatten
       end
 
       # Check if method is an attribute method or not.
@@ -197,7 +209,7 @@ module ActiveModel
   protected
 
     def run_validations!
-      _run_validate_callbacks
+      run_callbacks :validate
       errors.empty?
     end
   end

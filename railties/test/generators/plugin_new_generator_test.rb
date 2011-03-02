@@ -38,8 +38,10 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "things-43/lib/things-43.rb", /module Things43/
   end
 
-  def test_generating_test_files
+  def test_generating_without_options
     run_generator
+    assert_file "README.rdoc", /Bukkits/
+    assert_no_file "config/routes.rb"
     assert_file "test/test_helper.rb"
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
   end
@@ -66,7 +68,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_database_entry_is_assed_by_default_in_full_mode
     run_generator([destination_root, "--full"])
     assert_file "test/dummy/config/database.yml", /sqlite/
-    assert_file "Gemfile", /^gem\s+["']sqlite3-ruby["'],\s+:require\s+=>\s+["']sqlite3["']$/
+    assert_file "Gemfile", /^gem\s+["']sqlite3["']$/
   end
 
   def test_config_another_database
@@ -89,6 +91,35 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_ensure_that_database_option_is_passed_to_app_generator
     run_generator [destination_root, "--database", "postgresql"]
     assert_file "test/dummy/config/database.yml", /postgres/
+  end
+
+  def test_skipping_javascripts_without_mountable_option
+    run_generator
+    assert_no_file "public/javascripts/prototype.js"
+    assert_no_file "public/javascripts/rails.js"
+    assert_no_file "public/javascripts/controls.js"
+    assert_no_file "public/javascripts/dragdrop.js"
+    assert_no_file "public/javascripts/dragdrop.js"
+    assert_no_file "public/javascripts/application.js"
+  end
+
+  def test_javascripts_generation
+    run_generator [destination_root, "--mountable"]
+    assert_file "public/javascripts/rails.js"
+    assert_file "public/javascripts/prototype.js"
+    assert_file "public/javascripts/controls.js"
+    assert_file "public/javascripts/dragdrop.js"
+    assert_file "public/javascripts/dragdrop.js"
+    assert_file "public/javascripts/application.js"
+  end
+
+  def test_skip_javascripts
+    run_generator [destination_root, "--skip-javascript", "--mountable"]
+    assert_no_file "public/javascripts/prototype.js"
+    assert_no_file "public/javascripts/rails.js"
+    assert_no_file "public/javascripts/controls.js"
+    assert_no_file "public/javascripts/dragdrop.js"
+    assert_no_file "public/javascripts/dragdrop.js"
   end
 
   def test_ensure_that_javascript_option_is_passed_to_app_generator
@@ -122,6 +153,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
+    assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
@@ -137,6 +169,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/routes.rb", /mount Bukkits::Engine => "\/bukkits"/
     assert_file "app/controllers/bukkits/application_controller.rb", /module Bukkits\n  class ApplicationController < ActionController::Base/
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
+    assert_file "app/views/layouts/bukkits/application.html.erb", /<title>Bukkits<\/title>/
   end
 
   def test_passing_dummy_path_as_a_parameter

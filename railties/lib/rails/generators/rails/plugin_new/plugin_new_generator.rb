@@ -8,11 +8,15 @@ module Rails
     end
 
     def app
-      directory "app" if options[:mountable]
+      if options[:mountable]
+        directory "app"
+        template "#{app_templates_dir}/app/views/layouts/application.html.erb.tt",
+                 "app/views/layouts/#{name}/application.html.erb"
+      end
     end
 
     def readme
-      copy_file "README.rdoc"
+      template "README.rdoc"
     end
 
     def gemfile
@@ -40,7 +44,7 @@ module Rails
     end
 
     def config
-      template "config/routes.rb" if mountable?
+      template "config/routes.rb" if full?
     end
 
     def test
@@ -86,6 +90,29 @@ task :default => :test
         remove_file "test"
         remove_file "vendor"
       end
+    end
+
+    def stylesheets
+      empty_directory_with_gitkeep "public/stylesheets" if options[:mountable]
+    end
+
+    def javascripts
+      return unless options[:mountable]
+
+      empty_directory "#{app_templates_dir}/public/javascripts"
+
+      unless options[:skip_javascript]
+        copy_file "#{app_templates_dir}/public/javascripts/#{options[:javascript]}.js", "public/javascripts/#{options[:javascript]}.js"
+        copy_file "#{app_templates_dir}/public/javascripts/#{options[:javascript]}_ujs.js", "public/javascripts/rails.js"
+
+        if options[:javascript] == "prototype"
+          copy_file "#{app_templates_dir}/public/javascripts/controls.js", "public/javascripts/controls.js"
+          copy_file "#{app_templates_dir}/public/javascripts/dragdrop.js", "public/javascripts/dragdrop.js"
+          copy_file "#{app_templates_dir}/public/javascripts/effects.js", "public/javascripts/effects.js"
+        end
+      end
+
+      copy_file "#{app_templates_dir}/public/javascripts/application.js", "public/javascripts/application.js"
     end
 
     def script(force = false)
@@ -143,6 +170,14 @@ task :default => :test
         build(:lib)
       end
 
+      def create_public_stylesheets_files
+        build(:stylesheets)
+      end
+
+      def create_javascript_files
+        build(:javascripts)
+      end
+
       def create_script_files
         build(:script)
       end
@@ -163,6 +198,10 @@ task :default => :test
       public_task :apply_rails_template, :bundle_if_dev_or_edge
 
     protected
+      def app_templates_dir
+        "../../app/templates"
+      end
+
       def create_dummy_app(path = nil)
         dummy_path(path) if path
 

@@ -51,11 +51,9 @@ module Rails
       end
 
       initializer :set_clear_dependencies_hook do
-        unless config.cache_classes
-          ActionDispatch::Callbacks.after do
-            ActiveSupport::DescendantsTracker.clear
-            ActiveSupport::Dependencies.clear
-          end
+        ActionDispatch::Reloader.to_cleanup do
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
         end
       end
 

@@ -10,8 +10,9 @@ module ActiveRecord
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
+    # These are explicitly delegated to improve performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :insert, :to => :arel
+    delegate :table_name, :primary_key, :to => :klass
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions
@@ -26,6 +27,25 @@ module ActiveRecord
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
       @extensions = []
+    end
+
+    def insert(values)
+      im = arel.compile_insert values
+      im.into @table
+
+      primary_key_value = nil
+
+      if primary_key && Hash === values
+        primary_key_value = values[values.keys.find { |k|
+          k.name == primary_key
+        }]
+      end
+
+      @klass.connection.insert(
+        im.to_sql,
+        'SQL',
+        primary_key,
+        primary_key_value)
     end
 
     def new(*args, &block)
@@ -47,25 +67,28 @@ module ActiveRecord
     end
 
     def respond_to?(method, include_private = false)
-      return true if arel.respond_to?(method, include_private) || Array.method_defined?(method) || @klass.respond_to?(method, include_private)
-
-      if match = DynamicFinderMatch.match(method)
-        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
-      elsif match = DynamicScopeMatch.match(method)
-        return true if @klass.send(:all_attributes_exists?, match.attribute_names)
-      else
+      arel.respond_to?(method, include_private)     ||
+        Array.method_defined?(method)               ||
+        @klass.respond_to?(method, include_private) ||
         super
-      end
     end
 
     def to_a
       return @records if loaded?
 
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+      @records = if @readonly_value.nil? && !@klass.locking_enabled?
+        eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+      else
+        IdentityMap.without do
+          eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+        end
+      end
 
       preload = @preload_values
       preload +=  @includes_values unless eager_loading?
-      preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
+      preload.each do |associations|
+        ActiveRecord::Associations::Preloader.new(@records, associations).run
+      end
 
       # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
       # are JOINS and no explicit SELECT.
@@ -150,17 +173,29 @@ module ActiveRecord
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
+    #
+    #   # Conditions from the current relation also works
+    #   Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
+    #
+    #   # The same idea applies to limit and order
+    #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
     def update_all(updates, conditions = nil, options = {})
       if conditions || options.present?
         where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
       else
+        limit = nil
+        order = []
         # Apply limit and order only if they're both present
         if @limit_value.present? == @order_values.present?
-          stmt = arel.compile_update(Arel::SqlLiteral.new(@klass.send(:sanitize_sql_for_assignment, updates)))
-          @klass.connection.update stmt.to_sql
-        else
-          except(:limit, :order).update_all(updates)
+          limit = arel.limit
+          order = arel.orders
         end
+
+        stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
+        stmt.take limit if limit
+        stmt.order(*order)
+        stmt.key = table[primary_key]
+        @klass.connection.update stmt.to_sql
       end
     end
 
@@ -217,6 +252,7 @@ module ActiveRecord
     #
     #   Person.destroy_all("last_login < '2004-04-04'")
     #   Person.destroy_all(:status => "inactive")
+    #   Person.where(:age => 0..18).destroy_all
     def destroy_all(conditions = nil)
       if conditions
         where(conditions).destroy_all
@@ -266,6 +302,7 @@ module ActiveRecord
     #
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
+    #   Post.where(:person_id => 5).where(:category => ['Something', 'Else']).delete_all
     #
     # Both calls delete the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
@@ -302,7 +339,7 @@ module ActiveRecord
     #   # Delete multiple rows
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
-      where(@klass.primary_key => id_or_array).delete_all
+      where(primary_key => id_or_array).delete_all
     end
 
     def reload
@@ -316,10 +353,6 @@ module ActiveRecord
       @should_eager_load = @join_dependency = nil
       @records = []
       self
-    end
-
-    def primary_key
-      @primary_key ||= table[@klass.primary_key]
     end
 
     def to_sql
@@ -353,10 +386,6 @@ module ActiveRecord
 
     def inspect
       to_a.inspect
-    end
-
-    def table_name
-      @klass.table_name
     end
 
     protected
