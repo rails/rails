@@ -549,10 +549,21 @@ module ActiveSupport #:nodoc:
       end
       alias :get :[]
 
+      class Getter # :nodoc:
+        def initialize(name)
+          @name = name
+        end
+
+        def get
+          Reference.get @name
+        end
+      end
+
       def new(name)
         self[name] = name
-        self
+        Getter.new(name)
       end
+      deprecate :new
 
       def clear!
         @store.clear

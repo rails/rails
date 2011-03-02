@@ -479,13 +479,13 @@ class DependenciesTest < Test::Unit::TestCase
     with_loading 'dependencies' do
       c = ActiveSupport::Dependencies.ref("ServiceOne")
       service_one_first = ServiceOne
-      assert_equal service_one_first, c.get("ServiceOne")
+      assert_equal service_one_first, c.get
       ActiveSupport::Dependencies.clear
       assert ! defined?(ServiceOne)
 
       service_one_second = ServiceOne
-      assert_not_equal service_one_first, c.get("ServiceOne")
-      assert_equal service_one_second, c.get("ServiceOne")
+      assert_not_equal service_one_first, c.get
+      assert_equal service_one_second, c.get
     end
   end
 

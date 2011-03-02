@@ -52,7 +52,9 @@ module ActiveSupport
       end
 
       def test_new
-        @cache.new ClassCacheTest
+        assert_deprecated do
+          @cache.new ClassCacheTest
+        end
         assert @cache.key?(ClassCacheTest.name)
       end
 
@@ -61,9 +63,13 @@ module ActiveSupport
         assert !@cache.key?(ClassCacheTest.name)
       end
 
-      def test_new_returns_self
-        v = @cache.new ClassCacheTest.name
-        assert_equal @cache, v
+      def test_new_returns_proxy
+        v = nil
+        assert_deprecated do
+          v = @cache.new ClassCacheTest.name
+        end
+
+        assert_equal ClassCacheTest, v.get
       end
 
       def test_anonymous_class_fail
