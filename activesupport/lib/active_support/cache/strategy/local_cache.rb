@@ -55,7 +55,6 @@ module ActiveSupport
         # construct them.
         class Middleware # :nodoc:
           attr_reader :name, :thread_local_key
-          alias :to_s :name
 
           def initialize(name, thread_local_key)
             @name             = name
