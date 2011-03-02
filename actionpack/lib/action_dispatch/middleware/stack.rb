@@ -7,12 +7,19 @@ module ActionDispatch
       attr_reader :args, :block
 
       def initialize(klass_or_name, *args, &block)
-        @ref = ActiveSupport::Dependencies::Reference.new(klass_or_name)
+        @klass = nil
+        @name  = klass_or_name
+
+        if klass_or_name.respond_to?(:name)
+          @klass = klass_or_name
+          @name  = @klass.name
+        end
+
         @args, @block = args, block
       end
 
       def klass
-        @ref.get
+        @klass ||= ActiveSupport::Inflector.constantize(@name)
       end
 
       def ==(middleware)
@@ -22,7 +29,7 @@ module ActionDispatch
         when Class
           klass == middleware
         else
-          normalize(@ref.name) == normalize(middleware)
+          normalize(@name) == normalize(middleware)
         end
       end
 
