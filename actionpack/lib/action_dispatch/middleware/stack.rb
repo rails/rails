@@ -8,11 +8,12 @@ module ActionDispatch
 
       def initialize(klass_or_name, *args, &block)
         @klass = nil
-        @name  = klass_or_name
 
         if klass_or_name.respond_to?(:name)
           @klass = klass_or_name
           @name  = @klass.name
+        else
+          @name  = klass_or_name.to_s
         end
 
         @args, @block = args, block

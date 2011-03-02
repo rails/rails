@@ -47,9 +47,6 @@ module ActiveSupport #:nodoc:
     mattr_accessor :autoloaded_constants
     self.autoloaded_constants = []
 
-    mattr_accessor :references
-    self.references = {}
-
     # An array of constant names that need to be unloaded on every request. Used
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants
@@ -565,11 +562,11 @@ module ActiveSupport #:nodoc:
     Reference = ClassCache.new
 
     def ref(name)
-      references[name] ||= Reference.new(name)
+      Reference.new(name)
     end
 
     def constantize(name)
-      ref(name).get(name)
+      Reference.get(name)
     end
 
     # Determine if the given constant has been automatically loaded.
