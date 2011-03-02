@@ -29,7 +29,7 @@ class AssetHostTest < Test::Unit::TestCase
     assert_equal %Q{<img alt="Somelogo" src="http://www.example.com/images/somelogo.png" />}, mail.body.to_s.strip
   end
 
-  def test_asset_host_as_one_arguement_proc
+  def test_asset_host_as_one_argument_proc
     AssetHostMailer.config.asset_host = Proc.new { |source|
       if source.starts_with?('/images')
         "http://images.example.com"
@@ -41,7 +41,7 @@ class AssetHostTest < Test::Unit::TestCase
     assert_equal %Q{<img alt="Somelogo" src="http://images.example.com/images/somelogo.png" />}, mail.body.to_s.strip
   end
 
-  def test_asset_host_as_two_arguement_proc
+  def test_asset_host_as_two_argument_proc
     ActionController::Base.config.asset_host = Proc.new {|source,request|
       if request && request.ssl?
         "https://www.example.com"
