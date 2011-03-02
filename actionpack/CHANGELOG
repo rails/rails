@@ -1,6 +1,12 @@
 *Rails 3.0.6 (unreleased)*
 
-* No changes.
+* Don't allow i18n to change the minor version, version now set to ~> 0.5.0 [Santiago Pastorino]
+
+* Make TranslationHelper#translate use the :rescue_format option in I18n 0.5.0 [Sven Fuchs]
+
+* Fix regression: javascript_include_tag shouldn't raise if you register an expansion key with nil or [] value [Santiago Pastorino]
+
+* Fix Action caching bug where an action that has a non-cacheable response always renders a nil response body. It now correctly renders the response body. [Cheah Chu Yeow]
 
 
 *Rails 3.0.5 (February 26, 2011)*

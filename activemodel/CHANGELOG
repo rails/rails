@@ -1,6 +1,6 @@
 *Rails 3.0.6 (unreleased)*
 
-* No changes.
+* Fix i18n key collision with namespaced models #6448 [yves.senn]
 
 
 *Rails 3.0.5 (February 26, 2011)*
