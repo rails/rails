@@ -47,6 +47,31 @@ module ActionDispatch
         mw = Middleware.new Omg
         assert_operator mw, :==, "::#{Omg.name}"
       end
+
+      def test_middleware_loads_classnames_from_cache
+        mw = Class.new(Middleware) {
+          attr_accessor :classcache
+        }.new(Omg.name)
+
+        fake_cache    = { mw.name => Omg }
+        mw.classcache = fake_cache
+
+        assert_equal Omg, mw.klass
+
+        fake_cache[mw.name] = Middleware
+        assert_equal Middleware, mw.klass
+      end
+
+      def test_middleware_always_returns_class
+        mw = Class.new(Middleware) {
+          attr_accessor :classcache
+        }.new(Omg)
+
+        fake_cache    = { mw.name => Middleware }
+        mw.classcache = fake_cache
+
+        assert_equal Omg, mw.klass
+      end
     end
   end
 end
