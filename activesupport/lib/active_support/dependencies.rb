@@ -47,9 +47,6 @@ module ActiveSupport #:nodoc:
     mattr_accessor :autoloaded_constants
     self.autoloaded_constants = []
 
-    mattr_accessor :references
-    self.references = {}
-
     # An array of constant names that need to be unloaded on every request. Used
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants
@@ -524,31 +521,52 @@ module ActiveSupport #:nodoc:
       explicitly_unloadable_constants.each { |const| remove_constant const }
     end
 
-    class Reference
-      @@constants = Hash.new { |h, k| h[k] = Inflector.constantize(k) }
-
-      attr_reader :name
-
-      def initialize(name)
-        @name = name.to_s
-        @@constants[@name] = name if name.respond_to?(:name)
+    class ClassCache
+      def initialize
+        @store = Hash.new { |h, k| h[k] = Inflector.constantize(k) }
       end
 
-      def get
-        @@constants[@name]
+      def empty?
+        @store.empty?
       end
 
-      def self.clear!
-        @@constants.clear
+      def key?(key)
+        @store.key?(key)
+      end
+
+      def []=(key, value)
+        return unless key.respond_to?(:name)
+
+        raise(ArgumentError, 'anonymous classes cannot be cached') unless key.name
+
+        @store[key.name] = value
+      end
+
+      def [](key)
+        key = key.name if key.respond_to?(:name)
+
+        @store[key]
+      end
+      alias :get :[]
+
+      def new(name)
+        self[name] = name
+        self
+      end
+
+      def clear!
+        @store.clear
       end
     end
 
+    Reference = ClassCache.new
+
     def ref(name)
-      references[name] ||= Reference.new(name)
+      Reference.new(name)
     end
 
     def constantize(name)
-      ref(name).get
+      Reference.get(name)
     end
 
     # Determine if the given constant has been automatically loaded.

@@ -1,5 +1,11 @@
 *Rails 3.1.0 (unreleased)*
 
+* ActiveSupport::Dependencies::ClassCache class has been introduced for
+holding references to reloadable classes.
+
+* ActiveSupport::Dependencies::Reference has been refactored to take direct
+advantage of the new ClassCache.
+
 * Backports Range#cover? as an alias for Range#include? in Ruby 1.8 [Diego Carrion, fxn]
 
 * Added weeks_ago and prev_week to Date/DateTime/Time. [Rob Zolkos, fxn]
