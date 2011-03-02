@@ -54,7 +54,7 @@ module ActionDispatch
 
           unless controller = @controllers[controller_param]
             controller = @controllers[controller_param] =
-              ActiveSupport::Dependencies.ref(controller_name)
+              ActiveSupport::Dependencies.reference(controller_name)
           end
           controller.get(controller_name)
         end
