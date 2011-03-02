@@ -537,7 +537,7 @@ module ActiveSupport #:nodoc:
       def []=(key, value)
         return unless key.respond_to?(:name)
 
-        raise(ArgumentError, 'anonymous classes cannot be cached') unless key.name
+        raise(ArgumentError, 'anonymous classes cannot be cached') if key.name.blank?
 
         @store[key.name] = value
       end
