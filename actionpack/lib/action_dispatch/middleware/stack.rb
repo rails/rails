@@ -4,7 +4,7 @@ require "active_support/dependencies"
 module ActionDispatch
   class MiddlewareStack
     class Middleware
-      attr_reader :args, :block
+      attr_reader :args, :block, :name, :classcache
 
       def initialize(klass_or_name, *args, &block)
         @klass = nil
@@ -16,11 +16,12 @@ module ActionDispatch
           @name  = klass_or_name.to_s
         end
 
+        @classcache = ActiveSupport::Dependencies::Reference
         @args, @block = args, block
       end
 
       def klass
-        @klass ||= ActiveSupport::Inflector.constantize(@name)
+        @klass || classcache[@name]
       end
 
       def ==(middleware)

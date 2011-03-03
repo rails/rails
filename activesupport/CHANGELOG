@@ -1,5 +1,8 @@
 *Rails 3.1.0 (unreleased)*
 
+* LocalCache strategy is now a real middleware class, not an anonymous class
+posing for pictures.
+
 * ActiveSupport::Dependencies::ClassCache class has been introduced for
 holding references to reloadable classes.
 

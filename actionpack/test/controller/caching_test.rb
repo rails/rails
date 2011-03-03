@@ -559,6 +559,11 @@ class ActionCacheTest < ActionController::TestCase
     assert_response 404
   end
 
+  def test_four_oh_four_renders_content
+    get :four_oh_four
+    assert_equal "404'd!", @response.body
+  end
+
   def test_simple_runtime_error_returns_500_for_multiple_requests
     get :simple_runtime_error
     assert_response 500

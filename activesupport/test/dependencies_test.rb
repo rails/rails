@@ -477,7 +477,7 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_references_should_work
     with_loading 'dependencies' do
-      c = ActiveSupport::Dependencies.ref("ServiceOne")
+      c = ActiveSupport::Dependencies.reference("ServiceOne")
       service_one_first = ServiceOne
       assert_equal service_one_first, c.get("ServiceOne")
       ActiveSupport::Dependencies.clear
