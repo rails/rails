@@ -291,7 +291,7 @@ module ActionMailer #:nodoc:
   #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the
   #     authentication type here.
   #     This is a symbol and one of <tt>:plain</tt> (will send the password in the clear), <tt>:login</tt> (will
-  #     send password BASE64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
+  #     send password Base64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
   #     information and a cryptographic Message Digest 5 algorithm to hash important information)
   #   * <tt>:enable_starttls_auto</tt> - When set to true, detects if STARTTLS is enabled in your SMTP server
   #     and starts to use it.
