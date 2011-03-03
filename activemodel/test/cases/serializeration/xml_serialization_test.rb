@@ -92,6 +92,10 @@ class XmlSerializationTest < ActiveModel::TestCase
   test "should serialize string" do
     assert_match %r{<name>aaron stack</name>}, @contact.to_xml
   end
+  
+  test "should serialize nil" do
+    assert_match %r{<pseudonyms nil=\"true\"></pseudonyms>}, @contact.to_xml(:methods => :pseudonyms)
+  end
 
   test "should serialize integer" do
     assert_match %r{<age type="integer">25</age>}, @contact.to_xml
