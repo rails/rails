@@ -4,7 +4,7 @@ Railties is responsible to glue all frameworks together. Overall, it:
 
 * handles all the bootstrapping process for a Rails application;
 
-* manager rails command line interface;
+* manages rails command line interface;
 
 * provides Rails generators core;
 
@@ -23,3 +23,4 @@ Documentation can be found at
 == License
 
 Railties is released under the MIT license.
+
