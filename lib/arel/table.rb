@@ -8,6 +8,9 @@ module Arel
 
     attr_accessor :name, :engine, :aliases, :table_alias
 
+    # TableAlias and Table both have a #table_name which is the name of the underlying table
+    alias :table_name :name
+
     def initialize name, engine = Table.engine
       @name    = name.to_s
       @engine  = engine

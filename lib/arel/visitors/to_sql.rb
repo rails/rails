@@ -88,7 +88,7 @@ key on UpdateManager using UpdateManager#key=
 
       def column_for attr
         name    = attr.name.to_s
-        table   = attr.relation.name
+        table   = attr.relation.table_name
 
         return nil unless table_exists? table
 

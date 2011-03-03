@@ -259,6 +259,15 @@ module Arel
           }
         end
       end
+
+      describe 'TableAlias' do
+        it "should use the underlying table for checking columns" do
+          test = Table.new(:users).alias('zomgusers')[:id].eq '3'
+          @visitor.accept(test).must_be_like %{
+            "zomgusers"."id" = 3
+          }
+        end
+      end
     end
   end
 end

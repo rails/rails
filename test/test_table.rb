@@ -164,6 +164,10 @@ module Arel
       @relation.name.must_equal 'users'
     end
 
+    it "should have a table name" do
+      @relation.table_name.must_equal 'users'
+    end
+
     it "should have an engine" do
       @relation.engine.must_equal Table.engine
     end
