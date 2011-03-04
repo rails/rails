@@ -80,7 +80,7 @@ module ActionController #:nodoc:
     # header the Content-Type of the cached response could be wrong because
     # no information about the MIME type is stored in the cache key. So, if
     # you first ask for MIME type M in the Accept header, a cache entry is
-    # created, and then perform a second resquest to the same resource asking
+    # created, and then perform a second request to the same resource asking
     # for a different MIME type, you'd get the content cached for M.
     #
     # The <tt>:format</tt> parameter is taken into account though. The safest
