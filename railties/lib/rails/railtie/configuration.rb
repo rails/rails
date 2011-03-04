@@ -18,7 +18,7 @@ module Rails
 
       # This allows you to modify application's generators from Railties.
       #
-      # Values set on app_generators will become defaults for applicaiton, unless
+      # Values set on app_generators will become defaults for application, unless
       # application overwrites them.
       def app_generators
         @@app_generators ||= Rails::Configuration::Generators.new
