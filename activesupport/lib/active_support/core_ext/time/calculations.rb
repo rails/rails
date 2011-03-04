@@ -1,7 +1,4 @@
 require 'active_support/duration'
-require 'active_support/core_ext/date/acts_like'
-require 'active_support/core_ext/date/calculations'
-require 'active_support/core_ext/date_time/conversions'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -283,14 +280,8 @@ class Time
   # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
   # can be chronologically compared with a Time
   def compare_with_coercion(other)
-    # if other is an ActiveSupport::TimeWithZone, coerce a Time instance from it so we can do <=> comparison
-    other = other.comparable_time if other.respond_to?(:comparable_time)
-    if other.acts_like?(:date)
-      # other is a Date/DateTime, so coerce self #to_datetime and hand off to DateTime#<=>
-      to_datetime.compare_without_coercion(other)
-    else
-      compare_without_coercion(other)
-    end
+    # we're avoiding Time#to_datetime cause it's expensive
+    other.is_a?(Time) ? compare_without_coercion(other.to_time) : to_datetime <=> other
   end
   alias_method :compare_without_coercion, :<=>
   alias_method :<=>, :compare_with_coercion
