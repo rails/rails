@@ -8,7 +8,7 @@ the Rails framework.
 Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
 interact with Action Pack helpers, it was required to either copy chunks of
 code from Rails, or monkey patch entire helpers to make them handle objects
-that did not exacly conform to the Active Record interface. This would result
+that did not exactly conform to the Active Record interface. This would result
 in code duplication and fragile applications that broke on upgrades.
 
 Active Model solves this. You can include functionality from the following
