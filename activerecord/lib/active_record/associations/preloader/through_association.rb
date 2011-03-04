@@ -33,13 +33,8 @@ module ActiveRecord
             through_options
           ).run
 
-          # TODO: Verify that this is actually necessary and not just a symptom of an
-          #       underlying inefficiency
-          identity_map = {}
-
           Hash[owners.map do |owner|
             through_records = Array.wrap(owner.send(through_reflection.name))
-            through_records.map! { |record| identity_map[record] ||= record }
 
             # Dont cache the association - we would only be caching a subset
             if reflection.options[:source_type] && through_reflection.collection?
