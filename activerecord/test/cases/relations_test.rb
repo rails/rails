@@ -666,6 +666,34 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 5, best_posts.size }
   end
 
+  def test_size_with_limit
+    posts = Post.limit(6)
+
+    assert_queries(1) { assert_equal 6, posts.size }
+    assert ! posts.loaded?
+
+    best_posts = posts.where(:comments_count => 0)
+    best_posts.to_a # force load
+    assert_no_queries { assert_equal 5, best_posts.size }
+  end
+
+  def test_size_with_zero_limit
+    posts = Post.limit(0)
+
+    assert_no_queries { assert_equal 0, posts.size }
+    assert ! posts.loaded?
+
+    posts.to_a # force load
+    assert_no_queries { assert_equal 0, posts.size }
+  end
+
+  def test_empty_with_zero_limit
+    posts = Post.limit(0)
+
+    assert_no_queries { assert_equal true, posts.empty? }
+    assert ! posts.loaded?
+  end
+
   def test_count_complex_chained_relations
     posts = Post.select('comments_count').where('id is not null').group("author_id").where("comments_count > 0")
 

@@ -183,10 +183,13 @@ module ActiveRecord
       end
     end
 
-    def aggregate_column(column_name)
+    def aggregate_column(column_name, subquery_alias = nil)
       if @klass.column_names.include?(column_name.to_s)
-        Arel::Attribute.new(@klass.unscoped.table, column_name)
+        Arel::Attribute.new(subquery_alias || @klass.unscoped.table, column_name)
       else
+        if subquery_alias && (split_name = column_name.to_s.split(".")).length > 1
+          column_name = split_name.last
+        end
         Arel.sql(column_name == :all ? "*" : column_name.to_s)
       end
     end
@@ -196,24 +199,22 @@ module ActiveRecord
     end
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-      column = aggregate_column(column_name)
-
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
       relation = except(:order)
-      select_value = operation_over_aggregate_column(column, operation, distinct)
 
-      relation.select_values = [select_value]
+      if operation == "count" && (relation.limit_value || relation.offset_value)
+        # Shortcut when limit is zero.
+        return 0 if relation.limit_value == 0
 
-      query_builder = relation.arel
+        query_builder = build_count_subquery(relation, column_name, distinct)
+      else
+        column = aggregate_column(column_name)
 
-      if operation == "count"
-        limit  = relation.limit_value
-        offset = relation.offset_value
+        select_value = operation_over_aggregate_column(column, operation, distinct)
 
-        unless limit && offset
-          query_builder.limit  = nil
-          query_builder.offset = nil
-        end
+        relation.select_values = [select_value]
+
+        query_builder = relation.arel
       end
 
       type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
@@ -311,6 +312,17 @@ module ActiveRecord
         select = @select_values.join(", ")
         select if select !~ /(,|\*)/
       end
+    end
+
+    def build_count_subquery(relation, column_name, distinct)
+      # Arel doesn't do subqueries
+      subquery_alias = arel_table.alias("subquery_for_count")
+      aliased_column = aggregate_column(column_name, subquery_alias)
+      select_value = operation_over_aggregate_column(aliased_column, 'count', distinct)
+
+      relation.select_values = [(column_name == :all ? 1 : aggregate_column(column_name))]
+      subquery_sql = "(#{relation.arel.to_sql}) #{subquery_alias.name}"
+      subquery_alias.relation.select_manager.project(select_value).from(subquery_sql)
     end
   end
 end
