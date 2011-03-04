@@ -73,7 +73,7 @@ module ActiveRecord
   #
   # Now, when <tt>Topic#destroy</tt> is run only +destroy_author+ is called. When <tt>Reply#destroy</tt> is
   # run, both +destroy_author+ and +destroy_readers+ are called. Contrast this to the following situation
-  # where the +before_destroy+ methis is overriden:
+  # where the +before_destroy+ method is overridden:
   #
   #   class Topic < ActiveRecord::Base
   #     def before_destroy() destroy_author end

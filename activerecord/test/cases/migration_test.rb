@@ -543,7 +543,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "I was born ....", bob.bio
       assert_equal 18, bob.age
 
-      # Test for 30 significent digits (beyond the 16 of float), 10 of them
+      # Test for 30 significant digits (beyond the 16 of float), 10 of them
       # after the decimal place.
 
       unless current_adapter?(:SQLite3Adapter)
@@ -1975,7 +1975,7 @@ if ActiveRecord::Base.connection.supports_migrations?
           t.integer :age
         end
 
-        # Adding an index fires a query everytime to check if an index already exists or not
+        # Adding an index fires a query every time to check if an index already exists or not
         assert_queries(3) do
           with_bulk_change_table do |t|
             t.index :username, :unique => true, :name => :awesome_username_index

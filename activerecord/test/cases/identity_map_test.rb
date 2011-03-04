@@ -295,7 +295,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   ##############################################################################
-  # Behaviour releated to saving failures
+  # Behaviour related to saving failures
   ##############################################################################
 
   def test_reload_object_if_save_failed
@@ -338,7 +338,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   ##############################################################################
-  # Behaviour of readonly, forzen, destroyed
+  # Behaviour of readonly, frozen, destroyed
   ##############################################################################
 
   def test_find_using_identity_map_respects_readonly_when_loading_associated_object_first
