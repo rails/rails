@@ -163,10 +163,6 @@
     end
 
   [Santiago Pastorino]
-<<<<<<< Updated upstream
->>>>>>> association_fixes
-=======
->>>>>>> Stashed changes
 
 * Setting the id of a belongs_to object will update the reference to the
 object. [#2989 state:resolved]
