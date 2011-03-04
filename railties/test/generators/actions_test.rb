@@ -191,6 +191,31 @@ class ActionsTest < Rails::Generators::TestCase
     assert_match(/Welcome to Rails/, action(:readme, "README"))
   end
 
+  def test_readme_with_quiet
+    generator(default_arguments, :quiet => true)
+    run_generator
+    Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
+    assert_no_match(/Welcome to Rails/, action(:readme, "README"))
+  end
+
+  def test_log
+    assert_equal("YES\n", action(:log, "YES"))
+  end
+
+  def test_log_with_status
+    assert_equal("         yes  YES\n", action(:log, :yes, "YES"))
+  end
+
+  def test_log_with_quiet
+    generator(default_arguments, :quiet => true)
+    assert_equal("", action(:log, "YES"))
+  end
+
+  def test_log_with_status_with_quiet
+    generator(default_arguments, :quiet => true)
+    assert_equal("", action(:log, :yes, "YES"))
+  end
+
   protected
 
     def action(*args, &block)
