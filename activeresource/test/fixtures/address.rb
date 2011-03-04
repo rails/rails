@@ -1,4 +1,4 @@
-# turns everyting into the same object
+# turns everything into the same object
 class AddressXMLFormatter
   include ActiveResource::Formats::XmlFormat
 

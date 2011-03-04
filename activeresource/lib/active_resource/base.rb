@@ -522,9 +522,9 @@ module ActiveResource
       #
       # * <tt>:key</tt> - An OpenSSL::PKey::RSA or OpenSSL::PKey::DSA object.
       # * <tt>:cert</tt> - An OpenSSL::X509::Certificate object as client certificate
-      # * <tt>:ca_file</tt> - Path to a CA certification file in PEM format. The file can contrain several CA certificates.
+      # * <tt>:ca_file</tt> - Path to a CA certification file in PEM format. The file can contain several CA certificates.
       # * <tt>:ca_path</tt> - Path of a CA certification directory containing certifications in PEM format.
-      # * <tt>:verify_mode</tt> - Flags for server the certification verification at begining of SSL/TLS session. (OpenSSL::SSL::VERIFY_NONE or OpenSSL::SSL::VERIFY_PEER is acceptable)
+      # * <tt>:verify_mode</tt> - Flags for server the certification verification at beginning of SSL/TLS session. (OpenSSL::SSL::VERIFY_NONE or OpenSSL::SSL::VERIFY_PEER is acceptable)
       # * <tt>:verify_callback</tt> - The verify callback for the server certification verification.
       # * <tt>:verify_depth</tt> - The maximum depth for the certificate chain verification.
       # * <tt>:cert_store</tt> - OpenSSL::X509::Store to verify peer certificate.
