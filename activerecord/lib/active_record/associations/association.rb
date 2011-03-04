@@ -7,7 +7,7 @@ module ActiveRecord
     # This is the root class of all associations ('+ Foo' signifies an included module Foo):
     #
     #   Association
-    #     SingularAssociaton
+    #     SingularAssociation
     #       HasOneAssociation
     #         HasOneThroughAssociation + ThroughAssociation
     #       BelongsToAssociation
@@ -88,7 +88,7 @@ module ActiveRecord
 
       # Construct the scope for this association.
       #
-      # Note that the association_scope is merged into the targed_scope only when the
+      # Note that the association_scope is merged into the target_scope only when the
       # scoped method is called. This is because at that point the call may be surrounded
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
