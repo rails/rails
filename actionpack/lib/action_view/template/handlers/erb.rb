@@ -63,7 +63,7 @@ module ActionView
         class_attribute :default_format
         self.default_format = Mime::HTML
 
-        # Default implemenation used.
+        # Default implementation used.
         class_attribute :erb_implementation
         self.erb_implementation = Erubis
 

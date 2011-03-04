@@ -700,7 +700,7 @@ module ActionDispatch
         # Now routes such as +/posts/1+ will no longer be valid, but +/posts/1.1+ will be.
         # The +id+ parameter must match the constraint passed in for this example.
         #
-        # You may use this to also resrict other parameters:
+        # You may use this to also restrict other parameters:
         #
         #   resources :posts do
         #     constraints(:post_id => /\d+\.\d+) do
@@ -720,7 +720,7 @@ module ActionDispatch
         #
         # === Dynamic request matching
         #
-        # Requests to routes can be constrained based on specific critera:
+        # Requests to routes can be constrained based on specific criteria:
         #
         #    constraints(lambda { |req| req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
         #      resources :iphones
