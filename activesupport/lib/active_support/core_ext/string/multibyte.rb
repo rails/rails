@@ -9,7 +9,7 @@ class String
     #
     # In Ruby 1.8 and older it creates and returns an instance of the ActiveSupport::Multibyte::Chars class which
     # encapsulates the original string. A Unicode safe version of all the String methods are defined on this proxy
-    # class. If the proxy class doesn't respond to a certain method, it's forwarded to the encapsuled string.
+    # class. If the proxy class doesn't respond to a certain method, it's forwarded to the encapsulated string.
     #
     #   name = 'Claus Müller'
     #   name.reverse # => "rell??M sualC"
