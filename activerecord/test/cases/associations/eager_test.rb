@@ -525,6 +525,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert posts[1].categories.include?(categories(:general))
   end
 
+  # This is only really relevant when the identity map is off. Since the preloader for habtm
+  # gets raw row hashes from the database and then instantiates them, this test ensures that
+  # it only instantiates one actual object per record from the database.
+  def test_has_and_belongs_to_many_should_not_instantiate_same_records_multiple_times
+    welcome    = posts(:welcome)
+    categories = Category.includes(:posts)
+
+    general    = categories.find { |c| c == categories(:general) }
+    technology = categories.find { |c| c == categories(:technology) }
+
+    post1 = general.posts.to_a.find { |p| p == posts(:welcome) }
+    post2 = technology.posts.to_a.find { |p| p == posts(:welcome) }
+
+    assert_equal post1.object_id, post2.object_id
+  end
+
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers
     posts = authors(:david).posts.find(:all,
       :include    => :comments,
