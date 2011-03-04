@@ -533,9 +533,19 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     Time::DATE_FORMATS.delete(:custom)
   end
 
-  def test_conversion_methods_are_publicized
-    assert Time.public_instance_methods.include?(:to_date)     || Time.public_instance_methods.include?('to_date')
-    assert Time.public_instance_methods.include?(:to_datetime) || Time.public_instance_methods.include?('to_datetime')
+  def test_to_date
+    assert_equal Date.new(2005, 2, 21), Time.local(2005, 2, 21, 17, 44, 30).to_date
+  end
+
+  def test_to_datetime
+    assert_equal Time.utc(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, 0, 0)
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
+    end
+    with_env_tz 'NZ' do
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
+    end
+    assert_equal ::Date::ITALY, Time.utc(2005, 2, 21, 17, 44, 30).to_datetime.start # use Ruby's default start value
   end
 
   def test_to_time
