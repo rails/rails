@@ -270,7 +270,9 @@ module ActiveRecord
       end
 
       def through_conditions
-        [Array.wrap(options[:conditions])]
+        through_conditions = [Array.wrap(options[:conditions])]
+        through_conditions.first << { type => active_record.base_class.name } if options[:as]
+        through_conditions
       end
 
       def source_reflection
@@ -453,20 +455,19 @@ module ActiveRecord
       # itself an array of conditions from an arbitrary number of relevant reflections.
       def through_conditions
         @through_conditions ||= begin
-          # Initialize the first item - which corresponds to this reflection - either by recursing
-          # into the souce reflection (if it is itself a through reflection), or by grabbing the
-          # source reflection conditions.
-          if source_reflection.source_reflection
-            conditions = source_reflection.through_conditions
-          else
-            conditions = [Array.wrap(source_reflection.options[:conditions])]
-          end
+          conditions = source_reflection.through_conditions
 
           # Add to it the conditions from this reflection if necessary.
           conditions.first << options[:conditions] if options[:conditions]
 
+          through_conditions = through_reflection.through_conditions
+
+          if options[:source_type]
+            through_conditions.first << { foreign_type => options[:source_type] }
+          end
+
           # Recursively fill out the rest of the array from the through reflection
-          conditions += through_reflection.through_conditions
+          conditions += through_conditions
 
           # And return
           conditions

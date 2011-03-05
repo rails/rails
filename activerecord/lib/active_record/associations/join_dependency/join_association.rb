@@ -76,8 +76,6 @@ module ActiveRecord
                 when :has_many, :has_one
                   key         = reflection.foreign_key
                   foreign_key = reflection.active_record_primary_key
-
-                  conditions << polymorphic_conditions(reflection, table)
                 when :has_and_belongs_to_many
                   # For habtm, we need to deal with the join table at the same time as the
                   # target table (because unlike a :through association, there is no reflection
@@ -103,8 +101,6 @@ module ActiveRecord
                 when :belongs_to
                   key         = reflection.association_primary_key
                   foreign_key = reflection.foreign_key
-
-                  conditions << source_type_conditions(reflection, foreign_table)
                 when :has_many, :has_one
                   key         = reflection.foreign_key
                   foreign_key = reflection.source_reflection.active_record_primary_key
@@ -236,20 +232,6 @@ module ActiveRecord
             subclasses.inject(sti_condition) { |attr,subclass|
               attr.or(sti_column.eq(subclass.sti_name))
             }
-          end
-        end
-
-        def source_type_conditions(reflection, foreign_table)
-          if reflection.options[:source_type]
-            foreign_table[reflection.source_reflection.foreign_type].
-              eq(reflection.options[:source_type])
-          end
-        end
-
-        def polymorphic_conditions(reflection, table)
-          if reflection.options[:as]
-            table[reflection.type].
-              eq(reflection.active_record.base_class.name)
           end
         end
 

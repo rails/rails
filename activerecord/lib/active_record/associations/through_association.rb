@@ -89,7 +89,6 @@ module ActiveRecord
                     right_table,
                     left_table[left.foreign_key],
                     right_table[right.association_primary_key],
-                    polymorphic_conditions(left, left),
                     reflection_conditions(right_index)
                   )
                 when :has_and_belongs_to_many
@@ -107,7 +106,6 @@ module ActiveRecord
                     right_table,
                     left_table[left.association_primary_key],
                     right_table[left.foreign_key],
-                    source_type_conditions(left),
                     reflection_conditions(right_index)
                   )
                 when :has_many, :has_one
@@ -119,7 +117,6 @@ module ActiveRecord
                     right_table,
                     left_table[left.foreign_key],
                     right_table[left.source_reflection.active_record_primary_key],
-                    polymorphic_conditions(left, left.source_reflection),
                     reflection_conditions(right_index)
                   )
 
@@ -251,20 +248,6 @@ module ActiveRecord
             condition = reflection.klass.send(:sanitize_sql, interpolate(condition), reflection.table_name)
             condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
             condition
-          end
-        end
-
-        def polymorphic_conditions(reflection, polymorphic_reflection)
-          if polymorphic_reflection.options[:as]
-            tables[reflection][polymorphic_reflection.type].
-              eq(polymorphic_reflection.active_record.base_class.name)
-          end
-        end
-
-        def source_type_conditions(reflection)
-          if reflection.options[:source_type]
-            tables[reflection.through_reflection][reflection.foreign_type].
-              eq(reflection.options[:source_type])
           end
         end
 
