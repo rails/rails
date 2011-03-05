@@ -31,10 +31,12 @@ module ActiveRecord
         private
 
         # Once we have used the join table column (in super), we manually instantiate the
-        # actual records
+        # actual records, ensuring that we don't create more than one instances of the same
+        # record
         def associated_records_by_owner
+          records = {}
           super.each do |owner_key, rows|
-            rows.map! { |row| klass.instantiate(row) }
+            rows.map! { |row| records[row[klass.primary_key]] ||= klass.instantiate(row) }
           end
         end
 
