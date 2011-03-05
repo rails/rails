@@ -973,8 +973,8 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def type_condition
-          sti_column = arel_table[inheritance_column.to_sym]
+        def type_condition(table = arel_table)
+          sti_column = table[inheritance_column.to_sym]
           sti_names  = ([self] + descendants).map { |model| model.sti_name }
 
           sti_column.in(sti_names)

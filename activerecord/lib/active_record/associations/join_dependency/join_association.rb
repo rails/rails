@@ -123,9 +123,11 @@ module ActiveRecord
             end
 
             conditions << table[key].eq(foreign_table[foreign_key])
-
             conditions << reflection_conditions(index, table)
-            conditions << sti_conditions(reflection, table)
+
+            if reflection.klass.finder_needs_type_condition?
+              conditions << reflection.klass.send(:type_condition, table)
+            end
 
             ands = relation.create_and(conditions.flatten.compact)
 
@@ -219,19 +221,6 @@ module ActiveRecord
         def reflection_conditions(index, table)
           reflection.through_conditions.reverse[index].map do |condition|
             process_conditions(condition, table.table_alias || table.name)
-          end
-        end
-
-        def sti_conditions(reflection, table)
-          unless reflection.klass.descends_from_active_record?
-            sti_column    = table[reflection.klass.inheritance_column]
-            sti_condition = sti_column.eq(reflection.klass.sti_name)
-            subclasses    = reflection.klass.descendants
-
-            # TODO: use IN (...), or possibly AR::Base#type_condition
-            subclasses.inject(sti_condition) { |attr,subclass|
-              attr.or(sti_column.eq(subclass.sti_name))
-            }
           end
         end
 
