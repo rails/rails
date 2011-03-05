@@ -50,32 +50,37 @@ module ActiveSupport
           end
         end
 
+        #--
+        # This class wraps up local storage for middlewares. Only the middleware method should
+        # construct them.
+        class Middleware # :nodoc:
+          attr_reader :name, :thread_local_key
+
+          def initialize(name, thread_local_key)
+            @name             = name
+            @thread_local_key = thread_local_key
+            @app              = nil
+          end
+
+          def new(app)
+            @app = app
+            self
+          end
+
+          def call(env)
+            Thread.current[thread_local_key] = LocalStore.new
+            @app.call(env)
+          ensure
+            Thread.current[thread_local_key] = nil
+          end
+        end
+
         # Middleware class can be inserted as a Rack handler to be local cache for the
         # duration of request.
         def middleware
-          @middleware ||= begin
-            klass = Class.new
-            klass.class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-              class << self
-                def name
-                  "ActiveSupport::Cache::Strategy::LocalCache"
-                end
-                alias :to_s :name
-              end
-
-              def initialize(app)
-                @app = app
-              end
-
-              def call(env)
-                Thread.current[:#{thread_local_key}] = LocalStore.new
-                @app.call(env)
-              ensure
-                Thread.current[:#{thread_local_key}] = nil
-              end
-            EOS
-            klass
-          end
+          @middleware ||= Middleware.new(
+            "ActiveSupport::Cache::Strategy::LocalCache",
+            thread_local_key)
         end
 
         def clear(options = nil) # :nodoc:

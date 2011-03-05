@@ -120,30 +120,29 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
-    Post.expects(:i_was_called).with([1,2,3,4,5,6,7]).returns([1])
-    associated_records = Post.send(:associated_records, [1,2,3,4,5,6,7]) do |some_ids|
-      Post.i_was_called(some_ids)
+
+    post = posts(:welcome)
+    assert_queries(2) do
+      Post.includes(:comments).where(:id => post.id).to_a
     end
-    assert_equal [1], associated_records
   end
 
   def test_load_associated_records_in_several_queries_when_many_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    Post.expects(:i_was_called).with([1,2,3,4,5]).returns([1])
-    Post.expects(:i_was_called).with([6,7]).returns([6])
-    associated_records = Post.send(:associated_records, [1,2,3,4,5,6,7]) do |some_ids|
-      Post.i_was_called(some_ids)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(1)
+
+    post1, post2 = posts(:welcome), posts(:thinking)
+    assert_queries(3) do
+      Post.includes(:comments).where(:id => [post1.id, post2.id]).to_a
     end
-    assert_equal [1,6], associated_records
   end
 
   def test_load_associated_records_in_one_query_when_a_few_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    Post.expects(:i_was_called).with([1,2,3]).returns([1])
-    associated_records = Post.send(:associated_records, [1,2,3]) do |some_ids|
-      Post.i_was_called(some_ids)
+    Post.connection.expects(:in_clause_length).at_least_once.returns(3)
+
+    post = posts(:welcome)
+    assert_queries(2) do
+      Post.includes(:comments).where(:id => post.id).to_a
     end
-    assert_equal [1], associated_records
   end
 
   def test_including_duplicate_objects_from_belongs_to
@@ -524,6 +523,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 0, posts[2].categories.size
     assert posts[0].categories.include?(categories(:technology))
     assert posts[1].categories.include?(categories(:general))
+  end
+
+  # This is only really relevant when the identity map is off. Since the preloader for habtm
+  # gets raw row hashes from the database and then instantiates them, this test ensures that
+  # it only instantiates one actual object per record from the database.
+  def test_has_and_belongs_to_many_should_not_instantiate_same_records_multiple_times
+    welcome    = posts(:welcome)
+    categories = Category.includes(:posts)
+
+    general    = categories.find { |c| c == categories(:general) }
+    technology = categories.find { |c| c == categories(:technology) }
+
+    post1 = general.posts.to_a.find { |p| p == posts(:welcome) }
+    post2 = technology.posts.to_a.find { |p| p == posts(:welcome) }
+
+    assert_equal post1.object_id, post2.object_id
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers

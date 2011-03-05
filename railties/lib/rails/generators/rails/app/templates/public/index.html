@@ -52,7 +52,6 @@
         clear: both;
       }
 
-
       #header, #about, #getting-started {
         padding-left: 75px;
         padding-right: 30px;
@@ -168,6 +167,9 @@
         margin-bottom: 5px;
       }
 
+      .filename {
+        font-style: italic;
+      }
     </style>
     <script type="text/javascript">
       function about() {
@@ -190,10 +192,10 @@
           <li>
             <h3>Browse the documentation</h3>
             <ul class="links">
-              <li><a href="http://api.rubyonrails.org/">Rails API</a></li>
-              <li><a href="http://stdlib.rubyonrails.org/">Ruby standard library</a></li>
-              <li><a href="http://corelib.rubyonrails.org/">Ruby core</a></li>
               <li><a href="http://guides.rubyonrails.org/">Rails Guides</a></li>
+              <li><a href="http://api.rubyonrails.org/">Rails API</a></li>
+              <li><a href="http://www.ruby-doc.org/core/">Ruby core</a></li>
+              <li><a href="http://www.ruby-doc.org/stdlib/">Ruby standard library</a></li>
             </ul>
           </li>
         </ul>
@@ -221,13 +223,13 @@
             </li>
 
             <li>
-              <h2>Set up a default route and remove or rename this file</h2>
-              <p>Routes are set up in config/routes.rb.</p>
+              <h2>Set up a default route and remove <span class="filename">public/index.html</span></h2>
+              <p>Routes are set up in <span class="filename">config/routes.rb</span>.</p>
             </li>
 
             <li>
               <h2>Create your database</h2>
-              <p>Run <code>rake db:migrate</code> to create your database. If you're not using SQLite (the default), edit <code>config/database.yml</code> with your username and password.</p>
+              <p>Run <code>rake db:create</code> to create your database. If you're not using SQLite (the default), edit <span class="filename">config/database.yml</span> with your username and password.</p>
             </li>
           </ol>
         </div>

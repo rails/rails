@@ -69,7 +69,7 @@ module ActionView
           def register_javascript_expansion(expansions)
             js_expansions = JavascriptIncludeTag.expansions
             expansions.each do |key, values|
-              js_expansions[key] = (js_expansions[key] || []) | Array(values) if values
+              js_expansions[key] = (js_expansions[key] || []) | Array(values)
             end
           end
         end

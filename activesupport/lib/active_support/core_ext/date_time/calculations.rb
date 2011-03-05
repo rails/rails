@@ -1,6 +1,4 @@
 require 'rational' unless RUBY_VERSION >= '1.9.2'
-require 'active_support/core_ext/object/acts_like'
-require 'active_support/core_ext/time/zones'
 
 class DateTime
   class << self
@@ -9,8 +7,9 @@ class DateTime
       ::Time.local(2007).utc_offset.to_r / 86400
     end
 
+    # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise returns <tt>Time.now.to_datetime</tt>.
     def current
-      ::Time.zone_default ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
+      ::Time.zone ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
     end
   end
 
@@ -104,11 +103,7 @@ class DateTime
   end
 
   # Layers additional behavior on DateTime#<=> so that Time and ActiveSupport::TimeWithZone instances can be compared with a DateTime
-  def compare_with_coercion(other)
-    other = other.comparable_time if other.respond_to?(:comparable_time)
-    other = other.to_datetime unless other.acts_like?(:date)
-    compare_without_coercion(other)
+  def <=>(other)
+    super other.to_datetime
   end
-  alias_method :compare_without_coercion, :<=>
-  alias_method :<=>, :compare_with_coercion
 end

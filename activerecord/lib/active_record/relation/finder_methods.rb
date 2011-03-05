@@ -187,7 +187,7 @@ module ActiveRecord
 
     def find_with_associations
       including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, [])
+      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
       relation = construct_relation_for_association_find(join_dependency)
       rows = connection.select_all(relation.to_sql, 'SQL', relation.bind_values)
       join_dependency.instantiate(rows)
@@ -197,7 +197,7 @@ module ActiveRecord
 
     def construct_relation_for_association_calculations
       including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, arel.froms.first)
+      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
       relation = except(:includes, :eager_load, :preload)
       apply_join_dependency(relation, join_dependency)
     end

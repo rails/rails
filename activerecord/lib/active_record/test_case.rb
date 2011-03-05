@@ -26,6 +26,7 @@ module ActiveRecord
     def assert_sql(*patterns_to_match)
       $queries_executed = []
       yield
+      $queries_executed
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|

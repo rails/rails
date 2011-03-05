@@ -50,12 +50,13 @@ module ActionDispatch
       private
 
         def controller_reference(controller_param)
+          controller_name = "#{controller_param.camelize}Controller"
+
           unless controller = @controllers[controller_param]
-            controller_name = "#{controller_param.camelize}Controller"
             controller = @controllers[controller_param] =
-              ActiveSupport::Dependencies.ref(controller_name)
+              ActiveSupport::Dependencies.reference(controller_name)
           end
-          controller.get
+          controller.get(controller_name)
         end
 
         def dispatch(controller, action, env)

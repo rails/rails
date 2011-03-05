@@ -236,7 +236,7 @@ module ActiveRecord
           'string_join'
         when Hash, Symbol, Array
           'association_join'
-        when ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
+        when ActiveRecord::Associations::JoinDependency::JoinAssociation
           'stashed_join'
         when Arel::Nodes::Join
           'join_node'
@@ -254,7 +254,7 @@ module ActiveRecord
 
       join_list = custom_join_ast(manager, string_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(
+      join_dependency = ActiveRecord::Associations::JoinDependency.new(
         @klass,
         association_joins,
         join_list
@@ -284,7 +284,7 @@ module ActiveRecord
         @implicit_readonly = false
         arel.project(*selects)
       else
-        arel.project(Arel.sql(@klass.quoted_table_name + '.*'))
+        arel.project(@klass.arel_table[Arel.star])
       end
     end
 

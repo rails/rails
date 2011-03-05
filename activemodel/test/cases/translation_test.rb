@@ -49,6 +49,13 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal 'person name attribute', Child.human_attribute_name('name')
   end
 
+  def test_translated_model_attributes_with_attribute_matching_namespaced_model_name
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:gender => 'person gender'}, :"person/gender" => {:attribute => 'person gender attribute'}}}
+
+    assert_equal 'person gender', Person.human_attribute_name('gender')
+    assert_equal 'person gender attribute', Person::Gender.human_attribute_name('attribute')
+  end
+
   def test_translated_model_names
     I18n.backend.store_translations 'en', :activemodel => {:models => {:person => 'person model'} }
     assert_equal 'person model', Person.model_name.human

@@ -51,21 +51,21 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   SingularToPlural.each do |singular, plural|
-    define_method "test_pluralize_#{singular}" do
+    define_method "test_pluralize_singular_#{singular}" do
       assert_equal(plural, ActiveSupport::Inflector.pluralize(singular))
       assert_equal(plural.capitalize, ActiveSupport::Inflector.pluralize(singular.capitalize))
     end
   end
 
   SingularToPlural.each do |singular, plural|
-    define_method "test_singularize_#{plural}" do
+    define_method "test_singularize_plural_#{plural}" do
       assert_equal(singular, ActiveSupport::Inflector.singularize(plural))
       assert_equal(singular.capitalize, ActiveSupport::Inflector.singularize(plural.capitalize))
     end
   end
-  
+
   SingularToPlural.each do |singular, plural|
-    define_method "test_pluralize_#{plural}" do
+    define_method "test_pluralize_plural_#{plural}" do
       assert_equal(plural, ActiveSupport::Inflector.pluralize(plural))
       assert_equal(plural.capitalize, ActiveSupport::Inflector.pluralize(plural.capitalize))
     end

@@ -1,5 +1,9 @@
 *Rails 3.1.0 (unreleased)*
 
+* ActionDispatch::MiddlewareStack now uses composition over inheritance. It is
+no longer an array which means there may be methods missing that were not
+tested.
+
 * Add an :authenticity_token option to form_tag for custom handling or to omit the token (pass :authenticity_token => false).  [Jakub Kuźma, Igor Wiedler]
 
 * HTML5 button_tag helper. [Rizwan Reza]

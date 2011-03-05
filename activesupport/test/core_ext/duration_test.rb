@@ -89,8 +89,8 @@ class DurationTest < ActiveSupport::TestCase
     assert_in_delta((7 * 24 * 1.7).hours.ago(t), 1.7.weeks.ago(t), 1)
   end
 
-  def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
-    Time.zone_default = nil
+  def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
+    Time.zone = nil
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
@@ -102,8 +102,8 @@ class DurationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
@@ -116,7 +116,7 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
     end
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   def test_adding_hours_across_dst_boundary

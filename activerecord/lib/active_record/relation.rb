@@ -86,7 +86,9 @@ module ActiveRecord
 
       preload = @preload_values
       preload +=  @includes_values unless eager_loading?
-      preload.each {|associations| @klass.send(:preload_associations, @records, associations) }
+      preload.each do |associations|
+        ActiveRecord::Associations::Preloader.new(@records, associations).run
+      end
 
       # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
       # are JOINS and no explicit SELECT.
@@ -190,7 +192,7 @@ module ActiveRecord
         end
 
         stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
-        stmt.take limit
+        stmt.take limit if limit
         stmt.order(*order)
         stmt.key = table[primary_key]
         @klass.connection.update stmt.to_sql

@@ -282,21 +282,21 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal true,  DateTime.civil(2005,2,10,20,30,46).future?
   end
 
-  def test_current_returns_date_today_when_zone_default_not_set
+  def test_current_returns_date_today_when_zone_is_not_set
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(1999, 12, 31, 23, 59, 59)
       assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
     end
   end
 
-  def test_current_returns_time_zone_today_when_zone_default_set
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+  def test_current_returns_time_zone_today_when_zone_is_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(1999, 12, 31, 23, 59, 59)
       assert_equal DateTime.new(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)), DateTime.current
     end
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   def test_current_without_time_zone

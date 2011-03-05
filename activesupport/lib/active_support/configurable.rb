@@ -26,7 +26,7 @@ module ActiveSupport
 
     module ClassMethods
       def config
-        @_config ||= if superclass.respond_to?(:config)
+        @_config ||= if respond_to?(:superclass) && superclass.respond_to?(:config)
           superclass.config.inheritable_copy
         else
           # create a new "anonymous" class that will host the compiled reader methods

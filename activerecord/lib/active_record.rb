@@ -43,7 +43,6 @@ module ActiveRecord
     autoload :ConnectionNotEstablished, 'active_record/errors'
 
     autoload :Aggregations
-    autoload :AssociationPreload
     autoload :Associations
     autoload :AttributeMethods
     autoload :AutosaveAssociation

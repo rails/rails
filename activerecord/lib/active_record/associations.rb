@@ -5,7 +5,6 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/class/attribute'
-require 'active_record/associations/class_methods/join_dependency'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -142,6 +141,9 @@ module ActiveRecord
       autoload :HasMany,             'active_record/associations/builder/has_many'
       autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
     end
+
+    autoload :Preloader,      'active_record/associations/preloader'
+    autoload :JoinDependency, 'active_record/associations/join_dependency'
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:

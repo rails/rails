@@ -191,8 +191,8 @@ module ActiveRecord
           else
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
-            if options[:as]
-              attributes["#{options[:as]}_type"] = owner.class.base_class.name
+            if reflection.options[:as]
+              attributes[reflection.type] = owner.class.base_class.name
             end
           end
           attributes

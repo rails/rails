@@ -9,10 +9,9 @@ class Person
   end
 end
 
-class Child < Person
+class Person::Gender
+  extend ActiveModel::Translation
 end
 
-module PersonModule
-  class Person < ::Person
-  end
+class Child < Person
 end

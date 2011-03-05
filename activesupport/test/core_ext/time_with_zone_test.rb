@@ -768,10 +768,10 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
   end
 
   def test_localtime
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     assert_equal @dt.in_time_zone.localtime, @dt.in_time_zone.utc.to_time.getlocal
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   def test_use_zone
@@ -801,7 +801,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal nil, Time.zone
   end
 
-  def test_time_zone_getter_and_setter_with_zone_default
+  def test_time_zone_getter_and_setter_with_zone_default_set
     Time.zone_default = ActiveSupport::TimeZone['Alaska']
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
     Time.zone = ActiveSupport::TimeZone['Hawaii']
@@ -809,6 +809,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     Time.zone = nil
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   ensure
+    Time.zone = nil
     Time.zone_default = nil
   end
 
@@ -849,7 +850,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_nil Time.zone
   end
 
-  def test_current_returns_time_now_when_zone_default_not_set
+  def test_current_returns_time_now_when_zone_not_set
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       assert_equal false, Time.current.is_a?(ActiveSupport::TimeWithZone)
@@ -857,8 +858,8 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     end
   end
 
-  def test_current_returns_time_zone_now_when_zone_default_set
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+  def test_current_returns_time_zone_now_when_zone_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       assert_equal true, Time.current.is_a?(ActiveSupport::TimeWithZone)
@@ -866,7 +867,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
       assert_equal Time.utc(2000), Time.current.time
     end
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   protected

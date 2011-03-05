@@ -103,12 +103,14 @@ module ActionController #:nodoc:
       end
 
       def _save_fragment(name, options)
-        return unless caching_allowed?
-
         content = response_body
         content = content.join if content.is_a?(Array)
 
-        write_fragment(name, content, options)
+        if caching_allowed?
+          write_fragment(name, content, options)
+        else
+          content
+        end
       end
 
     protected

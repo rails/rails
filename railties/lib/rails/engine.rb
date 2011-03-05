@@ -382,7 +382,10 @@ module Rails
 
       # Finds engine with given path
       def find(path)
-        Rails::Engine::Railties.engines.find { |r| File.expand_path(r.root.to_s) == File.expand_path(path.to_s) }
+        path = path.to_s
+        Rails::Engine::Railties.engines.find { |r|
+          File.expand_path(r.root.to_s) == File.expand_path(path)
+        }
       end
     end
 
