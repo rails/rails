@@ -32,7 +32,7 @@ module Rails
           when :decimal                     then "9.99"
           when :datetime, :timestamp, :time then Time.now.to_s(:db)
           when :date                        then Date.today.to_s(:db)
-          when :string                      then "MyString"
+          when :string                      then name == "type" ? "" : "MyString"
           when :text                        then "MyText"
           when :boolean                     then false
           when :references, :belongs_to     then nil
