@@ -876,7 +876,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   ########################################################################
-  # Tests the more miscelaneous helper methods
+  # Tests the more miscellaneous helper methods
   ########################################################################
   def test_exists
     # Class method.

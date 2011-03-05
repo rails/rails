@@ -78,7 +78,7 @@ module ActionController
       yield
     end
 
-    # Everytime after an action is processed, this method is invoked
+    # Every time after an action is processed, this method is invoked
     # with the payload, so you can add more information.
     # :api: plugin
     def append_info_to_payload(payload) #:nodoc:

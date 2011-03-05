@@ -3,7 +3,7 @@ require 'fixtures/project'
 require 'active_support/core_ext/hash/conversions'
 
 # The validations are tested thoroughly under ActiveModel::Validations
-# This test case simply makes sur that they are all accessible by
+# This test case simply makes sure that they are all accessible by
 # Active Resource objects.
 class ValidationsTest < ActiveModel::TestCase
   VALID_PROJECT_HASH = { :name => "My Project", :description => "A project" }

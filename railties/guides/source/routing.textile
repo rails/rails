@@ -391,7 +391,7 @@ NOTE: You can't use +namespace+ or +:module+ with a +:controller+ path segment. 
 match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
 </ruby>
 
-TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id => /[^\/]+/+ allows anything except a slash.
+TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id => /[^\/]<plus>/+ allows anything except a slash.
 
 h4. Static Segments
 

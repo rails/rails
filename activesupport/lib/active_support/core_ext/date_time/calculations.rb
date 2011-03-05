@@ -1,6 +1,4 @@
 require 'rational' unless RUBY_VERSION >= '1.9.2'
-require 'active_support/core_ext/object/acts_like'
-require 'active_support/core_ext/time/zones'
 
 class DateTime
   class << self
@@ -105,11 +103,7 @@ class DateTime
   end
 
   # Layers additional behavior on DateTime#<=> so that Time and ActiveSupport::TimeWithZone instances can be compared with a DateTime
-  def compare_with_coercion(other)
-    other = other.comparable_time if other.respond_to?(:comparable_time)
-    other = other.to_datetime unless other.acts_like?(:date)
-    compare_without_coercion(other)
+  def <=>(other)
+    super other.to_datetime
   end
-  alias_method :compare_without_coercion, :<=>
-  alias_method :<=>, :compare_with_coercion
 end

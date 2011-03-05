@@ -140,7 +140,7 @@ class NumberHelperTest < ActionView::TestCase
 
   def test_number_with_precision_with_significant_true_and_zero_precision
     # Zero precision with significant is a mistake (would always return zero),
-    # so we treat it as if significant was false (increases backwards compatibily for number_to_human_size)
+    # so we treat it as if significant was false (increases backwards compatibility for number_to_human_size)
     assert_equal "124", number_with_precision(123.987, :precision => 0, :significant => true)
     assert_equal "12", number_with_precision(12, :precision => 0, :significant => true )
     assert_equal "12", number_with_precision("12.3", :precision => 0, :significant => true )
