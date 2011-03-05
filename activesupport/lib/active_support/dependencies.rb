@@ -513,7 +513,7 @@ module ActiveSupport #:nodoc:
     # to its class/module if it implements +before_remove_const+.
     #
     # The callback implementation should be restricted to cleaning up caches, etc.
-    # as the enviroment will be in an inconsistent state, e.g. other constants
+    # as the environment will be in an inconsistent state, e.g. other constants
     # may have already been unloaded and not accessible.
     def remove_unloadable_constants!
       autoloaded_constants.each { |const| remove_constant const }

@@ -26,7 +26,7 @@ module ActionView
       #
       # E.g. the value returned for a missing translation key :"blog.post.title" will be
       # <span class="translation_missing" title="translation missing: blog.post.title">Title</span>.
-      # This way your views will display rather reasonableful strings but it will still
+      # This way your views will display rather reasonable strings but it will still
       # be easy to spot missing translations.
       #
       # Second, it'll scope the key by the current partial if the key starts

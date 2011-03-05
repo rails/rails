@@ -13,7 +13,7 @@ class Object
     respond_to?(:empty?) ? empty? : !self
   end
 
-  # An object is present if it's not blank.
+  # An object is present if it's not <tt>blank?</tt>.
   def present?
     !blank?
   end

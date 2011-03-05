@@ -592,7 +592,7 @@ module ActionView
           options.stringify_keys.tap do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             # The following URL is unescaped, this is just a hash of options, and it is the
-            # responsability of the caller to escape all the values.
+            # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options, *parameters_for_url)
             html_options["accept-charset"] = "UTF-8"
             html_options["data-remote"] = true if html_options.delete("remote")
