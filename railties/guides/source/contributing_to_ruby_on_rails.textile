@@ -349,21 +349,20 @@ $ git commit -a
 $ git format-patch master --stdout > my_new_patch.diff
 </shell>
 
-Sanity check the results of this operation: open the diff file in your text editor of choice and make sure that no unintended changes crept in.
+Open the diff file in your text editor of choice to sanity check the results, and make sure that no unintended changes crept in.
 
-You can check your patches by applying your patch to an different dedicated branch:
+You can also perform an extra check by applying the patch to a different dedicated branch:
 
 <shell>
 $ git checkout -b testing_branch
 $ git apply --check my_new_patch.diff
 </shell>
 
-You can make sure your patches don't add any whitespace by applying it yourself using the --whitespace=error-all option. Make sure you are on your dedicated test branche and:
+Please make sure the patch does not introduce whitespace errors:
 
 <shell>
 $ git apply --whitespace=error-all mynew_patch.diff
 </shell>
-
 
 h4. Create a Lighthouse Ticket
 
