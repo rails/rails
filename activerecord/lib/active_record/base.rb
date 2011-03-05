@@ -636,7 +636,7 @@ module ActiveRecord #:nodoc:
         @quoted_table_name = nil
         define_attr_method :table_name, value, &block
 
-        @arel_table = Arel::Table.new(table_name, :engine => arel_engine)
+        @arel_table = Arel::Table.new(table_name, arel_engine)
         @relation = Relation.new(self, arel_table)
       end
       alias :table_name= :set_table_name
@@ -1321,7 +1321,7 @@ MSG
         def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
-          table = Arel::Table.new(self.table_name, :engine => arel_engine, :as => default_table_name)
+          table = Arel::Table.new(table_name).alias(default_table_name)
           viz = Arel::Visitors.for(arel_engine)
           PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
             viz.accept b

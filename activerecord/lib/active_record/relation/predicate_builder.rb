@@ -5,14 +5,14 @@ module ActiveRecord
         table = default_table
 
         if value.is_a?(Hash)
-          table = Arel::Table.new(column, :engine => engine)
+          table = Arel::Table.new(column, engine)
           build_from_hash(engine, value, table)
         else
           column = column.to_s
 
           if column.include?('.')
             table_name, column = column.split('.', 2)
-            table = Arel::Table.new(table_name, :engine => engine)
+            table = Arel::Table.new(table_name, engine)
           end
 
           attribute = table[column.to_sym]
