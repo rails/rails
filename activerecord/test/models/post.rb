@@ -50,6 +50,7 @@ class Post < ActiveRecord::Base
   has_many :nonexistant_comments, :class_name => 'Comment', :conditions => 'comments.id < 0'
 
   has_many :special_comments_ratings, :through => :special_comments, :source => :ratings
+  has_many :special_comments_ratings_taggings, :through => :special_comments_ratings, :source => :taggings
 
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'

@@ -416,6 +416,9 @@ module ActiveRecord
           else
             # If the source reflection does not go through another reflection, then we can get
             # to this reflection directly, and so start the chain here
+            #
+            # It is important to use self, rather than the source_reflection, because self
+            # may has a :source_type option which needs to be used.
             chain = [self]
           end
 

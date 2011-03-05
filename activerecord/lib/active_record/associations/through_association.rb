@@ -10,8 +10,20 @@ module ActiveRecord
 
       protected
 
+        # We merge in these scopes for two reasons:
+        #
+        #   1. To get the scope_for_create on through reflection when building associated objects
+        #   2. To get the type conditions for any STI classes in the chain
+        #
+        # TODO: Don't actually do this. Getting the creation attributes for a non-nested through
+        #       is a special case. The rest (STI conditions) should be handled by the reflection
+        #       itself.
         def target_scope
-          super.merge(through_reflection.klass.scoped)
+          scope = super
+          through_reflection_chain[1..-1].each do |reflection|
+            scope = scope.merge(reflection.klass.scoped)
+          end
+          scope
         end
 
         def association_scope
@@ -227,21 +239,18 @@ module ActiveRecord
 
         def reflection_conditions(index)
           reflection = through_reflection_chain[index]
-          conditions = through_conditions[index].dup
-
-          # TODO: maybe this should go in Reflection#through_conditions directly?
-          unless reflection.klass.descends_from_active_record?
-            conditions << reflection.klass.send(:type_condition)
-          end
+          conditions = through_conditions[index]
 
           unless conditions.empty?
-            conditions.map! do |condition|
-              condition = reflection.klass.send(:sanitize_sql, interpolate(condition), reflection.table_name)
-              condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
-              condition
-            end
+            Arel::Nodes::And.new(process_conditions(conditions, reflection))
+          end
+        end
 
-            Arel::Nodes::And.new(conditions)
+        def process_conditions(conditions, reflection)
+          conditions.map do |condition|
+            condition = reflection.klass.send(:sanitize_sql, interpolate(condition), reflection.table_name)
+            condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
+            condition
           end
         end
 

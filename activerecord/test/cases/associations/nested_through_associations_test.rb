@@ -425,6 +425,15 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert !scope.where("comments.type" => "SubSpecialComment").empty?
   end
 
+  def test_has_many_through_with_sti_on_nested_through_reflection
+    taggings = posts(:sti_comments).special_comments_ratings_taggings
+    assert_equal [taggings(:special_comment_rating)], taggings
+
+    scope = Post.joins(:special_comments_ratings_taggings).where(:id => posts(:sti_comments).id)
+    assert scope.where("comments.type" => "Comment").empty?
+    assert !scope.where("comments.type" => "SpecialComment").empty?
+  end
+
   def test_nested_has_many_through_writers_should_raise_error
     david = authors(:david)
     subscriber = subscribers(:first)

@@ -66,3 +66,13 @@ other_by_mary_blue:
   taggable_id: 11
   taggable_type: Post
   comment: first
+
+special_comment_rating:
+  id: 12
+  taggable_id: 2
+  taggable_type: Rating
+
+normal_comment_rating:
+  id: 13
+  taggable_id: 1
+  taggable_type: Rating
