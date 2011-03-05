@@ -77,7 +77,7 @@ Or you can just chain the methods together like:
 To receive emails, you need to implement a public instance method called <tt>receive</tt> that takes a
 email object as its single parameter. The Action Mailer framework has a corresponding class method,
 which is also called <tt>receive</tt>, that accepts a raw, unprocessed email as a string, which it then turns
-into the tmail object and calls the receive instance method.
+into the email object and calls the receive instance method.
 
 Example:
 
