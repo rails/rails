@@ -8,7 +8,7 @@ module ActiveSupport
   # filter or modify the paths of any lines of the backtrace, you can call BacktraceCleaner#remove_filters! These two methods
   # will give you a completely untouched backtrace.
   #
-  # Example:
+  # ==== Example:
   #
   #   bc = BacktraceCleaner.new
   #   bc.add_filter   { |line| line.gsub(Rails.root, '') }

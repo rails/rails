@@ -41,6 +41,9 @@ module ActiveSupport
       # Allows you to add shortcut so that you don't have to refer to attribute through config.
       # Also look at the example for config to contrast.
       #
+      #
+      # ==== Example
+      #
       #   class User
       #     include ActiveSupport::Configurable
       #     config_accessor :allowed_access
@@ -65,6 +68,9 @@ module ActiveSupport
 
     # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.
     # 
+    #
+    # ==== Example
+    #
     #   require 'active_support/configurable'      
     #  
     #   class User
