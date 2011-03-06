@@ -6,6 +6,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/array/extract_options'
 
 module ActionView
   # = Action View Form Helpers
@@ -880,9 +881,9 @@ module ActionView
 
       private
 
-        def instantiate_builder(record, record_object = nil, options = nil, &block)
-          options, record_object = record_object, nil if record_object.is_a?(Hash)
-          options ||= {}
+        def instantiate_builder(record, *args, &block)
+          options = args.extract_options!
+          record_object = args.shift
 
           case record
           when String, Symbol
