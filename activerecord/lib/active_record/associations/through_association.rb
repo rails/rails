@@ -28,7 +28,6 @@ module ActiveRecord
 
         def association_scope
           scope = join_to(super)
-          scope = scope.where(reflection_conditions(0))
 
           unless options[:include]
             scope = scope.includes(source_options[:include])
@@ -57,95 +56,42 @@ module ActiveRecord
         end
 
         def construct_owner_conditions
-          super(tables.last, through_reflection_chain.last)
         end
 
         def join_to(scope)
           joins  = []
           tables = tables().dup # FIXME: Ugly
 
-          foreign_reflection = through_reflection_chain.first
-          foreign_table      = tables.shift
+          through_reflection_chain.each_with_index do |reflection, i|
+            table, foreign_table = tables.shift, tables.first
 
-          through_reflection_chain[1..-1].each_with_index do |reflection, i|
-            i += 1
-            table = tables.shift
+            if reflection.source_macro == :has_and_belongs_to_many
+              join_table = tables.shift
 
-            if foreign_reflection.source_reflection.nil?
-              case foreign_reflection.macro
-                when :belongs_to
-                  joins << inner_join(
-                    table,
-                    foreign_table[foreign_reflection.association_primary_key],
-                    table[foreign_reflection.foreign_key],
-                    reflection_conditions(i)
-                  )
-                when :has_many, :has_one
-                  joins << inner_join(
-                    table,
-                    foreign_table[foreign_reflection.foreign_key],
-                    table[reflection.association_primary_key],
-                    reflection_conditions(i)
-                  )
-                when :has_and_belongs_to_many
-                  join_table = foreign_table
+              joins << inner_join(
+                join_table,
+                table[reflection.active_record_primary_key].
+                  eq(join_table[reflection.association_foreign_key])
+              )
 
-                  joins << inner_join(
-                    table,
-                    join_table[foreign_reflection.foreign_key],
-                    table[reflection.klass.primary_key],
-                    reflection_conditions(i)
-                  )
-              end
-            else
-              case foreign_reflection.source_reflection.macro
-                when :belongs_to
-                  joins << inner_join(
-                    table,
-                    foreign_table[foreign_reflection.association_primary_key],
-                    table[foreign_reflection.foreign_key],
-                    reflection_conditions(i)
-                  )
-                when :has_many, :has_one
-                  joins << inner_join(
-                    table,
-                    foreign_table[foreign_reflection.foreign_key],
-                    table[foreign_reflection.source_reflection.active_record_primary_key],
-                    reflection_conditions(i)
-                  )
-
-                  if reflection.macro == :has_and_belongs_to_many
-                    join_table = tables.shift
-
-                    joins << inner_join(
-                      join_table,
-                      table[reflection.klass.primary_key],
-                      join_table[reflection.association_foreign_key]
-                    )
-
-                    # hack to make it become the foreign_table
-                    table = join_table
-                  end
-                when :has_and_belongs_to_many
-                  join_table, table = table, tables.shift
-
-                  joins << inner_join(
-                    join_table,
-                    foreign_table[foreign_reflection.klass.primary_key],
-                    join_table[foreign_reflection.association_foreign_key]
-                  )
-
-                  joins << inner_join(
-                    table,
-                    join_table[foreign_reflection.foreign_key],
-                    table[reflection.klass.primary_key],
-                    reflection_conditions(i)
-                  )
-              end
+              table, foreign_table = join_table, tables.first
             end
 
-            foreign_reflection = reflection
-            foreign_table      = table
+            if reflection.source_macro == :belongs_to
+              key         = reflection.association_primary_key
+              foreign_key = reflection.foreign_key
+            else
+              key         = reflection.foreign_key
+              foreign_key = reflection.association_primary_key
+            end
+
+            if reflection == through_reflection_chain.last
+              constraint = table[key].eq owner[foreign_key]
+              scope = scope.where(constraint).where(reflection_conditions(i))
+            else
+              constraint = table[key].eq foreign_table[foreign_key]
+              joins << inner_join(foreign_table, constraint, reflection_conditions(i))
+            end
           end
 
           scope.joins(joins)
@@ -221,9 +167,7 @@ module ActiveRecord
           name
         end
 
-        def inner_join(table, left_column, right_column, *conditions)
-          conditions << left_column.eq(right_column)
-
+        def inner_join(table, *conditions)
           table.create_join(
             table,
             table.create_on(table.create_and(conditions.flatten.compact)))

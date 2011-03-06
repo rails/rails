@@ -279,6 +279,8 @@ module ActiveRecord
         nil
       end
 
+      alias :source_macro :macro
+
       def has_inverse?
         @options[:inverse_of]
       end
@@ -472,6 +474,10 @@ module ActiveRecord
           # And return
           conditions
         end
+      end
+
+      def source_macro
+        source_reflection.source_macro
       end
 
       # A through association is nested iff there would be more than one join table
