@@ -72,7 +72,7 @@ module ActiveModel
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
           if observer.respond_to?(:to_sym)
-            observer = observer.to_s.camelize.constantize.instance
+            observer.to_s.camelize.constantize.instance
           elsif observer.respond_to?(:instance)
             observer.instance
           else
