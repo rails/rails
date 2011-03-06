@@ -1,7 +1,7 @@
 require 'active_support/core_ext/hash/keys'
 
 # This class has dubious semantics and we only have it so that
-# people can write params[:key] instead of params['key']
+# people can write <tt>params[:key]</tt> instead of <tt>params['key']</tt>
 # and they get the same value for both keys.
 
 module ActiveSupport
@@ -109,7 +109,7 @@ module ActiveSupport
     end
 
     # Performs the opposite of merge, with the keys and values from the first hash taking precedence over the second.
-    # This overloaded definition prevents returning a regular hash, if reverse_merge is called on a HashWithDifferentAccess.
+    # This overloaded definition prevents returning a regular hash, if reverse_merge is called on a <tt>HashWithDifferentAccess</tt>.
     def reverse_merge(other_hash)
       super self.class.new_from_hash_copying_default(other_hash)
     end

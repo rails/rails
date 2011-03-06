@@ -364,6 +364,20 @@ Please make sure the patch does not introduce whitespace errors:
 $ git apply --whitespace=error-all mynew_patch.diff
 </shell>
 
+You can check your patches by applying your patch to an different dedicated branch:
+
+<shell>
+$ git checkout -b testing_branch
+$ git apply --check my_new_patch.diff
+</shell>
+
+You can make sure your patches don't add any whitespace by applying it yourself using the --whitespace=error-all option. Make sure you are on your dedicated test branche and:
+
+<shell>
+$ git apply --whitespace=error-all mynew_patch.diff
+</shell>
+
+
 h4. Create a Lighthouse Ticket
 
 Now create a ticket with your patch. Go to the "new ticket":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/new page at Lighthouse. Fill in a reasonable title and description, remember to attach your patch file, and tag the ticket with the ‘patch’ tag and whatever other subject area tags make sense.
