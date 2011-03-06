@@ -27,7 +27,7 @@ module ActiveRecord
         end
 
         def association_scope
-          scope = super.joins(construct_joins)
+          scope = join_to(super)
           scope = scope.where(reflection_conditions(0))
 
           unless options[:include]
@@ -57,98 +57,98 @@ module ActiveRecord
         end
 
         def construct_owner_conditions
-          reflection = through_reflection_chain.last
-
-          if reflection.macro == :has_and_belongs_to_many
-            table = tables[reflection].first
-          else
-            table = Array.wrap(tables[reflection]).first
-          end
-
-          super(table, reflection)
+          super(tables.last, through_reflection_chain.last)
         end
 
-        def construct_joins
-          joins, right_index = [], 1
+        def join_to(scope)
+          joins  = []
+          tables = tables().dup # FIXME: Ugly
 
-          # Iterate over each pair in the through reflection chain, joining them together
-          through_reflection_chain.each_cons(2) do |left, right|
-            left_table, right_table = tables[left], tables[right]
+          foreign_reflection = through_reflection_chain.first
+          foreign_table      = tables.shift
 
-            if left.source_reflection.nil?
-              case left.macro
+          through_reflection_chain[1..-1].each_with_index do |reflection, i|
+            i += 1
+            table = tables.shift
+
+            if foreign_reflection.source_reflection.nil?
+              case foreign_reflection.macro
                 when :belongs_to
                   joins << inner_join(
-                    right_table,
-                    left_table[left.association_primary_key],
-                    right_table[left.foreign_key],
-                    reflection_conditions(right_index)
+                    table,
+                    foreign_table[foreign_reflection.association_primary_key],
+                    table[foreign_reflection.foreign_key],
+                    reflection_conditions(i)
                   )
                 when :has_many, :has_one
                   joins << inner_join(
-                    right_table,
-                    left_table[left.foreign_key],
-                    right_table[right.association_primary_key],
-                    reflection_conditions(right_index)
+                    table,
+                    foreign_table[foreign_reflection.foreign_key],
+                    table[reflection.association_primary_key],
+                    reflection_conditions(i)
                   )
                 when :has_and_belongs_to_many
+                  join_table = foreign_table
+
                   joins << inner_join(
-                    right_table,
-                    left_table.first[left.foreign_key],
-                    right_table[right.klass.primary_key],
-                    reflection_conditions(right_index)
+                    table,
+                    join_table[foreign_reflection.foreign_key],
+                    table[reflection.klass.primary_key],
+                    reflection_conditions(i)
                   )
               end
             else
-              case left.source_reflection.macro
+              case foreign_reflection.source_reflection.macro
                 when :belongs_to
                   joins << inner_join(
-                    right_table,
-                    left_table[left.association_primary_key],
-                    right_table[left.foreign_key],
-                    reflection_conditions(right_index)
+                    table,
+                    foreign_table[foreign_reflection.association_primary_key],
+                    table[foreign_reflection.foreign_key],
+                    reflection_conditions(i)
                   )
                 when :has_many, :has_one
-                  if right.macro == :has_and_belongs_to_many
-                    join_table, right_table = tables[right]
-                  end
-
                   joins << inner_join(
-                    right_table,
-                    left_table[left.foreign_key],
-                    right_table[left.source_reflection.active_record_primary_key],
-                    reflection_conditions(right_index)
+                    table,
+                    foreign_table[foreign_reflection.foreign_key],
+                    table[foreign_reflection.source_reflection.active_record_primary_key],
+                    reflection_conditions(i)
                   )
 
-                  if right.macro == :has_and_belongs_to_many
+                  if reflection.macro == :has_and_belongs_to_many
+                    join_table = tables.shift
+
                     joins << inner_join(
                       join_table,
-                      right_table[right.klass.primary_key],
-                      join_table[right.association_foreign_key]
+                      table[reflection.klass.primary_key],
+                      join_table[reflection.association_foreign_key]
                     )
+
+                    # hack to make it become the foreign_table
+                    table = join_table
                   end
                 when :has_and_belongs_to_many
-                  join_table, left_table = tables[left]
+                  join_table, table = table, tables.shift
 
                   joins << inner_join(
                     join_table,
-                    left_table[left.klass.primary_key],
-                    join_table[left.association_foreign_key]
+                    foreign_table[foreign_reflection.klass.primary_key],
+                    join_table[foreign_reflection.association_foreign_key]
                   )
 
                   joins << inner_join(
-                    right_table,
-                    join_table[left.foreign_key],
-                    right_table[right.klass.primary_key],
-                    reflection_conditions(right_index)
+                    table,
+                    join_table[foreign_reflection.foreign_key],
+                    table[reflection.klass.primary_key],
+                    reflection_conditions(i)
                   )
               end
             end
 
-            right_index += 1
+            foreign_reflection = reflection
+            foreign_table      = table
           end
 
-          joins
+          scope.joins(joins)
         end
 
         # Construct attributes for :through pointing to owner and associate. This is used by the
@@ -191,31 +191,26 @@ module ActiveRecord
           @alias_tracker ||= AliasTracker.new
         end
 
-        # TODO: It is decidedly icky to have an array for habtm entries, and no array for others
         def tables
           @tables ||= begin
-            Hash[
-              through_reflection_chain.map do |reflection|
-                table = alias_tracker.aliased_table_for(
-                  reflection.table_name,
-                  table_alias_for(reflection, reflection != self.reflection)
+            tables = []
+            through_reflection_chain.each do |reflection|
+              tables << alias_tracker.aliased_table_for(
+                reflection.table_name,
+                table_alias_for(reflection, reflection != self.reflection)
+              )
+
+              if reflection.macro == :has_and_belongs_to_many ||
+                   (reflection.source_reflection &&
+                    reflection.source_reflection.macro == :has_and_belongs_to_many)
+
+                tables << alias_tracker.aliased_table_for(
+                  (reflection.source_reflection || reflection).options[:join_table],
+                  table_alias_for(reflection, true)
                 )
-
-                if reflection.macro == :has_and_belongs_to_many ||
-                     (reflection.source_reflection &&
-                      reflection.source_reflection.macro == :has_and_belongs_to_many)
-
-                  join_table = alias_tracker.aliased_table_for(
-                    (reflection.source_reflection || reflection).options[:join_table],
-                    table_alias_for(reflection, true)
-                  )
-
-                  [reflection, [join_table, table]]
-                else
-                  [reflection, table]
-                end
               end
-            ]
+            end
+            tables
           end
         end
 
