@@ -713,6 +713,20 @@ module Arel
         }
       end
 
+      it 'copies where clauses when nesting is triggered' do
+        engine  = EngineProxy.new Table.engine
+        table   = Table.new :users
+        manager = Arel::SelectManager.new engine
+        manager.where table[:foo].eq 10
+        manager.take 42
+        manager.from table
+        stmt = manager.compile_update(table[:id] => 1)
+
+        stmt.to_sql.must_be_like %{
+          UPDATE "users" SET "id" = 1 WHERE "users"."id" IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
+        }
+      end
+
       it 'executes an update statement' do
         engine  = EngineProxy.new Table.engine
         table   = Table.new :users

@@ -35,6 +35,7 @@ module Arel
         stmt             = Nodes::SelectStatement.new
         core             = stmt.cores.first
         core.froms       = o.relation
+        core.wheres      = o.wheres
         core.projections = [key]
         stmt.limit       = o.limit
         stmt.orders      = o.orders
