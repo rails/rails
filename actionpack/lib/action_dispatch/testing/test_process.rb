@@ -22,7 +22,7 @@ module ActionDispatch
     end
 
     def cookies
-      HashWithIndifferentAccess.new(@request.cookies.merge(@response.cookies))
+      @request.cookies.merge(@response.cookies).with_indifferent_access
     end
 
     def redirect_to_url
