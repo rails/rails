@@ -2194,6 +2194,38 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_invalid_route_name_raises_error
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => 'products ' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => ' products' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => 'products!' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => 'products index' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => '1products' }
+      end
+    end
+  end
+
   def test_routing_constraints_with_anchors_raises_error
     assert_raise(ArgumentError) do
       self.class.stub_controllers do |routes|
