@@ -98,9 +98,7 @@ module ActiveModel #:nodoc:
   class Validator
     attr_reader :options
 
-    # Returns the kind of the validator.
-    #
-    # == Examples
+    # Returns the kind of the validator. Examples:
     #
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
