@@ -2,7 +2,7 @@ require 'active_support/base64'
 require 'active_support/core_ext/object/blank'
 
 module ActiveSupport
-  # MessageVerifier makes it easy to generate and verify messages which are signed
+  # +MessageVerifier+ makes it easy to generate and verify messages which are signed
   # to prevent tampering.
   #
   # This is useful for cases like remember-me tokens and auto-unsubscribe links where the

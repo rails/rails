@@ -37,7 +37,7 @@ class NilClass
 
   # Raises a RuntimeError when you attempt to call +id+ on +nil+.
   def id
-    raise RuntimeError, "Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id", caller
+    raise RuntimeError, "Called id for nil, which would mistakenly be #{object_id} -- if you really wanted the id of nil, use object_id", caller
   end
 
   private

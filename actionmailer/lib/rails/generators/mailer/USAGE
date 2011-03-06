@@ -1,4 +1,5 @@
 Description:
+============
     Stubs out a new mailer and its views. Pass the mailer name, either
     CamelCased or under_scored, and an optional list of emails as arguments.
 
@@ -6,10 +7,12 @@ Description:
     engine and test framework generators.
 
 Example:
-    `rails generate mailer Notifications signup forgot_password invoice`
+========
+    rails generate mailer Notifications signup forgot_password invoice
 
     creates a Notifications mailer class, views, test, and fixtures:
         Mailer:     app/mailers/notifications.rb
         Views:      app/views/notifications/signup.erb [...]
         Test:       test/functional/notifications_test.rb
         Fixtures:   test/fixtures/notifications/signup [...]
+
