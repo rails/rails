@@ -493,7 +493,7 @@ module ActiveSupport
               key.first.to_param
             end
           elsif key.is_a?(Hash)
-            key = key.to_a.sort{|a,b| a.first.to_s <=> b.first.to_s}.collect{|k,v| "#{k}=#{v}"}.to_param
+            key = key.to_a.sort_by { |x| x.first.to_s }.collect{|k,v| "#{k}=#{v}"}.to_param
           else
             key = key.to_param
           end
