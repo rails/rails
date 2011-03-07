@@ -484,19 +484,20 @@ module ActiveSupport
         # object responds to +cache_key+. Otherwise, to_param method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key) # :nodoc:
-          if key.respond_to?(:cache_key)
-            key = key.cache_key.to_s
-          elsif key.is_a?(Array)
+          return key.cache_key.to_s if key.respond_to?(:cache_key)
+
+          case key
+          when Array
             if key.size > 1
-              key.collect{|element| expanded_key(element)}.to_param
+              key = key.collect{|element| expanded_key(element)}
             else
-              key.first.to_param
+              key = key.first
             end
-          elsif key.is_a?(Hash)
-            key = key.to_a.sort{|a,b| a.first.to_s <=> b.first.to_s}.collect{|k,v| "#{k}=#{v}"}.to_param
-          else
-            key = key.to_param
+          when Hash
+            key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
           end
+
+          key.to_param
         end
 
         # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
@@ -589,11 +590,7 @@ module ActiveSupport
       # Check if the entry is expired. The +expires_in+ parameter can override the
       # value set when the entry was created.
       def expired?
-        if @expires_in && @created_at + @expires_in <= Time.now.to_f
-          true
-        else
-          false
-        end
+        @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
 
       # Set a new time when the entry will expire.
