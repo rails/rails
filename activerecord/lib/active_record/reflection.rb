@@ -372,7 +372,7 @@ module ActiveRecord
     # Holds all the meta-data about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
-      delegate :foreign_key, :foreign_type, :association_foreign_key, :to => :source_reflection
+      delegate :foreign_key, :foreign_type, :association_foreign_key, :active_record_primary_key, :to => :source_reflection
 
       # Gets the source of the through reflection.  It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.

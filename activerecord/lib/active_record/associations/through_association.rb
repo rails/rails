@@ -82,7 +82,7 @@ module ActiveRecord
               foreign_key = reflection.foreign_key
             else
               key         = reflection.foreign_key
-              foreign_key = reflection.association_primary_key
+              foreign_key = reflection.active_record_primary_key
             end
 
             if reflection == through_reflection_chain.last
