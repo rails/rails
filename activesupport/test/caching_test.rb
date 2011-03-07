@@ -679,12 +679,12 @@ class CacheEntryTest < ActiveSupport::TestCase
 
   def test_expired
     entry = ActiveSupport::Cache::Entry.new("value")
-    assert_equal false, entry.expired?
+    assert !entry.expired?, 'entry not expired'
     entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
-    assert_equal false, entry.expired?
+    assert !entry.expired?, 'entry not expired'
     time = Time.now + 61
     Time.stubs(:now).returns(time)
-    assert_equal true, entry.expired?
+    assert entry.expired?, 'entry is expired'
   end
 
   def test_compress_values

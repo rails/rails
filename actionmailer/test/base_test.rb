@@ -153,8 +153,8 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(2, email.parts.length)
     assert_equal("multipart/related", email.mime_type)
     assert_equal("multipart/alternative", email.parts[0].mime_type)
-      assert_equal("text/plain", email.parts[0].parts[0].mime_type)
-      assert_equal("text/html",  email.parts[0].parts[1].mime_type)
+    assert_equal("text/plain", email.parts[0].parts[0].mime_type)
+    assert_equal("text/html",  email.parts[0].parts[1].mime_type)
     assert_equal("logo.png", email.parts[1].filename)
   end
 
