@@ -299,6 +299,22 @@ module CallbacksTest
       end
     end
   end
+  
+  class AroundPersonResult < MySuper
+    attr_reader :result
+
+    set_callback :save, :around, :tweedle_dum
+
+    def tweedle_dum
+      @result = yield
+    end
+
+    def save
+      run_callbacks :save do
+        :running
+      end
+    end
+  end
 
   class HyphenatedCallbacks
     include ActiveSupport::Callbacks
@@ -336,6 +352,14 @@ module CallbacksTest
         "tweedle dum post",
         "tweedle"
       ], around.history
+    end
+  end
+  
+  class AroundCallbackResultTest < Test::Unit::TestCase
+    def test_save_around
+      around = AroundPersonResult.new
+      around.save
+      assert_equal :running, around.result
     end
   end
 
