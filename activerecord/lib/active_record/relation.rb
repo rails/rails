@@ -270,21 +270,26 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * +id+ - Can be either an Integer or an Array of Integers.
+    # * +ids+ - Can be an Integer or multiple integers or an Array of Integers.
     #
     # ==== Examples
     #
     #   # Destroy a single object
     #   Todo.destroy(1)
     #
-    #   # Destroy multiple objects
-    #   todos = [1,2,3]
+    #   # Destroy multiple objects with variable arguments
+    #   Todo.destroy(2, 5, 8)
+    #
+    #   # Destroy multiple objects with an Array
+    #   todos = [1, 2, 3]
     #   Todo.destroy(todos)
-    def destroy(id)
-      if id.is_a?(Array)
-        id.map { |one_id| destroy(one_id) }
+    def destroy(*ids)
+      if ids.many?
+        ids.map { |id| destroy(id) }
+      elsif ids.first.is_a?(Array)
+        ids.first.map { |id| destroy(id) }
       else
-        find(id).destroy
+        find(*ids).destroy
       end
     end
 
