@@ -99,7 +99,7 @@ task :default => :test
     def javascripts
       return unless options[:mountable]
 
-      empty_directory "#{app_templates_dir}/public/javascripts"
+      empty_directory "public/javascripts"
 
       unless options[:skip_javascript]
         copy_file "#{app_templates_dir}/public/javascripts/#{options[:javascript]}.js", "public/javascripts/#{options[:javascript]}.js"
