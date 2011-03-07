@@ -590,11 +590,7 @@ module ActiveSupport
       # Check if the entry is expired. The +expires_in+ parameter can override the
       # value set when the entry was created.
       def expired?
-        if @expires_in && @created_at + @expires_in <= Time.now.to_f
-          true
-        else
-          false
-        end
+        @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
 
       # Set a new time when the entry will expire.
