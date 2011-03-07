@@ -8,6 +8,10 @@ module Arel
       def [] name
         Attribute.new(self, name)
       end
+
+      def table_name
+        relation.name
+      end
     end
   end
 end
