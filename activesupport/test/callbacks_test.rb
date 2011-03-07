@@ -303,12 +303,22 @@ module CallbacksTest
   class AroundPersonResult < MySuper
     attr_reader :result
 
+    set_callback :save, :after, :tweedle_1
     set_callback :save, :around, :tweedle_dum
+    set_callback :save, :after, :tweedle_2
 
     def tweedle_dum
       @result = yield
     end
+    
+    def tweedle_1
+      :tweedle_1
+    end
 
+    def tweedle_2
+      :tweedle_2
+    end
+    
     def save
       run_callbacks :save do
         :running
