@@ -850,4 +850,19 @@ class RelationTest < ActiveRecord::TestCase
   def test_primary_key
     assert_equal "id", Post.scoped.primary_key
   end
+
+  def test_eager_loading_with_conditions_on_joins
+    scope = Post.includes(:comments)
+
+    # This references the comments table, and so it should cause the comments to be eager
+    # loaded via a JOIN, rather than by subsequent queries.
+    scope = scope.joins(
+      Post.arel_table.create_join(
+        Post.arel_table,
+        Post.arel_table.create_on(Comment.arel_table[:id].eq(3))
+      )
+    )
+
+    assert scope.eager_loading?
+  end
 end
