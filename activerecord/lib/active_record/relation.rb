@@ -243,19 +243,20 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * +conditions+ - A string, array, or hash that specifies which records
-    #   to destroy. If omitted, all records are destroyed. See the
+    # * +conditions+ - A string, array, variable arguments, or hash that specifies
+    #   which records to destroy. If omitted, all records are destroyed. See the
     #   Conditions section in the introduction to ActiveRecord::Base for
     #   more information.
     #
     # ==== Examples
     #
-    #   Person.destroy_all("last_login < '2004-04-04'")
+    #   Person.destroy_all("first_name like '%dummy%'")
     #   Person.destroy_all(:status => "inactive")
+    #   Person.destroy_all("last_login < ?", 1.year.ago)
     #   Person.where(:age => 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
-        where(conditions).destroy_all
+    def destroy_all(*conditions)
+      if conditions.present?
+        where(*conditions).destroy_all
       else
         to_a.each {|object| object.destroy }.tap { reset }
       end
