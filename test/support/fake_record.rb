@@ -20,10 +20,12 @@ module FakeRecord
         ]
       }
       @columns_hash = {
-        'users' => Hash[@columns['users'].map { |x| [x.name, x] }]
+        'users' => Hash[@columns['users'].map { |x| [x.name, x] }],
+        'products' => Hash[@columns['products'].map { |x| [x.name, x] }]
       }
       @primary_keys = {
-        'users' => 'id'
+        'users' => 'id',
+        'products' => 'id'
       }
     end
 

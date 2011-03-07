@@ -9,6 +9,8 @@
   * Add Arel::SelectManager#limit=
   * Add Arel::SelectManager#offset
   * Add Arel::SelectManager#offset=
+  * Math operations have been added to attributes, thanks to
+    Vladimir Meremyanin.
 
 * Bug fixes
 

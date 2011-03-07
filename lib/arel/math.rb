@@ -1,6 +1,5 @@
 module Arel
   module Math
-
     def *(other)
       Arel::Nodes::Multiplication.new(self, other)
     end
@@ -16,6 +15,5 @@ module Arel
     def /(other)
       Arel::Nodes::Division.new(self, other)
     end
-  
   end
 end
