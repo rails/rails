@@ -3,6 +3,7 @@ require 'arel/factory_methods'
 
 require 'arel/expressions'
 require 'arel/predications'
+require 'arel/math'
 require 'arel/table'
 require 'arel/attributes'
 require 'arel/compatibility/wheres'
