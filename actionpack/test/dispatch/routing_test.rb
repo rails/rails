@@ -2313,6 +2313,38 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_invalid_route_name_raises_error
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => 'products ' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => ' products' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => 'products!' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => 'products index' }
+      end
+    end
+
+    assert_raise(ArgumentError) do
+      self.class.stub_controllers do |routes|
+        routes.draw { get '/products', :to => 'products#index', :as => '1products' }
+      end
+    end
+  end
+
   def test_nested_route_in_nested_resource
     get "/posts/1/comments/2/views"
     assert_equal "comments#views", @response.body

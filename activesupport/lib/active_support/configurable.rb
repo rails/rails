@@ -64,21 +64,21 @@ module ActiveSupport
     end
 
     # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.
-    # 
-    #   require 'active_support/configurable'      
-    #  
+    #
+    #   require 'active_support/configurable'
+    #
     #   class User
     #     include ActiveSupport::Configurable
-    #   end 
+    #   end
     #
     #   user = User.new
-    # 
+    #
     #   user.config.allowed_access = true
     #   user.config.level = 1
     #
     #   user.config.allowed_access # => true
     #   user.config.level          # => 1
-    # 
+    #
     def config
       @_config ||= self.class.config.inheritable_copy
     end

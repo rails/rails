@@ -1,6 +1,12 @@
 require 'abstract_unit'
 require 'tzinfo'
 
+class Map < Hash
+  def category
+    "<mus>"
+  end
+end
+
 TZInfo::Timezone.cattr_reader :loaded_zones
 
 class FormOptionsHelperTest < ActionView::TestCase
@@ -390,6 +396,19 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      output_buffer
+    )
+  end
+
+  def test_fields_for_with_record_inherited_from_hash
+    map = Map.new
+
+    output_buffer = fields_for :map, map do |f|
+      concat f.select(:category, %w( abe <mus> hest))
+    end
+
+    assert_dom_equal(
+      "<select id=\"map_category\" name=\"map[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       output_buffer
     )
   end

@@ -420,7 +420,7 @@ Client.limit(5).offset(30)
 will return instead a maximum of 5 clients beginning with the 31st. The SQL looks like:
 
 <sql>
-SELECT * FROM clients LIMIT 5, 30
+SELECT * FROM clients LIMIT 5 OFFSET 30
 </sql>
 
 h3. Group
