@@ -266,8 +266,8 @@ module ActionView
       # === Removing hidden model id's
       #
       # The form_for method automatically includes the model id as a hidden field in the form.
-      # This is used to maintain the correlation between the form data and it's associated model.
-      # Some ORM systems do not use id's on nested models so in this case you want to be able
+      # This is used to maintain the correlation between the form data and its associated model.
+      # Some ORM systems do not use IDs on nested models so in this case you want to be able
       # to disable the hidden id.
       #
       # In the following example the Post model has many Comments stored within it in a NoSQL database,

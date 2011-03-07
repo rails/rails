@@ -54,9 +54,7 @@ module ActiveModel
       # Mass-assignment to these attributes will simply be ignored, to assign
       # to them you can use direct writer methods. This is meant to protect
       # sensitive attributes from being overwritten by malicious users
-      # tampering with URLs or forms.
-      #
-      # == Example
+      # tampering with URLs or forms. Example:
       #
       #   class Customer
       #     include ActiveModel::MassAssignmentSecurity
