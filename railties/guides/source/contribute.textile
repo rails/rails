@@ -7,11 +7,11 @@ endprologue.
 h3. How to Contribute?
 
 * We have an open commit policy: anyone is welcome to contribute and to review contributions.
-* "docrails is hosted on GitHub":http://github.com/lifo/docrails and has public write access.
+* "docrails is hosted on GitHub":https://github.com/lifo/docrails and has public write access.
 * Guides are written in Textile, and reside at +railties/guides/source+ in the docrails project.
-* Follow the "Rails Guides Conventions":http://wiki.github.com/lifo/docrails/rails-guides-conventions.
+* Follow the "Rails Guides Conventions":https://wiki.github.com/lifo/docrails/rails-guides-conventions.
 * Assets are stored in the +railties/guides/assets+ directory.
-* Sample format : "Active Record Associations":http://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile.
+* Sample format : "Active Record Associations":https://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile.
 * Sample output : "Active Record Associations":association_basics.html.
 * You can build the Guides during testing by running +bundle exec rake generate_guides+ in the +railties+ directory.
 * You're encouraged to validate XHTML for the generated guides before commiting your changes by running +bundle exec rake validate_guides+ in the +railties+ directory.
@@ -53,11 +53,11 @@ h3. Rules
 * If the same guide writer wants to write multiple guides, that's ideally the situation we'd love to be in! However, that guide writer will only receive the cash prize for all the subsequent guides (and not the GitHub or RPM prizes).
 * Our review team will have the final say on whether the guide is complete and of good enough quality.
 
-All authors should read and follow the "Rails Guides Conventions":http://wiki.github.com/lifo/docrails/rails-guides-conventions and the "Rails API Documentation Conventions":http://wiki.github.com/lifo/docrails/rails-api-documentation-conventions.
+All authors should read and follow the "Rails Guides Conventions":https://wiki.github.com/lifo/docrails/rails-guides-conventions and the "Rails API Documentation Conventions":https://wiki.github.com/lifo/docrails/rails-api-documentation-conventions.
 
 h3. Translations
 
-The translation effort for the Rails Guides is just getting underway. We know about projects to translate the Guides into Spanish, Portuguese, Polish, and French. For more details or to get involved see the "Translating Rails Guides":http://wiki.github.com/lifo/docrails/translating-rails-guides page.
+The translation effort for the Rails Guides is just getting underway. We know about projects to translate the Guides into Spanish, Portuguese, Polish, and French. For more details or to get involved see the "Translating Rails Guides":https://wiki.github.com/lifo/docrails/translating-rails-guides page.
 
 h3. Mailing List
 

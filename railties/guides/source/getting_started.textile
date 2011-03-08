@@ -153,7 +153,7 @@ TIP. If you're working on Windows, you should be aware that the vast majority of
 
 h4. Creating the Blog Application
 
-The best way to use this guide is to follow each step as it happens, no code or step needed to make this example application has been left out, so you can literally follow along step by step.  If you need to see the completed code, you can download it from "Getting Started Code":http://github.com/mikel/getting-started-code.
+The best way to use this guide is to follow each step as it happens, no code or step needed to make this example application has been left out, so you can literally follow along step by step.  If you need to see the completed code, you can download it from "Getting Started Code":https://github.com/mikel/getting-started-code.
 
 To begin, open a terminal, navigate to a folder where you have rights to create files, and type:
 
