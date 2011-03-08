@@ -373,21 +373,14 @@ key on UpdateManager using UpdateManager#key=
       alias :visit_Time                          :quoted
       alias :visit_TrueClass                     :quoted
 
-      def visit_Arel_Nodes_Multiplication o
-        "#{visit o.left} * #{visit o.right}"
+      def visit_Arel_Nodes_InfixOperation o
+        "#{visit o.left} #{o.operator} #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_Division o
-        "#{visit o.left} / #{visit o.right}"
-      end
-
-      def visit_Arel_Nodes_Addition o
-        "(#{visit o.left} + #{visit o.right})"
-      end
-
-      def visit_Arel_Nodes_Subtraction o
-        "(#{visit o.left} - #{visit o.right})"
-      end
+      alias :visit_Arel_Nodes_Addition       :visit_Arel_Nodes_InfixOperation
+      alias :visit_Arel_Nodes_Subtraction    :visit_Arel_Nodes_InfixOperation
+      alias :visit_Arel_Nodes_Multiplication :visit_Arel_Nodes_InfixOperation
+      alias :visit_Arel_Nodes_Division       :visit_Arel_Nodes_InfixOperation
 
       def visit_Array o
         o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')

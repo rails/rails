@@ -5,11 +5,11 @@ module Arel
     end
 
     def +(other)
-      Arel::Nodes::Addition.new(self, other)
+      Arel::Nodes::Grouping.new(Arel::Nodes::Addition.new(self, other))
     end
 
     def -(other)
-      Arel::Nodes::Subtraction.new(self, other)
+      Arel::Nodes::Grouping.new(Arel::Nodes::Subtraction.new(self, other))
     end
 
     def /(other)
