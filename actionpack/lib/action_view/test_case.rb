@@ -182,6 +182,7 @@ module ActionView
         @request
         @routes
         @templates
+        @options
         @test_passed
         @view
         @view_context_class
