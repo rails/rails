@@ -148,13 +148,17 @@ class Plugin
       method = :git    if git_url?
     end
 
-    uninstall if installed? and options[:force]
+    if send("have_#{method}_cmd?")
+      uninstall if installed? and options[:force]
 
-    unless installed?
-      send("install_using_#{method}", options)
-      run_install_hook
+      unless installed?
+        send("install_using_#{method}", options)
+        run_install_hook
+      else
+        puts "already installed: #{name} (#{uri}).  pass --force to reinstall"
+      end
     else
-      puts "already installed: #{name} (#{uri}).  pass --force to reinstall"
+      puts "missing command line tools (git/svn etc.) required to install plugin"
     end
   end
 
@@ -201,13 +205,25 @@ class Plugin
       uninstall_hook_file = "#{rails_env.root}/vendor/plugins/#{name}/uninstall.rb"
       load uninstall_hook_file if File.exist? uninstall_hook_file
     end
+    
+    def have_export_cmd?
+      is_svn_installed?
+    end
 
     def install_using_export(options = {})
       svn_command :export, options
     end
 
+    def have_checkout_cmd?
+      is_svn_installed?
+    end
+    
     def install_using_checkout(options = {})
       svn_command :checkout, options
+    end
+
+    def have_externals_cmd?
+      is_svn_installed?
     end
 
     def install_using_externals(options = {})
@@ -215,6 +231,10 @@ class Plugin
       externals.push([@name, uri])
       rails_env.externals = externals
       install_using_checkout(options)
+    end
+    
+    def have_http_cmd?
+      true
     end
 
     def install_using_http(options = {})
@@ -226,6 +246,10 @@ class Plugin
         fetcher.quiet = true if options[:quiet]
         fetcher.fetch
       end
+    end
+
+    def have_git_cmd?
+      system("git --version")
     end
 
     def install_using_git(options = {})
@@ -247,6 +271,10 @@ class Plugin
           rm_rf install_path
         end
       end
+    end
+
+    def is_svn_installed?
+      system("svn --version")
     end
 
     def svn_command(cmd, options = {})
