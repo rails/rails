@@ -1,5 +1,9 @@
 *Rails 3.1.0 (unreleased)*
 
+* URL parameters which return false for to_param now appear in the query string (previously they were removed) [Andrew White]
+
+* URL parameters which return nil for to_param are now removed from the query string [Andrew White]
+
 * ActionDispatch::MiddlewareStack now uses composition over inheritance. It is
 no longer an array which means there may be methods missing that were not
 tested.
