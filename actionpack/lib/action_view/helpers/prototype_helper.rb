@@ -130,7 +130,6 @@ module ActionView
           "new Ajax.Updater(#{update}, "
 
         url_options = options[:url]
-        url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
         function << "'#{html_escape(escape_javascript(url_for(url_options)))}'"
         function << ", #{javascript_options})"
 

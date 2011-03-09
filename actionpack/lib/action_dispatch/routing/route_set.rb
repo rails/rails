@@ -397,7 +397,7 @@ module ActionDispatch
 
           raise_routing_error unless path
 
-          params.reject! {|k,v| !v }
+          params.reject! {|k,v| !v.to_param}
 
           return [path, params.keys] if @extras
 

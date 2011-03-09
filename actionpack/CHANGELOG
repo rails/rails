@@ -1,5 +1,7 @@
 *Rails 3.0.6 (unreleased)*
 
+* URL parameters which return nil for to_param are now removed from the query string [Andrew White]
+
 * Don't allow i18n to change the minor version, version now set to ~> 0.5.0 [Santiago Pastorino]
 
 * Make TranslationHelper#translate use the :rescue_format option in I18n 0.5.0 [Sven Fuchs]
