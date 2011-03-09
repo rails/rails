@@ -70,9 +70,11 @@ module ActiveSupport
               left_pos.each_with_index do |left, i|
                 scanner.pos = left.succ
                 chunk = scanner.peek(right_pos[i] - scanner.pos + 1)
-                # overwrite the quotes found around the dates with spaces
-                while times.size > 0 && times[0] <= right_pos[i]
-                  chunk.insert(times.shift - scanner.pos - 1, '! ')
+                if ActiveSupport.parse_json_times
+                  # overwrite the quotes found around the dates with spaces
+                  while times.size > 0 && times[0] <= right_pos[i]
+                    chunk.insert(times.shift - scanner.pos - 1, '! ')
+                  end
                 end
                 chunk.gsub!(/\\([\\\/]|u[[:xdigit:]]{4})/) do
                   ustr = $1

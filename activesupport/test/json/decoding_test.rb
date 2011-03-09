@@ -72,13 +72,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
         end
       end
     end
-  end
 
-  if backends.include?("JSONGem")
-    test "json decodes time json with time parsing disabled" do
+    test "json decodes time json with time parsing disabled with the #{backend} backend" do
       ActiveSupport.parse_json_times = false
       expected = {"a" => "2007-01-01 01:12:34 Z"}
-      ActiveSupport::JSON.with_backend "JSONGem" do
+      ActiveSupport::JSON.with_backend backend do
         assert_equal expected, ActiveSupport::JSON.decode(%({"a": "2007-01-01 01:12:34 Z"}))
       end
     end
