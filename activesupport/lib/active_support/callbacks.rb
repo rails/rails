@@ -225,7 +225,10 @@ module ActiveSupport
           # end
           [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
         when :around
-          "end"
+          <<-RUBY_EVAL
+            value
+          end
+          RUBY_EVAL
         end
       end
 
@@ -423,7 +426,7 @@ module ActiveSupport
       #
       #   set_callback :save, :before, :before_meth
       #   set_callback :save, :after,  :after_meth, :if => :condition
-      #   set_callback :save, :around, lambda { |r| stuff; yield; stuff }
+      #   set_callback :save, :around, lambda { |r| stuff; result = yield; stuff }
       #
       # The second arguments indicates whether the callback is to be run +:before+,
       # +:after+, or +:around+ the event. If omitted, +:before+ is assumed. This
@@ -442,6 +445,9 @@ module ActiveSupport
       #
       # Before and around callbacks are called in the order that they are set; after
       # callbacks are called in the reverse order.
+      # 
+      # Around callbacks can access the return value from the event, if it
+      # wasn't halted, from the +yield+ call.
       #
       # ===== Options
       #
