@@ -463,9 +463,11 @@ h3. Common Validation Options
 
 There are some common options that all the validation helpers can use. Here they are, except for the +:if+ and +:unless+ options, which are discussed later in "Conditional Validation":#conditional-validation.
 
+TIP: Note that +allow_nil+ and +allow_blank+ will be ignored when using the presence validator. Please use the length validator if you want to validate if something is a specific length but allows for +nil+ values.
+
 h4. +:allow_nil+
 
-The +:allow_nil+ option skips the validation when the value being validated is +nil+. Using +:allow_nil+ with +validates_presence_of+ allows for +nil+, but any other +blank?+ value will still be rejected.
+The +:allow_nil+ option skips the validation when the value being validated is +nil+.
 
 <ruby>
 class Coffee < ActiveRecord::Base
