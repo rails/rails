@@ -500,6 +500,8 @@ If you're familiar with the HTTP protocol, you'll know that +get+ is a type of r
 
 All of request types are methods that you can use, however, you'll probably end up using the first two more often than the others.
 
+NOTE: Functional tests do not verify whether the specified request type should be be accepted by the action. Request types in this context exist to make your tests more descriptive.
+
 h4. The Four Hashes of the Apocalypse
 
 After a request has been made by using one of the 5 methods (+get+, +post+, etc.) and processed, you will have 4 Hash objects ready for use:
