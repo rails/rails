@@ -4,7 +4,7 @@ module ActiveRecord
       attr_reader :association, :alias_tracker
 
       delegate :klass, :owner, :reflection, :interpolate, :to => :association
-      delegate :through_reflection_chain, :through_conditions, :options, :source_options, :to => :reflection
+      delegate :chain, :conditions, :options, :source_options, :to => :reflection
 
       def initialize(association)
         @association   = association
@@ -50,7 +50,7 @@ module ActiveRecord
       def add_constraints(scope)
         tables = construct_tables
 
-        through_reflection_chain.each_with_index do |reflection, i|
+        chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
 
           if reflection.source_macro == :has_and_belongs_to_many
@@ -73,10 +73,10 @@ module ActiveRecord
             foreign_key = reflection.active_record_primary_key
           end
 
-          if reflection == through_reflection_chain.last
+          if reflection == chain.last
             scope = scope.where(table[key].eq(owner[foreign_key]))
 
-            through_conditions[i].each do |condition|
+            conditions[i].each do |condition|
               if options[:through] && condition.is_a?(Hash)
                 condition = { table.name => condition }
               end
@@ -86,7 +86,7 @@ module ActiveRecord
           else
             constraint = table[key].eq foreign_table[foreign_key]
 
-            join  = inner_join(foreign_table, reflection, constraint, *through_conditions[i])
+            join  = inner_join(foreign_table, reflection, constraint, *conditions[i])
             scope = scope.joins(join)
           end
         end
@@ -96,7 +96,7 @@ module ActiveRecord
 
       def construct_tables
         tables = []
-        through_reflection_chain.each do |reflection|
+        chain.each do |reflection|
           tables << alias_tracker.aliased_table_for(
             table_name_for(reflection),
             table_alias_for(reflection, reflection != self.reflection)

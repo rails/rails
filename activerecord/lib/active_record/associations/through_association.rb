@@ -3,8 +3,7 @@ module ActiveRecord
   module Associations
     module ThroughAssociation #:nodoc:
 
-      delegate :source_options, :through_options, :source_reflection, :through_reflection,
-               :through_reflection_chain, :through_conditions, :to => :reflection
+      delegate :source_reflection, :through_reflection, :chain, :to => :reflection
 
       protected
 
@@ -18,7 +17,7 @@ module ActiveRecord
         #       itself.
         def target_scope
           scope = super
-          through_reflection_chain[1..-1].each do |reflection|
+          chain[1..-1].each do |reflection|
             scope = scope.merge(reflection.klass.scoped)
           end
           scope

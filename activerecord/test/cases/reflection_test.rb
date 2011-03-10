@@ -202,24 +202,24 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
   end
 
-  def test_through_reflection_chain
+  def test_chain
     expected = [
       Author.reflect_on_association(:essay_categories),
       Author.reflect_on_association(:essays),
       Organization.reflect_on_association(:authors)
     ]
-    actual = Organization.reflect_on_association(:author_essay_categories).through_reflection_chain
+    actual = Organization.reflect_on_association(:author_essay_categories).chain
 
     assert_equal expected, actual
   end
 
-  def test_through_conditions
+  def test_conditions
     expected = [
       ["tags.name = 'Blue'"],
       ["taggings.comment = 'first'", {"taggable_type"=>"Post"}],
       ["posts.title LIKE 'misc post%'"]
     ]
-    actual = Author.reflect_on_association(:misc_post_first_blue_tags).through_conditions
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags).conditions
     assert_equal expected, actual
 
     expected = [
@@ -227,7 +227,7 @@ class ReflectionTest < ActiveRecord::TestCase
       [{"taggable_type"=>"Post"}],
       []
     ]
-    actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).through_conditions
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
     assert_equal expected, actual
   end
 

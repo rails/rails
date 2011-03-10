@@ -262,21 +262,26 @@ module ActiveRecord
       end
 
       def through_reflection
-        false
-      end
-
-      def through_reflection_chain
-        [self]
-      end
-
-      def through_conditions
-        conditions = [options[:conditions]].compact
-        conditions << { type => active_record.base_class.name } if options[:as]
-        [conditions]
+        nil
       end
 
       def source_reflection
         nil
+      end
+
+      # A chain of reflections from this one back to the owner. For more see the explanation in
+      # ThroughReflection.
+      def chain
+        [self]
+      end
+
+      # An array of arrays of conditions. Each item in the outside array corresponds to a reflection
+      # in the #chain. The inside arrays are simply conditions (and each condition may itself be
+      # a hash, array, arel predicate, etc...)
+      def conditions
+        conditions = [options[:conditions]].compact
+        conditions << { type => active_record.base_class.name } if options[:as]
+        [conditions]
       end
 
       alias :source_macro :macro
@@ -401,33 +406,34 @@ module ActiveRecord
         @through_reflection ||= active_record.reflect_on_association(options[:through])
       end
 
-      # Returns an array of AssociationReflection objects which are involved in this through
-      # association. Each item in the array corresponds to a table which will be part of the
-      # query for this association.
+      # Returns an array of reflections which are involved in this association. Each item in the
+      # array corresponds to a table which will be part of the query for this association.
       #
       # If the source reflection is itself a ThroughReflection, then we don't include self in
       # the chain, but just defer to the source reflection.
       #
-      # The chain is built by recursively calling through_reflection_chain on the source
-      # reflection and the through reflection. The base case for the recursion is a normal
-      # association, which just returns [self] for its through_reflection_chain.
-      def through_reflection_chain
-        @through_reflection_chain ||= begin
+      # The chain is built by recursively calling #chain on the source reflection and the through
+      # reflection. The base case for the recursion is a normal association, which just returns
+      # [self] as its #chain.
+      def chain
+        @chain ||= begin
           if source_reflection.source_reflection
             # If the source reflection has its own source reflection, then the chain must start
             # by getting us to that source reflection.
-            chain = source_reflection.through_reflection_chain
+            chain = source_reflection.chain
           else
             # If the source reflection does not go through another reflection, then we can get
             # to this reflection directly, and so start the chain here
             #
             # It is important to use self, rather than the source_reflection, because self
             # may has a :source_type option which needs to be used.
+            #
+            # FIXME: Not sure this is correct justification now that we have #conditions
             chain = [self]
           end
 
           # Recursively build the rest of the chain
-          chain += through_reflection.through_reflection_chain
+          chain += through_reflection.chain
 
           # Finally return the completed chain
           chain
@@ -451,18 +457,18 @@ module ActiveRecord
       #   end
       #
       # There may be conditions on Person.comment_tags, Article.comment_tags and/or Comment.tags,
-      # but only Comment.tags will be represented in the through_reflection_chain. So this method
-      # creates an array of conditions corresponding to the through_reflection_chain. Each item in
-      # the through_conditions array corresponds to an item in the through_reflection_chain, and is
-      # itself an array of conditions from an arbitrary number of relevant reflections.
-      def through_conditions
-        @through_conditions ||= begin
-          conditions = source_reflection.through_conditions
+      # but only Comment.tags will be represented in the #chain. So this method creates an array
+      # of conditions corresponding to the chain. Each item in the #conditions array corresponds
+      # to an item in the #chain, and is itself an array of conditions from an arbitrary number
+      # of relevant reflections, plus any :source_type or polymorphic :as constraints.
+      def conditions
+        @conditions ||= begin
+          conditions = source_reflection.conditions
 
           # Add to it the conditions from this reflection if necessary.
           conditions.first << options[:conditions] if options[:conditions]
 
-          through_conditions = through_reflection.through_conditions
+          through_conditions = through_reflection.conditions
 
           if options[:source_type]
             through_conditions.first << { foreign_type => options[:source_type] }
@@ -476,14 +482,14 @@ module ActiveRecord
         end
       end
 
+      # The macro used by the source association
       def source_macro
         source_reflection.source_macro
       end
 
       # A through association is nested iff there would be more than one join table
       def nested?
-        through_reflection_chain.length > 2 ||
-        through_reflection.macro == :has_and_belongs_to_many
+        chain.length > 2 || through_reflection.macro == :has_and_belongs_to_many
       end
 
       # We want to use the klass from this reflection, rather than just delegate straight to

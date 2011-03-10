@@ -22,7 +22,7 @@ module ActiveRecord
 
         attr_reader :tables
 
-        delegate :options, :through_reflection, :source_reflection, :through_reflection_chain, :to => :reflection
+        delegate :options, :through_reflection, :source_reflection, :chain, :to => :reflection
         delegate :table, :table_name, :to => :parent, :prefix => :parent
         delegate :alias_tracker, :to => :join_dependency
 
@@ -57,14 +57,12 @@ module ActiveRecord
         end
 
         def join_to(relation)
-          # The chain starts with the target table, but we want to end with it here (makes
-          # more sense in this context)
-          chain = through_reflection_chain.reverse
-
           foreign_table = parent_table
           index = 0
 
-          chain.each do |reflection|
+          # The chain starts with the target table, but we want to end with it here (makes
+          # more sense in this context), so we reverse
+          chain.reverse.each do |reflection|
             table = tables[index]
             conditions = []
 
@@ -178,7 +176,7 @@ module ActiveRecord
         # later generate joins for. We must do this in advance in order to correctly allocate
         # the proper alias.
         def setup_tables
-          @tables = through_reflection_chain.map do |reflection|
+          @tables = chain.map do |reflection|
             table = alias_tracker.aliased_table_for(
               reflection.table_name,
               table_alias_for(reflection, reflection != self.reflection)
@@ -200,7 +198,7 @@ module ActiveRecord
             end
           end
 
-          # The joins are generated from the through_reflection_chain in reverse order, so
+          # The joins are generated from the chain in reverse order, so
           # reverse the tables too (but it's important to generate the aliases in the 'forward'
           # order, which is why we only do the reversal now.
           @tables.reverse!
@@ -219,7 +217,7 @@ module ActiveRecord
         end
 
         def reflection_conditions(index, table)
-          reflection.through_conditions.reverse[index].map do |condition|
+          reflection.conditions.reverse[index].map do |condition|
             process_conditions(condition, table.table_alias || table.name)
           end
         end
