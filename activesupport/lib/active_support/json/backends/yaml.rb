@@ -29,7 +29,7 @@ module ActiveSupport
           def convert_json_to_yaml(json) #:nodoc:
             require 'strscan' unless defined? ::StringScanner
             scanner, quoting, marks, pos, times = ::StringScanner.new(json), false, [], nil, []
-            while scanner.scan_until(/(\\['"]|['":,\\]|\\.)/)
+            while scanner.scan_until(/(\\['"]|['":,\\]|\\.|[\]])/)
               case char = scanner[1]
               when '"', "'"
                 if !quoting
@@ -43,7 +43,7 @@ module ActiveSupport
                   end
                   quoting = false
                 end
-              when ":",","
+              when ":",",", "]"
                 marks << scanner.pos - 1 unless quoting
               when "\\"
                 scanner.skip(/\\/)
