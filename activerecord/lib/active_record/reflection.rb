@@ -270,9 +270,9 @@ module ActiveRecord
       end
 
       def through_conditions
-        through_conditions = [Array.wrap(options[:conditions])]
-        through_conditions.first << { type => active_record.base_class.name } if options[:as]
-        through_conditions
+        conditions = [options[:conditions]].compact
+        conditions << { type => active_record.base_class.name } if options[:as]
+        [conditions]
       end
 
       def source_reflection

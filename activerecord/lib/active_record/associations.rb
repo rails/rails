@@ -140,9 +140,10 @@ module ActiveRecord
       autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
-    autoload :Preloader,      'active_record/associations/preloader'
-    autoload :JoinDependency, 'active_record/associations/join_dependency'
-    autoload :AliasTracker,   'active_record/associations/alias_tracker'
+    autoload :Preloader,        'active_record/associations/preloader'
+    autoload :JoinDependency,   'active_record/associations/join_dependency'
+    autoload :AssociationScope, 'active_record/associations/association_scope'
+    autoload :AliasTracker,     'active_record/associations/alias_tracker'
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:

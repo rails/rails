@@ -94,8 +94,6 @@ module ActiveRecord
             end
           end
         end
-
-        alias creation_attributes construct_owner_attributes
     end
   end
 end
