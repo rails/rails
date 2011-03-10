@@ -744,7 +744,7 @@ Rails maintains an official plugin that provides helpers to display the error me
 
 h4. Installing as a plugin
 <shell>
-$ rails plugin install git://github.com/rails/dynamic_form.git
+$ rails plugin install git://github.com/joelmoss/dynamic_form.git
 </shell>
 
 h4 Installing as a Gem
