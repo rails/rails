@@ -57,88 +57,46 @@ module ActiveRecord
         end
 
         def join_to(relation)
+          tables        = @tables.dup
           foreign_table = parent_table
-          index = 0
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          chain.reverse.each do |reflection|
-            table = tables[index]
-            conditions = []
+          chain.reverse.each_with_index do |reflection, i|
+            table = tables.shift
 
-            if reflection.source_reflection.nil?
-              case reflection.macro
-                when :belongs_to
-                  key         = reflection.association_primary_key
-                  foreign_key = reflection.foreign_key
-                when :has_many, :has_one
-                  key         = reflection.foreign_key
-                  foreign_key = reflection.active_record_primary_key
-                when :has_and_belongs_to_many
-                  # For habtm, we need to deal with the join table at the same time as the
-                  # target table (because unlike a :through association, there is no reflection
-                  # to represent the join table)
-                  table, join_table = table
+            case reflection.source_macro
+            when :belongs_to
+              key         = reflection.association_primary_key
+              foreign_key = reflection.foreign_key
+            when :has_and_belongs_to_many
+              # Join the join table first...
+              relation = relation.from(join(
+                table,
+                table[reflection.foreign_key].
+                  eq(foreign_table[reflection.active_record_primary_key])
+              ))
 
-                  join_key         = reflection.foreign_key
-                  join_foreign_key = reflection.active_record.primary_key
+              foreign_table, table = table, tables.shift
 
-                  relation = relation.join(join_table, join_type).on(
-                    join_table[join_key].
-                      eq(foreign_table[join_foreign_key])
-                  )
-
-                  # We've done the first join now, so update the foreign_table for the second
-                  foreign_table = join_table
-
-                  key         = reflection.klass.primary_key
-                  foreign_key = reflection.association_foreign_key
-              end
+              key         = reflection.association_primary_key
+              foreign_key = reflection.association_foreign_key
             else
-              case reflection.source_reflection.macro
-                when :belongs_to
-                  key         = reflection.association_primary_key
-                  foreign_key = reflection.foreign_key
-                when :has_many, :has_one
-                  key         = reflection.foreign_key
-                  foreign_key = reflection.source_reflection.active_record_primary_key
-                when :has_and_belongs_to_many
-                  table, join_table = table
-
-                  join_key         = reflection.foreign_key
-                  join_foreign_key = reflection.klass.primary_key
-
-                  relation = relation.join(join_table, join_type).on(
-                    join_table[join_key].
-                      eq(foreign_table[join_foreign_key])
-                  )
-
-                  foreign_table = join_table
-
-                  key         = reflection.klass.primary_key
-                  foreign_key = reflection.association_foreign_key
-              end
+              key         = reflection.foreign_key
+              foreign_key = reflection.active_record_primary_key
             end
 
+            conditions = self.conditions[i].dup
             conditions << table[key].eq(foreign_table[foreign_key])
-            conditions << reflection_conditions(index, table)
 
             if reflection.klass.finder_needs_type_condition?
               conditions << reflection.klass.send(:type_condition, table)
             end
 
-            ands = relation.create_and(conditions.flatten.compact)
-
-            join = relation.create_join(
-              table,
-              relation.create_on(ands),
-              join_type)
-
-            relation = relation.from(join)
+            relation = relation.from(join(table, *conditions))
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table = table
-            index += 1
           end
 
           relation
@@ -150,18 +108,18 @@ module ActiveRecord
         end
 
         def table
-          if tables.last.is_a?(Array)
-            tables.last.first
-          else
-            tables.last
-          end
+          tables.last
         end
 
         def aliased_table_name
           table.table_alias || table.name
         end
 
-        protected
+        def conditions
+          @conditions ||= reflection.conditions.reverse
+        end
+
+        private
 
         def table_alias_for(reflection, join = false)
           name = alias_tracker.pluralize(reflection.name)
@@ -170,55 +128,51 @@ module ActiveRecord
           name
         end
 
-        private
-
         # Generate aliases and Arel::Table instances for each of the tables which we will
         # later generate joins for. We must do this in advance in order to correctly allocate
         # the proper alias.
         def setup_tables
-          @tables = chain.map do |reflection|
-            table = alias_tracker.aliased_table_for(
+          @tables = []
+          chain.each do |reflection|
+            @tables << alias_tracker.aliased_table_for(
               reflection.table_name,
               table_alias_for(reflection, reflection != self.reflection)
             )
 
-            # For habtm, we have two Arel::Table instances related to a single reflection, so
-            # we just store them as a pair in the array.
-            if reflection.macro == :has_and_belongs_to_many ||
-                 (reflection.source_reflection && reflection.source_reflection.macro == :has_and_belongs_to_many)
-
-              join_table = alias_tracker.aliased_table_for(
+            if reflection.source_macro == :has_and_belongs_to_many
+              @tables << alias_tracker.aliased_table_for(
                 (reflection.source_reflection || reflection).options[:join_table],
                 table_alias_for(reflection, true)
               )
-
-              [table, join_table]
-            else
-              table
             end
           end
 
-          # The joins are generated from the chain in reverse order, so
-          # reverse the tables too (but it's important to generate the aliases in the 'forward'
-          # order, which is why we only do the reversal now.
+          # We construct the tables in the forward order so that the aliases are generated
+          # correctly, but then reverse the array because that is the order in which we will
+          # iterate the chain.
           @tables.reverse!
         end
 
-        def process_conditions(conditions, table_name)
-          if conditions.respond_to?(:to_proc)
-            conditions = instance_eval(&conditions)
+        def join(table, *conditions)
+          conditions = sanitize_conditions(table, conditions)
+          table.create_join(table, table.create_on(conditions), join_type)
+        end
+
+        def sanitize_conditions(table, conditions)
+          conditions = conditions.map do |condition|
+            condition = active_record.send(:sanitize_sql, interpolate(condition), table.table_alias || table.name)
+            condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
+            condition
           end
 
-          Arel.sql(sanitize_sql(conditions, table_name))
+          conditions.length == 1 ? conditions.first : Arel::Nodes::And.new(conditions)
         end
 
-        def sanitize_sql(condition, table_name)
-          active_record.send(:sanitize_sql, condition, table_name)
-        end
-
-        def reflection_conditions(index, table)
-          reflection.conditions.reverse[index].map do |condition|
-            process_conditions(condition, table.table_alias || table.name)
+        def interpolate(conditions)
+          if conditions.respond_to?(:to_proc)
+            instance_eval(&conditions)
+          else
+            conditions
           end
         end
 
