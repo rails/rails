@@ -1,4 +1,4 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+# Read about fixtures at http://api.rubyonrails.org/classes/Fixtures.html
 
 <% unless attributes.empty? -%>
 one:

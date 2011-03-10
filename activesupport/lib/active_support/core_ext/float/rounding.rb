@@ -16,4 +16,4 @@ class Float
       precisionless_round
     end
   end
-end
+end if RUBY_VERSION < '1.9'

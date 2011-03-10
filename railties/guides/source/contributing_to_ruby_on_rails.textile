@@ -48,7 +48,7 @@ Ruby on Rails uses git for source code control. The "git homepage":http://git-sc
 
 * "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by.
 * The "PeepCode screencast":https://peepcode.com/products/git on git ($9) is easier to follow.
-* "GitHub":http://github.com/guides/home offers links to a variety of git resources.
+* "GitHub":https://github.com/guides/home offers links to a variety of git resources.
 * "Pro Git":http://progit.org/book/ is an entire book about git with a Creative Commons license.
 
 h4. Clone the Ruby on Rails Repository
@@ -261,7 +261,7 @@ h3. Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: The guides help you to learn Ruby on Rails, and the API is a reference.
 
-You can create a ticket in Lighthouse to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":http://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+You can create a ticket in Lighthouse to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":https://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
 When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
 
