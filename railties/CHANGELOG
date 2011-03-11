@@ -4,7 +4,7 @@
 
 *2.3.9 (September 4, 2010)*
 
-* Deprecates config.load_(once_)paths in favor of autolaod_(once_)paths. [fxn]
+* Deprecates config.load_(once_)paths in favor of autoload_(once_)paths. [fxn]
 
 
 *2.3.8 (May 24, 2010)*
