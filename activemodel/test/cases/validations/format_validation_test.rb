@@ -98,6 +98,46 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :without => "clearly not a regexp") }
   end
 
+  def test_validates_format_of_with_lambda
+    Topic.validates_format_of :content, :with => lambda{ |topic| topic.title == "digit" ? /\A\d+\Z/ : /\A\S+\Z/ }
+
+    p = Topic.new
+    p.title = "digit"
+    p.content = "Pixies"
+    assert p.invalid?
+
+    p.content = "1234"
+    assert p.valid?
+  end
+
+  def test_validates_format_of_without_lambda
+    Topic.validates_format_of :content, :without => lambda{ |topic| topic.title == "characters" ? /\A\d+\Z/ : /\A\S+\Z/ }
+
+    p = Topic.new
+    p.title = "characters"
+    p.content = "1234"
+    assert p.invalid?
+
+    p.content = "Pixies"
+    assert p.valid?
+  end
+
+  def test_validates_format_of_with_lambda_not_returns_regexp
+    Topic.validates_format_of :content, :with => lambda{ |topic| false }
+
+    p = Topic.new
+    p.content = "Pixies"
+    assert_raise(ArgumentError){ p.valid? }
+  end
+
+  def test_validates_format_of_without_lambda_not_returns_regexp
+    Topic.validates_format_of :content, :without => lambda{ |topic| false }
+
+    p = Topic.new
+    p.content = "Pixies"
+    assert_raise(ArgumentError){ p.valid? }
+  end
+
   def test_validates_format_of_for_ruby_class
     Person.validates_format_of :karma, :with => /\A\d+\Z/
 

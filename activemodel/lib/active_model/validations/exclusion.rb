@@ -1,17 +1,35 @@
+require 'active_support/core_ext/range.rb'
+
 module ActiveModel
 
   # == Active Model Exclusion Validator
   module Validations
     class ExclusionValidator < EachValidator
+      ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
+                      "and must be supplied as the :in option of the configuration hash"
+
       def check_validity!
-        raise ArgumentError, "An object with the method include? is required must be supplied as the " <<
-                             ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
+        unless [:include?, :call].any?{ |method| options[:in].respond_to?(method) }
+          raise ArgumentError, ERROR_MESSAGE
+        end
       end
 
       def validate_each(record, attribute, value)
-        if options[:in].include?(value)
+        exclusions = options[:in].respond_to?(:call) ? options[:in].call(record) : options[:in]
+        if exclusions.send(inclusion_method(exclusions), value)
           record.errors.add(attribute, :exclusion, options.except(:in).merge!(:value => value))
         end
+      rescue NoMethodError
+        raise ArgumentError, "Exclusion validation for :#{attribute} in #{record.class.name}: #{ERROR_MESSAGE}"
+      end
+
+    private
+
+      # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the
+      # range for equality, so it may be slow for large ranges. The new <tt>Range#cover?</tt>
+      # uses the previous logic of comparing a value with the range endpoints.
+      def inclusion_method(enumerable)
+        enumerable.is_a?(Range) ? :cover? : :include?
       end
     end
 
@@ -22,10 +40,14 @@ module ActiveModel
       #     validates_exclusion_of :username, :in => %w( admin superuser ), :message => "You don't belong here"
       #     validates_exclusion_of :age, :in => 30..60, :message => "This site is only for under 30 and over 60"
       #     validates_exclusion_of :format, :in => %w( mov avi ), :message => "extension %{value} is not allowed"
+      #     validates_exclusion_of :password, :in => lambda { |p| [p.username, p.first_name] }, :message => "should not be the same as your username or first name"
       #   end
       #
       # Configuration options:
       # * <tt>:in</tt> - An enumerable object of items that the value shouldn't be part of.
+      #   This can be supplied as a proc or lambda which returns an enumerable. If the enumerable
+      #   is a range the test is performed with <tt>Range#cover?</tt>
+      #   (backported in Active Support for 1.8), otherwise with <tt>include?</tt>.
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is reserved").
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).

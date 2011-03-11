@@ -74,4 +74,25 @@ class InclusionValidationTest < ActiveModel::TestCase
   ensure
     Person.reset_callbacks(:validate)
   end
+
+  def test_validates_inclusion_of_with_lambda
+    Topic.validates_inclusion_of :title, :in => lambda{ |topic| topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
+
+    p = Topic.new
+    p.title = "wasabi"
+    p.author_name = "sikachu"
+    assert p.invalid?
+
+    p.title = "elephant"
+    assert p.valid?
+  end
+
+  def test_validates_inclustion_with_invalid_lambda_return
+    Topic.validates_inclusion_of :title, :in => lambda{ |topic| false }
+
+    p = Topic.new
+    p.title = "monkey"
+    p.author_name = "sikachu"
+    assert_raise(ArgumentError){ p.valid? }
+  end
 end
