@@ -19,7 +19,7 @@ module Rails
 
       def before_dispatch(env)
         request = ActionDispatch::Request.new(env)
-        path = request.fullpath
+        path = request.filtered_path
 
         info "\n\nStarted #{request.request_method} \"#{path}\" " \
              "for #{request.ip} at #{Time.now.to_default_s}"

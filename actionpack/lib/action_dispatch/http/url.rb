@@ -41,7 +41,7 @@ module ActionDispatch
           path = options.delete(:path) || ''
 
           params = options[:params] || {}
-          params.reject! {|k,v| !v }
+          params.reject! {|k,v| v.to_param.nil? }
 
           rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
           rewritten_url << "?#{params.to_query}" unless params.empty?
