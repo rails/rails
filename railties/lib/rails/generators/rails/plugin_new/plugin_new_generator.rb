@@ -23,10 +23,6 @@ module Rails
       template "Gemfile"
     end
 
-    def license
-      template "MIT-LICENSE"
-    end
-
     def gemspec
       template "%name%.gemspec"
     end
@@ -153,7 +149,6 @@ task :default => :test
         build(:readme)
         build(:rakefile)
         build(:gemspec)   unless options[:skip_gemspec]
-        build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
       end

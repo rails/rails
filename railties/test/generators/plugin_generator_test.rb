@@ -26,7 +26,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     %w(
       vendor/plugins/plugin_fu/README
-      vendor/plugins/plugin_fu/MIT-LICENSE
     ).each{ |path| assert_file path, /#{year}/ }
   end
 

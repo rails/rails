@@ -8,7 +8,6 @@ DEFAULT_PLUGIN_FILES = %w(
   Gemfile
   Rakefile
   bukkits.gemspec
-  MIT-LICENSE
   lib
   lib/bukkits.rb
   lib/tasks/bukkits_tasks.rake
