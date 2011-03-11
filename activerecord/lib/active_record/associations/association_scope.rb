@@ -1,10 +1,12 @@
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
+      include JoinHelper
+
       attr_reader :association, :alias_tracker
 
       delegate :klass, :owner, :reflection, :interpolate, :to => :association
-      delegate :chain, :conditions, :options, :source_options, :to => :reflection
+      delegate :chain, :conditions, :options, :source_options, :active_record, :to => :reflection
 
       def initialize(association)
         @association   = association
@@ -56,8 +58,8 @@ module ActiveRecord
           if reflection.source_macro == :has_and_belongs_to_many
             join_table = tables.shift
 
-            scope = scope.joins(inner_join(
-              join_table, reflection,
+            scope = scope.joins(join(
+              join_table,
               table[reflection.active_record_primary_key].
                 eq(join_table[reflection.association_foreign_key])
             ))
@@ -84,32 +86,19 @@ module ActiveRecord
               scope = scope.where(interpolate(condition))
             end
           else
-            constraint = table[key].eq foreign_table[foreign_key]
-
-            join  = inner_join(foreign_table, reflection, constraint, *conditions[i])
-            scope = scope.joins(join)
+            scope = scope.joins(join(
+              foreign_table,
+              table[key].eq(foreign_table[foreign_key]),
+              *conditions[i]
+            ))
           end
         end
 
         scope
       end
 
-      def construct_tables
-        tables = []
-        chain.each do |reflection|
-          tables << alias_tracker.aliased_table_for(
-            table_name_for(reflection),
-            table_alias_for(reflection, reflection != self.reflection)
-          )
-
-          if reflection.source_macro == :has_and_belongs_to_many
-            tables << alias_tracker.aliased_table_for(
-              (reflection.source_reflection || reflection).options[:join_table],
-              table_alias_for(reflection, true)
-            )
-          end
-        end
-        tables
+      def alias_suffix
+        reflection.name
       end
 
       def table_name_for(reflection)
@@ -123,27 +112,6 @@ module ActiveRecord
         end
       end
 
-      def table_alias_for(reflection, join = false)
-        name = alias_tracker.pluralize(reflection.name)
-        name << "_#{self.reflection.name}"
-        name << "_join" if join
-        name
-      end
-
-      def inner_join(table, reflection, *conditions)
-        conditions = sanitize_conditions(reflection, conditions)
-        table.create_join(table, table.create_on(conditions))
-      end
-
-      def sanitize_conditions(reflection, conditions)
-        conditions = conditions.map do |condition|
-          condition = reflection.klass.send(:sanitize_sql, interpolate(condition), reflection.table_name)
-          condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
-          condition
-        end
-
-        conditions.length == 1 ? conditions.first : Arel::Nodes::And.new(conditions)
-      end
     end
   end
 end
