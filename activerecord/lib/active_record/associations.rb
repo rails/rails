@@ -1411,16 +1411,7 @@ module ActiveRecord
         reflection = create_has_and_belongs_to_many_reflection(association_id, options, &extension)
         collection_accessor_methods(reflection, HasAndBelongsToManyAssociation)
 
-        # Don't use a before_destroy callback since users' before_destroy
-        # callbacks will be executed after the association is wiped out.
-        include Module.new {
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def destroy                     # def destroy
-              super                         #   super
-              #{reflection.name}.clear      #   posts.clear
-            end                             # end
-          RUBY
-        }
+        configure_after_destroy_method_for_has_and_belongs_to_many(reflection)
 
         add_association_callbacks(reflection.name, options)
       end
@@ -1712,6 +1703,17 @@ module ActiveRecord
             eoruby
             after_destroy method_name
           end
+        end
+
+        def configure_after_destroy_method_for_has_and_belongs_to_many(reflection)
+          method_name = :"has_and_belongs_to_many_after_destroy_for_#{reflection.name}"
+          class_eval <<-eoruby, __FILE__, __LINE__ + 1
+            def #{method_name}
+              association = #{reflection.name}
+              association.delete_all if association
+            end
+          eoruby
+          after_destroy method_name
         end
 
         def delete_all_has_many_dependencies(record, reflection_name, association_class, dependent_conditions)
