@@ -409,33 +409,13 @@ module ActiveRecord
       # Returns an array of reflections which are involved in this association. Each item in the
       # array corresponds to a table which will be part of the query for this association.
       #
-      # If the source reflection is itself a ThroughReflection, then we don't include self in
-      # the chain, but just defer to the source reflection.
-      #
       # The chain is built by recursively calling #chain on the source reflection and the through
       # reflection. The base case for the recursion is a normal association, which just returns
       # [self] as its #chain.
       def chain
         @chain ||= begin
-          if source_reflection.source_reflection
-            # If the source reflection has its own source reflection, then the chain must start
-            # by getting us to that source reflection.
-            chain = source_reflection.chain
-          else
-            # If the source reflection does not go through another reflection, then we can get
-            # to this reflection directly, and so start the chain here
-            #
-            # It is important to use self, rather than the source_reflection, because self
-            # may has a :source_type option which needs to be used.
-            #
-            # FIXME: Not sure this is correct justification now that we have #conditions
-            chain = [self]
-          end
-
-          # Recursively build the rest of the chain
-          chain += through_reflection.chain
-
-          # Finally return the completed chain
+          chain = source_reflection.chain + through_reflection.chain
+          chain[0] = self # Use self so we don't lose the information from :source_type
           chain
         end
       end

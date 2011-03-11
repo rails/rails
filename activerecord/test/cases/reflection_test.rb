@@ -204,7 +204,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_chain
     expected = [
-      Author.reflect_on_association(:essay_categories),
+      Organization.reflect_on_association(:author_essay_categories),
       Author.reflect_on_association(:essays),
       Organization.reflect_on_association(:authors)
     ]
