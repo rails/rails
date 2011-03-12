@@ -15,6 +15,4 @@ Hoe.spec 'arel' do
 
   self.readme_file      = 'README.markdown'
   self.extra_rdoc_files = FileList['README.markdown']
-  self.extra_dev_deps << [ 'hoe', '>= 2.1.0' ]
-  self.extra_dev_deps << [ 'minitest', '>= 1.6.0' ]
 end
