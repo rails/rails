@@ -74,7 +74,7 @@ module ActiveRecord
               foreign_key = reflection.foreign_key
             when :has_and_belongs_to_many
               # Join the join table first...
-              relation = relation.from(join(
+              relation.from(join(
                 table,
                 table[reflection.foreign_key].
                   eq(foreign_table[reflection.active_record_primary_key])
@@ -89,17 +89,20 @@ module ActiveRecord
               foreign_key = reflection.active_record_primary_key
             end
 
-            conditions = self.conditions[i]
+            constraint = table[key].eq(foreign_table[foreign_key])
 
             if reflection.klass.finder_needs_type_condition?
-              conditions += [reflection.klass.send(:type_condition, table)]
+              constraint = table.create_and([
+                constraint,
+                reflection.klass.send(:type_condition, table)
+              ])
             end
 
-            relation = relation.from(join(
-              table,
-              table[key].eq(foreign_table[foreign_key]),
-              *conditions
-            ))
+            relation.from(join(table, constraint))
+
+            unless conditions[i].empty?
+              relation.where(sanitize(conditions[i], table))
+            end
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table = table

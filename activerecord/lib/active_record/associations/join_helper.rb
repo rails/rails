@@ -38,13 +38,11 @@ module ActiveRecord
         name
       end
 
-      def join(table, *conditions)
-        table.create_join(table, table.create_on(sanitize(conditions)), join_type)
+      def join(table, constraint)
+        table.create_join(table, table.create_on(constraint), join_type)
       end
 
-      def sanitize(conditions)
-        table = conditions.first.left.relation
-
+      def sanitize(conditions, table)
         conditions = conditions.map do |condition|
           condition = active_record.send(:sanitize_sql, interpolate(condition), table.table_alias || table.name)
           condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)

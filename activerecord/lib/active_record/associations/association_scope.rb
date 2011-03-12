@@ -86,11 +86,14 @@ module ActiveRecord
               scope = scope.where(interpolate(condition))
             end
           else
-            scope = scope.joins(join(
-              foreign_table,
-              table[key].eq(foreign_table[foreign_key]),
-              *conditions[i]
-            ))
+            constraint = table[key].eq(foreign_table[foreign_key])
+            join       = join(foreign_table, constraint)
+
+            scope = scope.joins(join)
+
+            unless conditions[i].empty?
+              scope = scope.where(sanitize(conditions[i], table))
+            end
           end
         end
 

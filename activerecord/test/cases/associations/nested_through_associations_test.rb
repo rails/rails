@@ -272,7 +272,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Author.where('comments.id' => comments(:does_it_hurt).id).order('comments.id'),
+      Author.where('comments.id' => comments(:does_it_hurt).id).order('authors.id'),
       [authors(:david), authors(:mary)], :category_post_comments
     )
   end
