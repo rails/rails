@@ -1,5 +1,7 @@
 *Rails 3.0.6 (unreleased)*
 
+* Fix length validation for fixnums #6556 [Andriy Tyurnikov]
+
 * Fix i18n key collision with namespaced models #6448 [yves.senn]
 
 
