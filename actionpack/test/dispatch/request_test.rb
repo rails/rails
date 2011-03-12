@@ -518,6 +518,44 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "1", request.params["step"]
   end
 
+  test "filtered_path returns path with filtered query string" do
+    %w(; &).each do |sep|
+      request = stub_request('QUERY_STRING' => %w(username=sikachu secret=bd4f21f api_key=b1bc3b3cd352f68d79d7).join(sep),
+        'PATH_INFO' => '/authenticate',
+        'action_dispatch.parameter_filter' => [:secret, :api_key])
+
+      path = request.filtered_path
+      assert_equal %w(/authenticate?username=sikachu secret=[FILTERED] api_key=[FILTERED]).join(sep), path
+    end
+  end
+
+  test "filtered_path should not unescape a genuine '[FILTERED]' value" do
+    request = stub_request('QUERY_STRING' => "secret=bd4f21f&genuine=%5BFILTERED%5D",
+      'PATH_INFO' => '/authenticate',
+      'action_dispatch.parameter_filter' => [:secret])
+
+    path = request.filtered_path
+    assert_equal "/authenticate?secret=[FILTERED]&genuine=%5BFILTERED%5D", path
+  end
+
+  test "filtered_path should preserve duplication of keys in query string" do
+    request = stub_request('QUERY_STRING' => "username=sikachu&secret=bd4f21f&username=fxn",
+      'PATH_INFO' => '/authenticate',
+      'action_dispatch.parameter_filter' => [:secret])
+
+    path = request.filtered_path
+    assert_equal "/authenticate?username=sikachu&secret=[FILTERED]&username=fxn", path
+  end
+
+  test "filtered_path should ignore searchparts" do
+    request = stub_request('QUERY_STRING' => "secret",
+      'PATH_INFO' => '/authenticate',
+      'action_dispatch.parameter_filter' => [:secret])
+
+    path = request.filtered_path
+    assert_equal "/authenticate?secret", path
+  end
+
 protected
 
   def stub_request(env = {})
