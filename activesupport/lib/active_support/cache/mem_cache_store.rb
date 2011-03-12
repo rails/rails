@@ -158,7 +158,10 @@ module ActiveSupport
 
       private
         def escape_key(key)
-          key = key.to_s.gsub(ESCAPE_KEY_CHARS){|match| "%#{match.getbyte(0).to_s(16).upcase}"}
+          # Fix for EncodedKeyCacheBehavior failing tests in caching_test.rb.
+          key = key.to_s.dup
+          key = key.force_encoding(ESCAPE_KEY_CHARS.encoding) if key.respond_to?(:encoding) && key.encoding != ESCAPE_KEY_CHARS.encoding
+          key = key.gsub(ESCAPE_KEY_CHARS){|match| "%#{match.getbyte(0).to_s(16).upcase}"}
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
           key
         end
