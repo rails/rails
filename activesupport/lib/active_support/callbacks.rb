@@ -416,7 +416,7 @@ module ActiveSupport
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
 
-        ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
+        ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
           chain = target.send("_#{name}_callbacks")
           yield target, chain.dup, type, filters, options
           target.__define_runner(name)
