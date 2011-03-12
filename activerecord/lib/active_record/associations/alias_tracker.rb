@@ -16,7 +16,7 @@ module ActiveRecord
       def aliased_table_for(table_name, aliased_name = nil)
         table_alias = aliased_name_for(table_name, aliased_name)
 
-        if table_alias == table_name # TODO: Is this conditional necessary?
+        if table_alias == table_name
           Arel::Table.new(table_name)
         else
           Arel::Table.new(table_name).alias(table_alias)

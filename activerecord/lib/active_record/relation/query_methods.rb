@@ -260,7 +260,6 @@ module ActiveRecord
         join_list
       )
 
-      # TODO: Necessary?
       join_nodes.each do |join|
         join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
       end

@@ -9,12 +9,8 @@ module ActiveRecord
 
         # We merge in these scopes for two reasons:
         #
-        #   1. To get the scope_for_create on through reflection when building associated objects
-        #   2. To get the type conditions for any STI classes in the chain
-        #
-        # TODO: Don't actually do this. Getting the creation attributes for a non-nested through
-        #       is a special case. The rest (STI conditions) should be handled by the reflection
-        #       itself.
+        #   1. To get the default_scope conditions for any of the other reflections in the chain
+        #   2. To get the type conditions for any STI models in the chain
         def target_scope
           scope = super
           chain[1..-1].each do |reflection|
@@ -61,7 +57,8 @@ module ActiveRecord
           end
         end
 
-        # TODO: Think about this in the context of nested associations
+        # Note: this does not capture all cases, for example it would be crazy to try to
+        # properly support stale-checking for nested associations.
         def stale_state
           if through_reflection.macro == :belongs_to
             owner[through_reflection.foreign_key].to_s
