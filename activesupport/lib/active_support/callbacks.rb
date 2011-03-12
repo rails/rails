@@ -1,3 +1,4 @@
+require 'active_support/concern'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/inheritable_attributes'
