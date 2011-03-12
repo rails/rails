@@ -341,14 +341,14 @@ class LengthValidationTest < ActiveModel::TestCase
     assert t.errors[:content].any?
     assert_equal ["Your essay must be at least 5 words."], t.errors[:content]
   end
-  
+
   def test_validates_length_of_for_fixnum
     Topic.validates_length_of(:approved, :is => 4)
-    
+
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever", :approved => 1)
     assert t.invalid?
     assert t.errors[:approved].any?
-    
+
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever", :approved => 1234)
     assert t.valid?
   end
