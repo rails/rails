@@ -87,7 +87,10 @@ module ActiveRecord
 
     # Returns true if there are no records.
     def empty?
-      loaded? ? @records.empty? : count.zero?
+      return @records.empty? if loaded?
+
+      c = count
+      c.respond_to?(:zero?) ? c.zero? : c.empty?
     end
 
     def any?
