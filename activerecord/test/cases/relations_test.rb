@@ -690,17 +690,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_empty_complex_chained_relations
     posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count > 0")
+
     assert_queries(1) { assert_equal false, posts.empty? }
     assert ! posts.loaded?
 
     no_posts = posts.where(:title => "")
     assert_queries(1) { assert_equal true, no_posts.empty? }
     assert ! no_posts.loaded?
-
-    best_posts = posts.where(:comments_count => 0)
-    best_posts.to_a # force load
-    assert_no_queries { assert_equal true, best_posts.empty? }
-    assert best_posts.loaded?
   end
 
   def test_any
