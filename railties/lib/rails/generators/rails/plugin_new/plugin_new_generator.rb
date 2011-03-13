@@ -145,6 +145,7 @@ task :default => :test
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
 
+        @dummy_path = nil
         super
       end
 
