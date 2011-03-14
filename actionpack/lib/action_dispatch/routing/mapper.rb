@@ -365,8 +365,9 @@ module ActionDispatch
         #
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         def match(path, options=nil)
-          mapping = Mapping.new(@set, @scope, path, options || {}).to_route
-          @set.add_route(*mapping)
+          mapping = Mapping.new(@set, @scope, path, options || {})
+          app, conditions, requirements, defaults, as, anchor = mapping.to_route
+          @set.add_route(app, conditions, requirements, defaults, as, anchor)
           self
         end
 
