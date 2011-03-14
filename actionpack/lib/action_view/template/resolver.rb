@@ -36,7 +36,7 @@ module ActionView
     # because Resolver guarantees that the arguments are present and
     # normalized.
     def find_templates(name, prefix, partial, details)
-      raise NotImplementedError
+      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details) method"
     end
 
     # Helpers that builds a path. Useful for building virtual paths.

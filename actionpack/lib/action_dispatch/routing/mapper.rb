@@ -107,7 +107,7 @@ module ActionDispatch
             if @options[:format] == false
               @options.delete(:format)
               path
-            elsif path.include?(":format")
+            elsif path.include?(":format") || path.end_with?('/')
               path
             else
               "#{path}(.:format)"
@@ -243,10 +243,6 @@ module ActionDispatch
       end
 
       module Base
-        def initialize(set) #:nodoc:
-          @set = set
-        end
-
         # You can specify what Rails should route "/" to with the root method:
         #
         #   root :to => 'pages#main'
@@ -558,11 +554,6 @@ module ActionDispatch
       #   PUT	    /admin/posts/1
       #   DELETE  /admin/posts/1
       module Scoping
-        def initialize(*args) #:nodoc:
-          @scope = {}
-          super
-        end
-
         # Scopes a set of routes to the given default options.
         #
         # Take the following route definition as an example:
@@ -954,11 +945,6 @@ module ActionDispatch
 
           alias :member_scope :path
           alias :nested_scope :path
-        end
-
-        def initialize(*args) #:nodoc:
-          super
-          @scope[:path_names] = @set.resources_path_names
         end
 
         def resources_path_names(options)
@@ -1471,6 +1457,11 @@ module ActionDispatch
             super
           end
         end
+      end
+
+      def initialize(set) #:nodoc:
+        @set = set
+        @scope = { :path_names => @set.resources_path_names }
       end
 
       include Base
