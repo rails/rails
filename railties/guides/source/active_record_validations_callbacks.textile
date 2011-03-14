@@ -461,9 +461,7 @@ The block receives the model, the attribute's name and the attribute's value. Yo
 
 h3. Common Validation Options
 
-There are some common options that all the validation helpers can use. Here they are, except for the +:if+ and +:unless+ options, which are discussed later in "Conditional Validation":#conditional-validation.
-
-TIP: Note that +allow_nil+ and +allow_blank+ will be ignored when using the presence validator. Please use the length validator if you want to validate if something is a specific length but allows for +nil+ values.
+These are common validation options:
 
 h4. +:allow_nil+
 
@@ -475,6 +473,8 @@ class Coffee < ActiveRecord::Base
     :message => "%{value} is not a valid size", :allow_nil => true
 end
 </ruby>
+
+TIP: +:allow_nil+ is ignored by the presence validator.
 
 h4. +:allow_blank+
 
@@ -488,6 +488,8 @@ end
 Topic.create("title" => "").valid? # => true
 Topic.create("title" => nil).valid? # => true
 </ruby>
+
+TIP: +:allow_blank+ is ignored by the presence validator.
 
 h4. +:message+
 
