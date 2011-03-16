@@ -23,7 +23,7 @@ module ActiveRecord
     #   p2.first_name = "should fail"
     #   p2.save # Raises a ActiveRecord::StaleObjectError
     #
-    # Optimistic locking will also check for stale data when objects are destroyed.  Example:
+    # Optimistic locking will also check for stale data when objects are destroyed. Example:
     #
     #   p1 = Person.find(1)
     #   p2 = Person.find(1)

@@ -120,7 +120,7 @@ module ActiveModel #:nodoc:
     # Override this method in subclasses with validation logic, adding errors
     # to the records +errors+ array where necessary.
     def validate(record)
-      raise NotImplementedError
+      raise NotImplementedError, "Subclasses must implement a validate(record) method."
     end
   end
 
@@ -156,7 +156,7 @@ module ActiveModel #:nodoc:
     # Override this method in subclasses with the validation logic, adding
     # errors to the records +errors+ array where necessary.
     def validate_each(record, attribute, value)
-      raise NotImplementedError
+      raise NotImplementedError, "Subclasses must implement a validate_each(record, attribute, value) method"
     end
 
     # Hook method that gets called by the initializer allowing verification
