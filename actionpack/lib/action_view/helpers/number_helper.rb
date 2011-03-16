@@ -472,7 +472,7 @@ module ActionView
         end.keys.map{|e_name| DECIMAL_UNITS.invert[e_name] }.sort_by{|e| -e}
 
         number_exponent = number != 0 ? Math.log10(number.abs).floor : 0
-        display_exponent = unit_exponents.find{|e| number_exponent >= e }
+        display_exponent = unit_exponents.find{ |e| number_exponent >= e } || 0
         number  /= 10 ** display_exponent
 
         unit = case units
