@@ -41,6 +41,12 @@ class ModelWithWeirdNamesAttributes
 
   attribute_method_suffix ''
 
+  class << self
+    define_method(:'c?d') do
+      'c?d'
+    end
+  end
+
   def attributes
     { :'a?b' => 'value of a?b' }
   end
@@ -84,6 +90,13 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_respond_to ModelWithAttributesWithSpaces.new, :'foo bar'
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
+  end
+
+  test '#define_attr_method generates attribute method with invalid identifier characters' do
+    ModelWithWeirdNamesAttributes.define_attr_method(:'c?d', 'c?d')
+
+    assert_respond_to ModelWithWeirdNamesAttributes, :'c?d'
+    assert_equal "c?d", ModelWithWeirdNamesAttributes.send('c?d')
   end
 
   test '#alias_attribute works with attributes with spaces in their names' do
