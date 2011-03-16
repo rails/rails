@@ -45,9 +45,9 @@ as a gem.  This tutorial will begin to bridge that gap by demonstrating how to c
 "Enginex gem":http://www.github.com/josevalim/enginex.
 
 <shell>
-	gem install enginex
-	enginex --help
-	enginex yaffle
+$ gem install enginex
+$ enginex --help
+$ enginex yaffle
 </shell>
 
 This command will create a new directory named "yaffle" within the current directory.
@@ -401,7 +401,9 @@ h3. Publishing your Gem
 Gem plugins in progress can be easily be shared from any Git repository.  To share the Yaffle gem with others, simply 
 commit the code to a Git repository (like Github) and add a line to the Gemfile of the any application:
 
-gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
+<ruby>
+gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'	
+</ruby>
 
 After running +bundle install+, your gem functionality will be available to the application.
 
@@ -450,8 +452,6 @@ Once your comments are good to go, navigate to your plugin directory and run:
 $ rake rdoc
 </shell>
 
-!!!!!!!!!!!!!! Make sure these still make sense. Add any references that you see fit. !!!!!!!!!!!!!
-
 h4. References
 
 * "Developing a RubyGem using Bundler":https://github.com/radar/guides/blob/master/gem-development.md
@@ -462,6 +462,7 @@ h4. References
 
 h3. Changelog
 
+* March 10, 2011: Minor formatting tweaks.
 * February 13, 2011: Get guide in synch with Rails 3.0.3. Remove information not compatible with Rails 3. Send reader elsewhere
 for information that is covered elsewhere.
 * April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
