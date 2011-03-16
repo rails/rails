@@ -36,6 +36,12 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal @twz.object_id, @twz.in_time_zone(ActiveSupport::TimeZone['Eastern Time (US & Canada)']).object_id
   end
 
+  def test_in_time_zone_with_bad_argument
+    assert_raise(ArgumentError) { @twz.in_time_zone('No such timezone exists') }
+    assert_raise(ArgumentError) { @twz.in_time_zone(-15.hours) }
+    assert_raise(ArgumentError) { @twz.in_time_zone(Object.new) }
+  end
+
   def test_localtime
     assert_equal @twz.localtime, @twz.utc.getlocal
   end
@@ -760,6 +766,15 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     end
   end
 
+  def test_in_time_zone_with_invalid_argument
+    assert_raise(ArgumentError) {  @t.in_time_zone("No such timezone exists") }
+    assert_raise(ArgumentError) { @dt.in_time_zone("No such timezone exists") }
+    assert_raise(ArgumentError) {  @t.in_time_zone(-15.hours) }
+    assert_raise(ArgumentError) { @dt.in_time_zone(-15.hours) }
+    assert_raise(ArgumentError) {  @t.in_time_zone(Object.new) }
+    assert_raise(ArgumentError) { @dt.in_time_zone(Object.new) }
+  end
+
   def test_in_time_zone_with_time_local_instance
     with_env_tz 'US/Eastern' do
       time = Time.local(1999, 12, 31, 19) # == Time.utc(2000)
@@ -786,6 +801,14 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     Time.zone = 'Alaska'
     assert_raise RuntimeError do
       Time.use_zone('Hawaii') { raise RuntimeError }
+    end
+    assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
+  end
+
+  def test_use_zone_raises_on_invalid_timezone
+    Time.zone = 'Alaska'
+    assert_raise ArgumentError do
+      Time.use_zone("No such timezone exists") { }
     end
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   end
@@ -843,11 +866,9 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
   end
 
   def test_time_zone_setter_with_invalid_zone
-    Time.zone = 'foo'
-    assert_nil Time.zone
-
-    Time.zone = -15.hours
-    assert_nil Time.zone
+    assert_raise(ArgumentError){ Time.zone = "No such timezone exists" }
+    assert_raise(ArgumentError){ Time.zone = -15.hours }
+    assert_raise(ArgumentError){ Time.zone = Object.new }
   end
 
   def test_current_returns_time_now_when_zone_not_set

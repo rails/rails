@@ -39,23 +39,27 @@ class Time
 
     # Allows override of <tt>Time.zone</tt> locally inside supplied block; resets <tt>Time.zone</tt> to existing value when done.
     def use_zone(time_zone)
-      old_zone, ::Time.zone = ::Time.zone, get_zone(time_zone)
-      yield
-    ensure
-      ::Time.zone = old_zone
+      new_zone = get_zone(time_zone)
+      begin
+        old_zone, ::Time.zone = ::Time.zone, new_zone
+        yield
+      ensure
+        ::Time.zone = old_zone
+      end
     end
 
     private
+      # Returns a TimeZone instance or nil, or raises an ArgumentError for invalid timezones.
       def get_zone(time_zone)
         return time_zone if time_zone.nil? || time_zone.is_a?(ActiveSupport::TimeZone)
         # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
         unless time_zone.respond_to?(:period_for_local)
-          time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone) rescue nil
+          time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
         end
         # Return if a TimeZone instance, or wrap in a TimeZone instance if a TZInfo::Timezone
-        if time_zone
-          time_zone.is_a?(ActiveSupport::TimeZone) ? time_zone : ActiveSupport::TimeZone.create(time_zone.name, nil, time_zone)
-        end
+        time_zone.is_a?(ActiveSupport::TimeZone) ? time_zone : ActiveSupport::TimeZone.create(time_zone.name, nil, time_zone)
+      rescue TZInfo::InvalidTimezoneIdentifier
+        raise ArgumentError, "Invalid Timezone: #{time_zone}"
       end
   end
 
