@@ -305,7 +305,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_custom_primary_key_on_has_many_source
-    assert_equal [authors(:david), authors(:bob)], posts(:thinking).authors_using_custom_pk.order(:id)
+    assert_equal [authors(:david), authors(:bob)], posts(:thinking).authors_using_custom_pk.order('authors.id')
   end
 
   def test_both_scoped_and_explicit_joins_should_be_respected

@@ -215,16 +215,16 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_conditions
     expected = [
-      ["tags.name = 'Blue'"],
-      ["taggings.comment = 'first'", {"taggable_type"=>"Post"}],
-      ["posts.title LIKE 'misc post%'"]
+      [{ :tags => { :name => 'Blue' } }],
+      [{ :taggings => { :comment => 'first' } }, { "taggable_type" => "Post" }],
+      [{ :posts => { :title => ['misc post by bob', 'misc post by mary'] } }]
     ]
     actual = Author.reflect_on_association(:misc_post_first_blue_tags).conditions
     assert_equal expected, actual
 
     expected = [
-      ["tags.name = 'Blue'", "taggings.comment = 'first'", "posts.title LIKE 'misc post%'"],
-      [{"taggable_type"=>"Post"}],
+      [{ :tags => { :name => 'Blue' } }, { :taggings => { :comment => 'first' } }, { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }],
+      [{ "taggable_type" => "Post" }],
       []
     ]
     actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions

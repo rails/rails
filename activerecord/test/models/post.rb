@@ -73,16 +73,16 @@ class Post < ActiveRecord::Base
   has_many :tags_with_destroy, :through => :taggings, :source => :tag, :dependent => :destroy
   has_many :tags_with_nullify, :through => :taggings, :source => :tag, :dependent => :nullify
 
-  has_many :misc_tags, :through => :taggings, :source => :tag, :conditions => "tags.name = 'Misc'"
+  has_many :misc_tags, :through => :taggings, :source => :tag, :conditions => { :tags => { :name => 'Misc' } }
   has_many :funky_tags, :through => :taggings, :source => :tag
   has_many :super_tags, :through => :taggings
   has_many :tags_with_primary_key, :through => :taggings, :source => :tag_with_primary_key
   has_one :tagging, :as => :taggable
 
-  has_many :first_taggings, :as => :taggable, :class_name => 'Tagging', :conditions => "taggings.comment = 'first'"
-  has_many :first_blue_tags, :through => :first_taggings, :source => :tag, :conditions => "tags.name = 'Blue'"
+  has_many :first_taggings, :as => :taggable, :class_name => 'Tagging', :conditions => { :taggings => { :comment => 'first' } }
+  has_many :first_blue_tags, :through => :first_taggings, :source => :tag, :conditions => { :tags => { :name => 'Blue' } }
 
-  has_many :first_blue_tags_2, :through => :taggings, :source => :blue_tag, :conditions => "taggings.comment = 'first'"
+  has_many :first_blue_tags_2, :through => :taggings, :source => :blue_tag, :conditions => { :taggings => { :comment => 'first' } }
 
   has_many :invalid_taggings, :as => :taggable, :class_name => "Tagging", :conditions => 'taggings.id < 0'
   has_many :invalid_tags, :through => :invalid_taggings, :source => :tag

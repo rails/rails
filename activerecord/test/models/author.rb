@@ -131,10 +131,12 @@ class Author < ActiveRecord::Base
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :category_post_comments, :through => :categories, :source => :post_comments
 
-  has_many :misc_posts, :class_name => 'Post', :conditions => "posts.title LIKE 'misc post%'"
+  has_many :misc_posts, :class_name => 'Post',
+           :conditions => { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }
   has_many :misc_post_first_blue_tags, :through => :misc_posts, :source => :first_blue_tags
 
-  has_many :misc_post_first_blue_tags_2, :through => :posts, :source => :first_blue_tags_2, :conditions => "posts.title LIKE 'misc post%'"
+  has_many :misc_post_first_blue_tags_2, :through => :posts, :source => :first_blue_tags_2,
+           :conditions => { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }
 
   scope :relation_include_posts, includes(:posts)
   scope :relation_include_tags, includes(:tags)
