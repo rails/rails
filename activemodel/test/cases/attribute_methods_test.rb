@@ -7,7 +7,7 @@ class ModelWithAttributes
 
   class << self
     define_method(:bar) do
-      'bar'
+      'original bar'
     end
   end
 
@@ -49,7 +49,7 @@ class ModelWithWeirdNamesAttributes
 
   class << self
     define_method(:'c?d') do
-      'c?d'
+      'original c?d'
     end
   end
 
@@ -102,6 +102,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributes.define_attr_method(:bar, 'bar')
 
     assert_respond_to ModelWithAttributes, :bar
+    assert_equal "original bar", ModelWithAttributes.original_bar
     assert_equal "bar", ModelWithAttributes.bar
   end
 
@@ -109,6 +110,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithWeirdNamesAttributes.define_attr_method(:'c?d', 'c?d')
 
     assert_respond_to ModelWithWeirdNamesAttributes, :'c?d'
+    assert_equal "original c?d", ModelWithWeirdNamesAttributes.send('original_c?d')
     assert_equal "c?d", ModelWithWeirdNamesAttributes.send('c?d')
   end
 
