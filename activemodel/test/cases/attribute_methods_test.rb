@@ -9,6 +9,10 @@ class ModelWithAttributes
     define_method(:bar) do
       'original bar'
     end
+
+    define_method(:zomg) do
+      'original zomg'
+    end
   end
 
   def attributes
@@ -96,6 +100,13 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_respond_to ModelWithAttributesWithSpaces.new, :'foo bar'
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
+  end
+
+  def test_defined_methods_always_return_duped_string
+    ModelWithAttributes.define_attr_method(:zomg, 'lol')
+    assert_equal 'lol', ModelWithAttributes.zomg
+    ModelWithAttributes.zomg << 'bbq'
+    assert_equal 'lol', ModelWithAttributes.zomg
   end
 
   test '#define_attr_method generates attribute method' do

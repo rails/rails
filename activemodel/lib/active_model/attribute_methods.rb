@@ -109,7 +109,7 @@ module ActiveModel
           # use eval instead of a block to work around a memory leak in dev
           # mode in fcgi
           value = value.nil? ? 'nil' : value.to_s
-          sing.send(:define_method, name) { value }
+          sing.send(:define_method, name) { value.dup }
         end
       end
 
