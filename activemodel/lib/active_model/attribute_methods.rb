@@ -106,8 +106,6 @@ module ActiveModel
         if block_given?
           sing.send :define_method, name, &block
         else
-          # use eval instead of a block to work around a memory leak in dev
-          # mode in fcgi
           value = value.nil? ? 'nil' : value.to_s
           sing.send(:define_method, name) { value.dup }
         end
