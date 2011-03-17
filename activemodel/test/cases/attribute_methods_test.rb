@@ -5,6 +5,12 @@ class ModelWithAttributes
 
   attribute_method_suffix ''
 
+  class << self
+    define_method(:bar) do
+      'bar'
+    end
+  end
+
   def attributes
     { :foo => 'value of foo' }
   end
@@ -90,6 +96,13 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_respond_to ModelWithAttributesWithSpaces.new, :'foo bar'
     assert_equal "value of foo bar", ModelWithAttributesWithSpaces.new.send(:'foo bar')
+  end
+
+  test '#define_attr_method generates attribute method' do
+    ModelWithAttributes.define_attr_method(:bar, 'bar')
+
+    assert_respond_to ModelWithAttributes, :bar
+    assert_equal "bar", ModelWithAttributes.bar
   end
 
   test '#define_attr_method generates attribute method with invalid identifier characters' do
