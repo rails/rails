@@ -237,7 +237,6 @@ module ActiveRecord
       #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
       # generates
       #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
-
       def add_limit_offset!(sql, options)
         if limit = options[:limit]
           sql << " LIMIT #{sanitize_limit(limit)}"
