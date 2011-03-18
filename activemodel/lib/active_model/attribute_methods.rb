@@ -101,11 +101,8 @@ module ActiveModel
         if block_given?
           sing.send :define_method, name, &block
         else
-          # use eval instead of a block to work around a memory leak in dev
-          # mode in fcgi
-          sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
-            def #{name}; #{value.to_s.inspect}; end
-          eorb
+          value = value.to_s if value
+          sing.send(:define_method, name) { value && value.dup }
         end
       end
 
@@ -226,7 +223,7 @@ module ActiveModel
         attribute_method_matchers.each do |matcher|
           module_eval <<-STR, __FILE__, __LINE__ + 1
             def #{matcher.method_name(new_name)}(*args)
-              send(:#{matcher.method_name(old_name)}, *args)
+              send(:'#{matcher.method_name(old_name)}', *args)
             end
           STR
         end
@@ -272,8 +269,8 @@ module ActiveModel
                   if method_defined?(:'#{method_name}')
                     undef :'#{method_name}'
                   end
-                  def #{method_name}(*args)
-                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
+                  define_method('#{method_name}') do |*args|
+                    send(:'#{matcher.method_missing_target}', '#{attr_name}', *args)
                   end
                 STR
               end
