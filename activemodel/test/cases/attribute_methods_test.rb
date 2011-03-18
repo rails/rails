@@ -115,6 +115,8 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_respond_to ModelWithAttributes, :bar
     assert_equal "original bar", ModelWithAttributes.original_bar
     assert_equal "bar", ModelWithAttributes.bar
+    ModelWithAttributes.define_attr_method(:bar)
+    assert !ModelWithAttributes.bar
   end
 
   test '#define_attr_method generates attribute method with invalid identifier characters' do

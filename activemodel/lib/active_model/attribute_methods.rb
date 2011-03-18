@@ -106,8 +106,8 @@ module ActiveModel
         if block_given?
           sing.send :define_method, name, &block
         else
-          value = value.nil? ? 'nil' : value.to_s
-          sing.send(:define_method, name) { value.dup }
+          value = value.to_s if value
+          sing.send(:define_method, name) { value && value.dup }
         end
       end
 
