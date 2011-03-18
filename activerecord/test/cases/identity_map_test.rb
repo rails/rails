@@ -207,31 +207,31 @@ class IdentityMapTest < ActiveRecord::TestCase
 
   def test_find_with_preloaded_associations
     assert_queries(2) do
-      posts = Post.preload(:comments)
+      posts = Post.preload(:comments).order('posts.id')
       assert posts.first.comments.first
     end
 
     # With IM we'll retrieve post object from previous query, it'll have comments
     # already preloaded from first call
     assert_queries(1) do
-      posts = Post.preload(:comments).to_a
+      posts = Post.preload(:comments).order('posts.id')
       assert posts.first.comments.first
     end
 
     assert_queries(2) do
-      posts = Post.preload(:author)
+      posts = Post.preload(:author).order('posts.id')
       assert posts.first.author
     end
 
     # With IM we'll retrieve post object from previous query, it'll have comments
     # already preloaded from first call
     assert_queries(1) do
-      posts = Post.preload(:author).to_a
+      posts = Post.preload(:author).order('posts.id')
       assert posts.first.author
     end
 
     assert_queries(1) do
-      posts = Post.preload(:author, :comments).to_a
+      posts = Post.preload(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
     end
@@ -239,22 +239,22 @@ class IdentityMapTest < ActiveRecord::TestCase
 
   def test_find_with_included_associations
     assert_queries(2) do
-      posts = Post.includes(:comments)
+      posts = Post.includes(:comments).order('posts.id')
       assert posts.first.comments.first
     end
 
     assert_queries(1) do
-      posts = Post.scoped.includes(:comments)
+      posts = Post.scoped.includes(:comments).order('posts.id')
       assert posts.first.comments.first
     end
 
     assert_queries(2) do
-      posts = Post.includes(:author)
+      posts = Post.includes(:author).order('posts.id')
       assert posts.first.author
     end
 
     assert_queries(1) do
-      posts = Post.includes(:author, :comments).to_a
+      posts = Post.includes(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
     end

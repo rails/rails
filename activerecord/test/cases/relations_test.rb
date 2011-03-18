@@ -286,7 +286,7 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
-      posts = Post.preload(:comments).to_a
+      posts = Post.preload(:comments).order('posts.id')
       assert posts.first.comments.first
     end
 
@@ -296,12 +296,12 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
-      posts = Post.preload(:author).to_a
+      posts = Post.preload(:author).order('posts.id')
       assert posts.first.author
     end
 
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
-      posts = Post.preload(:author, :comments).to_a
+      posts = Post.preload(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
     end
@@ -314,7 +314,7 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
-      posts = Post.scoped.includes(:comments)
+      posts = Post.scoped.includes(:comments).order('posts.id')
       assert posts.first.comments.first
     end
 
@@ -324,7 +324,7 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
-      posts = Post.includes(:author, :comments).to_a
+      posts = Post.includes(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
     end
