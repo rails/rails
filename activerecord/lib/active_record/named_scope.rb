@@ -99,6 +99,28 @@ module ActiveRecord
       #
       #   Article.published.new.published    # => true
       #   Article.published.create.published # => true
+      #
+      # Class methods on your model are automatically available
+      # on scopes
+      # 
+      #   class Article < ActiveRecord::Base
+      #     scope :pubished, where(:published => true)
+      #     scope :featured, where(:featured => true)
+      #     
+      #     def self.latest_article
+      #       order('published_at desc').first  
+      #     end
+      #     
+      #     def self.titles
+      #       map{|article| article.title}
+      #     end
+      #
+      #   end
+      #   
+      # Example usage:
+      #   Article.published.featured.latest_article 
+      #   Article.featured.titles
+
       def scope(name, scope_options = {})
         name = name.to_sym
         valid_scope_name?(name)
