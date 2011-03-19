@@ -5,7 +5,7 @@ require "action_view/template"
 module ActionView
   # = Action View Resolver
   class Resolver
-
+    # Keeps all information about view path and builds virtual path.
     class Path < String
       attr_reader :name, :prefix, :partial, :virtual
       alias_method :partial?, :partial
@@ -180,7 +180,35 @@ module ActionView
     end
   end
 
-  # A resolver that loads files from the filesystem.
+  # A resolver that loads files from the filesystem. It allows to set your own
+  # resolving pattern. Such pattern can be a glob string supported by some variables.
+  #
+  # ==== Examples
+  #
+  # Default pattern, loads views the same way as previous versions of rails, eg. when you're
+  # looking for `users/new` it will produce query glob: `users/new{.{en},}{.{html,js},}{.{erb,haml,rjs},}`
+  #
+  #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{.:handlers,}")
+  #
+  # This one allows you to keep files with different formats in seperated subdirectories,
+  # eg. `users/new.html` will be loaded from `users/html/new.erb` or `users/new.html.erb`,
+  # `users/new.js` from `users/js/new.erb` or `users/new.js.erb`, etc.
+  #
+  #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{.:handlers,}")
+  #
+  # If you don't specify pattern then the default will be used.
+  #
+  # ==== Pattern format and variables
+  #
+  # Pattern have to be a valid glob string, and it allows you to use the
+  # following variables:
+  #
+  # * <tt>:prefix</tt> - usualy the controller path
+  # * <tt>:action</tt> - name of the action
+  # * <tt>:locale</tt> - possible locale versions
+  # * <tt>:formats</tt> - possible file formats
+  # * <tt>:handlers</tt> - possible handlers
+  #
   class FileSystemResolver < PathResolver
     def initialize(path, pattern=nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
