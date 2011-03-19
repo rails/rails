@@ -83,6 +83,9 @@ module ActiveRecord
         result.send(:"#{method}_value=", send(:"#{method}_value"))
       end
 
+      # Apply scope extension modules
+      result.send(:apply_modules, extensions)
+
       result
     end
 
@@ -96,6 +99,9 @@ module ActiveRecord
       (Relation::SINGLE_VALUE_METHODS & onlies).each do |method|
         result.send(:"#{method}_value=", send(:"#{method}_value"))
       end
+
+      # Apply scope extension modules
+      result.send(:apply_modules, extensions)
 
       result
     end
