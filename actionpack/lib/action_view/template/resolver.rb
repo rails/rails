@@ -198,6 +198,14 @@ module ActionView
   #
   # If you don't specify pattern then the default will be used.
   #
+  # In order to use any of the customized resolvers above in a Rails application, you just need
+  # to configure ActionController::Base.view_paths in an initializer, for example:
+  #
+  #   ActionController::Base.view_paths = FileSystemResolver.new(
+  #     Rails.root.join("app/views"),
+  #     ":prefix{/:locale}/:action{.:formats,}{.:handlers,}"
+  #   )
+  #
   # ==== Pattern format and variables
   #
   # Pattern have to be a valid glob string, and it allows you to use the
@@ -206,8 +214,8 @@ module ActionView
   # * <tt>:prefix</tt> - usualy the controller path
   # * <tt>:action</tt> - name of the action
   # * <tt>:locale</tt> - possible locale versions
-  # * <tt>:formats</tt> - possible file formats
-  # * <tt>:handlers</tt> - possible handlers
+  # * <tt>:formats</tt> - possible request formats (for example html, json, xml...)
+  # * <tt>:handlers</tt> - possible handlers (for example erb, haml, builder...)
   #
   class FileSystemResolver < PathResolver
     def initialize(path, pattern=nil)
