@@ -797,6 +797,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.all, all_posts.all
   end
 
+  def test_extensions_with_except
+    assert_equal 2, Topic.named_extension.order(:author_name).except(:order).two
+  end
+
   def test_only
     relation = Post.where(:author_id => 1).order('id ASC').limit(1)
     assert_equal [posts(:welcome)], relation.all
@@ -806,6 +810,10 @@ class RelationTest < ActiveRecord::TestCase
 
     all_posts = relation.only(:limit)
     assert_equal Post.limit(1).all.first, all_posts.first
+  end
+
+  def test_extensions_with_only
+    assert_equal 2, Topic.named_extension.order(:author_name).only(:order).two
   end
 
   def test_anonymous_extension
