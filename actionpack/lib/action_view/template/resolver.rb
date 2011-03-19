@@ -5,6 +5,25 @@ require "action_view/template"
 module ActionView
   # = Action View Resolver
   class Resolver
+
+    class Path < String
+      attr_reader :name, :prefix, :partial, :virtual
+      alias_method :partial?, :partial
+
+      def initialize(name, prefix, partial)
+        @name, @prefix, @partial = name, prefix, partial
+        rebuild(@name, @prefix, @partial)
+      end
+
+      def rebuild(name, prefix, partial)
+        @virtual = ""
+        @virtual << "#{prefix}/" unless prefix.empty?
+        @virtual << (partial ? "_#{name}" : name)
+
+        self.replace(@virtual)
+      end
+    end
+
     cattr_accessor :caching
     self.caching = true
 
@@ -41,10 +60,7 @@ module ActionView
 
     # Helpers that builds a path. Useful for building virtual paths.
     def build_path(name, prefix, partial)
-      path = ""
-      path << "#{prefix}/" unless prefix.empty?
-      path << (partial ? "_#{name}" : name)
-      path
+      Path.new(name, prefix, partial)
     end
 
     # Handles templates caching. If a key is given and caching is on
@@ -97,25 +113,24 @@ module ActionView
   end
 
   class PathResolver < Resolver
-    EXTENSION_ORDER = [:locale, :formats, :handlers]
+    EXTENSIONS = [:locale, :formats, :handlers]
+    DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{.:handlers,}"
+
+    def initialize(pattern=nil)
+      @pattern = pattern || DEFAULT_PATTERN
+      super()
+    end
 
     private
 
     def find_templates(name, prefix, partial, details)
       path = build_path(name, prefix, partial)
-      query(path, EXTENSION_ORDER.map { |ext| details[ext] }, details[:formats])
+      extensions = Hash[EXTENSIONS.map { |ext| [ext, details[ext]] }.flatten(0)]
+      query(path, extensions, details[:formats])
     end
 
     def query(path, exts, formats)
-      query = File.join(@path, path)
-
-      query << exts.map { |ext|
-        "{#{ext.compact.map { |e| ".#{e}" }.join(',')},}"
-      }.join
-
-      query.gsub!(/\{\.html,/, "{.html,.text.html,")
-      query.gsub!(/\{\.text,/, "{.text,.text.plain,")
-
+      query = build_query(path, exts)
       templates = []
       sanitizer = Hash.new { |h,k| h[k] = Dir["#{File.dirname(k)}/*"] }
 
@@ -126,10 +141,26 @@ module ActionView
         contents = File.open(p, "rb") {|io| io.read }
 
         templates << Template.new(contents, File.expand_path(p), handler,
-          :virtual_path => path, :format => format, :updated_at => mtime(p))
+          :virtual_path => path.virtual, :format => format, :updated_at => mtime(p))
       end
 
       templates
+    end
+
+    # Helper for building query glob string based on resolver's pattern. 
+    def build_query(path, exts)
+      query = @pattern.dup
+      query.gsub!(/\:prefix(\/)?/, path.prefix.empty? ? "" : "#{path.prefix}\\1") # prefix can be empty...
+      query.gsub!(/\:action/, path.partial? ? "_#{path.name}" : path.name)
+
+      exts.each { |ext, variants|
+        query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+      }
+
+      query.gsub!(/\.{html,/, ".{html,text.html,")
+      query.gsub!(/\.{text,/, ".{text,text.plain,")
+
+      File.expand_path(query, @path)
     end
 
     # Returns the file mtime from the filesystem.
@@ -151,9 +182,9 @@ module ActionView
 
   # A resolver that loads files from the filesystem.
   class FileSystemResolver < PathResolver
-    def initialize(path)
+    def initialize(path, pattern=nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
-      super()
+      super(pattern)
       @path = File.expand_path(path)
     end
 
