@@ -8,7 +8,12 @@ class AttrAccessorWithDefaultTest < Test::Unit::TestCase
         'helper'
       end
     end
+    self.class.const_set(:TestClass, @target)
     @instance = @target.new
+  end
+
+  def teardown
+    self.class.send(:remove_const, :TestClass)
   end
 
   def test_default_arg
@@ -27,5 +32,11 @@ class AttrAccessorWithDefaultTest < Test::Unit::TestCase
 
   def test_invalid_args
     assert_raise(ArgumentError) {@target.attr_accessor_with_default :foo}
+  end
+
+  def test_instance_with_value_set_can_be_marshaled
+    @target.attr_accessor_with_default(:foo, 'default')
+    @instance.foo = 'Hi'
+    assert_nothing_raised { Marshal.dump(@instance) }
   end
 end

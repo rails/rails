@@ -19,12 +19,15 @@ class Module
   #   attr_accessor_with_default(:element_name) { name.underscore }
   #
   def attr_accessor_with_default(sym, default = Proc.new)
-    define_method(sym, block_given? ? default : Proc.new { default })
-    module_eval(<<-EVAL, __FILE__, __LINE__ + 1)
-      def #{sym}=(value)                          # def age=(value)
-        class << self; attr_accessor :#{sym} end  #   class << self; attr_accessor :age end
-        @#{sym} = value                           #   @age = value
-      end                                         # end
-    EVAL
+    attr_writer sym
+    
+    block = block_given? ? default : Proc.new { default }
+    define_method(sym) do
+      if instance_variable_defined?("@#{sym.to_s}")
+        instance_variable_get("@#{sym.to_s}")
+      else
+        instance_eval(&block)
+      end
+    end
   end
 end
