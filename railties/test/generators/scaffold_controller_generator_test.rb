@@ -35,13 +35,11 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match /@user = User\.new\(params\[:user\]\)/, m
         assert_match /@user\.save/, m
-        assert_match /@user\.errors/, m
       end
 
       assert_instance_method :update, content do |m|
         assert_match /@user = User\.find\(params\[:id\]\)/, m
         assert_match /@user\.update_attributes\(params\[:user\]\)/, m
-        assert_match /@user\.errors/, m
       end
 
       assert_instance_method :destroy, content do |m|
