@@ -1,7 +1,7 @@
 *Rails 3.0.6 (unreleased)*
 
-* No changes.
-
+* Extensions are applied when calling +except+ or +only+ on relations.
+  Thanks to Iain Hecker.
 
 *Rails 3.0.5 (February 26, 2011)*
 
