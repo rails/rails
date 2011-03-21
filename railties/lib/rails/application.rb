@@ -137,6 +137,40 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
+    def self.default_sprockets_paths
+      [
+       "app/assets",
+       "app/javascripts",
+       "app/stylesheets",
+       "vendor/plugins/*/app/assets",
+       "vendor/plugins/*/app/javascripts",
+       "vendor/plugins/*/app/stylesheets",
+       "vendor/plugins/*/assets",
+       "vendor/plugins/*/javascripts",
+       "vendor/plugins/*/stylesheets"
+      ]
+    end
+
+    def assets
+      @assets ||= build_asset_environment
+    end
+
+    def build_asset_environment
+      require 'sprockets'
+
+      env = Sprockets::Environment.new(root.to_s)
+      env.logger = Rails.logger
+      env.ensure_fresh_assets = !config.action_controller.perform_caching
+
+      self.class.default_sprockets_paths.each do |pattern|
+        Dir[root.join(pattern)].each do |dir|
+          env.paths << dir
+        end
+      end
+
+      env
+    end
+
   protected
 
     def default_asset_path
