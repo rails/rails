@@ -18,7 +18,7 @@ require 'arel/nodes/join_source'
 require 'arel/nodes/ordering'
 require 'arel/nodes/delete_statement'
 require 'arel/nodes/table_alias'
-require 'arel/nodes/math_operation'
+require 'arel/nodes/infix_operation'
 
 # nary
 require 'arel/nodes/and'

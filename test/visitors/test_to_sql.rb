@@ -194,7 +194,7 @@ module Arel
         end
       end
 
-      describe "Nodes::MathOperation" do
+      describe "Nodes::InfixOperation" do
         it "should handle Multiplication" do
           node = Arel::Attributes::Decimal.new(Table.new(:products), :price) * Arel::Attributes::Decimal.new(Table.new(:currency_rates), :rate)
           @visitor.accept(node).must_equal %("products"."price" * "currency_rates"."rate")
@@ -213,6 +213,15 @@ module Arel
         it "should handle Subtraction" do
           node = Arel::Attributes::Decimal.new(Table.new(:products), :price) - 7
           @visitor.accept(node).must_equal %(("products"."price" - 7))
+        end
+
+        it "should handle arbitrary operators" do
+          node = Arel::Nodes::InfixOperation.new(
+            '||',
+            Arel::Attributes::String.new(Table.new(:products), :name),
+            Arel::Attributes::String.new(Table.new(:products), :name)
+          )
+          @visitor.accept(node).must_equal %("products"."name" || "products"."name")
         end
       end
 
