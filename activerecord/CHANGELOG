@@ -3,6 +3,8 @@
 * Extensions are applied when calling +except+ or +only+ on relations.
   Thanks to Iain Hecker.
 
+* Schemas set in set_table_name are respected by the mysql adapter. LH #5322
+
 *Rails 3.0.5 (February 26, 2011)*
 
 * Model.where(:column => 1).where(:column => 2) will always produce an AND
