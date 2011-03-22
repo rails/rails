@@ -651,6 +651,9 @@ ActiveRecord::Schema.define do
     t.integer :molecule_id
     t.string :name
   end
+  create_table :weirds, :force => true do |t|
+    t.string 'a$b'
+  end
 
 
   except 'SQLite' do

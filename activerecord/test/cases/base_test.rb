@@ -43,6 +43,8 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+class Weird < ActiveRecord::Base; end
+
 class Boolean < ActiveRecord::Base; end
 
 class BasicsTest < ActiveRecord::TestCase
@@ -459,6 +461,16 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed", post.body
+  end
+
+  def test_non_valid_identifier_column_name
+    weird = Weird.create('a$b' => 'value')
+    weird.reload
+    assert_equal 'value', weird.send('a$b')
+
+    weird.update_attribute('a$b', 'value2')
+    weird.reload
+    assert_equal 'value2', weird.send('a$b')
   end
 
   def test_multiparameter_attributes_on_date
