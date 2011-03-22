@@ -160,7 +160,7 @@ module Rails
 
       env = Sprockets::Environment.new(root.to_s)
       env.logger = Rails.logger
-      env.static_root = Rails.root.join("public/assets")
+      env.static_root = Rails.root.join("public")
 
       self.class.default_sprockets_paths.each do |pattern|
         Dir[root.join(pattern)].each do |dir|
