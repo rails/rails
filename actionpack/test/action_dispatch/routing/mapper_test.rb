@@ -46,6 +46,13 @@ module ActionDispatch
         mapper.match '/one/two/', :to => 'posts#index', :as => :main
         assert_equal '/one/two(.:format)', fakeset.conditions.first[:path_info]
       end
+
+      def test_map_wildcard
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.match '/*path', :to => 'pages#show', :as => :page
+        assert_equal '/*path', fakeset.conditions.first[:path_info]
+      end
     end
   end
 end

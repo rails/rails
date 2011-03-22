@@ -504,12 +504,26 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil) #:nodoc:
+      def tables(name = nil, database = nil) #:nodoc:
         tables = []
-        result = execute("SHOW TABLES", name)
+        result = execute(["SHOW TABLES", database].compact.join(' IN '), name)
         result.each { |field| tables << field[0] }
         result.free
         tables
+      end
+
+      def table_exists?(name)
+        return true if super
+
+        name          = name.to_s
+        schema, table = name.split('.', 2)
+
+        unless table # A table was provided without a schema
+          table  = schema
+          schema = nil
+        end
+
+        tables(nil, schema).include? table
       end
 
       def drop_table(table_name, options = {})

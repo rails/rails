@@ -34,6 +34,14 @@ module ActiveRecord
 
   module ConnectionAdapters #:nodoc:
     class SQLite3Adapter < SQLiteAdapter # :nodoc:
+      def quote(value, column = nil)
+        if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
+          s = column.class.string_to_binary(value).unpack("H*")[0]
+          "x'#{s}'"
+        else
+          super
+        end
+      end
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
       def encoding

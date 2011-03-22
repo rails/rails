@@ -107,7 +107,7 @@ module ActionDispatch
             if @options[:format] == false
               @options.delete(:format)
               path
-            elsif path.include?(":format") || path.end_with?('/')
+            elsif path.include?(":format") || path.end_with?('/') || path.match(/^\/?\*/)
               path
             else
               "#{path}(.:format)"
