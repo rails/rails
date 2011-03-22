@@ -140,14 +140,14 @@ module Rails
     def self.default_sprockets_paths
       [
        "app/assets",
-       "app/javascripts",
-       "app/stylesheets",
+       "app/assets/javascripts",
+       "app/assets/stylesheets",
        "vendor/plugins/*/app/assets",
-       "vendor/plugins/*/app/javascripts",
-       "vendor/plugins/*/app/stylesheets",
+       "vendor/plugins/*/app/assets/javascripts",
+       "vendor/plugins/*/app/assets/stylesheets",
        "vendor/plugins/*/assets",
-       "vendor/plugins/*/javascripts",
-       "vendor/plugins/*/stylesheets"
+       "vendor/plugins/*/assets/javascripts",
+       "vendor/plugins/*/assets/stylesheets"
       ]
     end
 
