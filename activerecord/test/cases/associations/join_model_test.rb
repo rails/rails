@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/tag'
 require 'models/tagging'
 require 'models/post'
+require 'models/rating'
 require 'models/item'
 require 'models/comment'
 require 'models/author'
