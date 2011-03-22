@@ -483,6 +483,12 @@ module Arel
       assert_equal children, clause.children
     end
 
+    it 'should create insert managers' do
+      relation = Arel::SelectManager.new Table.engine
+      insert = relation.create_insert
+      assert_kind_of Arel::InsertManager, insert
+    end
+
     it 'should create join nodes' do
       relation = Arel::SelectManager.new Table.engine
       join = relation.create_join 'foo', 'bar'

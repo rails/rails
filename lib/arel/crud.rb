@@ -32,9 +32,13 @@ switch to `compile_update`
     end
 
     def compile_insert values
-      im = InsertManager.new @engine
+      im = create_insert
       im.insert values
       im
+    end
+
+    def create_insert
+      InsertManager.new @engine
     end
 
     # FIXME: this method should go away

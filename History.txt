@@ -9,6 +9,7 @@
   * Add Arel::SelectManager#limit=
   * Add Arel::SelectManager#offset
   * Add Arel::SelectManager#offset=
+  * Added Arel::SelectManager#create_insert for building an insert manager.
   * Math operations have been added to attributes, thanks to
     Vladimir Meremyanin.
 
