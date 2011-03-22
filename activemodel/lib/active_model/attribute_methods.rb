@@ -106,8 +106,14 @@ module ActiveModel
         if block_given?
           sing.send :define_method, name, &block
         else
-          value = value.to_s if value
-          sing.send(:define_method, name) { value }
+          if name =~ /^[a-zA-Z_]\w*[!?=]?$/
+            sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
+                def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
+            eorb
+          else
+            value = value.to_s if value
+            sing.send(:define_method, name) { value }
+          end
         end
       end
 
