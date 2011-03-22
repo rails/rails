@@ -66,7 +66,11 @@ module ActiveRecord
             if cache_attribute?(attr_name)
               access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
             end
-            generated_attribute_methods.send(:define_method, symbol) { eval(access_code) }
+            if symbol =~ /^[a-zA-Z_]\w*[!?=]?$/
+              generated_attribute_methods.module_eval("def _#{symbol}; #{access_code}; end; alias #{symbol} _#{symbol}", __FILE__, __LINE__)
+            else
+              generated_attribute_methods.send(:define_method, symbol) { eval(access_code) }
+            end
           end
       end
 

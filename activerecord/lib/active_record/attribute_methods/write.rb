@@ -10,8 +10,12 @@ module ActiveRecord
       module ClassMethods
         protected
           def define_method_attribute=(attr_name)
-            generated_attribute_methods.send(:define_method, "#{attr_name}=") do |new_value|
-              write_attribute(attr_name, new_value)
+            if attr_name =~ /^[a-zA-Z_]\w*[!?=]?$/
+              generated_attribute_methods.module_eval("def #{attr_name}=(new_value); write_attribute('#{attr_name}', new_value); end", __FILE__, __LINE__)
+            else
+              generated_attribute_methods.send(:define_method, "#{attr_name}=") do |new_value|
+                write_attribute(attr_name, new_value)
+              end
             end
           end
       end
