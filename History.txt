@@ -10,6 +10,7 @@
   * Add Arel::SelectManager#offset
   * Add Arel::SelectManager#offset=
   * Added Arel::SelectManager#create_insert for building an insert manager.
+  * SQL Literals are allowed for values in INSERT statements.
   * Math operations have been added to attributes, thanks to
     Vladimir Meremyanin.
 

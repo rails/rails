@@ -19,6 +19,15 @@ module Arel
         assert_equal %w{ c d }, values.right
       end
 
+      it 'allows sql literals' do
+        table          = Table.new(:users)
+        manager        = Arel::InsertManager.new Table.engine
+        manager.values = manager.create_values [Arel.sql('*')], %w{ a }
+        manager.to_sql.must_be_like %{
+          INSERT INTO NULL VALUES (*)
+        }
+      end
+
       it "inserts false" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new Table.engine
