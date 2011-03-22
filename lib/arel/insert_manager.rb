@@ -27,8 +27,12 @@ module Arel
           @ast.columns << column
           values << value
         end
-        @ast.values = Nodes::Values.new values, @ast.columns
+        @ast.values = create_values values, @ast.columns
       end
+    end
+
+    def create_values values, columns
+      Nodes::Values.new values, columns
     end
   end
 end

@@ -9,6 +9,16 @@ module Arel
     end
 
     describe 'insert' do
+      it 'can create a Values node' do
+        table   = Table.new(:users)
+        manager = Arel::InsertManager.new Table.engine
+        values  = manager.create_values %w{ a b }, %w{ c d }
+
+        assert_kind_of Arel::Nodes::Values, values
+        assert_equal %w{ a b }, values.left
+        assert_equal %w{ c d }, values.right
+      end
+
       it "inserts false" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new Table.engine
