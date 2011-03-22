@@ -759,7 +759,9 @@ This would generate a query which contains a +LEFT OUTER JOIN+ whereas the +join
   SELECT "posts"."id" AS t0_r0, ... "comments"."updated_at" AS t1_r5 FROM "posts" LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id" WHERE (comments.visible)
 </ruby>
 
-If in this case there were no comments for any posts, all the posts would still be loaded. By using +joins+ (an INNER JOIN), the join conditions *must* match, otherwise no records will be returned.
+If there was no +where+ condition, this would generate the normal set of two queries.
+
+If, in the case of this +includes+ query, there were no comments for any posts, all the posts would still be loaded. By using +joins+ (an INNER JOIN), the join conditions *must* match, otherwise no records will be returned.
 
 h3. Scopes
 
