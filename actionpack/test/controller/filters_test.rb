@@ -506,12 +506,17 @@ class FilterTest < ActionController::TestCase
   end
 
   class ImplicitActionsController < ActionController::Base
-    before_filter :find_user, :only => :edit
+    before_filter :find_only, :only => :edit
+    before_filter :find_except, :except => :edit
 
     private
 
-    def find_user
-      @user = 'Jenny'
+    def find_only
+      @only = 'Only'
+    end
+
+    def find_except
+      @except = 'Except'
     end
   end
 
@@ -793,16 +798,16 @@ class FilterTest < ActionController::TestCase
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
   end
 
-  def test_filter_runs_for_implicitly_defined_action_when_needed
-    test_process(ImplicitActionsController, 'edit')
-    assert_equal 'Jenny', assigns(:user)
-    assert_equal 'edit', response.body
-  end
-
-  def test_filter_does_not_run_for_implicity_defined_action_when_not_needed
+  def test_filters_obey_only_and_except_for_implicit_actions
     test_process(ImplicitActionsController, 'show')
-    assert_nil assigns(:user)
+    assert_equal 'Except', assigns(:except)
+    assert_nil assigns(:only)
     assert_equal 'show', response.body
+
+    test_process(ImplicitActionsController, 'edit')
+    assert_equal 'Only', assigns(:only)
+    assert_nil assigns(:except)
+    assert_equal 'edit', response.body
   end
 
   private
