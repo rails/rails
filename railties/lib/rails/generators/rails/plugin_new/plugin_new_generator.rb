@@ -62,7 +62,7 @@ task :default => :test
     end
 
     def generate_test_dummy(force = false)
-      opts = (options || {}).slice(:skip_active_record, :skip_javascript, :database, :javascript)
+      opts = (options || {}).slice(:skip_active_record, :skip_javascript, :database, :javascript, :quiet, :pretend, :force, :skip)
       opts[:force] = force
 
       invoke Rails::Generators::AppGenerator,
