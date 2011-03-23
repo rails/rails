@@ -26,10 +26,6 @@ module ActiveRecord
         record
       end
 
-      def association_scope
-        super.joins(construct_joins)
-      end
-
       private
 
         def count_records
@@ -46,24 +42,6 @@ module ActiveRecord
             ).compile_delete
             owner.connection.delete stmt.to_sql
           end
-        end
-
-        def construct_joins
-          right = join_table
-          left  = reflection.klass.arel_table
-
-          condition = left[reflection.klass.primary_key].eq(
-            right[reflection.association_foreign_key])
-
-          right.create_join(right, right.create_on(condition))
-        end
-
-        def construct_owner_conditions
-          super(join_table)
-        end
-
-        def select_value
-          super || reflection.klass.arel_table[Arel.star]
         end
 
         def invertible_for?(record)

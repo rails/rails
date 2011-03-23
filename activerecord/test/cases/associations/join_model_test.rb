@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/tag'
 require 'models/tagging'
 require 'models/post'
+require 'models/rating'
 require 'models/item'
 require 'models/comment'
 require 'models/author'
@@ -288,7 +289,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_going_through_join_model_with_custom_foreign_key
-    assert_equal [], posts(:thinking).authors
+    assert_equal [authors(:bob)], posts(:thinking).authors
     assert_equal [authors(:mary)], posts(:authorless).authors
   end
 
@@ -305,7 +306,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_custom_primary_key_on_has_many_source
-    assert_equal [authors(:david)], posts(:thinking).authors_using_custom_pk
+    assert_equal [authors(:david), authors(:bob)], posts(:thinking).authors_using_custom_pk.order('authors.id')
   end
 
   def test_both_scoped_and_explicit_joins_should_be_respected
@@ -397,14 +398,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
     end
-  end
-
-  def test_has_many_through_has_many_through
-    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).tags }
-  end
-
-  def test_has_many_through_habtm
-    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).post_categories }
   end
 
   def test_eager_load_has_many_through_has_many

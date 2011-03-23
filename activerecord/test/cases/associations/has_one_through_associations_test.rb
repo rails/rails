@@ -9,13 +9,16 @@ require 'models/member_detail'
 require 'models/minivan'
 require 'models/dashboard'
 require 'models/speedometer'
+require 'models/category'
 require 'models/author'
+require 'models/essay'
+require 'models/owner'
 require 'models/post'
 require 'models/comment'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
-           :dashboards, :speedometers, :authors, :posts, :comments
+           :dashboards, :speedometers, :authors, :posts, :comments, :categories, :essays, :owners
 
   def setup
     @member = members(:groucho)
@@ -240,6 +243,25 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       minivan.dashboard
     end
+  end
+
+  def test_has_one_through_polymorphic_with_primary_key_option
+    assert_equal categories(:general), authors(:david).essay_category
+
+    authors = Author.joins(:essay_category).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
+
+    assert_equal owners(:blackbeard), authors(:david).essay_owner
+
+    authors = Author.joins(:essay_owner).where("owners.name = 'blackbeard'")
+    assert_equal authors(:david), authors.first
+  end
+
+  def test_has_one_through_with_primary_key_option
+    assert_equal categories(:general), authors(:david).essay_category_2
+
+    authors = Author.joins(:essay_category_2).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
   end
 
   def test_has_one_through_with_default_scope_on_join_model

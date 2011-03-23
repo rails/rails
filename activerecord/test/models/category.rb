@@ -22,6 +22,8 @@ class Category < ActiveRecord::Base
   end
 
   has_many :categorizations
+  has_many :post_comments, :through => :posts, :source => :comments
+
   has_many :authors, :through => :categorizations
   has_many :authors_with_select, :through => :categorizations, :source => :author, :select => 'authors.*, categorizations.post_id'
 

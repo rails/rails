@@ -1,6 +1,7 @@
 blackbeard:
   owner_id: 1
   name: blackbeard
+  essay_id: A Modest Proposal
 
 ashley:
   owner_id: 2
