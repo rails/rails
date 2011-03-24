@@ -191,6 +191,30 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.where("title = 'The Second Topic of the day!'").first
   end
 
+  def test_first_bang_present
+    assert_nothing_raised do
+      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").first!
+    end
+  end
+
+  def test_first_bang_missing
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.where("title = 'This title does not exist'").first!
+    end
+  end
+
+  def test_last_bang_present
+    assert_nothing_raised do
+      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
+    end
+  end
+
+  def test_last_bang_missing
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.where("title = 'This title does not exist'").last!
+    end
+  end
+
   def test_unexisting_record_exception_handling
     assert_raise(ActiveRecord::RecordNotFound) {
       Topic.find(1).parent
