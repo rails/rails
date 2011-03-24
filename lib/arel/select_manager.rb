@@ -38,8 +38,8 @@ module Arel
       Arel::Nodes::Exists.new @ast
     end
 
-    def as node, expr
-      Arel::Nodes::As.new node, expr
+    def as other
+      Nodes::As.new grouping(@ast), Nodes::SqlLiteral.new(other)
     end
 
     def where_clauses

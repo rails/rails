@@ -91,6 +91,22 @@ module Arel
         end
       end
 
+      describe 'as' do
+        it 'makes an AS node by grouping the AST' do
+          manager = Arel::SelectManager.new Table.engine
+          as = manager.as(Arel.sql('foo'))
+          assert_kind_of Arel::Nodes::Grouping, as.left
+          assert_equal manager.ast, as.left.expr
+          assert_equal 'foo', as.right
+        end
+
+        it 'converts right to SqlLiteral if a string' do
+          manager = Arel::SelectManager.new Table.engine
+          as = manager.as('foo')
+          assert_kind_of Arel::Nodes::SqlLiteral, as.right
+        end
+      end
+
       describe 'from' do
         it 'ignores strings when table of same name exists' do
           table   = Table.new :users
@@ -111,8 +127,8 @@ module Arel
           manager2.from table
 
           manager1.project Arel.sql('lol')
-          as = manager2.as manager2.grouping(manager2.ast), Arel.sql('omg')
-          manager1.from as
+          as = manager2.as Arel.sql('omg')
+          manager1.from(as)
 
           manager1.to_sql.must_be_like %{
             SELECT lol FROM (SELECT * FROM "users" ) AS omg
