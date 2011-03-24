@@ -20,6 +20,8 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     case req.path
     when "/not_found"
       raise ActionController::UnknownAction
+    when "/runtime_error"
+      raise RuntimeError
     when "/method_not_allowed"
       raise ActionController::MethodNotAllowed
     when "/not_implemented"
@@ -114,5 +116,19 @@ class ShowExceptionsTest < ActionController::IntegrationTest
       'action_dispatch.parameter_filter' => [:foo]}
     assert_response 500
     assert_match "&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body
+  end
+
+  test "show the controller name in the diagnostics template when controller name is present" do
+    @app = ProductionApp
+    get("/runtime_error", {}, {
+      'action_dispatch.show_exceptions' => true,
+      'action_dispatch.request.parameters' => {
+        'action' => 'show',
+        'id' => 'unknown',
+        'controller' => 'featured_tiles'
+      }
+    })
+    assert_response 500
+    assert_match(/RuntimeError\n    in FeaturedTilesController/, body)
   end
 end
