@@ -24,7 +24,7 @@ class ERB
       end
     end
 
-    # Aliasing twice issues a warning "dicarding old...". Remove first to avoid it.
+    # Aliasing twice issues a warning "discarding old...". Remove first to avoid it.
     remove_method(:h)
     alias h html_escape
 

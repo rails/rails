@@ -124,6 +124,20 @@ class CookiesTest < ActionController::TestCase
       cookies['user_name'] = "david"
       head :ok
     end
+
+    def symbol_key_mock
+      cookies[:user_name] = "david" if cookies[:user_name] == "andrew"
+      head :ok
+    end
+
+    def string_key_mock
+      cookies['user_name'] = "david" if cookies['user_name'] == "andrew"
+      head :ok
+    end
+
+    def noop
+      head :ok
+    end
   end
 
   tests TestController
@@ -409,6 +423,57 @@ class CookiesTest < ActionController::TestCase
       assert_equal "david", cookies[:user_name]
       assert_equal "david", cookies['user_name']
     end
+  end
+
+  def test_setting_request_cookies_is_indifferent_access
+    @request.cookies.clear
+    @request.cookies[:user_name] = "andrew"
+    get :string_key_mock
+    assert_equal "david", cookies[:user_name]
+
+    @request.cookies.clear
+    @request.cookies['user_name'] = "andrew"
+    get :symbol_key_mock
+    assert_equal "david", cookies['user_name']
+  end
+
+  def test_cookies_retained_across_requests
+    get :symbol_key
+    assert_equal "user_name=david; path=/", @response.headers["Set-Cookie"]
+    assert_equal "david", cookies[:user_name]
+
+    get :noop
+    assert_nil @response.headers["Set-Cookie"]
+    assert_equal "user_name=david", @request.env['HTTP_COOKIE']
+    assert_equal "david", cookies[:user_name]
+
+    get :noop
+    assert_nil @response.headers["Set-Cookie"]
+    assert_equal "user_name=david", @request.env['HTTP_COOKIE']
+    assert_equal "david", cookies[:user_name]
+  end
+
+  def test_cookies_can_be_cleared
+    get :symbol_key
+    assert_equal "user_name=david; path=/", @response.headers["Set-Cookie"]
+    assert_equal "david", cookies[:user_name]
+
+    @request.cookies.clear
+    get :noop
+    assert_nil @response.headers["Set-Cookie"]
+    assert_nil @request.env['HTTP_COOKIE']
+    assert_nil cookies[:user_name]
+
+    get :symbol_key
+    assert_equal "user_name=david; path=/", @response.headers["Set-Cookie"]
+    assert_equal "david", cookies[:user_name]
+  end
+
+  def test_cookies_are_escaped
+    @request.cookies[:user_ids] = '1;2'
+    get :noop
+    assert_equal "user_ids=1%3B2", @request.env['HTTP_COOKIE']
+    assert_equal "1;2", cookies[:user_ids]
   end
 
   private

@@ -23,7 +23,7 @@ module ActiveModel
       def test_to_key
         assert model.respond_to?(:to_key), "The model should respond to to_key"
         def model.persisted?() false end
-        assert model.to_key.nil?
+        assert model.to_key.nil?, "to_key should return nil when `persisted?` returns false"
       end
 
       # == Responds to <tt>to_param</tt>
@@ -40,7 +40,7 @@ module ActiveModel
         assert model.respond_to?(:to_param), "The model should respond to to_param"
         def model.to_key() [1] end
         def model.persisted?() false end
-        assert model.to_param.nil?
+        assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end
 
       # == Responds to <tt>valid?</tt>

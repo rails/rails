@@ -52,14 +52,6 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughSourceAssociationMacroError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      through_reflection = reflection.through_reflection
-      source_reflection  = reflection.source_reflection
-      super("Invalid source reflection macro :#{source_reflection.macro}#{" :through" if source_reflection.options[:through]} for has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}.  Use :source to specify the source reflection.")
-    end
-  end
-
   class HasManyThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot modify association '#{owner.class.name}##{reflection.name}' because the source reflection class '#{reflection.source_reflection.class_name}' is associated to '#{reflection.through_reflection.class_name}' via :#{reflection.source_reflection.macro}.")
@@ -75,6 +67,12 @@ module ActiveRecord
   class HasManyThroughCantDissociateNewRecords < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
+    end
+  end
+
+  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc
+    def initialize(owner, reflection)
+      super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
     end
   end
 
@@ -142,8 +140,11 @@ module ActiveRecord
       autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
-    autoload :Preloader,      'active_record/associations/preloader'
-    autoload :JoinDependency, 'active_record/associations/join_dependency'
+    autoload :Preloader,        'active_record/associations/preloader'
+    autoload :JoinDependency,   'active_record/associations/join_dependency'
+    autoload :AssociationScope, 'active_record/associations/association_scope'
+    autoload :AliasTracker,     'active_record/associations/alias_tracker'
+    autoload :JoinHelper,       'active_record/associations/join_helper'
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:
@@ -547,6 +548,49 @@ module ActiveRecord
     #     belongs_to :post
     #     belongs_to :tag, :inverse_of => :taggings
     #   end
+    #
+    # === Nested Associations
+    #
+    # You can actually specify *any* association with the <tt>:through</tt> option, including an
+    # association which has a <tt>:through</tt> option itself. For example:
+    #
+    #   class Author < ActiveRecord::Base
+    #     has_many :posts
+    #     has_many :comments, :through => :posts
+    #     has_many :commenters, :through => :comments
+    #   end
+    #
+    #   class Post < ActiveRecord::Base
+    #     has_many :comments
+    #   end
+    #
+    #   class Comment < ActiveRecord::Base
+    #     belongs_to :commenter
+    #   end
+    #
+    #   @author = Author.first
+    #   @author.commenters # => People who commented on posts written by the author
+    #
+    # An equivalent way of setting up this association this would be:
+    #
+    #   class Author < ActiveRecord::Base
+    #     has_many :posts
+    #     has_many :commenters, :through => :posts
+    #   end
+    #
+    #   class Post < ActiveRecord::Base
+    #     has_many :comments
+    #     has_many :commenters, :through => :comments
+    #   end
+    #
+    #   class Comment < ActiveRecord::Base
+    #     belongs_to :commenter
+    #   end
+    #
+    # When using nested association, you will not be able to modify the association because there
+    # is not enough information to know what modification to make. For example, if you tried to
+    # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the
+    # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.
     #
     # === Polymorphic Associations
     #
@@ -1068,10 +1112,10 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
-      #   Specifies a join model through which to perform the query.  Options for <tt>:class_name</tt>,
+      #   Specifies an association through which to perform the query. This can be any other type
+      #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
       #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
-      #   source reflection. You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>,
-      #   <tt>has_one</tt> or <tt>has_many</tt> association on the join model.
+      #   source reflection.
       #
       #   If the association on the join model is a +belongs_to+, the collection can be modified
       #   and the records on the <tt>:through</tt> model will be automatically created and removed
@@ -1198,10 +1242,10 @@ module ActiveRecord
       #   you want to do a join but not include the joined columns. Do not forget to include the
       #   primary and foreign keys, otherwise it will raise an error.
       # [:through]
-      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt>
-      #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You
-      #   can only use a <tt>:through</tt> query through a <tt>has_one</tt> or <tt>belongs_to</tt>
-      #   association on the join model.
+      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt>,
+      #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
+      #   source reflection. You can only use a <tt>:through</tt> query through a <tt>has_one</tt>
+      #   or <tt>belongs_to</tt> association on the join model.
       # [:source]
       #   Specifies the source association name used by <tt>has_one :through</tt> queries.
       #   Only use it if the name cannot be inferred from the association.

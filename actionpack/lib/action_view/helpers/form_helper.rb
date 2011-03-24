@@ -6,6 +6,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/array/extract_options'
 
 module ActionView
   # = Action View Form Helpers
@@ -262,6 +263,24 @@ module ActionView
       #     ...
       #   </form>
       #
+      # === Removing hidden model id's
+      #
+      # The form_for method automatically includes the model id as a hidden field in the form.
+      # This is used to maintain the correlation between the form data and its associated model.
+      # Some ORM systems do not use IDs on nested models so in this case you want to be able
+      # to disable the hidden id.
+      #
+      # In the following example the Post model has many Comments stored within it in a NoSQL database,
+      # thus there is no primary key for comments.
+      #
+      # Example:
+      #
+      #   <%= form(@post) do |f| %>
+      #     <% f.fields_for(:comments, :include_id => false) do |cf| %>
+      #       ...
+      #     <% end %>
+      #   <% end %>
+      #
       # === Customized form builders
       #
       # You can also build forms using a customized FormBuilder class. Subclass
@@ -332,7 +351,7 @@ module ActionView
 
         options[:html][:remote] = options.delete(:remote)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
-        
+
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)
         fields_for = fields_for(object_name, object, options, &proc)
         default_options = builder.multipart? ? { :multipart => true } : {}
@@ -862,9 +881,9 @@ module ActionView
 
       private
 
-        def instantiate_builder(record, record_object = nil, options = nil, &block)
-          options, record_object = record_object, nil if record_object.is_a?(Hash)
-          options ||= {}
+        def instantiate_builder(record, *args, &block)
+          options = args.extract_options!
+          record_object = args.shift
 
           case record
           when String, Symbol
@@ -1326,7 +1345,9 @@ module ActionView
         def fields_for_nested_model(name, object, options, block)
           object = convert_to_model(object)
 
-          options[:hidden_field_id] = object.persisted?
+          parent_include_id = self.options.fetch(:include_id, true)
+          include_id = options.fetch(:include_id, parent_include_id)
+          options[:hidden_field_id] = object.persisted? && include_id
           @template.fields_for(name, object, options, &block)
         end
 

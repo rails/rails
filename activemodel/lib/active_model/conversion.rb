@@ -3,8 +3,6 @@ module ActiveModel
   #
   # Handles default conversions: to_model, to_key and to_param.
   #
-  # == Example
-  #
   # Let's take for example this non persisted object.
   #
   #   class ContactMessage

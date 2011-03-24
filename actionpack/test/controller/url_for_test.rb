@@ -311,6 +311,14 @@ module AbstractController
         assert_equal("/c/a", W.new.url_for(HashWithIndifferentAccess.new('controller' => 'c', 'action' => 'a', 'only_path' => true)))
       end
 
+      def test_url_params_with_nil_to_param_are_not_in_url
+        assert_equal("/c/a", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :id => Struct.new(:to_param).new(nil)))
+      end
+
+      def test_false_url_params_are_included_in_query
+        assert_equal("/c/a?show=false", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :show => false))
+      end
+
       private
         def extract_params(url)
           url.split('?', 2).last.split('&').sort

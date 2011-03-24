@@ -149,11 +149,11 @@ Usually run this as the root user:
 # gem install rails
 </shell>
 
-TIP. If you're working on Windows, you should be aware that the vast majority of Rails development is done in Unix environments. While Ruby and Rails themselves install easily using for example "Ruby Installer":http://rubyinstaller.org/, the supporting ecosystem often assumes you are able to build C-based rubygems and work in a command window. If at all possible, we suggest that you install a Linux virtual machine and use that for Rails development, instead of using Windows.
+TIP. If you're working on Windows, you can quickly install Ruby and Rails with "Rails Installer":http://railsinstaller.org.
 
 h4. Creating the Blog Application
 
-The best way to use this guide is to follow each step as it happens, no code or step needed to make this example application has been left out, so you can literally follow along step by step.  If you need to see the completed code, you can download it from "Getting Started Code":http://github.com/mikel/getting-started-code.
+The best way to use this guide is to follow each step as it happens, no code or step needed to make this example application has been left out, so you can literally follow along step by step.  If you need to see the completed code, you can download it from "Getting Started Code":https://github.com/mikel/getting-started-code.
 
 To begin, open a terminal, navigate to a folder where you have rights to create files, and type:
 

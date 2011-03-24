@@ -1103,6 +1103,61 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id
+    @post.author = Author.new(321)
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author, :include_id => false) { |af|
+        af.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_inherited
+    @post.author = Author.new(321)
+
+    form_for(@post, :include_id => false) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author) { |af|
+        af.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_an_existing_record_on_a_nested_attributes_one_to_one_association_with_disabled_hidden_id_override
+    @post.author = Author.new(321)
+
+    form_for(@post, :include_id => false) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author, :include_id => true) { |af|
+        af.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />' +
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for_with_existing_records_on_a_nested_attributes_one_to_one_association_with_explicit_hidden_field_placement
     @post.author = Author.new(321)
 
@@ -1141,6 +1196,86 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' +
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" />' +
       '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+    @post.author = Author.new(321)
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author) { |af|
+        concat af.text_field(:name)
+      }
+      @post.comments.each do |comment|
+        concat f.fields_for(:comments, comment, :include_id => false) { |cf|
+          concat cf.text_field(:name)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />' +
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #1" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id_inherited
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+    @post.author = Author.new(321)
+
+    form_for(@post, :include_id => false) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author) { |af|
+        concat af.text_field(:name)
+      }
+      @post.comments.each do |comment|
+        concat f.fields_for(:comments, comment) { |cf|
+          concat cf.text_field(:name)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #1" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id_override
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+    @post.author = Author.new(321)
+
+    form_for(@post, :include_id => false) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author, :include_id => true) { |af|
+        concat af.text_field(:name)
+      }
+      @post.comments.each do |comment|
+        concat f.fields_for(:comments, comment) { |cf|
+          concat cf.text_field(:name)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />' +
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #1" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" />'
     end
 
     assert_dom_equal expected, output_buffer

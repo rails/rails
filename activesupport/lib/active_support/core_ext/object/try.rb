@@ -21,7 +21,7 @@ class Object
   #   Person.try(:find, 1)
   #   @people.try(:collect) {|p| p.name}
   #
-  # Without a method argument try will yield to the block unless the reciever is nil.
+  # Without a method argument try will yield to the block unless the receiver is nil.
   #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
   #--
   # +try+ behaves like +Object#send+, unless called on +NilClass+.

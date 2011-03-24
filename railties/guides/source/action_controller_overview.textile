@@ -423,26 +423,35 @@ Now, the +LoginsController+'s +new+ and +create+ actions will work as before wit
 
 h4. After Filters and Around Filters
 
-In addition to before filters, you can run filters after an action has run or both before and after. The after filter is similar to the before filter, but because the action has already been run it has access to the response data that's about to be sent to the client. Obviously, after filters can not stop the action from running.
+In addition to before filters, you can also run filters after an action has been executed, or both before and after.
 
-Around filters are responsible for running the action, but they can choose not to, which is the around filter's way of stopping it.
+After filters are similar to before filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, after filters cannot stop the action from running.
+
+Around filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+
+For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
 <ruby>
-# Example taken from the Rails API filter documentation:
-# http://ap.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html
-class ApplicationController < ActionController::Base
-  around_filter :catch_exceptions
+class ChangesController < ActionController::Base
+  around_filter :wrap_in_transaction, :only => :show
 
   private
 
-  def catch_exceptions
-    yield
-  rescue => exception
-    logger.debug "Caught exception! #{exception}"
-    raise
+  def wrap_in_transaction
+    ActiveRecord::Base.transaction do
+      begin
+        yield
+      ensure
+        raise ActiveRecord::Rollback
+      end
+    end
   end
 end
 </ruby>
+
+Note that an around filter wraps also rendering. In particular, if in the example above the view itself reads from the database via a scope or whatever, it will do so within the transaction and thus present the data to preview.
+
+They can choose not to yield and build the response themselves, in which case the action is not run.
 
 h4. Other Ways to Use Filters
 
@@ -481,7 +490,7 @@ Again, this is not an ideal example for this filter, because it's not run in the
 
 h3. Verification
 
-Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response. It is described in the "API documentation":http://ap.rubyonrails.org/classes/ActionController/Verification/ClassMethods.html as "essentially a special kind of before_filter".
+Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response.
 
 Here's an example of using verification to make sure the user supplies a username and a password in order to log in:
 
@@ -558,7 +567,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 h4. The +request+ Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://ap.rubyonrails.org/classes/ActionController/AbstractRequest.html. Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionDispatch/Request.html. Among the properties that you can access on this object are:
 
 |_.Property of +request+|_.Purpose|
 |host|The hostname used for this request.|

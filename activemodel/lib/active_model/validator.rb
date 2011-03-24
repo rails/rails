@@ -63,7 +63,7 @@ module ActiveModel #:nodoc:
   #   end
   #
   # The easiest way to add custom validators for validating individual attributes
-  # is with the convenient ActiveModel::EachValidator for example:
+  # is with the convenient <tt>ActiveModel::EachValidator</tt>. For example:
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
@@ -72,18 +72,18 @@ module ActiveModel #:nodoc:
   #   end
   #
   # This can now be used in combination with the +validates+ method
-  # (see ActiveModel::Validations::ClassMethods.validates for more on this)
+  # (see <tt>ActiveModel::Validations::ClassMethods.validates</tt> for more on this)
   #
   #   class Person
   #     include ActiveModel::Validations
   #     attr_accessor :title
   #
-  #     validates :title, :presence => true, :title => true
+  #     validates :title, :presence => true
   #   end
   #
   # Validator may also define a +setup+ instance method which will get called
-  # with the class that using that validator as it's argument. This can be
-  # useful when there are prerequisites such as an attr_accessor being present
+  # with the class that using that validator as its argument. This can be
+  # useful when there are prerequisites such as an +attr_accessor+ being present
   # for example:
   #
   #   class MyValidator < ActiveModel::Validator
@@ -98,9 +98,7 @@ module ActiveModel #:nodoc:
   class Validator
     attr_reader :options
 
-    # Returns the kind of the validator.
-    #
-    # == Examples
+    # Returns the kind of the validator. Examples:
     #
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
@@ -122,15 +120,15 @@ module ActiveModel #:nodoc:
     # Override this method in subclasses with validation logic, adding errors
     # to the records +errors+ array where necessary.
     def validate(record)
-      raise NotImplementedError
+      raise NotImplementedError, "Subclasses must implement a validate(record) method."
     end
   end
 
-  # EachValidator is a validator which iterates through the attributes given
-  # in the options hash invoking the validate_each method passing in the
+  # +EachValidator+ is a validator which iterates through the attributes given
+  # in the options hash invoking the <tt>validate_each</tt> method passing in the
   # record, attribute and value.
   #
-  # All Active Model validations are built on top of this Validator.
+  # All Active Model validations are built on top of this validator.
   class EachValidator < Validator
     attr_reader :attributes
 
@@ -158,19 +156,18 @@ module ActiveModel #:nodoc:
     # Override this method in subclasses with the validation logic, adding
     # errors to the records +errors+ array where necessary.
     def validate_each(record, attribute, value)
-      raise NotImplementedError
+      raise NotImplementedError, "Subclasses must implement a validate_each(record, attribute, value) method"
     end
 
     # Hook method that gets called by the initializer allowing verification
     # that the arguments supplied are valid. You could for example raise an
-    # ArgumentError when invalid options are supplied.
+    # +ArgumentError+ when invalid options are supplied.
     def check_validity!
     end
   end
 
-  # BlockValidator is a special EachValidator which receives a block on initialization
-  # and call this block for each attribute being validated. +validates_each+ uses this
-  # Validator.
+  # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization
+  # and call this block for each attribute being validated. +validates_each+ uses this validator.
   class BlockValidator < EachValidator
     def initialize(options, &block)
       @block = block

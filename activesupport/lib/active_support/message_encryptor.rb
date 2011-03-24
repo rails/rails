@@ -7,7 +7,7 @@ module ActiveSupport
   #
   # The cipher text and initialization vector are base64 encoded and returned to you.
   #
-  # This can be used in situations similar to the MessageVerifier, but where you don't
+  # This can be used in situations similar to the <tt>MessageVerifier</tt>, but where you don't
   # want users to be able to determine the value of the payload.
   class MessageEncryptor
     class InvalidMessage < StandardError; end

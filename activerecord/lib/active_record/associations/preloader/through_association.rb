@@ -19,8 +19,9 @@ module ActiveRecord
             source_reflection.name, options
           ).run
 
-          through_records.each do |owner, owner_through_records|
-            owner_through_records.map! { |r| r.send(source_reflection.name) }.flatten!
+          through_records.each do |owner, records|
+            records.map! { |r| r.send(source_reflection.name) }.flatten!
+            records.compact!
           end
         end
 

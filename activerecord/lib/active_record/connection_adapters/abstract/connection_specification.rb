@@ -89,6 +89,16 @@ module ActiveRecord
         retrieve_connection
       end
 
+      # Returns the configuration of the associated connection as a hash:
+      #
+      #  ActiveRecord::Base.connection_config
+      #  # => {:pool=>5, :timeout=>5000, :database=>"db/development.sqlite3", :adapter=>"sqlite3"}
+      #
+      # Please use only for reading.
+      def connection_config
+        connection_pool.spec.config
+      end
+
       def connection_pool
         connection_handler.retrieve_connection_pool(self)
       end

@@ -14,7 +14,7 @@ module I18n
       @reloader ||= ActiveSupport::FileUpdateChecker.new([]){ I18n.reload! }
     end
 
-    # Add I18n::Railtie.reloader to ActionDispatch callbacks. Since, at this
+    # Add <tt>I18n::Railtie.reloader</tt> to ActionDispatch callbacks. Since, at this
     # point, no path was added to the reloader, I18n.reload! is not triggered
     # on to_prepare callbacks. This will only happen on the config.after_initialize
     # callback below.

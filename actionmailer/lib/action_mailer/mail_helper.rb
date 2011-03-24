@@ -4,7 +4,7 @@ module ActionMailer
     # each line, and wrapped at 72 columns.
     def block_format(text)
       formatted = text.split(/\n\r\n/).collect { |paragraph|
-        simple_format(paragraph)
+        format_paragraph(paragraph)
       }.join("\n")
 
       # Make list points stand on their own line
@@ -29,8 +29,15 @@ module ActionMailer
       @_message.attachments
     end
 
-    private
-    def simple_format(text, len = 72, indent = 2)
+    # Returns +text+ wrapped at +len+ columns and indented +indent+ spaces.
+    #
+    # === Examples
+    #
+    #   my_text = "Here is a sample text with more than 40 characters"
+    #
+    #   format_paragraph(my_text, 25, 4)
+    #   # => "    Here is a sample text with\n    more than 40 characters"
+    def format_paragraph(text, len = 72, indent = 2)
       sentences = [[]]
 
       text.split.each do |word|

@@ -103,7 +103,7 @@ module ActionView
                        :form, :with, :update, :script, :type ]).merge(CALLBACKS)
 
       # Returns the JavaScript needed for a remote function.
-      # See the link_to_remote documentation at http://github.com/rails/prototype_legacy_helper as it takes the same arguments.
+      # See the link_to_remote documentation at https://github.com/rails/prototype_legacy_helper as it takes the same arguments.
       #
       # Example:
       #   # Generates: <select id="options" onchange="new Ajax.Updater('options',
@@ -131,7 +131,6 @@ module ActionView
           "new Ajax.Updater(#{update}, "
 
         url_options = options[:url]
-        url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
         function << "'#{ERB::Util.html_escape(escape_javascript(url_for(url_options)))}'"
         function << ", #{javascript_options})"
 

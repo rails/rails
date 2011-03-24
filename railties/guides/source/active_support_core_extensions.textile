@@ -1045,6 +1045,8 @@ NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
 h4. Class Inheritable Attributes
 
+WARNING: Class Inheritable Attributes are deprecated. It's recommended that you use +Class#class_attribute+ instead.
+
 Class variables are shared down the inheritance tree. Class instance variables are not shared, but they are not inherited either. The macros +class_inheritable_reader+, +class_inheritable_writer+, and +class_inheritable_accessor+ provide accessors for class-level data which is inherited but not shared with children:
 
 <ruby>
@@ -1816,7 +1818,7 @@ h3. Extensions to +Float+
 
 h4. +round+
 
-The built-in method +Float#round+ rounds a float to the nearest integer. Active Support adds an optional parameter to let you specify a precision:
+The built-in method +Float#round+ rounds a float to the nearest integer. In Ruby 1.9 this method takes an optional argument to let you specify a precision. Active Support adds that functionality to +round+ in previous versions of Ruby:
 
 <ruby>
 Math::E.round(4) # => 2.7183
@@ -2009,7 +2011,7 @@ That syntactic sugar is used a lot in Rails to avoid positional arguments where 
 
 If a method expects a variable number of arguments and uses <tt>*</tt> in its declaration, however, such an options hash ends up being an item of the array of arguments, where it loses its role.
 
-In those cases, you may give an options hash a distinguished treatment with +extract_options!+. That method checks the type of the last item of an array. If it is a hash it pops it and returns it, otherwise returns an empty hash.
+In those cases, you may give an options hash a distinguished treatment with +extract_options!+. This method checks the type of the last item of an array. If it is a hash it pops it and returns it, otherwise it returns an empty hash.
 
 Let's see for example the definition of the +caches_action+ controller macro:
 

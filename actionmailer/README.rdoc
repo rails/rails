@@ -74,10 +74,10 @@ Or you can just chain the methods together like:
 
 == Receiving emails
 
-To receive emails, you need to implement a public instance method called <tt>receive</tt> that takes a
-tmail object as its single parameter. The Action Mailer framework has a corresponding class method,
+To receive emails, you need to implement a public instance method called <tt>receive</tt> that takes an
+email object as its single parameter. The Action Mailer framework has a corresponding class method,
 which is also called <tt>receive</tt>, that accepts a raw, unprocessed email as a string, which it then turns
-into the tmail object and calls the receive instance method.
+into the email object and calls the receive instance method.
 
 Example:
 
@@ -104,7 +104,7 @@ trivial case like this:
   rails runner 'Mailman.receive(STDIN.read)'
 
 However, invoking Rails in the runner for each mail to be received is very resource intensive.  A single
-instance of Rails should be run within a daemon if it is going to be utilized to process more than just
+instance of Rails should be run within a daemon, if it is going to be utilized to process more than just
 a limited number of email.
 
 == Configuration
@@ -128,7 +128,7 @@ The latest version of Action Mailer can be installed with Rubygems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* http://github.com/rails/rails/tree/master/actionmailer/
+* https://github.com/rails/rails/tree/master/actionmailer/
 
 
 == License
@@ -145,3 +145,4 @@ API documentation is at
 Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
 
 * https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets
+

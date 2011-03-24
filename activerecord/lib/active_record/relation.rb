@@ -30,15 +30,26 @@ module ActiveRecord
     end
 
     def insert(values)
-      im = arel.compile_insert values
-      im.into @table
-
       primary_key_value = nil
 
       if primary_key && Hash === values
         primary_key_value = values[values.keys.find { |k|
           k.name == primary_key
         }]
+
+        if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
+          primary_key_value = connection.next_sequence_value(klass.sequence_name)
+          values[klass.arel_table[klass.primary_key]] = primary_key_value
+        end
+      end
+
+      im = arel.create_insert
+      im.into @table
+
+      if values.empty? # empty insert
+        im.values = im.create_values [connection.null_insert_value], []
+      else
+        im.insert values
       end
 
       @klass.connection.insert(
@@ -110,7 +121,10 @@ module ActiveRecord
 
     # Returns true if there are no records.
     def empty?
-      loaded? ? @records.empty? : count.zero?
+      return @records.empty? if loaded?
+
+      c = count
+      c.respond_to?(:zero?) ? c.zero? : c.empty?
     end
 
     def any?
@@ -407,8 +421,19 @@ module ActiveRecord
     private
 
     def references_eager_loaded_tables?
+      joined_tables = arel.join_sources.map do |join|
+        if join.is_a?(Arel::Nodes::StringJoin)
+          tables_in_string(join.left)
+        else
+          [join.left.table_name, join.left.table_alias]
+        end
+      end
+
+      joined_tables += [table.name, table.table_alias]
+
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      joined_tables = (tables_in_string(arel.join_sql) + [table.name, table.table_alias]).compact.map{ |t| t.downcase }.uniq
+      joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
+
       (tables_in_string(to_sql) - joined_tables).any?
     end
 

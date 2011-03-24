@@ -45,6 +45,8 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+class Weird < ActiveRecord::Base; end
+
 class Boolean < ActiveRecord::Base; end
 
 class BasicsTest < ActiveRecord::TestCase
@@ -477,6 +479,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed", post.body
   end
 
+  def test_non_valid_identifier_column_name
+    weird = Weird.create('a$b' => 'value')
+    weird.reload
+    assert_equal 'value', weird.send('a$b')
+
+    weird.update_attribute('a$b', 'value2')
+    weird.reload
+    assert_equal 'value2', weird.send('a$b')
+  end
+
   def test_multiparameter_attributes_on_date
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
@@ -832,12 +844,12 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! :name => 'Bjorn'
-    assert !developer.name_changed?           # both attributes of saved object should be threated as not changed
+    assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
     assert !developer.salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
-    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be threated as not changed on cloned instance
+    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
   end
 
   def test_bignum

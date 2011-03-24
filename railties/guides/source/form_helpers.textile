@@ -475,7 +475,7 @@ To leverage time zone support in Rails, you have to ask your users what time zon
 
 There is also +time_zone_options_for_select+ helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-Rails _used_ to have a +country_select+ helper for choosing countries, but this has been extracted to the "country_select plugin":http://github.com/rails/country_select/tree/master. When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
+Rails _used_ to have a +country_select+ helper for choosing countries, but this has been extracted to the "country_select plugin":https://github.com/chrislerum/country_select. When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
 
 h3. Using Date and Time Form Helpers
 
@@ -589,7 +589,7 @@ def upload
 end
 </ruby>
 
-Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several plugins designed to assist with these. Two of the better known ones are "Attachment-Fu":http://github.com/technoweenie/attachment_fu and "Paperclip":http://www.thoughtbot.com/projects/paperclip.
+Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several plugins designed to assist with these. Two of the better known ones are "Attachment-Fu":https://github.com/technoweenie/attachment_fu and "Paperclip":http://www.thoughtbot.com/projects/paperclip.
 
 NOTE: If the user has not selected a file the corresponding parameter will be an empty string.
 
@@ -805,9 +805,9 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 * As of Rails 2.3, Rails includes "Nested Attributes":./2_3_release_notes.html#nested-attributes and "Nested Object Forms":./2_3_release_notes.html#nested-object-forms
 * Ryan Bates' series of Railscasts on "complex forms":http://railscasts.com/episodes/75
 * Handle Multiple Models in One Form from "Advanced Rails Recipes":http://media.pragprog.com/titles/fr_arr/multiple_models_one_form.pdf
-* Eloy Duran's "complex-forms-examples":http://github.com/alloy/complex-form-examples/ application
-* Lance Ivy's "nested_assignment":http://github.com/cainlevy/nested_assignment/tree/master plugin and "sample application":http://github.com/cainlevy/complex-form-examples/tree/cainlevy
-* James Golick's "attribute_fu":http://github.com/jamesgolick/attribute_fu plugin
+* Eloy Duran's "complex-forms-examples":https://github.com/alloy/complex-form-examples/ application
+* Lance Ivy's "nested_assignment":https://github.com/cainlevy/nested_assignment/tree/master plugin and "sample application":https://github.com/cainlevy/complex-form-examples/tree/cainlevy
+* James Golick's "attribute_fu":https://github.com/jamesgolick/attribute_fu plugin
 
 h3. Changelog
 

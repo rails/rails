@@ -203,7 +203,7 @@ The latest version of Active Record can be installed with Rubygems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* http://github.com/rails/rails/tree/master/activerecord/
+* https://github.com/rails/rails/tree/master/activerecord/
 
 
 == License

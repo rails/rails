@@ -369,7 +369,7 @@ module ActionView
       # See <tt>number_to_human_size</tt> if you want to print a file size.
       #
       # You can also define you own unit-quantifier names if you want to use other decimal units
-      # (eg.: 1500 becomes "1.5 kilometers", 0.150 becomes "150 mililiters", etc). You may define
+      # (eg.: 1500 becomes "1.5 kilometers", 0.150 becomes "150 milliliters", etc). You may define
       # a wide range of unit quantifiers, even fractional ones (centi, deci, mili, etc).
       #
       # ==== Options
@@ -425,13 +425,13 @@ module ActionView
       #     thousand:
       #       one: "kilometer"
       #       other: "kilometers"
-      #     billion: "gazilion-distance"
+      #     billion: "gazillion-distance"
       #
       # Then you could do:
       #
       #  number_to_human(543934, :units => :distance)                              # => "544 kilometers"
       #  number_to_human(54393498, :units => :distance)                            # => "54400 kilometers"
-      #  number_to_human(54393498000, :units => :distance)                         # => "54.4 gazilion-distance"
+      #  number_to_human(54393498000, :units => :distance)                         # => "54.4 gazillion-distance"
       #  number_to_human(343, :units => :distance, :precision => 1)                # => "300 meters"
       #  number_to_human(1, :units => :distance)                                   # => "1 meter"
       #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
@@ -472,7 +472,7 @@ module ActionView
         end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
 
         number_exponent = number != 0 ? Math.log10(number.abs).floor : 0
-        display_exponent = unit_exponents.find{|e| number_exponent >= e }
+        display_exponent = unit_exponents.find{ |e| number_exponent >= e } || 0
         number  /= 10 ** display_exponent
 
         unit = case units

@@ -252,12 +252,12 @@ module Rails
   #   end
   #
   # The routes above will automatically point to <tt>MyEngine::ApplicationContoller</tt>. Furthermore, you don't
-  # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you shuold simply use
+  # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
   # To make that behaviour consistent with other parts of the framework, an isolated engine also has influence on
   # <tt>ActiveModel::Naming</tt>. When you use a namespaced model, like <tt>MyEngine::Article</tt>, it will normally
-  # use the prefix "my_engine". In an isolated engine, the prefix will be ommited in url helpers and
+  # use the prefix "my_engine". In an isolated engine, the prefix will be omitted in url helpers and
   # form fields for convenience.
   #
   #   polymorphic_url(MyEngine::Article.new) #=> "articles_path"
@@ -266,7 +266,7 @@ module Rails
   #     text_field :title #=> <input type="text" name="article[title]" id="article_title" />
   #   end
   #
-  # Additionaly isolated engine will set its name according to namespace, so
+  # Additionally isolated engine will set its name according to namespace, so
   # MyEngine::Engine.engine_name #=> "my_engine". It will also set MyEngine.table_name_prefix
   # to "my_engine_", changing MyEngine::Article model to use my_engine_article table.
   #
@@ -382,9 +382,9 @@ module Rails
 
       # Finds engine with given path
       def find(path)
-        path = path.to_s
-        Rails::Engine::Railties.engines.find { |r|
-          File.expand_path(r.root.to_s) == File.expand_path(path)
+        expanded_path = File.expand_path path.to_s
+        Rails::Engine::Railties.engines.find { |engine|
+          File.expand_path(engine.root.to_s) == expanded_path
         }
       end
     end

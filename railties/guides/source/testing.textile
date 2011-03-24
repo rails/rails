@@ -500,6 +500,8 @@ If you're familiar with the HTTP protocol, you'll know that +get+ is a type of r
 
 All of request types are methods that you can use, however, you'll probably end up using the first two more often than the others.
 
+NOTE: Functional tests do not verify whether the specified request type should be accepted by the action. Request types in this context exist to make your tests more descriptive.
+
 h4. The Four Hashes of the Apocalypse
 
 After a request has been made by using one of the 5 methods (+get+, +post+, etc.) and processed, you will have 4 Hash objects ready for use:
@@ -939,8 +941,8 @@ h3. Other Testing Approaches
 The built-in +test/unit+ based testing is not the only way to test Rails applications. Rails developers have come up with a wide variety of other approaches and aids for testing, including:
 
 * "NullDB":http://avdi.org/projects/nulldb/, a way to speed up testing by avoiding database use.
-* "Factory Girl":http://github.com/thoughtbot/factory_girl/tree/master, as replacement for fixtures.
-* "Machinist":http://github.com/notahat/machinist/tree/master, another replacement for fixtures.
+* "Factory Girl":https://github.com/thoughtbot/factory_girl/tree/master, as replacement for fixtures.
+* "Machinist":https://github.com/notahat/machinist/tree/master, another replacement for fixtures.
 * "Shoulda":http://www.thoughtbot.com/projects/shoulda, an extension to +test/unit+ with additional helpers, macros, and assertions.
 * "RSpec":http://rspec.info/, a behavior-driven development framework
 

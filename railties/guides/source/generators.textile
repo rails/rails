@@ -34,7 +34,7 @@ $ rails generate helper --help
 
 h3. Creating Your First Generator
 
-Since Rails 3.0, generators are built on top of "Thor":http://github.com/wycats/thor. Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named +initializer.rb+ inside +config/initializers+.
+Since Rails 3.0, generators are built on top of "Thor":https://github.com/wycats/thor. Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named +initializer.rb+ inside +config/initializers+.
 
 The first step is to create a file at +lib/generators/initializer_generator.rb+ with the following content:
 
@@ -319,7 +319,7 @@ If you generate another resource, you can see that we get exactly the same resul
 
 h3. Adding Generators Fallbacks
 
-One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit like "shoulda":http://github.com/thoughtbot/shoulda does. Since TestUnit already implements all generators required by Rails and shoulda just wants to overwrite part of it, there is no need for shoulda to reimplement some generators again, it can simply tell Rails to use a +TestUnit+ generator if none was found under the +Shoulda+ namespace.
+One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit like "shoulda":https://github.com/thoughtbot/shoulda does. Since TestUnit already implements all generators required by Rails and shoulda just wants to overwrite part of it, there is no need for shoulda to reimplement some generators again, it can simply tell Rails to use a +TestUnit+ generator if none was found under the +Shoulda+ namespace.
 
 We can easily simulate this behavior by changing our +config/application.rb+ once again:
 
@@ -345,7 +345,7 @@ $ rails generate scaffold Comment body:text
       invoke    shoulda
       create      test/unit/comment_test.rb
       create      test/fixtures/comments.yml
-       route  map.resources :comments
+       route    resources :comments
       invoke  scaffold_controller
       create    app/controllers/comments_controller.rb
       invoke    erb

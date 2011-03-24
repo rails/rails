@@ -43,7 +43,8 @@ module ActiveModel
 
           value ||= [] if key == :maximum
 
-          next if value && value.size.send(validity_check, check_value)
+          value_length = value.respond_to?(:length) ? value.length : value.to_s.length
+          next if value_length.send(validity_check, check_value)
 
           errors_options = options.except(*RESERVED_OPTIONS)
           errors_options[:count] = check_value

@@ -68,8 +68,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_with_ordering
     list = Post.find(:all, :include => :comments, :order => "posts.id DESC")
-    [:eager_other, :sti_habtm, :sti_post_and_comments, :sti_comments,
-     :authorless, :thinking, :welcome
+    [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
+     :sti_habtm, :sti_post_and_comments, :sti_comments, :authorless, :thinking, :welcome
     ].each_with_index do |post, index|
       assert_equal posts(post), list[index]
     end
@@ -97,25 +97,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.find(:all, :include=>:comments)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.find(:all, :include=>:comments)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.find(:all, :include=>:categories)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.find(:all, :include=>:categories)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
@@ -523,6 +523,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 0, posts[2].categories.size
     assert posts[0].categories.include?(categories(:technology))
     assert posts[1].categories.include?(categories(:general))
+  end
+
+  # This is only really relevant when the identity map is off. Since the preloader for habtm
+  # gets raw row hashes from the database and then instantiates them, this test ensures that
+  # it only instantiates one actual object per record from the database.
+  def test_has_and_belongs_to_many_should_not_instantiate_same_records_multiple_times
+    welcome    = posts(:welcome)
+    categories = Category.includes(:posts)
+
+    general    = categories.find { |c| c == categories(:general) }
+    technology = categories.find { |c| c == categories(:technology) }
+
+    post1 = general.posts.to_a.find { |p| p == posts(:welcome) }
+    post2 = technology.posts.to_a.find { |p| p == posts(:welcome) }
+
+    assert_equal post1.object_id, post2.object_id
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers

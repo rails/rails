@@ -619,7 +619,7 @@ In this section, you will learn how to find and fix such leaks by using tools su
 
 h4. BleakHouse
 
-"BleakHouse":http://github.com/fauna/bleak_house/tree/master is a library for finding memory leaks.
+"BleakHouse":https://github.com/fauna/bleak_house/tree/master is a library for finding memory leaks.
 
 If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.
 
@@ -668,7 +668,7 @@ To analyze it, just run the listed command. The top 20 leakiest lines will be li
 
 This way you can find where your application is leaking memory and fix it.
 
-If "BleakHouse":http://github.com/fauna/bleak_house/tree/master doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
+If "BleakHouse":https://github.com/fauna/bleak_house/tree/master doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
 
 h4. Valgrind
 
@@ -682,12 +682,12 @@ h3. Plugins for Debugging
 
 There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:
 
-* "Footnotes":http://github.com/josevalim/rails-footnotes: Every Rails page has footnotes that give request information and link back to your source via TextMate.
-* "Query Trace":http://github.com/ntalbott/query_trace/tree/master: Adds query origin tracing to your logs.
-* "Query Stats":http://github.com/dan-manges/query_stats/tree/master: A Rails plugin to track database queries.
+* "Footnotes":https://github.com/josevalim/rails-footnotes: Every Rails page has footnotes that give request information and link back to your source via TextMate.
+* "Query Trace":https://github.com/ntalbott/query_trace/tree/master: Adds query origin tracing to your logs.
+* "Query Stats":https://github.com/dan-manges/query_stats/tree/master: A Rails plugin to track database queries.
 * "Query Reviewer":http://code.google.com/p/query-reviewer/: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
-* "Exception Notifier":http://github.com/rails/exception_notification/tree/master: Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
-* "Exception Logger":http://github.com/defunkt/exception_logger/tree/master: Logs your Rails exceptions in the database and provides a funky web interface to manage them.
+* "Exception Notifier":https://github.com/smartinez87/exception_notification/tree/master: Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
+* "Exception Logger":https://github.com/defunkt/exception_logger/tree/master: Logs your Rails exceptions in the database and provides a funky web interface to manage them.
 
 h3. References
 

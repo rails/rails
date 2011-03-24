@@ -617,7 +617,7 @@ module ActionView
         @options[:discard_second] ||= true unless @options[:include_seconds] && !@options[:discard_minute]
 
         # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-        # valid (otherwise it could be 31 and february wouldn't be a valid date)
+        # valid (otherwise it could be 31 and February wouldn't be a valid date)
         if @datetime && @options[:discard_day] && !@options[:discard_month]
           @datetime = @datetime.change(:day => 1)
         end
@@ -644,7 +644,7 @@ module ActionView
         @options[:discard_day]    ||= true if @options[:discard_month] || !order.include?(:day)
 
         # If the day is hidden and the month is visible, the day should be set to the 1st so all month choices are
-        # valid (otherwise it could be 31 and february wouldn't be a valid date)
+        # valid (otherwise it could be 31 and February wouldn't be a valid date)
         if @datetime && @options[:discard_day] && !@options[:discard_month]
           @datetime = @datetime.change(:day => 1)
         end

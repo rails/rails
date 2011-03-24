@@ -5,7 +5,7 @@
     format:
       # Sets the separator between the units, for more precision (e.g. 1.0 / 2.0 == 0.5)
       separator: "."
-      # Delimets thousands (e.g. 1,000,000 is a million) (always in groups of three)
+      # Delimits thousands (e.g. 1,000,000 is a million) (always in groups of three)
       delimiter: ","
       # Number of decimals, behind the separator (the number 1 with a precision of 2 gives: 1.00)
       precision: 3

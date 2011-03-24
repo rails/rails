@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/slice'
 require "rails/generators/rails/app/app_generator"
+require 'date'
 
 module Rails
   class PluginBuilder
@@ -61,7 +62,7 @@ task :default => :test
     end
 
     def generate_test_dummy(force = false)
-      opts = (options || {}).slice(:skip_active_record, :skip_javascript, :database, :javascript)
+      opts = (options || {}).slice(:skip_active_record, :skip_javascript, :database, :javascript, :quiet, :pretend, :force, :skip)
       opts[:force] = force
 
       invoke Rails::Generators::AppGenerator,
@@ -144,6 +145,7 @@ task :default => :test
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
 
+        @dummy_path = nil
         super
       end
 

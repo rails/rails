@@ -48,7 +48,7 @@ Ruby on Rails uses git for source code control. The "git homepage":http://git-sc
 
 * "Everyday Git":http://www.kernel.org/pub/software/scm/git/docs/everyday.html will teach you just enough about git to get by.
 * The "PeepCode screencast":https://peepcode.com/products/git on git ($9) is easier to follow.
-* "GitHub":http://github.com/guides/home offers links to a variety of git resources.
+* "GitHub":https://github.com/guides/home offers links to a variety of git resources.
 * "Pro Git":http://progit.org/book/ is an entire book about git with a Creative Commons license.
 
 h4. Clone the Ruby on Rails Repository
@@ -100,6 +100,14 @@ You can also run tests for an specific framework, like Action Pack, by going int
 $ cd actionpack
 $ rake test
 </shell>
+
+If you want to run tests from the specific directory use the +TEST_DIR+ environment variable. For example, this will run tests inside +railties/test/generators+ directory only:
+
+<shell>
+$ cd railties
+$ TEST_DIR=generators rake test
+</shell>
+
 
 h4. Warnings
 
@@ -253,7 +261,7 @@ h3. Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: The guides help you to learn Ruby on Rails, and the API is a reference.
 
-You can create a ticket in Lighthouse to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":http://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+You can create a ticket in Lighthouse to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":https://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
 When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
 
@@ -341,7 +349,21 @@ $ git commit -a
 $ git format-patch master --stdout > my_new_patch.diff
 </shell>
 
-Sanity check the results of this operation: open the diff file in your text editor of choice and make sure that no unintended changes crept in.
+Open the diff file in your text editor of choice to sanity check the results, and make sure that no unintended changes crept in.
+
+You can also perform an extra check by applying the patch to a different dedicated branch:
+
+<shell>
+$ git checkout -b testing_branch
+$ git apply --check my_new_patch.diff
+</shell>
+
+Please make sure the patch does not introduce whitespace errors:
+
+<shell>
+$ git apply --whitespace=error-all mynew_patch.diff
+</shell>
+
 
 h4. Create a Lighthouse Ticket
 
@@ -349,7 +371,7 @@ Now create a ticket with your patch. Go to the "new ticket":http://rails.lightho
 
 h4. Get Some Feedback
 
-Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the rubyonrails-core mailing list or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
+Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the "rubyonrails-core mailing list":http://groups.google.com/group/rubyonrails-core/ or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
 
 h4. Iterate as Necessary
 

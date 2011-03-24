@@ -32,14 +32,21 @@ class Array
 end
 
 class Hash
-  # Converts a hash into a string suitable for use as a URL query string. An optional <tt>namespace</tt> can be
-  # passed to enclose the param names (see example below). The string pairs "key=value" that conform the query
-  # string are sorted lexicographically in ascending order.
+  # Returns a string representation of the receiver suitable for use as a URL
+  # query string:
   #
-  # ==== Examples
-  #   { :name => 'David', :nationality => 'Danish' }.to_param # => "name=David&nationality=Danish"
+  #   {:name => 'David', :nationality => 'Danish'}.to_param
+  #   # => "name=David&nationality=Danish"
   #
-  #   { :name => 'David', :nationality => 'Danish' }.to_query('user') # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
+  # An optional namespace can be passed to enclose the param names:
+  #
+  #   {:name => 'David', :nationality => 'Danish'}.to_param('user')
+  #   # => "user[name]=David&user[nationality]=Danish"
+  #
+  # The string pairs "key=value" that conform the query string
+  # are sorted lexicographically in ascending order.
+  #
+  # This method is also aliased as +to_query+.
   def to_param(namespace = nil)
     collect do |key, value|
       value.to_query(namespace ? "#{namespace}[#{key}]" : key)

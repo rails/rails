@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/reverse_merge'
+require 'rack/utils'
 
 module ActionDispatch
   class TestRequest < Request
@@ -77,8 +78,12 @@ module ActionDispatch
     private
       def write_cookies!
         unless @cookies.blank?
-          @env['HTTP_COOKIE'] = @cookies.map { |name, value| "#{name}=#{value};" }.join(' ')
+          @env['HTTP_COOKIE'] = @cookies.map { |name, value| escape_cookie(name, value) }.join('; ')
         end
+      end
+
+      def escape_cookie(name, value)
+        "#{Rack::Utils.escape(name)}=#{Rack::Utils.escape(value)}"
       end
 
       def delete_nil_values!

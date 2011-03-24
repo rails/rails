@@ -1472,5 +1472,5 @@ You can read more about the Rails Internationalization (I18n) API "here":i18n.ht
 
 h3. Changelog
 
-* September 3, 2009: Continuing work by Trevor Turk, leveraging the "Action Pack docs":http://ap.rubyonrails.org/ and "What's new in Edge Rails":http://ryandaigle.com/articles/2007/8/3/what-s-new-in-edge-rails-partials-get-layouts
+* September 3, 2009: Continuing work by Trevor Turk, leveraging the Action Pack docs and "What's new in Edge Rails":http://ryandaigle.com/articles/2007/8/3/what-s-new-in-edge-rails-partials-get-layouts
 * April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs

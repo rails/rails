@@ -1,5 +1,14 @@
 *Rails 3.1.0 (unreleased)*
 
+* Associations with a :through option can now use *any* association as the
+  through or source association, including other associations which have a
+  :through option and has_and_belongs_to_many associations
+
+  [Jon Leighton]
+
+* The configuration for the current database connection is now accessible via
+  ActiveRecord::Base.connection_config. [fxn]
+
 * limits and offsets are removed from COUNT queries unless both are supplied.
   For example:
 

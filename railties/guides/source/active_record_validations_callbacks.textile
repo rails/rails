@@ -461,11 +461,11 @@ The block receives the model, the attribute's name and the attribute's value. Yo
 
 h3. Common Validation Options
 
-There are some common options that all the validation helpers can use. Here they are, except for the +:if+ and +:unless+ options, which are discussed later in "Conditional Validation":#conditional-validation.
+These are common validation options:
 
 h4. +:allow_nil+
 
-The +:allow_nil+ option skips the validation when the value being validated is +nil+. Using +:allow_nil+ with +validates_presence_of+ allows for +nil+, but any other +blank?+ value will still be rejected.
+The +:allow_nil+ option skips the validation when the value being validated is +nil+.
 
 <ruby>
 class Coffee < ActiveRecord::Base
@@ -473,6 +473,8 @@ class Coffee < ActiveRecord::Base
     :message => "%{value} is not a valid size", :allow_nil => true
 end
 </ruby>
+
+TIP: +:allow_nil+ is ignored by the presence validator.
 
 h4. +:allow_blank+
 
@@ -486,6 +488,8 @@ end
 Topic.create("title" => "").valid? # => true
 Topic.create("title" => nil).valid? # => true
 </ruby>
+
+TIP: +:allow_blank+ is ignored by the presence validator.
 
 h4. +:message+
 
@@ -738,7 +742,20 @@ person.errors.size # => 0
 
 h3. Displaying Validation Errors in the View
 
-Rails provides built-in helpers to display the error messages of your models in your view templates.
+Rails maintains an official plugin that provides helpers to display the error messages of your models in your view templates. You can install it as a plugin or as a Gem.
+
+h4. Installing as a plugin
+<shell>
+$ rails plugin install git://github.com/joelmoss/dynamic_form.git
+</shell>
+
+h4 Installing as a Gem
+Add this line on your Gemfile:
+<ruby>
+gem "dynamic_form"
+</ruby>
+
+Now you will have access to these two methods in your view templates:
 
 h4. +error_messages+ and +error_messages_for+
 

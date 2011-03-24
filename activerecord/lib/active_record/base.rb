@@ -463,7 +463,7 @@ module ActiveRecord #:nodoc:
       #
       #   # You can use the same string replacement techniques as you can with ActiveRecord#find
       #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
-      #   > [#<Post:0x36bff9c @attributes={"first_name"=>"The Cheap Man Buys Twice"}>, ...]
+      #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql, binds = [])
         connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
       end
@@ -636,7 +636,7 @@ module ActiveRecord #:nodoc:
         @quoted_table_name = nil
         define_attr_method :table_name, value, &block
 
-        @arel_table = Arel::Table.new(table_name, :engine => arel_engine)
+        @arel_table = Arel::Table.new(table_name, arel_engine)
         @relation = Relation.new(self, arel_table)
       end
       alias :table_name= :set_table_name
@@ -973,8 +973,8 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def type_condition
-          sti_column = arel_table[inheritance_column.to_sym]
+        def type_condition(table = arel_table)
+          sti_column = table[inheritance_column.to_sym]
           sti_names  = ([self] + descendants).map { |model| model.sti_name }
 
           sti_column.in(sti_names)
@@ -995,7 +995,7 @@ module ActiveRecord #:nodoc:
             if parent < ActiveRecord::Base && !parent.abstract_class?
               contained = parent.table_name
               contained = contained.singularize if parent.pluralize_table_names
-              contained << '_'
+              contained += '_'
             end
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{table_name_suffix}"
           else
@@ -1321,7 +1321,7 @@ MSG
         def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
-          table = Arel::Table.new(self.table_name, :engine => arel_engine, :as => default_table_name)
+          table = Arel::Table.new(table_name).alias(default_table_name)
           viz = Arel::Visitors.for(arel_engine)
           PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
             viz.accept b
