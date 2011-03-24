@@ -2,6 +2,7 @@ require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   module NestedAttributes #:nodoc:
@@ -11,7 +12,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_inheritable_accessor :nested_attributes_options, :instance_writer => false
+      class_attribute :nested_attributes_options, :instance_writer => false
       self.nested_attributes_options = {}
     end
 
@@ -25,7 +26,7 @@ module ActiveRecord
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
-    # 
+    #
     # <tt>author_attributes=(attributes)</tt> and
     # <tt>pages_attributes=(attributes)</tt>.
     #
@@ -190,6 +191,34 @@ module ActiveRecord
     # destruction, are saved and destroyed automatically and atomically when
     # the parent model is saved. This happens inside the transaction initiated
     # by the parents save method. See ActiveRecord::AutosaveAssociation.
+    #
+    # === Using with attr_accessible
+    #
+    # The use of <tt>attr_accessible</tt> can interfere with nested attributes
+    # if you're not careful. For example, if the <tt>Member</tt> model above
+    # was using <tt>attr_accessible</tt> like this:
+    #
+    #   attr_accessible :name
+    #
+    # You would need to modify it to look like this:
+    #
+    #   attr_accessible :name, :posts_attributes
+    #
+    # === Validating the presence of a parent model
+    #
+    # If you want to validate that a child record is associated with a parent
+    # record, you can use <tt>validates_presence_of</tt> and
+    # <tt>inverse_of</tt> as this example illustrates:
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts, :inverse_of => :member
+    #     accepts_nested_attributes_for :posts
+    #   end
+    #
+    #   class Post < ActiveRecord::Base
+    #     belongs_to :member, :inverse_of => :posts
+    #     validates_presence_of :member
+    #   end
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
 
@@ -240,7 +269,11 @@ module ActiveRecord
           if reflection = reflect_on_association(association_name)
             reflection.options[:autosave] = true
             add_autosave_association_callbacks(reflection)
+
+            nested_attributes_options = self.nested_attributes_options.dup
             nested_attributes_options[association_name.to_sym] = options
+            self.nested_attributes_options = nested_attributes_options
+
             type = (reflection.collection? ? :collection : :one_to_one)
 
             # def pirate_attributes=(attributes)
@@ -287,18 +320,15 @@ module ActiveRecord
     # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
     # then the existing record will be marked for destruction.
     def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
-      options = nested_attributes_options[association_name]
+      options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
-      check_existing_record = (options[:update_only] || !attributes['id'].blank?)
 
-      if check_existing_record && (record = send(association_name)) &&
+      if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy])
+        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
-      elsif attributes['id']
-        existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
-        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-        self.send(association_name.to_s+'=', existing_record)
+      elsif attributes['id'].present?
+        raise_nested_attributes_record_not_found(association_name, attributes['id'])
 
       elsif !reject_new_record?(association_name, attributes)
         method = "build_#{association_name}"
@@ -338,7 +368,7 @@ module ActiveRecord
     #     { :id => '2', :_destroy => true }
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
-      options = nested_attributes_options[association_name]
+      options = self.nested_attributes_options[association_name]
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
@@ -349,16 +379,21 @@ module ActiveRecord
       end
 
       if attributes_collection.is_a? Hash
-        attributes_collection = attributes_collection.sort_by { |index, _| index.to_i }.map { |_, attributes| attributes }
+        keys = attributes_collection.keys
+        attributes_collection = if keys.include?('id') || keys.include?(:id)
+          Array.wrap(attributes_collection)
+        else
+          attributes_collection.sort_by { |i, _| i.to_i }.map { |_, attributes| attributes }
+        end
       end
 
-      association = send(association_name)
+      association = association(association_name)
 
       existing_records = if association.loaded?
-        association.to_a
+        association.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
-        attribute_ids.present? ? association.all(:conditions => {association.primary_key => attribute_ids}) : []
+        attribute_ids.empty? ? [] : association.scoped.where(association.klass.primary_key => attribute_ids)
       end
 
       attributes_collection.each do |attributes|
@@ -368,16 +403,31 @@ module ActiveRecord
           unless reject_new_record?(association_name, attributes)
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
-
         elsif existing_records.count == 0 #Existing record but not yet associated
           existing_record = self.class.reflect_on_association(association_name).klass.find(attributes['id'])
-          association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
-
+          if !call_reject_if(association_name, attributes)
+            association.send(:add_record_to_target_with_callbacks, existing_record) if !association.loaded?
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          association.send(:add_record_to_target_with_callbacks, existing_record) unless association.loaded?
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          unless association.loaded? || call_reject_if(association_name, attributes)
+            # Make sure we are operating on the actual object which is in the association's
+            # proxy_target array (either by finding it, or adding it if not found)
+            target_record = association.target.detect { |record| record == existing_record }
 
+            if target_record
+              existing_record = target_record
+            else
+              association.add_to_target(existing_record)
+            end
+
+          end
+
+          if !call_reject_if(association_name, attributes)
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+          end
+        else
+          raise_nested_attributes_record_not_found(association_name, attributes['id'])
         end
       end
     end
@@ -385,11 +435,8 @@ module ActiveRecord
     # Updates a record with the +attributes+ or marks it for destruction if
     # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
     def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
-      if has_destroy_flag?(attributes) && allow_destroy
-        record.mark_for_destruction
-      else
-        record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
-      end
+      record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
+      record.mark_for_destruction if has_destroy_flag?(attributes) && allow_destroy
     end
 
     # Determines if a hash contains a truthy _destroy key.
@@ -397,7 +444,7 @@ module ActiveRecord
       ConnectionAdapters::Column.value_to_boolean(hash['_destroy'])
     end
 
-    # Determines if a new record should be built by checking for
+    # Determines if a new record should be build by checking for
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
@@ -405,7 +452,7 @@ module ActiveRecord
     end
 
     def call_reject_if(association_name, attributes)
-      case callback = nested_attributes_options[association_name][:reject_if]
+      case callback = self.nested_attributes_options[association_name][:reject_if]
       when Symbol
         method(callback).arity == 0 ? send(callback) : send(callback, attributes)
       when Proc
@@ -413,5 +460,8 @@ module ActiveRecord
       end
     end
 
+    def raise_nested_attributes_record_not_found(association_name, record_id)
+      raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+    end
   end
 end

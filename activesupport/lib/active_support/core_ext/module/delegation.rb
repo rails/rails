@@ -113,7 +113,7 @@ class Module
       raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
     end
 
-    prefix = options[:prefix] && "#{options[:prefix] == true ? to : options[:prefix]}_"
+    prefix = options[:prefix] && "#{options[:prefix] == true ? to : options[:prefix]}_" || ''
 
     file, line = caller.first.split(':', 2)
     line = line.to_i

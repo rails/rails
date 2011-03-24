@@ -12,20 +12,24 @@ class FormTagHelperTest < ActionView::TestCase
     method = options[:method]
 
     txt =  %{<div style="margin:0;padding:0;display:inline">}
-    txt << %{<input name="_e" type="hidden" value="&#9731;" />}
-    txt << %{<input name="_method" type="hidden" value="#{method}" />} if method
+    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+    if (method && !['get','post'].include?(method.to_s))
+      txt << %{<input name="_method" type="hidden" value="#{method}" />}
+    end
     txt << %{</div>}
   end
 
   def form_text(action = "http://www.example.com", options = {})
-    remote, enctype, html_class, id = options.values_at(:remote, :enctype, :html_class, :id)
+    remote, enctype, html_class, id, method = options.values_at(:remote, :enctype, :html_class, :id, :method)
+
+    method = method.to_s == "get" ? "get" : "post"
 
     txt =  %{<form accept-charset="UTF-8" action="#{action}"}
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
     txt << %{ id="#{id}"} if id
-    txt << %{ method="post">}
+    txt << %{ method="#{method}">}
   end
 
   def whole_form(action = "http://www.example.com", options = {})
@@ -199,12 +203,6 @@ class FormTagHelperTest < ActionView::TestCase
     actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => "string"
     expected = %(<select id="places" name="places"><option value="">string</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
-  end
-
-  def test_select_tag_with_array_options
-    assert_deprecated /array/ do
-      select_tag "people", ["<option>david</option>"]
-    end
   end
 
   def test_text_area_tag_size_string
@@ -385,6 +383,57 @@ class FormTagHelperTest < ActionView::TestCase
       %(<input name="commit" data-disable-with="Saving..." data-confirm="Are you sure?" type="submit" value="Save" />),
       submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
     )
+  end
+
+  def test_button_tag
+    assert_dom_equal(
+      %(<button name="button" type="submit">Button</button>),
+      button_tag
+    )
+  end
+
+  def test_button_tag_with_submit_type
+    assert_dom_equal(
+      %(<button name="button" type="submit">Save</button>),
+      button_tag("Save", :type => "submit")
+    )
+  end
+
+  def test_button_tag_with_button_type
+    assert_dom_equal(
+      %(<button name="button" type="button">Button</button>),
+      button_tag("Button", :type => "button")
+    )
+  end
+
+  def test_button_tag_with_reset_type
+    assert_dom_equal(
+      %(<button name="button" type="reset">Reset</button>),
+      button_tag("Reset", :type => "reset")
+    )
+  end
+
+  def test_button_tag_with_disabled_option
+    assert_dom_equal(
+      %(<button name="button" type="reset" disabled="disabled">Reset</button>),
+      button_tag("Reset", :type => "reset", :disabled => true)
+    )
+  end
+
+  def test_button_tag_escape_content
+    assert_dom_equal(
+      %(<button name="button" type="reset" disabled="disabled">&lt;b&gt;Reset&lt;/b&gt;</button>),
+      button_tag("<b>Reset</b>", :type => "reset", :disabled => true)
+    )
+  end
+
+  def test_button_tag_with_block
+    assert_dom_equal('<button name="button" type="submit">Content</button>', button_tag { 'Content' })
+  end
+
+  def test_button_tag_with_block_and_options
+    output = button_tag(:name => 'temptation', :type => 'button') { content_tag(:strong, 'Do not press me') }
+    assert_dom_equal('<button name="temptation" type="button"><strong>Do not press me</strong></button>', output)
   end
 
   def test_image_submit_tag_with_confirmation

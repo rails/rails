@@ -27,7 +27,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     sleep 2
     @connection.verify!
     assert @connection.active?
- end
+  end
 
   private
 

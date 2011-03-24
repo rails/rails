@@ -1,3 +1,8 @@
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'yaml'
 
 YAML.add_builtin_type("omap") do |type, val|
@@ -8,21 +13,29 @@ module ActiveSupport
   # The order of iteration over hashes in Ruby 1.8 is undefined. For example, you do not know the
   # order in which +keys+ will return keys, or +each+ yield pairs. <tt>ActiveSupport::OrderedHash</tt>
   # implements a hash that preserves insertion order, as in Ruby 1.9:
-  #   
+  #
   #   oh = ActiveSupport::OrderedHash.new
   #   oh[:a] = 1
   #   oh[:b] = 2
   #   oh.keys # => [:a, :b], this order is guaranteed
-  #   
+  #
   # <tt>ActiveSupport::OrderedHash</tt> is namespaced to prevent conflicts with other implementations.
   class OrderedHash < ::Hash #:nodoc:
     def to_yaml_type
       "!tag:yaml.org,2002:omap"
     end
 
+    def encode_with(coder)
+      coder.represent_seq '!omap', map { |k,v| { k => v } }
+    end
+
     def to_yaml(opts = {})
+      if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
+        return super
+      end
+
       YAML.quick_emit(self, opts) do |out|
-        out.seq(taguri, to_yaml_style) do |seq|
+        out.seq(taguri) do |seq|
           each do |k, v|
             seq.add(k => v)
           end
@@ -79,7 +92,7 @@ module ActiveSupport
       end
 
       def []=(key, value)
-        @keys << key if !has_key?(key)
+        @keys << key unless has_key?(key)
         super
       end
 
@@ -124,18 +137,26 @@ module ActiveSupport
       end
 
       def each_key
+        return to_enum(:each_key) unless block_given?
         @keys.each { |key| yield key }
+        self
       end
 
       def each_value
+        return to_enum(:each_value) unless block_given?
         @keys.each { |key| yield self[key]}
+        self
       end
 
       def each
+        return to_enum(:each) unless block_given?
         @keys.each {|key| yield [key, self[key]]}
+        self
       end
 
       alias_method :each_pair, :each
+
+      alias_method :select, :find_all
 
       def clear
         super

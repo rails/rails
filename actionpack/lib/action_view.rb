@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2010 David Heinemeier Hansson
+# Copyright (c) 2004-2011 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,9 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-
 require 'active_support/ruby/shim'
 require 'active_support/core_ext/class/attribute_accessors'
 
@@ -33,34 +30,42 @@ module ActionView
   extend ActiveSupport::Autoload
 
   eager_autoload do
+    autoload :Base
     autoload :Context
-    autoload :Template
     autoload :Helpers
+    autoload :LookupContext
+    autoload :Partials
+    autoload :PathSet
+    autoload :Rendering
+    autoload :Template
+    autoload :TestCase
 
-    autoload_under "render" do
-      autoload :Layouts
-      autoload :Partials
-      autoload :Rendering
+    autoload_under "renderer" do
+      autoload :AbstractRenderer
+      autoload :PartialRenderer
+      autoload :TemplateRenderer
     end
 
-    autoload :Base
-    autoload :LookupContext
-    autoload :Resolver,           'action_view/template/resolver'
-    autoload :PathResolver,       'action_view/template/resolver'
-    autoload :FileSystemResolver, 'action_view/template/resolver'
-    autoload :PathSet,            'action_view/paths'
+    autoload_at "action_view/template/resolver" do
+      autoload :Resolver
+      autoload :PathResolver
+      autoload :FileSystemResolver
+      autoload :FallbackFileSystemResolver
+    end
 
-    autoload :MissingTemplate,    'action_view/template/error'
-    autoload :ActionViewError,    'action_view/template/error'
-    autoload :EncodingError,      'action_view/template/error'
-    autoload :TemplateError,      'action_view/template/error'
-    autoload :WrongEncodingError, 'action_view/template/error'
+    autoload_at "action_view/template/error" do
+      autoload :MissingTemplate
+      autoload :ActionViewError
+      autoload :EncodingError
+      autoload :TemplateError
+      autoload :WrongEncodingError
+    end
 
-    autoload :TemplateHandler,   'action_view/template'
-    autoload :TemplateHandlers,  'action_view/template'
+    autoload_at "action_view/template" do
+      autoload :TemplateHandler
+      autoload :TemplateHandlers
+    end
   end
-
-  autoload :TestCase, 'action_view/test_case'
 
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 end

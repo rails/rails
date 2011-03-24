@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'stringio'
 
-class CookieStoreTest < ActionController::IntegrationTest
+class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
@@ -53,18 +53,6 @@ class CookieStoreTest < ActionController::IntegrationTest
     def rescue_action(e) raise end
   end
 
-  def test_raises_argument_error_if_missing_session_key
-    assert_raise(ArgumentError, nil.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-        :key => nil, :secret => SessionSecret)
-    }
-
-    assert_raise(ArgumentError, ''.inspect) {
-      ActionDispatch::Session::CookieStore.new(nil,
-        :key => '', :secret => SessionSecret)
-    }
-  end
-
   def test_setting_session_value
     with_test_route_set do
       get '/set_session_value'
@@ -106,6 +94,23 @@ class CookieStoreTest < ActionController::IntegrationTest
     end
   end
 
+  def test_does_not_set_secure_cookies_over_http
+    with_test_route_set(:secure => true) do
+      get '/set_session_value'
+      assert_response :success
+      assert_equal nil, headers['Set-Cookie']
+    end
+  end
+
+  def test_does_set_secure_cookies_over_https
+    with_test_route_set(:secure => true) do
+      get '/set_session_value', nil, 'HTTPS' => 'on'
+      assert_response :success
+      assert_equal "_myapp_session=#{response.body}; path=/; secure; HttpOnly",
+        headers['Set-Cookie']
+    end
+  end
+
   # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}
   SignedSerializedCookie = "BAh7BzoIZm9vbzodU2Vzc2lvbkF1dG9sb2FkVGVzdDo6Rm9vBjoJQGJhciIIYmF6Og9zZXNzaW9uX2lkIiVjZThiMDc1MmE2YWI3YzdhZjNjZGI4YTgwZTZiOWU0Ng==--2bf3af1ae8bd4e52b9ac2099258ace0c380e601c"
 
@@ -118,11 +123,11 @@ class CookieStoreTest < ActionController::IntegrationTest
         assert_equal 'id: ce8b0752a6ab7c7af3cdb8a80e6b9e46', response.body, "should auto-load unloaded class"
       end
     end
-  end  
-  
+  end
+
   def test_deserializes_unloaded_classes_on_get_value
     with_test_route_set do
-      with_autoload_path "session_autoload_test" do 
+      with_autoload_path "session_autoload_test" do
         cookies[SessionKey] = SignedSerializedCookie
         get '/get_session_value'
         assert_response :success
@@ -189,7 +194,6 @@ class CookieStoreTest < ActionController::IntegrationTest
     with_test_route_set do
       get '/set_session_value'
       assert_response :success
-      session_payload = response.body
       assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
         headers['Set-Cookie']
 
@@ -262,12 +266,12 @@ class CookieStoreTest < ActionController::IntegrationTest
   def test_session_store_with_explicit_domain
     with_test_route_set(:domain => "example.es") do
       get '/set_session_value'
-      assert_match /domain=example\.es/, headers['Set-Cookie']
+      assert_match(/domain=example\.es/, headers['Set-Cookie'])
       headers['Set-Cookie']
     end
   end
 
-  def test_session_store_without_domain 
+  def test_session_store_without_domain
     with_test_route_set do
       get '/set_session_value'
       assert_no_match(/domain\=/, headers['Set-Cookie'])
@@ -298,7 +302,7 @@ class CookieStoreTest < ActionController::IntegrationTest
 
     def with_test_route_set(options = {})
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::CookieStoreTest::TestController
         end
 

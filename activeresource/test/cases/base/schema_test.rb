@@ -8,57 +8,12 @@ require "fixtures/street_address"
 ########################################################################
 class SchemaTest < ActiveModel::TestCase
   def setup
-    @matz  = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
-    @david = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
-    @greg  = { :id => 3, :name => 'Greg' }.to_xml(:root => 'person')
-    @addy  = { :id => 1, :street => '12345 Street', :country => 'Australia' }.to_xml(:root => 'address')
-    @default_request_headers = { 'Content-Type' => 'application/xml' }
-    @rick = { :name => "Rick", :age => 25 }.to_xml(:root => "person")
-    @people = [{ :id => 1, :name => 'Matz' }, { :id => 2, :name => 'David' }].to_xml(:root => 'people')
-    @people_david = [{ :id => 2, :name => 'David' }].to_xml(:root => 'people')
-    @addresses = [{ :id => 1, :street => '12345 Street', :country => 'Australia' }].to_xml(:root => 'addresses')
-
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/1.xml",                {}, @matz
-      mock.get    "/people/2.xml",                {}, @david
-      mock.get    "/people/Greg.xml",             {}, @greg
-      mock.get    "/people/4.xml",                {'key' => 'value'}, nil, 404
-      mock.get    "/people/5.xml",                {}, @rick
-      mock.put    "/people/1.xml",                {}, nil, 204
-      mock.delete "/people/1.xml",                {}, nil, 200
-      mock.delete "/people/2.xml",                {}, nil, 400
-      mock.get    "/people/99.xml",               {}, nil, 404
-      mock.post   "/people.xml",                  {}, @rick, 201, 'Location' => '/people/5.xml'
-      mock.get    "/people.xml",                  {}, @people
-      mock.get    "/people/1/addresses.xml",      {}, @addresses
-      mock.get    "/people/1/addresses/1.xml",    {}, @addy
-      mock.get    "/people/1/addresses/2.xml",    {}, nil, 404
-      mock.get    "/people/2/addresses/1.xml",    {}, nil, 404
-      mock.get    "/people/Greg/addresses/1.xml", {}, @addy
-      mock.put    "/people/1/addresses/1.xml",    {}, nil, 204
-      mock.delete "/people/1/addresses/1.xml",    {}, nil, 200
-      mock.post   "/people/1/addresses.xml",      {}, nil, 201, 'Location' => '/people/1/addresses/5'
-      mock.get    "/people//addresses.xml",       {}, nil, 404
-      mock.get    "/people//addresses/1.xml",     {}, nil, 404
-      mock.put    "/people//addressaddresseses/1.xml",     {}, nil, 404
-      mock.delete "/people//addresses/1.xml",     {}, nil, 404
-      mock.post   "/people//addresses.xml",       {}, nil, 404
-      mock.head   "/people/1.xml",                {}, nil, 200
-      mock.head   "/people/Greg.xml",             {}, nil, 200
-      mock.head   "/people/99.xml",               {}, nil, 404
-      mock.head   "/people/1/addresses/1.xml",    {}, nil, 200
-      mock.head   "/people/1/addresses/2.xml",    {}, nil, 404
-      mock.head   "/people/2/addresses/1.xml",    {}, nil, 404
-      mock.head   "/people/Greg/addresses/1.xml", {}, nil, 200
-    end
-
-    Person.user = nil
-    Person.password = nil
+    setup_response # find me in abstract_unit
   end
+
   def teardown
     Person.schema = nil # hack to stop test bleedthrough...
   end
-
 
   #####################################################
   # Passing in a schema directly and returning it
@@ -78,14 +33,23 @@ class SchemaTest < ActiveModel::TestCase
   end
 
   test "schema should accept a simple hash" do
-    new_schema = {'age' => 'integer', 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
 
     assert_nothing_raised { Person.schema = new_schema }
     assert_equal new_schema, Person.schema
   end
 
   test "schema should accept a hash with simple values" do
-    new_schema = {'age' => 'integer', 'name' => 'string', 'height' => 'float', 'mydatetime' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     assert_nothing_raised { Person.schema = new_schema }
     assert_equal new_schema, Person.schema
@@ -109,7 +73,12 @@ class SchemaTest < ActiveModel::TestCase
   end
 
   test "schema should accept nil and remove the schema" do
-    new_schema = {'age' => 'integer', 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
     assert_nothing_raised { Person.schema = new_schema }
     assert_equal new_schema, Person.schema # sanity check
 
@@ -120,7 +89,12 @@ class SchemaTest < ActiveModel::TestCase
 
 
   test "schema should be with indifferent access" do
-    new_schema = {:age => :integer, 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
     new_schema_syms = new_schema.keys
 
     assert_nothing_raised { Person.schema = new_schema }
@@ -156,7 +130,12 @@ class SchemaTest < ActiveModel::TestCase
 
   test "defining a schema should return it when asked" do
     assert Person.schema.blank?, "should have a blank class schema"
-    new_schema = {'name' => 'string', 'age' => 'integer', 'height' => 'float', 'weight' => 'float'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
+
     assert_nothing_raised {
       Person.schema = new_schema
       assert_equal new_schema, Person.schema, "should have saved the schema on the class"
@@ -167,7 +146,11 @@ class SchemaTest < ActiveModel::TestCase
   test "defining a schema, then fetching a model should still match the defined schema" do
     # sanity checks
     assert Person.schema.blank?, "should have a blank class schema"
-    new_schema = {'name' => 'string', 'age' => 'integer', 'height' => 'float', 'weight' => 'float'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     matz = Person.find(1)
     assert !matz.schema.blank?, "should have some sort of schema on an instance variable"
@@ -368,12 +351,16 @@ class SchemaTest < ActiveModel::TestCase
   end
 
   test "setting schema should set known attributes on class and instance" do
-    new_schema = {'age' => 'integer', 'name' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     assert_nothing_raised { Person.schema = new_schema }
 
-    assert_equal new_schema.keys, Person.known_attributes
-    assert_equal new_schema.keys, Person.new.known_attributes
+    assert_equal new_schema.keys.sort, Person.known_attributes.sort
+    assert_equal new_schema.keys.sort, Person.new.known_attributes.sort
   end
 
   test "known attributes on a fetched resource should return all the attributes of the instance" do
@@ -399,9 +386,13 @@ class SchemaTest < ActiveModel::TestCase
     assert_not_equal matz.known_attributes, rick.known_attributes, "should have had different known attributes too"
   end
 
-  test "setting schema then fetching should add schema attributes to the intance attributes" do
+  test "setting schema then fetching should add schema attributes to the instance attributes" do
     # an attribute in common with fetched instance and one that isn't
-    new_schema = {'name' => 'string', 'my_strange_attribute' => 'string'}
+    new_schema = {'age' => 'integer', 'name' => 'string',
+      'height' => 'float', 'bio' => 'text',
+      'weight' => 'decimal', 'photo' => 'binary',
+      'alive' => 'boolean', 'created_at' => 'timestamp',
+      'thetime' => 'time', 'thedate' => 'date', 'mydatetime' => 'datetime'}
 
     assert_nothing_raised { Person.schema = new_schema }
 

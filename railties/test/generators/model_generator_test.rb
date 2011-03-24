@@ -11,6 +11,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_match /TestUnit options:/, content
   end
 
+  def test_model_with_missing_attribute_type
+    content = capture(:stderr) { run_generator ["post", "title:string", "body"] }
+    assert_match /Missing type for attribute 'body'/, content
+    assert_match /Example: 'body:string' where string is the type/, content
+  end
+
   def test_invokes_default_orm
     run_generator
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
@@ -93,14 +99,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["product", "name:string", "supplier_id:integer"]
 
     assert_migration "db/migrate/create_products.rb" do |m|
-      assert_class_method :up, m do |up|
+      assert_method :change, m do |up|
         assert_match /create_table :products/, up
         assert_match /t\.string :name/, up
         assert_match /t\.integer :supplier_id/, up
-      end
-
-      assert_class_method :down, m do |down|
-        assert_match /drop_table :products/, down
       end
     end
   end
@@ -135,16 +137,28 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "--no-timestamps"]
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_class_method :up, m do |up|
+      assert_method :change, m do |up|
         assert_no_match /t.timestamps/, up
       end
     end
   end
 
-  def test_migration_already_exists_error_message
+  def test_migration_is_skipped_with_skip_option
     run_generator
-    error = capture(:stderr){ run_generator ["Account"], :behavior => :skip }
-    assert_match /Another migration is already named create_accounts/, error
+    output = run_generator ["Account", "--skip"]
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+  end
+
+  def test_migration_is_ignored_as_identical_with_skip_option
+    run_generator ["Account"]
+    output = run_generator ["Account", "--skip"]
+    assert_match %r{identical\s+db/migrate/\d+_create_accounts.rb}, output
+  end
+
+  def test_migration_is_skipped_on_skip_behavior
+    run_generator
+    output = run_generator ["Account"], :behavior => :skip
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke
@@ -157,6 +171,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     run_generator ["Account"], :behavior => :revoke
     assert_no_migration "db/migrate/create_accounts.rb"
+  end
+
+  def test_existing_migration_is_removed_on_force
+    run_generator
+    old_migration = Dir["#{destination_root}/db/migrate/*_create_accounts.rb"].first
+    error = capture(:stderr) { run_generator ["Account", "--force"] }
+    assert_no_match /Another migration is already named create_accounts/, error
+    assert_no_file old_migration
+    assert_migration 'db/migrate/create_accounts.rb'
   end
 
   def test_invokes_default_test_framework
@@ -180,4 +203,45 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     content = capture(:stderr){ run_generator ["object"] }
     assert_match /The name 'Object' is either already used in your application or reserved/, content
   end
+
+  def test_index_is_added_for_belongs_to_association
+    run_generator ["account", "supplier:belongs_to"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match /add_index/, up
+      end
+    end
+  end
+
+  def test_index_is_added_for_references_association
+    run_generator ["account", "supplier:references"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match /add_index/, up
+      end
+    end
+  end
+
+  def test_index_is_skipped_for_belongs_to_association
+    run_generator ["account", "supplier:belongs_to", "--no-indexes"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match /add_index/, up
+      end
+    end
+  end
+
+  def test_index_is_skipped_for_references_association
+    run_generator ["account", "supplier:references", "--no-indexes"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match /add_index/, up
+      end
+    end
+  end
+
 end

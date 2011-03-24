@@ -110,7 +110,7 @@ Active Resource provides a framework for managing the connection between busines
 
 h5. Active Support
 
-Active Support is an extensive collection of utility classes and standard Ruby library extensions that are used in the Rails, both by the core code and by your applications.
+Active Support is an extensive collection of utility classes and standard Ruby library extensions that are used in Rails, both by the core code and by your applications.
 
 h5. Railties
 
@@ -149,13 +149,11 @@ Usually run this as the root user:
 # gem install rails
 </shell>
 
-NOTE. In the Rails 3.0.0-beta, you will need to manually install the dependencies for Rails itself as a bug in rubygems will cause these to not be installed, see the "3.0 Release Notes":3_0_release_notes.html for the commands to run.
-
-TIP. If you're working on Windows, you may find it easier to install "Instant Rails":http://instantrails.rubyforge.org/wiki/wiki.pl. Be aware, though, that Instant Rails releases tend to lag seriously behind the actual Rails version. Also, you will find that Rails development on Windows is overall less pleasant than on other operating systems. If at all possible, we suggest that you install a Linux virtual machine and use that for Rails development, instead of using Windows.
+TIP. If you're working on Windows, you can quickly install Ruby and Rails with "Rails Installer":http://railsinstaller.org.
 
 h4. Creating the Blog Application
 
-The best way to use this guide is to follow each step as it happens, no code or step needed to make this example application has been left out, so you can literally follow along step by step.  If you need to see the completed code, you can download it from "Getting Started Code":http://github.com/mikel/getting-started-code.
+The best way to use this guide is to follow each step as it happens, no code or step needed to make this example application has been left out, so you can literally follow along step by step.  If you need to see the completed code, you can download it from "Getting Started Code":https://github.com/mikel/getting-started-code.
 
 To begin, open a terminal, navigate to a folder where you have rights to create files, and type:
 
@@ -165,7 +163,7 @@ $ rails new blog
 
 This will create a Rails application called Blog in a directory called blog.
 
-TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails -h</tt>.
+TIP: You can see all of the switches that the Rails application builder accepts by running <tt>rails new -h</tt>.
 
 After you create the blog application, switch to its folder to continue work directly in that application:
 
@@ -177,7 +175,7 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 
 |_.File/Folder|_.Purpose|
 |Gemfile|This file allows you to specify what gem dependencies are needed for your Rails application.|
-|README.rdoc|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
+|README|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
 |Rakefile|This file contains batch jobs that can be run from the terminal.|
 |app/|Contains the controllers, models, and views for your application. You'll focus on this folder for the remainder of this guide.|
 |config/|Configure your application's runtime rules, routes, database, and more.|
@@ -186,7 +184,7 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 |doc/|In-depth documentation for your application.|
 |lib/|Extended modules for your application (not covered in this guide).|
 |log/|Application log files.|
-|public/|The only folder seen to the world as-is.  This is where your images, javascript, stylesheets (CSS), and other static files go.|
+|public/|The only folder seen to the world as-is.  This is where your images, JavaScript files, stylesheets (CSS), and other static files go.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
@@ -194,15 +192,13 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 
 h4. Installing the Required Gems
 
-Rails uses the "Bundler":http://www.github.com/carlhuda/bundler gem to populate the +vendor+ directory with all the gems your application depends on.  As we don't need any special gems beyond the default, we just need to do the following:
+Rails applications manage gem dependencies with "Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any other gems beyond the ones in the generated +Gemfile+ we can directly run
 
 <shell>
-As the root user:
-# gem install bundler
-# bundle install
+$ bundle install
 </shell>
 
-This will copy down the versions of all the gems you need to start a rails application.
+to have them ready.
 
 h4. Configuring a Database
 
@@ -231,11 +227,11 @@ NOTE: In this guide we are using an SQLite3 database for data storage, because i
 
 h5. Configuring a MySQL Database
 
-If you choose to use MySQL instead of the shipped Sqlite3 database, your +config/database.yml+ will look a little different. Here's the development section:
+If you choose to use MySQL instead of the shipped SQLite3 database, your +config/database.yml+ will look a little different. Here's the development section:
 
 <yaml>
 development:
-  adapter: mysql
+  adapter: mysql2
   encoding: utf8
   database: blog_development
   pool: 5
@@ -262,6 +258,8 @@ development:
 
 Change the username and password in the +development+ section as appropriate.
 
+TIP: You don't have to update the database configurations manually. If you had a look at the options of application generator, you have seen that one of them is named <tt>--database</tt>. It lets you choose an adapter for couple of most used relational databases. You can even run the generator repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting of the +config/database.yml+ file, your application will be configured for MySQL instead of SQLite.
+
 h4. Creating the Database
 
 Now that you have your database configured, it's time to have Rails create an empty database for you. You can do this by running a rake command:
@@ -276,7 +274,7 @@ TIP: Rake is a general-purpose command-runner that Rails uses for many things. Y
 
 h3. Hello, Rails!
 
-One of the traditional places to start with a new language is by getting some text up on screen quickly, to do this, you need to get your Rails application server running.
+One of the traditional places to start with a new language is by getting some text up on screen quickly. To do this, you need to get your Rails application server running.
 
 h4. Starting up the Web Server
 
@@ -286,7 +284,7 @@ You actually have a functional Rails application already. To see it, you need to
 $ rails server
 </shell>
 
-This will fire up an instance of the Mongrel web server by default (Rails can also use several other web servers). To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
+This will fire up an instance of the WEBrick web server by default (Rails can also use several other web servers). To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see Rails' default information page:
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
@@ -302,7 +300,7 @@ To get Rails saying "Hello", you need to create at minimum a controller and a vi
 $ rails generate controller home index
 </shell>
 
-TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +rails+ commands to Ruby: +ruby \path\to\rails controller home index+.
+TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion, you may need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby \path\to\your\application\script\rails generate controller home index</tt>.
 
 Rails will create several files for you, including +app/views/home/index.html.erb+. This is the template that will be used to display the results of the +index+ action (method) in the +home+ controller. Open this file in your text editor and edit it to contain a single line of code:
 
@@ -320,9 +318,9 @@ The first step to doing this is to delete the default page from your application
 $ rm public/index.html
 </shell>
 
-We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic contact we generate from the controllers.
+We need to do this as Rails will deliver any static file in the +public+ directory in preference to any dynamic content we generate from the controllers.
 
-Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +:root to+, uncomment it and change it like the following:
+Now, you have to tell Rails where your actual home page is located. Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+, uncomment it and change it like the following:
 
 <ruby>
 Blog::Application.routes.draw do
@@ -351,12 +349,12 @@ In the case of the blog application, you can start by generating a scaffolded Po
 $ rails generate scaffold Post name:string title:string content:text
 </shell>
 
-NOTE. While scaffolding will get you up and running quickly, the "one size fits all" code that it generates is unlikely to be a perfect fit for your application. In most cases, you'll need to customize the generated code. Many experienced Rails developers avoid scaffolding entirely, preferring to write all or most of their source code from scratch.
+NOTE. While scaffolding will get you up and running quickly, the code it generates is unlikely to be a perfect fit for your application. You'll most probably want to customize the generated code. Many experienced Rails developers avoid scaffolding entirely, preferring to write all or most of their source code from scratch. Rails, however, makes it really simple to customize templates for generated models, controllers, views and other source files. You'll find more information in the "Creating and Customizing Rails Generators & Templates":generators.html guide.
 
 The scaffold generator will build 15 files in your application, along with some folders, and edit one more. Here's a quick overview of what it creates:
 
 |_.File                                       |_.Purpose|
-|db/migrate/20100207214725_create_posts.rb.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
+|db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/models/post.rb                           |The Post model|
 |test/fixtures/posts.yml                      |Dummy posts for use in testing|
 |app/controllers/posts_controller.rb          |The Posts controller|
@@ -413,7 +411,7 @@ Rails will execute this migration command and tell you it created the Posts tabl
 ==  CreatePosts: migrated (0.0020s) ===========================================
 </shell>
 
-NOTE. Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file.
+NOTE. Because you're working in the development environment by default, this command will apply to the database defined in the +development+ section of your +config/database.yml+ file. If you would like to execute migrations in other environment, for instance in production, you must explicitly pass it when invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
 h4. Adding a Link
 
@@ -471,28 +469,32 @@ To see your validations in action, you can use the console. The console is a com
 $ rails console
 </shell>
 
+TIP: The default console will make changes to your database. You can instead open a console that will roll back any changes you make by using +rails console --sandbox+.
+
 After the console loads, you can use it to work with your application's models:
 
 <shell>
 >> p = Post.new(:content => "A new post")
-=> #<Post id: nil, name: nil, title: nil, 
+=> #<Post id: nil, name: nil, title: nil,
      content: "A new post", created_at: nil,
      updated_at: nil>
 >> p.save
 => false
 >> p.errors
-=> #<OrderedHash { :title=>["can't be blank", 
+=> #<OrderedHash { :title=>["can't be blank",
                            "is too short (minimum is 5 characters)"],
                    :name=>["can't be blank"] }>
 </shell>
 
 This code shows creating a new +Post+ instance, attempting to save it and getting +false+ for a return value (indicating that the save failed), and inspecting the +errors+ of the post.
 
+When you're finished, type +exit+ and hit +return+ to exit the console.
+
 TIP: Unlike the development web server, the console does not automatically load your code afresh for each line. If you make changes to your models while the console is open, type +reload!+ at the console prompt to load them.
 
 h4. Listing All Posts
 
-The easiest place to start looking at functionality is with the code that lists all posts. Open the file +app/controllers/posts_controller.rb + and look at the +index+ action:
+The easiest place to start looking at functionality is with the code that lists all posts. Open the file +app/controllers/posts_controller.rb+ and look at the +index+ action:
 
 <ruby>
 def index
@@ -505,7 +507,7 @@ def index
 end
 </ruby>
 
-+Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array containing the posts which has been saved in an instance variable called +@posts+.
++Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array of posts that we store in a instance variable called +@posts+.
 
 TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 
@@ -552,7 +554,7 @@ TIP: For more details on the rendering process, see "Layouts and Rendering in Ra
 
 h4. Customizing the Layout
 
-The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. In previous versions of Rails, the +rails generate scaffold+ command would automatically create a controller specific layout, like +app/views/layouts/posts.html.erb+, for the posts controller. However this has been changed in Rails 3.0. A application specific +layout+ is used for all the controllers and can be found in +app/views/layouts/application.html.erb+. Open this layout in your editor and modify the +body+ tag:
+The view is only part of the story of how HTML is displayed in your web browser. Rails also has the concept of +layouts+, which are containers for views. When Rails renders a view to the browser, it does so by putting the view's HTML into a layout's HTML. In previous versions of Rails, the +rails generate scaffold+ command would automatically create a controller specific layout, like +app/views/layouts/posts.html.erb+, for the posts controller. However this has been changed in Rails 3.0. An application specific +layout+ is used for all the controllers and can be found in +app/views/layouts/application.html.erb+. Open this layout in your editor and modify the +body+ tag:
 
 <erb>
 <!DOCTYPE html>
@@ -561,7 +563,7 @@ The view is only part of the story of how HTML is displayed in your web browser.
   <title>Blog</title>
   <%= stylesheet_link_tag :all %>
   <%= javascript_include_tag :defaults %>
-  <%= csrf_meta_tag %>
+  <%= csrf_meta_tags %>
 </head>
 <body style="background: #EEEEEE;">
 
@@ -668,7 +670,7 @@ The +create+ action instantiates a new Post object from the data supplied by the
 
 If the post was not successfully saved, due to a validation error, then the controller returns the user back to the +new+ action with any error messages so that the user has the chance to fix the error and try again.
 
-The "Post was successfully created" message is stored inside of the Rails +flash+ hash, (usually just called the Flash) so that messages can be carried over to another action, providing the user with useful information on the status of their request. In the case of +create+, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon Rails saves the record. The Flash carries over a message to the next action, so that when the user is redirected back to the +show+ action, they are presented with a message saying "Post was successfully created."
+The "Post was successfully created." message is stored inside of the Rails +flash+ hash, (usually just called _the flash_) so that messages can be carried over to another action, providing the user with useful information on the status of their request. In the case of +create+, the user never actually sees any page rendered during the Post creation process, because it immediately redirects to the new Post as soon Rails saves the record. The Flash carries over a message to the next action, so that when the user is redirected back to the +show+ action, they are presented with a message saying "Post was successfully created."
 
 h4. Showing an Individual Post
 
@@ -729,7 +731,6 @@ After finding the requested post, Rails uses the +edit.html.erb+ view to display
 
 <%= link_to 'Show', @post %> |
 <%= link_to 'Back', posts_path %>
-<% end %>
 </erb>
 
 Again, as with the +new+ action, the +edit+ action is using the +form+ partial, this time however, the form will do a PUT action to the PostsController and the submit button will display "Update Post"
@@ -742,7 +743,7 @@ def update
 
   respond_to do |format|
     if @post.update_attributes(params[:post])
-      format.html { redirect_to(@post, 
+      format.html { redirect_to(@post,
                     :notice => 'Post was successfully updated.') }
       format.xml  { head :ok }
     else
@@ -814,6 +815,8 @@ class CreateComments < ActiveRecord::Migration
 
       t.timestamps
     end
+
+    add_index :comments, :post_id
   end
 
   def self.down
@@ -822,7 +825,7 @@ class CreateComments < ActiveRecord::Migration
 end
 </ruby>
 
-The +t.references+ line sets up a foreign key column for the association between the two models. Go ahead and run the migration:
+The +t.references+ line sets up a foreign key column for the association between the two models. And the +add_index+ line sets up an index for this association column. Go ahead and run the migration:
 
 <shell>
 $ rake db:migrate
@@ -922,8 +925,6 @@ So first, we'll wire up the Post show template (+/app/views/posts/show.html.erb+
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
@@ -992,8 +993,6 @@ Once we have made the new comment, we send the user back to the original post us
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
@@ -1015,7 +1014,7 @@ Once we have made the new comment, we send the user back to the original post us
 
 Now you can add posts and comments to your blog and have them show up in the right places.
 
-h3. Refactorization
+h3. Refactoring
 
 Now that we have Posts and Comments working, if we take a look at the +app/views/posts/show.html.erb+ template, it's getting long and awkward. We can use partials to clean this up.
 
@@ -1056,13 +1055,10 @@ Then in the +app/views/posts/show.html.erb+ you can change it to look like the f
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment", 
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
@@ -1090,8 +1086,6 @@ Lets also move that new comment section out to it's own partial, again, you crea
 
 <erb>
 <%= form_for([@post, @post.comments.build]) do |f| %>
-  <%= f.error_messages %>
-
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
@@ -1127,8 +1121,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment", 
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
@@ -1139,7 +1132,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 <%= link_to 'Back to Posts', posts_path %> |
 </erb>
 
-The second render just defines the partial template we want to render, <tt>comments/form</tt>, Rails is smart enough to spot the forward slash in that string and realise that you want to render the <tt>_form.html.erb</tt> file in the <tt>app/views/comments</tt> directory.
+The second render just defines the partial template we want to render, <tt>comments/form</tt>, Rails is smart enough to spot the forward slash in that string and realize that you want to render the <tt>_form.html.erb</tt> file in the <tt>app/views/comments</tt> directory.
 
 The +@post+ object is available to any partials rendered in the view because we defined it as an instance variable.
 
@@ -1213,15 +1206,15 @@ Rails provides a very simple HTTP authentication system that will work nicely in
 <ruby>
 class ApplicationController < ActionController::Base
   protect_from_forgery
-  
+
   private
-  
+
   def authenticate
     authenticate_or_request_with_http_basic do |user_name, password|
       user_name == 'admin' && password == 'password'
     end
   end
-  
+
 end
 </ruby>
 
@@ -1277,7 +1270,7 @@ Again, run the migration to create the database table:
 $ rake db:migrate
 </shell>
 
-Next, edit the +post.rb+ file to create the other side of the association, and to tell Rails (via the +accepts_nested_attributes+ macro) that you intend to edit tags via posts:
+Next, edit the +post.rb+ file to create the other side of the association, and to tell Rails (via the +accepts_nested_attributes_for+ macro) that you intend to edit tags via posts:
 
 <ruby>
 class Post < ActiveRecord::Base
@@ -1381,8 +1374,7 @@ Finally, we will edit the <tt>app/views/posts/show.html.erb</tt> template to sho
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment", 
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
@@ -1405,7 +1397,7 @@ Open up <tt>app/helpers/posts_helper.rb</tt> and add the following:
 <erb>
 module PostsHelper
   def join_tags(post)
-    post.tags.map { |t| t.name }.join(", ") 
+    post.tags.map { |t| t.name }.join(", ")
   end
 end
 </erb>
@@ -1436,8 +1428,7 @@ Now you can edit the view in <tt>app/views/posts/show.html.erb</tt> to look like
 </p>
 
 <h2>Comments</h2>
-<%= render :partial => "comments/comment", 
-           :collection => @post.comments %>
+<%= render @post.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
@@ -1451,7 +1442,8 @@ h3. What's Next?
 
 Now that you've seen your first Rails application, you should feel free to update it and experiment on your own. But you don't have to do everything without help. As you need assistance getting up and running with Rails, feel free to consult these support resources:
 
-* The "Ruby On Rails guides":index.html
+* The "Ruby on Rails guides":index.html
+* The "Ruby on Rails Tutorial":http://railstutorial.org/book
 * The "Ruby on Rails mailing list":http://groups.google.com/group/rubyonrails-talk
 * The "#rubyonrails":irc://irc.freenode.net/#rubyonrails channel on irc.freenode.net
 * The "Rails Wiki":http://wiki.rubyonrails.org/
@@ -1483,8 +1475,7 @@ Two very common sources of data that are not UTF-8:
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/2
-
+* August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
 * May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com

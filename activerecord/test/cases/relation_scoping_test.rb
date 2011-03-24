@@ -152,7 +152,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     Developer.where('salary = 80000').scoping do
       Developer.limit(10).scoping do
         devs = Developer.scoped
-        assert_equal '(salary = 80000)', devs.arel.send(:where_clauses).join(' AND ')
+        assert_match '(salary = 80000)', devs.arel.to_sql
         assert_equal 10, devs.taken
       end
     end
@@ -161,7 +161,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_merge_inner_scope_has_priority
     Developer.limit(5).scoping do
       Developer.limit(10).scoping do
-        assert_equal 10, Developer.count
+        assert_equal 10, Developer.all.size
       end
     end
   end
@@ -209,7 +209,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_nested_exclusive_scope_for_create
     comment = Comment.create_with(:body => "Hey guys, nested scopes are broken. Please fix!").scoping do
       Comment.unscoped.create_with(:post_id => 1).scoping do
-        assert Comment.new.body.blank?
+        assert_blank Comment.new.body
         Comment.create :body => "Hey guys"
       end
     end
@@ -254,14 +254,13 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 
   def test_should_maintain_default_scope_on_associations
-    person = people(:michael)
     magician = BadReference.find(1)
     assert_equal [magician], people(:michael).bad_references
   end
 
   def test_should_default_scope_on_associations_is_overriden_by_association_conditions
-    person = people(:michael)
-    assert_equal [], people(:michael).fixed_bad_references
+    reference = references(:michael_unicyclist).becomes(BadReference)
+    assert_equal [reference], people(:michael).fixed_bad_references
   end
 
   def test_should_maintain_default_scope_on_eager_loaded_associations
@@ -311,6 +310,35 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_default_scope_with_lambda
+    expected = Post.find_all_by_author_id(2)
+    PostForAuthor.selected_author = 2
+    received = PostForAuthor.all
+    assert_equal expected, received
+    expected = Post.find_all_by_author_id(1)
+    PostForAuthor.selected_author = 1
+    received = PostForAuthor.all
+    assert_equal expected, received
+  end
+
+  def test_default_scope_with_thing_that_responds_to_call
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'posts'
+    end
+
+    klass.class_eval do
+      default_scope Class.new(Struct.new(:klass)) {
+        def call
+          klass.where(:author_id => 2)
+        end
+      }.new(self)
+    end
+
+    records = klass.all
+    assert_equal 3, records.length
+    assert_equal 2, records.first.author_id
+  end
+
   def test_default_scope_is_unscoped_on_find
     assert_equal 1, DeveloperCalledDavid.count
     assert_equal 11, DeveloperCalledDavid.unscoped.count
@@ -339,7 +367,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_default_scoping_with_inheritance
     # Inherit a class having a default scope and define a new default scope
     klass = Class.new(DeveloperOrderedBySalary)
-    klass.send :default_scope, :limit => 1 
+    klass.send :default_scope, :limit => 1
 
     # Scopes added on children should append to parent scope
     assert_equal 1,               klass.scoped.limit_value
@@ -363,29 +391,47 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal "David", klass.first.name
     assert_equal 100000,  klass.first.salary
   end
+
+  def test_default_scope_called_twice_in_different_place_merges_where_clause
+    Developer.destroy_all
+    Developer.create!(:name => "David", :salary => 80000)
+    Developer.create!(:name => "David", :salary => 100000)
+    Developer.create!(:name => "Brian", :salary => 100000)
+
+    klass = Class.new(Developer)
+    klass.class_eval do
+      default_scope where("name = 'David'")
+      default_scope where("salary = 100000")
+    end
+
+    assert_equal 1,       klass.count
+    assert_equal "David", klass.first.name
+    assert_equal 100000,  klass.first.salary
+  end
+
   def test_method_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
   def test_nested_scope
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.salary }
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
       DeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
     end
     assert_equal expected, received
   end
 
-  def test_named_scope_overwrites_default
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
+  def test_scope_overwrites_default
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
     assert_equal expected, received
   end
 
-  def test_named_scope_reorders_default
-    expected = Developer.find(:all, :order => 'name DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.reordered_by_name.find(:all).collect { |dev| dev.name }
+  def test_except_and_order_overrides_default_scope_order
+    expected = Developer.order('name DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.except(:order).order('name DESC').collect { |dev| dev.name }
     assert_equal expected, received
   end
 
@@ -397,8 +443,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_overwriting_default_scope
-    expected = Developer.find(:all, :order => 'salary').collect { |dev| dev.salary }
+  def test_order_in_default_scope_should_prevail
+    expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
     assert_equal expected, received
   end
@@ -413,9 +459,48 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 'David', PoorDeveloperCalledJamis.create!(:name => 'David').name
     assert_equal 200000, PoorDeveloperCalledJamis.create!(:name => 'David', :salary => 200000).salary
   end
- 
+
   def test_create_attribute_overwrites_default_values
     assert_equal nil, PoorDeveloperCalledJamis.create!(:salary => nil).salary
     assert_equal 50000, PoorDeveloperCalledJamis.create!(:name => 'David').salary
+  end
+
+  def test_default_scope_attribute
+    jamis = PoorDeveloperCalledJamis.new(:name => 'David')
+    assert_equal 50000, jamis.salary
+  end
+
+  def test_where_attribute
+    aaron = PoorDeveloperCalledJamis.where(:salary => 20).new(:name => 'Aaron')
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_where_attribute_merge
+    aaron = PoorDeveloperCalledJamis.where(:name => 'foo').new(:name => 'Aaron')
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_scope_composed_by_limit_and_then_offset_is_equal_to_scope_composed_by_offset_and_then_limit
+    posts_limit_offset = Post.limit(3).offset(2)
+    posts_offset_limit = Post.offset(2).limit(3)
+    assert_equal posts_limit_offset, posts_offset_limit
+  end
+
+  def test_create_with_merge
+    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).merge(
+              PoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+
+    aaron = PoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).
+                                     create_with(:name => 'Aaron').new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_create_with_reset
+    jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with(nil).new
+    assert_equal 'Jamis', jamis.name
   end
 end

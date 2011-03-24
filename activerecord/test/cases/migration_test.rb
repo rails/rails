@@ -5,10 +5,8 @@ require 'models/person'
 require 'models/topic'
 require 'models/developer'
 
-require MIGRATIONS_ROOT + "/valid/1_people_have_last_names"
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
-require MIGRATIONS_ROOT + "/interleaved/pass_3/2_i_raise_on_down"
 
 if ActiveRecord::Base.connection.supports_migrations?
   class BigNumber < ActiveRecord::Base; end
@@ -16,12 +14,13 @@ if ActiveRecord::Base.connection.supports_migrations?
   class Reminder < ActiveRecord::Base; end
 
   class ActiveRecord::Migration
-    class <<self
+    class << self
       attr_accessor :message_count
-      def puts(text="")
-        self.message_count ||= 0
-        self.message_count += 1
-      end
+    end
+
+    def puts(text="")
+      ActiveRecord::Migration.message_count ||= 0
+      ActiveRecord::Migration.message_count += 1
     end
   end
 
@@ -51,7 +50,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def setup
       ActiveRecord::Migration.verbose = true
-      PeopleHaveLastNames.message_count = 0
+      ActiveRecord::Migration.message_count = 0
     end
 
     def teardown
@@ -91,7 +90,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # Oracle adapter is shortening index name when just column list is given
         unless current_adapter?(:OracleAdapter)
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-          assert_nothing_raised { Person.connection.remove_index("people", :name => "index_people_on_last_name_and_first_name") }
+          assert_nothing_raised { Person.connection.remove_index("people", :name => :index_people_on_last_name_and_first_name) }
           assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
           assert_nothing_raised { Person.connection.remove_index("people", "last_name_and_first_name") }
         end
@@ -124,19 +123,27 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_index_symbol_names
+      assert_nothing_raised { Person.connection.add_index :people, :primary_contact_id, :name => :symbol_index_name }
+      assert Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
+      assert_nothing_raised { Person.connection.remove_index :people, :name => :symbol_index_name }
+      assert !Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
+    end
+
     def test_add_index_length_limit
       good_index_name = 'x' * Person.connection.index_name_length
       too_long_index_name = good_index_name + 'x'
-      assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => too_long_index_name) }
+      assert_raise(ArgumentError)  { Person.connection.add_index("people", "first_name", :name => too_long_index_name) }
       assert !Person.connection.index_name_exists?("people", too_long_index_name, false)
       assert_nothing_raised { Person.connection.add_index("people", "first_name", :name => good_index_name) }
       assert Person.connection.index_name_exists?("people", good_index_name, false)
+      Person.connection.remove_index("people", :name => good_index_name)
     end
 
     def test_remove_nonexistent_index
       # we do this by name, so OpenBase is a wash as noted above
       unless current_adapter?(:OpenBaseAdapter)
-        assert_nothing_raised { Person.connection.remove_index("people", "no_such_index") }
+        assert_raise(ArgumentError) { Person.connection.remove_index("people", "no_such_index") }
       end
     end
 
@@ -154,7 +161,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_double_add_index
       unless current_adapter?(:OpenBaseAdapter)
         Person.connection.add_index('people', [:first_name], :name => 'some_idx')
-        assert_nothing_raised { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
+        assert_raise(ArgumentError) { Person.connection.add_index('people', [:first_name], :name => 'some_idx') }
       end
     end
 
@@ -414,7 +421,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     # Sybase, and SQLite3 will not allow you to add a NOT NULL
     # column to a table without a default value.
-    unless current_adapter?(:SybaseAdapter, :SQLiteAdapter)
+    unless current_adapter?(:SybaseAdapter, :SQLite3Adapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
@@ -536,7 +543,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "I was born ....", bob.bio
       assert_equal 18, bob.age
 
-      # Test for 30 significent digits (beyond the 16 of float), 10 of them
+      # Test for 30 significant digits (beyond the 16 of float), 10 of them
       # after the decimal place.
 
       unless current_adapter?(:SQLite3Adapter)
@@ -566,6 +573,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         if bob.moment_of_truth.is_a?(DateTime)
 
           with_env_tz 'US/Eastern' do
+            bob.reload
             assert_equal DateTime.local_offset, bob.moment_of_truth.offset
             assert_not_equal 0, bob.moment_of_truth.offset
             assert_not_equal "Z", bob.moment_of_truth.zone
@@ -806,10 +814,13 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         Topic.connection.change_column "topics", "written_on", :datetime, :null => false
         Topic.reset_column_information
+
+        Topic.connection.change_column "topics", "written_on", :datetime, :null => true
+        Topic.reset_column_information
       end
     end
 
-    if current_adapter?(:SQLiteAdapter)
+    if current_adapter?(:SQLite3Adapter)
       def test_rename_table_for_sqlite_should_work_with_reserved_words
         begin
           assert_nothing_raised do
@@ -1119,7 +1130,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         # so this happens there too
         assert_kind_of BigDecimal, b.value_of_e
         assert_equal BigDecimal("2.7182818284590452353602875"), b.value_of_e
-      elsif current_adapter?(:SQLiteAdapter)
+      elsif current_adapter?(:SQLite3Adapter)
         # - SQLite3 stores a float, in violation of SQL
         assert_kind_of BigDecimal, b.value_of_e
         assert_in_delta BigDecimal("2.71828182845905"), b.value_of_e, 0.00000000000001
@@ -1151,6 +1162,44 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
       assert !Person.column_methods_hash.include?(:last_name)
       assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    end
+
+    class MockMigration < ActiveRecord::Migration
+      attr_reader :went_up, :went_down
+      def initialize
+        @went_up   = false
+        @went_down = false
+      end
+
+      def up
+        @went_up = true
+        super
+      end
+
+      def down
+        @went_down = true
+        super
+      end
+    end
+
+    def test_instance_based_migration_up
+      migration = MockMigration.new
+      assert !migration.went_up, 'have not gone up'
+      assert !migration.went_down, 'have not gone down'
+
+      migration.migrate :up
+      assert migration.went_up, 'have gone up'
+      assert !migration.went_down, 'have not gone down'
+    end
+
+    def test_instance_based_migration_down
+      migration = MockMigration.new
+      assert !migration.went_up, 'have not gone up'
+      assert !migration.went_down, 'have not gone down'
+
+      migration.migrate :down
+      assert !migration.went_up, 'have gone up'
+      assert migration.went_down, 'have not gone down'
     end
 
     def test_migrator_one_up
@@ -1220,9 +1269,23 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_finds_migrations
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid").migrations
 
-      [[1, 'PeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+      [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
         assert_equal migrations[i].version, pair.first
         assert_equal migrations[i].name, pair.last
+      end
+    end
+
+    def test_finds_migrations_from_two_directories
+      directories = [MIGRATIONS_ROOT + '/valid_with_timestamps', MIGRATIONS_ROOT + '/to_copy_with_timestamps']
+      migrations = ActiveRecord::Migrator.new(:up, directories).migrations
+
+      [[20090101010101, "PeopleHaveHobbies"],
+       [20090101010202, "PeopleHaveDescriptions"],
+       [20100101010101, "ValidWithTimestampsPeopleHaveLastNames"],
+       [20100201010101, "ValidWithTimestampsWeNeedReminders"],
+       [20100301010101, "ValidWithTimestampsInnocentJointable"]].each_with_index do |pair, i|
+        assert_equal pair.first, migrations[i].version
+        assert_equal pair.last, migrations[i].name
       end
     end
 
@@ -1232,39 +1295,30 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       assert_equal 1, migrations.size
       assert_equal migrations[0].version, 3
-      assert_equal migrations[0].name, 'InnocentJointable'
+      assert_equal migrations[0].name, 'InterleavedInnocentJointable'
     end
 
     def test_relative_migrations
-      $".delete_if do |fname|
-        fname == (MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
-      end
-      Object.send(:remove_const, :PeopleHaveLastNames)
-
-      Dir.chdir(MIGRATIONS_ROOT) do
+      list = Dir.chdir(MIGRATIONS_ROOT) do
         ActiveRecord::Migrator.up("valid/", 1)
       end
 
-      assert defined?(PeopleHaveLastNames)
+      migration_proxy = list.find { |item|
+        item.name == 'ValidPeopleHaveLastNames'
+      }
+      assert migration_proxy, 'should find pending migration'
     end
 
     def test_only_loads_pending_migrations
       # migrate up to 1
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
 
-      # now unload the migrations that have been defined
-      Object.send(:remove_const, :PeopleHaveLastNames)
+      proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
 
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", nil)
-
-      assert !defined? PeopleHaveLastNames
-
-      %w(WeNeedReminders, InnocentJointable).each do |migration|
-        assert defined? migration
-      end
-
-    ensure
-      load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+      names = proxies.map(&:name)
+      assert !names.include?('ValidPeopleHaveLastNames')
+      assert names.include?('WeNeedReminders')
+      assert names.include?('InnocentJointable')
     end
 
     def test_target_version_zero_should_run_only_once
@@ -1274,16 +1328,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       # migrate down to 0
       ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
 
-      # now unload the migrations that have been defined
-      PeopleHaveLastNames.unloadable
-      ActiveSupport::Dependencies.remove_unloadable_constants!
-
       # migrate down to 0 again
-      ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
-
-      assert !defined? PeopleHaveLastNames
-    ensure
-      load(MIGRATIONS_ROOT + "/valid/1_people_have_last_names.rb")
+      proxies = ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid", 0)
+      assert_equal [], proxies
     end
 
     def test_migrator_db_has_no_schema_migrations_table
@@ -1300,20 +1347,20 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_verbosity
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count > 0
-      PeopleHaveLastNames.message_count = 0
+      assert_not_equal 0, ActiveRecord::Migration.message_count
+      ActiveRecord::Migration.message_count = 0
 
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count > 0
-      PeopleHaveLastNames.message_count = 0
+      assert_not_equal 0, ActiveRecord::Migration.message_count
+      ActiveRecord::Migration.message_count = 0
     end
 
     def test_migrator_verbosity_off
-      PeopleHaveLastNames.verbose = false
+      ActiveRecord::Migration.verbose = false
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", 1)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, ActiveRecord::Migration.message_count
       ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", 0)
-      assert PeopleHaveLastNames.message_count.zero?
+      assert_equal 0, ActiveRecord::Migration.message_count
     end
 
     def test_migrator_going_down_due_to_version_target
@@ -1358,10 +1405,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.forward(MIGRATIONS_ROOT + "/valid")
       assert_equal(3, ActiveRecord::Migrator.current_version)
     end
-    
+
     def test_get_all_versions
       ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/valid")
-      assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)      
+      assert_equal([1,2,3], ActiveRecord::Migrator.get_all_versions)
 
       ActiveRecord::Migrator.rollback(MIGRATIONS_ROOT + "/valid")
       assert_equal([1,2], ActiveRecord::Migrator.get_all_versions)
@@ -1576,11 +1623,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter) || current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+      def test_xml_creates_xml_column
+        type = current_adapter?(:PostgreSQLAdapter) ? 'xml' : :text
+
+        with_new_table do |t|
+          t.expects(:column).with(:data, type, {})
+          t.xml :data
+        end
+      end
+    else
       def test_xml_creates_xml_column
         with_new_table do |t|
-          t.expects(:column).with(:data, 'xml', {})
-          t.xml :data
+          assert_raises(NotImplementedError) do
+            t.xml :data
+          end
         end
       end
     end
@@ -1597,10 +1654,6 @@ if ActiveRecord::Base.connection.supports_migrations?
   end # SexyMigrationsTest
 
   class MigrationLoggerTest < ActiveRecord::TestCase
-    def setup
-      Object.send(:remove_const, :InnocentJointable)
-    end
-
     def test_migration_should_be_run_without_logger
       previous_logger = ActiveRecord::Base.logger
       ActiveRecord::Base.logger = nil
@@ -1613,10 +1666,6 @@ if ActiveRecord::Base.connection.supports_migrations?
   end
 
   class InterleavedMigrationsTest < ActiveRecord::TestCase
-    def setup
-      Object.send(:remove_const, :PeopleHaveLastNames)
-    end
-
     def test_migrator_interleaved_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_1")
 
@@ -1627,10 +1676,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
 
-      Object.send(:remove_const, :PeopleHaveLastNames)
-      Object.send(:remove_const, :InnocentJointable)
       assert_nothing_raised do
-        ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/interleaved/pass_3")
+        proxies = ActiveRecord::Migrator.down(
+          MIGRATIONS_ROOT + "/interleaved/pass_3")
+        names = proxies.map(&:name)
+        assert names.include?('InterleavedPeopleHaveLastNames')
+        assert names.include?('InterleavedInnocentJointable')
       end
     end
   end
@@ -1871,5 +1922,307 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
   end
-end
 
+  if ActiveRecord::Base.connection.supports_bulk_alter?
+    class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
+      def setup
+        @connection = Person.connection
+        @connection.create_table(:delete_me, :force => true) {|t| }
+      end
+
+      def teardown
+        Person.connection.drop_table(:delete_me) rescue nil
+      end
+
+      def test_adding_multiple_columns
+        assert_queries(1) do
+          with_bulk_change_table do |t|
+            t.column :name, :string
+            t.string :qualification, :experience
+            t.integer :age, :default => 0
+            t.date :birthdate
+            t.timestamps
+          end
+        end
+
+        assert_equal 8, columns.size
+        [:name, :qualification, :experience].each {|s| assert_equal :string, column(s).type }
+        assert_equal 0, column(:age).default
+      end
+
+      def test_removing_columns
+        with_bulk_change_table do |t|
+          t.string :qualification, :experience
+        end
+
+        [:qualification, :experience].each {|c| assert column(c) }
+
+        assert_queries(1) do
+          with_bulk_change_table do |t|
+            t.remove :qualification, :experience
+            t.string :qualification_experience
+          end
+        end
+
+        [:qualification, :experience].each {|c| assert ! column(c) }
+        assert column(:qualification_experience)
+      end
+
+      def test_adding_indexes
+        with_bulk_change_table do |t|
+          t.string :username
+          t.string :name
+          t.integer :age
+        end
+
+        # Adding an index fires a query every time to check if an index already exists or not
+        assert_queries(3) do
+          with_bulk_change_table do |t|
+            t.index :username, :unique => true, :name => :awesome_username_index
+            t.index [:name, :age]
+          end
+        end
+
+        assert_equal 2, indexes.size
+
+        name_age_index = index(:index_delete_me_on_name_and_age)
+        assert_equal ['name', 'age'].sort, name_age_index.columns.sort
+        assert ! name_age_index.unique
+
+        assert index(:awesome_username_index).unique
+      end
+
+      def test_removing_index
+        with_bulk_change_table do |t|
+          t.string :name
+          t.index :name
+        end
+
+        assert index(:index_delete_me_on_name)
+
+        assert_queries(3) do
+          with_bulk_change_table do |t|
+            t.remove_index :name
+            t.index :name, :name => :new_name_index, :unique => true
+          end
+        end
+
+        assert ! index(:index_delete_me_on_name)
+
+        new_name_index = index(:new_name_index)
+        assert new_name_index.unique
+      end
+
+      def test_changing_columns
+        with_bulk_change_table do |t|
+          t.string :name
+          t.date :birthdate
+        end
+
+        assert ! column(:name).default
+        assert_equal :date, column(:birthdate).type
+
+        # One query for columns (delete_me table)
+        # One query for primary key (delete_me table)
+        # One query to do the bulk change
+        assert_queries(3) do
+          with_bulk_change_table do |t|
+            t.change :name, :string, :default => 'NONAME'
+            t.change :birthdate, :datetime
+          end
+        end
+
+        assert_equal 'NONAME', column(:name).default
+        assert_equal :datetime, column(:birthdate).type
+      end
+
+      protected
+
+      def with_bulk_change_table
+        # Reset columns/indexes cache as we're changing the table
+        @columns = @indexes = nil
+
+        Person.connection.change_table(:delete_me, :bulk => true) do |t|
+          yield t
+        end
+      end
+
+      def column(name)
+        columns.detect {|c| c.name == name.to_s }
+      end
+
+      def columns
+        @columns ||= Person.connection.columns('delete_me')
+      end
+
+      def index(name)
+        indexes.detect {|i| i.name == name.to_s }
+      end
+
+      def indexes
+        @indexes ||= Person.connection.indexes('delete_me')
+      end
+    end # AlterTableMigrationsTest
+
+  end
+
+  class CopyMigrationsTest < ActiveRecord::TestCase
+    def setup
+    end
+
+    def clear
+      ActiveRecord::Base.timestamped_migrations = true
+      to_delete = Dir[@migrations_path + "/*.rb"] - @existing_migrations
+      File.delete(*to_delete)
+    end
+
+    def test_copying_migrations_without_timestamps
+      ActiveRecord::Base.timestamped_migrations = false
+      @migrations_path = MIGRATIONS_ROOT + "/valid"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+      assert File.exists?(@migrations_path + "/4_people_have_hobbies.rb")
+      assert File.exists?(@migrations_path + "/5_people_have_descriptions.rb")
+      assert_equal [@migrations_path + "/4_people_have_hobbies.rb", @migrations_path + "/5_people_have_descriptions.rb"], copied.map(&:filename)
+
+      files_count = Dir[@migrations_path + "/*.rb"].length
+      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+      assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+      assert copied.empty?
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_without_timestamps_from_2_sources
+      ActiveRecord::Base.timestamped_migrations = false
+      @migrations_path = MIGRATIONS_ROOT + "/valid"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
+      sources[:omg] = MIGRATIONS_ROOT + "/to_copy2"
+      ActiveRecord::Migration.copy(@migrations_path, sources)
+      assert File.exists?(@migrations_path + "/4_people_have_hobbies.rb")
+      assert File.exists?(@migrations_path + "/5_people_have_descriptions.rb")
+      assert File.exists?(@migrations_path + "/6_create_articles.rb")
+      assert File.exists?(@migrations_path + "/7_create_comments.rb")
+
+      files_count = Dir[@migrations_path + "/*.rb"].length
+      ActiveRecord::Migration.copy(@migrations_path, sources)
+      assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_with_timestamps
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        expected = [@migrations_path + "/20100726101010_people_have_hobbies.rb",
+                    @migrations_path + "/20100726101011_people_have_descriptions.rb"]
+        assert_equal expected, copied.map(&:filename)
+
+        files_count = Dir[@migrations_path + "/*.rb"].length
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+        assert copied.empty?
+      end
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_with_timestamps_from_2_sources
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+      sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_timestamps2"
+
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, sources)
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        assert File.exists?(@migrations_path + "/20100726101012_create_articles.rb")
+        assert File.exists?(@migrations_path + "/20100726101013_create_comments.rb")
+        assert_equal 4, copied.length
+
+        files_count = Dir[@migrations_path + "/*.rb"].length
+        ActiveRecord::Migration.copy(@migrations_path, sources)
+        assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+      end
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_with_timestamps_to_destination_with_timestamps_in_future
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      Time.travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
+        ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100301010102_people_have_hobbies.rb")
+        assert File.exists?(@migrations_path + "/20100301010103_people_have_descriptions.rb")
+
+        files_count = Dir[@migrations_path + "/*.rb"].length
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
+        assert copied.empty?
+      end
+    ensure
+      clear
+    end
+
+    def test_skipping_migrations
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = sources[:omg] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+
+      skipped = []
+      on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
+      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+      assert_equal 2, copied.length
+
+      assert_equal 2, skipped.length
+      assert_equal ["bukkits PeopleHaveHobbies", "bukkits PeopleHaveDescriptions"], skipped
+    ensure
+      clear
+    end
+
+    def test_copying_migrations_to_non_existing_directory
+      @migrations_path = MIGRATIONS_ROOT + "/non_existing"
+      @existing_migrations = []
+
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        assert_equal 2, copied.length
+      end
+    ensure
+      clear
+      Dir.delete(@migrations_path)
+    end
+
+    def test_copying_migrations_to_empty_directory
+      @migrations_path = MIGRATIONS_ROOT + "/empty"
+      @existing_migrations = []
+
+      Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+        copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+        assert File.exists?(@migrations_path + "/20100726101010_people_have_hobbies.rb")
+        assert File.exists?(@migrations_path + "/20100726101011_people_have_descriptions.rb")
+        assert_equal 2, copied.length
+      end
+    ensure
+      clear
+    end
+  end
+end

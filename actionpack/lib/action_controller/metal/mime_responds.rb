@@ -63,13 +63,13 @@ module ActionController #:nodoc:
     # might look something like this:
     #
     #   def index
-    #     @people = Person.find(:all)
+    #     @people = Person.all
     #   end
     #
     # Here's the same action, with web-service support baked in:
     #
     #   def index
-    #     @people = Person.find(:all)
+    #     @people = Person.all
     #
     #     respond_to do |format|
     #       format.html
@@ -155,7 +155,7 @@ module ActionController #:nodoc:
     # Respond to also allows you to specify a common block for different formats by using any:
     #
     #   def index
-    #     @people = Person.find(:all)
+    #     @people = Person.all
     #
     #     respond_to do |format|
     #       format.html
@@ -178,7 +178,7 @@ module ActionController #:nodoc:
     #     respond_to :html, :xml, :json
     #
     #     def index
-    #       @people = Person.find(:all)
+    #       @people = Person.all
     #       respond_with(@person)
     #     end
     #   end
@@ -208,8 +208,8 @@ module ActionController #:nodoc:
     # It also accepts a block to be given. It's used to overwrite a default
     # response:
     #
-    #   def destroy
-    #     @user = User.find(params[:id])
+    #   def create
+    #     @user = User.new(params[:user])
     #     flash[:notice] = "User was successfully created." if @user.save
     #
     #     respond_with(@user) do |format|
@@ -227,7 +227,7 @@ module ActionController #:nodoc:
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
 
       if response = retrieve_response_from_mimes(&block)
-        options = resources.extract_options!
+        options = resources.size == 1 ? {} : resources.extract_options!
         options.merge!(:default_response => response)
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
@@ -258,9 +258,8 @@ module ActionController #:nodoc:
     # nil if :not_acceptable was sent to the client.
     #
     def retrieve_response_from_mimes(mimes=nil, &block)
-      collector = Collector.new { default_render }
       mimes ||= collect_mimes_from_class_level
-      mimes.each { |mime| collector.send(mime) }
+      collector = Collector.new(mimes) { default_render }
       block.call(collector) if block_given?
 
       if format = request.negotiate_mime(collector.order)
@@ -277,8 +276,9 @@ module ActionController #:nodoc:
       include AbstractController::Collector
       attr_accessor :order
 
-      def initialize(&block)
+      def initialize(mimes, &block)
         @order, @responses, @default_response = [], {}, block
+        mimes.each { |mime| send(mime) }
       end
 
       def any(*args, &block)
@@ -291,7 +291,7 @@ module ActionController #:nodoc:
       alias :all :any
 
       def custom(mime_type, &block)
-        mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
+        mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
         @order << mime_type
         @responses[mime_type] ||= block
       end

@@ -25,6 +25,11 @@ module ApplicationTests
       yield app_const.config
     end
 
+    test "allow running plugin new generator inside Rails app directory" do
+      FileUtils.cd(rails_root){ `ruby script/rails plugin new vendor/plugins/bukkits` }
+      assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
+    end
+
     test "generators default values" do
       with_bare_config do |c|
         assert_equal(true, c.generators.colorize_logging)
@@ -69,7 +74,7 @@ module ApplicationTests
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
       assert_equal Hash[:shoulda => :test_unit], Rails::Generators.fallbacks
-      assert_equal ["#{app_path}/lib/templates", "some/where"], Rails::Generators.templates_path
+      assert_equal ["some/where"], Rails::Generators.templates_path
     end
 
     test "generators no color on initialization" do

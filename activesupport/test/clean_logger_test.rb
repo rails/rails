@@ -41,7 +41,7 @@ class CleanLoggerTest < Test::Unit::TestCase
 
     assert_equal "error\nfatal\nerror\nfatal\nunsilenced\n", @out.string
   end
-  
+
   def test_datetime_format
     @logger.formatter = Logger::Formatter.new
     @logger.datetime_format = "%Y-%m-%d"
@@ -49,7 +49,7 @@ class CleanLoggerTest < Test::Unit::TestCase
     assert_equal "%Y-%m-%d", @logger.datetime_format
     assert_match(/D, \[\d\d\d\d-\d\d-\d\d#\d+\] DEBUG -- : debug/, @out.string)
   end
-  
+
   def test_nonstring_formatting
     an_object = [1, 2, 3, 4, 5]
     @logger.debug an_object

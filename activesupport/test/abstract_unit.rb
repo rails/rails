@@ -10,8 +10,19 @@ end
 lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
-require 'test/unit'
 require 'active_support/core_ext/kernel/reporting'
+
+require 'active_support/core_ext/string/encoding'
+if "ruby".encoding_aware?
+  # These are the normal settings that will be set up by Railties
+  # TODO: Have these tests support other combinations of these values
+  silence_warnings do
+    Encoding.default_internal = "UTF-8"
+    Encoding.default_external = "UTF-8"
+  end
+end
+
+require 'test/unit'
 require 'empty_bool'
 
 silence_warnings { require 'mocha' }

@@ -1,10 +1,10 @@
 module Rails
   module VERSION #:nodoc:
     MAJOR = 3
-    MINOR = 0
+    MINOR = 1
     TINY  = 0
-    BUILD = "rc"
+    PRE   = "beta"
 
-    STRING = [MAJOR, MINOR, TINY, BUILD].join('.')
+    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
 end

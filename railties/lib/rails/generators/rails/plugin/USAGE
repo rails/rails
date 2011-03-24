@@ -1,6 +1,6 @@
 Description:
     Stubs out a new plugin at vendor/plugins. Pass the plugin name, either
-    CamelCased or under_scored, as an argument. 
+    CamelCased or under_scored, as an argument.
 
 Example:
     `rails generate plugin BrowserFilters`

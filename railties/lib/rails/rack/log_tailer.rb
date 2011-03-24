@@ -19,7 +19,7 @@ module Rails
       def tail!
         @file.seek @cursor
 
-        if !@file.eof?
+        unless @file.eof?
           contents = @file.read
           @cursor = @file.tell
           $stdout.print contents

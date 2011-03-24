@@ -24,7 +24,7 @@ module ActiveModel
       def validate_each(record, attr_name, value)
         before_type_cast = "#{attr_name}_before_type_cast"
 
-        raw_value = record.send("#{attr_name}_before_type_cast") if record.respond_to?(before_type_cast.to_sym)
+        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast.to_sym)
         raw_value ||= value
 
         return if options[:allow_nil] && raw_value.nil?
@@ -93,7 +93,9 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is not a number").
-      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
+      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
+      #   and <tt>:update</tt>.
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an integer, e.g. an integral value (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is +false+). Notice that for fixnum and float columns empty strings are converted to +nil+.
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the supplied value.

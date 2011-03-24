@@ -1,19 +1,19 @@
-# == Active Model Lint Tests
-#
-# You can test whether an object is compliant with the Active Model API by
-# including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will include
-# tests that tell you whether your object is fully compliant, or if not,
-# which aspects of the API are not implemented.
-#
-# These tests do not attempt to determine the semantic correctness of the
-# returned values. For instance, you could implement valid? to always
-# return true, and the tests would pass. It is up to you to ensure that
-# the values are semantically meaningful.
-#
-# Objects you pass in are expected to return a compliant object from a
-# call to to_model. It is perfectly fine for to_model to return self.
 module ActiveModel
   module Lint
+    # == Active Model Lint Tests
+    #
+    # You can test whether an object is compliant with the Active Model API by
+    # including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will include
+    # tests that tell you whether your object is fully compliant, or if not,
+    # which aspects of the API are not implemented.
+    #
+    # These tests do not attempt to determine the semantic correctness of the
+    # returned values. For instance, you could implement valid? to always
+    # return true, and the tests would pass. It is up to you to ensure that
+    # the values are semantically meaningful.
+    #
+    # Objects you pass in are expected to return a compliant object from a
+    # call to to_model. It is perfectly fine for to_model to return self.
     module Tests
 
       # == Responds to <tt>to_key</tt>
@@ -23,7 +23,7 @@ module ActiveModel
       def test_to_key
         assert model.respond_to?(:to_key), "The model should respond to to_key"
         def model.persisted?() false end
-        assert model.to_key.nil?
+        assert model.to_key.nil?, "to_key should return nil when `persisted?` returns false"
       end
 
       # == Responds to <tt>to_param</tt>
@@ -38,8 +38,9 @@ module ActiveModel
       # not persisted?, then to_param should always return nil.
       def test_to_param
         assert model.respond_to?(:to_param), "The model should respond to to_param"
+        def model.to_key() [1] end
         def model.persisted?() false end
-        assert model.to_param.nil?
+        assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end
 
       # == Responds to <tt>valid?</tt>
@@ -79,7 +80,7 @@ module ActiveModel
       end
 
       # == Errors Testing
-      # 
+      #
       # Returns an object that has :[] and :full_messages defined on it. See below
       # for more details.
       #

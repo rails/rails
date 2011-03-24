@@ -11,34 +11,6 @@ module ApplicationTests
       extend Rack::Test::Methods
     end
 
-    def app(env = "production")
-      old_env = ENV["RAILS_ENV"]
-
-      @app ||= begin
-        ENV["RAILS_ENV"] = env
-        require "#{app_path}/config/environment"
-        Rails.application
-      end
-    ensure
-      ENV["RAILS_ENV"] = old_env
-    end
-
-    def simple_controller
-      controller :foo, <<-RUBY
-        class FooController < ApplicationController
-          def index
-            render :text => "foo"
-          end
-        end
-      RUBY
-
-      app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
-          match ':controller(/:action)'
-        end
-      RUBY
-    end
-
     test "rails/info/properties in development" do
       app("development")
       get "/rails/info/properties"
@@ -56,21 +28,6 @@ module ApplicationTests
 
       get '/foo'
       assert_equal 'foo', last_response.body
-    end
-
-    test "simple controller in production mode returns best standards" do
-      simple_controller
-
-      get '/foo'
-      assert_equal "IE=Edge,chrome=1", last_response.headers["X-UA-Compatible"]
-    end
-
-    test "simple controller in development mode leaves out Chrome" do
-      simple_controller
-      app("development")
-
-      get "/foo"
-      assert_equal "IE=Edge", last_response.headers["X-UA-Compatible"]
     end
 
     test "simple controller with helper" do
@@ -91,7 +48,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match ':controller(/:action)'
         end
       RUBY
@@ -102,7 +59,7 @@ module ApplicationTests
 
     test "mount rack app" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, :at => "/blog"
           # The line below is required because mount sometimes
           # fails when a resource route is added.
@@ -132,7 +89,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match ':controller(/:action)'
         end
       RUBY
@@ -164,7 +121,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match 'admin/foo', :to => 'admin/foo#index'
           match 'foo', :to => 'foo#index'
         end
@@ -175,6 +132,34 @@ module ApplicationTests
 
       get '/admin/foo'
       assert_equal 'admin::foo', last_response.body
+    end
+
+    test "routes appending blocks" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match ':controller#:action'
+        end
+      RUBY
+
+      add_to_config <<-R
+        routes.append do
+          match '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
+        end
+      R
+
+      app 'development'
+
+      get '/win'
+      assert_equal 'WIN', last_response.body
+
+      app_file 'config/routes.rb', <<-R
+        AppTemplate::Application.routes.draw do
+          match 'lol' => 'hello#index'
+        end
+      R
+
+      get '/win'
+      assert_equal 'WIN', last_response.body
     end
 
     {"development" => "baz", "production" => "bar"}.each do |mode, expected|
@@ -192,7 +177,7 @@ module ApplicationTests
         RUBY
 
         app_file 'config/routes.rb', <<-RUBY
-          AppTemplate::Application.routes.draw do |map|
+          AppTemplate::Application.routes.draw do
             match 'foo', :to => 'foo#bar'
           end
         RUBY
@@ -203,7 +188,7 @@ module ApplicationTests
         assert_equal 'bar', last_response.body
 
         app_file 'config/routes.rb', <<-RUBY
-          AppTemplate::Application.routes.draw do |map|
+          AppTemplate::Application.routes.draw do
             match 'foo', :to => 'foo#baz'
           end
         RUBY
@@ -215,7 +200,32 @@ module ApplicationTests
       end
     end
 
-    test 'resource routing with irrigular inflection' do
+    test 'routes are loaded just after initialization' do
+      require "#{app_path}/config/application"
+
+      # Create the rack app just inside after initialize callback
+      ActiveSupport.on_load(:after_initialize) do
+        ::InitializeRackApp = lambda { |env| [200, {}, ["InitializeRackApp"]] }
+      end
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match 'foo', :to => ::InitializeRackApp
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal "InitializeRackApp", last_response.body
+    end
+
+    test 'reload_routes! is part of Rails.application API' do
+      app("development")
+      assert_nothing_raised do
+        Rails.application.reload_routes!
+      end
+    end
+
+    test 'resource routing with irregular inflection' do
       app_file 'config/initializers/inflection.rb', <<-RUBY
         ActiveSupport::Inflector.inflections do |inflect|
           inflect.irregular 'yazi', 'yazilar'
@@ -223,7 +233,7 @@ module ApplicationTests
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           resources :yazilar
         end
       RUBY

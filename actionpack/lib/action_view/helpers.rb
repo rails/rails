@@ -12,14 +12,13 @@ module ActionView #:nodoc:
     autoload :CsrfHelper
     autoload :DateHelper
     autoload :DebugHelper
-    autoload :DeprecatedBlockHelpers
     autoload :FormHelper
     autoload :FormOptionsHelper
     autoload :FormTagHelper
     autoload :JavaScriptHelper, "action_view/helpers/javascript_helper"
     autoload :NumberHelper
     autoload :PrototypeHelper
-    autoload :RawOutputHelper
+    autoload :OutputSafetyHelper
     autoload :RecordTagHelper
     autoload :SanitizeHelper
     autoload :ScriptaculousHelper
@@ -49,7 +48,7 @@ module ActionView #:nodoc:
     include JavaScriptHelper
     include NumberHelper
     include PrototypeHelper
-    include RawOutputHelper
+    include OutputSafetyHelper
     include RecordTagHelper
     include SanitizeHelper
     include ScriptaculousHelper

@@ -14,16 +14,7 @@ module ActionController
         cookies.write(@_response)
       end
       @_response.prepare!
-      set_test_assigns
       ret
-    end
-
-    def set_test_assigns
-      @assigns = {}
-      (instance_variable_names - self.class.protected_instance_variables).each do |var|
-        name, value = var[1..-1], instance_variable_get(var)
-        @assigns[name] = value
-      end
     end
 
     # TODO : Rewrite tests using controller.headers= to use Rack env

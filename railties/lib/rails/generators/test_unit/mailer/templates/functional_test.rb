@@ -1,5 +1,6 @@
 require 'test_helper'
 
+<% module_namespacing do -%>
 class <%= class_name %>Test < ActionMailer::TestCase
 <% for action in actions -%>
   test "<%= action %>" do
@@ -18,3 +19,4 @@ class <%= class_name %>Test < ActionMailer::TestCase
   end
 <% end -%>
 end
+<% end -%>

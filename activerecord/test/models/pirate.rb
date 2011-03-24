@@ -34,6 +34,8 @@ class Pirate < ActiveRecord::Base
     :after_remove   => proc {|p,b| p.ship_log << "after_removing_proc_bird_#{b.id}"}
   has_many :birds_with_reject_all_blank, :class_name => "Bird"
 
+  has_one :bulb, :foreign_key => :car_id
+
   accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :update_only_ship, :update_only => true
@@ -48,7 +50,7 @@ class Pirate < ActiveRecord::Base
   end
 
   def reject_empty_ships_on_create(attributes)
-    attributes.delete('_reject_me_if_new').present? && new_record?
+    attributes.delete('_reject_me_if_new').present? && !persisted?
   end
 
   attr_accessor :cancel_save_from_callback
@@ -77,4 +79,8 @@ class Pirate < ActiveRecord::Base
     def log(record, callback)
       ship_log << "#{callback}_#{record.class.name.downcase}_#{record.id || '<new>'}"
     end
+end
+
+class DestructivePirate < Pirate
+  has_one :dependent_ship, :class_name => 'Ship', :foreign_key => :pirate_id, :dependent => :destroy
 end

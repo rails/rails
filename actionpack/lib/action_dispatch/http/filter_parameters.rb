@@ -5,10 +5,10 @@ require 'active_support/core_ext/object/duplicable'
 module ActionDispatch
   module Http
     # Allows you to specify sensitive parameters which will be replaced from
-    # the request log by looking in all subhashes of the param hash for keys
-    # to filter. If a block is given, each key and value of the parameter
-    # hash and all subhashes is passed to it, the value or key can be replaced
-    # using String#replace or similar method.
+    # the request log by looking in the query string of the request and all
+    # subhashes of the params hash to filter. If a block is given, each key and
+    # value of the params hash and all subhashes is passed to it, the value
+    # or key can be replaced using String#replace or similar method.
     #
     # Examples:
     #
@@ -38,6 +38,11 @@ module ActionDispatch
         @filtered_env ||= env_filter.filter(@env)
       end
 
+      # Reconstructed a path with all sensitive GET parameters replaced.
+      def filtered_path
+        @filtered_path ||= query_string.empty? ? path : "#{path}?#{filtered_query_string}"
+      end
+
     protected
 
       def parameter_filter
@@ -50,6 +55,14 @@ module ActionDispatch
 
       def parameter_filter_for(filters)
         @@parameter_filter_for[filters] ||= ParameterFilter.new(filters)
+      end
+
+      KV_RE   = '[^&;=]+'
+      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
+      def filtered_query_string
+        query_string.gsub(PAIR_RE) do |_|
+          parameter_filter.filter([[$1, $2]]).first.join("=")
+        end
       end
 
     end

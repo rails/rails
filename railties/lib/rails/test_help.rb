@@ -1,6 +1,6 @@
-# Make double-sure the RAILS_ENV is set to test,
-# so fixtures are loaded to the right database
-abort("Abort testing: Your Rails environment is not running in test mode!") unless Rails.env.test?
+# Make double-sure the RAILS_ENV is not set to production,
+# so fixtures aren't loaded into that environment
+abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
 require 'test/unit'
 require 'active_support/core_ext/kernel/requires'
@@ -19,9 +19,13 @@ if defined?(ActiveRecord)
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"
+
+    setup do
+      ActiveRecord::IdentityMap.clear
+    end
   end
 
-  ActionController::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+  ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
 
   def create_fixtures(*table_names, &block)
     Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
@@ -38,15 +42,4 @@ class ActionDispatch::IntegrationTest
   setup do
     @routes = Rails.application.routes
   end
-end
-
-begin
-  require_library_or_gem 'ruby-debug'
-  Debugger.start
-  if Debugger.respond_to?(:settings)
-    Debugger.settings[:autoeval] = true
-    Debugger.settings[:autolist] = 1
-  end
-rescue LoadError
-  # ruby-debug wasn't available so neither can the debugging be
 end

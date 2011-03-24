@@ -4,15 +4,15 @@ require 'rake/rdoctask'
 class RDocTaskWithoutDescriptions < Rake::RDocTask
   def define
     task rdoc_task_name
-    
+
     task rerdoc_task_name => [clobber_task_name, rdoc_task_name]
-    
+
     task clobber_task_name do
       rm_r rdoc_dir rescue nil
     end
-    
+
     task :clobber => [clobber_task_name]
-    
+
     directory @rdoc_dir
     task rdoc_task_name => [rdoc_target]
     file rdoc_target => @rdoc_files + [Rake.application.rakefile] do
@@ -47,7 +47,7 @@ namespace :doc do
     rdoc.rdoc_files.include('app/**/*.rb')
     rdoc.rdoc_files.include('lib/**/*.rb')
   }
-  Rake::Task['doc:app'].comment = "Generate docs for the app -- also availble doc:rails, doc:guides, doc:plugins (options: TEMPLATE=/rdoc-template.rb, TITLE=\"Custom Title\")"
+  Rake::Task['doc:app'].comment = "Generate docs for the app -- also available doc:rails, doc:guides, doc:plugins (options: TEMPLATE=/rdoc-template.rb, TITLE=\"Custom Title\")"
 
   # desc 'Generate documentation for the Rails framework.'
   RDocTaskWithoutDescriptions.new("rails") { |rdoc|

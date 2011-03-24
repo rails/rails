@@ -4,7 +4,7 @@ module Rails
       include Initializable
 
       initializer :add_generator_templates do
-        config.generators.templates.unshift(*paths.lib.templates.to_a)
+        config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
 
       initializer :ensure_autoload_once_paths_as_subset do
@@ -21,18 +21,24 @@ module Rails
 
       initializer :add_to_prepare_blocks do
         config.to_prepare_blocks.each do |block|
-          ActionDispatch::Callbacks.to_prepare(&block)
+          ActionDispatch::Reloader.to_prepare(&block)
         end
       end
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.routes_reloader.paths << File.expand_path('../../info_routes.rb', __FILE__)
+          app.routes.append do
+            match '/rails/info/properties' => "rails/info#properties"
+          end
         end
       end
 
       initializer :build_middleware_stack do
         build_middleware_stack
+      end
+
+      initializer :run_prepare_callbacks do
+        ActionDispatch::Reloader.prepare!
       end
 
       initializer :eager_load! do
@@ -44,6 +50,13 @@ module Rails
 
       initializer :finisher_hook do
         ActiveSupport.run_load_hooks(:after_initialize, self)
+      end
+
+      # Force routes to be loaded just at the end and add it to to_prepare callbacks
+      initializer :set_routes_reloader do |app|
+        reloader = lambda { app.routes_reloader.execute_if_updated }
+        reloader.call
+        ActionDispatch::Reloader.to_prepare(&reloader)
       end
 
       # Disable dependency loading during request cycle

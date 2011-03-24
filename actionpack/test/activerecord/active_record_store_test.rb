@@ -1,6 +1,6 @@
 require 'active_record_unit'
 
-class ActiveRecordStoreTest < ActionController::IntegrationTest
+class ActiveRecordStoreTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def no_session_access
       head :ok
@@ -23,6 +23,13 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
     def call_reset_session
       session[:foo]
       reset_session
+      reset_session if params[:twice]
+      session[:foo] = "baz"
+      head :ok
+    end
+
+    def renew
+      env["rack.session.options"][:renew] = true
       session[:foo] = "baz"
       head :ok
     end
@@ -64,6 +71,20 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
         end
       end
     end
+
+    define_method("test_renewing_with_#{class_name}_store") do
+      with_store class_name do
+        with_test_route_set do
+          get '/set_session_value'
+          assert_response :success
+          assert cookies['_session_id']
+
+          get '/renew'
+          assert_response :success
+          assert_not_equal [], headers['Set-Cookie']
+        end
+      end
+    end
   end
 
   def test_getting_nil_session_value
@@ -71,6 +92,17 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
       get '/get_session_value'
       assert_response :success
       assert_equal 'foo: nil', response.body
+    end
+  end
+
+  def test_calling_reset_session_twice_does_not_raise_errors
+    with_test_route_set do
+      get '/call_reset_session', :twice => "true"
+      assert_response :success
+
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "baz"', response.body
     end
   end
 
@@ -198,7 +230,7 @@ class ActiveRecordStoreTest < ActionController::IntegrationTest
 
     def with_test_route_set(options = {})
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => 'active_record_store_test/test'
         end
 

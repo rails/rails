@@ -10,6 +10,100 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
+    def test_install_migrations_and_assets
+      @plugin.write "public/javascripts/foo.js", "doSomething()"
+
+      @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      app_file "db/migrate/1_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration
+        end
+      RUBY
+
+      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+
+      Dir.chdir(app_path) do
+        `rake bukkits:install`
+        assert File.exists?("#{app_path}/db/migrate/2_create_users.rb")
+        assert File.exists?(app_path("public/bukkits/javascripts/foo.js"))
+      end
+    end
+
+    def test_copying_assets
+      @plugin.write "public/javascripts/foo.js", "doSomething()"
+      @plugin.write "public/stylesheets/foo.css", "h1 { font-size: 10000px }"
+      @plugin.write "public/images/img.png", ""
+
+      Dir.chdir(app_path) do
+        `rake bukkits:install:assets --trace`
+
+        assert File.exists?(app_path("public/bukkits/javascripts/foo.js"))
+        assert_equal "doSomething()\n", File.read(app_path("public/bukkits/javascripts/foo.js"))
+        assert File.exists?(app_path("public/bukkits/stylesheets/foo.css"))
+        assert_equal "h1 { font-size: 10000px }\n", File.read(app_path("public/bukkits/stylesheets/foo.css"))
+        assert File.exists?(app_path("public/bukkits/images/img.png"))
+      end
+    end
+
+    def test_copying_migrations
+      @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      @plugin.write "db/migrate/2_add_last_name_to_users.rb", <<-RUBY
+        class AddLastNameToUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      @plugin.write "db/migrate/3_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration
+        end
+      RUBY
+
+      app_file "db/migrate/1_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration
+        end
+      RUBY
+
+      yaffle = plugin "acts_as_yaffle", "::LEVEL = config.log_level" do |plugin|
+        plugin.write "lib/acts_as_yaffle.rb", "class ActsAsYaffle; end"
+      end
+
+      yaffle.write "db/migrate/1_create_yaffles.rb", <<-RUBY
+        class CreateYaffles < ActiveRecord::Migration
+        end
+      RUBY
+
+      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+
+      Dir.chdir(app_path) do
+        output = `rake bukkits:install:migrations`
+
+        assert File.exists?("#{app_path}/db/migrate/2_create_users.rb")
+        assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.rb")
+        assert_match /Copied migration 2_create_users.rb from bukkits/, output
+        assert_match /Copied migration 3_add_last_name_to_users.rb from bukkits/, output
+        assert_match /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/, output
+        assert_equal 3, Dir["#{app_path}/db/migrate/*.rb"].length
+
+        output = `rake railties:install:migrations`
+
+        assert File.exists?("#{app_path}/db/migrate/4_create_yaffles.rb")
+        assert_match /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/, output
+        assert_match /Copied migration 4_create_yaffles.rb from acts_as_yaffle/, output
+        assert_no_match /2_create_users/, output
+
+        migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
+        output = `rake railties:install:migrations`
+
+        assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
+      end
+    end
+
     def test_puts_its_lib_directory_on_load_path
       boot_rails
       require "another"
@@ -129,7 +223,7 @@ module RailtiesTest
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match 'foo', :to => 'foo#index'
         end
       RUBY
@@ -143,7 +237,7 @@ module RailtiesTest
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do |map|
+        Rails.application.routes.draw do
           match 'foo', :to => 'bar#index'
           match 'bar', :to => 'bar#index'
         end
@@ -200,7 +294,7 @@ YAML
 
       boot_rails
 
-      assert_equal %W(
+      expected_locales = %W(
         #{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activemodel/lib/active_model/locale/en.yml
         #{RAILS_FRAMEWORK_ROOT}/activerecord/lib/active_record/locale/en.yml
@@ -208,7 +302,13 @@ YAML
         #{@plugin.path}/config/locales/en.yml
         #{app_path}/config/locales/en.yml
         #{app_path}/app/locales/en.yml
-      ).map { |path| File.expand_path(path) }, I18n.load_path.map { |path| File.expand_path(path) }
+      ).map { |path| File.expand_path(path) }
+
+      actual_locales = I18n.load_path.map { |path|
+        File.expand_path(path)
+      } & expected_locales # remove locales external to Rails
+
+      assert_equal expected_locales, actual_locales
 
       assert_equal "2", I18n.t(:foo)
       assert_equal "1", I18n.t(:bar)

@@ -6,7 +6,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   arguments %w(plugin_fu)
 
   def test_plugin_skeleton_is_created
-    run_generator
+    silence(:stderr) { run_generator }
     year = Date.today.year
 
     %w(
@@ -36,30 +36,36 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_invokes_default_test_framework
-    run_generator
+    silence(:stderr) { run_generator }
     assert_file "vendor/plugins/plugin_fu/test/plugin_fu_test.rb", /class PluginFuTest < ActiveSupport::TestCase/
     assert_file "vendor/plugins/plugin_fu/test/test_helper.rb"
   end
 
   def test_logs_if_the_test_framework_cannot_be_found
-    content = run_generator ["plugin_fu", "--test-framework=rspec"]
+    content = nil
+    silence(:stderr) { content = run_generator ["plugin_fu", "--test-framework=rspec"] }
     assert_match /rspec \[not found\]/, content
   end
 
   def test_creates_tasks_if_required
-    run_generator ["plugin_fu", "--tasks"]
+    silence(:stderr) { run_generator ["plugin_fu", "--tasks"] }
     assert_file "vendor/plugins/plugin_fu/lib/tasks/plugin_fu_tasks.rake"
   end
 
   def test_creates_generator_if_required
-    run_generator ["plugin_fu", "--generator"]
+    silence(:stderr) { run_generator ["plugin_fu", "--generator"] }
     assert_file "vendor/plugins/plugin_fu/lib/generators/templates"
     assert_file "vendor/plugins/plugin_fu/lib/generators/plugin_fu_generator.rb",
                 /class PluginFuGenerator < Rails::Generators::NamedBase/
   end
 
   def test_plugin_generator_on_revoke
-    run_generator
+    silence(:stderr) { run_generator }
     run_generator ["plugin_fu"], :behavior => :revoke
+  end
+
+  def test_deprecation
+    output = capture(:stderr) { run_generator }
+    assert_match /Plugin generator is deprecated, please use 'rails plugin new' command to generate plugin structure./, output
   end
 end

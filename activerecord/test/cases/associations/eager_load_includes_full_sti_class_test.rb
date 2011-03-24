@@ -17,7 +17,7 @@ class EagerLoadIncludeFullStiClassNamesTest < ActiveRecord::TestCase
 
   def generate_test_objects
     post = Namespaced::Post.create( :title => 'Great stuff', :body => 'This is not', :author_id => 1 )
-    tagging = Tagging.create( :taggable => post )
+    Tagging.create( :taggable => post )
   end
 
   def test_class_names
@@ -27,6 +27,7 @@ class EagerLoadIncludeFullStiClassNamesTest < ActiveRecord::TestCase
     post = Namespaced::Post.find_by_title( 'Great stuff', :include => :tagging )
     assert_nil post.tagging
 
+    ActiveRecord::IdentityMap.clear
     ActiveRecord::Base.store_full_sti_class = true
     post = Namespaced::Post.find_by_title( 'Great stuff', :include => :tagging )
     assert_instance_of Tagging, post.tagging

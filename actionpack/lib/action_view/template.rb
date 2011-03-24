@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module ActionView
@@ -97,9 +98,12 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_reader :source, :identifier, :handler, :virtual_path, :formats,
-                :original_encoding
+    attr_accessor :locals, :formats, :virtual_path
 
+    attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
+
+    # This finalizer is needed (and exactly with a proc inside another proc)
+    # otherwise templates leak in development.
     Finalizer = proc do |method_name, mod|
       proc do
         mod.module_eval do
@@ -109,50 +113,80 @@ module ActionView
     end
 
     def initialize(source, identifier, handler, details)
-      @source             = source
-      @identifier         = identifier
-      @handler            = handler
-      @original_encoding  = nil
+      format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
 
-      @virtual_path = details[:virtual_path]
-      @method_names = {}
-
-      format   = details[:format] || :html
-      @formats = Array.wrap(format).map(&:to_sym)
+      @source            = source
+      @identifier        = identifier
+      @handler           = handler
+      @compiled          = false
+      @original_encoding = nil
+      @locals            = details[:locals] || []
+      @virtual_path      = details[:virtual_path]
+      @updated_at        = details[:updated_at] || Time.now
+      @formats = Array.wrap(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
     end
 
+    # Render a template. If the template was not compiled yet, it is done
+    # exactly before rendering.
+    #
+    # This method is instrumented as "!render_template.action_view". Notice that
+    # we use a bang in this instrumentation because you don't want to
+    # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, &block)
-      # Notice that we use a bang in this instrumentation because you don't want to
-      # consume this in production. This is only slow if it's being listened to.
+      old_template, view._template = view._template, self
       ActiveSupport::Notifications.instrument("!render_template.action_view", :virtual_path => @virtual_path) do
-        if view.is_a?(ActionView::CompiledTemplates)
-          mod = ActionView::CompiledTemplates
-        else
-          mod = view.singleton_class
-        end
-
-        method_name = compile(locals, view, mod)
+        compile!(view)
         view.send(method_name, locals, &block)
       end
     rescue Exception => e
-      if e.is_a?(Template::Error)
-        e.sub_template_of(self)
-        raise e
-      else
-        raise Template::Error.new(self, view.respond_to?(:assigns) ? view.assigns : {}, e)
-      end
+      handle_render_error(view, e)
+    ensure
+      view._template = old_template
     end
 
     def mime_type
       @mime_type ||= Mime::Type.lookup_by_extension(@formats.first.to_s) if @formats.first
     end
 
-    def variable_name
-      @variable_name ||= @virtual_path[%r'_?(\w+)(\.\w+)*$', 1].to_sym
+    # Receives a view object and return a template similar to self by using @virtual_path.
+    #
+    # This method is useful if you have a template object but it does not contain its source
+    # anymore since it was already compiled. In such cases, all you need to do is to call
+    # refresh passing in the view object.
+    #
+    # Notice this method raises an error if the template to be refreshed does not have a
+    # virtual path set (true just for inline templates).
+    def refresh(view)
+      raise "A template needs to have a virtual path in order to be refreshed" unless @virtual_path
+      lookup  = view.lookup_context
+      pieces  = @virtual_path.split("/")
+      name    = pieces.pop
+      partial = !!name.sub!(/^_/, "")
+      lookup.disable_cache do
+        lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
+      end
     end
 
-    def counter_name
-      @counter_name ||= "#{variable_name}_counter".to_sym
+    # Expires this template by setting his updated_at date to Jan 1st, 1970.
+    def expire!
+      @updated_at = Time.utc(1970)
+    end
+
+    # Receives a view context and renders a template exactly like self by using
+    # the @virtual_path. It raises an error if no @virtual_path was given.
+    def rerender(view)
+      raise "A template needs to have a virtual path in order to be rerendered" unless @virtual_path
+      name = @virtual_path.dup
+      if name.sub!(/(^|\/)_([^\/]*)$/, '\1\2')
+        view.render :partial => name
+      else
+        view.render :template => @virtual_path
+      end
+    end
+
+    # Used to store template data by template handlers.
+    def data
+      @data ||= {}
     end
 
     def inspect
@@ -164,7 +198,27 @@ module ActionView
         end
     end
 
-    private
+    protected
+
+      # Compile a template. This method ensures a template is compiled
+      # just once and removes the source after it is compiled.
+      def compile!(view) #:nodoc:
+        return if @compiled
+
+        if view.is_a?(ActionView::CompiledTemplates)
+          mod = ActionView::CompiledTemplates
+        else
+          mod = view.singleton_class
+        end
+
+        compile(view, mod)
+
+        # Just discard the source if we have a virtual path. This
+        # means we can get the template back.
+        @source = nil if @virtual_path
+        @compiled = true
+      end
+
       # Among other things, this method is responsible for properly setting
       # the encoding of the source. Until this point, we assume that the
       # source is BINARY data. If no additional information is supplied,
@@ -185,11 +239,8 @@ module ActionView
       # encode the source into Encoding.default_internal. In general,
       # this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
-      def compile(locals, view, mod)
-        method_name = build_method_name(locals)
-        return method_name if view.respond_to?(method_name)
-
-        locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
+      def compile(view, mod) #:nodoc:
+        method_name = self.method_name
 
         if source.encoding_aware?
           # Look for # encoding: *. If we find one, we'll encode the
@@ -223,15 +274,16 @@ module ActionView
           end
         end
 
-        code = @handler.call(self)
+        arity = @handler.respond_to?(:arity) ? @handler.arity : @handler.method(:call).arity
+        code  = arity.abs == 1 ? @handler.call(self) : @handler.call(self, view)
 
         # Make sure that the resulting String to be evalled is in the
         # encoding of the code
         source = <<-end_src
           def #{method_name}(local_assigns)
-            _old_virtual_path, @_virtual_path = @_virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
+            _old_output_buffer = @output_buffer;#{locals_code};#{code}
           ensure
-            @_virtual_path, @output_buffer = _old_virtual_path, _old_output_buffer
+            @output_buffer = _old_output_buffer
           end
         end_src
 
@@ -254,8 +306,6 @@ module ActionView
         begin
           mod.module_eval(source, identifier, 0)
           ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
-
-          method_name
         rescue Exception => e # errors from template code
           if logger = (view && view.logger)
             logger.debug "ERROR: compiling #{method_name} RAISED #{e}"
@@ -267,12 +317,27 @@ module ActionView
         end
       end
 
-      def build_method_name(locals)
-        @method_names[locals.keys.hash] ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}_#{locals.keys.hash}".gsub('-', "_")
+      def handle_render_error(view, e) #:nodoc:
+        if e.is_a?(Template::Error)
+          e.sub_template_of(self)
+          raise e
+        else
+          assigns  = view.respond_to?(:assigns) ? view.assigns : {}
+          template = @virtual_path ? refresh(view) : self
+          raise Template::Error.new(template, assigns, e)
+        end
       end
 
-      def identifier_method_name
-        @identifier_method_name ||= inspect.gsub(/[^a-z_]/, '_')
+      def locals_code #:nodoc:
+        @locals.map { |key| "#{key} = local_assigns[:#{key}];" }.join
+      end
+
+      def method_name #:nodoc:
+        @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".gsub('-', "_")
+      end
+
+      def identifier_method_name #:nodoc:
+        inspect.gsub(/[^a-z_]/, '_')
       end
   end
 end

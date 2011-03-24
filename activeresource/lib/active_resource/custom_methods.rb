@@ -54,7 +54,7 @@ module ActiveResource
         #
         #   Person.find(:all, :from => :active)
         def get(custom_method_name, options = {})
-          connection.get(custom_method_collection_url(custom_method_name, options), headers)
+          format.decode(connection.get(custom_method_collection_url(custom_method_name, options), headers).body)
         end
 
         def post(custom_method_name, options = {}, body = '')
@@ -85,7 +85,7 @@ module ActiveResource
 
     module InstanceMethods
       def get(method_name, options = {})
-        connection.get(custom_method_element_url(method_name, options), self.class.headers)
+        self.class.format.decode(connection.get(custom_method_element_url(method_name, options), self.class.headers).body)
       end
 
       def post(method_name, options = {}, body = nil)

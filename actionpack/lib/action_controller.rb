@@ -34,7 +34,6 @@ module ActionController
     autoload :UrlFor
   end
 
-  autoload :Dispatcher,      'action_controller/deprecated/dispatcher'
   autoload :Integration,     'action_controller/deprecated/integration_test'
   autoload :IntegrationTest, 'action_controller/deprecated/integration_test'
   autoload :PerformanceTest, 'action_controller/deprecated/performance_test'
@@ -73,4 +72,5 @@ require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/name_error'
+require 'active_support/core_ext/uri'
 require 'active_support/inflector'

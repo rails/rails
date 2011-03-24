@@ -11,11 +11,13 @@ require 'mocha'
 
 require 'active_record'
 require 'active_support/dependencies'
-require 'connection'
-
 begin
-  require 'ruby-debug'
+  require 'connection'
 rescue LoadError
+  # If we cannot load connection we assume that driver was not loaded for this test case, so we load sqlite3 as default one.
+  # This allows for running separate test cases by simply running test file.
+  connection_type = defined?(JRUBY_VERSION) ? 'jdbc' : 'native'
+  require "test/connections/#{connection_type}_sqlite3/connection"
 end
 
 # Show backtraces for deprecated behavior for quicker cleanup.
@@ -24,6 +26,9 @@ ActiveSupport::Deprecation.debug = true
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 
+# Enable Identity Map for testing
+ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "false" ? false : true)
+
 def current_adapter?(*types)
   types.any? do |type|
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&
@@ -31,16 +36,52 @@ def current_adapter?(*types)
   end
 end
 
-ActiveRecord::Base.connection.class.class_eval do
-  IGNORED_SQL = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /SHOW FIELDS/]
+def in_memory_db?
+  current_adapter?(:SQLiteAdapter) &&
+  ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
+end
 
-  def execute_with_query_record(sql, name = nil, &block)
-    $queries_executed ||= []
-    $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
-    execute_without_query_record(sql, name, &block)
+def supports_savepoints?
+  ActiveRecord::Base.connection.supports_savepoints?
+end
+
+def with_env_tz(new_tz = 'US/Eastern')
+  old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+  yield
+ensure
+  old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+end
+
+def with_active_record_default_timezone(zone)
+  old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
+  yield
+ensure
+  ActiveRecord::Base.default_timezone = old_zone
+end
+
+module ActiveRecord
+  class SQLCounter
+    IGNORED_SQL = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/]
+
+    # FIXME: this needs to be refactored so specific database can add their own
+    # ignored SQL.  This ignored SQL is for Oracle.
+    IGNORED_SQL.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
+
+    def initialize
+      $queries_executed = []
+    end
+
+    def call(name, start, finish, message_id, values)
+      sql = values[:sql]
+
+      # FIXME: this seems bad. we should probably have a better way to indicate
+      # the query was cached
+      unless 'CACHE' == values[:name]
+        $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
+      end
+    end
   end
-
-  alias_method_chain :execute, :query_record
+  ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
 
 unless ENV['FIXTURE_DEBUG']
@@ -63,15 +104,15 @@ class ActiveSupport::TestCase
   self.use_transactional_fixtures = true
 
   def create_fixtures(*table_names, &block)
-    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
+    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
   end
 end
 
-# silence verbose schema loading
-original_stdout = $stdout
-$stdout = StringIO.new
+def load_schema
+  # silence verbose schema loading
+  original_stdout = $stdout
+  $stdout = StringIO.new
 
-begin
   adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
   adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
 
@@ -82,4 +123,23 @@ begin
   end
 ensure
   $stdout = original_stdout
+end
+
+load_schema
+
+class << Time
+  unless method_defined? :now_before_time_travel
+    alias_method :now_before_time_travel, :now
+  end
+
+  def now
+    (@now ||= nil) || now_before_time_travel
+  end
+
+  def travel_to(time, &block)
+    @now = time
+    block.call
+  ensure
+    @now = nil
+  end
 end

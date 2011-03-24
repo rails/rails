@@ -437,7 +437,7 @@ class SelectorTest < Test::Unit::TestCase
     assert_equal "4", @matches[1].attributes["id"]
   end
 
-  
+
   def test_first_and_last
     parse(%Q{<table><thead></thead><tr id="1"></tr><tr id="2"></tr><tr id="3"></tr><tr id="4"></tr></table>})
     # First child.
@@ -471,7 +471,7 @@ class SelectorTest < Test::Unit::TestCase
   end
 
 
-  def test_first_and_last
+  def test_only_child_and_only_type_first_and_last
     # Only child.
     parse(%Q{<table><tr></tr></table>})
     select("table:only-child")
@@ -503,7 +503,7 @@ class SelectorTest < Test::Unit::TestCase
     assert_equal 1, @matches.size
   end
 
-  
+
   def test_content
     parse(%Q{<div> </div>})
     select("div:content()")
@@ -582,7 +582,7 @@ class SelectorTest < Test::Unit::TestCase
     assert_equal "foo", @matches[0].attributes["title"]
   end
 
-  
+
   def test_pseudo_class_negation
     parse(%Q{<div><p id="1"></p><p id="2"></p></div>})
     select("p")
@@ -594,7 +594,7 @@ class SelectorTest < Test::Unit::TestCase
     assert_equal 1, @matches.size
     assert_equal "1", @matches[0].attributes["id"]
   end
-  
+
 
   def test_negation_details
     parse(%Q{<p id="1"></p><p id="2"></p><p id="3"></p>})

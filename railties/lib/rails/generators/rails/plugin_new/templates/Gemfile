@@ -1,0 +1,11 @@
+source "http://rubygems.org"
+
+<%= rails_gemfile_entry -%>
+
+<% if full? -%>
+<%= database_gemfile_entry -%>
+<% end -%>
+
+if RUBY_VERSION < '1.9'
+  gem "ruby-debug", ">= 0.10.3"
+end

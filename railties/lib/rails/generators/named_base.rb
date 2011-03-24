@@ -5,6 +5,8 @@ module Rails
   module Generators
     class NamedBase < Base
       argument :name, :type => :string
+      class_option :skip_namespace, :type => :boolean, :default => false,
+                                    :desc => "Skip namespace (affects only isolated applications)"
 
       def initialize(args, *options) #:nodoc:
         # Unfreeze name in case it's given as a frozen string
@@ -14,17 +16,78 @@ module Rails
         parse_attributes! if respond_to?(:attributes)
       end
 
-      protected
+      no_tasks do
+        def template(source, *args, &block)
+          inside_template do
+            super
+          end
+        end
+      end
 
-        attr_reader :class_path, :file_name
+      protected
+        attr_reader :file_name
         alias :singular_name :file_name
+
+        # Wrap block with namespace of current application
+        # if namespace exists and is not skipped
+        def module_namespacing(&block)
+          content = capture(&block)
+          content = wrap_with_namespace(content) if namespaced?
+          concat(content)
+        end
+
+        def indent(content, multiplier = 2)
+          spaces = " " * multiplier
+          content = content.each_line.map {|line| "#{spaces}#{line}" }.join
+        end
+
+        def wrap_with_namespace(content)
+          content = indent(content).chomp
+          "module #{namespace.name}\n#{content}\nend\n"
+        end
+
+        def inside_template
+          @inside_template = true
+          yield
+        ensure
+          @inside_template = false
+        end
+
+        def inside_template?
+          @inside_template
+        end
+
+        def namespace
+          @namespace ||= if defined?(Rails) && Rails.application
+            Rails.application.class.parents.detect { |n| n.respond_to?(:_railtie) }
+          end
+        end
+
+        def namespaced?
+          !options[:skip_namespace] && namespace
+        end
 
         def file_path
           @file_path ||= (class_path + [file_name]).join('/')
         end
 
+        def class_path
+          inside_template? || !namespaced? ? regular_class_path : namespaced_class_path
+        end
+
+        def regular_class_path
+          @class_path
+        end
+
+        def namespaced_class_path
+          @namespaced_class_path ||= begin
+            namespace_path = namespace.name.split("::").map {|m| m.underscore }
+            namespace_path + @class_path
+          end
+        end
+
         def class_name
-          @class_name ||= (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
+          (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
         end
 
         def human_name
@@ -55,11 +118,11 @@ module Rails
         end
 
         def singular_table_name
-          @singular_table_name ||= table_name.singularize
+          @singular_table_name ||= (pluralize_table_names? ? table_name.singularize : table_name)
         end
 
         def plural_table_name
-          @plural_table_name ||= table_name.pluralize
+          @plural_table_name ||= (pluralize_table_names? ? table_name : table_name.pluralize)
         end
 
         def plural_file_name

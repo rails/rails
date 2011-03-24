@@ -98,7 +98,7 @@ The value of +params[:ids]+ will now be +["1", "2", "3"]+. Note that parameter v
 To send a hash you include the key name inside the brackets:
 
 <html>
-<form action="/clients" method="post">
+<form accept-charset="UTF-8" action="/clients" method="post">
   <input type="text" name="client[name]" value="Acme" />
   <input type="text" name="client[phone]" value="12345" />
   <input type="text" name="client[address][postcode]" value="12345" />
@@ -115,10 +115,7 @@ h4. Routing Parameters
 The +params+ hash will always contain the +:controller+ and +:action+ keys, but you should use the methods +controller_name+ and +action_name+ instead to access these values. Any other parameters defined by the routing, such as +:id+ will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the +:status+ parameter in a "pretty" URL:
 
 <ruby>
-map.connect "/clients/:status", 
-  :controller => "clients",
-  :action => "index",
-  :foo => "bar"
+match '/clients/:status' => 'clients#index', :foo => "bar"
 </ruby>
 
 In this case, when a user opens the URL +/clients/active+, +params[:status]+ will be set to "active". When this route is used, +params[:foo]+ will also be set to "bar" just like it was passed in the query string. In the same way +params[:action]+ will contain "index".
@@ -161,7 +158,7 @@ If you need a different session storage mechanism, you can change it in the +con
 <ruby>
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
-# (create the session table with "rake db:sessions:create")
+# (create the session table with "script/rails g session_migration")
 # YourApp::Application.config.session_store :active_record_store
 </ruby>
 
@@ -214,7 +211,7 @@ class ApplicationController < ActionController::Base
   # logging out removes it.
   def current_user
     @_current_user ||= session[:current_user_id] &&
-      User.find(session[:current_user_id])
+      User.find_by_id(session[:current_user_id])
   end
 end
 </ruby>
@@ -242,7 +239,7 @@ class LoginsController < ApplicationController
   # "Delete" a login, aka "log the user out"
   def destroy
     # Remove the user id from the session
-    session[:current_user_id] = nil
+    @_current_user = session[:current_user_id] = nil
     redirect_to root_url
   end
 end
@@ -263,6 +260,13 @@ class LoginsController < ApplicationController
   end
 end
 </ruby>
+
+Note it is also possible to assign a flash message as part of the redirection.
+
+<ruby>
+redirect_to root_url, :notice => "You have successfully logged out"
+</ruby>
+
 
 The +destroy+ action redirects to the application's +root_url+, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display eventual errors or notices from the flash in the application's layout:
 
@@ -296,7 +300,7 @@ class MainController < ApplicationController
     # Will persist all flash values.
     flash.keep
 
-    # You can also use a key to keep only some kind of value. 
+    # You can also use a key to keep only some kind of value.
     # flash.keep(:notice)
     redirect_to users_url
   end
@@ -364,19 +368,20 @@ class UsersController < ApplicationController
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => @users}
+      format.json  { render :json => @users}
     end
   end
 end
 </ruby>
 
-Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ . 
+Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ .
 
 
 h3. Filters
 
-Filters are methods that are run before, after or "around" a controller action. 
+Filters are methods that are run before, after or "around" a controller action.
 
-Filters are inherited, so if you set a filter on +ApplicationController+, it will be run on every controller in your application. 
+Filters are inherited, so if you set a filter on +ApplicationController+, it will be run on every controller in your application.
 
 Before filters may halt the request cycle. A common before filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
 
@@ -418,26 +423,35 @@ Now, the +LoginsController+'s +new+ and +create+ actions will work as before wit
 
 h4. After Filters and Around Filters
 
-In addition to before filters, you can run filters after an action has run or both before and after. The after filter is similar to the before filter, but because the action has already been run it has access to the response data that's about to be sent to the client. Obviously, after filters can not stop the action from running.
+In addition to before filters, you can also run filters after an action has been executed, or both before and after.
 
-Around filters are responsible for running the action, but they can choose not to, which is the around filter's way of stopping it.
+After filters are similar to before filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, after filters cannot stop the action from running.
+
+Around filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+
+For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
 <ruby>
-# Example taken from the Rails API filter documentation:
-# http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html
-class ApplicationController < ActionController::Base
-  around_filter :catch_exceptions
+class ChangesController < ActionController::Base
+  around_filter :wrap_in_transaction, :only => :show
 
   private
 
-  def catch_exceptions
-    yield
-  rescue => exception
-    logger.debug "Caught exception! #{exception}"
-    raise
+  def wrap_in_transaction
+    ActiveRecord::Base.transaction do
+      begin
+        yield
+      ensure
+        raise ActiveRecord::Rollback
+      end
+    end
   end
 end
 </ruby>
+
+Note that an around filter wraps also rendering. In particular, if in the example above the view itself reads from the database via a scope or whatever, it will do so within the transaction and thus present the data to preview.
+
+They can choose not to yield and build the response themselves, in which case the action is not run.
 
 h4. Other Ways to Use Filters
 
@@ -474,11 +488,9 @@ end
 
 Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method +filter+ which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same +filter+ method, which will get run in the same way. The method must +yield+ to execute the action. Alternatively, it can have both a +before+ and an +after+ method that are run before and after the action.
 
-The Rails API documentation has "more information on using filters":http://api.rubyonrails.org/classes/ActionController/Filters/ClassMethods.html.
-
 h3. Verification
 
-Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response. It is described in the "API documentation":http://api.rubyonrails.org/classes/ActionController/Verification/ClassMethods.html as "essentially a special kind of before_filter".
+Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response.
 
 Here's an example of using verification to make sure the user supplies a username and a password in order to log in:
 
@@ -535,8 +547,8 @@ If you generate a form like this:
 You will see how the token gets added as a hidden field:
 
 <html>
-<form action="/users/1" method="post">
-<input type="hidden" 
+<form accept-charset="UTF-8" action="/users/1" method="post">
+<input type="hidden"
        value="67250ab105eb5ad10851c00a5621854a23af5489"
        name="authenticity_token"/>
 <!-- fields -->
@@ -555,7 +567,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 h4. The +request+ Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionController/AbstractRequest.html. Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionDispatch/Request.html. Among the properties that you can access on this object are:
 
 |_.Property of +request+|_.Purpose|
 |host|The hostname used for this request.|
@@ -659,7 +671,7 @@ class ClientsController < ApplicationController
   # returns it. The user will get the PDF as a file download.
   def download_pdf
     client = Client.find(params[:id])
-    send_data generate_pdf(client), 
+    send_data generate_pdf(client),
               :filename => "#{client.name}.pdf",
               :type => "application/pdf"
   end
@@ -734,15 +746,11 @@ GET /clients/1.pdf
 
 h3. Parameter Filtering
 
-Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. The +filter_parameter_logging+ method can be used to filter out sensitive information from the log. It works by replacing certain values in the +params+ hash with "[FILTERED]" as they are written to the log. As an example, let's see how to filter all parameters with keys that include "password":
+Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to <tt>config.filter_parameters</tt> in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 <ruby>
-class ApplicationController < ActionController::Base
-  filter_parameter_logging :password
-end
+config.filter_parameters << :password
 </ruby>
-
-The method works recursively through all levels of the +params+ hash and takes an optional second parameter which is used as the replacement string if present. It can also take a block which receives each key in turn and replaces those for which the block returns true.
 
 h3. Rescue
 
@@ -809,8 +817,6 @@ end
 NOTE: Certain exceptions are only rescuable from the +ApplicationController+ class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's "article":http://m.onkey.org/2008/7/20/rescue-from-dispatching on the subject for more information.
 
 h3. Changelog
-
-"Lighthouse Ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/17
 
 * February 17, 2009: Yet another proofread by Xavier Noria.
 

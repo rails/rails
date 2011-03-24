@@ -7,12 +7,31 @@ require 'models/comment'
 
 class SpecialDeveloper < Developer; end
 
+class DeveloperObserver < ActiveRecord::Observer
+  def calls
+    @calls ||= []
+  end
+
+  def before_save(developer)
+    calls << developer
+  end
+end
+
 class SalaryChecker < ActiveRecord::Observer
   observe :special_developer
+  attr_accessor :last_saved
 
   def before_save(developer)
     return developer.salary > 80000
   end
+
+  module Implementation
+    def after_save(developer)
+      self.last_saved = developer
+    end
+  end
+  include Implementation
+
 end
 
 class TopicaAuditor < ActiveRecord::Observer
@@ -92,9 +111,10 @@ class LifecycleTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :minimalistics
 
   def test_before_destroy
-    original_count = Topic.count
-    (topic_to_be_destroyed = Topic.find(1)).destroy
-    assert_equal original_count - (1 + topic_to_be_destroyed.replies.size), Topic.count
+    topic = Topic.find(1)
+    assert_difference 'Topic.count', -(1 + topic.replies.size) do
+      topic.destroy
+    end
   end
 
   def test_auto_observer
@@ -179,4 +199,21 @@ class LifecycleTest < ActiveRecord::TestCase
     developer = SpecialDeveloper.new :name => 'Rookie', :salary => 50000
     assert !developer.save, "allowed to save a developer with too low salary"
   end
+
+  test "able to call methods defined with included module" do # https://rails.lighthouseapp.com/projects/8994/tickets/6065-activerecordobserver-is-not-aware-of-method-added-by-including-modules
+    SalaryChecker.instance # activate
+    developer = SpecialDeveloper.create! :name => 'Roger', :salary => 100000
+    assert_equal developer, SalaryChecker.instance.last_saved
+  end
+
+  def test_observer_is_called_once
+    observer = DeveloperObserver.instance # activate
+    observer.calls.clear
+
+    developer = Developer.create! :name => 'Ancestor', :salary => 100000
+    special_developer = SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
+
+    assert_equal [developer, special_developer], observer.calls
+  end
+
 end

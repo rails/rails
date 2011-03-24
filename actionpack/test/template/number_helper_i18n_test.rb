@@ -7,7 +7,7 @@ class NumberHelperTest < ActionView::TestCase
     I18n.backend.store_translations 'ts',
       :number => {
         :format => { :precision => 3, :delimiter => ',', :separator => '.', :significant => false, :strip_insignificant_zeros => false },
-        :currency => { :format => { :unit => '&$', :format => '%u - %n', :precision => 2 } },
+        :currency => { :format => { :unit => '&$', :format => '%u - %n', :negative_format => '(%u - %n)', :precision => 2 } },
         :human => {
           :format => {
             :precision => 2,
@@ -41,17 +41,20 @@ class NumberHelperTest < ActionView::TestCase
       :custom_units_for_number_to_human => {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
   end
 
-  def test_number_to_currency
+  def test_number_to_i18n_currency
     assert_equal("&$ - 10.00", number_to_currency(10, :locale => 'ts'))
+    assert_equal("(&$ - 10.00)", number_to_currency(-10, :locale => 'ts'))
+    assert_equal("-10.00 - &$", number_to_currency(-10, :locale => 'ts', :format => "%n - %u"))
   end
 
   def test_number_to_currency_with_clean_i18n_settings
     clean_i18n do
       assert_equal("$10.00", number_to_currency(10))
+      assert_equal("-$10.00", number_to_currency(-10))
     end
   end
 
-  def test_number_with_precision
+  def test_number_with_i18n_precision
     #Delimiter was set to ""
     assert_equal("10000", number_with_precision(10000, :locale => 'ts'))
 
@@ -60,12 +63,12 @@ class NumberHelperTest < ActionView::TestCase
 
   end
 
-  def test_number_with_delimiter
+  def test_number_with_i18n_delimiter
     #Delimiter "," and separator "."
     assert_equal("1,000,000.234", number_with_delimiter(1000000.234, :locale => 'ts'))
   end
 
-  def test_number_to_percentage
+  def test_number_to_i18n_percentage
     # to see if strip_insignificant_zeros is true
     assert_equal("1%", number_to_percentage(1, :locale => 'ts'))
     # precision is 2, significant should be inherited
@@ -74,7 +77,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("12434%", number_to_percentage(12434, :locale => 'ts'))
   end
 
-  def test_number_to_human_size
+  def test_number_to_i18n_human_size
     #b for bytes and k for kbytes
     assert_equal("2 k", number_to_human_size(2048, :locale => 'ts'))
     assert_equal("42 b", number_to_human_size(42, :locale => 'ts'))

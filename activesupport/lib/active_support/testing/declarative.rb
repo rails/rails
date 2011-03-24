@@ -1,10 +1,10 @@
 module ActiveSupport
   module Testing
     module Declarative
-      
+
       def self.extended(klass)
         klass.class_eval do
-          
+
           unless method_defined?(:describe)
             def self.describe(text)
               class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
@@ -14,9 +14,9 @@ module ActiveSupport
               RUBY_EVAL
             end
           end
-          
+
         end
-      end 
+      end
 
       unless defined?(Spec)
         # test "verify something" do

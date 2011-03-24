@@ -3,7 +3,7 @@ begin
 rescue LoadError
   puts "Thor is not available.\nIf you ran this command from a git checkout " \
        "of Rails, please make sure thor is installed,\nand run this command " \
-       "as `ruby #{$0} #{ARGV.join(" ")} --dev`"
+       "as `ruby #{$0} #{(ARGV | ['--dev']).join(" ")}`"
   exit
 end
 
@@ -81,7 +81,7 @@ module Rails
       # guessed based on class invokes hook_for, as noticed in the example above.
       # This can be customized with two options: :base and :as.
       #
-      # Let's suppose you are creating a generator that needs to invoke the 
+      # Let's suppose you are creating a generator that needs to invoke the
       # controller generator from test unit. Your first attempt is:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
@@ -274,7 +274,7 @@ module Rails
         # Use Rails default banner.
         #
         def self.banner
-          "rails generate #{generator_name} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]"
+          "rails generate #{namespace.sub(/^rails:/,'')} #{self.arguments.map{ |a| a.usage }.join(' ')} [options]".gsub(/\s+/, ' ')
         end
 
         # Sets the base_name taking into account the current class namespace.

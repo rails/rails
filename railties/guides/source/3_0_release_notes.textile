@@ -18,13 +18,11 @@ These release notes cover the major upgrades, but don't include every little bug
 
 endprologue.
 
-WARNING: Rails 3.0 is currently in beta. This means that there are probably bugs and that you should "report them":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/overview if you see them. You also may not want to run the NORAD nuclear launch application off a beta version. But if you're starting development on a new application and you don't mind getting wind in your hair, please do jump on board!
-
-To install the last Rails 3 beta:
+To install Rails 3:
 
 <shell>
 # Use sudo if your setup requires it
-gem install rails --pre
+$ gem install rails
 </shell>
 
 
@@ -49,8 +47,8 @@ h4. script/* replaced by script/rails
 The new <tt>script/rails</tt> replaces all the scripts that used to be in the <tt>script</tt> directory. You do not run <tt>script/rails</tt> directly though, the +rails+ command detects it is being invoked in the root of a Rails application and runs the script for you. Intended usage is:
 
 <shell>
-rails console                      # instead of script/console
-rails g scaffold post title:string # instead of script/generate scaffold post title:string
+$ rails console                      # instead of script/console
+$ rails g scaffold post title:string # instead of script/generate scaffold post title:string
 </shell>
 
 Run <tt>rails --help</tt> for a list of all the options.
@@ -61,12 +59,12 @@ The +config.gem+ method is gone and has been replaced by using +bundler+ and a +
 
 h4. Upgrade Process
 
-To help with the upgrade process, a plugin named "Rails Upgrade":http://github.com/rails/rails_upgrade has been created to automate part of it.
+To help with the upgrade process, a plugin named "Rails Upgrade":http://github.com/jm/rails_upgrade has been created to automate part of it.
 
 Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them).  It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one.  To get the plugin, simply run the following:
 
 <shell>
-ruby script/plugin install git://github.com/rails/rails_upgrade.git
+$ ruby script/plugin install git://github.com/jm/rails_upgrade.git
 </shell>
 
 You can see an example of how that works at "Rails Upgrade is now an Official Plugin":http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin
@@ -77,10 +75,8 @@ More information - "The Path to Rails 3: Approaching the upgrade":http://omgblog
 
 h3. Creating a Rails 3.0 application
 
-The new installing rails sequence (for the beta) is:
-
 <shell>
-$ gem install rails --prerelease
+# You should have the 'rails' rubygem installed
 $ rails new myapp
 $ cd myapp
 </shell>
@@ -201,9 +197,9 @@ Finally a couple of enhancements were added to the rake tasks:
 
 Railties now deprecates:
 
-* <tt>RAILS_ROOT</tt> in favour of <tt>Rails.root</tt>,
-* <tt>RAILS_ENV</tt> in favour of <tt>Rails.env</tt>, and
-* <tt>RAILS_DEFAULT_LOGGER</tt> in favour of <tt>Rails.logger</tt>.
+* <tt>RAILS_ROOT</tt> in favor of <tt>Rails.root</tt>,
+* <tt>RAILS_ENV</tt> in favor of <tt>Rails.env</tt>, and
+* <tt>RAILS_DEFAULT_LOGGER</tt> in favor of <tt>Rails.logger</tt>.
 
 <tt>PLUGIN/rails/tasks</tt>, and <tt>PLUGIN/tasks</tt> are no longer loaded all tasks now must be in <tt>PLUGIN/lib/tasks</tt>.
 
@@ -241,7 +237,7 @@ h4. Action Controller
 
 Deprecations:
 
-* <tt>filter_parameter_logging</tt> is deprecated in favour of <tt>config.filter_parameters << :password</tt>.
+* <tt>filter_parameter_logging</tt> is deprecated in favor of <tt>config.filter_parameters << :password</tt>.
 
 More Information:
 * "Render Options in Rails 3":http://www.engineyard.com/blog/2010/render-options-in-rails-3/
@@ -275,10 +271,10 @@ end
 
 <ruby>
 scope 'es' do
-  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'projeto'
+  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'proyecto'
 end
 
-# Gives you the edit action with /es/projeto/1/cambiar
+# Gives you the edit action with /es/proyecto/1/cambiar
 </ruby>
 
 * Added +root+ method to the router as a short cut for <tt>match '/', :to => path</tt>.
@@ -361,15 +357,15 @@ Validations have been moved from Active Record into Active Model, providing an i
 
 * There is now a <tt>validates :attribute, options_hash</tt> shortcut method that allows you to pass options for all the validates class methods, you can pass more than one option to a validate method.
 * The +validates+ method has the following options:
-  * <tt>:acceptance => Boolean</tt>.
-  * <tt>:confirmation => Boolean</tt>.
-  * <tt>:exclusion => { :in => Ennumerable }</tt>.
-  * <tt>:inclusion => { :in => Ennumerable }</tt>.
-  * <tt>:format => { :with => Regexp, :on => :create }</tt>.
-  * <tt>:length => { :maximum => Fixnum }</tt>.
-  * <tt>:numericality => Boolean</tt>.
-  * <tt>:presence => Boolean</tt>.
-  * <tt>:uniqueness => Boolean</tt>.
+** <tt>:acceptance => Boolean</tt>.
+** <tt>:confirmation => Boolean</tt>.
+** <tt>:exclusion => { :in => Enumerable }</tt>.
+** <tt>:inclusion => { :in => Enumerable }</tt>.
+** <tt>:format => { :with => Regexp, :on => :create }</tt>.
+** <tt>:length => { :maximum => Fixnum }</tt>.
+** <tt>:numericality => Boolean</tt>.
+** <tt>:presence => Boolean</tt>.
+** <tt>:uniqueness => Boolean</tt>.
 
 NOTE: All the Rails version 2.3 style validation methods are still supported in Rails 3.0, the new validates method is designed as an additional aid in your model validations, not a replacement for the existing API.
 
@@ -452,7 +448,7 @@ h4. Patches and Deprecations
 
 Additionally, many fixes in the Active Record branch:
 
-* SQLite 2 support has been dropped in favour of SQLite 3.
+* SQLite 2 support has been dropped in favor of SQLite 3.
 * MySQL support for column order.
 * PostgreSQL adapter has had its +TIME ZONE+ support fixed so it no longer inserts incorrect values.
 * Support multiple schemas in table names for PostgreSQL.
@@ -464,11 +460,11 @@ As well as the following deprecations:
 
 * +named_scope+ in an Active Record class is deprecated and has been renamed to just +scope+.
 * In +scope+ methods, you should move to using the relation methods, instead of a <tt>:conditions => {}</tt> finder method, for example <tt>scope :since, lambda {|time| where("created_at > ?", time) }</tt>.
-* <tt>save(false)</tt> is deprecated, in favour of <tt>save(:validate => false)</tt>.
+* <tt>save(false)</tt> is deprecated, in favor of <tt>save(:validate => false)</tt>.
 * I18n error messages for ActiveRecord should be changed from :en.activerecord.errors.template to <tt>:en.errors.template</tt>.
-* <tt>model.errors.on</tt> is deprecated in favour of <tt>model.errors[]</tt>
+* <tt>model.errors.on</tt> is deprecated in favor of <tt>model.errors[]</tt>
 * validates_presence_of => validates... :presence => true
-* <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favour of <tt>Rails::LogSubscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
+* <tt>ActiveRecord::Base.colorize_logging</tt> and <tt>config.active_record.colorize_logging</tt> are deprecated in favor of <tt>Rails::LogSubscriber.colorize_logging</tt> or <tt>config.colorize_logging</tt>
 
 NOTE: While an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
 
@@ -491,7 +487,7 @@ Active Resource was also extracted out to Active Model allowing you to use Activ
 * Renamed <tt>SchemaDefinition</tt> to <tt>Schema</tt> and <tt>define_schema</tt> to <tt>schema</tt>.
 * Use the <tt>format</tt> of Active Resources rather than the <tt>content-type</tt> of remote errors to load errors.
 * Use <tt>instance_eval</tt> for schema block.
-* Fix <tt>ActiveResource::ConnectionError#to_s</tt> when +@response+ does not respond to #code or #message, handles Ruby 1.9 compat.
+* Fix <tt>ActiveResource::ConnectionError#to_s</tt> when +@response+ does not respond to #code or #message, handles Ruby 1.9 compatibility.
 * Add support for errors in JSON format.
 * Ensure <tt>load</tt> works with numeric arrays.
 * Recognizes a 410 response from remote resource as the resource has been deleted.
@@ -500,7 +496,7 @@ Active Resource was also extracted out to Active Model allowing you to use Activ
 
 Deprecations:
 
-* <tt>save(false)</tt> is deprecated, in favour of <tt>save(:validate => false)</tt>.
+* <tt>save(false)</tt> is deprecated, in favor of <tt>save(:validate => false)</tt>.
 * Ruby 1.9.2: <tt>URI.parse</tt> and <tt>.decode</tt> are deprecated and are no longer used in the library.
 
 
@@ -551,7 +547,7 @@ The following methods have been removed because they are now available in Ruby 1
 * <tt>Object#instance_variable_defined?</tt>
 * <tt>Enumerable#none?</tt>
 
-The security patch for REXML remains in Active Support because early patchlevels of Ruby 1.8.7 still need it. Active Support knows whether it has to apply it or not.
+The security patch for REXML remains in Active Support because early patch-levels of Ruby 1.8.7 still need it. Active Support knows whether it has to apply it or not.
 
 The following methods have been removed because they are no longer used in the framework:
 
@@ -579,7 +575,7 @@ Action Mailer has been given a new API with TMail being replaced out with the ne
 
 Deprecations:
 
-* <tt>:charset</tt>, <tt>:content_type</tt>, <tt>:mime_version</tt>, <tt>:implicit_parts_order</tt> are all deprecated in favour of <tt>ActionMailer.default :key => value</tt> style declarations.
+* <tt>:charset</tt>, <tt>:content_type</tt>, <tt>:mime_version</tt>, <tt>:implicit_parts_order</tt> are all deprecated in favor of <tt>ActionMailer.default :key => value</tt> style declarations.
 * Mailer dynamic <tt>create_method_name</tt> and <tt>deliver_method_name</tt> are deprecated, just call <tt>method_name</tt> which now returns a <tt>Mail::Message</tt> object.
 * <tt>ActionMailer.deliver(message)</tt> is deprecated, just call <tt>message.deliver</tt>.
 * <tt>template_root</tt> is deprecated, pass options to a render call inside a proc from the <tt>format.mime_type</tt> method inside the <tt>mail</tt> generation block

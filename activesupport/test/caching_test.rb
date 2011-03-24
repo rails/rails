@@ -356,9 +356,13 @@ module CacheDeleteMatchedBehavior
   def test_delete_matched
     @cache.write("foo", "bar")
     @cache.write("fu", "baz")
+    @cache.write("foo/bar", "baz")
+    @cache.write("fu/baz", "bar")
     @cache.delete_matched(/oo/)
     assert_equal false, @cache.exist?("foo")
     assert_equal true, @cache.exist?("fu")
+    assert_equal false, @cache.exist?("foo/bar")
+    assert_equal true, @cache.exist?("fu/baz")
   end
 end
 
@@ -509,6 +513,11 @@ class FileStoreTest < ActiveSupport::TestCase
       assert_nil old_cache.read('foo')
     end
   end
+
+  def test_key_transformation
+    key = @cache.send(:key_file_path, "views/index?id=1")
+    assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
@@ -649,12 +658,12 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
 
   def test_logging
     @cache.fetch('foo') { 'bar' }
-    assert @buffer.string.present?
+    assert_present @buffer.string
   end
 
   def test_mute_logging
     @cache.mute { @cache.fetch('foo') { 'bar' } }
-    assert @buffer.string.blank?
+    assert_blank @buffer.string
   end
 end
 
@@ -670,12 +679,12 @@ class CacheEntryTest < ActiveSupport::TestCase
 
   def test_expired
     entry = ActiveSupport::Cache::Entry.new("value")
-    assert_equal false, entry.expired?
+    assert !entry.expired?, 'entry not expired'
     entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
-    assert_equal false, entry.expired?
+    assert !entry.expired?, 'entry not expired'
     time = Time.now + 61
     Time.stubs(:now).returns(time)
-    assert_equal true, entry.expired?
+    assert entry.expired?, 'entry is expired'
   end
 
   def test_compress_values

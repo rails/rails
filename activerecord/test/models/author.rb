@@ -26,6 +26,12 @@ class Author < ActiveRecord::Base
   has_many :comments_with_order_and_conditions, :through => :posts, :source => :comments, :order => 'comments.body', :conditions => "comments.body like 'Thank%'"
   has_many :comments_with_include, :through => :posts, :source => :comments, :include => :post
 
+  has_many :first_posts
+  has_many :comments_on_first_posts, :through => :first_posts, :source => :comments, :order => 'posts.id desc, comments.id asc'
+
+  has_one :first_post
+  has_one :comment_on_first_post,  :through => :first_post, :source => :comments, :order => 'posts.id desc, comments.id asc'
+
   has_many :thinking_posts, :class_name => 'Post', :conditions => { :title => 'So I was thinking' }, :dependent => :delete_all
   has_many :welcome_posts,  :class_name => 'Post', :conditions => { :title => 'Welcome to the weblog' }
 
@@ -72,6 +78,11 @@ class Author < ActiveRecord::Base
 
   has_many :categorizations
   has_many :categories, :through => :categorizations
+  has_many :named_categories, :through => :categorizations
+
+  has_many :special_categorizations
+  has_many :special_categories, :through => :special_categorizations, :source => :category
+  has_one  :special_category,   :through => :special_categorizations, :source => :category
 
   has_many :categories_like_general, :through => :categorizations, :source => :category, :class_name => 'Category', :conditions => { :name => 'General' }
 
@@ -83,15 +94,52 @@ class Author < ActiveRecord::Base
   has_many :author_favorites
   has_many :favorite_authors, :through => :author_favorites, :order => 'name'
 
-  has_many :tagging,  :through => :posts # through polymorphic has_one
-  has_many :taggings, :through => :posts, :source => :taggings # through polymorphic has_many
-  has_many :tags,     :through => :posts # through has_many :through
+  has_many :tagging,         :through => :posts
+  has_many :taggings,        :through => :posts
+  has_many :tags,            :through => :posts
+  has_many :similar_posts,   :through => :tags,  :source => :tagged_posts, :uniq => true
+  has_many :distinct_tags,   :through => :posts, :source => :tags, :select => "DISTINCT tags.*", :order => "tags.name"
   has_many :post_categories, :through => :posts, :source => :categories
+  has_many :tagging_tags,    :through => :taggings, :source => :tag
+  has_many :tags_with_primary_key, :through => :posts
+
+  has_many :books
+  has_many :subscriptions,        :through => :books
+  has_many :subscribers,          :through => :subscriptions, :order => "subscribers.nick" # through has_many :through (on through reflection)
+  has_many :distinct_subscribers, :through => :subscriptions, :source => :subscriber, :select => "DISTINCT subscribers.*", :order => "subscribers.nick"
 
   has_one :essay, :primary_key => :name, :as => :writer
+  has_one :essay_category, :through => :essay, :source => :category
+  has_one :essay_owner, :through => :essay, :source => :owner
 
-  belongs_to :author_address, :dependent => :destroy
+  has_one :essay_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
+  has_one :essay_category_2, :through => :essay_2, :source => :category
+
+  has_many :essays, :primary_key => :name, :as => :writer
+  has_many :essay_categories, :through => :essays, :source => :category
+  has_many :essay_owners, :through => :essays, :source => :owner
+
+  has_many :essays_2, :primary_key => :name, :class_name => 'Essay', :foreign_key => :author_id
+  has_many :essay_categories_2, :through => :essays_2, :source => :category
+
+  belongs_to :owned_essay, :primary_key => :name, :class_name => 'Essay'
+  has_one :owned_essay_category, :through => :owned_essay, :source => :category
+
+  belongs_to :author_address,       :dependent => :destroy
   belongs_to :author_address_extra, :dependent => :delete, :class_name => "AuthorAddress"
+
+  has_many :post_categories, :through => :posts, :source => :categories
+  has_many :category_post_comments, :through => :categories, :source => :post_comments
+
+  has_many :misc_posts, :class_name => 'Post',
+           :conditions => { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }
+  has_many :misc_post_first_blue_tags, :through => :misc_posts, :source => :first_blue_tags
+
+  has_many :misc_post_first_blue_tags_2, :through => :posts, :source => :first_blue_tags_2,
+           :conditions => { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }
+
+  scope :relation_include_posts, includes(:posts)
+  scope :relation_include_tags, includes(:tags)
 
   attr_accessor :post_log
   after_initialize :set_post_log

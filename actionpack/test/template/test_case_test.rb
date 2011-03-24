@@ -112,7 +112,59 @@ module ActionView
       @controller.controller_path = 'test'
 
       @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-      assert_match /Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper')
+      assert_match(/Hello: EloyHello: Manfred/, render(:partial => 'test/from_helper'))
+    end
+  end
+
+  class ControllerHelperMethod < ActionView::TestCase
+    module SomeHelper
+      def some_method
+        render :partial => 'test/from_helper'
+      end
+    end
+
+    helper SomeHelper
+
+    test "can call a helper method defined on the current controller from a helper" do
+      @controller.singleton_class.class_eval <<-EOF, __FILE__, __LINE__ + 1
+        def render_from_helper
+          'controller_helper_method'
+        end
+      EOF
+      @controller.class.helper_method :render_from_helper
+
+      assert_equal 'controller_helper_method', some_method
+    end
+  end
+
+  class AssignsTest < ActionView::TestCase
+    setup do
+      ActiveSupport::Deprecation.stubs(:warn)
+    end
+
+    test "_assigns delegates to user_defined_ivars" do
+      self.expects(:view_assigns)
+      _assigns
+    end
+
+    test "_assigns is deprecated" do
+      ActiveSupport::Deprecation.expects(:warn)
+      _assigns
+    end
+  end
+
+  class ViewAssignsTest < ActionView::TestCase
+    test "view_assigns returns a Hash of user defined ivars" do
+      @a = 'b'
+      @c = 'd'
+      assert_equal({:a => 'b', :c => 'd'}, view_assigns)
+    end
+
+    test "view_assigns excludes internal ivars" do
+      INTERNAL_IVARS.each do |ivar|
+        assert defined?(ivar), "expected #{ivar} to be defined"
+        assert !view_assigns.keys.include?(ivar.sub('@','').to_sym), "expected #{ivar} to be excluded from view_assigns"
+      end
     end
   end
 
@@ -172,7 +224,7 @@ module ActionView
 
     test "is able to use named routes" do
       with_routing do |set|
-        set.draw { |map| resources :contents }
+        set.draw { resources :contents }
         assert_equal 'http://test.host/contents/new', new_content_url
         assert_equal 'http://test.host/contents/1',   content_url(:id => 1)
       end
@@ -180,7 +232,7 @@ module ActionView
 
     test "named routes can be used from helper included in view" do
       with_routing do |set|
-        set.draw { |map| resources :contents }
+        set.draw { resources :contents }
         _helpers.module_eval do
           def render_from_helper
             new_content_url
@@ -201,7 +253,7 @@ module ActionView
       @controller.controller_path = "test"
 
       @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-      assert_match /Hello: EloyHello: Manfred/, render(:file => 'test/list')
+      assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
     end
 
     test "is able to render partials from templates and also use instance variables after view has been referenced" do
@@ -210,7 +262,7 @@ module ActionView
       view
 
       @customers = [stub(:name => 'Eloy'), stub(:name => 'Manfred')]
-      assert_match /Hello: EloyHello: Manfred/, render(:file => 'test/list')
+      assert_match(/Hello: EloyHello: Manfred/, render(:file => 'test/list'))
     end
 
   end
@@ -251,6 +303,19 @@ module ActionView
       assert_raise ActiveSupport::TestCase::Assertion, /Somebody else.*David/m do
         assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
       end
+    end
+  end
+
+  module AHelperWithInitialize
+    def initialize(*)
+      super
+      @called_initialize = true
+    end
+  end
+
+  class AHelperWithInitializeTest < ActionView::TestCase
+    test "the helper's initialize was actually called" do
+      assert @called_initialize
     end
   end
 end

@@ -1,7 +1,4 @@
 require 'active_support/duration'
-require 'active_support/core_ext/date/acts_like'
-require 'active_support/core_ext/date/calculations'
-require 'active_support/core_ext/date_time/conversions'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -22,7 +19,7 @@ class Time
 
     # Returns a new Time if requested year can be accommodated by Ruby's Time class
     # (i.e., if year is within either 1970..2038 or 1902..2038, depending on system architecture);
-    # otherwise returns a DateTime
+    # otherwise returns a DateTime.
     def time_with_datetime_fallback(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0, usec=0)
       time = ::Time.send(utc_or_local, year, month, day, hour, min, sec, usec)
       # This check is needed because Time.utc(y) returns a time object in the 2000s for 0 <= y <= 138.
@@ -41,9 +38,9 @@ class Time
       time_with_datetime_fallback(:local, *args)
     end
 
-    # Returns <tt>Time.zone.now</tt> when <tt>config.time_zone</tt> is set, otherwise just returns <tt>Time.now</tt>.
+    # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
     def current
-      ::Time.zone_default ? ::Time.zone.now : ::Time.now
+      ::Time.zone ? ::Time.zone.now : ::Time.now
     end
   end
 
@@ -92,12 +89,12 @@ class Time
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
       options[:days] = (options[:days] || 0) + 7 * partial_weeks
     end
-    
+
     unless options[:days].nil?
       options[:days], partial_days = options[:days].divmod(1)
       options[:hours] = (options[:hours] || 0) + 24 * partial_days
     end
-    
+
     d = to_date.advance(options)
     time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
     seconds_to_advance = (options[:seconds] || 0) + (options[:minutes] || 0) * 60 + (options[:hours] || 0) * 3600
@@ -116,6 +113,11 @@ class Time
     to_datetime.since(seconds)
   end
   alias :in :since
+
+  # Returns a new Time representing the time a number of specified weeks ago.
+  def weeks_ago(weeks)
+    advance(:weeks => -weeks)
+  end
 
   # Returns a new Time representing the time a number of specified months ago
   def months_ago(months)
@@ -171,6 +173,11 @@ class Time
     (self + days_to_sunday.days).end_of_day
   end
   alias :at_end_of_week :end_of_week
+
+  # Returns a new Time representing the start of the given day in the previous week (default is Monday).
+  def prev_week(day = :monday)
+    ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
+  end
 
   # Returns a new Time representing the start of the given day in next week (default is Monday).
   def next_week(day = :monday)
@@ -273,14 +280,8 @@ class Time
   # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
   # can be chronologically compared with a Time
   def compare_with_coercion(other)
-    # if other is an ActiveSupport::TimeWithZone, coerce a Time instance from it so we can do <=> comparison
-    other = other.comparable_time if other.respond_to?(:comparable_time)
-    if other.acts_like?(:date)
-      # other is a Date/DateTime, so coerce self #to_datetime and hand off to DateTime#<=>
-      to_datetime.compare_without_coercion(other)
-    else
-      compare_without_coercion(other)
-    end
+    # we're avoiding Time#to_datetime cause it's expensive
+    other.is_a?(Time) ? compare_without_coercion(other.to_time) : to_datetime <=> other
   end
   alias_method :compare_without_coercion, :<=>
   alias_method :<=>, :compare_with_coercion

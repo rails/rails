@@ -34,7 +34,7 @@ module ActiveSupport
 
     module Isolation
       def self.forking_env?
-        !ENV["NO_FORK"] && ((Config::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
+        !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
       end
 
       def self.included(base)

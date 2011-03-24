@@ -4,17 +4,12 @@ module RailsGuides
       link = content_tag(:a, :href => url) { name }
       result = content_tag(:dt, link)
 
-      if ticket = options[:ticket]
-        result << content_tag(:dd, lh(ticket), :class => 'ticket')
+      if options[:work_in_progress]
+        result << content_tag(:dd, 'Work in progress', :class => 'work-in-progress')
       end
 
       result << content_tag(:dd, capture(&block))
       result
-    end
-
-    def lh(id, label = "Lighthouse Ticket")
-      url = "http://rails.lighthouseapp.com/projects/16213/tickets/#{id}"
-      content_tag(:a, label, :href => url)
     end
 
     def author(name, nick, image = 'credits_pic_blank.gif', &block)

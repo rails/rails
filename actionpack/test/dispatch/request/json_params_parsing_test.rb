@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class JsonParamsParsingTest < ActionController::IntegrationTest
+class JsonParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_request_parameters
@@ -56,7 +56,7 @@ class JsonParamsParsingTest < ActionController::IntegrationTest
 
     def with_test_routing
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::JsonParamsParsingTest::TestController
         end
         yield

@@ -7,7 +7,7 @@ module Fun
     # :ported:
     def hello_world
     end
-    
+
     def nested_partial_with_form_builder
       render :partial => ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {}, Proc.new {})
     end
@@ -99,11 +99,6 @@ class TestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
-  def render_hello_world_with_etag_set
-    response.etag = "hello_world"
-    render :template => "test/hello_world"
-  end
-
   # :ported: compatibility
   def render_hello_world_with_forward_slash
     render :template => "/test/hello_world"
@@ -128,6 +123,10 @@ class TestController < ActionController::Base
   # :ported:
   def render_action_hello_world
     render :action => "hello_world"
+  end
+
+  def render_action_upcased_hello_world
+    render :action => "Hello_world"
   end
 
   def render_action_hello_world_as_string
@@ -276,6 +275,7 @@ class TestController < ActionController::Base
 
   # :ported:
   def builder_layout_test
+    @name = nil
     render :action => "hello", :layout => "layouts/builder"
   end
 
@@ -327,6 +327,7 @@ class TestController < ActionController::Base
   end
 
   def default_render
+    @alternate_default_render ||= nil
     if @alternate_default_render
       @alternate_default_render.call
     else
@@ -339,14 +340,17 @@ class TestController < ActionController::Base
   end
 
   def layout_test_with_different_layout
+    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_string_action
+    @variable_for_layout = nil
     render "hello_world", :layout => "standard"
   end
 
   def layout_test_with_different_layout_and_symbol_action
+    @variable_for_layout = nil
     render :hello_world, :layout => "standard"
   end
 
@@ -355,6 +359,7 @@ class TestController < ActionController::Base
   end
 
   def layout_overriding_layout
+    @variable_for_layout = nil
     render :action => "hello_world", :layout => "standard"
   end
 
@@ -486,6 +491,10 @@ class TestController < ActionController::Base
 
   def head_with_custom_header
     head :x_custom_header => "something"
+  end
+
+  def head_with_www_authenticate_header
+    head 'WWW-Authenticate' => 'something'
   end
 
   def head_with_status_code_first
@@ -639,6 +648,7 @@ class TestController < ActionController::Base
   private
 
     def determine_layout
+      @variable_for_layout ||= nil
       case action_name
         when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
@@ -734,6 +744,12 @@ class RenderTest < ActionController::TestCase
   def test_render_action
     get :render_action_hello_world
     assert_template "test/hello_world"
+  end
+
+  def test_render_action_upcased
+    assert_raise ActionView::MissingTemplate do
+      get :render_action_upcased_hello_world
+    end
   end
 
   # :ported:
@@ -1016,7 +1032,7 @@ class RenderTest < ActionController::TestCase
     assert_equal " ", @response.body
   end
 
-  def test_render_to_string
+  def test_render_to_string_not_deprecated
     assert_not_deprecated { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
@@ -1113,20 +1129,20 @@ class RenderTest < ActionController::TestCase
 
   def test_head_with_location_header
     get :head_with_location_header
-    assert @response.body.blank?
+    assert_blank @response.body
     assert_equal "/foo", @response.headers["Location"]
     assert_response :ok
   end
 
   def test_head_with_location_object
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         resources :customers
         match ':controller/:action'
       end
 
       get :head_with_location_object
-      assert @response.body.blank?
+      assert_blank @response.body
       assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
       assert_response :ok
     end
@@ -1134,8 +1150,15 @@ class RenderTest < ActionController::TestCase
 
   def test_head_with_custom_header
     get :head_with_custom_header
-    assert @response.body.blank?
+    assert_blank @response.body
     assert_equal "something", @response.headers["X-Custom-Header"]
+    assert_response :ok
+  end
+
+  def test_head_with_www_authenticate_header
+    get :head_with_www_authenticate_header
+    assert_blank @response.body
+    assert_equal "something", @response.headers["WWW-Authenticate"]
     assert_response :ok
   end
 
@@ -1234,7 +1257,7 @@ class RenderTest < ActionController::TestCase
     assert_match(/<label/, @response.body)
     assert_template('test/_labelling_form')
   end
-  
+
   def test_nested_partial_with_form_builder
     @controller = Fun::GamesController.new
     get :nested_partial_with_form_builder
@@ -1368,119 +1391,6 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 end
 
-
-class EtagRenderTest < ActionController::TestCase
-  tests TestController
-
-  def setup
-    super
-    @request.host = "www.nextangle.com"
-    @expected_bang_etag = etag_for(expand_key([:foo, 123]))
-  end
-
-  def test_render_blank_body_shouldnt_set_etag
-    get :blank_response
-    assert !@response.etag?
-  end
-
-  def test_render_200_should_set_etag
-    get :render_hello_world_from_variable
-    assert_equal etag_for("hello david"), @response.headers['ETag']
-    assert_equal "max-age=0, private, must-revalidate", @response.headers['Cache-Control']
-  end
-
-  def test_render_against_etag_request_should_304_when_match
-    @request.if_none_match = etag_for("hello david")
-    get :render_hello_world_from_variable
-    assert_equal 304, @response.status.to_i
-    assert @response.body.empty?
-  end
-
-  def test_render_against_etag_request_should_have_no_content_length_when_match
-    @request.if_none_match = etag_for("hello david")
-    get :render_hello_world_from_variable
-    assert !@response.headers.has_key?("Content-Length")
-  end
-
-  def test_render_against_etag_request_should_200_when_no_match
-    @request.if_none_match = etag_for("hello somewhere else")
-    get :render_hello_world_from_variable
-    assert_equal 200, @response.status.to_i
-    assert !@response.body.empty?
-  end
-
-  def test_render_should_not_set_etag_when_last_modified_has_been_specified
-    get :render_hello_world_with_last_modified_set
-    assert_equal 200, @response.status.to_i
-    assert_not_nil @response.last_modified
-    assert_nil @response.etag
-    assert @response.body.present?
-  end
-
-  def test_render_with_etag
-    get :render_hello_world_from_variable
-    expected_etag = etag_for('hello david')
-    assert_equal expected_etag, @response.headers['ETag']
-    @response = ActionController::TestResponse.new
-
-    @request.if_none_match = expected_etag
-    get :render_hello_world_from_variable
-    assert_equal 304, @response.status.to_i
-
-    @response = ActionController::TestResponse.new
-    @request.if_none_match = "\"diftag\""
-    get :render_hello_world_from_variable
-    assert_equal 200, @response.status.to_i
-  end
-
-  def render_with_404_shouldnt_have_etag
-    get :render_custom_code
-    assert_nil @response.headers['ETag']
-  end
-
-  def test_etag_should_not_be_changed_when_already_set
-    get :render_hello_world_with_etag_set
-    assert_equal etag_for("hello_world"), @response.headers['ETag']
-  end
-
-  def test_etag_should_govern_renders_with_layouts_too
-    get :builder_layout_test
-    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
-    assert_equal etag_for("<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n"), @response.headers['ETag']
-  end
-
-  def test_etag_with_bang_should_set_etag
-    get :conditional_hello_with_bangs
-    assert_equal @expected_bang_etag, @response.headers["ETag"]
-    assert_response :success
-  end
-
-  def test_etag_with_bang_should_obey_if_none_match
-    @request.if_none_match = @expected_bang_etag
-    get :conditional_hello_with_bangs
-    assert_response :not_modified
-  end
-
-  def test_etag_with_public_true_should_set_header
-    get :conditional_hello_with_public_header
-    assert_equal "public", @response.headers['Cache-Control']
-  end
-
-  def test_etag_with_public_true_should_set_header_and_retain_other_headers
-    get :conditional_hello_with_public_header_and_expires_at
-    assert_equal "max-age=60, public", @response.headers['Cache-Control']
-  end
-
-  protected
-    def etag_for(text)
-      %("#{Digest::MD5.hexdigest(text)}")
-    end
-
-    def expand_key(args)
-      ActiveSupport::Cache.expand_cache_key(args)
-    end
-end
-
 class LastModifiedRenderTest < ActionController::TestCase
   tests TestController
 
@@ -1499,7 +1409,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = @last_modified
     get :conditional_hello
     assert_equal 304, @response.status.to_i
-    assert @response.body.blank?, @response.body
+    assert_blank @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
@@ -1514,7 +1424,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello
     assert_equal 200, @response.status.to_i
-    assert !@response.body.blank?
+    assert_present @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 

@@ -7,6 +7,17 @@ require 'models/subscriber'
 require 'models/ship'
 require 'models/pirate'
 require 'models/price_estimate'
+require 'models/essay'
+require 'models/author'
+require 'models/organization'
+require 'models/post'
+require 'models/tagging'
+require 'models/category'
+require 'models/book'
+require 'models/subscriber'
+require 'models/subscription'
+require 'models/tag'
+require 'models/sponsor'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -24,25 +35,25 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_read_attribute_names
     assert_equal(
-      %w( id title author_name author_email_address bonus_time written_on last_read content group approved replies_count parent_id parent_title type ).sort,
-      @first.attribute_names
+      %w( id title author_name author_email_address bonus_time written_on last_read content group approved replies_count parent_id parent_title type created_at updated_at ).sort,
+      @first.attribute_names.sort
     )
   end
 
   def test_columns
-    assert_equal 14, Topic.columns.length
+    assert_equal 16, Topic.columns.length
   end
 
   def test_columns_are_returned_in_the_order_they_were_declared
     column_names = Topic.columns.map { |column| column.name }
-    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content approved replies_count parent_id parent_title type group), column_names
+    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content approved replies_count parent_id parent_title type group created_at updated_at), column_names
   end
 
   def test_content_columns
     content_columns        = Topic.content_columns
     content_column_names   = content_columns.map {|column| column.name}
-    assert_equal 10, content_columns.length
-    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content group approved parent_title).sort, content_column_names.sort
+    assert_equal 12, content_columns.length
+    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content group approved parent_title created_at updated_at).sort, content_column_names.sort
   end
 
   def test_column_string_type_and_limit
@@ -126,16 +137,16 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_belongs_to_inferred_foreign_key_from_assoc_name
     Company.belongs_to :foo
-    assert_equal "foo_id", Company.reflect_on_association(:foo).primary_key_name
+    assert_equal "foo_id", Company.reflect_on_association(:foo).foreign_key
     Company.belongs_to :bar, :class_name => "Xyzzy"
-    assert_equal "bar_id", Company.reflect_on_association(:bar).primary_key_name
+    assert_equal "bar_id", Company.reflect_on_association(:bar).foreign_key
     Company.belongs_to :baz, :class_name => "Xyzzy", :foreign_key => "xyzzy_id"
-    assert_equal "xyzzy_id", Company.reflect_on_association(:baz).primary_key_name
+    assert_equal "xyzzy_id", Company.reflect_on_association(:baz).foreign_key
   end
 
   def test_association_reflection_in_modules
     ActiveRecord::Base.store_full_sti_class = false
-    
+
     assert_reflection MyApplication::Business::Firm,
       :clients_of_firm,
       :klass      => MyApplication::Business::Client,
@@ -177,8 +188,8 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 37, Firm.reflect_on_all_associations.size
-    assert_equal 27, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 36, Firm.reflect_on_all_associations.size
+    assert_equal 26, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end
@@ -189,6 +200,66 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_has_many_through_reflection
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
+  end
+
+  def test_chain
+    expected = [
+      Organization.reflect_on_association(:author_essay_categories),
+      Author.reflect_on_association(:essays),
+      Organization.reflect_on_association(:authors)
+    ]
+    actual = Organization.reflect_on_association(:author_essay_categories).chain
+
+    assert_equal expected, actual
+  end
+
+  def test_conditions
+    expected = [
+      [{ :tags => { :name => 'Blue' } }],
+      [{ :taggings => { :comment => 'first' } }, { "taggable_type" => "Post" }],
+      [{ :posts => { :title => ['misc post by bob', 'misc post by mary'] } }]
+    ]
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags).conditions
+    assert_equal expected, actual
+
+    expected = [
+      [{ :tags => { :name => 'Blue' } }, { :taggings => { :comment => 'first' } }, { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }],
+      [{ "taggable_type" => "Post" }],
+      []
+    ]
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
+    assert_equal expected, actual
+  end
+
+  def test_nested?
+    assert !Author.reflect_on_association(:comments).nested?
+    assert Author.reflect_on_association(:tags).nested?
+
+    # Only goes :through once, but the through_reflection is a has_and_belongs_to_many, so this is
+    # a nested through association
+    assert Category.reflect_on_association(:post_comments).nested?
+  end
+
+  def test_association_primary_key
+    # Normal association
+    assert_equal "id",   Author.reflect_on_association(:posts).association_primary_key.to_s
+    assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
+    assert_equal "id",   Tagging.reflect_on_association(:taggable).association_primary_key.to_s
+
+    # Through association (uses the :primary_key option from the source reflection)
+    assert_equal "nick", Author.reflect_on_association(:subscribers).association_primary_key.to_s
+    assert_equal "name", Author.reflect_on_association(:essay_category).association_primary_key.to_s
+    assert_equal "custom_primary_key", Author.reflect_on_association(:tags_with_primary_key).association_primary_key.to_s # nested
+  end
+
+  def test_active_record_primary_key
+    assert_equal "nick", Subscriber.reflect_on_association(:subscriptions).active_record_primary_key.to_s
+    assert_equal "name", Author.reflect_on_association(:essay).active_record_primary_key.to_s
+  end
+
+  def test_foreign_type
+    assert_equal "sponsorable_type", Sponsor.reflect_on_association(:sponsorable).foreign_type.to_s
+    assert_equal "sponsorable_type", Sponsor.reflect_on_association(:thing).foreign_type.to_s
   end
 
   def test_collection_association
@@ -226,6 +297,18 @@ class ReflectionTest < ActiveRecord::TestCase
     assert !AssociationReflection.new(:belongs_to, :client, { :autosave => true, :validate => false }, Firm).validate?
     assert !AssociationReflection.new(:has_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
     assert !AssociationReflection.new(:has_and_belongs_to_many, :clients, { :autosave => true, :validate => false }, Firm).validate?
+  end
+
+  def test_foreign_key
+    assert_equal "author_id", Author.reflect_on_association(:posts).foreign_key.to_s
+    assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
+  end
+
+  def test_primary_key_name
+    assert_deprecated do
+      assert_equal "author_id", Author.reflect_on_association(:posts).primary_key_name.to_s
+      assert_equal "category_id", Post.reflect_on_association(:categorizations).primary_key_name.to_s
+    end
   end
 
   private

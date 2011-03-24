@@ -209,7 +209,7 @@ class FlashTest < ActionController::TestCase
   end
 end
 
-class FlashIntegrationTest < ActionController::IntegrationTest
+class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
@@ -255,7 +255,7 @@ class FlashIntegrationTest < ActionController::IntegrationTest
 
     def with_test_route_set
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => FlashIntegrationTest::TestController
         end
 

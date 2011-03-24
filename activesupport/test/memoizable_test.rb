@@ -36,6 +36,13 @@ class MemoizableTest < ActiveSupport::TestCase
 
     memoize :name, :age
 
+    protected
+
+    def memoize_protected_test
+      'protected'
+    end
+    memoize :memoize_protected_test
+
     private
 
     def is_developer?
@@ -235,6 +242,13 @@ class MemoizableTest < ActiveSupport::TestCase
     company.extend ActiveSupport::Memoizable
     company.memoize :name
     assert_raise(RuntimeError) { company.memoize :name }
+  end
+
+  def test_protected_method_memoization
+    person = Person.new
+
+    assert_raise(NoMethodError) { person.memoize_protected_test }
+    assert_equal "protected", person.send(:memoize_protected_test)
   end
 
   def test_private_method_memoization

@@ -1,6 +1,6 @@
 module ActionDispatch
   module Routing
-    # In <b>routes.rb</b> one defines URL-to-controller mappings, but the reverse
+    # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
     # is also possible: an URL can be generated from one of your routing definitions.
     # URL generation functionality is centralized in this module.
     #
@@ -12,15 +12,14 @@ module ActionDispatch
     #
     # == URL generation from parameters
     #
-    # As you may know, some functions - such as ActionController::Base#url_for
+    # As you may know, some functions, such as ActionController::Base#url_for
     # and ActionView::Helpers::UrlHelper#link_to, can generate URLs given a set
     # of parameters. For example, you've probably had the chance to write code
     # like this in one of your views:
     #
     #   <%= link_to('Click here', :controller => 'users',
     #           :action => 'new', :message => 'Welcome!') %>
-    #
-    #   # Generates a link to /users/new?message=Welcome%21
+    #   # => "/users/new?message=Welcome%21"
     #
     # link_to, and all other functions that require URL generation functionality,
     # actually use ActionController::UrlFor under the hood. And in particular,
@@ -61,7 +60,7 @@ module ActionDispatch
     #
     # UrlFor also allows one to access methods that have been auto-generated from
     # named routes. For example, suppose that you have a 'users' resource in your
-    # <b>routes.rb</b>:
+    # <tt>config/routes.rb</tt>:
     #
     #   resources :users
     #
@@ -99,6 +98,11 @@ module ActionDispatch
         end
       end
 
+      def initialize(*)
+        @_routes = nil
+        super
+      end
+
       def url_options
         default_url_options
       end
@@ -111,6 +115,13 @@ module ActionDispatch
       # * <tt>:host</tt> - Specifies the host the link should be targeted at.
       #   If <tt>:only_path</tt> is false, this option must be
       #   provided either explicitly, or via +default_url_options+.
+      # * <tt>:subdomain</tt> - Specifies the subdomain of the link, using the +tld_length+
+      #   to split the domain from the host.
+      # * <tt>:domain</tt> - Specifies the domain of the link, using the +tld_length+
+      #   to split the subdomain from the host.
+      # * <tt>:tld_length</tt> - Number of labels the TLD id composed of, only used if
+      #   <tt>:subdomain</tt> or <tt>:domain</tt> are supplied. Defaults to
+      #   <tt>ActionDispatch::Http::URL.tld_length</tt>, which in turn defaults to 1.
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
@@ -134,6 +145,18 @@ module ActionDispatch
           polymorphic_url(options)
         end
       end
+
+      protected
+        def _with_routes(routes)
+          old_routes, @_routes = @_routes, routes
+          yield
+        ensure
+          @_routes = old_routes
+        end
+
+        def _routes_context
+          self
+        end
     end
   end
 end

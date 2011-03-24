@@ -70,7 +70,7 @@ class AssociationsTest < ActiveRecord::TestCase
     ship.parts.send(:load_target)
     assert_equal 'Deck', ship.parts[0].name
   end
-  
+
 
   def test_include_with_order_works
     assert_nothing_raised {Account.find(:first, :order => 'id', :include => :firm)}
@@ -107,7 +107,7 @@ class AssociationsTest < ActiveRecord::TestCase
     assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
     assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
   end
-  
+
   def test_using_limitable_reflections_helper
     using_limitable_reflections = lambda { |reflections| Tagging.scoped.send :using_limitable_reflections?, reflections }
     belongs_to_reflections = [Tagging.reflect_on_association(:tag), Tagging.reflect_on_association(:super_tag)]
@@ -117,10 +117,10 @@ class AssociationsTest < ActiveRecord::TestCase
     assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
     assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
   end
-  
+
   def test_force_reload_is_uncached
     firm = Firm.create!("name" => "A New Firm, Inc")
-    client = Client.create!("name" => "TheClient.com", :firm => firm)
+    Client.create!("name" => "TheClient.com", :firm => firm)
     ActiveRecord::Base.cache do
       firm.clients.each {}
       assert_queries(0) { assert_not_nil firm.clients.each {} }
@@ -132,25 +132,6 @@ end
 
 class AssociationProxyTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
-
-  def test_proxy_accessors
-    welcome = posts(:welcome)
-    assert_equal  welcome, welcome.author.proxy_owner
-    assert_equal  welcome.class.reflect_on_association(:author), welcome.author.proxy_reflection
-    welcome.author.class  # force load target
-    assert_equal  welcome.author, welcome.author.proxy_target
-
-    david = authors(:david)
-    assert_equal  david, david.posts.proxy_owner
-    assert_equal  david.class.reflect_on_association(:posts), david.posts.proxy_reflection
-    david.posts.class   # force load target
-    assert_equal  david.posts, david.posts.proxy_target
-
-    assert_equal  david, david.posts_with_extension.testing_proxy_owner
-    assert_equal  david.class.reflect_on_association(:posts_with_extension), david.posts_with_extension.testing_proxy_reflection
-    david.posts_with_extension.class   # force load target
-    assert_equal  david.posts_with_extension, david.posts_with_extension.testing_proxy_target
-  end
 
   def test_push_does_not_load_target
     david = authors(:david)
@@ -216,36 +197,11 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal post.body, "More cool stuff!"
   end
 
-  def test_failed_reload_returns_nil
-    p = setup_dangling_association
-    assert_nil p.author.reload
-  end
-
-  def test_failed_reset_returns_nil
-    p = setup_dangling_association
-    assert_nil p.author.reset
-  end
-
   def test_reload_returns_assocition
     david = developers(:david)
     assert_nothing_raised do
       assert_equal david.projects, david.projects.reload.reload
     end
-  end
-
-  if RUBY_VERSION < '1.9'
-    def test_splat_does_not_invoke_to_a_on_singular_targets
-      author = posts(:welcome).author
-      author.reload.target.expects(:to_a).never
-      [*author]
-    end
-  end
-
-  def setup_dangling_association
-    josh = Author.create(:name => "Josh")
-    p = Post.create(:title => "New on Edge", :body => "More cool stuff!", :author => josh)
-    josh.destroy
-    p
   end
 end
 
@@ -270,17 +226,17 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 
   def test_habtm_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
-    callbacks = PeopleList.read_inheritable_attribute(:before_add_for_has_and_belongs_to_many)
+    callbacks = PeopleList.before_add_for_has_and_belongs_to_many
     assert_equal([:enlist], callbacks)
-    callbacks = DifferentPeopleList.read_inheritable_attribute(:before_add_for_has_and_belongs_to_many)
+    callbacks = DifferentPeopleList.before_add_for_has_and_belongs_to_many
     assert_equal([], callbacks)
   end
 
   def test_has_many_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
-    callbacks = PeopleList.read_inheritable_attribute(:before_add_for_has_many)
+    callbacks = PeopleList.before_add_for_has_many
     assert_equal([:enlist], callbacks)
-    callbacks = DifferentPeopleList.read_inheritable_attribute(:before_add_for_has_many)
+    callbacks = DifferentPeopleList.before_add_for_has_many
     assert_equal([], callbacks)
   end
 

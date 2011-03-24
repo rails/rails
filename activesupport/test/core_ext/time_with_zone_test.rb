@@ -36,6 +36,10 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal @twz.object_id, @twz.in_time_zone(ActiveSupport::TimeZone['Eastern Time (US & Canada)']).object_id
   end
 
+  def test_localtime
+    assert_equal @twz.localtime, @twz.utc.getlocal
+  end
+
   def test_utc?
     assert_equal false, @twz.utc?
     assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']).utc?
@@ -102,11 +106,11 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_to_yaml
-    assert_equal "--- 1999-12-31 19:00:00 -05:00\n", @twz.to_yaml
+    assert_match(/^--- 2000-01-01 00:00:00(\.0+)?\s*Z\n/, @twz.to_yaml)
   end
 
   def test_ruby_to_yaml
-    assert_equal "--- \n:twz: 2000-01-01 00:00:00 Z\n", {:twz => @twz}.to_yaml
+    assert_match(/---\s*\n:twz: 2000-01-01 00:00:00(\.0+)?\s*Z\n/, {:twz => @twz}.to_yaml)
   end
 
   def test_httpdate
@@ -287,7 +291,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal 946684800, result
     assert_kind_of Integer, result
   end
-  
+
   def test_to_i_with_wrapped_datetime
     datetime = DateTime.civil(2000, 1, 1, 0)
     twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
@@ -328,7 +332,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_kind_of Time, @twz
     assert_kind_of ActiveSupport::TimeWithZone, @twz
   end
-  
+
   def test_class_name
     assert_equal 'Time', ActiveSupport::TimeWithZone.name
   end
@@ -703,7 +707,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", twz.years_ago(1).inspect
     assert_equal "Sun, 15 Jul 2007 10:30:00 EDT -04:00", (twz - 1.year).inspect
   end
-  
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
@@ -763,6 +767,13 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     end
   end
 
+  def test_localtime
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    assert_equal @dt.in_time_zone.localtime, @dt.in_time_zone.utc.to_time.getlocal
+  ensure
+    Time.zone = nil
+  end
+
   def test_use_zone
     Time.zone = 'Alaska'
     Time.use_zone 'Hawaii' do
@@ -790,7 +801,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal nil, Time.zone
   end
 
-  def test_time_zone_getter_and_setter_with_zone_default
+  def test_time_zone_getter_and_setter_with_zone_default_set
     Time.zone_default = ActiveSupport::TimeZone['Alaska']
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
     Time.zone = ActiveSupport::TimeZone['Hawaii']
@@ -798,6 +809,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     Time.zone = nil
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   ensure
+    Time.zone = nil
     Time.zone_default = nil
   end
 
@@ -838,7 +850,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_nil Time.zone
   end
 
-  def test_current_returns_time_now_when_zone_default_not_set
+  def test_current_returns_time_now_when_zone_not_set
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       assert_equal false, Time.current.is_a?(ActiveSupport::TimeWithZone)
@@ -846,8 +858,8 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     end
   end
 
-  def test_current_returns_time_zone_now_when_zone_default_set
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+  def test_current_returns_time_zone_now_when_zone_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       assert_equal true, Time.current.is_a?(ActiveSupport::TimeWithZone)
@@ -855,7 +867,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
       assert_equal Time.utc(2000), Time.current.time
     end
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
 
   protected

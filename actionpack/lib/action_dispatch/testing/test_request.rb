@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/reverse_merge'
+require 'rack/utils'
 
 module ActionDispatch
   class TestRequest < Request
@@ -10,9 +11,10 @@ module ActionDispatch
     end
 
     def initialize(env = {})
-      env = Rails.application.env_defaults.merge(env) if defined?(Rails.application)
+      env = Rails.application.env_config.merge(env) if defined?(Rails.application)
       super(DEFAULT_ENV.merge(env))
 
+      @cookies = nil
       self.host        = 'test.host'
       self.remote_addr = '0.0.0.0'
       self.user_agent  = 'Rails Testing'
@@ -66,7 +68,7 @@ module ActionDispatch
 
     def accept=(mime_types)
       @env.delete('action_dispatch.request.accepts')
-      @env['HTTP_ACCEPT'] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
+      @env['HTTP_ACCEPT'] = Array(mime_types).collect { |mime_type| mime_type.to_s }.join(",")
     end
 
     def cookies
@@ -76,8 +78,12 @@ module ActionDispatch
     private
       def write_cookies!
         unless @cookies.blank?
-          @env['HTTP_COOKIE'] = @cookies.map { |name, value| "#{name}=#{value};" }.join(' ')
+          @env['HTTP_COOKIE'] = @cookies.map { |name, value| escape_cookie(name, value) }.join('; ')
         end
+      end
+
+      def escape_cookie(name, value)
+        "#{Rack::Utils.escape(name)}=#{Rack::Utils.escape(value)}"
       end
 
       def delete_nil_values!

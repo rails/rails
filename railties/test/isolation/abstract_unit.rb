@@ -19,6 +19,7 @@ RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
 # to run the tests
 require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/isolation"
 require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/declarative"
+require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/core_ext/kernel/reporting"
 
 module TestHelpers
   module Paths
@@ -44,6 +45,17 @@ module TestHelpers
   end
 
   module Rack
+    def app(env = "production")
+      old_env = ENV["RAILS_ENV"]
+      @app ||= begin
+        ENV["RAILS_ENV"] = env
+        require "#{app_path}/config/environment"
+        Rails.application
+      end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
+
     def extract_body(response)
       "".tap do |body|
         response[2].each {|chunk| body << chunk }
@@ -123,6 +135,22 @@ module TestHelpers
       extend ::Rack::Test::Methods
     end
 
+    def simple_controller
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render :text => "foo"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match ':controller(/:action)'
+        end
+      RUBY
+    end
+
     class Bukkit
       attr_reader :path
 
@@ -187,6 +215,13 @@ module TestHelpers
       end
     end
 
+    def remove_from_config(str)
+      file = "#{app_path}/config/application.rb"
+      contents = File.read(file)
+      contents.sub!(/#{str}/, "")
+      File.open(file, "w+") { |f| f.puts contents }
+    end
+
     def app_file(path, contents)
       FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
       File.open("#{app_path}/#{path}", 'w') do |f|
@@ -203,6 +238,7 @@ module TestHelpers
                     :activemodel,
                     :activerecord,
                     :activeresource] - arr
+      remove_from_config "config.active_record.identity_map = true" if to_remove.include? :activerecord
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 

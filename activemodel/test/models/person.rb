@@ -9,5 +9,9 @@ class Person
   end
 end
 
+class Person::Gender
+  extend ActiveModel::Translation
+end
+
 class Child < Person
 end

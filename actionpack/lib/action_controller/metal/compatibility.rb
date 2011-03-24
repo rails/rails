@@ -5,9 +5,6 @@ module ActionController
     class ::ActionController::ActionControllerError < StandardError #:nodoc:
     end
 
-    module ClassMethods
-    end
-
     # Temporary hax
     included do
       ::ActionController::UnknownAction = ::AbstractController::ActionNotFound
@@ -39,12 +36,6 @@ module ActionController
     def assign_shortcuts(*) end
 
     def _normalize_options(options)
-      if options[:action] && options[:action].to_s.include?(?/)
-        ActiveSupport::Deprecation.warn "Giving a path to render :action is deprecated. " <<
-          "Please use render :template instead", caller
-        options[:template] = options.delete(:action)
-      end
-
       options[:text] = nil if options.delete(:nothing) == true
       options[:text] = " " if options.key?(:text) && options[:text].nil?
       super

@@ -1,6 +1,31 @@
 require 'abstract_unit'
 
 class RequestTest < ActiveSupport::TestCase
+
+  def url_for(options = {})
+    options.reverse_merge!(:host => 'www.example.com')
+    ActionDispatch::Http::URL.url_for(options)
+  end
+
+  test "url_for class method" do
+    e = assert_raise(ArgumentError) { url_for(:host => nil) }
+    assert_match(/Please provide the :host parameter/, e.message)
+
+    assert_equal '/books', url_for(:only_path => true, :path => '/books')
+
+    assert_equal 'http://www.example.com',  url_for
+    assert_equal 'http://api.example.com',  url_for(:subdomain => 'api')
+    assert_equal 'http://www.ror.com',      url_for(:domain => 'ror.com')
+    assert_equal 'http://api.ror.co.uk',    url_for(:host => 'www.ror.co.uk', :subdomain => 'api', :tld_length => 2)
+    assert_equal 'http://www.example.com:8080',   url_for(:port => 8080)
+    assert_equal 'https://www.example.com',       url_for(:protocol => 'https')
+    assert_equal 'http://www.example.com/docs',   url_for(:path => '/docs')
+    assert_equal 'http://www.example.com#signup', url_for(:anchor => 'signup')
+    assert_equal 'http://www.example.com/',       url_for(:trailing_slash => true)
+    assert_equal 'http://dhh:supersecret@www.example.com', url_for(:user => 'dhh', :password => 'supersecret')
+    assert_equal 'http://www.example.com?search=books',    url_for(:params => { :search => 'books' })
+  end
+
   test "remote ip" do
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4'
     assert_equal '1.2.3.4', request.remote_ip
@@ -45,9 +70,9 @@ class RequestTest < ActiveSupport::TestCase
     e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
       request.remote_ip
     }
-    assert_match /IP spoofing attack/, e.message
-    assert_match /HTTP_X_FORWARDED_FOR="1.1.1.1"/, e.message
-    assert_match /HTTP_CLIENT_IP="2.2.2.2"/, e.message
+    assert_match(/IP spoofing attack/, e.message)
+    assert_match(/HTTP_X_FORWARDED_FOR="1.1.1.1"/, e.message)
+    assert_match(/HTTP_CLIENT_IP="2.2.2.2"/, e.message)
 
     # turn IP Spoofing detection off.
     # This is useful for sites that are aimed at non-IP clients.  The typical
@@ -96,6 +121,9 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
     assert_equal "rubyonrails.co.uk", request.domain(2)
 
+    request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk", :tld_length => 2
+    assert_equal "rubyonrails.co.uk", request.domain
+
     request = stub_request 'HTTP_HOST' => "192.168.1.200"
     assert_nil request.domain
 
@@ -116,6 +144,9 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk"
     assert_equal %w( dev www ), request.subdomains(2)
 
+    request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk", :tld_length => 2
+    assert_equal %w( dev www ), request.subdomains
+
     request = stub_request 'HTTP_HOST' => "foobar.foobar.com"
     assert_equal %w( foobar ), request.subdomains
 
@@ -132,12 +163,46 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal [], request.subdomains
   end
 
-  test "port string" do
-    request = stub_request 'HTTP_HOST' => 'www.example.org:80'
-    assert_equal "", request.port_string
+  test "standard_port" do
+    request = stub_request
+    assert_equal 80, request.standard_port
+
+    request = stub_request 'HTTPS' => 'on'
+    assert_equal 443, request.standard_port
+  end
+
+  test "standard_port?" do
+    request = stub_request
+    assert !request.ssl?
+    assert request.standard_port?
+
+    request = stub_request 'HTTPS' => 'on'
+    assert request.ssl?
+    assert request.standard_port?
 
     request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
-    assert_equal ":8080", request.port_string
+    assert !request.ssl?
+    assert !request.standard_port?
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8443', 'HTTPS' => 'on'
+    assert request.ssl?
+    assert !request.standard_port?
+  end
+
+  test "optional port" do
+    request = stub_request 'HTTP_HOST' => 'www.example.org:80'
+    assert_equal nil, request.optional_port
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
+    assert_equal 8080, request.optional_port
+  end
+
+  test "port string" do
+    request = stub_request 'HTTP_HOST' => 'www.example.org:80'
+    assert_equal '', request.port_string
+
+    request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
+    assert_equal ':8080', request.port_string
   end
 
   test "full path" do
@@ -221,6 +286,16 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'HTTP_X_FORWARDED_PROTO' => 'https'
     assert request.ssl?
+  end
+
+  test "scheme returns https when proxied" do
+    request = stub_request 'rack.url_scheme' => 'http'
+    assert !request.ssl?
+    assert_equal 'http', request.scheme
+
+    request = stub_request 'rack.url_scheme' => 'http', 'HTTP_X_FORWARDED_PROTO' => 'https'
+    assert request.ssl?
+    assert_equal 'https', request.scheme
   end
 
   test "String request methods" do
@@ -346,6 +421,18 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal({"bar" => 2}, request.query_parameters)
   end
 
+  test "parameters still accessible after rack parse error" do
+    mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
+    request = nil
+    begin
+      request = stub_request(mock_rack_env)
+      request.parameters
+    rescue TypeError
+      # rack will raise a TypeError when parsing this query string
+    end
+    assert_equal({}, request.parameters)
+  end
+
   test "formats with accept header" do
     request = stub_request 'HTTP_ACCEPT' => 'text/html'
     request.expects(:parameters).at_least_once.returns({})
@@ -428,15 +515,56 @@ class RequestTest < ActiveSupport::TestCase
 
     assert_equal "[FILTERED]", request.raw_post
     assert_equal "[FILTERED]", request.params["amount"]
-    assert_equal "1", request.params["step"]    
+    assert_equal "1", request.params["step"]
+  end
+
+  test "filtered_path returns path with filtered query string" do
+    %w(; &).each do |sep|
+      request = stub_request('QUERY_STRING' => %w(username=sikachu secret=bd4f21f api_key=b1bc3b3cd352f68d79d7).join(sep),
+        'PATH_INFO' => '/authenticate',
+        'action_dispatch.parameter_filter' => [:secret, :api_key])
+
+      path = request.filtered_path
+      assert_equal %w(/authenticate?username=sikachu secret=[FILTERED] api_key=[FILTERED]).join(sep), path
+    end
+  end
+
+  test "filtered_path should not unescape a genuine '[FILTERED]' value" do
+    request = stub_request('QUERY_STRING' => "secret=bd4f21f&genuine=%5BFILTERED%5D",
+      'PATH_INFO' => '/authenticate',
+      'action_dispatch.parameter_filter' => [:secret])
+
+    path = request.filtered_path
+    assert_equal "/authenticate?secret=[FILTERED]&genuine=%5BFILTERED%5D", path
+  end
+
+  test "filtered_path should preserve duplication of keys in query string" do
+    request = stub_request('QUERY_STRING' => "username=sikachu&secret=bd4f21f&username=fxn",
+      'PATH_INFO' => '/authenticate',
+      'action_dispatch.parameter_filter' => [:secret])
+
+    path = request.filtered_path
+    assert_equal "/authenticate?username=sikachu&secret=[FILTERED]&username=fxn", path
+  end
+
+  test "filtered_path should ignore searchparts" do
+    request = stub_request('QUERY_STRING' => "secret",
+      'PATH_INFO' => '/authenticate',
+      'action_dispatch.parameter_filter' => [:secret])
+
+    path = request.filtered_path
+    assert_equal "/authenticate?secret", path
   end
 
 protected
 
   def stub_request(env = {})
     ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
+    @trusted_proxies ||= nil
     ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
+    tld_length = env.key?(:tld_length) ? env.delete(:tld_length) : 1
     ip_app.call(env)
+    ActionDispatch::Http::URL.tld_length = tld_length
     ActionDispatch::Request.new(env)
   end
 

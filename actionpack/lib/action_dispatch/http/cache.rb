@@ -39,10 +39,11 @@ module ActionDispatch
       end
 
       module Response
-        attr_reader :cache_control
+        attr_reader :cache_control, :etag
+        alias :etag? :etag
 
         def initialize(*)
-          status, header, body = super
+          super
 
           @cache_control = {}
           @etag = self["ETag"]
@@ -50,8 +51,7 @@ module ActionDispatch
           if cache_control = self["Cache-Control"]
             cache_control.split(/,\s*/).each do |segment|
               first, last = segment.split("=")
-              last ||= true
-              @cache_control[first.to_sym] = last
+              @cache_control[first.to_sym] = last || true
             end
           end
         end
@@ -70,14 +70,6 @@ module ActionDispatch
           headers['Last-Modified'] = utc_time.httpdate
         end
 
-        def etag
-          @etag
-        end
-
-        def etag?
-          @etag
-        end
-
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
           @etag = self["ETag"] = %("#{Digest::MD5.hexdigest(key)}")
@@ -88,38 +80,19 @@ module ActionDispatch
         def handle_conditional_get!
           if etag? || last_modified? || !@cache_control.empty?
             set_conditional_cache_control!
-          elsif nonempty_ok_response?
-            self.etag = body
-
-            if request && request.etag_matches?(etag)
-              self.status = 304
-              self.body = []
-            end
-
-            set_conditional_cache_control!
-          else
-            headers["Cache-Control"] = "no-cache"
           end
-        end
-
-        def nonempty_ok_response?
-          @status == 200 && string_body?
-        end
-
-        def string_body?
-          !@blank && @body.respond_to?(:all?) && @body.all? { |part| part.is_a?(String) }
         end
 
         DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
 
         def set_conditional_cache_control!
-          control = @cache_control
-
           return if self["Cache-Control"].present?
+
+          control = @cache_control
 
           if control.empty?
             headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
-          elsif @cache_control[:no_cache]
+          elsif control[:no_cache]
             headers["Cache-Control"] = "no-cache"
           else
             extras  = control[:extras]

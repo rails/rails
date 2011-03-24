@@ -41,13 +41,72 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     sleep 2
     @connection.verify!
     assert @connection.active?
- end
+  end
+
+  def test_bind_value_substitute
+    bind_param = @connection.substitute_for('foo', [])
+    assert_equal Arel.sql('?'), bind_param
+  end
+
+  def test_exec_no_binds
+    @connection.exec_query('drop table if exists ex')
+    @connection.exec_query(<<-eosql)
+      CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+        `data` varchar(255))
+    eosql
+    result = @connection.exec_query('SELECT id, data FROM ex')
+    assert_equal 0, result.rows.length
+    assert_equal 2, result.columns.length
+    assert_equal %w{ id data }, result.columns
+
+    @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    result = @connection.exec_query('SELECT id, data FROM ex')
+    assert_equal 1, result.rows.length
+    assert_equal 2, result.columns.length
+
+    assert_equal [[1, 'foo']], result.rows
+  end
+
+  def test_exec_with_binds
+    @connection.exec_query('drop table if exists ex')
+    @connection.exec_query(<<-eosql)
+      CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+        `data` varchar(255))
+    eosql
+    @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    result = @connection.exec_query(
+      'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
+
+    assert_equal 1, result.rows.length
+    assert_equal 2, result.columns.length
+
+    assert_equal [[1, 'foo']], result.rows
+  end
+
+  def test_exec_typecasts_bind_vals
+    @connection.exec_query('drop table if exists ex')
+    @connection.exec_query(<<-eosql)
+      CREATE TABLE `ex` (`id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+        `data` varchar(255))
+    eosql
+    @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+    column = @connection.columns('ex').find { |col| col.name == 'id' }
+
+    result = @connection.exec_query(
+      'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
+
+    assert_equal 1, result.rows.length
+    assert_equal 2, result.columns.length
+
+    assert_equal [[1, 'foo']], result.rows
+  end
 
   # Test that MySQL allows multiple results for stored procedures
-  if Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
+  if defined?(Mysql) && Mysql.const_defined?(:CLIENT_MULTI_RESULTS)
     def test_multi_results
       rows = ActiveRecord::Base.connection.select_rows('CALL ten();')
       assert_equal 10, rows[0][0].to_i, "ten() did not return 10 as expected: #{rows.inspect}"
+      assert @connection.active?, "Bad connection use by 'MysqlAdapter.select_rows'"
     end
   end
 

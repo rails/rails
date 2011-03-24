@@ -9,6 +9,24 @@ module ActionView
     # and transforming strings, which can reduce the amount of inline Ruby code in
     # your views. These helper methods extend Action View making them callable
     # within your template files.
+    #
+    # ==== Sanitization
+    #
+    # Most text helpers by default sanitize the given content, but do not escape it.
+    # This means HTML tags will appear in the page but all malicious code will be removed.
+    # Let's look at some examples using the +simple_format+ method:
+    #
+    #   simple_format('<a href="http://example.com/">Example</a>')
+    #   # => "<p><a href=\"http://example.com/\">Example</a></p>"
+    #
+    #   simple_format('<a href="javascript:alert('no!')">Example</a>')
+    #   # => "<p><a>Example</a></p>"
+    #
+    # If you want to escape all content, you should invoke the +h+ method before
+    # calling the text helper.
+    #
+    #   simple_format h('<a href="http://example.com/">Example</a>')
+    #   # => "<p>&lt;a href=\"http://example.com/\"&gt;Example&lt;/a&gt;</p>"
     module TextHelper
       extend ActiveSupport::Concern
 
@@ -134,6 +152,8 @@ module ActionView
       #   excerpt('This is an example', 'an', 5)                   # => ...s is an exam...
       #   excerpt('This is also an example', 'an', 8, '<chop> ')   # => <chop> is also an example
       def excerpt(text, phrase, *args)
+        return unless text && phrase
+
         options = args.extract_options!
         unless args.empty?
           options[:radius] = args[0] || 100
@@ -141,21 +161,16 @@ module ActionView
         end
         options.reverse_merge!(:radius => 100, :omission => "...")
 
-        if text && phrase
-          phrase = Regexp.escape(phrase)
+        phrase = Regexp.escape(phrase)
+        return unless found_pos = text.mb_chars =~ /(#{phrase})/i
 
-          if found_pos = text.mb_chars =~ /(#{phrase})/i
-            start_pos = [ found_pos - options[:radius], 0 ].max
-            end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
+        start_pos = [ found_pos - options[:radius], 0 ].max
+        end_pos   = [ [ found_pos + phrase.mb_chars.length + options[:radius] - 1, 0].max, text.mb_chars.length ].min
 
-            prefix  = start_pos > 0 ? options[:omission] : ""
-            postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
+        prefix  = start_pos > 0 ? options[:omission] : ""
+        postfix = end_pos < text.mb_chars.length - 1 ? options[:omission] : ""
 
-            prefix + text.mb_chars[start_pos..end_pos].strip + postfix
-          else
-            nil
-          end
-        end
+        prefix + text.mb_chars[start_pos..end_pos].strip + postfix
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
@@ -219,6 +234,10 @@ module ActionView
       #
       # You can pass any HTML attributes into <tt>html_options</tt>.  These
       # will be added to all created paragraphs.
+      #
+      # ==== Options
+      # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
+      #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
       #
@@ -232,6 +251,9 @@ module ActionView
       #
       #   simple_format("Look ma! A class!", :class => 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
+      #
+      #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
+      #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
         text = ''.html_safe if text.nil?
         start_tag = tag('p', html_options, true)
@@ -263,7 +285,7 @@ module ActionView
       #
       #   post_body = "Welcome to my new blog at http://www.myblog.com/.  Please e-mail me at me@email.com."
       #   auto_link(post_body, :html => { :target => '_blank' }) do |text|
-      #     truncate(text, 15)
+      #     truncate(text, :length => 15)
       #   end
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.m...</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
@@ -345,10 +367,10 @@ module ActionView
         values.unshift(first_value)
 
         cycle = get_cycle(name)
-        if (cycle.nil? || cycle.values != values)
+        unless cycle && cycle.values == values
           cycle = set_cycle(name, Cycle.new(*values))
         end
-        return cycle.to_s
+        cycle.to_s
       end
 
       # Returns the current cycle string after a cycle has been started. Useful
@@ -365,7 +387,7 @@ module ActionView
       #   <% end %>
       def current_cycle(name = "default")
         cycle = get_cycle(name)
-        cycle.current_value unless cycle.nil?
+        cycle.current_value if cycle
       end
 
       # Resets a cycle so that it starts from the first element the next time
@@ -389,7 +411,7 @@ module ActionView
       #   </table>
       def reset_cycle(name = "default")
         cycle = get_cycle(name)
-        cycle.reset unless cycle.nil?
+        cycle.reset if cycle
       end
 
       class Cycle #:nodoc:
@@ -444,7 +466,7 @@ module ActionView
         end
 
         AUTO_LINK_RE = %r{
-            (?: ([\w+.:-]+:)// | www\. )
+            (?: ([0-9A-Za-z+.:-]+:)// | www\. )
             [^\s<]+
           }x
 
@@ -462,7 +484,7 @@ module ActionView
           text.gsub(AUTO_LINK_RE) do
             scheme, href = $1, $&
             punctuation = []
-            
+
             if auto_linked?($`, $')
               # do not change string; URL is already linked
               href
@@ -507,7 +529,7 @@ module ActionView
             end
           end
         end
-        
+
         # Detects already linked context or position in the middle of a tag
         def auto_linked?(left, right)
           (left =~ AUTO_LINK_CRE[0] and right =~ AUTO_LINK_CRE[1]) or

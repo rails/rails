@@ -3,12 +3,17 @@ require 'abstract_unit'
 module Notifications
   class TestCase < ActiveSupport::TestCase
     def setup
-      ActiveSupport::Notifications.notifier = nil
-      @notifier = ActiveSupport::Notifications.notifier
+      @old_notifier = ActiveSupport::Notifications.notifier
+      @notifier = ActiveSupport::Notifications::Fanout.new
+      ActiveSupport::Notifications.notifier = @notifier
       @events = []
       @named_events = []
       @subscription = @notifier.subscribe { |*args| @events << event(*args) }
       @named_subscription = @notifier.subscribe("named.subscription") { |*args| @named_events << event(*args) }
+    end
+
+    def teardown
+      ActiveSupport::Notifications.notifier = @old_notifier
     end
 
   private

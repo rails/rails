@@ -63,6 +63,36 @@ module ApplicationTests
       assert I18n.load_path.include?("#{app_path}/config/another_locale.yml")
     end
 
+    test "load_path is populated before eager loaded models" do
+      add_to_config <<-RUBY
+        config.cache_classes = true
+      RUBY
+
+      app_file "config/locales/en.yml", <<-YAML
+en:
+  foo: "1"
+      YAML
+
+      app_file 'app/models/foo.rb', <<-RUBY
+        class Foo < ActiveRecord::Base
+          @foo = I18n.t(:foo)
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
+        end
+      RUBY
+
+      require 'rack/test'
+      extend Rack::Test::Methods
+      load_app
+
+      get "/i18n"
+      assert_equal "1", last_response.body
+    end
+
     test "locales are reloaded if they change between requests" do
       add_to_config <<-RUBY
         config.cache_classes = false
@@ -74,7 +104,7 @@ en:
       YAML
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do |map|
+        AppTemplate::Application.routes.draw do
           match '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY

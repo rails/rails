@@ -44,8 +44,11 @@ module ActiveSupport
     @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
 
     class << self
-      attr_writer :notifier
-      delegate :publish, :to => :notifier
+      attr_accessor :notifier
+
+      def publish(name, *args)
+        notifier.publish(name, *args)
+      end
 
       def instrument(name, payload = {})
         if @instrumenters[name]
@@ -61,18 +64,16 @@ module ActiveSupport
         end
       end
 
-      def unsubscribe(*args)
-        notifier.unsubscribe(*args)
+      def unsubscribe(args)
+        notifier.unsubscribe(args)
         @instrumenters.clear
-      end
-
-      def notifier
-        @notifier ||= Fanout.new
       end
 
       def instrumenter
         Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
       end
     end
+
+    self.notifier = Fanout.new
   end
 end

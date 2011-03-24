@@ -1,8 +1,7 @@
-require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/keys'
 
 # This class has dubious semantics and we only have it so that
-# people can write params[:key] instead of params['key']
+# people can write <tt>params[:key]</tt> instead of <tt>params['key']</tt>
 # and they get the same value for both keys.
 
 module ActiveSupport
@@ -28,6 +27,12 @@ module ActiveSupport
       end
     end
 
+    def self.new_from_hash_copying_default(hash)
+      new(hash).tap do |new_hash|
+        new_hash.default = hash.default
+      end
+    end
+
     alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
     alias_method :regular_update, :update unless method_defined?(:regular_update)
 
@@ -39,6 +44,8 @@ module ActiveSupport
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value))
     end
+
+    alias_method :store, :[]=
 
     # Updates the instantized hash with values from the second:
     #
@@ -90,7 +97,9 @@ module ActiveSupport
 
     # Returns an exact copy of the hash.
     def dup
-      HashWithIndifferentAccess.new(self)
+      self.class.new(self).tap do |new_hash|
+        new_hash.default = default
+      end
     end
 
     # Merges the instantized and the specified hashes together, giving precedence to the values from the second hash
@@ -100,9 +109,9 @@ module ActiveSupport
     end
 
     # Performs the opposite of merge, with the keys and values from the first hash taking precedence over the second.
-    # This overloaded definition prevents returning a regular hash, if reverse_merge is called on a HashWithDifferentAccess.
+    # This overloaded definition prevents returning a regular hash, if reverse_merge is called on a <tt>HashWithDifferentAccess</tt>.
     def reverse_merge(other_hash)
-      super other_hash.with_indifferent_access
+      super self.class.new_from_hash_copying_default(other_hash)
     end
 
     def reverse_merge!(other_hash)
@@ -131,11 +140,10 @@ module ActiveSupport
       end
 
       def convert_value(value)
-        case value
-        when Hash
-          value.with_indifferent_access
-        when Array
-          value.collect { |e| e.is_a?(Hash) ? e.with_indifferent_access : e }
+        if value.class == Hash
+          self.class.new_from_hash_copying_default(value)
+        elsif value.is_a?(Array)
+          value.dup.replace(value.map { |e| convert_value(e) })
         else
           value
         end

@@ -40,10 +40,16 @@ module <%= app_const_base %>
     # config.i18n.default_locale = :de
 
     # JavaScript files you want as :defaults (application.js is always included).
-<% if options[:skip_prototype] -%>
+<% if options[:skip_javascript] -%>
     config.action_view.javascript_expansions[:defaults] = %w()
+<% elsif options[:javascript] == 'jquery' -%>
+    config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
 <% else -%>
     # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
+<% end -%>
+
+<% if options[:skip_test_unit] -%>
+    config.generators.test_framework = false
 <% end -%>
 
     # Configure the default encoding used in templates for Ruby 1.9.
@@ -51,5 +57,10 @@ module <%= app_const_base %>
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
+
+<% unless options[:skip_active_record] -%>
+    # Enable IdentityMap for Active Record, to disable set to false or remove the line below.
+    config.active_record.identity_map = true
+<% end -%>
   end
 end

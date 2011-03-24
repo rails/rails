@@ -20,12 +20,12 @@ module ActionView
       end
 
       def initialize
+        super
         self.class.controller_path = ""
         @request = ActionController::TestRequest.new
         @response = ActionController::TestResponse.new
 
         @request.env.delete('PATH_INFO')
-
         @params = {}
       end
     end
@@ -44,7 +44,7 @@ module ActionView
       include ActionView::Helpers
 
       attr_accessor :controller, :output_buffer, :rendered
-      
+
       module ClassMethods
         def tests(helper_class)
           self.helper_class = helper_class
@@ -74,6 +74,11 @@ module ActionView
           @helper_class ||= determine_default_helper_class(name)
         end
 
+        def new(*)
+          include_helper_modules!
+          super
+        end
+
       private
 
         def include_helper_modules!
@@ -89,7 +94,6 @@ module ActionView
         @output_buffer = ActiveSupport::SafeBuffer.new
         @rendered = ''
 
-        self.class.send(:include_helper_modules!)
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!
       end
@@ -99,7 +103,7 @@ module ActionView
       end
 
       def render(options = {}, local_assigns = {}, &block)
-        view.assign(_assigns)
+        view.assign(view_assigns)
         @rendered << output = view.render(options, local_assigns, &block)
         output
       end
@@ -123,6 +127,7 @@ module ActionView
 
       def say_no_to_protect_against_forgery!
         _helpers.module_eval do
+          remove_method :protect_against_forgery? if method_defined?(:protect_against_forgery?)
           def protect_against_forgery?
             false
           end
@@ -132,8 +137,10 @@ module ActionView
       def make_test_case_available_to_view!
         test_case_instance = self
         _helpers.module_eval do
-          define_method(:_test_case) { test_case_instance }
-          private :_test_case
+          unless private_method_defined?(:_test_case)
+            define_method(:_test_case) { test_case_instance }
+            private :_test_case
+          end
         end
       end
 
@@ -149,47 +156,59 @@ module ActionView
       # The instance of ActionView::Base that is used by +render+.
       def view
         @view ||= begin
-                     view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
-                     view.singleton_class.send :include, _helpers
-                     view.singleton_class.send :include, @controller._routes.url_helpers
-                     view.singleton_class.send :delegate, :alert, :notice, :to => "request.flash"
-                     view.extend(Locals)
-                     view.locals = self.locals
-                     view.output_buffer = self.output_buffer
-                     view
-                   end
+          view = @controller.view_context
+          view.singleton_class.send :include, _helpers
+          view.extend(Locals)
+          view.locals = self.locals
+          view.output_buffer = self.output_buffer
+          view
+        end
       end
 
       alias_method :_view, :view
 
-      EXCLUDE_IVARS = %w{
+      INTERNAL_IVARS = %w{
+        @__name__
+        @__io__
         @_assertion_wrapped
+        @_assertions
         @_result
+        @_routes
         @controller
         @layouts
         @locals
         @method_name
         @output_buffer
         @partials
+        @passed
         @rendered
         @request
         @routes
         @templates
+        @options
         @test_passed
         @view
         @view_context_class
       }
 
-      def _instance_variables
-        instance_variables.map(&:to_s) - EXCLUDE_IVARS
+      def _user_defined_ivars
+        instance_variables.map(&:to_s) - INTERNAL_IVARS
+      end
+
+      # Returns a Hash of instance variables and their values, as defined by
+      # the user in the test case, which are then assigned to the view being
+      # rendered. This is generally intended for internal use and extension
+      # frameworks.
+      def view_assigns
+        Hash[_user_defined_ivars.map do |var|
+          [var[1, var.length].to_sym, instance_variable_get(var)]
+        end]
       end
 
       def _assigns
-        _instance_variables.inject({}) do |hash, var|
-          name = var[1..-1].to_sym
-          hash[name] = instance_variable_get(var)
-          hash
-        end
+        ActiveSupport::Deprecation.warn "ActionView::TestCase#_assigns is deprecated and will be removed in future versions. " <<
+          "Please use view_assigns instead."
+        view_assigns
       end
 
       def _routes
@@ -198,7 +217,7 @@ module ActionView
 
       def method_missing(selector, *args)
         if @controller.respond_to?(:_routes) &&
-        @controller._routes.named_routes.helpers.include?(selector)
+          @controller._routes.named_routes.helpers.include?(selector)
           @controller.__send__(selector, *args)
         else
           super

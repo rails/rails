@@ -10,7 +10,7 @@
 #
 # By default prefetch_rows (OCI_ATTR_PREFETCH_ROWS) is set to 100. And
 # until true bind variables are supported, cursor_sharing is set by default
-# to 'similar'. Both can be changed in the configation below; the defaults
+# to 'similar'. Both can be changed in the configuration below; the defaults
 # are equivalent to specifying:
 #
 #  prefetch_rows: 100

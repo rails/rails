@@ -10,19 +10,23 @@ module ActiveModel
 
     module ClassMethods
       # == Active Model Observers Activation
-      # 
+      #
       # Activates the observers assigned. Examples:
       #
+      #   class ORM
+      #     include ActiveModel::Observing
+      #   end
+      #
       #   # Calls PersonObserver.instance
-      #   ActiveRecord::Base.observers = :person_observer
+      #   ORM.observers = :person_observer
       #
       #   # Calls Cacher.instance and GarbageCollector.instance
-      #   ActiveRecord::Base.observers = :cacher, :garbage_collector
+      #   ORM.observers = :cacher, :garbage_collector
       #
       #   # Same as above, just using explicit class references
-      #   ActiveRecord::Base.observers = Cacher, GarbageCollector
+      #   ORM.observers = Cacher, GarbageCollector
       #
-      # Note: Setting this does not instantiate the observers yet. 
+      # Note: Setting this does not instantiate the observers yet.
       # +instantiate_observers+ is called during startup, and before
       # each development request.
       def observers=(*values)
@@ -34,36 +38,41 @@ module ActiveModel
         @observers ||= []
       end
 
+      # Gets the current observer instances.
+      def observer_instances
+        @observer_instances ||= []
+      end
+
       # Instantiate the global Active Record observers.
       def instantiate_observers
         observers.each { |o| instantiate_observer(o) }
       end
 
+      # Add a new observer to the pool.
       def add_observer(observer)
         unless observer.respond_to? :update
           raise ArgumentError, "observer needs to respond to `update'"
         end
-        @observer_instances ||= []
-        @observer_instances << observer
+        observer_instances << observer
       end
 
+      # Notify list of observers of a change.
       def notify_observers(*arg)
-        if defined? @observer_instances
-          for observer in @observer_instances
-            observer.update(*arg)
-          end
+        for observer in observer_instances
+          observer.update(*arg)
         end
       end
 
+      # Total number of observers.
       def count_observers
-        @observer_instances.size
+        observer_instances.size
       end
 
       protected
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
           if observer.respond_to?(:to_sym)
-            observer = observer.to_s.camelize.constantize.instance
+            observer.to_s.camelize.constantize.instance
           elsif observer.respond_to?(:instance)
             observer.instance
           else
@@ -93,7 +102,7 @@ module ActiveModel
 
   # == Active Model Observers
   #
-  # Observer classes respond to lifecycle callbacks to implement trigger-like
+  # Observer classes respond to life cycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with
   # functionality that doesn't pertain to the core responsibility of the
@@ -123,9 +132,9 @@ module ActiveModel
   #
   # Observers will by default be mapped to the class with which they share a
   # name. So CommentObserver will be tied to observing Comment, ProductManagerObserver
-  # to ProductManager, and so on. If you want to name your observer differently than 
-  # the class you're interested in observing, you can use the Observer.observe class 
-  # method which takes either the concrete class (Product) or a symbol for that 
+  # to ProductManager, and so on. If you want to name your observer differently than
+  # the class you're interested in observing, you can use the Observer.observe class
+  # method which takes either the concrete class (Product) or a symbol for that
   # class (:product):
   #
   #   class AuditObserver < ActiveModel::Observer
@@ -136,7 +145,7 @@ module ActiveModel
   #     end
   #   end
   #
-  # If the audit observer needs to watch more than one kind of object, this can be 
+  # If the audit observer needs to watch more than one kind of object, this can be
   # specified with multiple arguments:
   #
   #   class AuditObserver < ActiveModel::Observer
@@ -147,8 +156,12 @@ module ActiveModel
   #     end
   #   end
   #
-  # The AuditObserver will now act on both updates to Account and Balance by treating 
+  # The AuditObserver will now act on both updates to Account and Balance by treating
   # them both as records.
+  #
+  # If you're using an Observer in a Rails application with Active Record, be sure to
+  # read about the necessary configuration in the documentation for
+  # ActiveRecord::Observer.
   #
   class Observer
     include Singleton

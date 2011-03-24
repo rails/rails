@@ -1,0 +1,2 @@
+class PluginBuilder
+end

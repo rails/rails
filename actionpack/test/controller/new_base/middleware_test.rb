@@ -25,8 +25,25 @@ module MiddlewareTest
       result
     end
   end
+  
+  class BlockMiddleware
+    attr_accessor :configurable_message
+    def initialize(app, &block)
+      @app = app
+      yield(self) if block_given?
+    end
+    
+    def call(env)
+      result = @app.call(env)
+      result[1]["Configurable-Message"] = configurable_message
+      result
+    end
+  end
 
   class MyController < ActionController::Metal
+    use BlockMiddleware do |config|
+      config.configurable_message = "Configured by block."
+    end
     use MyMiddleware
     middleware.insert_before MyMiddleware, ExclaimerMiddleware
 
@@ -65,6 +82,11 @@ module MiddlewareTest
     test "the middleware stack is exposed as 'middleware' in the controller" do
       result = @app.call(env_for("/"))
       assert_equal "First!", result[1]["Middleware-Order"]
+    end
+
+    test "middleware stack accepts block arguments" do
+      result = @app.call(env_for("/"))
+      assert_equal "Configured by block.", result[1]["Configurable-Message"]
     end
 
     test "middleware stack accepts only and except as options" do

@@ -25,7 +25,7 @@ module ActiveSupport
 
     DEFAULT_ENCODINGS = {
       "binary" => "base64"
-    } unless defined?(TYPE_NAMES)
+    } unless defined?(DEFAULT_ENCODINGS)
 
     TYPE_NAMES = {
       "Symbol"     => "symbol",
@@ -126,9 +126,11 @@ module ActiveSupport
     end
 
     def rename_key(key, options = {})
-      camelize  = options.has_key?(:camelize) && options[:camelize]
+      camelize  = options[:camelize]
       dasherize = !options.has_key?(:dasherize) || options[:dasherize]
-      key = key.camelize  if camelize
+      if camelize
+        key = true == camelize ? key.camelize : key.camelize(camelize)
+      end
       key = _dasherize(key) if dasherize
       key
     end

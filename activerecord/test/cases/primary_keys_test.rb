@@ -11,7 +11,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_to_key_with_default_primary_key
     topic = Topic.new
-    assert topic.to_key.nil?
+    assert_nil topic.to_key
     topic = Topic.find(1)
     assert_equal [1], topic.to_key
   end

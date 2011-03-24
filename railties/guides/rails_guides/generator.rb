@@ -32,11 +32,15 @@
 #
 #     Separate many using commas:
 #
-#       # generates only 
+#       # generates only association_basics.html and migrations.html
 #       ONLY=assoc,migrations ruby rails_guides.rb
 #
 #     Note that if you are working on a guide generation will by default process
 #     only that one, so ONLY is rarely used nowadays.
+#
+#   LANGUAGE
+#     Use LANGUAGE when you want to generate translated guides in <tt>source/<LANGUAGE></tt>
+#     folder (such as <tt>source/es</tt>). Ignore it when generating English guides.
 #
 #   EDGE
 #     Set to "1" to indicate generated guides should be marked as edge. This
@@ -63,6 +67,7 @@ module RailsGuides
     GUIDES_RE = /\.(?:textile|html\.erb)$/
 
     def initialize(output=nil)
+      @lang = ENV['LANGUAGE']
       initialize_dirs(output)
       create_output_dir_if_needed
       set_flags_from_environment
@@ -76,8 +81,8 @@ module RailsGuides
     private
     def initialize_dirs(output)
       @guides_dir = File.join(File.dirname(__FILE__), '..')
-      @source_dir = File.join(@guides_dir, "source")
-      @output_dir = output || File.join(@guides_dir, "output")      
+      @source_dir = File.join(@guides_dir, "source", @lang.to_s)
+      @output_dir = output || File.join(@guides_dir, "output", @lang.to_s)
     end
 
     def create_output_dir_if_needed
@@ -116,7 +121,7 @@ module RailsGuides
     def output_file_for(guide)
       guide.sub(GUIDES_RE, '.html')
     end
-    
+
     def generate?(source_file, output_file)
       fin  = File.join(source_dir, source_file)
       fout = File.join(output_dir, output_file)
@@ -207,15 +212,33 @@ module RailsGuides
     # with code blocks by hand.
     def with_workaround_for_notextile(body)
       code_blocks = []
+
       body.gsub!(%r{<(yaml|shell|ruby|erb|html|sql|plain)>(.*?)</\1>}m) do |m|
-        es = ERB::Util.h($2)
-        css_class = ['erb', 'shell'].include?($1) ? 'html' : $1
-        code_blocks << %{<div class="code_container"><code class="#{css_class}">#{es}</code></div>}
+        brush = case $1
+          when 'ruby', 'sql', 'plain'
+            $1
+          when 'erb'
+            'ruby; html-script: true'
+          when 'html'
+            'xml' # html is understood, but there are .xml rules in the CSS
+          else
+            'plain'
+        end
+
+        code_blocks.push(<<HTML)
+<notextile>
+<div class="code_container">
+<pre class="brush: #{brush}; gutter: false; toolbar: false">
+#{ERB::Util.h($2).strip}
+</pre>
+</div>
+</notextile>
+HTML
         "\ndirty_workaround_for_notextile_#{code_blocks.size - 1}\n"
       end
-      
+
       body = yield body
-      
+
       body.gsub(%r{<p>dirty_workaround_for_notextile_(\d+)</p>}) do |_|
         code_blocks[$1.to_i]
       end
@@ -225,7 +248,7 @@ module RailsGuides
       anchors = extract_anchors(html)
       check_fragment_identifiers(html, anchors)
     end
-    
+
     def extract_anchors(html)
       # Textile generates headers with IDs computed from titles.
       anchors = Set.new
@@ -237,11 +260,12 @@ module RailsGuides
         end
       end
 
-      # Also, footnotes are rendered as paragraphs this way.
+      # Footnotes.
       anchors += Set.new(html.scan(/<p\s+class="footnote"\s+id="([^"]+)/).flatten)
+      anchors += Set.new(html.scan(/<sup\s+class="footnote"\s+id="([^"]+)/).flatten)
       return anchors
     end
-    
+
     def check_fragment_identifiers(html, anchors)
       html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
         next if fragment_identifier == 'mainCol' # in layout, jumps to some DIV

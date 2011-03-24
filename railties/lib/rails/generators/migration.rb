@@ -52,8 +52,12 @@ module Rails
 
         destination = self.class.migration_exists?(migration_dir, @migration_file_name)
 
-        if behavior == :invoke
-          raise Error, "Another migration is already named #{@migration_file_name}: #{destination}" if destination
+        if !(destination && options[:skip]) && behavior == :invoke
+          if destination && options.force?
+            remove_file(destination)
+          elsif destination
+            raise Error, "Another migration is already named #{@migration_file_name}: #{destination}"
+          end
           destination = File.join(migration_dir, "#{@migration_number}_#{@migration_file_name}.rb")
         end
 

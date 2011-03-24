@@ -1,6 +1,7 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/kernel/reporting'
 require 'rails/generators'
 require 'fileutils'
 
@@ -65,25 +66,6 @@ module Rails
         self.destination_root = path
       end
 
-      # Captures the given stream and returns it:
-      #
-      #   stream = capture(:stdout){ puts "Cool" }
-      #   stream # => "Cool\n"
-      #
-      def capture(stream)
-        begin
-          stream = stream.to_s
-          eval "$#{stream} = StringIO.new"
-          yield
-          result = eval("$#{stream}").string
-        ensure
-          eval("$#{stream} = #{stream.upcase}")
-        end
-
-        result
-      end
-      alias :silence :capture
-
       # Asserts a given file exists. You need to supply an absolute path or a path relative
       # to the configured destination:
       #
@@ -132,7 +114,7 @@ module Rails
       end
       alias :assert_no_directory :assert_no_file
 
-      # Asserts a given file does not exist. You need to supply an absolute path or a
+      # Asserts a given migration exists. You need to supply an absolute path or a
       # path relative to the configured destination:
       #
       #   assert_migration "db/migrate/create_products.rb"

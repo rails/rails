@@ -1,8 +1,13 @@
+# encoding: utf-8
 require "cases/helper"
+require 'models/binary'
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLiteAdapterTest < ActiveRecord::TestCase
+      class DualEncoding < ActiveRecord::Base
+      end
+
       def setup
         @ctx = Base.sqlite3_connection :database => ':memory:',
                                       :adapter => 'sqlite3',
@@ -13,6 +18,20 @@ module ActiveRecord
             number integer
           )
         eosql
+      end
+
+      def test_quote_binary_column_escapes_it
+        DualEncoding.connection.execute(<<-eosql)
+          CREATE TABLE dual_encodings (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            name string,
+            data binary
+          )
+        eosql
+        str = "\x80".force_encoding("ASCII-8BIT")
+        binary = DualEncoding.new :name => 'いただきます！', :data => str
+        binary.save!
+        assert_equal str, binary.data
       end
 
       def test_execute

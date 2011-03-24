@@ -2,6 +2,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/object/blank'
 
 module ActionController
+  # See <tt>Renderers.add</tt>
   def self.add_renderer(key, &block)
     Renderers.add(key, &block)
   end
@@ -15,30 +16,12 @@ module ActionController
     end
 
     module ClassMethods
-      def _write_render_options
-        renderers = _renderers.map do |name, value|
-          <<-RUBY_EVAL
-            if options.key?(:#{name})
-              _process_options(options)
-              return _render_option_#{name}(options.delete(:#{name}), options)
-            end
-          RUBY_EVAL
-        end
-
-        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-          def _handle_render_options(options)
-            #{renderers.join}
-          end
-        RUBY_EVAL
-      end
-
       def use_renderers(*args)
         new = _renderers.dup
         args.each do |key|
           new[key] = RENDERERS[key]
         end
         self._renderers = new.freeze
-        _write_render_options
       end
       alias use_renderer use_renderers
     end
@@ -47,31 +30,69 @@ module ActionController
       _handle_render_options(options) || super
     end
 
+    def _handle_render_options(options)
+      _renderers.each do |name, value|
+        if options.key?(name.to_sym)
+          _process_options(options)
+          return send("_render_option_#{name}", options.delete(name.to_sym), options)
+        end
+      end
+      nil
+    end
+
+    # Hash of available renderers, mapping a renderer name to its proc.
+    # Default keys are :json, :js, :xml and :update.
     RENDERERS = {}
+
+    # Adds a new renderer to call within controller actions.
+    # A renderer is invoked by passing its name as an option to
+    # <tt>AbstractController::Rendering#render</tt>. To create a renderer
+    # pass it a name and a block. The block takes two arguments, the first
+    # is the value paired with its key and the second is the remaining
+    # hash of options passed to +render+.
+    #
+    # === Example
+    # Create a csv renderer:
+    #
+    #   ActionController::Renderers.add :csv do |obj, options|
+    #     filename = options[:filename] || 'data'
+    #     str = obj.respond_to?(:to_csv) ? obj.to_csv : obj.to_s
+    #     send_data str, :type => Mime::CSV,
+    #       :disposition => "attachment; filename=#{filename}.csv"
+    #   end
+    #
+    # Note that we used Mime::CSV for the csv mime type as it comes with Rails.
+    # For a custom renderer, you'll need to register a mime type with
+    # <tt>Mime::Type.register</tt>.
+    #
+    # To use the csv renderer in a controller action:
+    #
+    #   def show
+    #     @csvable = Csvable.find(params[:id])
+    #     respond_to do |format|
+    #       format.html
+    #       format.csv { render :csv => @csvable, :filename => @csvable.name }
+    #     }
+    #   end
+    # To use renderers and their mime types in more concise ways, see
+    # <tt>ActionController::MimeResponds::ClassMethods.respond_to</tt> and
+    # <tt>ActionController::MimeResponds#respond_with</tt>
     def self.add(key, &block)
       define_method("_render_option_#{key}", &block)
       RENDERERS[key] = block
-      All._write_render_options
     end
 
     module All
       extend ActiveSupport::Concern
       include Renderers
 
-      INCLUDED = []
       included do
         self._renderers = RENDERERS
-        _write_render_options
-        INCLUDED << self
-      end
-
-      def self._write_render_options
-        INCLUDED.each(&:_write_render_options)
       end
     end
 
     add :json do |json, options|
-      json = ActiveSupport::JSON.encode(json, options) unless json.respond_to?(:to_str)
+      json = json.to_json(options) unless json.kind_of?(String)
       json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
       self.content_type ||= Mime::JSON
       self.response_body  = json

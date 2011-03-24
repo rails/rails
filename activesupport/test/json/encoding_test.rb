@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 
 class TestJSONEncoding < Test::Unit::TestCase
@@ -108,9 +109,21 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   end
 
-  def test_exception_raised_when_encoding_circular_reference
+  def test_exception_raised_when_encoding_circular_reference_in_array
     a = [1]
     a << a
+    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+  end
+
+  def test_exception_raised_when_encoding_circular_reference_in_hash
+    a = { :name => 'foo' }
+    a[:next] = a
+    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+  end
+
+  def test_exception_raised_when_encoding_circular_reference_in_hash_inside_array
+    a = { :name => 'foo', :sub => [] }
+    a[:sub] << a
     assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
   end
 
@@ -150,6 +163,87 @@ class TestJSONEncoding < Test::Unit::TestCase
       }
       ActiveSupport::JSON.encode(hash)
     end
+  end
+
+  def test_hash_should_pass_encoding_options_to_children_in_as_json
+    person = {
+      :name => 'John',
+      :address => {
+        :city => 'London',
+        :country => 'UK'
+      }
+    }
+    json = person.as_json :only => [:address, :city]
+
+    assert_equal({ 'address' => { 'city' => 'London' }}, json)
+  end
+
+  def test_hash_should_pass_encoding_options_to_children_in_to_json
+    person = {
+      :name => 'John',
+      :address => {
+        :city => 'London',
+        :country => 'UK'
+      }
+    }
+    json = person.to_json :only => [:address, :city]
+
+    assert_equal(%({"address":{"city":"London"}}), json)
+  end
+
+  def test_array_should_pass_encoding_options_to_children_in_as_json
+    people = [
+      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+    ]
+    json = people.as_json :only => [:address, :city]
+    expected = [
+      { 'address' => { 'city' => 'London' }},
+      { 'address' => { 'city' => 'Paris' }}
+    ]
+
+    assert_equal(expected, json)
+  end
+
+  def test_array_should_pass_encoding_options_to_children_in_to_json
+    people = [
+      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+    ]
+    json = people.to_json :only => [:address, :city]
+
+    assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
+  end
+
+  def test_struct_encoding
+    Struct.new('UserNameAndEmail', :name, :email)
+    Struct.new('UserNameAndDate', :name, :date)
+    Struct.new('Custom', :name, :sub)
+    user_email = Struct::UserNameAndEmail.new 'David', 'sample@example.com'
+    user_birthday = Struct::UserNameAndDate.new 'David', Date.new(2010, 01, 01)
+    custom = Struct::Custom.new 'David', user_birthday
+
+
+    json_strings = ""
+    json_string_and_date = ""
+    json_custom = ""
+
+    assert_nothing_raised do
+      json_strings = user_email.to_json
+      json_string_and_date = user_birthday.to_json
+      json_custom = custom.to_json
+    end
+
+    assert_equal({"name" => "David",
+                  "sub" => {
+                    "name" => "David",
+                    "date" => "2010/01/01" }}, JSON.parse(json_custom))
+
+    assert_equal({"name" => "David", "email" => "sample@example.com"},
+                 JSON.parse(json_strings))
+
+    assert_equal({"name" => "David", "date" => "2010/01/01"},
+                 JSON.parse(json_string_and_date))
   end
 
   protected

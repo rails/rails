@@ -12,8 +12,16 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
-if defined?(Encoding.default_internal)
-  Encoding.default_internal = "UTF-8"
+require 'active_support/core_ext/kernel/reporting'
+
+require 'active_support/core_ext/string/encoding'
+if "ruby".encoding_aware?
+  # These are the normal settings that will be set up by Railties
+  # TODO: Have these tests support other combinations of these values
+  silence_warnings do
+    Encoding.default_internal = "UTF-8"
+    Encoding.default_external = "UTF-8"
+  end
 end
 
 require 'test/unit'
@@ -28,25 +36,14 @@ require 'active_record'
 require 'action_controller/caching'
 require 'action_controller/caching/sweeping'
 
-begin
-  require 'ruby-debug'
-  Debugger.settings[:autoeval] = true
-  Debugger.start
-rescue LoadError
-  # Debugging disabled. `gem install ruby-debug` to enable.
-end
-
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 module Rails
-end
-
-# Monkey patch the old routes initialization to be silenced.
-class ActionDispatch::Routing::DeprecatedMapper
-  def initialize_with_silencer(*args)
-    ActiveSupport::Deprecation.silence { initialize_without_silencer(*args) }
+  class << self
+    def env
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
+    end
   end
-  alias_method_chain :initialize, :silencer
 end
 
 ActiveSupport::Dependencies.hook!
@@ -120,14 +117,12 @@ module ActiveSupport
     # Hold off drawing routes until all the possible controller classes
     # have been loaded.
     setup_once do
-      SharedTestRoutes.draw do |map|
-        # FIXME: match ':controller(/:action(/:id))'
-        map.connect ':controller/:action/:id'
+      SharedTestRoutes.draw do
+        match ':controller(/:action)'
       end
 
-      ActionController::IntegrationTest.app.routes.draw do |map|
-        # FIXME: match ':controller(/:action(/:id))'
-        map.connect ':controller/:action/:id'
+      ActionDispatch::IntegrationTest.app.routes.draw do
+        match ':controller(/:action)'
       end
     end
   end
@@ -165,9 +160,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   setup do
     @routes = SharedTestRoutes
   end
-end
 
-class ActionController::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use "ActionDispatch::ShowExceptions"
@@ -218,7 +211,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)  
+    path = File.join(File.dirname(__FILE__), "fixtures", path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else
@@ -234,7 +227,7 @@ class ActionController::IntegrationTest < ActiveSupport::TestCase
 end
 
 # Temporary base class
-class Rack::TestCase < ActionController::IntegrationTest
+class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
@@ -276,11 +269,27 @@ class Rack::TestCase < ActionController::IntegrationTest
   end
 end
 
-class ActionController::Base
-  def self.test_routes(&block)
-    routes = ActionDispatch::Routing::RouteSet.new
-    routes.draw(&block)
-    include routes.url_helpers
+module ActionController
+  class Base
+    include ActionController::Testing
+    # This stub emulates the Railtie including the URL helpers from a Rails application
+    include SharedTestRoutes.url_helpers
+
+    self.view_paths = FIXTURE_LOAD_PATH
+
+    def self.test_routes(&block)
+      routes = ActionDispatch::Routing::RouteSet.new
+      routes.draw(&block)
+      include routes.url_helpers
+    end
+  end
+
+  class TestCase
+    include ActionDispatch::TestProcess
+
+    setup do
+      @routes = SharedTestRoutes
+    end
   end
 end
 
@@ -297,25 +306,37 @@ module ActionView
   end
 end
 
-module ActionController
-  class Base
-    include ActionController::Testing
+class Workshop
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  attr_accessor :id
+
+  def initialize(id)
+    @id = id
   end
 
-  Base.view_paths = FIXTURE_LOAD_PATH
+  def persisted?
+    id.present?
+  end
 
-  class TestCase
-    include ActionDispatch::TestProcess
+  def to_s
+    id.to_s
+  end
+end
 
-    setup do
-      @routes = SharedTestRoutes
-    end
+module ActionDispatch
+  class ShowExceptions
+    private
+      remove_method :public_path
+      def public_path
+        "#{FIXTURE_LOAD_PATH}/public"
+      end
+
+      remove_method :logger
+      # Silence logger
+      def logger
+        nil
+      end
   end
 end
 
-# This stub emulates the Railtie including the URL helpers from a Rails application
-module ActionController
-  class Base
-    include SharedTestRoutes.url_helpers
-  end
-end

@@ -338,13 +338,13 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
   end
 
-  def test_cloned_objects_should_not_copy_dirty_flag_from_creator
+  def test_dup_objects_should_not_copy_dirty_flag_from_creator
     pirate = Pirate.create!(:catchphrase => "shiver me timbers")
-    pirate_clone = pirate.clone
-    pirate_clone.reset_catchphrase!
+    pirate_dup = pirate.dup
+    pirate_dup.reset_catchphrase!
     pirate.catchphrase = "I love Rum"
     assert pirate.catchphrase_changed?
-    assert !pirate_clone.catchphrase_changed?
+    assert !pirate_dup.catchphrase_changed?
   end
 
   def test_reverted_changes_are_not_dirty
@@ -395,6 +395,20 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
+    with_partial_updates(Topic) do
+      topic = Topic.create!(:content => {:a => "a"})
+      topic.save!
+
+      updated_at = topic.updated_at
+      topic.content[:hello] = 'world'
+      topic.save!
+
+      assert_not_equal updated_at, topic.updated_at
+      assert_equal 'world', topic.content[:hello]
+    end
+  end
+
   def test_save_should_not_save_serialized_attribute_with_partial_updates_if_not_present
     with_partial_updates(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
@@ -408,11 +422,11 @@ class DirtyTest < ActiveRecord::TestCase
   def test_previous_changes
     # original values should be in previous_changes
     pirate = Pirate.new
-  
+
     assert_equal Hash.new, pirate.previous_changes
     pirate.catchphrase = "arrr"
     pirate.save!
-  
+
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes['catchphrase']
     assert_equal [nil, pirate.id], pirate.previous_changes['id']
@@ -421,21 +435,21 @@ class DirtyTest < ActiveRecord::TestCase
     assert_nil pirate.previous_changes['created_on'][0]
     assert_not_nil pirate.previous_changes['created_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
-  
+
     # original values should be in previous_changes
     pirate = Pirate.new
-  
+
     assert_equal Hash.new, pirate.previous_changes
     pirate.catchphrase = "arrr"
     pirate.save
-  
+
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes['catchphrase']
     assert_equal [nil, pirate.id], pirate.previous_changes['id']
     assert pirate.previous_changes.include?('updated_on')
     assert pirate.previous_changes.include?('created_on')
     assert !pirate.previous_changes.key?('parrot_id')
-  
+
     pirate.catchphrase = "Yar!!"
     pirate.reload
     assert_equal Hash.new, pirate.previous_changes
@@ -475,11 +489,12 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.find_by_catchphrase("Ahoy!")
     pirate.update_attribute(:catchphrase, "Ninjas suck!")
 
-    assert_equal 0, pirate.previous_changes.size
-    assert_nil pirate.previous_changes['catchphrase']
-    assert_nil pirate.previous_changes['updated_on']
+    assert_equal 2, pirate.previous_changes.size
+    assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes['catchphrase']
+    assert_not_nil pirate.previous_changes['updated_on'][0]
+    assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
-    assert !pirate.previous_changes.key?('created_on')    
+    assert !pirate.previous_changes.key?('created_on')
   end
 
   private

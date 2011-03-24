@@ -10,13 +10,13 @@ module ActionDispatch
 
   # The flash provides a way to pass temporary objects between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create
-  # action that sets <tt>flash[:notice] = "Successfully created"</tt> before redirecting to a display action that can
+  # action that sets <tt>flash[:notice] = "Post successfully created"</tt> before redirecting to a display action that can
   # then expose the flash to its template. Actually, that exposure is automatically done. Example:
   #
   #   class PostsController < ActionController::Base
   #     def create
   #       # save post
-  #       flash[:notice] = "Successfully created post"
+  #       flash[:notice] = "Post successfully created"
   #       redirect_to posts_path(@post)
   #     end
   #
@@ -29,6 +29,11 @@ module ActionDispatch
   #     <% if flash[:notice] %>
   #       <div class="notice"><%= flash[:notice] %></div>
   #     <% end %>
+  #
+  # Since the +notice+ and +alert+ keys are a common idiom, convenience accessors are available:
+  #
+  #   flash.alert = "You must be logged in"
+  #   flash.notice = "Post successfully created"
   #
   # This example just places a string in the flash, but you can put any object in there. And of course, you can put as
   # many as you like at a time too. Just remember: They'll be gone by the time the next action has been performed.

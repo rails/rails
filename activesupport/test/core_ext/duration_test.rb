@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'active_support/json'
 
 class DurationTest < ActiveSupport::TestCase
   def test_is_a
@@ -53,8 +54,8 @@ class DurationTest < ActiveSupport::TestCase
       flunk("no exception was raised")
     rescue ArgumentError => e
       assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
-    rescue Exception
-      flunk("ArgumentError should be raised, but we got #{$!.class} instead")
+    rescue Exception => e
+      flunk("ArgumentError should be raised, but we got #{e.class} instead")
     end
   end
 
@@ -88,8 +89,8 @@ class DurationTest < ActiveSupport::TestCase
     assert_in_delta((7 * 24 * 1.7).hours.ago(t), 1.7.weeks.ago(t), 1)
   end
 
-  def test_since_and_ago_anchored_to_time_now_when_time_zone_default_not_set
-    Time.zone_default = nil
+  def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
+    Time.zone = nil
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
@@ -101,8 +102,8 @@ class DurationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_default_set
-    Time.zone_default = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)
       # since
@@ -115,19 +116,31 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
     end
   ensure
-    Time.zone_default = nil
+    Time.zone = nil
   end
-  
+
   def test_adding_hours_across_dst_boundary
     with_env_tz 'CET' do
       assert_equal Time.local(2009,3,29,0,0,0) + 24.hours, Time.local(2009,3,30,1,0,0)
     end
   end
-  
+
   def test_adding_day_across_dst_boundary
     with_env_tz 'CET' do
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
     end
+  end
+  
+  def test_delegation_with_block_works
+    counter = 0
+    assert_nothing_raised do
+      1.minute.times {counter += 1}
+    end
+    assert_equal counter, 60
+  end
+
+  def test_to_json
+    assert_equal '172800', 2.days.to_json
   end
 
   protected

@@ -26,24 +26,23 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    test "Rails::Application.instance is nil until app is initialized" do
+    test "Rails.application is nil until app is initialized" do
       require 'rails'
-      assert_nil Rails::Application.instance
+      assert_nil Rails.application
       require "#{app_path}/config/environment"
-      assert_equal AppTemplate::Application.instance, Rails::Application.instance
+      assert_equal AppTemplate::Application.instance, Rails.application
     end
 
-    test "Rails::Application responds to all instance methods" do
+    test "Rails.application responds to all instance methods" do
       require "#{app_path}/config/environment"
-      assert_respond_to Rails::Application, :routes_reloader
-      assert_equal Rails::Application.routes_reloader, Rails.application.routes_reloader
-      assert_equal Rails::Application.routes_reloader, AppTemplate::Application.routes_reloader
+      assert_respond_to Rails.application, :routes_reloader
+      assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
     end
 
     test "Rails::Application responds to paths" do
       require "#{app_path}/config/environment"
       assert_respond_to AppTemplate::Application, :paths
-      assert_equal AppTemplate::Application.paths.app.views.to_a, ["#{app_path}/app/views"]
+      assert_equal AppTemplate::Application.paths["app/views"].expanded, ["#{app_path}/app/views"]
     end
 
     test "the application root is set correctly" do
@@ -96,6 +95,11 @@ module ApplicationTests
       assert AppTemplate::Application.config.allow_concurrency
     end
 
+    test "asset_path defaults to nil for application" do
+      require "#{app_path}/config/environment"
+      assert_equal nil, AppTemplate::Application.config.asset_path
+    end
+
     test "the application can be marked as threadsafe when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
@@ -123,22 +127,6 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert !ActionController.autoload?(:RecordIdentifier)
-    end
-
-    test "runtime error is raised if config.frameworks= is used" do
-      add_to_config "config.frameworks = []"
-
-      assert_raises RuntimeError do
-        require "#{app_path}/config/environment"
-      end
-    end
-
-    test "runtime error is raised if config.frameworks is used" do
-      add_to_config "config.frameworks -= []"
-
-      assert_raises RuntimeError do
-        require "#{app_path}/config/environment"
-      end
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -172,22 +160,32 @@ module ApplicationTests
       assert $prepared
     end
 
+    def assert_utf8
+      if RUBY_VERSION < '1.9'
+        assert_equal "UTF8", $KCODE
+      else
+        assert_equal Encoding::UTF_8, Encoding.default_external
+        assert_equal Encoding::UTF_8, Encoding.default_internal
+      end
+    end
+
+    test "skipping config.encoding still results in 'utf-8' as the default" do
+      require "#{app_path}/config/application"
+      assert_utf8
+    end
+
     test "config.encoding sets the default encoding" do
       add_to_config <<-RUBY
         config.encoding = "utf-8"
       RUBY
 
       require "#{app_path}/config/application"
-
-      unless RUBY_VERSION < '1.9'
-        assert_equal Encoding::UTF_8, Encoding.default_external
-        assert_equal Encoding::UTF_8, Encoding.default_internal
-      end
+      assert_utf8
     end
 
     test "config.paths.public sets Rails.public_path" do
       add_to_config <<-RUBY
-        config.paths.public = "somewhere"
+        config.paths["public"] = "somewhere"
       RUBY
 
       require "#{app_path}/config/application"
@@ -218,7 +216,7 @@ module ApplicationTests
         protect_from_forgery
 
         def index
-          render :inline => "<%= csrf_meta_tag %>"
+          render :inline => "<%= csrf_meta_tags %>"
         end
       end
 
@@ -266,6 +264,74 @@ module ApplicationTests
       res = last_response.body
       get "/"
       assert_not_equal res, last_response.body
+    end
+
+    test "config.asset_path is not passed through env" do
+      make_basic_app do |app|
+        app.config.asset_path = "/omg%s"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :inline => "<%= image_path('foo.jpg') %>"
+        end
+      end
+
+      get "/"
+      assert_equal "/omg/images/foo.jpg", last_response.body
+    end
+
+    test "config.action_view.cache_template_loading with cache_classes default" do
+      add_to_config "config.cache_classes = true"
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading without cache_classes default" do
+      add_to_config "config.cache_classes = false"
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert !ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading = false" do
+      add_to_config <<-RUBY
+        config.cache_classes = true
+        config.action_view.cache_template_loading = false
+      RUBY
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert !ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading = true" do
+      add_to_config <<-RUBY
+        config.cache_classes = false
+        config.action_view.cache_template_loading = true
+      RUBY
+      require "#{app_path}/config/environment"
+      require 'action_view/base'
+
+      assert ActionView::Resolver.caching?
+    end
+
+    test "config.action_dispatch.show_exceptions is sent in env" do
+      make_basic_app do |app|
+        app.config.action_dispatch.show_exceptions = true
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :text => env["action_dispatch.show_exceptions"]
+        end
+      end
+
+      get "/"
+      assert_equal 'true', last_response.body
     end
   end
 end

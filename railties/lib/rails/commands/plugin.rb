@@ -58,7 +58,7 @@ class RailsEnvironment
     else
       plugin = name_uri_or_plugin
     end
-    unless plugin.nil?
+    if plugin
       plugin.install
     else
       puts "Plugin not found: #{name_uri_or_plugin}"
@@ -276,12 +276,11 @@ end
 require 'optparse'
 module Commands
   class Plugin
-    attr_reader :environment, :script_name, :sources
+    attr_reader :environment, :script_name
     def initialize
       @environment = RailsEnvironment.default
       @rails_root = RailsEnvironment.default.root
       @script_name = File.basename($0)
-      @sources = []
     end
 
     def environment=(value)
@@ -301,8 +300,6 @@ module Commands
         o.on("-r", "--root=DIR", String,
              "Set an explicit rails app directory.",
              "Default: #{@rails_root}") { |rails_root| @rails_root = rails_root; self.environment = RailsEnvironment.new(@rails_root) }
-        o.on("-s", "--source=URL1,URL2", Array,
-             "Use the specified plugin repositories instead of the defaults.") { |sources| @sources = sources}
 
         o.on("-v", "--verbose", "Turn on verbose output.") { |verbose| $verbose = verbose }
         o.on("-h", "--help", "Show this help message.") { puts o; exit }
@@ -315,8 +312,6 @@ module Commands
 
         o.separator ""
         o.separator "EXAMPLES"
-        o.separator "  Install a plugin:"
-        o.separator "    #{@script_name} plugin install continuous_builder\n"
         o.separator "  Install a plugin from a subversion URL:"
         o.separator "    #{@script_name} plugin install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
         o.separator "  Install a plugin from a git URL:"
@@ -375,7 +370,7 @@ module Commands
                       "Enables updating but does not add a svn:externals entry.") { |v| @method = :checkout }
         o.on(         "-e", "--export",
                       "Use svn export to grab the plugin.",
-                      "Exports the plugin, allowing you to check it into your local repository. Does not enable updates, or add an svn:externals entry.") { |v| @method = :export }
+                      "Exports the plugin, allowing you to check it into your local repository. Does not enable updates or add an svn:externals entry.") { |v| @method = :export }
         o.on(         "-q", "--quiet",
                       "Suppresses the output from installation.",
                       "Ignored if -v is passed (rails plugin -v install ...)") { |v| @options[:quiet] = true }

@@ -2,30 +2,31 @@ require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/hash/except'
 require 'active_model/errors'
 require 'active_model/validations/callbacks'
 
 module ActiveModel
 
   # == Active Model Validations
-  #   
+  #
   # Provides a full validation framework to your objects.
-  # 
+  #
   # A minimal implementation could be:
-  # 
+  #
   #   class Person
   #     include ActiveModel::Validations
-  # 
+  #
   #     attr_accessor :first_name, :last_name
   #
   #     validates_each :first_name, :last_name do |record, attr, value|
   #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
   #     end
   #   end
-  # 
+  #
   # Which provides you with the full standard validation stack that you
   # know from Active Record:
-  # 
+  #
   #   person = Person.new
   #   person.valid?                   # => true
   #   person.invalid?                 # => false
@@ -34,11 +35,11 @@ module ActiveModel
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
   #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
-  # 
-  # Note that ActiveModel::Validations automatically adds an +errors+ method
-  # to your instances initialized with a new ActiveModel::Errors object, so
+  #
+  # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
+  # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
   # there is no need for you to do this manually.
-  # 
+  #
   module Validations
     extend ActiveSupport::Concern
     include ActiveSupport::Callbacks
@@ -61,7 +62,7 @@ module ActiveModel
       #
       #   class Person
       #     include ActiveModel::Validations
-      # 
+      #
       #     attr_accessor :first_name, :last_name
       #
       #     validates_each :first_name, :last_name do |record, attr, value|
@@ -70,8 +71,8 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies when this validation is active (default is 
-      #   <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:on</tt> - Specifies the context where this validation is active
+      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
@@ -95,15 +96,15 @@ module ActiveModel
       #
       #   class Comment
       #     include ActiveModel::Validations
-      # 
+      #
       #     validate :must_be_friends
       #
       #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
       #     end
       #   end
       #
-      # Or with a block which is passed with the current record to be validated:
+      # With a block which is passed with the current record to be validated:
       #
       #   class Comment
       #     include ActiveModel::Validations
@@ -113,7 +114,17 @@ module ActiveModel
       #     end
       #
       #     def must_be_friends
-      #       errors.add_to_base("Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #     end
+      #   end
+      #
+      # Or with a block where self points to the current record to be validated:
+      #
+      #   class Comment
+      #     include ActiveModel::Validations
+      #
+      #     validate do
+      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
       #     end
       #   end
       #
@@ -128,15 +139,17 @@ module ActiveModel
         set_callback(:validate, *args, &block)
       end
 
-      # List all validators that are being used to validate the model using 
+      # List all validators that are being used to validate the model using
       # +validates_with+ method.
       def validators
         _validators.values.flatten.uniq
       end
 
       # List all validators that being used to validate a specific attribute.
-      def validators_on(attribute)
-        _validators[attribute.to_sym]
+      def validators_on(*attributes)
+        attributes.map do |attribute|
+          _validators[attribute.to_sym]
+        end.flatten
       end
 
       # Check if method is an attribute method or not.
@@ -152,7 +165,7 @@ module ActiveModel
       end
     end
 
-    # Returns the Errors object that holds all information about attribute error messages.
+    # Returns the +Errors+ object that holds all information about attribute error messages.
     def errors
       @errors ||= Errors.new(self)
     end
@@ -168,14 +181,14 @@ module ActiveModel
       self.validation_context = current_context
     end
 
-    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added, 
+    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added,
     # false otherwise.
     def invalid?(context = nil)
       !valid?(context)
     end
 
-    # Hook method defining how an attribute value should be retrieved. By default 
-    # this is assumed to be an instance named after the attribute. Override this 
+    # Hook method defining how an attribute value should be retrieved. By default
+    # this is assumed to be an instance named after the attribute. Override this
     # method in subclasses should you need to retrieve the value for a given
     # attribute differently:
     #
@@ -194,9 +207,9 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
   protected
-  
+
     def run_validations!
-      _run_validate_callbacks
+      run_callbacks :validate
       errors.empty?
     end
   end

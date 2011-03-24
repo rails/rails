@@ -5,7 +5,7 @@ module ActiveRecord #:nodoc:
     include ActiveModel::Serializers::JSON
 
     def serializable_hash(options = nil)
-      options ||= {}
+      options = options.try(:clone) || {}
 
       options[:except] = Array.wrap(options[:except]).map { |n| n.to_s }
       options[:except] |= Array.wrap(self.class.inheritance_column)
@@ -22,8 +22,8 @@ module ActiveRecord #:nodoc:
     end
 
     private
-      # Add associations specified via the <tt>:includes</tt> option.
-      # 
+      # Add associations specified via the <tt>:include</tt> option.
+      #
       # Expects a block that takes as arguments:
       #   +association+ - name of the association
       #   +records+     - the association record(s) to be serialized
@@ -45,7 +45,7 @@ module ActiveRecord #:nodoc:
             send(association)
           end
 
-          unless records.nil?
+          if records
             association_options = include_has_options ? include_associations[association] : base_only_or_except
             opts = options.merge(association_options)
             yield(association, records, opts)

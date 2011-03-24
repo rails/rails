@@ -24,4 +24,26 @@ module BareMetalTest
       assert_equal "Hello world", string
     end
   end
+
+  class HeadController < ActionController::Metal
+    include ActionController::Head
+
+    def index
+      head :not_found
+    end
+  end
+
+  class HeadTest < ActiveSupport::TestCase
+    test "head works on its own" do
+      status = HeadController.action(:index).call(Rack::MockRequest.env_for("/")).first
+      assert_equal 404, status
+    end
+  end
+
+  class BareControllerTest < ActionController::TestCase
+    test "GET index" do
+      get :index
+      assert_equal "Hello world", @response.body
+    end
+  end
 end

@@ -23,7 +23,7 @@ module ActiveSupport
 
   module JSON
     # matches YAML-formatted dates
-    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[ \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
+    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
 
     # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
     def self.encode(value, options = nil)
@@ -41,9 +41,26 @@ module ActiveSupport
           @seen = []
         end
 
-        def encode(value)
+        def encode(value, use_options = true)
           check_for_circular_references(value) do
-            value.as_json(options).encode_json(self)
+            jsonified = use_options ? value.as_json(options_for(value)) : value.as_json
+            jsonified.encode_json(self)
+          end
+        end
+
+        # like encode, but only calls as_json, without encoding to string
+        def as_json(value)
+          check_for_circular_references(value) do
+            value.as_json(options_for(value))
+          end
+        end
+
+        def options_for(value)
+          if value.is_a?(Array) || value.is_a?(Hash)
+            # hashes and arrays need to get encoder in the options, so that they can detect circular references
+            (options || {}).merge(:encoder => self)
+          else
+            options
           end
         end
 
@@ -136,6 +153,12 @@ class Object
   end
 end
 
+class Struct
+  def as_json(options = nil) #:nodoc:
+    Hash[members.zip(values)]
+  end
+end
+
 class TrueClass
   AS_JSON = ActiveSupport::JSON::Variable.new('true').freeze
   def as_json(options = nil) AS_JSON end #:nodoc:
@@ -186,13 +209,22 @@ module Enumerable
 end
 
 class Array
-  def as_json(options = nil) self end #:nodoc:
-  def encode_json(encoder) "[#{map { |v| encoder.encode(v) } * ','}]" end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    # use encoder as a proxy to call as_json on all elements, to protect from circular references
+    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
+    map { |v| encoder.as_json(v) }
+  end
+
+  def encode_json(encoder) #:nodoc:
+    # we assume here that the encoder has already run as_json on self and the elements, so we run encode_json directly
+    "[#{map { |v| v.encode_json(encoder) } * ','}]"
+  end
 end
 
 class Hash
   def as_json(options = nil) #:nodoc:
-    if options
+    # create a subset of the hash by applying :only or :except
+    subset = if options
       if attrs = options[:only]
         slice(*Array.wrap(attrs))
       elsif attrs = options[:except]
@@ -203,10 +235,21 @@ class Hash
     else
       self
     end
+
+    # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
+    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
+    result = self.is_a?(ActiveSupport::OrderedHash) ? ActiveSupport::OrderedHash : Hash
+    result[subset.map { |k, v| [k.to_s, encoder.as_json(v)] }]
   end
 
   def encode_json(encoder)
-    "{#{map { |k,v| "#{encoder.encode(k.to_s)}:#{encoder.encode(v)}" } * ','}}"
+    # values are encoded with use_options = false, because we don't want hash representations from ActiveModel to be
+    # processed once again with as_json with options, as this could cause unexpected results (i.e. missing fields);
+
+    # on the other hand, we need to run as_json on the elements, because the model representation may contain fields
+    # like Time/Date in their original (not jsonified) form, etc.
+
+    "{#{map { |k,v| "#{encoder.encode(k.to_s)}:#{encoder.encode(v, false)}" } * ','}}"
   end
 end
 

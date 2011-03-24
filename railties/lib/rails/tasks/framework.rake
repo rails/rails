@@ -1,21 +1,4 @@
 namespace :rails do
-  namespace :freeze do
-    # desc "The rails:freeze:gems is deprecated, please use bundle install instead"
-    task :gems do
-      abort "The rails:freeze:gems is deprecated, please use bundle install instead"
-    end
-
-    # desc 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
-    task :edge do
-      abort 'The freeze:edge command has been deprecated, specify the path setting in your app Gemfile instead and bundle install'
-    end
-  end
-
-  # desc 'The unfreeze command has been deprecated, please use bundler commands instead'
-  task :unfreeze do
-    abort 'The unfreeze command has been deprecated, please use bundler commands instead'
-  end
-
   desc "Update both configs and public/javascripts from Rails (or use just update:javascripts or update:configs)"
   task :update => [ "update:configs", "update:javascripts", "update:scripts", "update:application_controller" ]
 
@@ -77,7 +60,7 @@ namespace :rails do
 
     # desc "Update Prototype javascripts from your current rails install"
     task :javascripts do
-      invoke_from_app_generator :create_prototype_files
+      invoke_from_app_generator :create_javascript_files
     end
 
     # desc "Adds new scripts to the application script/ directory"

@@ -3,10 +3,10 @@ require 'active_support/core_ext/hash/keys'
 
 module ActiveSupport
   module Benchmarkable
-    # Allows you to measure the execution time of a block 
+    # Allows you to measure the execution time of a block
     # in a template and records the result to the log. Wrap this block around
     # expensive operations or possible bottlenecks to get a time reading
-    # for the operation.  For example, let's say you thought your file 
+    # for the operation.  For example, let's say you thought your file
     # processing method was taking too long; you could wrap it in a benchmark block.
     #
     #  <% benchmark "Process data files" do %>
@@ -23,7 +23,7 @@ module ActiveSupport
     #    <%= lowlevel_files_operation %>
     #  <% end %>
     #
-    # Finally, you can pass true as the third argument to silence all log activity 
+    # Finally, you can pass true as the third argument to silence all log activity
     # inside the block. This is great for boiling down a noisy block to just a single statement:
     #
     #  <% benchmark "Process data files", :level => :info, :silence => true do %>

@@ -3,9 +3,9 @@ require 'active_support/core_ext/object/blank'
 
 module ActionController
   module HttpAuthentication
-    # Makes it dead easy to do HTTP Basic authentication.
+    # Makes it dead easy to do HTTP \Basic and \Digest authentication.
     #
-    # Simple Basic example:
+    # === Simple \Basic example
     #
     #   class PostsController < ApplicationController
     #     USER_NAME, PASSWORD = "dhh", "secret"
@@ -29,7 +29,9 @@ module ActionController
     #   end
     #
     #
-    # Here is a more advanced Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
+    # === Advanced \Basic example
+    #
+    # Here is a more advanced \Basic example where only Atom feeds and the XML API is protected by HTTP authentication,
     # the regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
@@ -69,7 +71,7 @@ module ActionController
     #     assert_equal 200, status
     #   end
     #
-    # Simple Digest example:
+    # === Simple \Digest example
     #
     #   require 'digest/md5'
     #   class PostsController < ApplicationController
@@ -95,18 +97,20 @@ module ActionController
     #       end
     #   end
     #
-    # NOTE: The +authenticate_or_request_with_http_digest+ block must return the user's password or the ha1 digest hash so the framework can appropriately
-    #       hash to check the user's credentials. Returning +nil+ will cause authentication to fail.
-    #       Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
-    #       the password file or database is compromised, the attacker would be able to use the ha1 hash to
-    #       authenticate as the user at this +realm+, but would not have the user's password to try using at
-    #       other sites.
+    # === Notes
     #
-    # On shared hosts, Apache sometimes doesn't pass authentication headers to
-    # FCGI instances. If your environment matches this description and you cannot
-    # authenticate, try this rule in your Apache setup:
+    # The +authenticate_or_request_with_http_digest+ block must return the user's password
+    # or the ha1 digest hash so the framework can appropriately hash to check the user's
+    # credentials. Returning +nil+ will cause authentication to fail.
     #
-    #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
+    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
+    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
+    # authenticate as the user at this +realm+, but would not have the user's password to try using at
+    # other sites.
+    #
+    # In rare instances, web servers or front proxies strip authorization headers before
+    # they reach your application. You can debug this situation by logging all environment
+    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Basic
       extend self
 
@@ -210,7 +214,7 @@ module ActionController
 
       def encode_credentials(http_method, credentials, password, password_is_ha1)
         credentials[:response] = expected_response(http_method, credentials[:uri], credentials, password, password_is_ha1)
-        "Digest " + credentials.sort_by {|x| x[0].to_s }.inject([]) {|a, v| a << "#{v[0]}='#{v[1]}'" }.join(', ')
+        "Digest " + credentials.sort_by {|x| x[0].to_s }.map {|v| "#{v[0]}='#{v[1]}'" }.join(', ')
       end
 
       def decode_credentials_header(request)
@@ -218,11 +222,10 @@ module ActionController
       end
 
       def decode_credentials(header)
-        header.to_s.gsub(/^Digest\s+/,'').split(',').inject({}) do |hash, pair|
+        Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          hash[key.strip.to_sym] = value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')
-          hash
-        end
+          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').gsub(/'/, '')]
+        end]
       end
 
       def authentication_header(controller, realm)
@@ -392,11 +395,11 @@ module ActionController
         end
       end
 
-      # If token Authorization header is present, call the login procedure with 
+      # If token Authorization header is present, call the login procedure with
       # the present token and options.
       #
       # controller      - ActionController::Base instance for the current request.
-      # login_procedure - Proc to call if a token is present.  The Proc should 
+      # login_procedure - Proc to call if a token is present.  The Proc should
       #                   take 2 arguments:
       #                     authenticate(controller) { |token, options| ... }
       #
@@ -404,7 +407,7 @@ module ActionController
       # Returns nil if no token is found.
       def authenticate(controller, &login_procedure)
         token, options = token_and_options(controller.request)
-        if !token.blank?
+        unless token.blank?
           login_procedure.call(token, options)
         end
       end
@@ -414,20 +417,19 @@ module ActionController
       #   Authorization: Token token="abc", nonce="def"
       # Then the returned token is "abc", and the options is {:nonce => "def"}
       #
-      # request - ActionController::Request instance with the current headers.
+      # request - ActionDispatch::Request instance with the current headers.
       #
       # Returns an Array of [String, Hash] if a token is present.
       # Returns nil if no token is found.
       def token_and_options(request)
         if header = request.authorization.to_s[/^Token (.*)/]
-          values = $1.split(',').
-            inject({}) do |memo, value|
-              value.strip!                      # remove any spaces between commas and values
-              key, value = value.split(/\=\"?/) # split key=value pairs
-              value.chomp!('"')                 # chomp trailing " in value
-              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-              memo.update(key => value)
-            end
+          values = Hash[$1.split(',').map do |value|
+            value.strip!                      # remove any spaces between commas and values
+            key, value = value.split(/\=\"?/) # split key=value pairs
+            value.chomp!('"')                 # chomp trailing " in value
+            value.gsub!(/\\\"/, '"')          # unescape remaining quotes
+            [key, value]
+          end]
           [values.delete("token"), values.with_indifferent_access]
         end
       end
@@ -439,9 +441,8 @@ module ActionController
       #
       # Returns String.
       def encode_credentials(token, options = {})
-        values = ["token=#{token.to_s.inspect}"]
-        options.each do |key, value|
-          values << "#{key}=#{value.to_s.inspect}"
+        values = ["token=#{token.to_s.inspect}"] + options.map do |key, value|
+          "#{key}=#{value.to_s.inspect}"
         end
         "Token #{values * ", "}"
       end

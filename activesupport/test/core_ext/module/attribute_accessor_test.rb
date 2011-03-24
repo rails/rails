@@ -32,7 +32,7 @@ class ModuleAttributeAccessorTest < Test::Unit::TestCase
     assert_respond_to @object, :bar
     assert !@object.respond_to?(:bar=)
   end
-  
+
   def test_should_not_create_instance_reader
     assert_respond_to @module, :shaq
     assert !@object.respond_to?(:shaq)

@@ -36,6 +36,9 @@ module ActiveResource
     def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end
   end
 
+  # Raised when ...
+  class MissingPrefixParam < ArgumentError; end # :nodoc:
+
   # 4xx Client Error
   class ClientError < ConnectionError; end # :nodoc:
 

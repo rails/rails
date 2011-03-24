@@ -45,11 +45,15 @@ class NumberHelperTest < ActionView::TestCase
   def test_number_to_currency
     assert_equal("$1,234,567,890.50", number_to_currency(1234567890.50))
     assert_equal("$1,234,567,890.51", number_to_currency(1234567890.506))
+    assert_equal("-$1,234,567,890.50", number_to_currency(-1234567890.50))
+    assert_equal("-$ 1,234,567,890.50", number_to_currency(-1234567890.50, {:format => "%u %n"}))
+    assert_equal("($1,234,567,890.50)", number_to_currency(-1234567890.50, {:negative_format => "(%u%n)"}))
     assert_equal("$1,234,567,892", number_to_currency(1234567891.50, {:precision => 0}))
     assert_equal("$1,234,567,890.5", number_to_currency(1234567890.50, {:precision => 1}))
     assert_equal("&pound;1234567890,50", number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}))
     assert_equal("$1,234,567,890.50", number_to_currency("1234567890.50"))
     assert_equal("1,234,567,890.50 K&#269;", number_to_currency("1234567890.50", {:unit => "K&#269;", :format => "%n %u"}))
+    assert_equal("1,234,567,890.50 - K&#269;", number_to_currency("-1234567890.50", {:unit => "K&#269;", :format => "%n %u", :negative_format => "%n - %u"}))
   end
 
   def test_number_to_percentage
@@ -83,6 +87,7 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_with_precision
+    assert_equal("-111.235", number_with_precision(-111.2346))
     assert_equal("111.235", number_with_precision(111.2346))
     assert_equal("31.83", number_with_precision(31.825, :precision => 2))
     assert_equal("111.23", number_with_precision(111.2346, :precision => 2))
@@ -95,6 +100,8 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("0", number_with_precision(0, :precision => 0))
     assert_equal("0.00100", number_with_precision(0.001, :precision => 5))
     assert_equal("0.001", number_with_precision(0.00111, :precision => 3))
+    assert_equal("10.00", number_with_precision(9.995, :precision => 2))
+    assert_equal("11.00", number_with_precision(10.995, :precision => 2))
   end
 
   def test_number_with_precision_with_custom_delimiter_and_separator
@@ -116,10 +123,13 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "9775.00", number_with_precision(9775, :precision => 6, :significant => true )
     assert_equal "5.392900", number_with_precision(5.3929, :precision => 7, :significant => true )
     assert_equal "0.0", number_with_precision(0, :precision => 2, :significant => true )
-    assert_equal "0", number_with_precision(0, :precision => 1, :significant => true )    
+    assert_equal "0", number_with_precision(0, :precision => 1, :significant => true )
     assert_equal "0.0001", number_with_precision(0.0001, :precision => 1, :significant => true )
     assert_equal "0.000100", number_with_precision(0.0001, :precision => 3, :significant => true )
     assert_equal "0.0001", number_with_precision(0.0001111, :precision => 1, :significant => true )
+    assert_equal "10.0", number_with_precision(9.995, :precision => 3, :significant => true)
+    assert_equal "9.99", number_with_precision(9.994, :precision => 3, :significant => true)
+    assert_equal "11.0", number_with_precision(10.995, :precision => 3, :significant => true)
   end
 
   def test_number_with_precision_with_strip_insignificant_zeros
@@ -130,7 +140,7 @@ class NumberHelperTest < ActionView::TestCase
 
   def test_number_with_precision_with_significant_true_and_zero_precision
     # Zero precision with significant is a mistake (would always return zero),
-    # so we treat it as if significant was false (increases backwards compatibily for number_to_human_size)
+    # so we treat it as if significant was false (increases backwards compatibility for number_to_human_size)
     assert_equal "124", number_with_precision(123.987, :precision => 0, :significant => true)
     assert_equal "12", number_with_precision(12, :precision => 0, :significant => true )
     assert_equal "12", number_with_precision("12.3", :precision => 0, :significant => true )
@@ -184,53 +194,57 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_to_human
-     assert_equal '123', number_to_human(123)
-     assert_equal '1.23 Thousand', number_to_human(1234)
-     assert_equal '12.3 Thousand', number_to_human(12345)
-     assert_equal '1.23 Million', number_to_human(1234567)
-     assert_equal '1.23 Billion', number_to_human(1234567890)
-     assert_equal '1.23 Trillion', number_to_human(1234567890123)
-     assert_equal '1.23 Quadrillion', number_to_human(1234567890123456)
-     assert_equal '1230 Quadrillion', number_to_human(1234567890123456789)
-     assert_equal '490 Thousand', number_to_human(489939, :precision => 2)
-     assert_equal '489.9 Thousand', number_to_human(489939, :precision => 4)
-     assert_equal '489 Thousand', number_to_human(489000, :precision => 4)
-     assert_equal '489.0 Thousand', number_to_human(489000, :precision => 4, :strip_insignificant_zeros => false)
-     assert_equal '1.2346 Million', number_to_human(1234567, :precision => 4, :significant => false)
-     assert_equal '1,2 Million', number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
-     assert_equal '1 Million', number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
+    assert_equal '-123', number_to_human(-123)
+    assert_equal '-0.5', number_to_human(-0.5)
+    assert_equal '0',   number_to_human(0)
+    assert_equal '0.5', number_to_human(0.5)
+    assert_equal '123', number_to_human(123)
+    assert_equal '1.23 Thousand', number_to_human(1234)
+    assert_equal '12.3 Thousand', number_to_human(12345)
+    assert_equal '1.23 Million', number_to_human(1234567)
+    assert_equal '1.23 Billion', number_to_human(1234567890)
+    assert_equal '1.23 Trillion', number_to_human(1234567890123)
+    assert_equal '1.23 Quadrillion', number_to_human(1234567890123456)
+    assert_equal '1230 Quadrillion', number_to_human(1234567890123456789)
+    assert_equal '490 Thousand', number_to_human(489939, :precision => 2)
+    assert_equal '489.9 Thousand', number_to_human(489939, :precision => 4)
+    assert_equal '489 Thousand', number_to_human(489000, :precision => 4)
+    assert_equal '489.0 Thousand', number_to_human(489000, :precision => 4, :strip_insignificant_zeros => false)
+    assert_equal '1.2346 Million', number_to_human(1234567, :precision => 4, :significant => false)
+    assert_equal '1,2 Million', number_to_human(1234567, :precision => 1, :significant => false, :separator => ',')
+    assert_equal '1 Million', number_to_human(1234567, :precision => 0, :significant => true, :separator => ',') #significant forced to false
   end
 
   def test_number_to_human_with_custom_units
-     #Only integers
-     volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
-     assert_equal '123 lt', number_to_human(123456, :units => volume)
-     assert_equal '12 ml', number_to_human(12, :units => volume)
-     assert_equal '1.23 m3', number_to_human(1234567, :units => volume)
+    #Only integers
+    volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
+    assert_equal '123 lt', number_to_human(123456, :units => volume)
+    assert_equal '12 ml', number_to_human(12, :units => volume)
+    assert_equal '1.23 m3', number_to_human(1234567, :units => volume)
 
-     #Including fractionals
-     distance = {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
-     assert_equal '1.23 mm', number_to_human(0.00123, :units => distance)
-     assert_equal '1.23 cm', number_to_human(0.0123, :units => distance)
-     assert_equal '1.23 dm', number_to_human(0.123, :units => distance)
-     assert_equal '1.23 m', number_to_human(1.23, :units => distance)
-     assert_equal '1.23 dam', number_to_human(12.3, :units => distance)
-     assert_equal '1.23 hm', number_to_human(123, :units => distance)
-     assert_equal '1.23 km', number_to_human(1230, :units => distance)
-     assert_equal '1.23 km', number_to_human(1230, :units => distance)
-     assert_equal '1.23 km', number_to_human(1230, :units => distance)
-     assert_equal '12.3 km', number_to_human(12300, :units => distance)
+    #Including fractionals
+    distance = {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
+    assert_equal '1.23 mm', number_to_human(0.00123, :units => distance)
+    assert_equal '1.23 cm', number_to_human(0.0123, :units => distance)
+    assert_equal '1.23 dm', number_to_human(0.123, :units => distance)
+    assert_equal '1.23 m', number_to_human(1.23, :units => distance)
+    assert_equal '1.23 dam', number_to_human(12.3, :units => distance)
+    assert_equal '1.23 hm', number_to_human(123, :units => distance)
+    assert_equal '1.23 km', number_to_human(1230, :units => distance)
+    assert_equal '1.23 km', number_to_human(1230, :units => distance)
+    assert_equal '1.23 km', number_to_human(1230, :units => distance)
+    assert_equal '12.3 km', number_to_human(12300, :units => distance)
 
-     #The quantifiers don't need to be a continuous sequence
-     gangster = {:hundred => "hundred bucks", :million => "thousand quids"}
-     assert_equal '1 hundred bucks', number_to_human(100, :units => gangster)
-     assert_equal '25 hundred bucks', number_to_human(2500, :units => gangster)
-     assert_equal '25 thousand quids', number_to_human(25000000, :units => gangster)
-     assert_equal '12300 thousand quids', number_to_human(12345000000, :units => gangster)
+    #The quantifiers don't need to be a continuous sequence
+    gangster = {:hundred => "hundred bucks", :million => "thousand quids"}
+    assert_equal '1 hundred bucks', number_to_human(100, :units => gangster)
+    assert_equal '25 hundred bucks', number_to_human(2500, :units => gangster)
+    assert_equal '25 thousand quids', number_to_human(25000000, :units => gangster)
+    assert_equal '12300 thousand quids', number_to_human(12345000000, :units => gangster)
 
-     #Spaces are stripped from the resulting string
-     assert_equal '4', number_to_human(4, :units => {:unit => "", :ten => 'tens '})
-     assert_equal '4.5  tens', number_to_human(45, :units => {:unit => "", :ten => ' tens   '})
+    #Spaces are stripped from the resulting string
+    assert_equal '4', number_to_human(4, :units => {:unit => "", :ten => 'tens '})
+    assert_equal '4.5  tens', number_to_human(45, :units => {:unit => "", :ten => ' tens   '})
   end
 
   def test_number_to_human_with_custom_format
@@ -286,7 +300,8 @@ class NumberHelperTest < ActionView::TestCase
     assert number_to_percentage("asdf".html_safe).html_safe?
 
     assert number_to_phone(1).html_safe?
-    assert !number_to_phone("<script></script>").html_safe?
+    assert_equal "&lt;script&gt;&lt;/script&gt;", number_to_phone("<script></script>")
+    assert number_to_phone("<script></script>").html_safe?
     assert number_to_phone("asdf".html_safe).html_safe?
 
     assert number_with_delimiter(1).html_safe?
@@ -341,7 +356,7 @@ class NumberHelperTest < ActionView::TestCase
     end
 
     assert_raise InvalidNumberError do
-     number_with_delimiter("x", :raise => true)
+      number_with_delimiter("x", :raise => true)
     end
     begin
       number_with_delimiter("x", :raise => true)
@@ -350,7 +365,7 @@ class NumberHelperTest < ActionView::TestCase
     end
 
     assert_raise InvalidNumberError do
-     number_to_phone("x", :raise => true)
+      number_to_phone("x", :raise => true)
     end
     begin
       number_to_phone("x", :raise => true)

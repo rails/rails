@@ -2,9 +2,11 @@ require 'cgi'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
-require 'active_support/core_ext/class/inheritable_attributes'
+require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/array/extract_options'
 
 module ActionView
   # = Action View Form Helpers
@@ -111,6 +113,7 @@ module ActionView
       #     <%= f.text_field :version %><br />
       #     <%= f.label :author, 'Author' %>:
       #     <%= f.text_field :author %><br />
+      #     <%= f.submit %>
       #   <% end %>
       #
       # There, +form_for+ is able to generate the rest of RESTful form
@@ -128,6 +131,7 @@ module ActionView
       #     Last name : <%= f.text_field :last_name %><br />
       #     Biography : <%= f.text_area :biography %><br />
       #     Admin?    : <%= f.check_box :admin %><br />
+      #     <%= f.submit %>
       #   <% end %>
       #
       # There, the argument is a symbol or string with the name of the
@@ -159,6 +163,7 @@ module ActionView
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
       #     Admin?    : <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #     <%= f.submit %>
       #   <% end %>
       #
       # This also works for the methods in FormOptionHelper and DateHelper that
@@ -202,10 +207,16 @@ module ActionView
       #     ...
       #   <% end %>
       #
+      # You can also set the answer format, like this:
+      #
+      #   <%= form_for(@post, :format => :json) do |f| %>
+      #     ...
+      #   <% end %>
+      #
       # If you have an object that needs to be represented as a different
       # parameter, like a Client that acts as a Person:
       #
-      #   <%= form_for(@post, :as => :client do |f| %>
+      #   <%= form_for(@post, :as => :client) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -222,8 +233,8 @@ module ActionView
       #    ...
       #   <% end %>
       #
-      # Where +@document = Document.find(params[:id])+ and
-      # +@comment = Comment.new+.
+      # Where <tt>@document = Document.find(params[:id])</tt> and
+      # <tt>@comment = Comment.new</tt>.
       #
       # === Unobtrusive JavaScript
       #
@@ -252,6 +263,24 @@ module ActionView
       #     ...
       #   </form>
       #
+      # === Removing hidden model id's
+      #
+      # The form_for method automatically includes the model id as a hidden field in the form.
+      # This is used to maintain the correlation between the form data and its associated model.
+      # Some ORM systems do not use IDs on nested models so in this case you want to be able
+      # to disable the hidden id.
+      #
+      # In the following example the Post model has many Comments stored within it in a NoSQL database,
+      # thus there is no primary key for comments.
+      #
+      # Example:
+      #
+      #   <%= form(@post) do |f| %>
+      #     <% f.fields_for(:comments, :include_id => false) do |cf| %>
+      #       ...
+      #     <% end %>
+      #   <% end %>
+      #
       # === Customized form builders
       #
       # You can also build forms using a customized FormBuilder class. Subclass
@@ -262,8 +291,9 @@ module ActionView
       #   <%= form_for @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
-      #     <%= text_area :person, :biography %>
-      #     <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #     <%= f.text_area :biography %>
+      #     <%= f.check_box :admin %>
+      #     <%= f.submit %>
       #   <% end %>
       #
       # In this case, if you use this:
@@ -287,31 +317,46 @@ module ActionView
       #
       # If you don't need to attach a form to a model instance, then check out
       # FormTagHelper#form_tag.
-      def form_for(record_or_name_or_array, *args, &proc)
+      #
+      # === Form to external resources
+      #
+      # When you build forms to external resources sometimes you need to set an authenticity token or just render a form
+      # without it, for example when you submit data to a payment gateway number and types of fields could be limited.
+      #
+      # To set an authenticity token you need to pass an <tt>:authenticity_token</tt> parameter
+      #
+      #   <%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f|
+      #     ...
+      #   <% end %>
+      #
+      # If you don't want to an authenticity token field be rendered at all just pass <tt>false</tt>:
+      #
+      #   <%= form_for @invoice, :url => external_url, :authenticity_token => false do |f|
+      #     ...
+      #   <% end %>
+      def form_for(record, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
 
-        options = args.extract_options!
+        options[:html] ||= {}
 
-        case record_or_name_or_array
+        case record
         when String, Symbol
-          ActiveSupport::Deprecation.warn("Using form_for(:name, @resource) is deprecated. Please use form_for(@resource, :as => :name) instead.", caller) unless args.empty?
-          object_name = record_or_name_or_array
-        when Array
-          object = record_or_name_or_array.last
-          object_name = options[:as] || ActiveModel::Naming.singular(object)
-          apply_form_for_options!(record_or_name_or_array, options)
-          args.unshift object
+          object_name = record
+          object      = nil
         else
-          object = record_or_name_or_array
-          object_name = options[:as] || ActiveModel::Naming.singular(object)
-          apply_form_for_options!([object], options)
-          args.unshift object
+          object      = record.is_a?(Array) ? record.last : record
+          object_name = options[:as] || ActiveModel::Naming.param_key(object)
+          apply_form_for_options!(record, options)
         end
 
-        (options[:html] ||= {})[:remote] = true if options.delete(:remote)
+        options[:html][:remote] = options.delete(:remote)
+        options[:html][:authenticity_token] = options.delete(:authenticity_token)
 
-        output = form_tag(options.delete(:url) || {}, options.delete(:html) || {})
-        output << fields_for(object_name, *(args << options), &proc)
+        builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)
+        fields_for = fields_for(object_name, object, options, &proc)
+        default_options = builder.multipart? ? { :multipart => true } : {}
+        output = form_tag(options.delete(:url) || {}, default_options.merge!(options.delete(:html)))
+        output << fields_for
         output.safe_concat('</form>')
       end
 
@@ -319,21 +364,17 @@ module ActionView
         object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
         object = convert_to_model(object)
 
-        html_options =
-          if object.respond_to?(:persisted?) && object.persisted?
-            { :class  => options[:as] ? "#{options[:as]}_edit" : dom_class(object, :edit),
-              :id => options[:as] ? "#{options[:as]}_edit" : dom_id(object, :edit),
-              :method => :put }
-          else
-            { :class  => options[:as] ? "#{options[:as]}_new" : dom_class(object, :new),
-              :id => options[:as] ? "#{options[:as]}_new" : dom_id(object),
-              :method => :post }
-          end
+        as = options[:as]
+        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
+        options[:html].reverse_merge!(
+          :class  => as ? "#{as}_#{action}" : dom_class(object, action),
+          :id     => as ? "#{as}_#{action}" : dom_id(object, action),
+          :method => method
+        )
 
-        options[:html] ||= {}
-        options[:html].reverse_merge!(html_options)
-        options[:url] ||= polymorphic_path(object_or_array)
+        options[:url] ||= polymorphic_path(object_or_array, :format => options.delete(:format))
       end
+      private :apply_form_for_options!
 
       # Creates a scope around a specific model object like form_for, but
       # doesn't create the form tags themselves. This makes fields_for suitable
@@ -348,6 +389,8 @@ module ActionView
       #     <%= fields_for @person.permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
+      #
+      #     <%= f.submit %>
       #   <% end %>
       #
       # ...or if you have an object that needs to be represented as a different
@@ -409,6 +452,7 @@ module ActionView
       #       Street  : <%= address_fields.text_field :street %>
       #       Zip code: <%= address_fields.text_field :zip_code %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # When address is already an association on a Person you can use
@@ -438,6 +482,7 @@ module ActionView
       #       ...
       #       Delete: <%= address_fields.check_box :_destroy %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # ==== One-to-many
@@ -467,6 +512,7 @@ module ActionView
       #         Name: <%= project_fields.text_field :name %>
       #       <% end %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # It's also possible to specify the instance to be used:
@@ -480,6 +526,7 @@ module ActionView
       #         <% end %>
       #       <% end %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # Or a collection to be used:
@@ -489,6 +536,7 @@ module ActionView
       #     <%= person_form.fields_for :projects, @active_projects do |project_fields| %>
       #       Name: <%= project_fields.text_field :name %>
       #     <% end %>
+      #     ...
       #   <% end %>
       #
       # When projects is already an association on Person you can use
@@ -518,22 +566,13 @@ module ActionView
       #     <%= person_form.fields_for :projects do |project_fields| %>
       #       Delete: <%= project_fields.check_box :_destroy %>
       #     <% end %>
+      #     ...
       #   <% end %>
-      def fields_for(record_or_name_or_array, *args, &block)
-        raise ArgumentError, "Missing block" unless block_given?
-        options = args.extract_options!
-
-        case record_or_name_or_array
-        when String, Symbol
-          object_name = record_or_name_or_array
-          object = args.first
-        else
-          object = record_or_name_or_array
-          object_name = ActiveModel::Naming.singular(object)
-        end
-
-        builder = options[:builder] || ActionView::Base.default_form_builder
-        capture(builder.new(object_name, object, self, options, block), &block)
+      def fields_for(record, record_object = nil, options = {}, &block)
+        builder = instantiate_builder(record, record_object, options, &block)
+        output = capture(builder, &block)
+        output.concat builder.hidden_field(:id) if output && options[:hidden_field_id] && !builder.emitted_hidden_id?
+        output
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
@@ -624,19 +663,19 @@ module ActionView
       #
       # ==== Examples
       #   password_field(:login, :pass, :size => 20)
-      #   # => <input type="text" id="login_pass" name="login[pass]" size="20" value="#{@login.pass}" />
+      #   # => <input type="password" id="login_pass" name="login[pass]" size="20" />
       #
-      #   password_field(:account, :secret, :class => "form_input")
-      #   # => <input type="text" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
+      #   password_field(:account, :secret, :class => "form_input", :value => @account.secret)
+      #   # => <input type="password" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
       #
       #   password_field(:user, :password, :onchange => "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }")
-      #   # => <input type="text" id="user_password" name="user[password]" value="#{@user.password}" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
+      #   # => <input type="password" id="user_password" name="user[password]" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
       #
       #   password_field(:account, :pin, :size => 20, :class => 'form_input')
-      #   # => <input type="text" id="account_pin" name="account[pin]" size="20" value="#{@account.pin}" class="form_input" />
+      #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
       #
       def password_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("password", { :value => nil }.merge!(options))
       end
 
       # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -657,10 +696,12 @@ module ActionView
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("hidden", options)
       end
 
-      # Returns an file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
+      # Returns a file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
+      #
+      # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Examples
       #   file_field(:user, :avatar)
@@ -803,7 +844,7 @@ module ActionView
           options["incremental"] = true unless options.has_key?("incremental")
         end
 
-        InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("search", options)
+        InstanceTag.new(object_name, method, self, options.delete("object")).to_input_field_tag("search", options)
       end
 
       # Returns a text_field of type "tel".
@@ -837,29 +878,42 @@ module ActionView
       def range_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_number_field_tag("range", options)
       end
+
+      private
+
+        def instantiate_builder(record, *args, &block)
+          options = args.extract_options!
+          record_object = args.shift
+
+          case record
+          when String, Symbol
+            object = record_object
+            object_name = record
+          else
+            object = record
+            object_name = ActiveModel::Naming.param_key(object)
+          end
+
+          builder = options[:builder] || ActionView::Base.default_form_builder
+          builder.new(object_name, object, self, options, block)
+        end
     end
 
-    module InstanceTagMethods #:nodoc:
-      extend ActiveSupport::Concern
+    class InstanceTag
       include Helpers::CaptureHelper, Context, Helpers::TagHelper, Helpers::FormTagHelper
 
-      attr_reader :method_name, :object_name
+      attr_reader :object, :method_name, :object_name
 
-      DEFAULT_FIELD_OPTIONS     = { "size" => 30 }.freeze
-      DEFAULT_RADIO_OPTIONS     = { }.freeze
-      DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }.freeze
+      DEFAULT_FIELD_OPTIONS     = { "size" => 30 }
+      DEFAULT_RADIO_OPTIONS     = { }
+      DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }
 
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
         @template_object = template_object
-        @object = object
-        if @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
-          if (object ||= @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
-            @auto_index = object.to_param
-          else
-            raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
-          end
-        end
+        @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
+        @object = retrieve_object(object)
+        @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
       end
 
       def to_label_tag(text = nil, options = {}, &block)
@@ -905,7 +959,7 @@ module ActionView
         end
         options["type"]  ||= field_type
         options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
-        options["value"] &&= html_escape(options["value"])
+        options["value"] &&= ERB::Util.html_escape(options["value"])
         add_default_name_and_id(options)
         tag("input", options)
       end
@@ -941,7 +995,7 @@ module ActionView
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
         end
 
-        content_tag("textarea", html_escape(options.delete('value') || value_before_type_cast(object)), options)
+        content_tag("textarea", ERB::Util.html_escape(options.delete('value') || value_before_type_cast(object)), options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
@@ -983,12 +1037,24 @@ module ActionView
         content_tag(tag_name, value(object), options)
       end
 
-      def object
-        @object || @template_object.instance_variable_get("@#{@object_name}")
+      def retrieve_object(object)
+        if object
+          object
+        elsif @template_object.instance_variable_defined?("@#{@object_name}")
+          @template_object.instance_variable_get("@#{@object_name}")
+        end
       rescue NameError
-        # As @object_name may contain the nested syntax (item[subobject]) we
-        # need to fallback to nil.
+        # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
         nil
+      end
+
+      def retrieve_autoindex(pre_match)
+        object = self.object || @template_object.instance_variable_get("@#{pre_match}")
+        if object && object.respond_to?(:to_param)
+          object.to_param
+        else
+          raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
+        end
       end
 
       def value(object)
@@ -999,16 +1065,16 @@ module ActionView
         self.class.value_before_type_cast(object, @method_name)
       end
 
-      module ClassMethods
+      class << self
         def value(object, method_name)
-          object.send method_name unless object.nil?
+          object.send method_name if object
         end
 
         def value_before_type_cast(object, method_name)
           unless object.nil?
-            object.respond_to?(method_name) ?
-            object.send(method_name) :
-            object.send(method_name + "_before_type_cast")
+            object.respond_to?(method_name + "_before_type_cast") ?
+            object.send(method_name + "_before_type_cast") :
+            object.send(method_name)
           end
         end
 
@@ -1085,16 +1151,20 @@ module ActionView
         end
     end
 
-    class InstanceTag
-      include InstanceTagMethods
-    end
-
-    class FormBuilder #:nodoc:
+    class FormBuilder
       # The methods which wrap a form helper call.
-      class_inheritable_accessor :field_helpers
+      class_attribute :field_helpers
       self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
 
       attr_accessor :object_name, :object, :options
+
+      attr_reader :multipart, :parent_builder
+      alias :multipart? :multipart
+
+      def multipart=(multipart)
+        @multipart = multipart
+        parent_builder.multipart = multipart if parent_builder
+      end
 
       def self.model_name
         @model_name ||= Struct.new(:partial_path).new(name.demodulize.underscore.sub!(/_builder$/, ''))
@@ -1107,6 +1177,7 @@ module ActionView
       def initialize(object_name, object, template, options, proc)
         @nested_child_index = {}
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
+        @parent_builder = options[:parent_builder]
         @default_options = @options ? @options.slice(:index) : {}
         if @object_name.to_s.match(/\[\]$/)
           if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
@@ -1115,9 +1186,10 @@ module ActionView
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
           end
         end
+        @multipart = nil
       end
 
-      (field_helpers - %w(label check_box radio_button fields_for hidden_field)).each do |selector|
+      (field_helpers - %w(label check_box radio_button fields_for hidden_field file_field)).each do |selector|
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
@@ -1139,27 +1211,23 @@ module ActionView
           index = ""
         end
 
-        if options[:builder]
-          args << {} unless args.last.is_a?(Hash)
-          args.last[:builder] ||= options[:builder]
-        end
+        args << {} unless args.last.is_a?(Hash)
+        args.last[:builder] ||= options[:builder]
+        args.last[:parent_builder] = self
 
         case record_or_name_or_array
         when String, Symbol
           if nested_attributes_association?(record_or_name_or_array)
             return fields_for_with_nested_attributes(record_or_name_or_array, args, block)
           else
-            name = "#{object_name}#{index}[#{record_or_name_or_array}]"
+            name = record_or_name_or_array
           end
-        when Array
-          object = record_or_name_or_array.last
-          name = "#{object_name}#{index}[#{ActiveModel::Naming.singular(object)}]"
-          args.unshift(object)
         else
-          object = record_or_name_or_array
-          name = "#{object_name}#{index}[#{ActiveModel::Naming.singular(object)}]"
+          object = record_or_name_or_array.is_a?(Array) ? record_or_name_or_array.last : record_or_name_or_array
+          name   = ActiveModel::Naming.param_key(object)
           args.unshift(object)
         end
+        name = "#{object_name}#{index}[#{name}]"
 
         @template.fields_for(name, *args, &block)
       end
@@ -1179,6 +1247,11 @@ module ActionView
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
         @template.hidden_field(@object_name, method, objectify_options(options))
+      end
+
+      def file_field(method, options = {})
+        self.multipart = true
+        @template.file_field(@object_name, method, objectify_options(options))
       end
 
       # Add the submit button for the given form. When no value is given, it checks
@@ -1211,11 +1284,11 @@ module ActionView
       def submit(value=nil, options={})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.submit_tag(value, options.reverse_merge(:id => "#{object_name}_submit"))
+        @template.submit_tag(value, options)
       end
 
       def emitted_hidden_id?
-        @emitted_hidden_id
+        @emitted_hidden_id ||= nil
       end
 
       private
@@ -1224,7 +1297,7 @@ module ActionView
         end
 
         def submit_default_value
-          object = @object.respond_to?(:to_model) ? @object.to_model : @object
+          object = convert_to_model(@object)
           key    = object ? (object.persisted? ? :update : :create) : :submit
 
           model = if object.class.respond_to?(:model_name)
@@ -1249,15 +1322,15 @@ module ActionView
           name = "#{object_name}[#{association_name}_attributes]"
           options = args.extract_options!
           association = args.shift
-          association = association.to_model if association.respond_to?(:to_model)
+          association = convert_to_model(association)
 
           if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).is_a?(Array)
-          elsif !association.is_a?(Array)
+          elsif !association.respond_to?(:to_ary)
             association = @object.send(association_name)
           end
 
-          if association.is_a?(Array)
+          if association.respond_to?(:to_ary)
             explicit_child_index = options[:child_index]
             output = ActiveSupport::SafeBuffer.new
             association.each do |child|
@@ -1270,21 +1343,21 @@ module ActionView
         end
 
         def fields_for_nested_model(name, object, options, block)
-          object = object.to_model if object.respond_to?(:to_model)
+          object = convert_to_model(object)
 
-          if object.persisted?
-            @template.fields_for(name, object, options) do |builder|
-              block.call(builder)
-              @template.concat builder.hidden_field(:id) unless builder.emitted_hidden_id?
-            end
-          else
-            @template.fields_for(name, object, options, &block)
-          end
+          parent_include_id = self.options.fetch(:include_id, true)
+          include_id = options.fetch(:include_id, parent_include_id)
+          options[:hidden_field_id] = object.persisted? && include_id
+          @template.fields_for(name, object, options, &block)
         end
 
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
+        end
+
+        def convert_to_model(object)
+          object.respond_to?(:to_model) ? object.to_model : object
         end
     end
   end

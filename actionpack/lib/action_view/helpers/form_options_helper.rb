@@ -2,6 +2,7 @@ require 'cgi'
 require 'erb'
 require 'action_view/helpers/form_helper'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Form Option Helpers
@@ -53,16 +54,16 @@ module ActionView
     #     <option value="2">Sam</option>
     #     <option value="3">Tobias</option>
     #   </select>
-    # 
-    # Like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this 
+    #
+    # Like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
     # option to be in the +html_options+ parameter.
-    # 
-    # Example: 
-    # 
+    #
+    # Example:
+    #
     #   select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
-    # 
+    #
     # becomes:
-    # 
+    #
     #   <select name="album[][genre]" id="album__genre">
     #     <option value="rap">rap</option>
     #     <option value="rock">rock</option>
@@ -100,7 +101,6 @@ module ActionView
     #
     module FormOptionsHelper
       # ERB::Util can mask some helpers like textilize. Make sure to include them.
-      include ERB::Util
       include TextHelper
 
       # Create a select tag and a series of contained option tags for the provided object and method.
@@ -140,7 +140,7 @@ module ActionView
       # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
       # of +collection+. The return values are used as the +value+ attribute and contents of each
       # <tt><option></tt> tag, respectively.
-      # 
+      #
       # Example object structure for use with this method:
       #   class Post < ActiveRecord::Base
       #     belongs_to :author
@@ -247,7 +247,7 @@ module ActionView
       #
       #   time_zone_select( "user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::Timezone.all.sort, :model => ActiveSupport::Timezone)
+      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, :model => ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         InstanceTag.new(object, method, self,  options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
       end
@@ -297,18 +297,18 @@ module ActionView
       def options_for_select(container, selected = nil)
         return container if String === container
 
-        container = container.to_a if Hash === container
-        selected, disabled = extract_selected_and_disabled(selected)
-
-        options_for_select = container.inject([]) do |options, element|
-          html_attributes = option_html_attributes(element)
-          text, value = option_text_and_value(element)
-          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
-          disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
-          options << %(<option value="#{html_escape(value.to_s)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{html_escape(text.to_s)}</option>)
+        selected, disabled = extract_selected_and_disabled(selected).map do | r |
+           Array.wrap(r).map(&:to_s)
         end
 
-        options_for_select.join("\n").html_safe
+        container.map do |element|
+          html_attributes = option_html_attributes(element)
+          text, value = option_text_and_value(element).map(&:to_s)
+          selected_attribute = ' selected="selected"' if option_value_selected?(value, selected)
+          disabled_attribute = ' disabled="disabled"' if disabled && option_value_selected?(value, disabled)
+          %(<option value="#{ERB::Util.html_escape(value)}"#{selected_attribute}#{disabled_attribute}#{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
+        end.join("\n").html_safe
+
       end
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the
@@ -394,12 +394,12 @@ module ActionView
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
       # wrap the output in an appropriate <tt><select></tt> tag.
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
-        collection.inject("") do |options_for_select, group|
+        collection.map do |group|
           group_label_string = eval("group.#{group_label_method}")
-          options_for_select += "<optgroup label=\"#{html_escape(group_label_string)}\">"
-          options_for_select += options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key)
-          options_for_select += '</optgroup>'
-        end.html_safe
+          "<optgroup label=\"#{ERB::Util.html_escape(group_label_string)}\">" +
+            options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key) +
+            '</optgroup>'
+        end.join.html_safe
       end
 
       # Returns a string of <tt><option></tt> tags, like <tt>options_for_select</tt>, but
@@ -493,7 +493,7 @@ module ActionView
         end
 
         zone_options += options_for_select(convert_zones[zones], selected)
-        zone_options
+        zone_options.html_safe
       end
 
       private
@@ -501,7 +501,7 @@ module ActionView
           return "" unless Array === element
           html_attributes = []
           element.select { |e| Hash === e }.reduce({}, :merge).each do |k, v|
-            html_attributes << " #{k}=\"#{html_escape(v.to_s)}\""
+            html_attributes << " #{k}=\"#{ERB::Util.html_escape(v.to_s)}\""
           end
           html_attributes.join
         end
@@ -528,10 +528,12 @@ module ActionView
         end
 
         def extract_selected_and_disabled(selected)
-          if selected.is_a?(Hash)
-            [selected[:selected], selected[:disabled]]
+          if selected.is_a?(Proc)
+            [ selected, nil ]
           else
-            [selected, nil]
+            selected = Array.wrap(selected)
+            options = selected.extract_options!.symbolize_keys
+            [ options.include?(:selected) ? options[:selected] : selected, options[:disabled] ]
           end
         end
 
@@ -593,11 +595,11 @@ module ActionView
       private
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = "<option value=\"\">#{html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
+            option_tags = "<option value=\"\">#{ERB::Util.html_escape(options[:include_blank]) if options[:include_blank].kind_of?(String)}</option>\n" + option_tags
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = "<option value=\"\">#{html_escape(prompt)}</option>\n" + option_tags
+            option_tags = "<option value=\"\">#{ERB::Util.html_escape(prompt)}</option>\n" + option_tags
           end
           option_tags.html_safe
         end

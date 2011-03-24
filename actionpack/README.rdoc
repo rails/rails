@@ -102,10 +102,10 @@ A short rundown of some of the major features:
     class WeblogController < ActionController::Base
       # filters as methods
       before_filter :authenticate, :cache, :audit
-      
+
       # filter as a proc
       after_filter { |c| c.response.body = Gzip::compress(c.response.body) }
-      
+
       # class filter
       after_filter LocalizeFilter
 
@@ -262,7 +262,7 @@ methods:
     layout "weblog/layout"
 
     def index
-      @posts = Post.find(:all)
+      @posts = Post.all
     end
 
     def show
@@ -323,7 +323,7 @@ The latest version of Action Pack can be installed with Rubygems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* http://github.com/rails/rails/tree/master/actionpack/
+* https://github.com/rails/rails/tree/master/actionpack/
 
 
 == License

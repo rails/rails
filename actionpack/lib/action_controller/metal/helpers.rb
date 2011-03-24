@@ -2,21 +2,21 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
 
 module ActionController
-  # The Rails framework provides a large number of helpers for working with +assets+, +dates+, +forms+,
-  # +numbers+ and model objects, to name a few. These helpers are available to all templates
+  # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
+  # numbers and model objects, to name a few. These helpers are available to all templates
   # by default.
   #
-  # In addition to using the standard template helpers provided in the Rails framework, creating custom helpers to
+  # In addition to using the standard template helpers provided, creating custom helpers to
   # extract complicated logic or reusable functionality is strongly encouraged. By default, the controller will
   # include a helper whose name matches that of the controller, e.g., <tt>MyController</tt> will automatically
   # include <tt>MyHelper</tt>.
   #
-  # Additional helpers can be specified using the +helper+ class method in <tt>ActionController::Base</tt> or any
+  # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
   # controller which inherits from it.
   #
   # ==== Examples
-  # The +to_s+ method from the Time class can be wrapped in a helper method to display a custom message if
-  # the Time object is blank:
+  # The +to_s+ method from the \Time class can be wrapped in a helper method to display a custom message if
+  # a \Time object is blank:
   #
   #   module FormattedTimeHelper
   #     def format_time(time, format=:long, blank_message="&nbsp;")
@@ -53,30 +53,20 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      config_accessor :helpers_path
+      config_accessor :helpers_path, :include_all_helpers
       self.helpers_path ||= []
+      self.include_all_helpers = true
     end
 
     module ClassMethods
-      def helpers_dir
-        ActiveSupport::Deprecation.warn "helpers_dir is deprecated, use helpers_path instead", caller
-        self.helpers_path
-      end
-
-      def helpers_dir=(value)
-        ActiveSupport::Deprecation.warn "helpers_dir= is deprecated, use helpers_path= instead", caller
-        self.helpers_path = Array.wrap(value)
-      end
-
       # Declares helper accessors for controller attributes. For example, the
       # following adds new +name+ and <tt>name=</tt> instance methods to a
       # controller and makes them available to the view:
-      #   helper_attr :name
       #   attr_accessor :name
+      #   helper_attr :name
       #
       # ==== Parameters
-      # *attrs<Array[String, Symbol]>:: Names of attributes to be converted
-      #   into helpers.
+      # * <tt>attrs</tt> - Names of attributes to be converted into helpers.
       def helper_attr(*attrs)
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
@@ -88,25 +78,28 @@ module ActionController
 
       private
         # Overwrite modules_for_helpers to accept :all as argument, which loads
-        # all helpers in helpers_dir.
+        # all helpers in helpers_path.
         #
         # ==== Parameters
-        # args<Array[String, Symbol, Module, all]>:: A list of helpers
+        # * <tt>args</tt> - A list of helpers
         #
         # ==== Returns
-        # Array[Module]:: A normalized list of modules for the list of
-        #   helpers provided.
+        # * <tt>array</tt> - A normalized list of modules for the list of helpers provided.
         def modules_for_helpers(args)
           args += all_application_helpers if args.delete(:all)
           super(args)
         end
 
-        # Extract helper names from files in app/helpers/**/*_helper.rb
+        # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
         def all_application_helpers
+          all_helpers_from_path(helpers_path)
+        end
+
+        def all_helpers_from_path(path)
           helpers = []
-          Array.wrap(helpers_path).each do |path|
-            extract  = /^#{Regexp.quote(path.to_s)}\/?(.*)_helper.rb$/
-            helpers += Dir["#{path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          Array.wrap(path).each do |_path|
+            extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
+            helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
           end
           helpers.sort!
           helpers.uniq!

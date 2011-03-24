@@ -120,6 +120,7 @@ class RenderOtherTest < ActionController::TestCase
 
     private
       def default_render
+        @alternate_default_render ||= nil
         if @alternate_default_render
           @alternate_default_render.call
         else
@@ -224,15 +225,15 @@ class RenderOtherTest < ActionController::TestCase
     get :update_page_with_instance_variables
     assert_template nil
     assert_equal 'text/javascript; charset=utf-8', @response.headers["Content-Type"]
-    assert_match /balance/, @response.body
-    assert_match /\$37/, @response.body
+    assert_match(/balance/, @response.body)
+    assert_match(/\$37/, @response.body)
   end
 
   def test_update_page_with_view_method
     get :update_page_with_view_method
     assert_template nil
     assert_equal 'text/javascript; charset=utf-8', @response.headers["Content-Type"]
-    assert_match /2 people/, @response.body
+    assert_match(/2 people/, @response.body)
   end
 
   def test_should_render_html_formatted_partial_with_rjs

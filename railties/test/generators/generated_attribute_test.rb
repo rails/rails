@@ -108,4 +108,16 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
       )
     end
   end
+
+  def test_nil_type_raises_exception
+    assert_raise Thor::Error do
+      create_generated_attribute(nil, 'title')
+    end
+  end
+
+  def test_missing_type_raises_exception
+    assert_raise Thor::Error do
+      create_generated_attribute('', 'title')
+    end
+  end
 end

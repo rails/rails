@@ -1,6 +1,7 @@
 require 'action_view/helpers/javascript_helper'
 require 'active_support/core_ext/array/access'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/string/output_safety'
 require 'action_dispatch'
 
 module ActionView
@@ -13,7 +14,7 @@ module ActionView
     module UrlHelper
       # This helper may be included in any class that includes the
       # URL helpers of a routes (routes.url_helpers). Some methods
-      # provided here will only work in the4 context of a request
+      # provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.
 
@@ -21,6 +22,10 @@ module ActionView
 
       include ActionDispatch::Routing::UrlFor
       include TagHelper
+
+      def _routes_context
+        controller
+      end
 
       # Need to map default url options to controller one.
       # def default_url_options(*args) #:nodoc:
@@ -91,7 +96,7 @@ module ActionView
       #   # => javascript:history.back()
       def url_for(options = {})
         options ||= {}
-        url = case options
+        case options
         when String
           options
         when Hash
@@ -102,8 +107,6 @@ module ActionView
         else
           polymorphic_path(options)
         end
-
-        url
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set
@@ -235,16 +238,11 @@ module ActionView
           html_options = convert_options_to_data_attributes(options, html_options)
           url = url_for(options)
 
-          if html_options
-            html_options = html_options.stringify_keys
-            href = html_options['href']
-            tag_options = tag_options(html_options)
-          else
-            tag_options = nil
-          end
+          href = html_options['href']
+          tag_options = tag_options(html_options)
 
-          href_attr = "href=\"#{html_escape(url)}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{html_escape(name || url)}</a>".html_safe
+          href_attr = "href=\"#{ERB::Util.html_escape(url)}\"" unless href
+          "<a #{href_attr}#{tag_options}>#{ERB::Util.html_escape(name || url)}</a>".html_safe
         end
       end
 
@@ -255,8 +253,9 @@ module ActionView
       # using the +link_to+ method with the <tt>:method</tt> modifier as described in
       # the +link_to+ documentation.
       #
-      # The generated form element has a class name of <tt>button_to</tt>
-      # to allow styling of the form itself and its children. You can control
+      # By default, the generated form element has a class name of <tt>button_to</tt>
+      # to allow styling of the form itself and its children. This can be changed
+      # using the <tt>:form_class</tt> modifier within +html_options+. You can control
       # the form submission and input element behavior using +html_options+.
       # This method accepts the <tt>:method</tt> and <tt>:confirm</tt> modifiers
       # described in the +link_to+ documentation. If no <tt>:method</tt> modifier
@@ -269,17 +268,26 @@ module ActionView
       # The +options+ hash accepts the same options as url_for.
       #
       # There are a few special +html_options+:
-      # * <tt>:method</tt> - Specifies the anchor name to be appended to the path.
-      # * <tt>:disabled</tt> - Specifies the anchor name to be appended to the path.
+      # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
+      #   <tt>:delete</tt> and <tt>:put</tt>. By default it will be <tt>:post</tt>.
+      # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
       # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
       # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behaviour. By default this behaviour is an ajax submit.
+      # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
+      #   be placed
       #
       # ==== Examples
       #   <%= button_to "New", :action => "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
+      #   #      <div><input value="New" type="submit" /></div>
+      #   #    </form>"
+      #
+      #
+      #   <%= button_to "New", :action => "new", :form_class => "new-thing" %>
+      #   # => "<form method="post" action="/controller/new" class="new-thing">
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
@@ -313,6 +321,7 @@ module ActionView
         end
 
         form_method = method.to_s == 'get' ? 'get' : 'post'
+        form_class = html_options.delete('form_class') || 'button_to'
 
         remote = html_options.delete('remote')
 
@@ -328,7 +337,7 @@ module ActionView
 
         html_options.merge!("type" => "submit", "value" => name)
 
-        ("<form method=\"#{form_method}\" action=\"#{html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"button_to\"><div>" +
+        ("<form method=\"#{form_method}\" action=\"#{ERB::Util.html_escape(url)}\" #{"data-remote=\"true\"" if remote} class=\"#{ERB::Util.html_escape(form_class)}\"><div>" +
           method_tag + tag("input", html_options) + request_token_tag + "</div></form>").html_safe
       end
 
@@ -367,8 +376,8 @@ module ActionView
       # "Go Back" link instead of a link to the comments page, we could do something like this...
       #
       #    <%=
-      #        link_to_unless_current("Comment", { :controller => 'comments', :action => 'new}) do
-      #           link_to("Go back", { :controller => 'posts', :action => 'index' })
+      #        link_to_unless_current("Comment", { :controller => "comments", :action => "new" }) do
+      #           link_to("Go back", { :controller => "posts", :action => "index" })
       #        end
       #     %>
       def link_to_unless_current(name, options = {}, html_options = {}, &block)
@@ -474,43 +483,41 @@ module ActionView
       #            :subject => "This is an example email"
       #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
-        email_address = html_escape(email_address)
+        email_address = ERB::Util.html_escape(email_address)
 
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode").to_s
-        cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")
 
-        extras = []
-        extras << "cc=#{Rack::Utils.escape(cc).gsub("+", "%20")}" unless cc.nil?
-        extras << "bcc=#{Rack::Utils.escape(bcc).gsub("+", "%20")}" unless bcc.nil?
-        extras << "body=#{Rack::Utils.escape(body).gsub("+", "%20")}" unless body.nil?
-        extras << "subject=#{Rack::Utils.escape(subject).gsub("+", "%20")}" unless subject.nil?
-        extras = extras.empty? ? '' : '?' + html_escape(extras.join('&'))
+        extras = %w{ cc bcc body subject }.map { |item|
+          option = html_options.delete(item) || next
+          "#{item}=#{Rack::Utils.escape(option).gsub("+", "%20")}"
+        }.compact
+        extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
         email_address_obfuscated = email_address.dup
-        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
-        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
-
-        string = ''
-
-        if encode == "javascript"
-          "document.write('#{content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))}');".each_byte do |c|
+        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
+        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
+        case encode
+        when "javascript"
+          string = ''
+          html   = content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))
+          html   = escape_javascript(html)
+          "document.write('#{html}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
           "<script type=\"#{Mime::JS}\">eval(decodeURIComponent('#{string}'))</script>".html_safe
-        elsif encode == "hex"
-          email_address_encoded = ''
-          email_address_obfuscated.each_byte do |c|
-            email_address_encoded << sprintf("&#%d;", c)
-          end
+        when "hex"
+          email_address_encoded = email_address_obfuscated.unpack('C*').map {|c|
+            sprintf("&#%d;", c)
+          }.join
 
-          protocol = 'mailto:'
-          protocol.each_byte { |c| string << sprintf("&#%d;", c) }
-
-          email_address.each_byte do |c|
+          string = 'mailto:'.unpack('C*').map { |c|
+            sprintf("&#%d;", c)
+          }.join + email_address.unpack('C*').map { |c|
             char = c.chr
-            string << (char =~ /\w/ ? sprintf("%%%x", c) : char)
-          end
+            char =~ /\w/ ? sprintf("%%%x", c) : char
+          }.join
+
           content_tag "a", name || email_address_encoded.html_safe, html_options.merge("href" => "#{string}#{extras}".html_safe)
         else
           content_tag "a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe)
@@ -586,34 +593,31 @@ module ActionView
 
       private
         def convert_options_to_data_attributes(options, html_options)
-          html_options = {} if html_options.nil?
-          html_options = html_options.stringify_keys
+          if html_options.nil?
+            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
+          else
+            html_options = html_options.stringify_keys
+            html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
-          if (options.is_a?(Hash) && options.key?('remote') && options.delete('remote')) || (html_options.is_a?(Hash) && html_options.key?('remote') && html_options.delete('remote'))
-            html_options['data-remote'] = 'true'
+            disable_with = html_options.delete("disable_with")
+            confirm = html_options.delete('confirm')
+            method  = html_options.delete('method')
+
+            html_options["data-disable-with"] = disable_with if disable_with
+            html_options["data-confirm"] = confirm if confirm
+            add_method_to_attributes!(html_options, method)   if method
+
+            html_options
           end
-
-          confirm = html_options.delete("confirm")
-
-          if html_options.key?("popup")
-            ActiveSupport::Deprecation.warn(":popup has been deprecated", caller)
-          end
-
-          method, href = html_options.delete("method"), html_options['href']
-
-          add_confirm_to_attributes!(html_options, confirm) if confirm
-          add_method_to_attributes!(html_options, method)   if method
-
-          html_options
         end
 
-        def add_confirm_to_attributes!(html_options, confirm)
-          html_options["data-confirm"] = confirm if confirm
+        def link_to_remote_options?(options)
+          options.is_a?(Hash) && options.key?('remote') && options.delete('remote')
         end
 
         def add_method_to_attributes!(html_options, method)
-          html_options["rel"] = "nofollow" if method && method.to_s.downcase != "get"
-          html_options["data-method"] = method if method
+          html_options["rel"] = "nofollow" if method.to_s.downcase != "get"
+          html_options["data-method"] = method
         end
 
         def options_for_javascript(options)

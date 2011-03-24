@@ -6,7 +6,7 @@ module Shop
   class Product < ActiveRecord::Base
     has_many :variants, :dependent => :delete_all
   end
-  
+
   class Variant < ActiveRecord::Base
   end
 end

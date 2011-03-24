@@ -65,4 +65,9 @@ class ClassAttributeTest < ActiveSupport::TestCase
     object.singleton_class.setting = 'foo'
     assert_equal 'foo', object.setting
   end
+
+  test 'setter returns set value' do
+    val = @klass.send(:setting=, 1)
+    assert_equal 1, val
+  end
 end

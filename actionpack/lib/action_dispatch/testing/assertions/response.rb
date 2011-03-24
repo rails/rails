@@ -1,6 +1,6 @@
 module ActionDispatch
   module Assertions
-    # A small suite of assertions that test responses from Rails applications.
+    # A small suite of assertions that test responses from \Rails applications.
     module ResponseAssertions
       extend ActiveSupport::Concern
 
@@ -18,9 +18,9 @@ module ActionDispatch
       # * <tt>:missing</tt>   - Status code was 404
       # * <tt>:error</tt>     - Status code was in the 500-599 range
       #
-      # You can also pass an explicit status number like assert_response(501)
-      # or its symbolic equivalent assert_response(:not_implemented).
-      # See ActionDispatch::StatusCodes for a full list.
+      # You can also pass an explicit status number like <tt>assert_response(501)</tt>
+      # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
+      # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list.
       #
       # ==== Examples
       #
@@ -45,8 +45,8 @@ module ActionDispatch
       end
 
       # Assert that the redirection options passed in match those of the redirect called in the latest action.
-      # This match can be partial, such that assert_redirected_to(:controller => "weblog") will also
-      # match the redirection of redirect_to(:controller => "weblog", :action => "show") and so on.
+      # This match can be partial, such that <tt>assert_redirected_to(:controller => "weblog")</tt> will also
+      # match the redirection of <tt>redirect_to(:controller => "weblog", :action => "show")</tt> and so on.
       #
       # ==== Examples
       #
@@ -81,14 +81,10 @@ module ActionDispatch
 
         def normalize_argument_to_redirection(fragment)
           case fragment
-          when %r{^\w[\w\d+.-]*:.*}
+          when %r{^\w[A-Za-z\d+.-]*:.*}
             fragment
           when String
-            if fragment =~ %r{^\w[\w\d+.-]*:.*}
-              fragment
-            else
-              @request.protocol + @request.host_with_port + fragment
-            end
+            @request.protocol + @request.host_with_port + fragment
           when :back
             raise RedirectBackError unless refer = @request.headers["Referer"]
             refer

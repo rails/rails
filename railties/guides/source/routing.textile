@@ -3,7 +3,7 @@ h2. Rails Routing from the Outside In
 This guide covers the user-facing features of Rails routing. By referring to this guide, you will be able to:
 
 * Understand the code in +routes.rb+
-* Construct your own routes, using either the preferred resourceful style or with the <tt>match</tt> method
+* Construct your own routes, using either the preferred resourceful style or the <tt>match</tt> method
 * Identify what parameters to expect an action to receive
 * Automatically create paths and URLs using route helpers
 * Use advanced techniques such as constraints and Rack endpoints
@@ -39,10 +39,10 @@ You can also generate paths and URLs. If your application contains this code:
 </ruby>
 
 <erb>
-<%= link_to "Patient Record", patients_path(@patient.id) %>
+<%= link_to "Patient Record", patient_path(@patient) %>
 </erb>
 
-The router will generate the path +/patients/17+. This reduces the brittleness of your view and makes your code easier to understand.
+The router will generate the path +/patients/17+. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
 
 h3. Resource Routing: the Rails Default
 
@@ -50,7 +50,7 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 h4. Resources on the Web
 
-Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as +GET+, +POST+, +PUT+ and +DELETE+. Each method is a request to perform an operation on the resource. A resource route maps a number of related request to the actions in a single controller.
+Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as +GET+, +POST+, +PUT+ and +DELETE+. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
 
 When your Rails application receives an incoming request for
 
@@ -76,14 +76,17 @@ resources :photos
 
 creates seven different routes in your application, all mapping to the +Photos+ controller:
 
-|_. Verb |_.Path            |_.action |_.used for|
-|GET     |/photos           |index    |display a list of all photos|
-|GET     |/photos/new       |new      |return an HTML form for creating a new photo|
-|POST    |/photos           |create   |create a new photo|
-|GET     |/photos/:id       |show     |display a specific photo|
-|GET     |/photos/:id/edit  |edit     |return an HTML form for editing a photo|
-|PUT     |/photos/:id       |update   |update a specific photo|
-|DELETE  |/photos/:id       |destroy  |delete a specific photo|
+|_. HTTP Verb |_.Path            |_.action |_.used for                                   |
+|GET          |/photos           |index    |display a list of all photos                 |
+|GET          |/photos/new       |new      |return an HTML form for creating a new photo |
+|POST         |/photos           |create   |create a new photo                           |
+|GET          |/photos/:id       |show     |display a specific photo                     |
+|GET          |/photos/:id/edit  |edit     |return an HTML form for editing a photo      |
+|PUT          |/photos/:id       |update   |update a specific photo                      |
+|DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
+
+
+NOTE: Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
 
 h4. Paths and URLs
 
@@ -91,7 +94,7 @@ Creating a resourceful route will also expose a number of helpers to the control
 
 * +photos_path+ returns +/photos+
 * +new_photo_path+ returns +/photos/new+
-* +edit_photo_path+ returns +/photos/edit+
+* +edit_photo_path(id)+ returns +/photos/:id/edit+ (for instance, +edit_photo_path(10)+ returns +/photos/10/edit+)
 * +photo_path(id)+ returns +/photos/:id+ (for instance, +photo_path(10)+ returns +/photos/10+)
 
 Each of these helpers has a corresponding +_url+ helper (such as +photos_url+) which returns the same path prefixed with the current host, port and path prefix.
@@ -116,7 +119,7 @@ resources :videos
 
 h4. Singular Resources
 
-Sometimes, you have a resource that clients always look up without referencing an ID. A common example, +/profile+ always shows the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
+Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like +/profile+ to always show the profile of the currently logged in user. In this case, you can use a singular resource to map +/profile+ (rather than +/profile/:id+) to the +show+ action.
 
 <ruby>
 match "profile" => "users#show"
@@ -130,13 +133,13 @@ resource :geocoder
 
 creates six different routes in your application, all mapping to the +Geocoders+ controller:
 
-|_. Verb    |_.Path         |_.action |_.used for|
-|GET        |/geocoder/new  |new      |return an HTML form for creating the geocoder|
-|POST       |/geocoder      |create   |create the new geocoder|
-|GET        |/geocoder      |show     |display the one and only geocoder resource|
-|GET        |/geocoder/edit |edit     |return an HTML form for editing the geocoder|
-|PUT        |/geocoder      |update   |update the one and only geocoder resource|
-|DELETE     |/geocoder      |destroy  |delete the geocoder resource|
+|_.HTTP Verb |_.Path         |_.action |_.used for                                    |
+|GET         |/geocoder/new  |new      |return an HTML form for creating the geocoder |
+|POST        |/geocoder      |create   |create the new geocoder                       |
+|GET         |/geocoder      |show     |display the one and only geocoder resource    |
+|GET         |/geocoder/edit |edit     |return an HTML form for editing the geocoder  |
+|PUT         |/geocoder      |update   |update the one and only geocoder resource     |
+|DELETE      |/geocoder      |destroy  |delete the geocoder resource                  |
 
 NOTE: Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
 
@@ -153,23 +156,23 @@ h4. Controller Namespaces and Routing
 You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an +Admin::+ namespace. You would place these controllers under the +app/controllers/admin+ directory, and you can group them together in your router:
 
 <ruby>
-namespace "admin" do
+namespace :admin do
   resources :posts, :comments
 end
 </ruby>
 
 This will create a number of routes for each of the +posts+ and +comments+ controller. For +Admin::PostsController+, Rails will create:
 
-|_. Verb |_.Path               |_.action |_. helper                  |
-|GET     |/admin/photos        |index    | admin_photos_path         |
-|GET     |/admin/photos/new    |new      | new_admin_photos_path     |
-|POST    |/admin/photos        |create   | admin_photos_path         |
-|GET     |/admin/photos/1      |show     | admin_photo_path(id)      |
-|GET     |/admin/photos/1/edit |edit     | edit_admin_photo_path(id) |
-|PUT     |/admin/photos/1      |update   | admin_photo_path(id)      |
-|DELETE  |/admin/photos/1      |destroy  | admin_photo_path(id)      |
+|_.HTTP Verb |_.Path              |_.action |_.named helper            |
+|GET         |/admin/posts        |index    | admin_posts_path         |
+|GET         |/admin/posts/new    |new      | new_admin_posts_path     |
+|POST        |/admin/posts        |create   | admin_posts_path         |
+|GET         |/admin/posts/1      |show     | admin_post_path(id)      |
+|GET         |/admin/posts/1/edit |edit     | edit_admin_post_path(id) |
+|PUT         |/admin/posts/1      |update   | admin_post_path(id)      |
+|DELETE      |/admin/posts/1      |destroy  | admin_post_path(id)      |
 
-If you want to route +/photos+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
+If you want to route +/posts+ (without the prefix +/admin+) to +Admin::PostsController+, you could use
 
 <ruby>
 scope :module => "admin" do
@@ -183,7 +186,7 @@ or, for a single case
 resources :posts, :module => "admin"
 </ruby>
 
-If you want to route +/admin/photos+ to +PostsController+ (without the +Admin::+ module prefix), you could use
+If you want to route +/admin/posts+ to +PostsController+ (without the +Admin::+ module prefix), you could use
 
 <ruby>
 scope "/admin" do
@@ -194,19 +197,19 @@ end
 or, for a single case
 
 <ruby>
-resources :posts, :path => "/admin"
+resources :posts, :path => "/admin/posts"
 </ruby>
 
 In each of these cases, the named routes remain the same as if you did not use +scope+. In the last case, the following paths map to +PostsController+:
 
-|_. Verb |_.Path               |_.action |_. helper            |
-|GET     |/admin/photos        |index    | photos_path         |
-|GET     |/admin/photos/new    |new      | photos_path         |
-|POST    |/admin/photos        |create   | photos_path         |
-|GET     |/admin/photos/1      |show     | photo_path(id)      |
-|GET     |/admin/photos/1/edit |edit     | edit_photo_path(id) |
-|PUT     |/admin/photos/1      |update   | photo_path(id)      |
-|DELETE  |/admin/photos/1      |destroy  | photo_path(id)      |
+|_.HTTP Verb |_.Path               |_.action |_.named helper      |
+|GET         |/admin/posts         |index    | posts_path         |
+|GET         |/admin/posts/new     |new      | posts_path         |
+|POST        |/admin/posts         |create   | posts_path         |
+|GET         |/admin/posts/1       |show     | post_path(id)      |
+|GET         |/admin/posts/1/edit  |edit     | edit_post_path(id) |
+|PUT         |/admin/posts/1       |update   | post_path(id)      |
+|DELETE      |/admin/posts/1       |destroy  | post_path(id)      |
 
 h4. Nested Resources
 
@@ -232,14 +235,14 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an +AdsController+. The ad URLs require a magazine:
 
-|_.Verb |_.Path                   |_.action |_.used for|
-|GET    |/magazines/1/ads         |index    |display a list of all ads for a specific magazine|
-|GET    |/magazines/1/ads/new     |new      |return an HTML form for creating a new ad belonging to a specific magazine|
-|POST   |/magazines/1/ads         |create   |create a new ad belonging to a specific magazine|
-|GET    |/magazines/1/ads/1       |show     |display a specific ad belonging to a specific magazine|
-|GET    |/magazines/1/ads/1/edit  |edit     |return an HTML form for editing an ad belonging to a specific magazine|
-|PUT    |/magazines/1/ads/1       |update   |update a specific ad belonging to a specific magazine|
-|DELETE |/magazines/1/ads/1       |destroy  |delete a specific ad belonging to a specific magazine|
+|_.HTTP Verb |_.Path                  |_.action |_.used for                                                                 |
+|GET         |/magazines/1/ads        |index    |display a list of all ads for a specific magazine                          |
+|GET         |/magazines/1/ads/new    |new      |return an HTML form for creating a new ad belonging to a specific magazine |
+|POST        |/magazines/1/ads        |create   |create a new ad belonging to a specific magazine                           |
+|GET         |/magazines/1/ads/1      |show     |display a specific ad belonging to a specific magazine                     |
+|GET         |/magazines/1/ads/1/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
+|PUT         |/magazines/1/ads/1      |update   |update a specific ad belonging to a specific magazine                      |
+|DELETE      |/magazines/1/ads/1      |destroy  |delete a specific ad belonging to a specific magazine                      |
 
 
 This will also create routing helpers such as +magazine_ads_url+ and +edit_magazine_ad_path+. These helpers take an instance of Magazine as the first parameter (+magazine_ads_url(@magazine)+).
@@ -313,7 +316,7 @@ To add a member route, just add a +member+ block into the resource block:
 <ruby>
 resources :photos do
   member do
-    get :preview
+    get 'preview'
   end
 end
 </ruby>
@@ -324,7 +327,7 @@ Within the block of member routes, each route name specifies the HTTP verb that 
 
 <ruby>
 resources :photos do
-  get :preview, :on => :member
+  get 'preview', :on => :member
 end
 </ruby>
 
@@ -335,7 +338,7 @@ To add a route to the collection:
 <ruby>
 resources :photos do
   collection do
-    get :search
+    get 'search'
   end
 end
 </ruby>
@@ -346,7 +349,7 @@ Just as with member routes, you can pass +:on+ to a route:
 
 <ruby>
 resources :photos do
-  get :search, :on => :collection
+  get 'search', :on => :collection
 end
 </ruby>
 
@@ -370,7 +373,7 @@ When you set up a regular route, you supply a series of symbols that Rails maps 
 match ':controller(/:action(/:id))'
 </ruby>
 
-If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +PhotosController+, and to make the final parameter +"1"+ available as +params[:id]+. This route will also route the incoming request of +/photos+ to +PhotosController+, since +:action+ and +:id+ are optional parameters, denoted by parentheses.
+If an incoming request of +/photos/show/1+ is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the +show+ action of the +PhotosController+, and to make the final parameter +"1"+ available as +params[:id]+. This route will also route the incoming request of +/photos+ to +PhotosController#index+, since +:action+ and +:id+ are optional parameters, denoted by parentheses.
 
 h4. Dynamic Segments
 
@@ -387,6 +390,8 @@ NOTE: You can't use +namespace+ or +:module+ with a +:controller+ path segment. 
 <ruby>
 match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
 </ruby>
+
+TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id => /[^\/]<plus>/+ allows anything except a slash.
 
 h4. Static Segments
 
@@ -434,7 +439,27 @@ You can specify a name for any route using the +:as+ option.
 match 'exit' => 'sessions#destroy', :as => :logout
 </ruby>
 
-This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/logout+
+This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
+
+h4. HTTP Verb Constraints
+
+You can use the +:via+ option to constrain the request to one or more HTTP methods:
+
+<ruby>
+match 'photos/show' => 'photos#show', :via => :get
+</ruby>
+
+There is a shorthand version of this as well:
+
+<ruby>
+get 'photos/show'
+</ruby>
+
+You can also permit more than one verb to a single route:
+
+<ruby>
+match 'photos/show' => 'photos#show', :via => [:get, :post]
+</ruby>
 
 h4. Segment Constraints
 
@@ -450,7 +475,7 @@ This route would match paths such as +/photos/A12345+. You can more succinctly e
 match 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 </ruby>
 
-+:constraints+ takes regular expression. However note that regexp anchors can't be used within constraints. For example following route will not work:
++:constraints+ takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 <ruby>
 match '/:id' => 'posts#show', :constraints => {:id => /^\d/}
@@ -475,10 +500,10 @@ You specify a request-based constraint the same way that you specify a segment c
 match "photos", :constraints => {:subdomain => "admin"}
 </ruby>
 
-You can also specify constrains in a block form:
+You can also specify constraints in a block form:
 
 <ruby>
-namespace "admin" do
+namespace :admin do
   constraints :subdomain => "admin" do
     resources :photos
   end
@@ -501,7 +526,7 @@ class BlacklistConstraint
 end
 
 TwitterClone::Application.routes.draw do
-  match "*path" => "blacklist#index", 
+  match "*path" => "blacklist#index",
     :constraints => BlacklistConstraint.new
 end
 </ruby>
@@ -515,6 +540,22 @@ match 'photos/*other' => 'photos#unknown'
 </ruby>
 
 This route would match +photos/12+ or +/photos/long/path/to/12+, setting +params[:other]+ to +"12"+ or +"long/path/to/12"+.
+
+Wildcard segments can occur anywhere in a route. For example,
+
+<ruby>
+match 'books/*section/:title' => 'books#show'
+</ruby>
+
+would match +books/some/section/last-words-a-memoir+ with +params[:section]+ equals +"some/section"+, and +params[:title]+ equals +"last-words-a-memoir"+.
+
+Technically a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example,
+
+<ruby>
+match '*a/foo/*b' => 'test#index'
+</ruby>
+
+would match +zoo/woo/foo/bar/baz+ with +params[:a]+ equals +"zoo/woo"+, and +params[:b]+ equals +"bar/baz"+.
 
 h4. Redirection
 
@@ -559,7 +600,7 @@ You can specify what Rails should route +"/"+ to with the +root+ method:
 root :to => 'pages#main'
 </ruby>
 
-You should put the +root+ route at the end of the file.
+You should put the +root+ route at the end of the file. You also need to delete the +public/index.html+ file for the root route to take effect.
 
 h3. Customizing Resourceful Routes
 
@@ -573,16 +614,16 @@ The +:controller+ option lets you explicitly specify a controller to use for the
 resources :photos, :controller => "images"
 </ruby>
 
-will recognize incoming paths beginning with +/photo+ but route to the +Images+ controller:
+will recognize incoming paths beginning with +/photos+ but route to the +Images+ controller:
 
-|_. Verb |_.Path         |_.action |
-|GET     |/photos        |index    |
-|GET     |/photos/new    |new      |
-|POST    |/photos        |create   |
-|GET     |/photos/1      |show     |
-|GET     |/photos/1/edit |edit     |
-|PUT     |/photos/1      |update   |
-|DELETE  |/photos/1      |destroy  |
+|_.HTTP Verb |_.Path         |_.action |_.named helper       |
+|GET         |/photos        |index    | photos_path         |
+|GET         |/photos/new    |new      | new_photo_path      |
+|POST        |/photos        |create   | photos_path         |
+|GET         |/photos/1      |show     | photo_path(id)      |
+|GET         |/photos/1/edit |edit     | edit_photo_path(id) |
+|PUT         |/photos/1      |update   | photo_path(id)      |
+|DELETE      |/photos/1      |destroy  | photo_path(id)      |
 
 NOTE: Use +photos_path+, +new_photos_path+, etc. to generate paths for this resource.
 
@@ -594,7 +635,7 @@ You can use the +:constraints+ option to specify a required format on the implic
 resources :photos, :constraints => {:id => /[A-Z][A-Z][0-9]+/}
 </ruby>
 
-This declaration constrains the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
+This declaration constraints the +:id+ parameter to match the supplied regular expression. So, in this case, the router would no longer match +/photos/1+ to this route. Instead, +/photos/RR27+ would match.
 
 You can specify a single constraint to apply to a number of routes by using the block form:
 
@@ -605,7 +646,9 @@ constraints(:id => /[A-Z][A-Z][0-9]+/) do
 end
 </ruby>
 
-NOTE: Of course, you can use the more advanced constraints available in non-resourceful routes in this context
+NOTE: Of course, you can use the more advanced constraints available in non-resourceful routes in this context.
+
+TIP: By default the +:id+ parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an +:id+ add a constraint which overrides this - for example +:id => /[^\/]+/+ allows anything except a slash.
 
 h4. Overriding the Named Helpers
 
@@ -615,16 +658,16 @@ The +:as+ option lets you override the normal naming for the named route helpers
 resources :photos, :as => "images"
 </ruby>
 
-will recognize incoming paths beginning with +/photos+ and route the requests to +PhotosController+:
+will recognize incoming paths beginning with +/photos+ and route the requests to +PhotosController+, but use the value of the :as option to name the helpers.
 
-|_.HTTP verb|_.Path          |_.action |_.named helper   |
-|GET        |/photos         |index    | images_path     |
-|GET        |/photos/new     |new      | new_image_path  |
-|POST       |/photos         |create   | images_path     |
-|GET        |/photos/1       |show     | image_path      |
-|GET        |/photos/1/edit  |edit     | edit_image_path |
-|PUT        |/photos/1       |update   | image_path      |
-|DELETE     |/photos/1       |destroy  | image_path      |
+|_.HTTP verb|_.Path          |_.action |_.named helper       |
+|GET        |/photos         |index    | images_path         |
+|GET        |/photos/new     |new      | new_image_path      |
+|POST       |/photos         |create   | images_path         |
+|GET        |/photos/1       |show     | image_path(id)      |
+|GET        |/photos/1/edit  |edit     | edit_image_path(id) |
+|PUT        |/photos/1       |update   | image_path(id)      |
+|DELETE     |/photos/1       |destroy  | image_path(id)      |
 
 h4. Overriding the +new+ and +edit+ Segments
 
@@ -643,7 +686,7 @@ This would cause the routing to recognize paths such as
 
 NOTE: The actual action names aren't changed by this option. The two paths shown would still route to the +new+ and +edit+ actions.
 
-TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope:
+TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope.
 
 <ruby>
 scope :path_names => { :new => "make" } do
@@ -665,7 +708,7 @@ resources :photos
 
 This will provide route helpers such as +admin_photos_path+, +new_admin_photo_path+ etc.
 
-To prefix a group of routes, use +:as+ with +scope+:
+To prefix a group of route helpers, use +:as+ with +scope+:
 
 <ruby>
 scope "admin", :as => "admin" do
@@ -675,11 +718,23 @@ end
 resources :photos, :accounts
 </ruby>
 
+This will generate routes such as +admin_photos_path+ and +admin_accounts_path+ which map to +/admin/photos+ and +/admin/accounts+ respectively.
+
 NOTE: The +namespace+ scope will automatically add +:as+ as well as +:module+ and +:path+ prefixes.
+
+You can prefix routes with a named parameter also:
+
+<ruby>
+scope ":username" do
+  resources :posts
+end
+</ruby>
+
+This will provide you with URLs such as +/bob/posts/1+ and will allow you to reference the +username+ part of the path as +params[:username]+ in controllers, helpers and views.
 
 h4. Restricting the Routes Created
 
-By default, Rails creates routes for all seven of the default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option tells Rails to create only the specified routes:
+By default, Rails creates routes for the seven default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the +:only+ and +:except+ options to fine-tune this behavior. The +:only+ option tells Rails to create only the specified routes:
 
 <ruby>
 resources :photos, :only => [:index, :show]
@@ -707,16 +762,16 @@ scope(:path_names => { :new => "neu", :edit => "bearbeiten" }) do
 end
 </ruby>
 
-Rails now creates routes to the +CategoriesControlleR+.
+Rails now creates routes to the +CategoriesController+.
 
-|_.HTTP verb|_.Path                     |_.action |
-|GET        |/kategorien                |index    |
-|GET        |/kategorien/neu            |new      |
-|POST       |/kategorien                |create   |
-|GET        |/kategorien/1              |show     |
-|GET        |/kategorien/:id/bearbeiten |edit     |
-|PUT        |/kategorien/1              |update   |
-|DELETE     |/kategorien/1              |destroy  |
+|_.HTTP verb|_.Path                   |_.action |_.named helper          |
+|GET        |/kategorien              |index    | categories_path        |
+|GET        |/kategorien/neu          |new      | new_category_path      |
+|POST       |/kategorien              |create   | categories_path        |
+|GET        |/kategorien/1            |show     | category_path(id)      |
+|GET        |/kategorien/1/bearbeiten |edit     | edit_category_path(id) |
+|PUT        |/kategorien/1            |update   | category_path(id)      |
+|DELETE     |/kategorien/1            |destroy  | category_path(id)      |
 
 h4. Overriding the Singular Form
 
@@ -765,14 +820,14 @@ formatted_users GET  /users.:format  {:controller=>"users", :action=>"index"}
 You may restrict the listing to the routes that map to a particular controller setting the +CONTROLLER+ environment variable:
 
 <shell>
-$ CONTROLLER=users rake routes 
+$ CONTROLLER=users rake routes
 </shell>
 
 TIP: You'll find that the output from +rake routes+ is much more readable if you widen your terminal window until the output lines don't wrap.
 
 h4. Testing Routes
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.org/classes/ActionController/Assertions/RoutingAssertions.html designed to make testing routes simpler:
+Routes should be included in your testing strategy (just like the rest of your application). Rails offers three "built-in assertions":http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html designed to make testing routes simpler:
 
 * +assert_generates+
 * +assert_recognizes+
@@ -780,7 +835,7 @@ Routes should be included in your testing strategy (just like the rest of your a
 
 h5. The +assert_generates+ Assertion
 
-Use +assert_generates+ to assert that a particular set of options generate a particular path. You can use this with default routes or custom routes
++assert_generates+ asserts that a particular set of options generate a particular path and can be used with default routes or custom routes.
 
 <ruby>
 assert_generates "/photos/1", { :controller => "photos", :action => "show", :id => "1" }
@@ -789,7 +844,7 @@ assert_generates "/about", :controller => "pages", :action => "about"
 
 h5. The +assert_recognizes+ Assertion
 
-The +assert_recognizes+ assertion is the inverse of +assert_generates+. It asserts that Rails recognizes the given path and routes it to a particular spot in your application.
++assert_recognizes+ is the inverse of +assert_generates+. It asserts that a given path is recognized and routes it to a particular spot in your application.
 
 <ruby>
 assert_recognizes({ :controller => "photos", :action => "show", :id => "1" }, "/photos/1")
@@ -801,12 +856,6 @@ You can supply a +:method+ argument to specify the HTTP verb:
 assert_recognizes({ :controller => "photos", :action => "create" }, { :path => "photos", :method => :post })
 </ruby>
 
-You can also use the resourceful helpers to test recognition of a RESTful route:
-
-<ruby>
-assert_recognizes new_photo_url, { :path => "photos", :method => :post }
-</ruby>
-
 h5. The +assert_routing+ Assertion
 
 The +assert_routing+ assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of +assert_generates+ and +assert_recognizes+.
@@ -816,8 +865,6 @@ assert_routing({ :path => "photos", :method => :post }, { :controller => "photos
 </ruby>
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/3
 
 * April 10, 2010: Updated guide to remove outdated and superfluous information, and to provide information about new features, by "Yehuda Katz":http://www.yehudakatz.com
 * April 2, 2010: Updated guide to match new Routing DSL in Rails 3, by "Rizwan Reza":http://www.rizwanreza.com/

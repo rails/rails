@@ -1,33 +1,38 @@
 module ActiveRecord
-  class PredicateBuilder
-
-    def initialize(engine)
-      @engine = engine
-    end
-
-    def build_from_hash(attributes, default_table)
+  class PredicateBuilder # :nodoc:
+    def self.build_from_hash(engine, attributes, default_table)
       predicates = attributes.map do |column, value|
         table = default_table
 
         if value.is_a?(Hash)
-          table = Arel::Table.new(column, :engine => @engine)
-          build_from_hash(value, table)
+          table = Arel::Table.new(column, engine)
+          build_from_hash(engine, value, table)
         else
           column = column.to_s
 
           if column.include?('.')
             table_name, column = column.split('.', 2)
-            table = Arel::Table.new(table_name, :engine => @engine)
+            table = Arel::Table.new(table_name, engine)
           end
 
-          attribute = table[column] || Arel::Attribute.new(table, column)
+          attribute = table[column.to_sym]
 
           case value
-          when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
-            values = value.to_a
+          when ActiveRecord::Relation
+            value.select_values = [value.klass.arel_table['id']] if value.select_values.empty?
+            attribute.in(value.arel.ast)
+          when Array, ActiveRecord::Associations::CollectionProxy
+            values = value.to_a.map { |x|
+              x.is_a?(ActiveRecord::Base) ? x.id : x
+            }
             attribute.in(values)
           when Range, Arel::Relation
             attribute.in(value)
+          when ActiveRecord::Base
+            attribute.eq(value.id)
+          when Class
+            # FIXME: I think we need to deprecate this behavior
+            attribute.eq(value.name)
           else
             attribute.eq(value)
           end
@@ -36,6 +41,5 @@ module ActiveRecord
 
       predicates.flatten
     end
-
   end
 end

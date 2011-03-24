@@ -42,6 +42,10 @@ module Rails
       set_environment
     end
 
+    def app
+      @app ||= super.instance
+    end
+
     def opt_parser
       Options.new
     end

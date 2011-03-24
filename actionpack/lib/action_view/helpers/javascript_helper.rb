@@ -65,7 +65,8 @@ module ActionView
       #   //]]>
       #   </script>
       #
-      # +html_options+ may be a hash of attributes for the <script> tag. Example:
+      # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
+      # tag. Example:
       #   javascript_tag "alert('All is good')", :defer => 'defer'
       #   # => <script defer="defer" type="text/javascript">alert('All is good')</script>
       #

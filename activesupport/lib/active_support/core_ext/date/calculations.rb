@@ -5,9 +5,11 @@ require 'active_support/core_ext/date/zones'
 require 'active_support/core_ext/time/zones'
 
 class Date
+  DAYS_INTO_WEEK = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6 }
+
   if RUBY_VERSION < '1.9'
     undef :>>
-    
+
     # Backported from 1.9. The one in 1.8 leads to incorrect next_month and
     # friends for dates where the calendar reform is involved. It additionally
     # prevents an infinite loop fixed in r27013.
@@ -34,9 +36,9 @@ class Date
       ::Date.current.tomorrow
     end
 
-    # Returns Time.zone.today when config.time_zone is set, otherwise just returns Date.today.
+    # Returns Time.zone.today when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns Date.today.
     def current
-      ::Time.zone_default ? ::Time.zone.today : ::Date.today
+      ::Time.zone ? ::Time.zone.today : ::Date.today
     end
   end
 
@@ -127,6 +129,11 @@ class Date
     )
   end
 
+  # Returns a new Date/DateTime representing the time a number of specified weeks ago.
+  def weeks_ago(weeks)
+    advance(:weeks => -weeks)
+  end
+
   # Returns a new Date/DateTime representing the time a number of specified months ago.
   def months_ago(months)
     advance(:months => -months)
@@ -156,7 +163,7 @@ class Date
   def next_year
     years_since(1)
   end unless method_defined?(:next_year)
-  
+
   # Shorthand for months_ago(1)
   def prev_month
     months_ago(1)
@@ -185,10 +192,15 @@ class Date
   alias :sunday :end_of_week
   alias :at_end_of_week :end_of_week
 
+  # Returns a new Date/DateTime representing the start of the given day in the previous week (default is Monday).
+  def prev_week(day = :monday)
+    result = (self - 7).beginning_of_week + DAYS_INTO_WEEK[day]
+    self.acts_like?(:time) ? result.change(:hour => 0) : result
+  end
+
   # Returns a new Date/DateTime representing the start of the given day in next week (default is Monday).
   def next_week(day = :monday)
-    days_into_week = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6}
-    result = (self + 7).beginning_of_week + days_into_week[day]
+    result = (self + 7).beginning_of_week + DAYS_INTO_WEEK[day]
     self.acts_like?(:time) ? result.change(:hour => 0) : result
   end
 

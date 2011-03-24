@@ -23,7 +23,7 @@ module ActiveRecord
     #   p2.first_name = "should fail"
     #   p2.save # Raises a ActiveRecord::StaleObjectError
     #
-    # Optimistic locking will also check for stale data when objects are destroyed.  Example:
+    # Optimistic locking will also check for stale data when objects are destroyed. Example:
     #
     #   p1 = Person.find(1)
     #   p2 = Person.find(1)
@@ -58,6 +58,12 @@ module ActiveRecord
       end
 
       private
+        def increment_lock
+          lock_col = self.class.locking_column
+          previous_lock_value = send(lock_col).to_i
+          send(lock_col + '=', previous_lock_value + 1)
+        end
+
         def attributes_from_column_definition
           result = super
 
@@ -70,7 +76,7 @@ module ActiveRecord
             result[self.class.locking_column] ||= 0
           end
 
-          return result
+          result
         end
 
         def update(attribute_names = @attributes.keys) #:nodoc:
@@ -78,8 +84,8 @@ module ActiveRecord
           return 0 if attribute_names.empty?
 
           lock_col = self.class.locking_column
-          previous_value = send(lock_col).to_i
-          send(lock_col + '=', previous_value + 1)
+          previous_lock_value = send(lock_col).to_i
+          increment_lock
 
           attribute_names += [lock_col]
           attribute_names.uniq!
@@ -87,11 +93,13 @@ module ActiveRecord
           begin
             relation = self.class.unscoped
 
-            affected_rows = relation.where(
+            stmt = relation.where(
               relation.table[self.class.primary_key].eq(quoted_id).and(
-                relation.table[self.class.locking_column].eq(quote_value(previous_value))
+                relation.table[lock_col].eq(quote_value(previous_lock_value))
               )
-            ).arel.update(arel_attributes_values(false, false, attribute_names))
+            ).arel.compile_update(arel_attributes_values(false, false, attribute_names))
+
+            affected_rows = connection.update stmt.to_sql
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"
@@ -101,7 +109,7 @@ module ActiveRecord
 
           # If something went wrong, revert the version.
           rescue Exception
-            send(lock_col + '=', previous_value)
+            send(lock_col + '=', previous_lock_value)
             raise
           end
         end
@@ -109,13 +117,11 @@ module ActiveRecord
         def destroy #:nodoc:
           return super unless locking_enabled?
 
-          unless new_record?
-            lock_col = self.class.locking_column
-            previous_value = send(lock_col).to_i
-
+          if persisted?
             table = self.class.arel_table
-            predicate = table[self.class.primary_key].eq(id)
-            predicate = predicate.and(table[self.class.locking_column].eq(previous_value))
+            lock_col = self.class.locking_column
+            predicate = table[self.class.primary_key].eq(id).
+              and(table[lock_col].eq(send(lock_col).to_i))
 
             affected_rows = self.class.unscoped.where(predicate).delete_all
 

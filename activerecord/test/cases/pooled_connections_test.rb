@@ -89,9 +89,14 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   def test_undefined_connection_returns_false
     old_handler = ActiveRecord::Base.connection_handler
     ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    assert_equal false, ActiveRecord::Base.connected?
+    assert ! ActiveRecord::Base.connected?
   ensure
     ActiveRecord::Base.connection_handler = old_handler
+  end
+
+  def test_connection_config
+    ActiveRecord::Base.establish_connection(@connection)
+    assert_equal @connection, ActiveRecord::Base.connection_config
   end
 
   def test_with_connection_nesting_safety
@@ -137,4 +142,4 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   def add_record(name)
     ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
   end
-end unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
+end unless current_adapter?(:FrontBase) || in_memory_db?

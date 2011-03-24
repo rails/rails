@@ -1,5 +1,6 @@
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/object/blank'
+require 'stringio'
 
 # = XmlMini ReXML implementation
 module ActiveSupport
@@ -19,7 +20,7 @@ module ActiveSupport
       if !data.respond_to?(:read)
         data = StringIO.new(data || '')
       end
-      
+
       char = data.getc
       if char.nil?
         {}

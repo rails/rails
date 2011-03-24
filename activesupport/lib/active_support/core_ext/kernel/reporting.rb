@@ -38,7 +38,7 @@ module Kernel
   #   puts 'But this will'
   def silence_stream(stream)
     old_stream = stream.dup
-    stream.reopen(Config::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+    stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
     stream.sync = true
     yield
   ensure
@@ -59,4 +59,23 @@ module Kernel
       raise unless exception_classes.any? { |cls| e.kind_of?(cls) }
     end
   end
+  
+  # Captures the given stream and returns it:
+  #
+  #   stream = capture(:stdout){ puts "Cool" }
+  #   stream # => "Cool\n"
+  #
+  def capture(stream)
+    begin
+      stream = stream.to_s
+      eval "$#{stream} = StringIO.new"
+      yield
+      result = eval("$#{stream}").string
+    ensure
+      eval("$#{stream} = #{stream.upcase}")
+    end
+
+    result
+  end
+  alias :silence :capture
 end

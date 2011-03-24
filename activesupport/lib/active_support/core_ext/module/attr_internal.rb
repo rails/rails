@@ -1,16 +1,12 @@
 class Module
   # Declares an attribute reader backed by an internally-named instance variable.
   def attr_internal_reader(*attrs)
-    attrs.each do |attr|
-      module_eval "def #{attr}() #{attr_internal_ivar_name(attr)} end", __FILE__, __LINE__
-    end
+    attrs.each {|attr_name| attr_internal_define(attr_name, :reader)}
   end
 
   # Declares an attribute writer backed by an internally-named instance variable.
   def attr_internal_writer(*attrs)
-    attrs.each do |attr|
-      module_eval "def #{attr}=(v) #{attr_internal_ivar_name(attr)} = v end", __FILE__, __LINE__
-    end
+    attrs.each {|attr_name| attr_internal_define(attr_name, :writer)}
   end
 
   # Declares an attribute reader and writer backed by an internally-named instance
@@ -28,5 +24,16 @@ class Module
   private
     def attr_internal_ivar_name(attr)
       Module.attr_internal_naming_format % attr
+    end
+
+    def attr_internal_define(attr_name, type)
+      internal_name = attr_internal_ivar_name(attr_name).sub(/\A@/, '')
+      class_eval do # class_eval is necessary on 1.9 or else the methods a made private
+        # use native attr_* methods as they are faster on some Ruby implementations
+        send("attr_#{type}", internal_name)
+      end
+      attr_name, internal_name = "#{attr_name}=", "#{internal_name}=" if type == :writer
+      alias_method attr_name, internal_name
+      remove_method internal_name
     end
 end

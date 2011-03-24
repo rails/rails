@@ -13,8 +13,8 @@ module AbstractController
 
     # Override AbstractController::Base's process_action to run the
     # process_action callbacks around the normal behavior.
-    def process_action(method_name)
-      run_callbacks(:process_action, method_name) do
+    def process_action(method_name, *args)
+      run_callbacks(:process_action, action_name) do
         super
       end
     end
@@ -28,9 +28,8 @@ module AbstractController
       # a Rails process.
       #
       # ==== Options
-      # :only<#to_s>:: The callback should be run only for this action
-      # :except<#to_s>:: The callback should be run for all actions
-      #   except this action
+      # * <tt>only</tt>   - The callback should be run only for this action
+      # * <tt>except<tt>  - The callback should be run for all actions except this action
       def _normalize_callback_options(options)
         if only = options[:only]
           only = Array(only).map {|o| "action_name == '#{o}'"}.join(" || ")
@@ -45,7 +44,7 @@ module AbstractController
       # Skip before, after, and around filters matching any of the names
       #
       # ==== Parameters
-      # *names<Object>:: A list of valid names that could be used for
+      # * <tt>names</tt> - A list of valid names that could be used for
       #   callbacks. Note that skipping uses Ruby equality, so it's
       #   impossible to skip a callback defined using an anonymous proc
       #   using #skip_filter
@@ -60,13 +59,13 @@ module AbstractController
       # the normalization across several methods that use it.
       #
       # ==== Parameters
-      # callbacks<Array[*Object, Hash]>:: A list of callbacks, with an optional
+      # * <tt>callbacks</tt> - An array of callbacks, with an optional
       #   options hash as the last parameter.
-      # block<Proc>:: A proc that should be added to the callbacks.
+      # * <tt>block</tt>    - A proc that should be added to the callbacks.
       #
       # ==== Block Parameters
-      # name<Symbol>:: The callback to be added
-      # options<Hash>:: A list of options to be used when adding the callback
+      # * <tt>name</tt>     - The callback to be added
+      # * <tt>options</tt>  - A hash of options to be used when adding the callback
       def _insert_callbacks(callbacks, block)
         options = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
         _normalize_callback_options(options)
@@ -84,6 +83,7 @@ module AbstractController
           # for details on the allowed parameters.
           def #{filter}_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|
+              options[:if] = (Array.wrap(options[:if]) << "!halted") if #{filter == :after}
               set_callback(:process_action, :#{filter}, name, options)
             end
           end
@@ -92,6 +92,7 @@ module AbstractController
           # for details on the allowed parameters.
           def prepend_#{filter}_filter(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|
+              options[:if] = (Array.wrap(options[:if]) << "!halted") if #{filter == :after}
               set_callback(:process_action, :#{filter}, name, options.merge(:prepend => true))
             end
           end

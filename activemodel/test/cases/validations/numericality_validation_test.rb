@@ -14,7 +14,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
   NIL = [nil]
   BLANK = ["", " ", " \t \r \n"]
-  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significent digits
+  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significant digits
   FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
   INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS

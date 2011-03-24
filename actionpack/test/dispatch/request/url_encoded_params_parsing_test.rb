@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
+class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_request_parameters, :last_request_type
@@ -129,7 +129,7 @@ class UrlEncodedParamsParsingTest < ActionController::IntegrationTest
   private
     def with_test_routing
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::UrlEncodedParamsParsingTest::TestController
         end
         yield

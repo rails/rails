@@ -25,9 +25,11 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.title = "There's no content!"
     assert r.invalid?, "A reply without content shouldn't be saveable"
+    assert r.after_validation_performed, "after_validation callback should be called"
 
     r.content = "Messa content!"
     assert r.valid?, "A reply with content should be saveable"
+    assert r.after_validation_performed, "after_validation callback should be called"
   end
 
   def test_single_attr_validation_and_error_msg
@@ -146,6 +148,14 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validate_block
+    Topic.validate { errors.add("title", "will never be valid") }
+    t = Topic.new("title" => "Title", "content" => "whatever")
+    assert t.invalid?
+    assert t.errors[:title].any?
+    assert_equal ["will never be valid"], t.errors["title"]
+  end
+
+  def test_validate_block_with_params
     Topic.validate { |topic| topic.errors.add("title", "will never be valid") }
     t = Topic.new("title" => "Title", "content" => "whatever")
     assert t.invalid?
@@ -170,10 +180,10 @@ class ValidationsTest < ActiveModel::TestCase
     assert_match %r{<errors>}, xml
     assert_match %r{<error>Title can't be blank</error>}, xml
     assert_match %r{<error>Content can't be blank</error>}, xml
-    
+
     hash = ActiveSupport::OrderedHash.new
-    hash[:title] = "can't be blank"
-    hash[:content] = "can't be blank"
+    hash[:title] = ["can't be blank"]
+    hash[:content] = ["can't be blank"]
     assert_equal t.errors.to_json, hash.to_json
   end
 
@@ -185,7 +195,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
     assert_equal "can't be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
-    Topic.validate {|topic| topic.errors.add('author_email_address', 'will never be valid')}
+    Topic.validate {errors.add('author_email_address', 'will never be valid')}
     Topic.validates_length_of :title, :content, :minimum => 2
 
     t = Topic.new :title => ''
@@ -211,42 +221,6 @@ class ValidationsTest < ActiveModel::TestCase
 
     t.title = 'Things are going to change'
     assert !t.invalid?
-  end
-
-  def test_deprecated_error_messages_on
-    Topic.validates_presence_of :title
-
-    t = Topic.new
-    assert t.invalid?
-
-    [:title, "title"].each do |attribute|
-      assert_deprecated { assert_equal "can't be blank", t.errors.on(attribute) }
-    end
-
-    Topic.validates_each(:title) do |record, attribute|
-      record.errors[attribute] << "invalid"
-    end
-
-    assert t.invalid?
-
-    [:title, "title"].each do |attribute|
-      assert_deprecated do
-        assert t.errors.on(attribute).include?("invalid")
-        assert t.errors.on(attribute).include?("can't be blank")
-      end
-    end
-  end
-
-  def test_deprecated_errors_on_base_and_each
-    t = Topic.new
-    assert t.valid?
-
-    assert_deprecated { t.errors.add_to_base "invalid topic" }
-    assert_deprecated { assert_equal "invalid topic", t.errors.on_base }
-    assert_deprecated { assert t.errors.invalid?(:base) }
-
-    all_errors = t.errors.to_a
-    assert_deprecated { assert_equal all_errors, t.errors.each_full{|err| err} }
   end
 
   def test_validation_with_message_as_proc
@@ -278,6 +252,24 @@ class ValidationsTest < ActiveModel::TestCase
   def test_accessing_instance_of_validator_on_an_attribute
     Topic.validates_length_of :title, :minimum => 10
     assert_equal 10, Topic.validators_on(:title).first.options[:minimum]
+  end
+
+  def test_list_of_validators_on_multiple_attributes
+    Topic.validates :title, :length => { :minimum => 10 }
+    Topic.validates :author_name, :presence => true, :format => /a/
+
+    validators = Topic.validators_on(:title, :author_name)
+
+    assert_equal [
+      ActiveModel::Validations::FormatValidator,
+      ActiveModel::Validations::LengthValidator,
+      ActiveModel::Validations::PresenceValidator
+    ], validators.map { |v| v.class }.sort_by { |c| c.to_s }
+  end
+
+  def test_list_of_validators_will_be_empty_when_empty
+    Topic.validates :title, :length => { :minimum => 10 }
+    assert_equal [], Topic.validators_on(:author_name)
   end
 
   def test_validations_on_the_instance_level

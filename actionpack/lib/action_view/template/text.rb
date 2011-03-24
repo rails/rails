@@ -25,10 +25,6 @@ module ActionView #:nodoc:
       def formats
         [@mime_type.to_sym]
       end
-
-      def partial?
-        false
-      end
     end
   end
 end

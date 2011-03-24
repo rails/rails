@@ -47,6 +47,7 @@ module ActiveSupport
       #         exception.record.new_record? ? ...
       #       end
       #   end
+      #
       def rescue_from(*klasses, &block)
         options = klasses.extract_options!
 

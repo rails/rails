@@ -163,7 +163,7 @@ class TransactionTest < ActiveRecord::TestCase
         @first.author_name += '_this_should_not_end_up_in_the_db'
         @first.save!
         flunk
-      rescue => e
+      rescue
         assert_equal original_author_name, @first.reload.author_name
         assert_equal nbooks_before_save, Book.count
       ensure
@@ -182,7 +182,7 @@ class TransactionTest < ActiveRecord::TestCase
       :bonus_time => "2005-01-30t15:28:00.00+01:00",
       :content => "Have a nice day",
       :approved => false)
-    new_record_snapshot = new_topic.new_record?
+    new_record_snapshot = !new_topic.persisted?
     id_present = new_topic.has_attribute?(Topic.primary_key)
     id_snapshot = new_topic.id
 
@@ -195,7 +195,7 @@ class TransactionTest < ActiveRecord::TestCase
         flunk
       rescue => e
         assert_equal "Make the transaction rollback", e.message
-        assert_equal new_record_snapshot, new_topic.new_record?, "The topic should have its old new_record value"
+        assert_equal new_record_snapshot, !new_topic.persisted?, "The topic should have its old persisted value"
         assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
         assert_equal id_present, new_topic.has_attribute?(Topic.primary_key)
       ensure
@@ -251,6 +251,27 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         Topic.transaction :requires_new => true do
+          @first.happy = false
+          @first.save!
+          raise
+        end
+      rescue
+      end
+    end
+
+    assert @first.reload.approved?
+    assert !@second.reload.approved?
+  end if Topic.connection.supports_savepoints?
+
+  def test_force_savepoint_on_instance
+    @first.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save!
+      @second.save!
+
+      begin
+        @second.transaction :requires_new => true do
           @first.happy = false
           @first.save!
           raise
@@ -349,23 +370,23 @@ class TransactionTest < ActiveRecord::TestCase
       assert topic_2.save
       @first.save
       @second.destroy
-      assert_equal false, topic_1.new_record?
+      assert topic_1.persisted?, 'persisted'
       assert_not_nil topic_1.id
-      assert_equal false, topic_2.new_record?
+      assert topic_2.persisted?, 'persisted'
       assert_not_nil topic_2.id
-      assert_equal false, @first.new_record?
+      assert @first.persisted?, 'persisted'
       assert_not_nil @first.id
-      assert_equal true, @second.destroyed?
+      assert @second.destroyed?, 'destroyed'
       raise ActiveRecord::Rollback
     end
 
-    assert_equal true, topic_1.new_record?
+    assert !topic_1.persisted?, 'not persisted'
     assert_nil topic_1.id
-    assert_equal true, topic_2.new_record?
+    assert !topic_2.persisted?, 'not persisted'
     assert_nil topic_2.id
-    assert_equal false, @first.new_record?
+    assert @first.persisted?, 'persisted'
     assert_not_nil @first.id
-    assert_equal false, @second.destroyed?
+    assert !@second.destroyed?, 'not destroyed'
   end
 
   if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
@@ -399,7 +420,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_sqlite_add_column_in_transaction
-    return true unless current_adapter?(:SQLite3Adapter, :SQLiteAdapter)
+    return true unless current_adapter?(:SQLite3Adapter)
 
     # Test first if column creation/deletion works correctly when no
     # transaction is in place.
@@ -529,8 +550,6 @@ end if Topic.connection.supports_savepoints?
 
 if current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
-    use_concurrent_connections
-
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread

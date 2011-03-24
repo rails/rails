@@ -8,7 +8,7 @@ class SessionTest < Test::Unit::TestCase
   }
 
   def setup
-    @session = ActionController::Integration::Session.new(StubApp)
+    @session = ActionDispatch::Integration::Session.new(StubApp)
   end
 
   def test_https_bang_works_and_sets_truth_by_default
@@ -167,7 +167,7 @@ end
 
 class IntegrationTestTest < Test::Unit::TestCase
   def setup
-    @test = ::ActionController::IntegrationTest.new(:default_test)
+    @test = ::ActionDispatch::IntegrationTest.new(:app)
     @test.class.stubs(:fixture_table_names).returns([])
     @session = @test.open_session
   end
@@ -202,7 +202,7 @@ end
 
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
-class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
+class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   def self.fixture_table_names
     []
   end
@@ -218,7 +218,7 @@ class IntegrationTestUsesCorrectClass < ActionController::IntegrationTest
   end
 end
 
-class IntegrationProcessTest < ActionController::IntegrationTest
+class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
@@ -427,7 +427,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
           include set.url_helpers
         end
 
-        set.draw do |map|
+        set.draw do
           match ':action', :to => controller
           get 'get/:action', :to => controller
         end
@@ -439,7 +439,7 @@ class IntegrationProcessTest < ActionController::IntegrationTest
     end
 end
 
-class MetalIntegrationTest < ActionController::IntegrationTest
+class MetalIntegrationTest < ActionDispatch::IntegrationTest
   include SharedTestRoutes.url_helpers
 
   class Poller
@@ -476,7 +476,7 @@ class MetalIntegrationTest < ActionController::IntegrationTest
   end
 end
 
-class ApplicationIntegrationTest < ActionController::IntegrationTest
+class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def index
       render :text => "index"

@@ -1,6 +1,4 @@
 require 'rational' unless RUBY_VERSION >= '1.9.2'
-require 'active_support/core_ext/object/acts_like'
-require 'active_support/core_ext/time/zones'
 
 class DateTime
   class << self
@@ -9,8 +7,9 @@ class DateTime
       ::Time.local(2007).utc_offset.to_r / 86400
     end
 
+    # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise returns <tt>Time.now.to_datetime</tt>.
     def current
-      ::Time.zone_default ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
+      ::Time.zone ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
     end
   end
 
@@ -82,6 +81,29 @@ class DateTime
     change(:hour => 23, :min => 59, :sec => 59)
   end
 
+  # 1.9.3 defines + and - on DateTime, < 1.9.3 do not.
+  if DateTime.public_instance_methods(false).include?(:+)
+    def plus_with_duration(other) #:nodoc:
+      if ActiveSupport::Duration === other
+        other.since(self)
+      else
+        plus_without_duration(other)
+      end
+    end
+    alias_method :plus_without_duration, :+
+    alias_method :+, :plus_with_duration
+
+    def minus_with_duration(other) #:nodoc:
+      if ActiveSupport::Duration === other
+        plus_with_duration(-other)
+      else
+        minus_without_duration(other)
+      end
+    end
+    alias_method :minus_without_duration, :-
+    alias_method :-, :minus_with_duration
+  end
+
   # Adjusts DateTime to UTC by adding its offset value; offset is set to 0
   #
   # Example:
@@ -104,11 +126,7 @@ class DateTime
   end
 
   # Layers additional behavior on DateTime#<=> so that Time and ActiveSupport::TimeWithZone instances can be compared with a DateTime
-  def compare_with_coercion(other)
-    other = other.comparable_time if other.respond_to?(:comparable_time)
-    other = other.to_datetime unless other.acts_like?(:date)
-    compare_without_coercion(other)
+  def <=>(other)
+    super other.to_datetime
   end
-  alias_method :compare_without_coercion, :<=>
-  alias_method :<=>, :compare_with_coercion
 end

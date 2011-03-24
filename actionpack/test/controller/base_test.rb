@@ -87,7 +87,7 @@ class RecordIdentifierController < ActionController::Base
 end
 
 class ControllerClassTests < ActiveSupport::TestCase
-  
+
   def test_controller_path
     assert_equal 'empty', EmptyController.controller_path
     assert_equal EmptyController.controller_path, EmptyController.new.controller_path
@@ -98,20 +98,6 @@ class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_name
     assert_equal 'empty', EmptyController.controller_name
     assert_equal 'contained_empty', Submodule::ContainedEmptyController.controller_name
-  end
- 
-  def test_filter_parameter_logging
-    parameters = []
-    config = mock(:config => mock(:filter_parameters => parameters))
-    Rails.expects(:application).returns(config)
-
-    assert_deprecated do
-      Class.new(ActionController::Base) do
-        filter_parameter_logging :password
-      end
-    end
-
-    assert_equal [:password], parameters
   end
 
   def test_record_identifier
@@ -164,15 +150,15 @@ class PerformActionTest < ActionController::TestCase
 
     rescue_action_in_public!
   end
-  
+
   def test_process_should_be_precise
     use_controller EmptyController
     exception = assert_raise AbstractController::ActionNotFound do
       get :non_existent
     end
-    assert_equal exception.message, "The action 'non_existent' could not be found for EmptyController" 
+    assert_equal exception.message, "The action 'non_existent' could not be found for EmptyController"
   end
-  
+
   def test_get_on_priv_should_show_selector
     use_controller MethodMissingController
     get :shouldnt_be_called
@@ -224,7 +210,7 @@ class UrlOptionsTest < ActionController::TestCase
       assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
       assert_equal 'http://www.override.com/default_url_options/new?locale=en', @controller.url_for(:controller => 'default_url_options')
     end
-  end 
+  end
 
   def test_url_helpers_does_not_become_actions
     with_routing do |set|
@@ -308,7 +294,7 @@ class EmptyUrlOptionsTest < ActionController::TestCase
     @controller.request = @request
 
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         resources :things
       end
 

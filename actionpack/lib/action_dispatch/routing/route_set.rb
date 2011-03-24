@@ -1,7 +1,8 @@
 require 'rack/mount'
 require 'forwardable'
+require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
-require 'action_dispatch/routing/deprecated_mapper'
+require 'active_support/core_ext/hash/slice'
 
 module ActionDispatch
   module Routing
@@ -50,12 +51,13 @@ module ActionDispatch
       private
 
         def controller_reference(controller_param)
+          controller_name = "#{controller_param.camelize}Controller"
+
           unless controller = @controllers[controller_param]
-            controller_name = "#{controller_param.camelize}Controller"
             controller = @controllers[controller_param] =
-              ActiveSupport::Dependencies.ref(controller_name)
+              ActiveSupport::Dependencies.reference(controller_name)
           end
-          controller.get
+          controller.get(controller_name)
         end
 
         def dispatch(controller, action, env)
@@ -67,7 +69,7 @@ module ActionDispatch
         end
 
         def split_glob_param!(params)
-          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.unescape(v) }
+          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.parser.unescape(v) }
         end
       end
 
@@ -158,10 +160,18 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              def #{selector}(options = nil)                                      # def hash_for_users_url(options = nil)
-                options ? #{options.inspect}.merge(options) : #{options.inspect}  #   options ? {:only_path=>false}.merge(options) : {:only_path=>false}
-              end                                                                 # end
-              protected :#{selector}                                              # protected :hash_for_users_url
+              remove_method :#{selector} if method_defined?(:#{selector})
+              def #{selector}(*args)
+                options = args.extract_options!
+
+                if args.any?
+                  options[:_positional_args] = args
+                  options[:_positional_keys] = #{route.segment_keys.inspect}
+                end
+
+                options ? #{options.inspect}.merge(options) : #{options.inspect}
+              end
+              protected :#{selector}
             END_EVAL
             helpers << selector
           end
@@ -184,22 +194,16 @@ module ActionDispatch
             hash_access_method = hash_access_name(name, kind)
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
+              remove_method :#{selector} if method_defined?(:#{selector})
               def #{selector}(*args)
-                options =  #{hash_access_method}(args.extract_options!)
-
-                if args.any?
-                  options[:_positional_args] = args
-                  options[:_positional_keys] = #{route.segment_keys.inspect}
-                end
-
-                url_for(options)
+                url_for(#{hash_access_method}(*args))
               end
             END_EVAL
             helpers << selector
           end
       end
 
-      attr_accessor :set, :routes, :named_routes
+      attr_accessor :set, :routes, :named_routes, :default_scope
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
 
@@ -211,7 +215,6 @@ module ActionDispatch
         self.routes = []
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
-        self.controller_namespaces = Set.new
         self.default_url_options = {}
 
         self.request_class = request_class
@@ -219,27 +222,35 @@ module ActionDispatch
         self.valid_conditions.delete(:id)
         self.valid_conditions.push(:controller, :action)
 
+        @append = []
         @disable_clear_and_finalize = false
         clear!
       end
 
       def draw(&block)
         clear! unless @disable_clear_and_finalize
-
-        mapper = Mapper.new(self)
-        if block.arity == 1
-          mapper.instance_exec(DeprecatedMapper.new(self), &block)
-        else
-          mapper.instance_exec(&block)
-        end
-
+        eval_block(block)
         finalize! unless @disable_clear_and_finalize
 
         nil
       end
 
+      def append(&block)
+        @append << block
+      end
+
+      def eval_block(block)
+        mapper = Mapper.new(self)
+        if default_scope
+          mapper.with_default_scope(default_scope, &block)
+        else
+          mapper.instance_exec(&block)
+        end
+      end
+
       def finalize!
         return if @finalized
+        @append.each { |blk| eval_block(blk) }
         @finalized = true
         @set.freeze
       end
@@ -261,6 +272,31 @@ module ActionDispatch
         named_routes.install(destinations, regenerate_code)
       end
 
+      module MountedHelpers
+      end
+
+      def mounted_helpers(name = :main_app)
+        define_mounted_helper(name) if name
+        MountedHelpers
+      end
+
+      def define_mounted_helper(name)
+        return if MountedHelpers.method_defined?(name)
+
+        routes = self
+        MountedHelpers.class_eval do
+          define_method "_#{name}" do
+            RoutesProxy.new(routes, self._routes_context)
+          end
+        end
+
+        MountedHelpers.class_eval <<-RUBY
+          def #{name}
+            @#{name} ||= _#{name}
+          end
+        RUBY
+      end
+
       def url_helpers
         @url_helpers ||= begin
           routes = self
@@ -269,9 +305,9 @@ module ActionDispatch
             extend ActiveSupport::Concern
             include UrlFor
 
-            @routes = routes
+            @_routes = routes
             class << self
-              delegate :url_for, :to => '@routes'
+              delegate :url_for, :to => '@_routes'
             end
             extend routes.named_routes.module
 
@@ -280,10 +316,10 @@ module ActionDispatch
             # Yes plz - JP
             included do
               routes.install_helpers(self)
-              singleton_class.send(:define_method, :_routes) { routes }
+              singleton_class.send(:redefine_method, :_routes) { routes }
             end
 
-            define_method(:_routes) { routes }
+            define_method(:_routes) { @_routes || routes }
           end
 
           helpers
@@ -295,18 +331,31 @@ module ActionDispatch
       end
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
+        raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
         route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
-        @set.add_route(*route)
+        @set.add_route(route.app, route.conditions, route.defaults, route.name)
         named_routes[name] = route if name
         routes << route
         route
       end
 
       class Generator #:nodoc:
-        attr_reader :options, :recall, :set, :script_name, :named_route
+        PARAMETERIZE = {
+          :parameterize => lambda do |name, value|
+            if name == :controller
+              value
+            elsif value.is_a?(Array)
+              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+            else
+              return nil unless param = value.to_param
+              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
+            end
+          end
+        }
+
+        attr_reader :options, :recall, :set, :named_route
 
         def initialize(options, recall, set, extras = false)
-          @script_name = options.delete(:script_name)
           @named_route = options.delete(:use_route)
           @options     = options.dup
           @recall      = recall.dup
@@ -392,36 +441,19 @@ module ActionDispatch
         end
 
         def generate
-          path, params = @set.set.generate(:path_info, named_route, options, recall, opts)
+          path, params = @set.set.generate(:path_info, named_route, options, recall, PARAMETERIZE)
 
           raise_routing_error unless path
 
-          params.reject! {|k,v| !v }
-
           return [path, params.keys] if @extras
 
-          path << "?#{params.to_query}" if params.any?
-          "#{script_name}#{path}"
+          [path, params]
         rescue Rack::Mount::RoutingError
           raise_routing_error
         end
 
-        def opts
-          parameterize = lambda do |name, value|
-            if name == :controller
-              value
-            elsif value.is_a?(Array)
-              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
-            else
-              return nil unless param = value.to_param
-              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
-            end
-          end
-          {:parameterize => parameterize}
-        end
-
         def raise_routing_error
-          raise ActionController::RoutingError.new("No route matches #{options.inspect}")
+          raise ActionController::RoutingError, "No route matches #{options.inspect}"
         end
 
         def different_controller?
@@ -453,7 +485,12 @@ module ActionDispatch
         Generator.new(options, recall, self, extras).generate
       end
 
-      RESERVED_OPTIONS = [:anchor, :params, :only_path, :host, :protocol, :port, :trailing_slash]
+      RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
+                          :trailing_slash, :anchor, :params, :only_path, :script_name]
+
+      def _generate_prefix(options = {})
+        nil
+      end
 
       def url_for(options)
         finalize!
@@ -461,30 +498,24 @@ module ActionDispatch
 
         handle_positional_args(options)
 
-        rewritten_url = ""
+        user, password = extract_authentication(options)
+        path_segments  = options.delete(:_path_segments)
+        script_name    = options.delete(:script_name)
 
-        path_segments = options.delete(:_path_segments)
-
-        unless options[:only_path]
-          rewritten_url << (options[:protocol] || "http")
-          rewritten_url << "://" unless rewritten_url.match("://")
-          rewritten_url << rewrite_authentication(options)
-
-          raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
-
-          rewritten_url << options[:host]
-          rewritten_url << ":#{options.delete(:port)}" if options.key?(:port)
-        end
+        path = (script_name.blank? ? _generate_prefix(options) : script_name.chomp('/')).to_s
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
-        path = generate(path_options, path_segments || {})
 
-        # ROUTES TODO: This can be called directly, so script_name should probably be set in the routes
-        rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
-        rewritten_url << "##{Rack::Mount::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
+        path_addition, params = generate(path_options, path_segments || {})
+        path << path_addition
 
-        rewritten_url
+        ActionDispatch::Http::URL.url_for(options.merge({
+          :path => path,
+          :params => params,
+          :user => user,
+          :password => password
+        }))
       end
 
       def call(env)
@@ -494,7 +525,7 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Rack::Mount::Utils.normalize_path(path)
+        path = Rack::Mount::Utils.normalize_path(path) unless path =~ %r{://}
 
         begin
           env = Rack::MockRequest.env_for(path, {:method => method})
@@ -502,17 +533,19 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message
         end
 
-        req = Rack::Request.new(env)
+        req = @request_class.new(env)
         @set.recognize(req) do |route, matches, params|
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
-              params[key] = URI.unescape(value)
+              params[key] = URI.parser.unescape(value)
             end
           end
 
           dispatcher = route.app
-          dispatcher = dispatcher.app while dispatcher.is_a?(Mapper::Constraints)
+          while dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env) do
+            dispatcher = dispatcher.app
+          end
 
           if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
             dispatcher.prepare_params!(params)
@@ -524,28 +557,25 @@ module ActionDispatch
       end
 
       private
+
+        def extract_authentication(options)
+          if options[:user] && options[:password]
+            [options.delete(:user), options.delete(:password)]
+          else
+            nil
+          end
+        end
+
         def handle_positional_args(options)
           return unless args = options.delete(:_positional_args)
 
           keys = options.delete(:_positional_keys)
           keys -= options.keys if args.size < keys.size - 1 # take format into account
 
-          args = args.zip(keys).inject({}) do |h, (v, k)|
-            h[k] = v
-            h
-          end
-
           # Tell url_for to skip default_url_options
-          options.merge!(args)
+          options.merge!(Hash[args.zip(keys).map { |v, k| [k, v] }])
         end
 
-        def rewrite_authentication(options)
-          if options[:user] && options[:password]
-            "#{Rack::Utils.escape(options.delete(:user))}:#{Rack::Utils.escape(options.delete(:password))}@"
-          else
-            ""
-          end
-        end
     end
   end
 end

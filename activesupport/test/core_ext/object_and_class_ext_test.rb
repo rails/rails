@@ -28,18 +28,6 @@ module Nested
   end
 end
 
-module Bar
-  def bar; end
-end
-
-module Baz
-  def baz; end
-end
-
-class Foo
-  include Bar
-end
-
 class ObjectTests < ActiveSupport::TestCase
   class DuckTime
     def acts_like_time?
@@ -82,37 +70,6 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     assert_equal %w(@bar @baz), @source.instance_variable_names.sort
   end
 
-  def test_copy_instance_variables_from_without_explicit_excludes
-    assert_equal [], @dest.instance_variables
-    @dest.copy_instance_variables_from(@source)
-
-    assert_equal %w(@bar @baz), @dest.instance_variables.sort.map(&:to_s)
-    %w(@bar @baz).each do |name|
-      assert_equal @source.instance_variable_get(name).object_id,
-                   @dest.instance_variable_get(name).object_id
-    end
-  end
-
-  def test_copy_instance_variables_from_with_explicit_excludes
-    @dest.copy_instance_variables_from(@source, ['@baz'])
-    assert !@dest.instance_variable_defined?('@baz')
-    assert_equal 'bar', @dest.instance_variable_get('@bar')
-  end
-
-  def test_copy_instance_variables_automatically_excludes_protected_instance_variables
-    @source.instance_variable_set(:@quux, 'quux')
-    class << @source
-      def protected_instance_variables
-        ['@bar', :@quux]
-      end
-    end
-
-    @dest.copy_instance_variables_from(@source)
-    assert !@dest.instance_variable_defined?('@bar')
-    assert !@dest.instance_variable_defined?('@quux')
-    assert_equal 'baz', @dest.instance_variable_get('@baz')
-  end
-
   def test_instance_values
     object = Object.new
     object.instance_variable_set :@a, 1
@@ -144,7 +101,7 @@ class ObjectTryTest < Test::Unit::TestCase
     assert !@string.respond_to?(method)
     assert_raise(NoMethodError) { @string.try(method) }
   end
-  
+
   def test_valid_method
     assert_equal 5, @string.try(:size)
   end
@@ -164,5 +121,15 @@ class ObjectTryTest < Test::Unit::TestCase
 
   def test_false_try
     assert_equal 'false', false.try(:to_s)
+  end
+
+  def test_try_only_block
+    assert_equal @string.reverse, @string.try { |s| s.reverse }
+  end
+
+  def test_try_only_block_nil
+    ran = false
+    nil.try { ran = true }
+    assert_equal false, ran
   end
 end

@@ -110,37 +110,10 @@ module RailtiesTest
         boot_rails
       rescue Exception => e
         rescued = true
-        assert_equal '"bukkits" is a Railtie/Engine and cannot be installed as plugin', e.message
+        assert_equal '"bukkits" is a Railtie/Engine and cannot be installed as a plugin', e.message
       end
 
       assert rescued, "Expected boot rails to fail"
     end
-
-    test "loads deprecated rails/init.rb" do
-      @plugin.write "rails/init.rb", <<-RUBY
-        $loaded = true
-      RUBY
-
-      boot_rails
-      assert $loaded
-    end
-
-    test "deprecated tasks are also loaded" do
-      $executed = false
-      @plugin.write "tasks/foo.rake", <<-RUBY
-        task :foo do
-          $executed = true
-        end
-      RUBY
-
-      boot_rails
-      require 'rake'
-      require 'rake/rdoctask'
-      require 'rake/testtask'
-      Rails.application.load_tasks
-      Rake::Task[:foo].invoke
-      assert $executed
-    end
-
   end
 end

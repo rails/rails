@@ -15,14 +15,14 @@ module ActionDispatch
       alias :params :parameters
 
       def path_parameters=(parameters) #:nodoc:
-        @env.delete("action_dispatch.request.symbolized_path_parameters")
+        @symbolized_path_params = nil
         @env.delete("action_dispatch.request.parameters")
         @env["action_dispatch.request.path_parameters"] = parameters
       end
 
       # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
       def symbolized_path_parameters
-        @env["action_dispatch.request.symbolized_path_parameters"] ||= path_parameters.symbolize_keys
+        @symbolized_path_params ||= path_parameters.symbolize_keys
       end
 
       # Returns a hash with the \parameters used to form the \path of the request.

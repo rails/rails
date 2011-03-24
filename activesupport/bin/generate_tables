@@ -45,7 +45,7 @@ module ActiveSupport
             ([0-9]+);           # canonical combining class
             ([A-Z]+);           # bidi class
             (<([A-Z]*)>)?       # decomposition type
-            ((\ ?[0-9A-F]+)*);  # decompomposition mapping
+            ((\ ?[0-9A-F]+)*);  # decomposition mapping
             ([0-9]*);           # decimal digit
             ([0-9]*);           # digit
             ([^;]*);            # numeric
@@ -70,7 +70,7 @@ module ActiveSupport
         end
 
         def parse_grapheme_break_property(line)
-          if line =~ /^([0-9A-F\.]+)\s*;\s*([\w]+)\s*#/
+          if line =~ /^([0-9A-F.]+)\s*;\s*([\w]+)\s*#/
             type = $2.downcase.intern
             @ucd.boundary[type] ||= []
             if $1.include? '..'

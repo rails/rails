@@ -17,7 +17,7 @@ module ActionDispatch
     #
     # == Usage within the framework
     #
-    # Polymorphic URL helpers are used in a number of places throughout the Rails framework:
+    # Polymorphic URL helpers are used in a number of places throughout the \Rails framework:
     #
     # * <tt>url_for</tt>, so you can use it with a record as the argument, e.g.
     #   <tt>url_for(@article)</tt>;
@@ -42,6 +42,18 @@ module ActionDispatch
     #
     #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
     #   polymorphic_path(@post, :format => :pdf)  # => "/posts/1.pdf"
+    #
+    # == Using with mounted engines
+    #
+    # If you use mounted engine, there is a possibility that you will need to use
+    # polymorphic_url pointing at engine's routes. To do that, just pass proxy used
+    # to reach engine's routes as a first argument:
+    #
+    # For example:
+    #
+    # polymorphic_url([blog, @post])  # it will call blog.post_path(@post)
+    # form_for([blog, @post])         # => "/blog/posts/1
+    #
     module PolymorphicRoutes
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
@@ -78,19 +90,20 @@ module ActionDispatch
       def polymorphic_url(record_or_hash_or_array, options = {})
         if record_or_hash_or_array.kind_of?(Array)
           record_or_hash_or_array = record_or_hash_or_array.compact
+          if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
+            proxy = record_or_hash_or_array.shift
+          end
           record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
         end
 
         record = extract_record(record_or_hash_or_array)
         record = record.to_model if record.respond_to?(:to_model)
 
-        args = case record_or_hash_or_array
-          when Hash;  [ record_or_hash_or_array ]
-          when Array; record_or_hash_or_array.dup
-          else        [ record_or_hash_or_array ]
-        end
+        args = Array === record_or_hash_or_array ?
+          record_or_hash_or_array.dup :
+          [ record_or_hash_or_array ]
 
-        inflection = if options[:action].to_s == "new"
+        inflection = if options[:action] && options[:action].to_s == "new"
           args.pop
           :singular
         elsif (record.respond_to?(:persisted?) && !record.persisted?)
@@ -111,7 +124,14 @@ module ActionDispatch
           args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
         end
 
-        send(named_route, *args)
+        if proxy
+          proxy.send(named_route, *args)
+        else
+          # we need to use url_for, because polymorphic_url can be used in context of other than
+          # current routes (e.g. engine's routes). As named routes from engine are not included
+          # calling engine's named route directly would fail.
+          url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
+        end
       end
 
       # Returns the path component of a URL for the given record. It uses
@@ -146,31 +166,31 @@ module ActionDispatch
         end
 
         def build_named_route_call(records, inflection, options = {})
-          unless records.is_a?(Array)
-            record = extract_record(records)
-            route  = ''
-          else
+          if records.is_a?(Array)
             record = records.pop
-            route = records.inject("") do |string, parent|
+            route = records.map do |parent|
               if parent.is_a?(Symbol) || parent.is_a?(String)
-                string << "#{parent}_"
+                parent
               else
-                string << ActiveModel::Naming.plural(parent).singularize
-                string << "_"
+                ActiveModel::Naming.route_key(parent).singularize
               end
             end
+          else
+            record = extract_record(records)
+            route  = []
           end
 
           if record.is_a?(Symbol) || record.is_a?(String)
-            route << "#{record}_"
+            route << record
           else
-            route << ActiveModel::Naming.plural(record)
-            route = route.singularize if inflection == :singular
-            route << "_"
-            route << "index_" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
+            route << ActiveModel::Naming.route_key(record)
+            route = [route.join("_").singularize] if inflection == :singular
+            route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
           end
 
-          action_prefix(options) + route + routing_type(options).to_s
+          route << routing_type(options)
+
+          action_prefix(options) + route.join("_")
         end
 
         def extract_record(record_or_hash_or_array)

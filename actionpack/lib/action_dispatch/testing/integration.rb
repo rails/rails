@@ -115,8 +115,8 @@ module ActionDispatch
       end
     end
 
-    # An integration Session instance represents a set of requests and responses
-    # performed sequentially by some virtual user. Because you can instantiate
+    # An instance of this class represents a set of requests and responses
+    # performed sequentially by a test process. Because you can instantiate
     # multiple sessions and run them side-by-side, you can also mimic (to some
     # limited extent) multiple simultaneous users interacting with your system.
     #
@@ -171,6 +171,7 @@ module ActionDispatch
 
       # Create and initialize a new Session instance.
       def initialize(app)
+        super()
         @app = app
 
         # If the app is a Rails app, make url_helpers available on the session
@@ -182,6 +183,7 @@ module ActionDispatch
         reset!
       end
 
+      remove_method :default_url_options
       def default_url_options
         { :host => host, :protocol => https? ? "https" : "http" }
       end
@@ -233,9 +235,7 @@ module ActionDispatch
       # Set the host name to use in the next request.
       #
       #   session.host! "www.example.com"
-      def host!(name)
-        @host = name
-      end
+      alias :host! :host=
 
       private
         def _mock_session
@@ -257,12 +257,14 @@ module ActionDispatch
             end
           end
 
+          hostname, port = host.split(':')
+
           env = {
             :method => method,
             :params => parameters,
 
-            "SERVER_NAME"     => host.split(':')[0],
-            "SERVER_PORT"     => (https? ? "443" : "80"),
+            "SERVER_NAME"     => hostname,
+            "SERVER_PORT"     => port || (https? ? "443" : "80"),
             "HTTPS"           => https? ? "on" : "off",
             "rack.url_scheme" => https? ? "https" : "http",
 
@@ -305,7 +307,7 @@ module ActionDispatch
       include ActionDispatch::Assertions
 
       def app
-        @app
+        @app ||= nil
       end
 
       # Reset the current session. This is useful for testing multiple sessions
@@ -317,10 +319,10 @@ module ActionDispatch
       %w(get post put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
-          reset! unless @integration_session
+          reset! unless integration_session
           # reset the html_document variable, but only for new get/post calls
           @html_document = nil unless %w(cookies assigns).include?(method)
-          @integration_session.__send__(method, *args).tap do
+          integration_session.__send__(method, *args).tap do
             copy_session_variables!
           end
         end
@@ -345,7 +347,7 @@ module ActionDispatch
       # Copy the instance variables from the current session instance into the
       # test instance.
       def copy_session_variables! #:nodoc:
-        return unless @integration_session
+        return unless integration_session
         %w(controller response request).each do |var|
           instance_variable_set("@#{var}", @integration_session.__send__(var))
         end
@@ -355,35 +357,44 @@ module ActionDispatch
       include ActionDispatch::Routing::UrlFor
 
       def url_options
-        reset! unless @integration_session
-        @integration_session.url_options
+        reset! unless integration_session
+        integration_session.url_options
+      end
+
+      def respond_to?(method, include_private = false)
+        integration_session.respond_to?(method, include_private) || super
       end
 
       # Delegate unhandled messages to the current session instance.
       def method_missing(sym, *args, &block)
-        reset! unless @integration_session
-        if @integration_session.respond_to?(sym)
-          @integration_session.__send__(sym, *args, &block).tap do
+        reset! unless integration_session
+        if integration_session.respond_to?(sym)
+          integration_session.__send__(sym, *args, &block).tap do
             copy_session_variables!
           end
         else
           super
         end
       end
+
+      private
+        def integration_session
+          @integration_session ||= nil
+        end
     end
   end
 
-  # An IntegrationTest is one that spans multiple controllers and actions,
+  # An test that spans multiple controllers and actions,
   # tying them all together to ensure they work together as expected. It tests
   # more completely than either unit or functional tests do, exercising the
   # entire stack, from the dispatcher to the database.
   #
-  # At its simplest, you simply extend IntegrationTest and write your tests
+  # At its simplest, you simply extend <tt>IntegrationTest</tt> and write your tests
   # using the get/post methods:
   #
   #   require "test_helper"
   #
-  #   class ExampleTest < ActionController::IntegrationTest
+  #   class ExampleTest < ActionDispatch::IntegrationTest
   #     fixtures :people
   #
   #     def test_login
@@ -403,11 +414,11 @@ module ActionDispatch
   # However, you can also have multiple session instances open per test, and
   # even extend those instances with assertions and methods to create a very
   # powerful testing DSL that is specific for your application. You can even
-  # reference any named routes you happen to have defined!
+  # reference any named routes you happen to have defined.
   #
   #   require "test_helper"
   #
-  #   class AdvancedTest < ActionController::IntegrationTest
+  #   class AdvancedTest < ActionDispatch::IntegrationTest
   #     fixtures :people, :rooms
   #
   #     def test_login_and_speak

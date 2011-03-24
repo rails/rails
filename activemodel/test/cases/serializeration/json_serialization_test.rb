@@ -1,10 +1,12 @@
 require 'cases/helper'
 require 'models/contact'
+require 'models/automobile'
 require 'active_support/core_ext/object/instance_variables'
 
 class Contact
   extend ActiveModel::Naming
   include ActiveModel::Serializers::JSON
+  include ActiveModel::Validations
 
   def attributes
     instance_values
@@ -104,16 +106,43 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should return OrderedHash for errors" do
-    car = Automobile.new
-    
-    # run the validation
-    car.valid? 
-    
+    contact = Contact.new
+    contact.errors.add :name, "can't be blank"
+    contact.errors.add :name, "is too short (minimum is 2 characters)"
+    contact.errors.add :age, "must be 16 or over"
+
     hash = ActiveSupport::OrderedHash.new
-    hash[:make]  = "can't be blank"
-    hash[:model] = "is too short (minimum is 2 characters)"
-    assert_equal hash.to_json, car.errors.to_json
+    hash[:name] = ["can't be blank", "is too short (minimum is 2 characters)"]
+    hash[:age]  = ["must be 16 or over"]
+    assert_equal hash.to_json, contact.errors.to_json
   end
-  
-  
+
+  test "serializable_hash should not modify options passed in argument" do
+    options = { :except => :name }
+    @contact.serializable_hash(options)
+
+    assert_nil options[:only]
+    assert_equal :name, options[:except]
+  end
+
+  test "as_json should return a hash" do
+    json = @contact.as_json
+
+    assert_kind_of Hash, json
+    assert_kind_of Hash, json['contact']
+    %w(name age created_at awesome preferences).each do |field|
+      assert_equal @contact.send(field), json['contact'][field]
+    end
+  end
+
+  test "custom as_json should be honored when generating json" do
+    def @contact.as_json(options); { :name => name, :created_at => created_at }; end
+    json = @contact.to_json
+
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_match %r{"created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
+    assert_no_match %r{"awesome":}, json
+    assert_no_match %r{"preferences":}, json
+  end
+
 end

@@ -14,6 +14,14 @@ class HelperMailer < ActionMailer::Base
     end
   end
 
+  def use_format_paragraph
+    @text = "But soft! What light through yonder window breaks?"
+
+    mail_with_defaults do |format|
+      format.html { render(:inline => "<%= format_paragraph @text, 15, 1 %>") }
+    end
+  end
+
   def use_mailer
     mail_with_defaults do |format|
       format.html { render(:inline => "<%= mailer.message.subject %>") }
@@ -49,6 +57,11 @@ class MailerHelperTest < ActionMailer::TestCase
   def test_use_message
     mail = HelperMailer.use_message
     assert_match "using helpers", mail.body.encoded
+  end
+
+  def test_use_format_paragraph
+    mail = HelperMailer.use_format_paragraph
+    assert_match " But soft! What\r\n light through\r\n yonder window\r\n breaks?", mail.body.encoded
   end
 end
 

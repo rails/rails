@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class QueryStringParsingTest < ActionController::IntegrationTest
+class QueryStringParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_query_parameters
@@ -108,7 +108,7 @@ class QueryStringParsingTest < ActionController::IntegrationTest
   private
     def assert_parses(expected, actual)
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::QueryStringParsingTest::TestController
         end
 

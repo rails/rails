@@ -5,7 +5,7 @@ module AbstractController
 
     class UrlForTests < ActionController::TestCase
       class W
-        include SharedTestRoutes.url_helpers
+        include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { match ':controller(/:action(/:id(.:format)))' } }.url_helpers
       end
 
       def teardown
@@ -17,7 +17,7 @@ module AbstractController
       end
 
       def test_exception_is_thrown_without_host
-        assert_raise RuntimeError do
+        assert_raise ArgumentError do
           W.new.url_for :controller => 'c', :action => 'a', :id => 'i'
         end
       end
@@ -60,6 +60,27 @@ module AbstractController
         )
       end
 
+      def test_subdomain_may_be_changed
+        add_host!
+        assert_equal('http://api.basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => 'api', :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_domain_may_be_changed
+        add_host!
+        assert_equal('http://www.37signals.com/c/a/i',
+          W.new.url_for(:domain => '37signals.com', :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_tld_length_may_be_changed
+        add_host!
+        assert_equal('http://mobile.www.basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => 'mobile', :tld_length => 2, :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
       def test_port
         add_host!
         assert_equal('http://www.basecamphq.com:3000/c/a/i',
@@ -74,13 +95,26 @@ module AbstractController
         )
       end
 
-      def test_protocol_with_and_without_separator
+      def test_protocol_with_and_without_separators
         add_host!
         assert_equal('https://www.basecamphq.com/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
         )
         assert_equal('https://www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https:')
+        )
+        assert_equal('https://www.basecamphq.com/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https://')
+        )
+      end
+
+      def test_without_protocol
+        add_host!
+        assert_equal('//www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => '//')
+        )
+        assert_equal('//www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => false)
         )
       end
 
@@ -130,7 +164,7 @@ module AbstractController
 
       def test_named_routes
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match 'this/is/verbose', :to => 'home#index', :as => :no_args
             match 'home/sweet/home/:user', :to => 'home#index', :as => :home
           end
@@ -151,7 +185,7 @@ module AbstractController
 
       def test_relative_url_root_is_respected_for_named_routes
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match '/home/sweet/home/:user', :to => 'home#index', :as => :home
           end
 
@@ -165,7 +199,7 @@ module AbstractController
 
       def test_only_path
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match 'home/sweet/home/:user', :to => 'home#index', :as => :home
             match ':controller/:action/:id'
           end
@@ -219,7 +253,7 @@ module AbstractController
 
       def test_hash_recursive_and_array_parameters
         url = W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :id => 101, :query => {:person => {:name => 'Bob', :position => ['prof', 'art director']}, :hobby => 'piercing'})
-        assert_match %r(^/c/a/101), url
+        assert_match(%r(^/c/a/101), url)
         params = extract_params(url)
         assert_equal params[0], { 'query[hobby]'              => 'piercing'     }.to_query
         assert_equal params[1], { 'query[person][name]'       => 'Bob'          }.to_query
@@ -233,7 +267,7 @@ module AbstractController
 
       def test_named_routes_with_nil_keys
         with_routing do |set|
-          set.draw do |map|
+          set.draw do
             match 'posts.:format', :to => 'posts#index', :as => :posts
             match '/', :to => 'posts#index', :as => :main
           end
@@ -275,6 +309,14 @@ module AbstractController
 
         W.default_url_options[:action] = 'b'
         assert_equal("/c/a", W.new.url_for(HashWithIndifferentAccess.new('controller' => 'c', 'action' => 'a', 'only_path' => true)))
+      end
+
+      def test_url_params_with_nil_to_param_are_not_in_url
+        assert_equal("/c/a", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :id => Struct.new(:to_param).new(nil)))
+      end
+
+      def test_false_url_params_are_included_in_query
+        assert_equal("/c/a?show=false", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :show => false))
       end
 
       private

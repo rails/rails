@@ -19,6 +19,11 @@ class UrlRewriterTests < ActionController::TestCase
     @request = ActionController::TestRequest.new
     @params = {}
     @rewriter = Rewriter.new(@request) #.new(@request, @params)
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        match ':controller(/:action(/:id))'
+      end
+    end
   end
 
   def test_port

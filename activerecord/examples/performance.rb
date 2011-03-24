@@ -1,31 +1,9 @@
-#!/usr/bin/env ruby -KU
-
 TIMES = (ENV['N'] || 10000).to_i
+
 require 'rubygems'
-
-gem 'addressable',  '~>2.0'
-gem 'faker',        '~>0.3.1'
-gem 'rbench',       '~>0.2.3'
-
-require 'addressable/uri'
-require 'faker'
-require 'rbench'
-
-require File.expand_path("../../../load_paths", __FILE__)
 require "active_record"
 
-conn = { :adapter => 'mysql',
-  :database => 'activerecord_unittest',
-  :username => 'rails', :password => '',
-  :encoding => 'utf8' }
-
-conn[:socket] = Pathname.glob(%w[
-  /opt/local/var/run/mysql5/mysqld.sock
-  /tmp/mysqld.sock
-  /tmp/mysql.sock
-  /var/mysql/mysql.sock
-  /var/run/mysqld/mysqld.sock
-]).find { |path| path.socket? }
+conn = { :adapter => 'sqlite3', :database => ':memory:' }
 
 ActiveRecord::Base.establish_connection(conn)
 
@@ -55,108 +33,126 @@ class Exhibit < ActiveRecord::Base
   def self.feel(exhibits) exhibits.each { |e| e.feel } end
 end
 
-sqlfile = File.expand_path("../performance.sql", __FILE__)
+puts 'Generating data...'
 
-if File.exists?(sqlfile)
-  mysql_bin = %w[mysql mysql5].detect { |bin| `which #{bin}`.length > 0 }
-  `#{mysql_bin} -u #{conn[:username]} #{"-p#{conn[:password]}" unless conn[:password].blank?} #{conn[:database]} < #{sqlfile}`
-else
-  puts 'Generating data...'
+module ActiveRecord
+  class Faker
+    LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse non aliquet diam. Curabitur vel urna metus, quis malesuada elit. Integer consequat tincidunt felis. Etiam non erat dolor. Vivamus imperdiet nibh sit amet diam eleifend id posuere diam malesuada. Mauris at accumsan sem. Donec id lorem neque. Fusce erat lorem, ornare eu congue vitae, malesuada quis neque. Maecenas vel urna a velit pretium fermentum. Donec tortor enim, tempor venenatis egestas a, tempor sed ipsum. Ut arcu justo, faucibus non imperdiet ac, interdum at diam. Pellentesque ipsum enim, venenatis ut iaculis vitae, varius vitae sem. Sed rutrum quam ac elit euismod bibendum. Donec ultricies ultricies magna, at lacinia libero mollis aliquam. Sed ac arcu in tortor elementum tincidunt vel interdum sem. Curabitur eget erat arcu. Praesent eget eros leo. Nam magna enim, sollicitudin vehicula scelerisque in, vulputate ut libero. Praesent varius tincidunt commodo".split
+    def self.name
+      LOREM.grep(/^\w*$/).sort_by { rand }.first(2).join ' '
+    end
 
-  # pre-compute the insert statements and fake data compilation,
-  # so the benchmarks below show the actual runtime for the execute
-  # method, minus the setup steps
-
-  # Using the same paragraph for all exhibits because it is very slow
-  # to generate unique paragraphs for all exhibits.
-  notes = Faker::Lorem.paragraphs.join($/)
-  today = Date.today
-
-  puts 'Inserting 10,000 users and exhibits...'
-  10_000.times do
-    user = User.create(
-      :created_at => today,
-      :name       => Faker::Name.name,
-      :email      => Faker::Internet.email
-    )
-
-    Exhibit.create(
-      :created_at => today,
-      :name       => Faker::Company.name,
-      :user       => user,
-      :notes      => notes
-    )
+    def self.email
+      LOREM.grep(/^\w*$/).sort_by { rand }.first(2).join('@') + ".com"
+    end
   end
-
-  mysqldump_bin = %w[mysqldump mysqldump5].select { |bin| `which #{bin}`.length > 0 }
-  `#{mysqldump_bin} -u #{conn[:username]} #{"-p#{conn[:password]}" unless conn[:password].blank?} #{conn[:database]} exhibits users > #{sqlfile}`
 end
 
-RBench.run(TIMES) do
-  column :times
-  column :ar
+# pre-compute the insert statements and fake data compilation,
+# so the benchmarks below show the actual runtime for the execute
+# method, minus the setup steps
 
-  report 'Model#id', (TIMES * 100).ceil do
-    ar_obj = Exhibit.find(1)
+# Using the same paragraph for all exhibits because it is very slow
+# to generate unique paragraphs for all exhibits.
+notes = ActiveRecord::Faker::LOREM.join ' '
+today = Date.today
 
-    ar { ar_obj.id }
-  end
+puts 'Inserting 10,000 users and exhibits...'
+10_000.times do
+  user = User.create(
+    :created_at => today,
+    :name       => ActiveRecord::Faker.name,
+    :email      => ActiveRecord::Faker.email
+  )
 
-  report 'Model.new (instantiation)' do
-    ar { Exhibit.new }
-  end
+  Exhibit.create(
+    :created_at => today,
+    :name       => ActiveRecord::Faker.name,
+    :user       => user,
+    :notes      => notes
+  )
+end
 
-  report 'Model.new (setting attributes)' do
-    attrs = { :name => 'sam' }
-    ar { Exhibit.new(attrs) }
-  end
+require 'benchmark'
 
-  report 'Model.first' do
-    ar { Exhibit.first.look }
-  end
-
-  report 'Model.all limit(100)', (TIMES / 10).ceil do
-    ar { Exhibit.look Exhibit.limit(100) }
-  end
-
-  report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
-    ar { Exhibit.feel Exhibit.limit(100).includes(:user) }
-  end
-
-  report 'Model.all limit(10,000)', (TIMES / 1000).ceil do
-    ar { Exhibit.look Exhibit.limit(10000) }
-  end
-
-  exhibit = {
-    :name       => Faker::Company.name,
-    :notes      => Faker::Lorem.paragraphs.join($/),
+Benchmark.bm(46) do |x|
+  ar_obj       = Exhibit.find(1)
+  attrs        = { :name => 'sam' }
+  attrs_first  = { :name => 'sam' }
+  attrs_second = { :name => 'tom' }
+  exhibit      = {
+    :name       => ActiveRecord::Faker.name,
+    :notes      => notes,
     :created_at => Date.today
   }
 
-  report 'Model.create' do
-    ar { Exhibit.create(exhibit) }
+  x.report("Model#id (x#{(TIMES * 100).ceil})") do
+    (TIMES * 100).ceil.times { ar_obj.id }
   end
 
-  report 'Resource#attributes=' do
-    attrs_first  = { :name => 'sam' }
-    attrs_second = { :name => 'tom' }
-    ar { exhibit = Exhibit.new(attrs_first); exhibit.attributes = attrs_second }
+  x.report 'Model.new (instantiation)' do
+    TIMES.times { Exhibit.new }
   end
 
-  report 'Resource#update' do
-    ar { Exhibit.first.update_attributes(:name => 'bob') }
+  x.report 'Model.new (setting attributes)' do
+    TIMES.times { Exhibit.new(attrs) }
   end
 
-  report 'Resource#destroy' do
-    ar { Exhibit.first.destroy }
+  x.report 'Model.first' do
+    TIMES.times { Exhibit.first.look }
   end
 
-  report 'Model.transaction' do
-    ar { Exhibit.transaction { Exhibit.new } }
+  x.report("Model.all limit(100) (x#{(TIMES / 10).ceil})") do
+    (TIMES / 10).ceil.times { Exhibit.look Exhibit.limit(100) }
   end
 
-  summary 'Total'
+  x.report "Model.all limit(100) with relationship (x#{(TIMES / 10).ceil})" do
+    (TIMES / 10).ceil.times { Exhibit.feel Exhibit.limit(100).includes(:user) }
+  end
+
+  x.report "Model.all limit(10,000) x(#{(TIMES / 1000).ceil})" do
+    (TIMES / 1000).ceil.times { Exhibit.look Exhibit.limit(10000) }
+  end
+
+  x.report 'Model.create' do
+    TIMES.times { Exhibit.create(exhibit) }
+  end
+
+  x.report 'Resource#attributes=' do
+    TIMES.times {
+      exhibit = Exhibit.new(attrs_first)
+      exhibit.attributes = attrs_second
+    }
+  end
+
+  x.report 'Resource#update' do
+    TIMES.times { Exhibit.first.update_attributes(:name => 'bob') }
+  end
+
+  x.report 'Resource#destroy' do
+    TIMES.times { Exhibit.first.destroy }
+  end
+
+  x.report 'Model.transaction' do
+    TIMES.times { Exhibit.transaction { Exhibit.new } }
+  end
+
+  x.report 'Model.find(id)' do
+    id = Exhibit.first.id
+    TIMES.times { Exhibit.find(id) }
+  end
+
+  x.report 'Model.find_by_sql' do
+    TIMES.times {
+      Exhibit.find_by_sql("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}").first
+    }
+  end
+
+  x.report "Model.log x(#{TIMES * 10})" do
+    (TIMES * 10).times { Exhibit.connection.send(:log, "hello", "world") {} }
+  end
+
+  x.report "AR.execute(query) (#{TIMES / 2})" do
+    (TIMES / 2).times { ActiveRecord::Base.connection.execute("Select * from exhibits where id = #{(rand * 1000 + 1).to_i}") }
+  end
 end
-
-ActiveRecord::Migration.drop_table "exhibits"
-ActiveRecord::Migration.drop_table "users"

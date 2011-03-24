@@ -1,8 +1,5 @@
-gem 'rdoc', '>= 2.5.9'
-require 'rdoc'
-require 'rake'
+#!/usr/bin/env rake
 require 'rake/testtask'
-require 'rdoc/task'
 require 'rake/packagetask'
 require 'rake/gempackagetask'
 
@@ -44,7 +41,7 @@ namespace :test do
   end
 end
 
-%w( mysql mysql2 postgresql sqlite3 firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql mysql2 postgresql sqlite3 sqlite3_mem firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") { |t|
     connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
@@ -65,7 +62,7 @@ end
     (Dir["test/cases/**/*_test.rb"].reject {
       |x| x =~ /\/adapters\//
     } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-      system(ruby, "-Ilib:test:#{connection_path}", file)
+      sh(ruby, "-Ilib:test:#{connection_path}", file)
     end or raise "Failures"
   end
 
@@ -75,11 +72,20 @@ end
   end
 end
 
+rule '.sqlite3' do |t|
+  sh %Q{sqlite3 "#{t.name}" "create table a (a integer); drop table a;"}
+end
+
+task :test_sqlite3 => [
+  'test/fixtures/fixture_database.sqlite3',
+  'test/fixtures/fixture_database_2.sqlite3'
+]
+
 namespace :mysql do
   desc 'Build the MySQL test databases'
   task :build_databases do
-    %x( echo "create DATABASE activerecord_unittest DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci " | mysql --user=#{MYSQL_DB_USER})
-    %x( echo "create DATABASE activerecord_unittest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci " | mysql --user=#{MYSQL_DB_USER})
+    %x( mysql --user=#{MYSQL_DB_USER} -e "create DATABASE activerecord_unittest DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+    %x( mysql --user=#{MYSQL_DB_USER} -e "create DATABASE activerecord_unittest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
   end
 
   desc 'Drop the MySQL test databases'
@@ -162,28 +168,6 @@ end
 
 task :build_frontbase_databases => 'frontbase:build_databases'
 task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
-
-
-# Generate the RDoc documentation
-
-RDoc::Task.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Active Record -- Object-relation mapping put on rails"
-  rdoc.options << '-f' << 'horo'
-  rdoc.options << '--main' << 'README.rdoc'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.rdoc_files.include('README.rdoc', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-  rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
-  rdoc.rdoc_files.include('dev-utils/*.rb')
-}
-
-# Enhance rdoc task to copy referenced images also
-task :rdoc do
-  FileUtils.mkdir_p "doc/files/examples/"
-  FileUtils.copy "examples/associations.png", "doc/files/examples/associations.png"
-end
-
 
 spec = eval(File.read('activerecord.gemspec'))
 

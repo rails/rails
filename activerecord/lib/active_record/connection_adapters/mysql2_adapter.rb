@@ -1,11 +1,16 @@
 # encoding: utf-8
 
-require 'mysql2' unless defined? Mysql2
+require 'mysql2'
 
 module ActiveRecord
   class Base
     def self.mysql2_connection(config)
       config[:username] = 'root' if config[:username].nil?
+
+      if Mysql2::Client.const_defined? :FOUND_ROWS
+        config[:flags] = Mysql2::Client::FOUND_ROWS
+      end
+
       client = Mysql2::Client.new(config.symbolize_keys)
       options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
@@ -13,6 +18,9 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    class Mysql2IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths) #:nodoc:
+    end
+
     class Mysql2Column < Column
       BOOL = "tinyint(1)"
       def extract_default(default)
@@ -34,62 +42,17 @@ module ActiveRecord
         super
       end
 
-      # Returns the Ruby class that corresponds to the abstract data type.
-      def klass
-        case type
-          when :integer       then Fixnum
-          when :float         then Float
-          when :decimal       then BigDecimal
-          when :datetime      then Time
-          when :date          then Date
-          when :timestamp     then Time
-          when :time          then Time
-          when :text, :string then String
-          when :binary        then String
-          when :boolean       then Object
-        end
-      end
-
-      def type_cast(value)
-        return nil if value.nil?
-        case type
-          when :string                then value
-          when :text                  then value
-          when :integer               then value.to_i rescue value ? 1 : 0
-          when :float                 then value.to_f # returns self if it's already a Float
-          when :decimal               then self.class.value_to_decimal(value)
-          when :datetime, :timestamp  then value.class == Time ? value : self.class.string_to_time(value)
-          when :time                  then value.class == Time ? value : self.class.string_to_dummy_time(value)
-          when :date                  then value.class == Date ? value : self.class.string_to_date(value)
-          when :binary                then value
-          when :boolean               then self.class.value_to_boolean(value)
-          else value
-        end
-      end
-
-      def type_cast_code(var_name)
-        case type
-          when :string                then nil
-          when :text                  then nil
-          when :integer               then "#{var_name}.to_i rescue #{var_name} ? 1 : 0"
-          when :float                 then "#{var_name}.to_f"
-          when :decimal               then "#{self.class.name}.value_to_decimal(#{var_name})"
-          when :datetime, :timestamp  then "#{var_name}.class == Time ? #{var_name} : #{self.class.name}.string_to_time(#{var_name})"
-          when :time                  then "#{var_name}.class == Time ? #{var_name} : #{self.class.name}.string_to_dummy_time(#{var_name})"
-          when :date                  then "#{var_name}.class == Date ? #{var_name} : #{self.class.name}.string_to_date(#{var_name})"
-          when :binary                then nil
-          when :boolean               then "#{self.class.name}.value_to_boolean(#{var_name})"
-          else nil
-        end
-      end
-
       private
         def simplified_type(field_type)
           return :boolean if Mysql2Adapter.emulate_booleans && field_type.downcase.index(BOOL)
-          return :string  if field_type =~ /enum/i or field_type =~ /set/i
-          return :integer if field_type =~ /year/i
-          return :binary  if field_type =~ /bit/i
-          super
+
+          case field_type
+          when /enum/i, /set/i then :string
+          when /year/i         then :integer
+          when /bit/i          then :binary
+          else
+            super
+          end
         end
 
         def extract_limit(sql_type)
@@ -234,10 +197,7 @@ module ActiveRecord
 
       def active?
         return false unless @connection
-        @connection.query 'select 1'
-        true
-      rescue Mysql2::Error
-        false
+        @connection.ping
       end
 
       def reconnect!
@@ -277,7 +237,7 @@ module ActiveRecord
       #     return r
       #   end
       # end
-      # 
+      #
       # # Returns a single value from a record
       # def select_value(sql, name = nil)
       #   result = execute(sql, name)
@@ -285,7 +245,7 @@ module ActiveRecord
       #     first.first
       #   end
       # end
-      # 
+      #
       # # Returns an array of the values of the first column in a select:
       # #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       # def select_values(sql, name = nil)
@@ -368,6 +328,7 @@ module ActiveRecord
         end
         sql
       end
+      deprecate :add_limit_offset!
 
       # SCHEMA STATEMENTS ========================================
 
@@ -442,10 +403,11 @@ module ActiveRecord
           if current_index != row[:Key_name]
             next if row[:Key_name] == PRIMARY # skip the primary key
             current_index = row[:Key_name]
-            indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique] == 0, [])
+            indexes << Mysql2IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique] == 0, [], [])
           end
 
           indexes.last.columns << row[:Column_name]
+          indexes.last.lengths << row[:Sub_part]
         end
         indexes
       end
@@ -453,7 +415,7 @@ module ActiveRecord
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql, :skip_logging)
+        result = execute(sql)
         result.each(:symbolize_keys => true, :as => :hash) { |field|
           columns << Mysql2Column.new(field[:Field], field[:Default], field[:Type], field[:Null] == "YES")
         }
@@ -606,12 +568,21 @@ module ActiveRecord
 
         def configure_connection
           @connection.query_options.merge!(:as => :array)
-          encoding = @config[:encoding]
-          execute("SET NAMES '#{encoding}'", :skip_logging) if encoding
 
           # By default, MySQL 'where id is null' selects the last inserted id.
           # Turn this off. http://dev.rubyonrails.org/ticket/6778
-          execute("SET SQL_AUTO_IS_NULL=0", :skip_logging)
+          variable_assignments = ['SQL_AUTO_IS_NULL=0']
+          encoding = @config[:encoding]
+
+          # make sure we set the encoding
+          variable_assignments << "NAMES '#{encoding}'" if encoding
+
+          # increase timeout so mysql server doesn't disconnect us
+          wait_timeout = @config[:wait_timeout]
+          wait_timeout = 2592000 unless wait_timeout.is_a?(Fixnum)
+          variable_assignments << "@@wait_timeout = #{wait_timeout}"
+
+          execute("SET #{variable_assignments.join(', ')}", :skip_logging)
         end
 
         # Returns an array of record hashes with the column names as keys and

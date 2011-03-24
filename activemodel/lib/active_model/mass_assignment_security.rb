@@ -20,32 +20,32 @@ module ActiveModel
     # For example, a logged in user may need to assign additional attributes depending
     # on their role:
     #
-    # class AccountsController < ApplicationController
-    #   include ActiveModel::MassAssignmentSecurity
+    #   class AccountsController < ApplicationController
+    #     include ActiveModel::MassAssignmentSecurity
     #
-    #   attr_accessible :first_name, :last_name
+    #     attr_accessible :first_name, :last_name
     #
-    #   def self.admin_accessible_attributes
-    #     accessible_attributes + [ :plan_id ]
+    #     def self.admin_accessible_attributes
+    #       accessible_attributes + [ :plan_id ]
+    #     end
+    #
+    #     def update
+    #       ...
+    #       @account.update_attributes(account_params)
+    #       ...
+    #     end
+    #
+    #     protected
+    #
+    #     def account_params
+    #       sanitize_for_mass_assignment(params[:account])
+    #     end
+    #
+    #     def mass_assignment_authorizer
+    #       admin ? admin_accessible_attributes : super
+    #     end
+    #
     #   end
-    #
-    #   def update
-    #     ...
-    #     @account.update_attributes(account_params)
-    #     ...
-    #   end
-    #
-    #   protected
-    #
-    #   def account_params
-    #     sanitize_for_mass_assignment(params[:account])
-    #   end
-    #
-    #   def mass_assignment_authorizer
-    #     admin ? admin_accessible_attributes : super
-    #   end
-    #
-    # end
     #
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
@@ -54,9 +54,7 @@ module ActiveModel
       # Mass-assignment to these attributes will simply be ignored, to assign
       # to them you can use direct writer methods. This is meant to protect
       # sensitive attributes from being overwritten by malicious users
-      # tampering with URLs or forms.
-      #
-      # == Example
+      # tampering with URLs or forms. Example:
       #
       #   class Customer
       #     include ActiveModel::MassAssignmentSecurity

@@ -58,7 +58,14 @@ module ActiveSupport
       case store
       when Symbol
         store_class_name = store.to_s.camelize
-        store_class = ActiveSupport::Cache.const_get(store_class_name)
+        store_class =
+          begin
+            require "active_support/cache/#{store}"
+          rescue LoadError => e
+            raise "Could not find cache store adapter for #{store} (#{e})"
+          else
+            ActiveSupport::Cache.const_get(store_class_name)
+          end
         store_class.new(*parameters)
       when nil
         ActiveSupport::Cache::MemoryStore.new
@@ -200,26 +207,26 @@ module ActiveSupport
       #
       # Setting <tt>:expires_in</tt> will set an expiration time on the cache. All caches
       # support auto expiring content after a specified number of seconds. This value can
-      # be specified as an option to the construction in which call all entries will be 
+      # be specified as an option to the construction in which call all entries will be
       # affected. Or it can be supplied to the +fetch+ or +write+ method for just one entry.
       #
-      #   cache = ActiveSupport::Cache::MemoryStore.new(:expire_in => 5.minutes)
-      #   cache.write(key, value, :expire_in => 1.minute)  # Set a lower value for one entry
+      #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 5.minutes)
+      #   cache.write(key, value, :expires_in => 1.minute)  # Set a lower value for one entry
       #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where a cache entry
-      # is used very frequently unver heavy load. If a cache expires and due to heavy load 
-      # seven different processes will try to read data natively and then they all will try to 
-      # write to cache. To avoid that case the first process to find an expired cache entry will 
+      # is used very frequently and is under heavy load. If a cache expires and due to heavy load
+      # seven different processes will try to read data natively and then they all will try to
+      # write to cache. To avoid that case the first process to find an expired cache entry will
       # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>. Yes
-      # this process is extending the time for a stale value by another few seconds. Because 
+      # this process is extending the time for a stale value by another few seconds. Because
       # of extended life of the previous cache, other processes will continue to use slightly
       # stale data for a just a big longer. In the meantime that first process will go ahead
       # and will write into cache the new value. After that all the processes will start
       # getting new value. The key is to keep <tt>:race_condition_ttl</tt> small.
       #
       # If the process regenerating the entry errors out, the entry will be regenerated
-      # after the specified number of seconds. Also note that the life of stale cache is 
-      # extended only if it expired recently. Otherwise a new value is generated and 
+      # after the specified number of seconds. Also note that the life of stale cache is
+      # extended only if it expired recently. Otherwise a new value is generated and
       # <tt>:race_condition_ttl</tt> does not play any role.
       #
       #   # Set all values to expire after one minute.
@@ -410,7 +417,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
-      # Cleanup the cache by removing expired entries. 
+      # Cleanup the cache by removing expired entries.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -419,7 +426,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support cleanup")
       end
 
-      # Clear the entire cache. Be careful with this method since it could 
+      # Clear the entire cache. Be careful with this method since it could
       # affect other processes if shared cache is being used.
       #
       # Options are passed to the underlying cache implementation.
@@ -473,23 +480,24 @@ module ActiveSupport
           end
         end
 
-        # Expand key to be a consistent string value. Invoke +cache_key+ if 
-        # object responds to +cache_key+. Otherwise, to_param method will be 
+        # Expand key to be a consistent string value. Invoke +cache_key+ if
+        # object responds to +cache_key+. Otherwise, to_param method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key) # :nodoc:
-          if key.respond_to?(:cache_key)
-            key = key.cache_key.to_s
-          elsif key.is_a?(Array)
+          return key.cache_key.to_s if key.respond_to?(:cache_key)
+
+          case key
+          when Array
             if key.size > 1
-              key.collect{|element| expanded_key(element)}.to_param
+              key = key.collect{|element| expanded_key(element)}
             else
-              key.first.to_param
+              key = key.first
             end
-          elsif key.is_a?(Hash)
-            key = key.to_a.sort{|a,b| a.first.to_s <=> b.first.to_s}.collect{|k,v| "#{k}=#{v}"}.to_param
-          else
-            key = key.to_param
+          when Hash
+            key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
           end
+
+          key.to_param
         end
 
         # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
@@ -582,11 +590,7 @@ module ActiveSupport
       # Check if the entry is expired. The +expires_in+ parameter can override the
       # value set when the entry was created.
       def expired?
-        if @expires_in && @created_at + @expires_in <= Time.now.to_f
-          true
-        else
-          false
-        end
+        @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
 
       # Set a new time when the entry will expire.

@@ -5,7 +5,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
   attr_reader :request
 
   def setup
-    @from = Time.mktime(2004, 6, 6, 21, 45, 0)
+    @from = Time.utc(2004, 6, 6, 21, 45, 0)
   end
 
   # distance_of_time_in_words
@@ -62,7 +62,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
       [:'about_x_years',       1]   => 'about 1 year',
       [:'about_x_years',       2]   => 'about 2 years',
       [:'over_x_years',        1]   => 'over 1 year',
-      [:'over_x_years',        2]   => 'over 2 years' 
+      [:'over_x_years',        2]   => 'over 2 years'
 
       }.each do |args, expected|
       key, count = *args

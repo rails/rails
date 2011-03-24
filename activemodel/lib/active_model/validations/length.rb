@@ -34,20 +34,17 @@ module ActiveModel
           end
         end
       end
-        
+
       def validate_each(record, attribute, value)
         value = options[:tokenizer].call(value) if value.kind_of?(String)
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
 
-          valid_value = if key == :maximum
-            value.nil? || value.size.send(validity_check, check_value)
-          else
-            value && value.size.send(validity_check, check_value)
-          end
+          value ||= [] if key == :maximum
 
-          next if valid_value
+          value_length = value.respond_to?(:length) ? value.length : value.to_s.length
+          next if value_length.send(validity_check, check_value)
 
           errors_options = options.except(*RESERVED_OPTIONS)
           errors_options[:count] = check_value
@@ -87,7 +84,9 @@ module ActiveModel
       # * <tt>:too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %{count} characters)").
       # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt> method and the attribute is the wrong size (default is: "is the wrong length (should be %{count} characters)").
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>, <tt>:maximum</tt>, or <tt>:is</tt> violation.  An alias of the appropriate <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
-      # * <tt>:on</tt> - Specifies when this validation is active (default is <tt>:save</tt>, other options <tt>:create</tt>, <tt>:update</tt>).
+      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
+      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
+      #   and <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
       #   method, proc or string should return or evaluate to a true or false value.

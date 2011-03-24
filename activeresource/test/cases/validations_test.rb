@@ -3,7 +3,7 @@ require 'fixtures/project'
 require 'active_support/core_ext/hash/conversions'
 
 # The validations are tested thoroughly under ActiveModel::Validations
-# This test case simply makes sur that they are all accessible by
+# This test case simply makes sure that they are all accessible by
 # Active Resource objects.
 class ValidationsTest < ActiveModel::TestCase
   VALID_PROJECT_HASH = { :name => "My Project", :description => "A project" }
@@ -24,7 +24,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     assert p.save, "should have saved after fixing the validation, but had: #{p.errors.inspect}"
   end
-  
+
   def test_fails_save!
     p = new_project(:name => nil)
     assert_raise(ActiveResource::ResourceInvalid) { p.save! }
@@ -34,14 +34,6 @@ class ValidationsTest < ActiveModel::TestCase
     p = new_project(:name => nil)
     assert !p.save
     assert p.save(:validate => false)
-  end
-
-  def test_deprecated_save_without_validation
-    p = new_project(:name => nil)
-    assert !p.save
-    assert_deprecated do
-      assert p.save(false)
-    end
   end
 
   def test_validate_callback
@@ -54,6 +46,12 @@ class ValidationsTest < ActiveModel::TestCase
     # should now allow this description
     p.description = 'abcd'
     assert p.save, "should have saved after fixing the validation, but had: #{p.errors.inspect}"
+  end
+
+  def test_client_side_validation_maximum
+    project = Project.new(:description => '123456789012345')
+    assert ! project.valid?
+    assert_equal ['is too long (maximum is 10 characters)'], project.errors[:description]
   end
 
   protected

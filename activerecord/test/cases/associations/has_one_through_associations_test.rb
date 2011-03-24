@@ -9,10 +9,17 @@ require 'models/member_detail'
 require 'models/minivan'
 require 'models/dashboard'
 require 'models/speedometer'
+require 'models/category'
+require 'models/author'
+require 'models/essay'
+require 'models/owner'
+require 'models/post'
+require 'models/comment'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans, :dashboards, :speedometers
-  
+  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
+           :dashboards, :speedometers, :authors, :posts, :comments, :categories, :essays, :owners
+
   def setup
     @member = members(:groucho)
   end
@@ -21,10 +28,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), @member.club
   end
 
-  def test_has_one_through_with_has_many
-    assert_equal clubs(:moustache_club), @member.favourite_club
-  end
-  
   def test_creating_association_creates_through_record
     new_member = Member.create(:name => "Chris")
     new_member.club = Club.create(:name => "LRUG")
@@ -41,19 +44,19 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert new_member.save
     assert_equal clubs(:moustache_club), new_member.club
   end
-  
+
   def test_replace_target_record
     new_club = Club.create(:name => "Marx Bros")
     @member.club = new_club
     @member.reload
     assert_equal new_club, @member.club
   end
-  
+
   def test_replacing_target_record_deletes_old_association
     assert_no_difference "Membership.count" do
       new_club = Club.create(:name => "Bananarama")
       @member.club = new_club
-      @member.reload      
+      @member.reload
     end
   end
 
@@ -81,7 +84,19 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       Member.find(:all, :include => :sponsor_club, :conditions => ["name = ?", "Groucho Marx"])
     end
     assert_equal 1, members.size
-    assert_not_nil assert_no_queries {members[0].sponsor_club}    
+    assert_not_nil assert_no_queries {members[0].sponsor_club}
+  end
+
+  def test_has_one_through_with_conditions_eager_loading
+    # conditions on the through table
+    assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :favourite_club).favourite_club
+    memberships(:membership_of_favourite_club).update_attribute(:favourite, false)
+    assert_equal nil,                    Member.find(@member.id, :include => :favourite_club).reload.favourite_club
+
+    # conditions on the source table
+    assert_equal clubs(:moustache_club), Member.find(@member.id, :include => :hairy_club).hairy_club
+    clubs(:moustache_club).update_attribute(:name, "Association of Clean-Shaven Persons")
+    assert_equal nil,                    Member.find(@member.id, :include => :hairy_club).reload.hairy_club
   end
 
   def test_has_one_through_polymorphic_with_source_type
@@ -127,7 +142,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_assigning_association_correctly_assigns_target
     new_member = Member.create(:name => "Chris")
     new_member.club = new_club = Club.create(:name => "LRUG")
-    assert_equal new_club, new_member.club.target
+    assert_equal new_club, new_member.association(:club).target
   end
 
   def test_has_one_through_proxy_should_not_respond_to_private_methods
@@ -185,7 +200,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       MemberDetail.find(:all, :include => :member_type)
     end
     @new_detail = @member_details[0]
-    assert @new_detail.loaded_member_type?
+    assert @new_detail.send(:association, :member_type).loaded?
     assert_not_nil assert_no_queries { @new_detail.member_type }
   end
 
@@ -205,11 +220,94 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       Club.find(@club.id, :include => :sponsored_member).save!
     end
   end
-  
+
+  def test_through_belongs_to_after_destroy
+    @member_detail = MemberDetail.new(:extra_data => 'Extra')
+    @member.member_detail = @member_detail
+    @member.save!
+
+    assert_not_nil @member_detail.member_type
+    @member_detail.destroy
+    assert_queries(1) do
+      assert_not_nil @member_detail.member_type(true)
+    end
+
+    @member_detail.member.destroy
+    assert_queries(1) do
+      assert_nil @member_detail.member_type(true)
+    end
+  end
+
   def test_value_is_properly_quoted
     minivan = Minivan.find('m1')
     assert_nothing_raised do
       minivan.dashboard
     end
+  end
+
+  def test_has_one_through_polymorphic_with_primary_key_option
+    assert_equal categories(:general), authors(:david).essay_category
+
+    authors = Author.joins(:essay_category).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
+
+    assert_equal owners(:blackbeard), authors(:david).essay_owner
+
+    authors = Author.joins(:essay_owner).where("owners.name = 'blackbeard'")
+    assert_equal authors(:david), authors.first
+  end
+
+  def test_has_one_through_with_primary_key_option
+    assert_equal categories(:general), authors(:david).essay_category_2
+
+    authors = Author.joins(:essay_category_2).where('categories.id' => categories(:general).id)
+    assert_equal authors(:david), authors.first
+  end
+
+  def test_has_one_through_with_default_scope_on_join_model
+    assert_equal posts(:welcome).comments.order('id').first, authors(:david).comment_on_first_post
+  end
+
+  def test_has_one_through_many_raises_exception
+    assert_raise(ActiveRecord::HasOneThroughCantAssociateThroughCollection) do
+      members(:groucho).club_through_many
+    end
+  end
+
+  def test_has_one_through_belongs_to_should_update_when_the_through_foreign_key_changes
+    minivan = minivans(:cool_first)
+
+    minivan.dashboard
+    proxy = minivan.send(:association_instance_get, :dashboard)
+
+    assert !proxy.stale_target?
+    assert_equal dashboards(:cool_first), minivan.dashboard
+
+    minivan.speedometer_id = speedometers(:second).id
+
+    assert proxy.stale_target?
+    assert_equal dashboards(:second), minivan.dashboard
+  end
+
+  def test_has_one_through_belongs_to_setting_belongs_to_foreign_key_after_nil_target_loaded
+    minivan = Minivan.new
+
+    minivan.dashboard
+    proxy = minivan.send(:association_instance_get, :dashboard)
+
+    minivan.speedometer_id = speedometers(:second).id
+
+    assert proxy.stale_target?
+    assert_equal dashboards(:second), minivan.dashboard
+  end
+
+  def test_assigning_has_one_through_belongs_to_with_new_record_owner
+    minivan   = Minivan.new
+    dashboard = dashboards(:cool_first)
+
+    minivan.dashboard = dashboard
+
+    assert_equal dashboard, minivan.dashboard
+    assert_equal dashboard, minivan.speedometer.dashboard
   end
 end

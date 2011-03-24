@@ -38,7 +38,7 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
       assert seconds.from_now >= now + seconds
     end
   end
-  
+
   def test_irregular_durations
     assert_equal @now.advance(:days => 3000), 3000.days.since(@now)
     assert_equal @now.advance(:months => 1), 1.month.since(@now)
@@ -49,16 +49,16 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal @dtnow.advance(:months => -1), 1.month.until(@dtnow)
     assert_equal @dtnow.advance(:years => 20), 20.years.since(@dtnow)
   end
-  
+
   def test_duration_addition
     assert_equal @now.advance(:days => 1).advance(:months => 1), (1.day + 1.month).since(@now)
     assert_equal @now.advance(:days => 7), (1.week + 5.seconds - 5.seconds).since(@now)
     assert_equal @now.advance(:years => 2), (4.years - 2.years).since(@now)
     assert_equal @dtnow.advance(:days => 1).advance(:months => 1), (1.day + 1.month).since(@dtnow)
     assert_equal @dtnow.advance(:days => 7), (1.week + 5.seconds - 5.seconds).since(@dtnow)
-    assert_equal @dtnow.advance(:years => 2), (4.years - 2.years).since(@dtnow)    
+    assert_equal @dtnow.advance(:years => 2), (4.years - 2.years).since(@dtnow)
   end
-  
+
   def test_time_plus_duration
     assert_equal @now + 8, @now + 8.seconds
     assert_equal @now + 22.9, @now + 22.9.seconds
@@ -69,25 +69,63 @@ class NumericExtTimeAndDateTimeTest < Test::Unit::TestCase
     assert_equal @dtnow.advance(:days => 15), @dtnow + 15.days
     assert_equal @dtnow.advance(:months => 1), @dtnow + 1.month
   end
-  
+
   def test_chaining_duration_operations
     assert_equal @now.advance(:days => 2).advance(:months => -3), @now + 2.days - 3.months
     assert_equal @now.advance(:days => 1).advance(:months => 2), @now + 1.day + 2.months
     assert_equal @dtnow.advance(:days => 2).advance(:months => -3), @dtnow + 2.days - 3.months
-    assert_equal @dtnow.advance(:days => 1).advance(:months => 2), @dtnow + 1.day + 2.months    
+    assert_equal @dtnow.advance(:days => 1).advance(:months => 2), @dtnow + 1.day + 2.months
   end
-  
+
   def test_duration_after_convertion_is_no_longer_accurate
     assert_equal 30.days.to_i.since(@now), 1.month.to_i.since(@now)
     assert_equal 365.25.days.to_f.since(@now), 1.year.to_f.since(@now)
     assert_equal 30.days.to_i.since(@dtnow), 1.month.to_i.since(@dtnow)
-    assert_equal 365.25.days.to_f.since(@dtnow), 1.year.to_f.since(@dtnow)    
+    assert_equal 365.25.days.to_f.since(@dtnow), 1.year.to_f.since(@dtnow)
   end
-  
+
   def test_add_one_year_to_leap_day
     assert_equal Time.utc(2005,2,28,15,15,10), Time.utc(2004,2,29,15,15,10) + 1.year
     assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10) + 1.year
   end
+
+  def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
+    Time.zone = nil
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns Time.local(2000)
+      # since
+      assert_equal false, 5.since.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.local(2000,1,1,0,0,5), 5.since
+      # ago
+      assert_equal false, 5.ago.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.local(1999,12,31,23,59,55), 5.ago
+    end
+  end
+
+  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    with_env_tz 'US/Eastern' do
+      Time.stubs(:now).returns Time.local(2000)
+      # since
+      assert_equal true, 5.since.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.utc(2000,1,1,0,0,5), 5.since.time
+      assert_equal 'Eastern Time (US & Canada)', 5.since.time_zone.name
+      # ago
+      assert_equal true, 5.ago.is_a?(ActiveSupport::TimeWithZone)
+      assert_equal Time.utc(1999,12,31,23,59,55), 5.ago.time
+      assert_equal 'Eastern Time (US & Canada)', 5.ago.time_zone.name
+    end
+  ensure
+    Time.zone = nil
+  end
+
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end
 
 class NumericExtDateTest < Test::Unit::TestCase
@@ -102,12 +140,12 @@ class NumericExtDateTest < Test::Unit::TestCase
     assert_equal @today.to_time.since(60), @today + 1.minute
     assert_equal @today.to_time.since(60*60), @today + 1.hour
   end
-  
+
   def test_chaining_duration_operations
     assert_equal @today.advance(:days => 2).advance(:months => -3), @today + 2.days - 3.months
     assert_equal @today.advance(:days => 1).advance(:months => 2), @today + 1.day + 2.months
   end
-  
+
   def test_add_one_year_to_leap_day
     assert_equal Date.new(2005,2,28), Date.new(2004,2,29) + 1.year
   end
@@ -132,7 +170,7 @@ class NumericExtSizeTest < Test::Unit::TestCase
       assert_equal right, left
     end
   end
-  
+
   def test_units_as_bytes_independently
     assert_equal 3145728, 3.megabytes
     assert_equal 3145728, 3.megabyte

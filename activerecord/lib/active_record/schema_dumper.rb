@@ -41,11 +41,11 @@ module ActiveRecord
         define_params = @version ? ":version => #{@version}" : ""
 
         stream.puts <<HEADER
-# This file is auto-generated from the current state of the database. Instead 
+# This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# Note that this schema.rb definition is the authoritative source for your 
+# Note that this schema.rb definition is the authoritative source for your
 # database schema. If you need to create the application database on another
 # system, you should be using db:schema:load, not running all the migrations
 # from scratch. The latter is a flawed and unsustainable approach (the more migrations
@@ -83,7 +83,7 @@ HEADER
 
           # first dump primary key column
           if @connection.respond_to?(:pk_and_sequence_for)
-            pk, pk_seq = @connection.pk_and_sequence_for(table)
+            pk, _ = @connection.pk_and_sequence_for(table)
           elsif @connection.respond_to?(:primary_key)
             pk = @connection.primary_key(table)
           end
@@ -114,16 +114,16 @@ HEADER
                                  column.type.to_s
                                end
             spec[:limit]     = column.limit.inspect if column.limit != @types[column.type][:limit] && spec[:type] != 'decimal'
-            spec[:precision] = column.precision.inspect if !column.precision.nil?
-            spec[:scale]     = column.scale.inspect if !column.scale.nil?
-            spec[:null]      = 'false' if !column.null
+            spec[:precision] = column.precision.inspect if column.precision
+            spec[:scale]     = column.scale.inspect if column.scale
+            spec[:null]      = 'false' unless column.null
             spec[:default]   = default_string(column.default) if column.has_default?
             (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
             spec
           end.compact
 
           # find all migration keys used in this table
-          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map(&:keys).flatten
+          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map{ |k| k.keys }.flatten
 
           # figure out the lengths for each column based on above keys
           lengths = keys.map{ |key| column_specs.map{ |spec| spec[key] ? spec[key].length + 2 : 0 }.max }
@@ -176,13 +176,15 @@ HEADER
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            statement_parts = [ ('add_index ' + index.table.inspect) ]
-            statement_parts << index.columns.inspect
-            statement_parts << (':name => ' + index.name.inspect)
+            statement_parts = [
+              ('add_index ' + index.table.inspect),
+              index.columns.inspect,
+              (':name => ' + index.name.inspect),
+            ]
             statement_parts << ':unique => true' if index.unique
 
-            index_lengths = index.lengths.compact if index.lengths.is_a?(Array)
-            statement_parts << (':length => ' + Hash[*index.columns.zip(index.lengths).flatten].inspect) if index_lengths.present?
+            index_lengths = (index.lengths || []).compact
+            statement_parts << (':length => ' + Hash[index.columns.zip(index.lengths)].inspect) unless index_lengths.empty?
 
             '  ' + statement_parts.join(', ')
           end

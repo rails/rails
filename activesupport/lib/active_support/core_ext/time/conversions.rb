@@ -1,4 +1,4 @@
-require 'active_support/inflector'
+require 'active_support/inflector/methods'
 require 'active_support/core_ext/time/publicize_conversion_methods'
 require 'active_support/values/time_zone'
 
@@ -19,8 +19,8 @@ class Time
   #
   #   time = Time.now                     # => Thu Jan 18 06:10:17 CST 2007
   #
-  #   time.to_formatted_s(:time)          # => "06:10:17"
-  #   time.to_s(:time)                    # => "06:10:17"
+  #   time.to_formatted_s(:time)          # => "06:10"
+  #   time.to_s(:time)                    # => "06:10"
   #
   #   time.to_formatted_s(:db)            # => "2007-01-18 06:10:17"
   #   time.to_formatted_s(:number)        # => "20070118061017"
@@ -46,7 +46,7 @@ class Time
   end
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
- 
+
   # Returns the UTC offset as an +HH:MM formatted string.
   #
   #   Time.local(2000).formatted_offset         # => "-06:00"
@@ -55,31 +55,9 @@ class Time
     utc? && alternate_utc_string || ActiveSupport::TimeZone.seconds_to_utc_offset(utc_offset, colon)
   end
 
-  # Converts a Time object to a Date, dropping hour, minute, and second precision.
-  #
-  #   my_time = Time.now  # => Mon Nov 12 22:59:51 -0500 2007
-  #   my_time.to_date     # => Mon, 12 Nov 2007
-  #
-  #   your_time = Time.parse("1/13/2009 1:13:03 P.M.")  # => Tue Jan 13 13:13:03 -0500 2009
-  #   your_time.to_date                                 # => Tue, 13 Jan 2009
-  def to_date
-    ::Date.new(year, month, day)
-  end unless method_defined?(:to_date)
-
   # A method to keep Time, Date and DateTime instances interchangeable on conversions.
   # In this case, it simply returns +self+.
   def to_time
     self
   end unless method_defined?(:to_time)
-
-  # Converts a Time instance to a Ruby DateTime instance, preserving UTC offset.
-  #
-  #   my_time = Time.now    # => Mon Nov 12 23:04:21 -0500 2007
-  #   my_time.to_datetime   # => Mon, 12 Nov 2007 23:04:21 -0500
-  #
-  #   your_time = Time.parse("1/13/2009 1:13:03 P.M.")  # => Tue Jan 13 13:13:03 -0500 2009
-  #   your_time.to_datetime                             # => Tue, 13 Jan 2009 13:13:03 -0500
-  def to_datetime
-    ::DateTime.civil(year, month, day, hour, min, sec, Rational(utc_offset, 86400))
-  end unless method_defined?(:to_datetime)
 end

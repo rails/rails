@@ -82,6 +82,13 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_match %r{"label":"Has cheezburger"}, methods_json
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
+
+  def test_serializable_hash_should_not_modify_options_in_argument
+    options = { :only => :name }
+    @contact.serializable_hash(options)
+
+    assert_nil options[:except]
+  end
 end
 
 class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
@@ -174,7 +181,11 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
   def test_should_allow_except_option_for_list_of_authors
     ActiveRecord::Base.include_root_in_json = false
     authors = [@david, @mary]
-    assert_equal %([{"id":1},{"id":2}]), ActiveSupport::JSON.encode(authors, :except => [:name, :author_address_id, :author_address_extra_id])
+    encoded = ActiveSupport::JSON.encode(authors, :except => [
+      :name, :author_address_id, :author_address_extra_id,
+      :organization_id, :owned_essay_id
+    ])
+    assert_equal %([{"id":1},{"id":2}]), encoded
   ensure
     ActiveRecord::Base.include_root_in_json = true
   end
@@ -189,7 +200,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     )
 
     ['"name":"David"', '"posts":[', '{"id":1}', '{"id":2}', '{"id":4}',
-     '{"id":5}', '{"id":6}', '"name":"Mary"', '"posts":[{"id":7}]'].each do |fragment|
+     '{"id":5}', '{"id":6}', '"name":"Mary"', '"posts":[', '{"id":7}', '{"id":9}'].each do |fragment|
       assert json.include?(fragment), json
      end
   end
@@ -204,7 +215,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
   def test_should_be_able_to_encode_relation
     authors_relation = Author.where(:id => [@david.id, @mary.id])
-    
+
     json = ActiveSupport::JSON.encode authors_relation, :only => :name
     assert_equal '[{"author":{"name":"David"}},{"author":{"name":"Mary"}}]', json
   end

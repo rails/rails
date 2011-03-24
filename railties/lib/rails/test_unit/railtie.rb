@@ -1,6 +1,6 @@
 module Rails
   class TestUnitRailtie < Rails::Railtie
-    config.generators do |c|
+    config.app_generators do |c|
       c.test_framework :test_unit, :fixture => true,
                                    :fixture_replacement => nil
 

@@ -3,6 +3,12 @@ module ActiveSupport
     class << self
       attr_accessor :silenced
 
+      # Outputs a deprecation warning to the output configured by <tt>ActiveSupport::Deprecation.behavior</tt>
+      #
+      # Example:
+      #
+      #   ActiveSupport::Deprecation.warn("something broke!")
+      #   #=> "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       def warn(message = nil, callstack = caller)
         return if silenced
         deprecation_message(callstack, message).tap do |m|
@@ -46,10 +52,14 @@ module ActiveSupport
         end
 
         def extract_callstack(callstack)
-          if md = callstack.first.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
-            md.captures
-          else
-            callstack.first
+          rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
+          offending_line = callstack.find { |line| !line.start_with?(rails_gem_root) } || callstack.first
+          if offending_line
+            if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
+              md.captures
+            else
+              offending_line
+            end
           end
         end
     end

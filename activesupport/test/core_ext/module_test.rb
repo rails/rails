@@ -26,14 +26,10 @@ module Yz
   end
 end
 
-class De
-end
-
 Somewhere = Struct.new(:street, :city)
 
 Someone   = Struct.new(:name, :place) do
   delegate :street, :city, :to_f, :to => :place
-  delegate :state, :to => :@place
   delegate :upcase, :to => "place.city"
 end
 
@@ -45,6 +41,14 @@ end
 Project   = Struct.new(:description, :person) do
   delegate :name, :to => :person, :allow_nil => true
   delegate :to_f, :to => :description, :allow_nil => true
+end
+
+Developer = Struct.new(:client) do
+  delegate :name, :to => :client, :prefix => nil
+end
+
+Tester = Struct.new(:client) do
+  delegate :name, :to => :client, :prefix => false
 end
 
 class Name
@@ -95,6 +99,11 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal invoice.customer_name, "David"
     assert_equal invoice.customer_street, "Paulina"
     assert_equal invoice.customer_city, "Chicago"
+  end
+
+  def test_delegation_prefix_with_nil_or_false
+    assert_equal Developer.new(@david).name, "David"
+    assert_equal Tester.new(@david).name, "David"
   end
 
   def test_delegation_prefix_with_instance_variable

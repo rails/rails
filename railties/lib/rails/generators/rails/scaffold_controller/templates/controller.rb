@@ -1,3 +1,4 @@
+<% module_namespacing do -%>
 class <%= controller_class_name %>Controller < ApplicationController
   # GET <%= route_url %>
   # GET <%= route_url %>.xml
@@ -81,3 +82,4 @@ class <%= controller_class_name %>Controller < ApplicationController
     end
   end
 end
+<% end -%>

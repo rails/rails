@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2010 David Heinemeier Hansson
+# Copyright (c) 2004-2011 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -53,6 +53,7 @@ module ActionDispatch
     autoload :Flash
     autoload :Head
     autoload :ParamsParser
+    autoload :Reloader
     autoload :RemoteIp
     autoload :Rescue
     autoload :ShowExceptions
@@ -85,6 +86,7 @@ module ActionDispatch
   autoload_under 'testing' do
     autoload :Assertions
     autoload :Integration
+    autoload :IntegrationTest, 'action_dispatch/testing/integration'
     autoload :PerformanceTest
     autoload :TestProcess
     autoload :TestRequest

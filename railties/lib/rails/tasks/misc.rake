@@ -7,7 +7,7 @@ task :rails_env do
   end
 end
 
-desc 'Generate a crytographically secure secret key (this is typically used to generate a secret for cookie sessions).'
+desc 'Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions).'
 task :secret do
   require 'active_support/secure_random'
   puts ActiveSupport::SecureRandom.hex(64)

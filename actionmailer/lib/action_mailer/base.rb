@@ -187,31 +187,31 @@ module ActionMailer #:nodoc:
   # with the filename +free_book.pdf+.
   #
   # = Inline Attachments
-  # 
-  # You can also specify that a file should be displayed inline with other HTML. This is useful 
+  #
+  # You can also specify that a file should be displayed inline with other HTML. This is useful
   # if you want to display a corporate logo or a photo.
-  # 
+  #
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
   #       attachments.inline['photo.png'] = File.read('path/to/photo.png')
   #       mail(:to => recipient, :subject => "Here is what we look like")
   #     end
   #   end
-  # 
+  #
   # And then to reference the image in the view, you create a <tt>welcome.html.erb</tt> file and
-  # make a call to +image_tag+ passing in the attachment you want to display and then call 
+  # make a call to +image_tag+ passing in the attachment you want to display and then call
   # +url+ on the attachment to get the relative content id path for the image source:
-  # 
+  #
   #   <h1>Please Don't Cringe</h1>
-  # 
+  #
   #   <%= image_tag attachments['photo.png'].url -%>
-  # 
+  #
   # As we are using Action View's +image_tag+ method, you can pass in any other options you want:
-  # 
+  #
   #   <h1>Please Don't Cringe</h1>
-  # 
+  #
   #   <%= image_tag attachments['photo.png'].url, :alt => 'Our Photo', :class => 'photo' -%>
-  # 
+  #
   # = Observing and Intercepting Mails
   #
   # Action Mailer provides hooks into the Mail observer and interceptor methods.  These allow you to
@@ -222,7 +222,7 @@ module ActionMailer #:nodoc:
   #
   # An interceptor object must implement the <tt>:delivering_email(message)</tt> method which will be
   # called before the email is sent, allowing you to make modifications to the email before it hits
-  # the delivery agents.  Your object should make and needed modifications directly to the passed
+  # the delivery agents.  Your object should make any needed modifications directly to the passed
   # in Mail::Message instance.
   #
   # = Default Hash
@@ -234,8 +234,8 @@ module ActionMailer #:nodoc:
   #     default :sender => 'system@example.com'
   #   end
   #
-  # You can pass in any header value that a <tt>Mail::Message</tt>, out of the box, <tt>ActionMailer::Base</tt>
-  # sets the following:
+  # You can pass in any header value that a <tt>Mail::Message</tt> accepts. Out of the box,
+  # <tt>ActionMailer::Base</tt> sets the following:
   #
   # * <tt>:mime_version => "1.0"</tt>
   # * <tt>:charset      => "UTF-8",</tt>
@@ -246,7 +246,7 @@ module ActionMailer #:nodoc:
   # but Action Mailer translates them appropriately and sets the correct values.
   #
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
-  # an underscorised symbol, so the following will work:
+  # an underscored symbol, so the following will work:
   #
   #   class Notifier < ActionMailer::Base
   #     default 'Content-Transfer-Encoding' => '7bit',
@@ -273,7 +273,7 @@ module ActionMailer #:nodoc:
   # = Configuration options
   #
   # These options are specified on the class level, like
-  # <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
+  # <tt>ActionMailer::Base.raise_delivery_errors = true</tt>
   #
   # * <tt>default</tt> - You can pass this in at a class level as well as within the class itself as
   #   per the above section.
@@ -290,13 +290,15 @@ module ActionMailer #:nodoc:
   #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
   #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the
   #     authentication type here.
-  #     This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.
+  #     This is a symbol and one of <tt>:plain</tt> (will send the password in the clear), <tt>:login</tt> (will
+  #     send password Base64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
+  #     information and a cryptographic Message Digest 5 algorithm to hash important information)
   #   * <tt>:enable_starttls_auto</tt> - When set to true, detects if STARTTLS is enabled in your SMTP server
   #     and starts to use it.
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
-  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt> with <tt>-f sender@addres</tt>
+  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i -t</tt> with <tt>-f sender@address</tt>
   #     added automatically before the message is sent.
   #
   # * <tt>file_settings</tt> - Allows you to override options for the <tt>:file</tt> delivery method.
@@ -341,10 +343,11 @@ module ActionMailer #:nodoc:
     include AbstractController::Translation
     include AbstractController::AssetPaths
 
-    helper  ActionMailer::MailHelper
+    cattr_reader :protected_instance_variables
+    @@protected_instance_variables = []
 
+    helper  ActionMailer::MailHelper
     include ActionMailer::OldApi
-    include ActionMailer::DeprecatedApi
 
     delegate :register_observer, :to => Mail
     delegate :register_interceptor, :to => Mail
@@ -360,7 +363,6 @@ module ActionMailer #:nodoc:
     }.freeze
 
     class << self
-
       def mailer_name
         @mailer_name ||= name.underscore
       end
@@ -402,14 +404,14 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def respond_to?(method, *args) #:nodoc:
+      def respond_to?(method, include_private = false) #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
     protected
 
       def set_payload_for_mail(payload, mail) #:nodoc:
-        payload[:mailer]     = self.name
+        payload[:mailer]     = name
         payload[:message_id] = mail.message_id
         payload[:subject]    = mail.subject
         payload[:to]         = mail.to
@@ -421,11 +423,8 @@ module ActionMailer #:nodoc:
       end
 
       def method_missing(method, *args) #:nodoc:
-        if action_methods.include?(method.to_s)
-          new(method, *args).message
-        else
-          super
-        end
+        return super unless respond_to?(method)
+        new(method, *args).message
       end
     end
 
@@ -444,6 +443,10 @@ module ActionMailer #:nodoc:
     def process(*args) #:nodoc:
       lookup_context.skip_default_locale!
       super
+    end
+
+    def mailer_name
+      self.class.mailer_name
     end
 
     # Allows you to pass random and unusual headers to the new +Mail::Message+ object
@@ -690,15 +693,8 @@ module ActionMailer #:nodoc:
     end
 
     def each_template(paths, name, &block) #:nodoc:
-      Array.wrap(paths).each do |path|
-        templates = lookup_context.find_all(name, path)
-        templates = templates.uniq_by { |t| t.formats }
-
-        unless templates.empty?
-          templates.each(&block)
-          return
-        end
-      end
+      templates = lookup_context.find_all(name, Array.wrap(paths))
+      templates.uniq_by { |t| t.formats }.each(&block)
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:
@@ -719,28 +715,6 @@ module ActionMailer #:nodoc:
       part = Mail::Part.new(response)
       container.add_part(part)
     end
-
-    module DeprecatedUrlOptions
-      def default_url_options
-        deprecated_url_options
-      end
-
-      def default_url_options=(val)
-        deprecated_url_options
-      end
-
-      def deprecated_url_options
-        raise "You can no longer call ActionMailer::Base.default_url_options " \
-              "directly. You need to set config.action_mailer.default_url_options. " \
-              "If you are using ActionMailer standalone, you need to include the " \
-              "routing url_helpers directly."
-      end
-    end
-
-    # This module will complain if the user tries to set default_url_options
-    # directly instead of through the config object. In Action Mailer's Railtie,
-    # we include the router's url_helpers, which will override this module.
-    extend DeprecatedUrlOptions
 
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end

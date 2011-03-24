@@ -1,8 +1,5 @@
-gem 'rdoc', '>= 2.5.9'
-require 'rdoc'
-require 'rake'
+#!/usr/bin/env rake
 require 'rake/testtask'
-require 'rdoc/task'
 require 'rake/gempackagetask'
 
 require 'date'
@@ -21,7 +18,7 @@ namespace :test do
     Dir["test/#{dir}/*_test.rb"].each do |file|
       next true if file.include?("fixtures")
       ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-      system(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
+      sh(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
     end
   end
 end
@@ -48,8 +45,9 @@ task :generate_guides do
   ruby "guides/rails_guides.rb"
 end
 
-task :update_prototype_ujs do
-  system "curl http://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/rails.js"
+task :update_ujs do
+  system "curl https://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/prototype_ujs.js"
+  system "curl https://github.com/rails/jquery-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/jquery_ujs.js"
 end
 
 # Validate guides -------------------------------------------------------------------------
@@ -57,19 +55,6 @@ desc 'Validate guides, use ONLY=foo to process just "foo.html"'
 task :validate_guides do
   ruby "guides/w3c_validator.rb"
 end
-
-# Generate documentation ------------------------------------------------------------------
-
-RDoc::Task.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Railties -- Gluing the Engine to the Rails"
-  rdoc.options << '-f' << 'horo'
-  rdoc.options << '--main' << 'README.rdoc'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.rdoc_files.include('README.rdoc', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-  rdoc.rdoc_files.exclude('lib/rails/generators/**/templates/*')
-}
 
 # Generate GEM ----------------------------------------------------------------------------
 

@@ -1,5 +1,6 @@
 require 'test_helper'
 
+<% module_namespacing do -%>
 class <%= class_name %>ControllerTest < ActionController::TestCase
 <% if actions.empty? -%>
   # Replace this with your real tests.
@@ -16,3 +17,4 @@ class <%= class_name %>ControllerTest < ActionController::TestCase
 <% end -%>
 <% end -%>
 end
+<% end -%>

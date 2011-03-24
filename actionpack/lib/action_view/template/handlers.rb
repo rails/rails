@@ -7,18 +7,14 @@ module ActionView #:nodoc:
       autoload :Builder, 'action_view/template/handlers/builder'
 
       def self.extended(base)
-        base.register_default_template_handler :erb, ERB
-        base.register_template_handler :rjs, RJS
-        base.register_template_handler :builder, Builder
-
-        # TODO: Depreciate old template extensions
-        base.register_template_handler :rhtml, ERB
-        base.register_template_handler :rxml, Builder
+        base.register_default_template_handler :erb, ERB.new
+        base.register_template_handler :rjs, RJS.new
+        base.register_template_handler :builder, Builder.new
       end
 
       @@template_handlers = {}
       @@default_template_handlers = nil
-    
+
       def self.extensions
         @@template_extensions ||= @@template_handlers.keys
       end
@@ -48,7 +44,13 @@ module ActionView #:nodoc:
       end
 
       def handler_class_for_extension(extension)
-        (extension && registered_template_handler(extension.to_sym)) || @@default_template_handlers
+        ActiveSupport::Deprecation.warn "handler_class_for_extension is deprecated. " <<
+          "Please use handler_for_extension instead", caller
+        handler_for_extension(extension)
+      end
+
+      def handler_for_extension(extension)
+        registered_template_handler(extension) || @@default_template_handlers
       end
     end
   end

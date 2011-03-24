@@ -8,13 +8,12 @@
 <title><%= yield(:page_title) || 'Ruby on Rails guides' %></title>
 
 <link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
-<link rel="stylesheet" type="text/css" href="stylesheets/syntax.css" />
 <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
 
-<script type="text/javascript" src="javascripts/guides.js"></script>
-<script type="text/javascript" src="javascripts/code_highlighter.js"></script>
-<script type="text/javascript" src="javascripts/highlighters.js"></script>
+<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" />
+<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" />
 
+<link rel="stylesheet" type="text/css" href="stylesheets/fixes.css" />
 </head>
 <body class="guide">
   <% if @edge %>
@@ -76,11 +75,12 @@
               <dt>Extending Rails</dt>
               <dd><a href="plugins.html">The Basics of Creating Rails Plugins</a></dd>
               <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
-              <dd><a href="generators.html">Adding a Generator to Your Plugin</a></dd>
+              <dd><a href="generators.html">Creating and Customizing Rails Generators</a></dd>
 
-              <dt>Contributing to Rails</dt>
-              <dd><a href="contributing_to_rails.html">Contributing to Rails</a></dd>
+              <dt>Contributing to Ruby on Rails</dt>
+              <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
               <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+              <dd><a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a></dd>
 
               <dt>Release Notes</dt>
               <dd><a href="3_0_release_notes.html">Ruby on Rails 3.0 Release Notes</a></dd>
@@ -108,6 +108,28 @@
     <div class="wrapper">
       <div id="mainCol">
         <%= yield.html_safe %>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help in keeping the quality of this guide.
+        </p>
+        <p>
+          If you see any typos or factual errors you are confident to
+          patch, please clone <%= link_to 'docrails', 'https://github.com/lifo/docrails' %>
+          and push the change yourself. That branch of Rails has public write access.
+          Commits are still reviewed, but that happens after you've submitted your
+          contribution. <%= link_to 'docrails', 'https://github.com/lifo/docrails' %> is
+          cross-merged with master periodically.
+        </p>
+        <p>
+          You may also find incomplete content, or stuff that is not up to date.
+          Please do add any missing documentation for master. Check the
+          <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
+          for style and conventions.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome in the <%= link_to 'rubyonrails-docs mailing list', 'http://groups.google.com/group/rubyonrails-docs' %>.
+        </p>
       </div>
     </div>
   </div>
@@ -119,5 +141,15 @@
       <p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
     </div>
   </div>
+
+  <script type="text/javascript" src="javascripts/guides.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shCore.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushRuby.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushXml.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushSql.js"></script>
+  <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushPlain.js"></script>
+  <script type="text/javascript">
+    SyntaxHighlighter.all()
+  </script>
 </body>
 </html>

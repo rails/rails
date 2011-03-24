@@ -52,9 +52,9 @@ module ActionView
       #
       #    <li id="person_123" class="person bar">...
       #
-      def content_tag_for(tag_name, record, *args, &block)
-        prefix  = args.first.is_a?(Hash) ? nil : args.shift
-        options = args.extract_options!
+      def content_tag_for(tag_name, record, prefix = nil, options = nil, &block)
+        options, prefix = prefix, nil if prefix.is_a?(Hash)
+        options ||= {}
         options.merge!({ :class => "#{dom_class(record, prefix)} #{options[:class]}".strip, :id => dom_id(record, prefix) })
         content_tag(tag_name, options, &block)
       end

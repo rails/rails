@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class MultipartParamsParsingTest < ActionController::IntegrationTest
+class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_request_parameters
@@ -36,7 +36,6 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_equal 'bar', params['foo']
 
     file = params['file']
-    assert_kind_of Tempfile, file
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
     assert_equal 'contents', file.read
@@ -48,8 +47,6 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
 
     file = params['file']
     foo  = params['foo']
-
-    assert_kind_of Tempfile, file
 
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
@@ -64,11 +61,9 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
 
     file = params['file']
 
-    assert_kind_of Tempfile, file
-
     assert_equal 'file.txt', file.original_filename
     assert_equal "text/plain", file.content_type
-    assert ('a' * 20480) == file.read
+    assert_equal(('a' * 20480), file.read)
   end
 
   test "parses binary file" do
@@ -77,13 +72,11 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
     assert_equal 'bar', params['foo']
 
     file = params['file']
-    assert_kind_of Tempfile, file
     assert_equal 'file.csv', file.original_filename
     assert_nil file.content_type
     assert_equal 'contents', file.read
 
     file = params['flowers']
-    assert_kind_of Tempfile, file
     assert_equal 'flowers.jpg', file.original_filename
     assert_equal "image/jpeg", file.content_type
     assert_equal 19512, file.size
@@ -156,7 +149,7 @@ class MultipartParamsParsingTest < ActionController::IntegrationTest
 
     def with_test_routing
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => 'multipart_params_parsing_test/test'
         end
         yield

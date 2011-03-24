@@ -260,15 +260,15 @@ h4. Other Action Controller Changes
 * Benchmarking numbers are now reported in milliseconds rather than tiny fractions of seconds
 * Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
 * +redirect_to+ now fully supports URI schemes (so, for example, you can redirect to a svn+ssh: URI).
-* +render+ now supports a +:js+ option to render plain vanilla javascript with the right mime type.
+* +render+ now supports a +:js+ option to render plain vanilla JavaScript with the right mime type.
 * Request forgery protection has been tightened up to apply to HTML-formatted content requests only.
 * Polymorphic URLs behave more sensibly if a passed parameter is nil. For example, calling +polymorphic_path([@project, @date, @area])+ with a nil date will give you +project_area_path+.
 
 h3. Action View
 
 * +javascript_include_tag+ and +stylesheet_link_tag+ support a new +:recursive+ option to be used along with +:all+, so that you can load an entire tree of files with a single line of code.
-* The included Prototype javascript library has been upgraded to version 1.6.0.3.
-* +RJS#page.reload+ to reload the browser's current location via javascript
+* The included Prototype JavaScript library has been upgraded to version 1.6.0.3.
+* +RJS#page.reload+ to reload the browser's current location via JavaScript
 * The +atom_feed+ helper now takes an +:instruct+ option to let you insert XML processing instructions.
 
 h3. Action Mailer

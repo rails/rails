@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 # You need to start a memcached server inorder to run these tests
-class MemCacheStoreTest < ActionController::IntegrationTest
+class MemCacheStoreTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def no_session_access
       head :ok
@@ -11,7 +11,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
       session[:foo] = "bar"
       head :ok
     end
-    
+
     def set_serialized_session_value
       session[:foo] = SessionAutoloadTest::Foo.new
       head :ok
@@ -174,7 +174,7 @@ class MemCacheStoreTest < ActionController::IntegrationTest
   private
     def with_test_route_set
       with_routing do |set|
-        set.draw do |map|
+        set.draw do
           match ':action', :to => ::MemCacheStoreTest::TestController
         end
 

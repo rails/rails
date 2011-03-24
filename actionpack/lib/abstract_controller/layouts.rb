@@ -114,11 +114,13 @@ module AbstractController
   #
   #   class WeblogController < ActionController::Base
   #     layout proc{ |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
+  #   end
   #
   # Of course, the most common way of specifying a layout is still just as a plain template name:
   #
   #   class WeblogController < ActionController::Base
   #     layout "weblog_standard"
+  #   end
   #
   # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
   # Otherwise, it will be looked up relative to the template root.
@@ -183,7 +185,7 @@ module AbstractController
         # layout.
         #
         # ==== Returns
-        # Boolean:: True if the action has a layout, false otherwise.
+        # * <tt> Boolean</tt> - True if the action has a layout, false otherwise.
         def action_has_layout?
           return unless super
 
@@ -209,11 +211,11 @@ module AbstractController
       # true::   raise an ArgumentError
       #
       # ==== Parameters
-      # layout<String, Symbol, false)>:: The layout to use.
+      # * <tt>String, Symbol, false</tt> - The layout to use.
       #
       # ==== Options (conditions)
-      # :only<#to_s, Array[#to_s]>:: A list of actions to apply this layout to.
-      # :except<#to_s, Array[#to_s]>:: Apply this layout to all actions but this one
+      # * :only   - A list of actions to apply this layout to.
+      # * :except - Apply this layout to all actions but this one.
       def layout(layout, conditions = {})
         include LayoutConditions unless conditions.empty?
 
@@ -228,18 +230,15 @@ module AbstractController
       # value of this method.
       #
       # ==== Returns
-      # String:: A template name
+      # * <tt>String</tt> - A template name
       def _implied_layout_name
         controller_path
       end
 
-      # Takes the specified layout and creates a _layout method to be called
-      # by _default_layout
+      # Creates a _layout method to be called by _default_layout .
       #
-      # If there is no explicit layout specified:
-      # If a layout is found in the view paths with the controller's
-      # name, return that string. Otherwise, use the superclass'
-      # layout (which might also be implied)
+      # If a layout is not explicitly mentioned then look for a layout with the controller's name.
+      # if nothing is found then try same procedure to find super class's layout.
       def _write_layout_method
         remove_possible_method(:_layout)
 
@@ -266,11 +265,11 @@ module AbstractController
           raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
         when nil
           if name
-            _prefix = "layouts" unless _implied_layout_name =~ /\blayouts/
+            _prefixes = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
 
             self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _layout
-                if template_exists?("#{_implied_layout_name}", #{_prefix.inspect})
+                if template_exists?("#{_implied_layout_name}", #{_prefixes.inspect})
                   "#{_implied_layout_name}"
                 else
                   super
@@ -313,8 +312,8 @@ module AbstractController
     # the name type.
     #
     # ==== Parameters
-    # name<String|TrueClass|FalseClass|Symbol>:: The name of the template
-    # details<Hash{Symbol => Object}>:: A list of details to restrict
+    # * <tt>name</tt> - The name of the template
+    # * <tt>details</tt> - A list of details to restrict
     #   the lookup to. By default, layout lookup is limited to the
     #   formats specified for the current request.
     def _layout_for_option(name)
@@ -333,20 +332,19 @@ module AbstractController
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
-    # details<Hash>:: A list of details to restrict the search by. This
+    # * <tt>details</tt> - A list of details to restrict the search by. This
     #   might include details like the format or locale of the template.
-    # require_layout<Boolean>:: If this is true, raise an ArgumentError
+    # * <tt>require_logout</tt> - If this is true, raise an ArgumentError
     #   with details about the fact that the exception could not be
     #   found (defaults to false)
     #
     # ==== Returns
-    # Template:: The template object for the default layout (or nil)
+    # * <tt>template</tt> - The template object for the default layout (or nil)
     def _default_layout(require_layout = false)
       begin
         layout_name = _layout if action_has_layout?
       rescue NameError => e
-        raise NoMethodError,
-          "You specified #{@_layout.inspect} as the layout, but no such method was found"
+        raise e, "Could not render layout: #{e.message}"
       end
 
       if require_layout && action_has_layout? && !layout_name

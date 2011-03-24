@@ -16,6 +16,8 @@ class CallbacksTest < ActiveModel::TestCase
 
     define_model_callbacks :create
     define_model_callbacks :initialize, :only => :after
+    define_model_callbacks :multiple,   :only => [:before, :around]
+    define_model_callbacks :empty,      :only => []
 
     before_create :before_create
     around_create CallbackValidator.new
@@ -35,7 +37,7 @@ class CallbacksTest < ActiveModel::TestCase
     end
 
     def create
-      _run_create_callbacks do
+      run_callbacks :create do
         @callbacks << :create
         @valid
       end
@@ -67,4 +69,46 @@ class CallbacksTest < ActiveModel::TestCase
     assert !ModelCallbacks.respond_to?(:around_initialize)
     assert_respond_to ModelCallbacks, :after_initialize
   end
+
+  test "only selects which types of callbacks should be created from an array list" do
+    assert_respond_to ModelCallbacks, :before_multiple
+    assert_respond_to ModelCallbacks, :around_multiple
+    assert !ModelCallbacks.respond_to?(:after_multiple)
+  end
+
+  test "no callbacks should be created" do
+    assert !ModelCallbacks.respond_to?(:before_empty)
+    assert !ModelCallbacks.respond_to?(:around_empty)
+    assert !ModelCallbacks.respond_to?(:after_empty)
+  end
+
+  class Violin
+    attr_reader :history
+    def initialize
+      @history = []
+    end
+    extend ActiveModel::Callbacks
+    define_model_callbacks :create
+    def callback1; self.history << 'callback1'; end
+    def callback2; self.history << 'callback2'; end
+    def create
+      run_callbacks(:create) {}
+      self
+    end
+  end
+  class Violin1 < Violin
+    after_create :callback1, :callback2
+  end
+  class Violin2 < Violin
+    after_create :callback1
+    after_create :callback2
+  end
+
+  test "after_create callbacks with both callbacks declared in one line" do
+    assert_equal ["callback1", "callback2"], Violin1.new.create.history
+  end
+  test "after_create callbacks with both callbacks declared in differnt lines" do
+    assert_equal ["callback1", "callback2"], Violin2.new.create.history
+  end
+
 end

@@ -3,7 +3,7 @@ require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/object/acts_like'
 
 module ActiveSupport
-  # Provides accurate date and time measurements using Date#advance and 
+  # Provides accurate date and time measurements using Date#advance and
   # Time#advance, respectively. It mainly supports the methods on Numeric.
   # Example:
   #
@@ -80,6 +80,10 @@ module ActiveSupport
       parts.to_sentence(:locale => :en)
     end
 
+    def as_json(options = nil) #:nodoc:
+      to_i
+    end
+
     protected
 
       def sum(sign, time = ::Time.current) #:nodoc:
@@ -99,7 +103,7 @@ module ActiveSupport
     private
 
       def method_missing(method, *args, &block) #:nodoc:
-        value.send(method, *args)
+        value.send(method, *args, &block)
       end
   end
 end

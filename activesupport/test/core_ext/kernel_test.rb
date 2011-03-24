@@ -46,22 +46,27 @@ class KernelTest < Test::Unit::TestCase
     o = Object.new
     assert_equal class << o; self end, o.singleton_class
   end
-  
+
   def test_class_eval
     o = Object.new
     class << o; @x = 1; end
     assert_equal 1, o.class_eval { @x }
   end
+  
+  def test_capture
+    assert_equal 'STDERR', capture(:stderr) {$stderr.print 'STDERR'}
+    assert_equal 'STDOUT', capture(:stdout) {print 'STDOUT'}
+  end
 end
 
-class KernelSupressTest < Test::Unit::TestCase
+class KernelSuppressTest < Test::Unit::TestCase
   def test_reraise
     assert_raise(LoadError) do
       suppress(ArgumentError) { raise LoadError }
     end
   end
 
-  def test_supression
+  def test_suppression
     suppress(ArgumentError) { raise ArgumentError }
     suppress(LoadError) { raise LoadError }
     suppress(LoadError, ArgumentError) { raise LoadError }

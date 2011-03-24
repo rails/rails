@@ -115,11 +115,9 @@ class BufferedLoggerTest < Test::Unit::TestCase
   def test_should_create_the_log_directory_if_it_doesnt_exist
     tmp_directory = File.join(File.dirname(__FILE__), "tmp")
     log_file = File.join(tmp_directory, "development.log")
-    assert !File.exist?(tmp_directory)
+    FileUtils.rm_rf(tmp_directory)
     @logger  = Logger.new(log_file)
     assert File.exist?(tmp_directory)
-  ensure
-    FileUtils.rm_rf(tmp_directory)
   end
 
   def test_logger_should_maintain_separate_buffers_for_each_thread

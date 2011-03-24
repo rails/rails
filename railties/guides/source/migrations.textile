@@ -109,7 +109,7 @@ h4. Creating a Model
 The model and scaffold generators will create migrations appropriate for adding a new model. This migration will already contain instructions for creating the relevant table. If you tell Rails what columns you want then statements for adding those will also be created. For example, running
 
 <shell>
-rails generate model Product name:string description:text
+$ rails generate model Product name:string description:text
 </shell>
 
 will create a migration that looks like this
@@ -139,7 +139,7 @@ h4. Creating a Standalone Migration
 If you are creating migrations for other purposes (for example to add a column to an existing table) then you can use the migration generator:
 
 <shell>
-rails generate migration AddPartNumberToProducts
+$ rails generate migration AddPartNumberToProducts
 </shell>
 
 This will create an empty but appropriately named migration:
@@ -157,7 +157,7 @@ end
 If the migration name is of the form "AddXXXToYYY" or "RemoveXXXFromYYY" and is followed by a list of column names and types then a migration containing the appropriate +add_column+ and +remove_column+ statements will be created.
 
 <shell>
-rails generate migration AddPartNumberToProducts part_number:string
+$ rails generate migration AddPartNumberToProducts part_number:string
 </shell>
 
 will generate
@@ -177,7 +177,7 @@ end
 Similarly,
 
 <shell>
-rails generate migration RemovePartNumberFromProducts part_number:string
+$ rails generate migration RemovePartNumberFromProducts part_number:string
 </shell>
 
 generates
@@ -197,7 +197,7 @@ end
 You are not limited to one magically generated column, for example
 
 <shell>
-rails generate migration AddDetailsToProducts part_number:string price:decimal
+$ rails generate migration AddDetailsToProducts part_number:string price:decimal
 </shell>
 
 generates
@@ -250,7 +250,7 @@ create_table :products do |t|
 end
 </ruby>
 
-By default +create_table+ will create a primary key called +id+. You can change the name of the primary key with the +:primary_key+ option (don't forget to update the corresponding model) or if you don't want a primary key at all (for example for a HABTM join table) you can pass +:id => false+. If you need to pass database specific options you can place a SQL fragment in the +:options+ option. For example
+By default +create_table+ will create a primary key called +id+. You can change the name of the primary key with the +:primary_key+ option (don't forget to update the corresponding model) or if you don't want a primary key at all (for example for a HABTM join table) you can pass +:id => false+. If you need to pass database specific options you can place an SQL fragment in the +:options+ option. For example
 
 <ruby>
 create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
@@ -383,7 +383,7 @@ If you specify a target version, Active Record will run the required migrations 
 version is the numerical prefix on the migration's filename. For example to migrate to version 20080906120000 run
 
 <shell>
-rake db:migrate VERSION=20080906120000
+$ rake db:migrate VERSION=20080906120000
 </shell>
 
 If this is greater than the current version (i.e. it is migrating upwards) this will run the +up+ method on all migrations up to and including 20080906120000, if migrating downwards this will run the +down+ method on all the migrations down to, but not including, 20080906120000.
@@ -393,13 +393,13 @@ h4. Rolling Back
 A common task is to rollback the last migration, for example if you made a mistake in it and wish to correct it. Rather than tracking down the version number associated with the previous migration you can run
 
 <shell>
-rake db:rollback
+$ rake db:rollback
 </shell>
 
 This will run the +down+ method from the latest migration. If you need to undo several migrations you can provide a +STEP+ parameter:
 
 <shell>
-rake db:rollback STEP=3
+$ rake db:rollback STEP=3
 </shell>
 
 will run the +down+ method from the last 3 migrations.
@@ -407,7 +407,7 @@ will run the +down+ method from the last 3 migrations.
 The +db:migrate:redo+ task is a shortcut for doing a rollback and then migrating back up again. As with the +db:rollback+ task you can use the +STEP+ parameter if you need to go more than one version back, for example
 
 <shell>
-rake db:migrate:redo STEP=3
+$ rake db:migrate:redo STEP=3
 </shell>
 
 Neither of these Rake tasks do anything you could not do with +db:migrate+, they are simply more convenient since you do not need to explicitly specify the version to migrate to.
@@ -421,7 +421,7 @@ h4. Being Specific
 If you need to run a specific migration up or down the +db:migrate:up+ and +db:migrate:down+ tasks will do that. Just specify the appropriate version and the corresponding migration will have its +up+ or +down+ method invoked, for example
 
 <shell>
-rake db:migrate:up VERSION=20080906120000
+$ rake db:migrate:up VERSION=20080906120000
 </shell>
 
 will run the +up+ method from the 20080906120000 migration. These tasks check whether the migration has already run, so for example +db:migrate:up VERSION=20080906120000+ will do nothing if Active Record believes that 20080906120000 has already been run.
@@ -546,7 +546,7 @@ Schema files are also useful if you want a quick look at what attributes an Acti
 
 h4. Types of Schema Dumps
 
-There are two ways to dump the schema. This is set in +config/environment.rb+ by the +config.active_record.schema_format+ setting, which may be either +:sql+ or +:ruby+.
+There are two ways to dump the schema. This is set in +config/application.rb+ by the +config.active_record.schema_format+ setting, which may be either +:sql+ or +:ruby+.
 
 If +:ruby+ is selected then the schema is stored in +db/schema.rb+. If you look at this file you'll find that it looks an awful lot like one very big migration:
 
@@ -584,13 +584,11 @@ h3. Active Record and Referential Integrity
 
 The Active Record way claims that intelligence belongs in your models, not in the database. As such, features such as triggers or foreign key constraints, which push some of that intelligence back into the database, are not heavily used.
 
-Validations such as +validates_uniqueness_of+ are one way in which models can enforce data integrity. The +:dependent+ option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level these cannot guarantee referential integrity and so some people augment them with foreign key constraints.
+Validations such as +validates :foreign_key, :uniqueness => true+ are one way in which models can enforce data integrity. The +:dependent+ option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level these cannot guarantee referential integrity and so some people augment them with foreign key constraints.
 
-Although Active Record does not provide any tools for working directly with such features, the +execute+ method can be used to execute arbitrary SQL. There are also a number of plugins such as "foreign_key_migrations":http://github.com/harukizaemon/redhillonrails/tree/master/foreign_key_migrations/ which add foreign key support to Active Record (including support for dumping foreign keys in +db/schema.rb+).
+Although Active Record does not provide any tools for working directly with such features, the +execute+ method can be used to execute arbitrary SQL. There are also a number of plugins such as "foreign_key_migrations":https://github.com/harukizaemon/redhillonrails/tree/master/foreign_key_migrations/ which add foreign key support to Active Record (including support for dumping foreign keys in +db/schema.rb+).
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/6
 
 * July 15, 2010: minor typos corrected by "Jaime Iniesta":http://jaimeiniesta.com
 * September 14, 2008: initial version by "Frederick Cheung":credits.html#fcheung

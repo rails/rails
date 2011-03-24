@@ -4,7 +4,7 @@ module ActiveResource # :nodoc:
   class Schema # :nodoc:
     # attributes can be known to be one of these types. They are easy to
     # cast to/from.
-    KNOWN_ATTRIBUTE_TYPES = %w( string integer float )
+    KNOWN_ATTRIBUTE_TYPES = %w( string text integer float decimal datetime timestamp time date binary boolean )
 
     # An array of attribute definitions, representing the attributes that
     # have been defined.
@@ -39,8 +39,6 @@ module ActiveResource # :nodoc:
 
     # The following are the attribute types supported by Active Resource
     # migrations.
-    # TODO:  We should eventually support all of these:
-    # %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |attr_type|
     KNOWN_ATTRIBUTE_TYPES.each do |attr_type|
       class_eval <<-EOV, __FILE__, __LINE__ + 1
         def #{attr_type.to_s}(*args)

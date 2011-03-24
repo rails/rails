@@ -1,10 +1,20 @@
+require 'active_support/core_ext/module/deprecation'
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
-      def select_all(sql, name = nil)
-        select(sql, name)
+      def select_all(sql, name = nil, binds = [])
+        if supports_statement_cache?
+          select(sql, name, binds)
+        else
+          return select(sql, name) if binds.empty?
+          binds = binds.dup
+          select sql.gsub('?') {
+            quote(*binds.shift.reverse)
+          }, name
+        end
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -35,9 +45,15 @@ module ActiveRecord
       undef_method :select_rows
 
       # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil, skip_logging = false)
+      def execute(sql, name = nil)
       end
       undef_method :execute
+
+      # Executes +sql+ statement in the context of this connection using
+      # +binds+ as the bind substitutes.  +name+ is logged along with
+      # the executed +sql+ statement.
+      def exec_query(sql, name = 'SQL', binds = [])
+      end
 
       # Returns the last auto-generated ID from the affected table.
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
@@ -66,6 +82,12 @@ module ActiveRecord
       # only the PostgreSQL adapter supports this.
       def outside_transaction?
         nil
+      end
+
+      # Returns +true+ when the connection adapter supports prepared statement
+      # caching, otherwise returns +false+
+      def supports_statement_cache?
+        false
       end
 
       # Runs the given block in a database transaction, and returns the result
@@ -209,11 +231,12 @@ module ActiveRecord
       #
       # This method *modifies* the +sql+ parameter.
       #
+      # This method is deprecated!! Stop using it!
+      #
       # ===== Examples
       #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
       # generates
       #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
-
       def add_limit_offset!(sql, options)
         if limit = options[:limit]
           sql << " LIMIT #{sanitize_limit(limit)}"
@@ -223,6 +246,7 @@ module ActiveRecord
         end
         sql
       end
+      deprecate :add_limit_offset!
 
       def default_sequence_name(table, column)
         nil
@@ -236,7 +260,19 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
+        columns = Hash[columns(table_name).map { |c| [c.name, c] }]
+
+        key_list   = []
+        value_list = fixture.map do |name, value|
+          key_list << quote_column_name(name)
+          quote(value, columns[name])
+        end
+
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
+      end
+
+      def null_insert_value
+        Arel.sql 'DEFAULT'
       end
 
       def empty_insert_statement_value
@@ -251,10 +287,29 @@ module ActiveRecord
         "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"
       end
 
+      # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
+      #
+      # The +limit+ may be anything that can evaluate to a string via #to_s. It
+      # should look like an integer, or a comma-delimited list of integers, or 
+      # an Arel SQL literal.
+      #
+      # Returns Integer and Arel::Nodes::SqlLiteral limits as is. 
+      # Returns the sanitized limit parameter, either as an integer, or as a
+      # string which contains a comma-delimited list of integers.
+      def sanitize_limit(limit)
+        if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
+          limit
+        elsif limit.to_s =~ /,/
+          Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
+        else
+          Integer(limit)
+        end
+      end
+
       protected
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
-        def select(sql, name = nil)
+        def select(sql, name = nil, binds = [])
         end
         undef_method :select
 
@@ -272,21 +327,6 @@ module ActiveRecord
         # Executes the delete statement and returns the number of rows affected.
         def delete_sql(sql, name = nil)
           update_sql(sql, name)
-        end
-
-        # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
-        #
-        # +limit+ may be anything that can evaluate to a string via #to_s. It
-        # should look like an integer, or a comma-delimited list of integers.
-        #
-        # Returns the sanitized limit parameter, either as an integer, or as a
-        # string which contains a comma-delimited list of integers.
-        def sanitize_limit(limit)
-          if limit.to_s =~ /,/
-            limit.to_s.split(',').map{ |i| i.to_i }.join(',')
-          else
-            limit.to_i
-          end
         end
 
         # Send a rollback message to all records after they have been rolled back. If rollback

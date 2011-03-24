@@ -132,7 +132,7 @@ class AuthorizationTest < Test::Unit::TestCase
   end
 
   def test_get
-    david = @authenticated_conn.get("/people/2.xml")
+    david = decode(@authenticated_conn.get("/people/2.xml"))
     assert_equal "David", david["name"]
   end
 
@@ -159,7 +159,7 @@ class AuthorizationTest < Test::Unit::TestCase
   def test_get_with_digest_auth_handles_initial_401_response_and_retries
     @authenticated_conn.auth_type = :digest
     response = @authenticated_conn.get("/people/2.xml")
-    assert_equal "David", response["name"]
+    assert_equal "David", decode(response)["name"]
   end
 
   def test_post_with_digest_auth_handles_initial_401_response_and_retries
@@ -190,11 +190,11 @@ class AuthorizationTest < Test::Unit::TestCase
   def test_get_with_digest_auth_caches_nonce
     @authenticated_conn.auth_type = :digest
     response = @authenticated_conn.get("/people/2.xml")
-    assert_equal "David", response["name"]
+    assert_equal "David", decode(response)["name"]
 
     # There is no mock for this request with a non-cached nonce.
     response = @authenticated_conn.get("/people/1.xml")
-    assert_equal "Matz", response["name"]
+    assert_equal "Matz", decode(response)["name"]
   end
 
   def test_retry_on_401_only_happens_with_digest_auth
@@ -240,5 +240,9 @@ class AuthorizationTest < Test::Unit::TestCase
 
     def response_digest_auth_header
       %Q(Digest realm="RailsTestApp", qop="auth", algorithm=MD5, nonce="#{@nonce}", opaque="ef6dfb078ba22298d366f99567814ffb")
+    end
+
+    def decode(response)
+      @authenticated_conn.format.decode(response.body)
     end
 end

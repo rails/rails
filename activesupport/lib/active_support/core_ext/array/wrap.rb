@@ -10,7 +10,7 @@ class Array
   #   Array.wrap(nil)       # => []
   #   Array.wrap([1, 2, 3]) # => [1, 2, 3]
   #   Array.wrap(0)         # => [0]
-  # 
+  #
   # This method is similar in purpose to <tt>Kernel#Array</tt>, but there are some differences:
   #
   # * If the argument responds to +to_ary+ the method is invoked. <tt>Kernel#Array</tt>

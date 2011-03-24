@@ -70,7 +70,7 @@ class EmptyParent
   end
 
   def dispatch
-    _run_dispatch_callbacks
+    run_callbacks :dispatch
     self
   end
 end
@@ -80,6 +80,30 @@ class EmptyChild < EmptyParent
 
   def do_nothing
   end
+end
+
+class CountingParent
+  include ActiveSupport::Callbacks
+
+  attr_reader :count
+
+  define_callbacks :dispatch
+
+  def initialize
+    @count = 0
+  end
+
+  def count!
+    @count += 1
+  end
+
+  def dispatch
+    run_callbacks(:dispatch)
+    self
+  end
+end
+
+class CountingChild < CountingParent
 end
 
 class BasicCallbacksTest < Test::Unit::TestCase
@@ -146,5 +170,11 @@ class DynamicInheritedCallbacks < Test::Unit::TestCase
     EmptyParent.set_callback :dispatch, :before, :perform!
     child = EmptyChild.new.dispatch
     assert child.performed?
+  end
+
+  def test_callbacks_should_be_performed_once_in_child_class
+    CountingParent.set_callback(:dispatch, :before) { count! }
+    child = CountingChild.new.dispatch
+    assert_equal 1, child.count
   end
 end

@@ -1,5 +1,4 @@
 require 'open-uri'
-require 'active_support/deprecation'
 require 'rbconfig'
 
 module Rails
@@ -45,27 +44,13 @@ module Rails
       #
       # ==== Example
       #
-      #   gem "rspec", :env => :test
+      #   gem "rspec", :group => :test
       #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
       #   gem "rails", "3.0", :git => "git://github.com/rails/rails"
       #
       def gem(*args)
         options = args.extract_options!
         name, version = args
-
-        # Deal with deprecated options
-        { :env => :group, :only => :group,
-          :lib => :require, :require_as => :require }.each do |old, new|
-          next unless options[old]
-          options[new] = options.delete(old)
-          ActiveSupport::Deprecation.warn "#{old.inspect} option in gem is deprecated, use #{new.inspect} instead"
-        end
-
-        # Deal with deprecated source
-        if source = options.delete(:source)
-          ActiveSupport::Deprecation.warn ":source option in gem is deprecated, use add_source method instead"
-          add_source(source)
-        end
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
@@ -202,8 +187,8 @@ module Rails
       #   initializer("globals.rb") do
       #     data = ""
       #
-      #     ['MY_WORK', 'ADMINS', 'BEST_COMPANY_EVAR'].each do
-      #       data << "#{const} = :entp"
+      #     ['MY_WORK', 'ADMINS', 'BEST_COMPANY_EVAR'].each do |const|
+      #       data << "#{const} = :entp\n"
       #     end
       #
       #     data
@@ -242,7 +227,7 @@ module Rails
       def rake(command, options={})
         log :rake, command
         env  = options[:env] || 'development'
-        sudo = options[:sudo] && Config::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
+        sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
         in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", :verbose => false) }
       end
 
@@ -255,16 +240,6 @@ module Rails
       def capify!
         log :capify, ""
         in_root { run("#{extify(:capify)} .", :verbose => false) }
-      end
-
-      # Add Rails to /vendor/rails
-      #
-      # ==== Example
-      #
-      #   freeze!
-      #
-      def freeze!(args={})
-        ActiveSupport::Deprecation.warn "freeze! is deprecated since your rails app now comes bundled with Rails by default, please check your Gemfile"
       end
 
       # Make an entry in Rails routing file config/routes.rb
@@ -289,17 +264,18 @@ module Rails
       #   readme "README"
       #
       def readme(path)
-        say File.read(find_in_source_paths(path))
+        log File.read(find_in_source_paths(path))
       end
 
       protected
 
         # Define log for backwards compatibility. If just one argument is sent,
-        # invoke say, otherwise invoke say_status.
+        # invoke say, otherwise invoke say_status. Differently from say and
+        # similarly to say_status, this method respects the quiet? option given.
         #
         def log(*args)
           if args.size == 1
-            say args.first.to_s
+            say args.first.to_s unless options.quiet?
           else
             args << (self.behavior == :invoke ? :green : :red)
             say_status *args
@@ -309,7 +285,7 @@ module Rails
         # Add an extension to the given name based on the platform.
         #
         def extify(name)
-          if Config::CONFIG['host_os'] =~ /mswin|mingw/
+          if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
             "#{name}.bat"
           else
             name

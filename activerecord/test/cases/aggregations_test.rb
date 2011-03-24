@@ -99,7 +99,7 @@ class AggregationsTest < ActiveRecord::TestCase
     customers(:zaphod).save
     customers(:zaphod).reload
     assert_kind_of Address, customers(:zaphod).address
-    assert customers(:zaphod).address.street.nil?
+    assert_nil customers(:zaphod).address.street
   end
 
   def test_nil_assignment_results_in_nil

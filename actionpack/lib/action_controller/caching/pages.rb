@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'uri'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module ActionController #:nodoc:
@@ -71,9 +70,9 @@ module ActionController #:nodoc:
 
         # Manually cache the +content+ in the key determined by +path+. Example:
         #   cache_page "I'm the cached content", "/lists/show"
-        def cache_page(content, path)
+        def cache_page(content, path, extension = nil)
           return unless perform_caching
-          path = page_cache_path(path)
+          path = page_cache_path(path, extension)
 
           instrument_page_cache :write_page, path do
             FileUtils.makedirs(File.dirname(path))
@@ -98,14 +97,16 @@ module ActionController #:nodoc:
         end
 
         private
-          def page_cache_file(path)
-            name = (path.empty? || path == "/") ? "/index" : URI.unescape(path.chomp('/'))
-            name << page_cache_extension unless (name.split('/').last || name).include? '.'
+          def page_cache_file(path, extension)
+            name = (path.empty? || path == "/") ? "/index" : URI.parser.unescape(path.chomp('/'))
+            unless (name.split('/').last || name).include? '.'
+              name << (extension || self.page_cache_extension)
+            end
             return name
           end
 
-          def page_cache_path(path)
-            page_cache_directory + page_cache_file(path)
+          def page_cache_path(path, extension = nil)
+            page_cache_directory.to_s + page_cache_file(path, extension)
           end
 
           def instrument_page_cache(name, path)
@@ -135,7 +136,7 @@ module ActionController #:nodoc:
       # If no options are provided, the requested url is used. Example:
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = nil)
-        return unless self.class.perform_caching && caching_allowed
+        return unless self.class.perform_caching && caching_allowed?
 
         path = case options
           when Hash
@@ -146,13 +147,13 @@ module ActionController #:nodoc:
             request.path
         end
 
-        self.class.cache_page(content || response.body, path)
+        if (type = Mime::LOOKUP[self.content_type]) && (type_symbol = type.symbol).present?
+          extension = ".#{type_symbol}"
+        end
+
+        self.class.cache_page(content || response.body, path, extension)
       end
 
-      private
-        def caching_allowed
-          request.get? && response.status.to_i == 200
-        end
     end
   end
 end

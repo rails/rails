@@ -27,7 +27,10 @@ module ApplicationTests
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
+        "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::IdentityMap::Middleware",
+        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
@@ -35,8 +38,18 @@ module ApplicationTests
         "ActionDispatch::ParamsParser",
         "Rack::MethodOverride",
         "ActionDispatch::Head",
+        "Rack::ConditionalGet",
+        "Rack::ETag",
         "ActionDispatch::BestStandardsSupport"
       ], middleware
+    end
+
+    test "Rack::Cache is present when action_controller.perform_caching is set" do
+      add_to_config "config.action_controller.perform_caching = true"
+
+      boot!
+
+      assert_equal "Rack::Cache", middleware.first
     end
 
     test "removing Active Record omits its middleware" do
@@ -44,6 +57,7 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
+      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
 
     test "removes lock if allow concurrency is set" do
@@ -64,10 +78,16 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
-    test "removes show exceptions if action_dispatch.show_exceptions is disabled" do
+    test "includes show exceptions even action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
-      assert !middleware.include?("ActionDispatch::ShowExceptions")
+      assert middleware.include?("ActionDispatch::ShowExceptions")
+    end
+
+    test "removes ActionDispatch::Reloader if cache_classes is true" do
+      add_to_config "config.cache_classes = true"
+      boot!
+      assert !middleware.include?("ActionDispatch::Reloader")
     end
 
     test "use middleware" do
@@ -94,87 +114,57 @@ module ApplicationTests
       assert_equal "Rack::Runtime", middleware.fourth
     end
 
+    test "identity map is inserted" do
+      boot!
+      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
+    end
+
     test "insert middleware before" do
       add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
     end
 
-    # x_sendfile_header middleware
-    test "config.action_dispatch.x_sendfile_header defaults to ''" do
+    # ConditionalGet + Etag
+    test "conditional get + etag middlewares handle http caching based on body" do
       make_basic_app
 
       class ::OmgController < ActionController::Base
         def index
-          send_file __FILE__
+          if params[:nothing]
+            render :text => ""
+          else
+            render :text => "OMG"
+          end
         end
       end
 
-      get "/"
-      assert_equal File.read(__FILE__), last_response.body
-    end
-
-    test "config.action_dispatch.x_sendfile_header can be set" do
-      make_basic_app do |app|
-        app.config.action_dispatch.x_sendfile_header = "X-Sendfile"
-      end
-
-      class ::OmgController < ActionController::Base
-        def index
-          send_file __FILE__
-        end
-      end
+      etag = "5af83e3196bf99f440f31f2e1a6c9afe".inspect
 
       get "/"
-      assert_equal File.expand_path(__FILE__), last_response.headers["X-Sendfile"]
+      assert_equal 200, last_response.status
+      assert_equal "OMG", last_response.body
+      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
+      assert_equal etag, last_response.headers["Etag"]
+
+      get "/", {}, "HTTP_IF_NONE_MATCH" => etag
+      assert_equal 304, last_response.status
+      assert_equal "", last_response.body
+      assert_equal nil, last_response.headers["Content-Type"]
+      assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
+      assert_equal etag, last_response.headers["Etag"]
+
+      get "/?nothing=true"
+      puts last_response.body
+      assert_equal 200, last_response.status
+      assert_equal "", last_response.body
+      assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
+      assert_equal "no-cache", last_response.headers["Cache-Control"]
+      assert_equal nil, last_response.headers["Etag"]
     end
 
-    test "config.action_dispatch.x_sendfile_header is sent to Rack::Sendfile" do
-      make_basic_app do |app|
-        app.config.action_dispatch.x_sendfile_header = 'X-Lighttpd-Send-File'
-      end
-
-      class ::OmgController < ActionController::Base
-        def index
-          send_file __FILE__
-        end
-      end
-
-      get "/"
-      assert_equal File.expand_path(__FILE__), last_response.headers["X-Lighttpd-Send-File"]
-    end
-
-    # remote_ip tests
-    test "remote_ip works" do
-      make_basic_app
-      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "1.1.1.1")
-    end
-
-    test "checks IP spoofing by default" do
-      make_basic_app
-      assert_raises(ActionDispatch::RemoteIp::IpSpoofAttackError) do
-        remote_ip("HTTP_X_FORWARDED_FOR" => "1.1.1.1", "HTTP_CLIENT_IP" => "1.1.1.2")
-      end
-    end
-
-    test "can disable IP spoofing check" do
-      make_basic_app do |app|
-        app.config.action_dispatch.ip_spoofing_check = false
-      end
-
-      assert_nothing_raised(ActionDispatch::RemoteIp::IpSpoofAttackError) do
-        assert_equal "1.1.1.2", remote_ip("HTTP_X_FORWARDED_FOR" => "1.1.1.1", "HTTP_CLIENT_IP" => "1.1.1.2")
-      end
-    end
-
-    test "the user can set trusted proxies" do
-      make_basic_app do |app|
-        app.config.action_dispatch.trusted_proxies = /^4\.2\.42\.42$/
-      end
-
-      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "4.2.42.42,1.1.1.1")
-    end
-
+    # Show exceptions middleware
     test "show exceptions middleware filter backtrace before logging" do
       my_middleware = Struct.new(:app) do
         def call(env)
@@ -202,22 +192,6 @@ module ApplicationTests
 
       def middleware
         AppTemplate::Application.middleware.map(&:klass).map(&:name)
-      end
-
-      def remote_ip(env = {})
-        remote_ip = nil
-        env = Rack::MockRequest.env_for("/").merge(env).merge!(
-          'action_dispatch.show_exceptions' => false,
-          'action_dispatch.secret_token' => 'b3c631c314c0bbca50c1b2843150fe33'
-        )
-
-        endpoint = Proc.new do |e|
-          remote_ip = ActionDispatch::Request.new(e).remote_ip
-          [200, {}, ["Hello"]]
-        end
-
-        Rails.application.middleware.build(endpoint).call(env)
-        remote_ip
       end
   end
 end

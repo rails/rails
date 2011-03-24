@@ -69,10 +69,6 @@ module ActionController #:nodoc:
         options[:filename] ||= File.basename(path) unless options[:url_based_filename]
         send_file_headers! options
 
-        if options[:x_sendfile]
-          ActiveSupport::Deprecation.warn(":x_sendfile is no longer needed in send_file", caller)
-        end
-
         self.status = options[:status] || 200
         self.content_type = options[:content_type] if options.key?(:content_type)
         self.response_body = File.open(path, "rb")
@@ -105,10 +101,6 @@ module ActionController #:nodoc:
       #   send_data image.data, :type => image.content_type, :disposition => 'inline'
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
-      #
-      # <b>Tip:</b> if you want to stream large amounts of on-the-fly generated
-      # data to the browser, then use <tt>render :text => proc { ... }</tt>
-      # instead. See ActionController::Base#render for more information.
       def send_data(data, options = {}) #:doc:
         send_file_headers! options.dup
         render options.slice(:status, :content_type).merge(:text => data)
@@ -119,10 +111,6 @@ module ActionController #:nodoc:
         options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
         [:type, :disposition].each do |arg|
           raise ArgumentError, ":#{arg} option required" if options[arg].nil?
-        end
-
-        if options.key?(:length)
-          ActiveSupport::Deprecation.warn("You do not need to provide the file's length", caller)
         end
 
         disposition = options[:disposition]

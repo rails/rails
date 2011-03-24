@@ -17,7 +17,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
     o = Owner.new('name' => 'nopets')
     assert !o.save
     assert o.errors[:pets].any?
-    pet = o.pets.build('name' => 'apet')
+    o.pets.build('name' => 'apet')
     assert o.valid?
   end
 
@@ -27,7 +27,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert !o.save
     assert o.errors[:pets].any?
 
-    pet = o.pets.build('name' => 'apet')
+    o.pets.build('name' => 'apet')
     assert o.valid?
 
     2.times { o.pets.build('name' => 'apet') }

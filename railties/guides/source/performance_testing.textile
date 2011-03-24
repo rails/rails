@@ -20,7 +20,7 @@ In a freshly generated Rails application, +test/performance/browsing_test.rb+ co
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 # Profiling results for each test method are written to tmp/performance.
 class BrowsingTest < ActionController::PerformanceTest
@@ -34,17 +34,17 @@ This example is a simple performance test case for profiling a GET request to th
 
 h4. Generating Performance Tests
 
-Rails provides a generator called +performance_test+ for creating new performance tests:
+Rails provides a generator called +test_unit:performance+ for creating new performance tests:
 
 <shell>
-rails generate performance_test homepage
+$ rails generate test_unit:performance homepage
 </shell>
 
 This generates +homepage_test.rb+ in the +test/performance+ directory:
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 class HomepageTest < ActionController::PerformanceTest
   # Replace this with your real tests.
@@ -60,8 +60,8 @@ Let's assume your application has the following controller and model:
 
 <ruby>
 # routes.rb
-map.root :controller => 'home'
-map.resources :posts
+root :to => 'home#index'
+resources :posts
 
 # home_controller.rb
 class HomeController < ApplicationController
@@ -103,7 +103,7 @@ Here's the performance test for +HomeController#dashboard+ and +PostsController#
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 class PostPerformanceTest < ActionController::PerformanceTest
   def setup
@@ -131,7 +131,7 @@ Performance test for +Post+ model:
 
 <ruby>
 require 'test_helper'
-require 'performance_test_help'
+require 'rails/performance_test_help'
 
 class PostModelTest < ActionController::PerformanceTest
   def test_creation
@@ -316,16 +316,16 @@ Compile Ruby and apply this "GC Patch":http://rubyforge.org/tracker/download.php
 h5. Download and Extract
 
 <shell>
-[lifo@null ~]$ mkdir rubygc
-[lifo@null ~]$ wget <download the latest stable ruby from ftp://ftp.ruby-lang.org/pub/ruby>
-[lifo@null ~]$ tar -xzvf <ruby-version.tar.gz>
-[lifo@null ~]$ cd <ruby-version>
+$ mkdir rubygc
+$ wget <download the latest stable ruby from ftp://ftp.ruby-lang.org/pub/ruby>
+$ tar -xzvf <ruby-version.tar.gz>
+$ cd <ruby-version>
 </shell>
 
 h5. Apply the Patch
 
 <shell>
-[lifo@null ruby-version]$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
+$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
 </shell>
 
 h5. Configure and Install
@@ -333,8 +333,8 @@ h5. Configure and Install
 The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home directory.
 
 <shell>
-[lifo@null ruby-version]$ ./configure --prefix=/<homedir>/rubygc
-[lifo@null ruby-version]$ make && make install
+$ ./configure --prefix=/<homedir>/rubygc
+$ make && make install
 </shell>
 
 h5. Prepare Aliases
@@ -364,8 +364,8 @@ Additionally, install the following gems:
 If installing +mysql+ fails, you can try to install it manually:
 
 <shell>
-[lifo@null mysql]$ gcruby extconf.rb --with-mysql-config
-[lifo@null mysql]$ make && make install
+$ gcruby extconf.rb --with-mysql-config
+$ make && make install
 </shell>
 
 And you're ready to go. Don't forget to use +gcruby+ and +gcrake+ aliases when running the performance tests.
@@ -398,7 +398,7 @@ $ rails benchmarker 'Item.first' 'Item.last'
 
 h4. +profiler+
 
-+profiler+ is a wrapper around http://ruby-prof.rubyforge.org/[ruby-prof] gem.
++profiler+ is a wrapper around the "ruby-prof":http://ruby-prof.rubyforge.org gem.
 
 Usage:
 
@@ -436,7 +436,7 @@ h4. Model
 Project.benchmark("Creating project") do
   project = Project.create("name" => "stuff")
   project.create_manager("name" => "David")
-  project.milestones << Milestone.find(:all)
+  project.milestones << Milestone.all
 end
 </ruby>
 
@@ -469,7 +469,7 @@ And in "views":http://api.rubyonrails.org/classes/ActionController/Benchmarking/
 
 <erb>
 <% benchmark("Showing projects partial") do %>
-  <%= render :partial => @projects %>
+  <%= render @projects %>
 <% end %>
 </erb>
 
@@ -500,8 +500,8 @@ h4. Rails Plugins and Gems
 
 * "Rails Analyzer":http://rails-analyzer.rubyforge.org
 * "Palmist":http://www.flyingmachinestudios.com/projects/
-* "Rails Footnotes":http://github.com/josevalim/rails-footnotes/tree/master
-* "Query Reviewer":http://github.com/dsboulder/query_reviewer/tree/master
+* "Rails Footnotes":https://github.com/josevalim/rails-footnotes/tree/master
+* "Query Reviewer":https://github.com/dsboulder/query_reviewer/tree/master
 
 h4. Generic Tools
 
@@ -523,8 +523,6 @@ Rails has been lucky to have two startups dedicated to Rails specific performanc
 * "Scout":http://scoutapp.com
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/4
 
 * January 9, 2009: Complete rewrite by "Pratik":credits.html#lifo
 * September 6, 2008: Initial version by Matthew Bergman

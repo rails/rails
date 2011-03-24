@@ -3,19 +3,23 @@ Ruby on Rails Guides
 <% end %>
 
 <% content_for :header_section do %>
-<h2>Ruby on Rails Guides</h2>
+<h2>Ruby on Rails Guides (<%= ENV['RAILS_VERSION'] || 'edge' %>)</h2>
 
 <% if @edge %>
 <p>
   These are <b>Edge Guides</b>, based on the current
-  <a href="http://github.com/rails/rails/tree/master">master branch</a>.
+  <a href="https://github.com/rails/rails/tree/master">master branch</a>.
 </p>
 <p>
   If you are looking for the ones for the stable version please check
   <a href="http://guides.rubyonrails.org">http://guides.rubyonrails.org</a> instead.
 </p>
+<% else %>
+<p>
+  These are the new guides for Rails 3. The guides for Rails 2.3 are still available
+  at <a href="http://guides.rubyonrails.org/v2.3.8/">http://guides.rubyonrails.org/v2.3.8/</a>.
+</p>
 <% end %>
-
 <p>
   These guides are designed to make you immediately productive with Rails,
   and to help you understand how all of the pieces fit together.
@@ -27,7 +31,7 @@ Ruby on Rails Guides
 <div id="subCol">
   <dl>
     <dd class="warning">Rails Guides are a result of the ongoing <a href="http://hackfest.rubyonrails.org">Guides hackfest</a>, and a work in progress.</dd>
-    <dd class="ticket">Guides marked with this icon are currently being worked on. While they might still be useful to you, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections at the respective Lighthouse ticket.</dd>
+    <dd class="work-in-progress">Guides marked with this icon are currently being worked on. While they might still be useful to you, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections to the author.</dd>
   </dl>
 </div>
 <% end %>
@@ -67,7 +71,7 @@ Ruby on Rails Guides
   <p>This guide covers the basic layout features of Action Controller and Action View, including rendering and redirecting, using content_for blocks, and working with partials.</p>
 <% end %>
 
-<%= guide("Action View Form Helpers", 'form_helpers.html', :ticket => 1) do %>
+<%= guide("Action View Form Helpers", 'form_helpers.html', :work_in_progress => true) do %>
   <p>Guide to using built-in Form helpers.</p>
 <% end %>
 </dl>
@@ -96,11 +100,11 @@ Ruby on Rails Guides
   <p>This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.</p>
 <% end %>
 
-<%= guide("Action Mailer Basics", 'action_mailer_basics.html', :ticket => 25) do %>
+<%= guide("Action Mailer Basics", 'action_mailer_basics.html', :work_in_progress => true) do %>
   <p>This guide describes how to use Action Mailer to send and receive emails.</p>
 <% end %>
 
-<%= guide("Testing Rails Applications", 'testing.html', :ticket => 8) do %>
+<%= guide("Testing Rails Applications", 'testing.html', :work_in_progress => true) do %>
   <p>This is a rather comprehensive guide to doing both unit and functional tests in Rails. It covers everything from &quot;What is a test?&quot; to the testing APIs. Enjoy.</p>
 <% end %>
 
@@ -120,11 +124,11 @@ Ruby on Rails Guides
   <p>This guide covers the basic configuration settings for a Rails application.</p>
 <% end %>
 
-<%= guide("Rails Command Line Tools and Rake tasks", 'command_line.html', :ticket => 29) do %>
+<%= guide("Rails Command Line Tools and Rake tasks", 'command_line.html', :work_in_progress => true) do %>
   <p>This guide covers the command line tools and rake tasks provided by Rails.</p>
 <% end %>
 
-<%= guide("Caching with Rails", 'caching_with_rails.html', :ticket => 10) do %>
+<%= guide("Caching with Rails", 'caching_with_rails.html', :work_in_progress => true) do %>
   <p>Various caching techniques provided by Rails.</p>
 <% end %>
 </dl>
@@ -132,7 +136,7 @@ Ruby on Rails Guides
 <h3>Extending Rails</h3>
 
 <dl>
-  <%= guide("The Basics of Creating Rails Plugins", 'plugins.html', :ticket => 32) do %>
+  <%= guide("The Basics of Creating Rails Plugins", 'plugins.html', :work_in_progress => true) do %>
     <p>This guide covers how to build a plugin to extend the functionality of Rails.</p>
   <% end %>
 
@@ -140,22 +144,26 @@ Ruby on Rails Guides
     <p>This guide covers Rails integration with Rack and interfacing with other Rack components.</p>
   <% end %>
 
-  <%= guide("Adding Generators", 'generators.html') do %>
+  <%= guide("Creating and Customizing Rails Generators", 'generators.html') do %>
     <p>This guide covers the process of adding a brand new generator to your extension
       or providing an alternative to an element of a built-in Rails generator (such as
       providing alternative test stubs for the scaffold generator).</p>
   <% end %>
 </dl>
 
-<h3>Contributing to Rails</h3>
+<h3>Contributing to Ruby on Rails</h3>
 
 <dl>
-  <%= guide("Contributing to Rails", 'contributing_to_rails.html') do %>
+  <%= guide("Contributing to Ruby on Rails", 'contributing_to_ruby_on_rails.html') do %>
     <p>Rails is not &quot;somebody else's framework.&quot; This guide covers a variety of ways that you can get involved in the ongoing development of Rails.</p>
   <% end %>
 
   <%= guide('API Documentation Guidelines', 'api_documentation_guidelines.html') do %>
     <p>This guide documents the Ruby on Rails API documentation guidelines.</p>
+  <% end %>
+
+  <%= guide('Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html') do %>
+    <p>This guide documents the Ruby on Rails guides guidelines.</p>
   <% end %>
 </dl>
 

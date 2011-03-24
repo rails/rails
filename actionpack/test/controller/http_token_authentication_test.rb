@@ -13,7 +13,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     def display
       render :text => 'Definitely Maybe'
     end
-    
+
     def show
       render :text => 'Only for loooooong credentials'
     end
@@ -33,7 +33,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
         request_http_token_authentication("SuperSecret")
       end
     end
-    
+
     def authenticate_long_credentials
       authenticate_or_request_with_http_token do |token, options|
         token == '1234567890123456789012345678901234567890' && options[:algorithm] == 'test'
@@ -56,7 +56,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     test "successful authentication with #{header.downcase} and long credentials" do
       @request.env[header] = encode_credentials('1234567890123456789012345678901234567890', :algorithm => 'test')
       get :show
-      
+
       assert_response :success
       assert_equal 'Only for loooooong credentials', @response.body, "Authentication failed for request header #{header} and long credentials"
     end

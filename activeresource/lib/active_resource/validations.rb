@@ -6,21 +6,21 @@ module ActiveResource
   end
 
   # Active Resource validation is reported to and from this object, which is used by Base#save
-  # to determine whether the object in a valid state to be saved. See usage example in Validations.  
+  # to determine whether the object in a valid state to be saved. See usage example in Validations.
   class Errors < ActiveModel::Errors
     # Grabs errors from an array of messages (like ActiveRecord::Validations)
     # The second parameter directs the errors cache to be cleared (default)
     # or not (by passing true)
     def from_array(messages, save_cache = false)
       clear unless save_cache
-      humanized_attributes = @base.attributes.keys.inject({}) { |h, attr_name| h.update(attr_name.humanize => attr_name) }
+      humanized_attributes = Hash[@base.attributes.keys.map { |attr_name| [attr_name.humanize, attr_name] }]
       messages.each do |message|
         attr_message = humanized_attributes.keys.detect do |attr_name|
           if message[0, attr_name.size + 1] == "#{attr_name} "
             add humanized_attributes[attr_name], message[(attr_name.size + 1)..-1]
           end
         end
-        
+
         self[:base] << message if attr_message.nil?
       end
     end
@@ -37,15 +37,15 @@ module ActiveResource
       from_array array, save_cache
     end
   end
-  
+
   # Module to support validation and errors with Active Resource objects. The module overrides
-  # Base#save to rescue ActiveResource::ResourceInvalid exceptions and parse the errors returned 
-  # in the web service response. The module also adds an +errors+ collection that mimics the interface 
+  # Base#save to rescue ActiveResource::ResourceInvalid exceptions and parse the errors returned
+  # in the web service response. The module also adds an +errors+ collection that mimics the interface
   # of the errors provided by ActiveRecord::Errors.
   #
   # ==== Example
   #
-  # Consider a Person resource on the server requiring both a +first_name+ and a +last_name+ with a 
+  # Consider a Person resource on the server requiring both a +first_name+ and a +last_name+ with a
   # <tt>validates_presence_of :first_name, :last_name</tt> declaration in the model:
   #
   #   person = Person.new(:first_name => "Jim", :last_name => "")
@@ -55,7 +55,7 @@ module ActiveResource
   #   person.errors.count           # => 1
   #   person.errors.full_messages   # => ["Last name can't be empty"]
   #   person.errors[:last_name]  # => ["can't be empty"]
-  #   person.last_name = "Halpert"  
+  #   person.last_name = "Halpert"
   #   person.save                   # => true (and person is now saved to the remote service)
   #
   module Validations
@@ -68,16 +68,8 @@ module ActiveResource
 
     # Validate a resource and save (POST) it to the remote web service.
     # If any local validations fail - the save (POST) will not be attempted.
-    def save_with_validation(options=nil)
-      perform_validation = case options
-        when Hash
-          options[:validate] != false
-        when NilClass
-          true
-        else
-          ActiveSupport::Deprecation.warn "save(#{options}) is deprecated, please give save(:validate => #{options}) instead", caller
-          options
-      end
+    def save_with_validation(options={})
+      perform_validation = options[:validate] != false
 
       # clear the remote validations so they don't interfere with the local
       # ones. Otherwise we get an endless loop and can never change the
@@ -118,7 +110,7 @@ module ActiveResource
     # also any errors returned from the remote system the last time we
     # saved.
     # Remote errors can only be cleared by trying to re-save the resource.
-    # 
+    #
     # ==== Examples
     #   my_person = Person.create(params[:person])
     #   my_person.valid?

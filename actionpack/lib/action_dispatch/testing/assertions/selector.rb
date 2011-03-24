@@ -24,10 +24,6 @@ module ActionDispatch
     #
     # Also see HTML::Selector to learn how to use selectors.
     module SelectorAssertions
-      # :call-seq:
-      #   css_select(selector) => array
-      #   css_select(element, selector) => array
-      #
       # Select and return all matching elements.
       #
       # If called with a single argument, uses that argument as a selector
@@ -71,7 +67,7 @@ module ActionDispatch
           arg = args.shift
         elsif arg == nil
           raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-        elsif @selected
+        elsif defined?(@selected) && @selected
           matches = []
 
           @selected.each do |selected|
@@ -99,10 +95,6 @@ module ActionDispatch
         selector.select(root)
       end
 
-      # :call-seq:
-      #   assert_select(selector, equality?, message?)
-      #   assert_select(element, selector, equality?, message?)
-      #
       # An assertion that selects elements and makes one or more equality tests.
       #
       # If the first argument is an element, selects all matching elements
@@ -195,6 +187,7 @@ module ActionDispatch
       def assert_select(*args, &block)
         # Start with optional element followed by mandatory selector.
         arg = args.shift
+        @selected ||= nil
 
         if arg.is_a?(HTML::Node)
           # First argument is a node (tag or text, but also HTML root),
@@ -332,11 +325,6 @@ module ActionDispatch
         end
       end
 
-      # :call-seq:
-      #   assert_select_rjs(id?) { |elements| ... }
-      #   assert_select_rjs(statement, id?) { |elements| ... }
-      #   assert_select_rjs(:insert, position, id?) { |elements| ... }
-      #
       # Selects content from the RJS response.
       #
       # === Narrowing down
@@ -455,6 +443,7 @@ module ActionDispatch
           assert_block("") { true } # to count the assertion
           if block_given? && !([:remove, :show, :hide, :toggle].include? rjs_type)
             begin
+              @selected ||= nil
               in_scope, @selected = @selected, matches
               yield matches
             ensure
@@ -474,9 +463,6 @@ module ActionDispatch
         end
       end
 
-      # :call-seq:
-      #   assert_select_encoded(element?) { |elements| ... }
-      #
       # Extracts the content of an element, treats it as encoded HTML and runs
       # nested assertion on it.
       #
@@ -529,8 +515,8 @@ module ActionDispatch
           node.content.gsub(/<!\[CDATA\[(.*)(\]\]>)?/m) { Rack::Utils.escapeHTML($1) }
         end
 
-        selected = elements.map do |element|
-          text = element.children.select{ |c| not c.tag? }.map{ |c| fix_content[c] }.join
+        selected = elements.map do |_element|
+          text = _element.children.select{ |c| not c.tag? }.map{ |c| fix_content[c] }.join
           root = HTML::Document.new(CGI.unescapeHTML("<encoded>#{text}</encoded>")).root
           css_select(root, "encoded:root", &block)[0]
         end
@@ -543,9 +529,6 @@ module ActionDispatch
         end
       end
 
-      # :call-seq:
-      #   assert_select_email { }
-      #
       # Extracts the body of an email and runs nested assertions on it.
       #
       # You must enable deliveries for this assertion to work, use:

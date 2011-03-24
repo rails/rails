@@ -9,6 +9,7 @@ In this guide you will:
 * Generate select boxes from multiple types of data
 * Understand the date and time helpers Rails provides
 * Learn what makes a file upload form different
+* Learn some cases of building forms to external resources
 * Find out where to look for complex forms
 
 endprologue.
@@ -31,17 +32,18 @@ When called without arguments like this, it creates a form element that has the 
 Sample output from +form_tag+:
 
 <html>
-<form action="/home/index" method="post">
+<form accept-charset="UTF-8" action="/home/index" method="post">
   <div style="margin:0;padding:0">
+    <input name="utf8" type="hidden" value="&#x2713;" />
     <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   </div>
   Form contents
 </form>
 </html>
 
-If you carefully observe this output, you can see that the helper generated something you didn't specify: a +div+ element with a hidden input inside. This is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled). You can read more about this in the "Ruby On Rails Security Guide":./security.html#_cross_site_reference_forgery_csrf.
+If you carefully observe this output, you can see that the helper generated something you didn't specify: a +div+ element with two hidden input elements inside. The first input element with name +utf8+ enforces browsers to properly respect your form's character encoding and is generated for all forms whether action is "get" or "post". Second input element with name +authenticity_token+ is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled). You can read more about this in the "Ruby On Rails Security Guide":./security.html#_cross_site_reference_forgery_csrf.
 
-NOTE: Throughout this guide, this +div+ with the hidden input will be stripped away to have clearer code samples.
+NOTE: Throughout this guide, this +div+ with the hidden input elements will be stripped away to have clearer code samples.
 
 h4. A Generic Search Form
 
@@ -58,20 +60,20 @@ To create this form you will use +form_tag+, +label_tag+, +text_field_tag+, and 
 
 A basic search form
 
-<html>
+<erb>
 <%= form_tag(search_path, :method => "get") do %>
   <%= label_tag(:q, "Search for:") %>
   <%= text_field_tag(:q) %>
   <%= submit_tag("Search") %>
 <% end %>
-</html>
+</erb>
 
-TIP: +search_path+ can be a named route specified in "routes.rb": <br /><tt>map.search "search", :controller => "search"</tt>
+TIP: +search_path+ can be a named route specified in "routes.rb" as: <br /><code>match "search" => "search"</code> This declares that path "/search" will be handled by action "search" belonging to controller "search".
 
 The above view code will result in the following markup:
 
 <html>
-<form action="/search" method="get">
+<form accept-charset="UTF-8" action="/search" method="get">
   <label for="q">Search for:</label>
   <input id="q" name="q" type="text" />
   <input name="commit" type="submit" value="Search" />
@@ -90,14 +92,14 @@ As with the +link_to+ helper, the path argument doesn't have to be given a strin
 
 <ruby>
 form_tag(:controller => "people", :action => "search", :method => "get", :class => "nifty_form")
-# => <form action="/people/search?method=get&class=nifty_form" method="post">
+# => <form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">
 </ruby>
 
 Here you wanted to pass two hashes, but the Ruby interpreter sees only one hash, so Rails will construct a URL with extraneous parameters. The correct way of passing multiple hashes as arguments is to delimit the first hash (or both hashes) with curly brackets:
 
 <ruby>
 form_tag({:controller => "people", :action => "search"}, :method => "get", :class => "nifty_form")
-# => <form action="/people/search" method="get" class="nifty_form">
+# => <form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">
 </ruby>
 
 This is a common pitfall when using form helpers, since many of them accept multiple hashes. So in future, if a helper produces unexpected output, make sure that you have delimited the hash parameters properly.
@@ -106,7 +108,7 @@ WARNING: Do not delimit the second hash without doing so with the first hash, ot
 
 h4. Helpers for Generating Form Elements
 
-Rails provides a series of helpers for generating form elements such as checkboxes, text fields, radio buttons, and so on. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+, +check_box_tag+, etc., generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
+Rails provides a series of helpers for generating form elements such as checkboxes, text fields and radio buttons. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+ and +check_box_tag+ generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
 
 <erb>
 <%= text_field_tag(:query) %>
@@ -126,17 +128,19 @@ Checkboxes are form controls that give the user a set of options they can enable
 
 <erb>
 <%= check_box_tag(:pet_dog) %>
-  <%= label_tag(:pet_dog, "I own a dog") %>
+<%= label_tag(:pet_dog, "I own a dog") %>
 <%= check_box_tag(:pet_cat) %>
-  <%= label_tag(:pet_cat, "I own a cat") %>
+<%= label_tag(:pet_cat, "I own a cat") %>
+</erb>
 
 output:
 
+<html>
 <input id="pet_dog" name="pet_dog" type="checkbox" value="1" />
-  <label for="pet_dog">I own a dog</label>
+<label for="pet_dog">I own a dog</label>
 <input id="pet_cat" name="pet_cat" type="checkbox" value="1" />
-  <label for="pet_cat">I own a cat</label>
-</erb>
+<label for="pet_cat">I own a cat</label>
+</html>
 
 The second parameter to +check_box_tag+ is the value of the input. This is the value that will be submitted by the browser if the checkbox is ticked (i.e. the value that will be present in the +params+ hash). With the above form you would check the value of +params[:pet_dog]+ and +params[:pet_cat]+ to see which pets the user owns.
 
@@ -146,17 +150,19 @@ Radio buttons, while similar to checkboxes, are controls that specify a set of o
 
 <erb>
 <%= radio_button_tag(:age, "child") %>
-  <%= label_tag(:age_child, "I am younger than 21") %>
+<%= label_tag(:age_child, "I am younger than 21") %>
 <%= radio_button_tag(:age, "adult") %>
-  <%= label_tag(:age_adult, "I'm over 21") %>
+<%= label_tag(:age_adult, "I'm over 21") %>
+</erb>
 
 output:
 
+<html>
 <input id="age_child" name="age" type="radio" value="child" />
-  <label for="age_child">I am younger than 21</label>
+<label for="age_child">I am younger than 21</label>
 <input id="age_adult" name="age" type="radio" value="adult" />
-  <label for="age_adult">I'm over 21</label>
-</erb>
+<label for="age_adult">I'm over 21</label>
+</html>
 
 As with +check_box_tag+ the second parameter to +radio_button_tag+ is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one and +params[:age]+ will contain either "child" or "adult".
 
@@ -170,17 +176,19 @@ Other form controls worth mentioning are the text area, password input and hidde
 <%= text_area_tag(:message, "Hi, nice site", :size => "24x6") %>
 <%= password_field_tag(:password) %>
 <%= hidden_field_tag(:parent_id, "5") %>
+</erb>
 
 output:
 
+<html>
 <textarea id="message" name="message" cols="24" rows="6">Hi, nice site</textarea>
 <input id="password" name="password" type="password" />
 <input id="parent_id" name="parent_id" type="hidden" value="5" />
-</erb>
+</html>
 
 Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript.
 
-TIP: If you're using password input fields (for any purpose), you might want to prevent their values showing up in application logs by activating +filter_parameter_logging(:password)+ in your ApplicationController.
+TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged.
 
 
 h3. Dealing with Model Objects
@@ -222,16 +230,16 @@ end
 The corresponding view +app/views/articles/new.html.erb+ using +form_for+ looks like this:
 
 <erb>
-<%= form_for :article, @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
+<%= form_for @article, :url => { :action => "create" }, :html => {:class => "nifty_form"} do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, :size => "60x12" %>
-  <%= submit_tag "Create" %>
+  <%= f.submit "Create" %>
 <% end %>
 </erb>
 
 There are a few things to note here:
 
-# +:article+ is the name of the model and +@article+ is the actual object being edited.
+# +@article+ is the actual object being edited.
 # There is a single hash of options. Routing options are passed in the +:url+ hash, HTML options are passed in the +:html+ hash.
 # The +form_for+ method yields a *form builder* object (the +f+ variable).
 # Methods to create form controls are called *on* the form builder object +f+
@@ -239,7 +247,7 @@ There are a few things to note here:
 The resulting HTML is:
 
 <html>
-<form action="/articles/create" method="post" class="nifty_form">
+<form accept-charset="UTF-8" action="/articles/create" method="post" class="nifty_form">
   <input id="article_title" name="article[title]" size="30" type="text" />
   <textarea id="article_body" name="article[body]" cols="60" rows="12"></textarea>
   <input name="commit" type="submit" value="Create" />
@@ -253,7 +261,7 @@ The helper methods called on the form builder are identical to the model object 
 You can create a similar binding without actually creating  +&lt;form&gt;+ tags with the +fields_for+ helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for creating both like so:
 
 <erb>
-<%= form_for :person, @person, :url => { :action => "create" } do |person_form| %>
+<%= form_for @person, :url => { :action => "create" } do |person_form| %>
   <%= person_form.text_field :name %>
   <%= fields_for @person.contact_detail do |contact_details_form| %>
     <%= contact_details_form.text_field :phone_number %>
@@ -264,7 +272,7 @@ You can create a similar binding without actually creating  +&lt;form&gt;+ tags 
 which produces the following output:
 
 <html>
-<form action="/people/create" class="new_person" id="new_person" method="post">
+<form accept-charset="UTF-8" action="/people/create" class="new_person" id="new_person" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
   <input id="contact_detail_phone_number" name="contact_detail[phone_number]" size="30" type="text" />
 </form>
@@ -277,7 +285,7 @@ h4. Relying on Record Identification
 The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*:
 
 <ruby>
-map.resources :articles
+resources :articles
 </ruby>
 
 TIP: Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#resource-routing-the-rails-default for more information on setting up and using resources.
@@ -287,13 +295,13 @@ When dealing with RESTful resources, calls to +form_for+ can get significantly e
 <ruby>
 ## Creating a new article
 # long-style:
-form_for(:article, @article, :url => articles_path)
+form_for(@article, :url => articles_path)
 # same thing, short-style (record identification gets used):
 form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(:article, @article, :url => article_path(@article), :html => { :method => "put" })
+form_for(@article, :url => article_path(@article), :html => { :method => "put" })
 # short-style:
 form_for(@article)
 </ruby>
@@ -334,9 +342,10 @@ form_tag(search_path, :method => "put")
 output:
 
 <html>
-<form action="/search" method="post">
+<form accept-charset="UTF-8" action="/search" method="post">
   <div style="margin:0;padding:0">
     <input name="_method" type="hidden" value="put" />
+    <input name="utf8" type="hidden" value="&#x2713;" />
     <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   </div>
   ...
@@ -466,7 +475,7 @@ To leverage time zone support in Rails, you have to ask your users what time zon
 
 There is also +time_zone_options_for_select+ helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-Rails _used_ to have a +country_select+ helper for choosing countries, but this has been extracted to the "country_select plugin":http://github.com/rails/country_select/tree/master. When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
+Rails _used_ to have a +country_select+ helper for choosing countries, but this has been extracted to the "country_select plugin":https://github.com/chrislerum/country_select. When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
 
 h3. Using Date and Time Form Helpers
 
@@ -549,7 +558,7 @@ will produce the same output if the current year is 2009 and the value chosen by
 
 h3. Uploading Files
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the form's encoding *MUST* be set to "multipart/form-data". If you forget to do this the file will not be uploaded. This can be done by passing +:multi_part => true+ as an HTML option. This means that in the case of +form_tag+ it must be passed in the second options hash and in the case of +form_for+ inside the +:html+ hash.
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the rendered form's encoding *MUST* be set to "multipart/form-data". If you use +form_for+, this is done automatically. If you use +form_tag+, you must set it yourself, as per the following example.
 
 The following two forms both upload a file.
 
@@ -558,10 +567,12 @@ The following two forms both upload a file.
   <%= file_field_tag 'picture' %>
 <% end %>
 
-<%= form_for @person, :html => {:multipart => true} do |f| %>
+<%= form_for @person do |f| %>
   <%= f.file_field :picture %>
 <% end %>
 </erb>
+
+NOTE: Since Rails 3.1, forms rendered using +form_for+ have their encoding set to <tt>multipart/form-data</tt> automatically once a +file_field+ is used inside the block. Previous versions required you to set this explicitly.
 
 Rails provides the usual pair of helpers: the barebones +file_field_tag+ and the model oriented +file_field+. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in +params[:picture]+ and in the second case in +params[:person][:picture]+.
 
@@ -578,13 +589,13 @@ def upload
 end
 </ruby>
 
-Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several plugins designed to assist with these. Two of the better known ones are "Attachment-Fu":http://github.com/technoweenie/attachment_fu and "Paperclip":http://www.thoughtbot.com/projects/paperclip.
+Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several plugins designed to assist with these. Two of the better known ones are "Attachment-Fu":https://github.com/technoweenie/attachment_fu and "Paperclip":http://www.thoughtbot.com/projects/paperclip.
 
 NOTE: If the user has not selected a file the corresponding parameter will be an empty string.
 
 h4. Dealing with Ajax
 
-Unlike other forms making an asynchronous file upload form is not as simple as replacing +form_for+ with +remote_form_for+. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
+Unlike other forms making an asynchronous file upload form is not as simple as providing +form_for+ with <tt>:remote => true</tt>. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
 
 h3. Customizing Form Builders
 
@@ -631,7 +642,12 @@ action for a Person model, +params[:model]+ would usually be a hash of all the a
 
 Fundamentally HTML forms don't know about any sort of structured data, all they generate is name–value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
 
-TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example <tt> ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789" # => {"name"=>"fred", "phone"=>"0123456789"} </tt>
+TIP: You may find you can try out examples in this section faster by using the console to directly invoke Rails' parameter parser. For example,
+
+<ruby>
+ActionController::UrlEncodedPairParser.parse_query_parameters "name=fred&phone=0123456789"
+# => {"name"=>"fred", "phone"=>"0123456789"}
+</ruby>
 
 h4. Basic Structures
 
@@ -707,7 +723,7 @@ You might want to render a form with a set of edit fields for each of a person's
 Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
 
 <html>
-<form action="/people/1" class="edit_person" id="edit_person_1" method="post">
+<form accept-charset="UTF-8" action="/people/1" class="edit_person" id="edit_person_1" method="post">
   <input id="person_name" name="person[name]" size="30" type="text" />
   <input id="person_address_23_city" name="person[address][23][city]" size="30" type="text" />
   <input id="person_address_45_city" name="person[address][45][city]" size="30" type="text" />
@@ -748,6 +764,40 @@ As a shortcut you can append [] to the name and omit the +:index+ option. This i
 
 produces exactly the same output as the previous example.
 
+h3. Forms to external resources
+
+If you need to post some data to an external resource it is still great to build your from using rails form helpers. But sometimes you need to set an +authenticity_token+ for this resource. You can do it by passing an +:authenticity_token => 'your_external_token'+ parameter to the +form_tag+ options:
+
+<erb>
+<%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
+  Form contents
+<% end %>
+</erb>
+
+Sometimes when you submit data to an external resource, like payment gateway, fields you can use in your form are limited by an external API. So you may want not to generate an +authenticity_token+ hidden field at all. For doing this just pass +false+ to the +:authenticity_token+ option:
+
+<erb>
+<%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
+  Form contents
+<% end %>
+</erb>
+
+The same technique is available for the +form_for+ too:
+
+<erb>
+<%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f|
+  Form contents
+<% end %>
+</erb>
+
+Or if you don't want to render an +authenticity_token+ field:
+
+<erb>
+<%= form_for @invoice, :url => external_url, :authenticity_token => false do |f|
+  Form contents
+<% end %>
+</erb>
+
 h3. Building Complex Forms
 
 Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. While this guide has shown you all the pieces necessary to handle this, Rails does not yet have a standard end-to-end way of accomplishing this, but many have come up with viable approaches. These include:
@@ -755,14 +805,13 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 * As of Rails 2.3, Rails includes "Nested Attributes":./2_3_release_notes.html#nested-attributes and "Nested Object Forms":./2_3_release_notes.html#nested-object-forms
 * Ryan Bates' series of Railscasts on "complex forms":http://railscasts.com/episodes/75
 * Handle Multiple Models in One Form from "Advanced Rails Recipes":http://media.pragprog.com/titles/fr_arr/multiple_models_one_form.pdf
-* Eloy Duran's "complex-forms-examples":http://github.com/alloy/complex-form-examples/ application
-* Lance Ivy's "nested_assignment":http://github.com/cainlevy/nested_assignment/tree/master plugin and "sample application":http://github.com/cainlevy/complex-form-examples/tree/cainlevy
-* James Golick's "attribute_fu":http://github.com/jamesgolick/attribute_fu plugin
+* Eloy Duran's "complex-forms-examples":https://github.com/alloy/complex-form-examples/ application
+* Lance Ivy's "nested_assignment":https://github.com/cainlevy/nested_assignment/tree/master plugin and "sample application":https://github.com/cainlevy/complex-form-examples/tree/cainlevy
+* James Golick's "attribute_fu":https://github.com/jamesgolick/attribute_fu plugin
 
 h3. Changelog
 
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/1
-
+* February 5, 2011: Added 'Forms to external resources' section. Timothy N. Tsvetkov <timothy.tsvetkov@gmail.com>
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 
 h3. Authors

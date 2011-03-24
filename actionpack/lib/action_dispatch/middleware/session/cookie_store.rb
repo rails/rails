@@ -1,5 +1,7 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
+require 'action_dispatch/middleware/session/abstract_store'
+require 'rack/session/cookie'
 
 module ActionDispatch
   module Session
@@ -38,58 +40,32 @@ module ActionDispatch
     # "rake secret" and set the key in config/initializers/secret_token.rb.
     #
     # Note that changing digest or secret invalidates all existing sessions!
-    class CookieStore < AbstractStore
-
-      def initialize(app, options = {})
-        super(app, options.merge!(:cookie_only => true))
-        freeze
-      end
+    class CookieStore < Rack::Session::Cookie
+      include Compatibility
+      include StaleSessionCheck
 
       private
 
-        def load_session(env)
-          data = unpacked_cookie_data(env)
-          data = persistent_session_id!(data)
-          [data["session_id"], data]
-        end
-
-        def extract_session_id(env)
-          if data = unpacked_cookie_data(env)
-            data["session_id"]
-          else
-            nil
-          end
-        end
-
-        def unpacked_cookie_data(env)
-          env["action_dispatch.request.unsigned_session_cookie"] ||= begin
-            stale_session_check! do
-              request = ActionDispatch::Request.new(env)
-              if data = request.cookie_jar.signed[@key]
-                data.stringify_keys!
-              end
-              data || {}
+      def unpacked_cookie_data(env)
+        env["action_dispatch.request.unsigned_session_cookie"] ||= begin
+          stale_session_check! do
+            request = ActionDispatch::Request.new(env)
+            if data = request.cookie_jar.signed[@key]
+              data.stringify_keys!
             end
+            data || {}
           end
         end
+      end
 
-        def set_cookie(request, options)
-          request.cookie_jar.signed[@key] = options
-        end
+      def set_session(env, sid, session_data, options)
+        persistent_session_id!(session_data, sid)
+      end
 
-        def set_session(env, sid, session_data)
-          persistent_session_id!(session_data, sid)
-        end
-
-        def destroy(env)
-          # session data is stored on client; nothing to do here
-        end
-
-        def persistent_session_id!(data, sid=nil)
-          data ||= {}
-          data["session_id"] ||= sid || generate_sid
-          data
-        end
+      def set_cookie(env, session_id, cookie)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar.signed[@key] = cookie
+      end
     end
   end
 end

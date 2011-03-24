@@ -8,6 +8,18 @@ module ActiveModel
         end
     end
 
+    class WithValidator < EachValidator
+      def validate_each(record, attr, val)
+        method_name = options[:with]
+
+        if record.method(method_name).arity == 0
+          record.send method_name
+        else
+          record.send method_name, attr
+        end
+      end
+    end
+
     module ClassMethods
       # Passes the record off to the class or classes specified and allows them
       # to add errors based on more complex conditions.
@@ -38,9 +50,9 @@ module ActiveModel
       #   end
       #
       # Configuration options:
-      # * <tt>on</tt> - Specifies when this validation is active
+      # * <tt>:on</tt> - Specifies when this validation is active
       #   (<tt>:create</tt> or <tt>:update</tt>
-      # * <tt>if</tt> - Specifies a method, proc or string to call to determine
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
       #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or false value.

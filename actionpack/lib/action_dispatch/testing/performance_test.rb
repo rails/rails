@@ -1,5 +1,4 @@
 require 'active_support/testing/performance'
-require 'active_support/testing/default'
 
 begin
   module ActionDispatch
@@ -11,7 +10,6 @@ begin
     # formats are written, so you'll have two output files per test method.
     class PerformanceTest < ActionDispatch::IntegrationTest
       include ActiveSupport::Testing::Performance
-      include ActiveSupport::Testing::Default
     end
   end
 rescue NameError

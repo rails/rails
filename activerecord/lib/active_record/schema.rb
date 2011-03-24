@@ -30,10 +30,8 @@ module ActiveRecord
   # ActiveRecord::Schema is only supported by database adapters that also
   # support migrations, the two features being very similar.
   class Schema < Migration
-    private_class_method :new
-
-    def self.migrations_path
-      ActiveRecord::Migrator.migrations_path
+    def migrations_paths
+      ActiveRecord::Migrator.migrations_paths
     end
 
     # Eval the given block. All methods available to the current connection
@@ -48,11 +46,12 @@ module ActiveRecord
     #     ...
     #   end
     def self.define(info={}, &block)
-      instance_eval(&block)
+      schema = new
+      schema.instance_eval(&block)
 
       unless info[:version].blank?
         initialize_schema_migrations_table
-        assume_migrated_upto_version(info[:version], migrations_path)
+        assume_migrated_upto_version(info[:version], schema.migrations_paths)
       end
     end
   end

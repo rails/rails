@@ -12,7 +12,7 @@ module ActiveRecord
 
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
-        table_name[0..table_alias_length-1].gsub(/\./, '_')
+        table_name[0...table_alias_length].gsub(/\./, '_')
       end
 
       # def tables(name = nil) end
@@ -110,8 +110,8 @@ module ActiveRecord
       #
       #   Also note that this just sets the primary key in the table. You additionally
       #   need to configure the primary key in the model via the +set_primary_key+ macro.
-      #   Models do NOT auto-detect the primary key from their table definition. 
-      #   
+      #   Models do NOT auto-detect the primary key from their table definition.
+      #
       # [<tt>:options</tt>]
       #   Any extra options you want appended to the table definition.
       # [<tt>:temporary</tt>]
@@ -151,10 +151,10 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        table_definition = TableDefinition.new(self)
-        table_definition.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
+        td = table_definition
+        td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        yield table_definition if block_given?
+        yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
@@ -162,7 +162,7 @@ module ActiveRecord
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
         create_sql << "#{quote_table_name(table_name)} ("
-        create_sql << table_definition.to_sql
+        create_sql << td.to_sql
         create_sql << ") #{options[:options]}"
         execute create_sql
       end
@@ -175,6 +175,13 @@ module ActiveRecord
       #    t.column :name, :string, :limit => 60
       #    # Other column alterations here
       #  end
+      #
+      # The +options+ hash can include the following keys:
+      # [<tt>:bulk</tt>]
+      #   Set this to true to make this a bulk alter query, such as
+      #   ALTER TABLE `users` ADD COLUMN age INT(11), ADD COLUMN birthdate DATETIME ...
+      #
+      #   Defaults to false.
       #
       # ===== Examples
       # ====== Add a column
@@ -224,8 +231,14 @@ module ActiveRecord
       #
       # See also Table for details on
       # all of the various column transformation
-      def change_table(table_name)
-        yield Table.new(table_name, self)
+      def change_table(table_name, options = {})
+        if supports_bulk_alter? && options[:bulk]
+          recorder = ActiveRecord::Migration::CommandRecorder.new(self)
+          yield Table.new(table_name, recorder)
+          bulk_change_table(table_name, recorder.commands)
+        else
+          yield Table.new(table_name, self)
+        end
       end
 
       # Renames a table.
@@ -253,10 +266,7 @@ module ActiveRecord
       #  remove_column(:suppliers, :qualification)
       #  remove_columns(:suppliers, :qualification, :experience)
       def remove_column(table_name, *column_names)
-        raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.empty?
-        column_names.flatten.each do |column_name|
-          execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
-        end
+        columns_for_remove(table_name, *column_names).each {|column_name| execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{column_name}" }
       end
       alias :remove_columns :remove_column
 
@@ -269,12 +279,11 @@ module ActiveRecord
         raise NotImplementedError, "change_column is not implemented"
       end
 
-      # Sets a new default value for a column.  If you want to set the default
-      # value to +NULL+, you are out of luck.  You need to
-      # DatabaseStatements#execute the appropriate SQL statement yourself.
+      # Sets a new default value for a column.
       # ===== Examples
       #  change_column_default(:suppliers, :qualification, 'new')
       #  change_column_default(:accounts, :authorized, 1)
+      #  change_column_default(:users, :email, nil)
       def change_column_default(table_name, column_name, default)
         raise NotImplementedError, "change_column_default is not implemented"
       end
@@ -327,29 +336,8 @@ module ActiveRecord
       #
       # Note: SQLite doesn't support index length
       def add_index(table_name, column_name, options = {})
-        options[:name] = options[:name].to_s if options.key?(:name)
-
-        column_names = Array.wrap(column_name)
-        index_name   = index_name(table_name, :column => column_names)
-
-        if Hash === options # legacy support, since this param was a string
-          index_type = options[:unique] ? "UNIQUE" : ""
-          index_name = options[:name] || index_name
-        else
-          index_type = options
-        end
-
-        if index_name.length > index_name_length
-          @logger.warn("Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters. Skipping.")
-          return
-        end
-        if index_name_exists?(table_name, index_name, false)
-          @logger.warn("Index name '#{index_name}' on table '#{table_name}' already exists. Skipping.")
-          return
-        end
-        quoted_column_names = quoted_columns_for_index(column_names, options).join(", ")
-
-        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{quoted_column_names})"
+        index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})"
       end
 
       # Remove the given index from the table.
@@ -363,12 +351,7 @@ module ActiveRecord
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party
       def remove_index(table_name, options = {})
-        index_name = index_name(table_name, options)
-        unless index_name_exists?(table_name, index_name, true)
-          @logger.warn("Index name '#{index_name}' on table '#{table_name}' does not exist. Skipping.")
-          return
-        end
-        remove_index!(table_name, index_name)
+        remove_index!(table_name, index_name_for_remove(table_name, options))
       end
 
       def remove_index!(table_name, index_name) #:nodoc:
@@ -407,6 +390,7 @@ module ActiveRecord
       # as there's no way to determine the correct answer in that case.
       def index_name_exists?(table_name, index_name, default)
         return default unless respond_to?(:indexes)
+        index_name = index_name.to_s
         indexes(table_name).detect { |i| i.name == index_name }
       end
 
@@ -446,12 +430,14 @@ module ActiveRecord
         end
       end
 
-      def assume_migrated_upto_version(version, migrations_path = ActiveRecord::Migrator.migrations_path)
+      def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)
+        migrations_paths = Array.wrap(migrations_paths)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
-        migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
-        versions = Dir["#{migrations_path}/[0-9]*_*.rb"].map do |filename|
+        migrated = select_values("SELECT version FROM #{sm_table}").map { |v| v.to_i }
+        paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
+        versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
         end
 
@@ -471,7 +457,7 @@ module ActiveRecord
       end
 
       def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
-        if native = native_database_types[type]
+        if native = native_database_types[type.to_sym]
           column_type_sql = (native.is_a?(Hash) ? native[:name] : native).dup
 
           if type == :decimal # ignore limit, use precision and scale
@@ -538,6 +524,50 @@ module ActiveRecord
         def options_include_default?(options)
           options.include?(:default) && !(options[:null] == false && options[:default].nil?)
         end
+
+        def add_index_options(table_name, column_name, options = {})
+          column_names = Array.wrap(column_name)
+          index_name   = index_name(table_name, :column => column_names)
+
+          if Hash === options # legacy support, since this param was a string
+            index_type = options[:unique] ? "UNIQUE" : ""
+            index_name = options[:name].to_s if options.key?(:name)
+          else
+            index_type = options
+          end
+
+          if index_name.length > index_name_length
+            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+          end
+          if index_name_exists?(table_name, index_name, false)
+            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
+          end
+          index_columns = quoted_columns_for_index(column_names, options).join(", ")
+
+          [index_name, index_type, index_columns]
+        end
+
+        def index_name_for_remove(table_name, options = {})
+          index_name = index_name(table_name, options)
+
+          unless index_name_exists?(table_name, index_name, true)
+            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"
+          end
+
+          index_name
+        end
+
+        def columns_for_remove(table_name, *column_names)
+          column_names = column_names.flatten
+
+          raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.blank?
+          column_names.map {|column_name| quote_column_name(column_name) }
+        end
+
+      private
+      def table_definition
+        TableDefinition.new(self)
+      end
     end
   end
 end

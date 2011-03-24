@@ -9,13 +9,12 @@ module ActiveRecord
     #   Account.find(1, :lock => true)
     #
     # Pass <tt>:lock => 'some locking clause'</tt> to give a database-specific locking clause
-    # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'.
+    # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'. Example:
     #
-    # Example:
     #   Account.transaction do
     #     # select * from accounts where name = 'shugo' limit 1 for update
-    #     shugo = Account.find(:first, :conditions => "name = 'shugo'", :lock => true)
-    #     yuko = Account.find(:first, :conditions => "name = 'yuko'", :lock => true)
+    #     shugo = Account.where("name = 'shugo'").lock(true).first
+    #     yuko = Account.where("name = 'shugo'").lock(true).first
     #     shugo.balance -= 100
     #     shugo.save!
     #     yuko.balance += 100
@@ -24,9 +23,10 @@ module ActiveRecord
     #
     # You can also use ActiveRecord::Base#lock! method to lock one record by id.
     # This may be better if you don't need to lock every row. Example:
+    #
     #   Account.transaction do
     #     # select * from accounts where ...
-    #     accounts = Account.find(:all, :conditions => ...)
+    #     accounts = Account.where(...).all
     #     account1 = accounts.detect { |account| ... }
     #     account2 = accounts.detect { |account| ... }
     #     # select * from accounts where id=? for update
@@ -40,14 +40,14 @@ module ActiveRecord
     #
     # Database-specific information on row locking:
     #   MySQL: http://dev.mysql.com/doc/refman/5.1/en/innodb-locking-reads.html
-    #   PostgreSQL: http://www.postgresql.org/docs/8.1/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
+    #   PostgreSQL: http://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested
       # lock. Pass an SQL locking clause to append the end of the SELECT statement
-      # or pass true for "FOR UPDATE" (the default, an exclusive row lock).  Returns
+      # or pass true for "FOR UPDATE" (the default, an exclusive row lock). Returns
       # the locked record.
       def lock!(lock = true)
-        reload(:lock => lock) unless new_record?
+        reload(:lock => lock) if persisted?
         self
       end
     end

@@ -11,11 +11,20 @@ ensure
   $VERBOSE = old
 end
 
-
 require 'active_support/core_ext/kernel/reporting'
+
+require 'active_support/core_ext/string/encoding'
+if "ruby".encoding_aware?
+  # These are the normal settings that will be set up by Railties
+  # TODO: Have these tests support other combinations of these values
+  silence_warnings do
+    Encoding.default_internal = "UTF-8"
+    Encoding.default_external = "UTF-8"
+  end
+end
+
 silence_warnings do
   # These external dependencies have warnings :/
-  require 'text/format'
   require 'mail'
 end
 
@@ -68,3 +77,5 @@ end
 def restore_delivery_method
   ActionMailer::Base.delivery_method = @old_delivery_method
 end
+
+ActiveSupport::Deprecation.silenced = true

@@ -8,10 +8,10 @@ module ActionView
     config.action_view.stylesheet_expansions = {}
     config.action_view.javascript_expansions = { :defaults => ['prototype', 'effects', 'dragdrop', 'controls', 'rails'] }
 
-    initializer "action_view.cache_asset_timestamps" do |app|
+    initializer "action_view.cache_asset_ids" do |app|
       unless app.config.cache_classes
         ActiveSupport.on_load(:action_view) do
-          ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
+          ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids = false
         end
       end
     end
@@ -32,6 +32,14 @@ module ActionView
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k,v|
           send "#{k}=", v
+        end
+      end
+    end
+
+    initializer "action_view.caching" do |app|
+      ActiveSupport.on_load(:action_view) do
+        if app.config.action_view.cache_template_loading.nil?
+          ActionView::Resolver.caching = app.config.cache_classes
         end
       end
     end

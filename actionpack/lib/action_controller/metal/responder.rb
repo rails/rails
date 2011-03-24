@@ -1,7 +1,7 @@
 require 'active_support/json'
 
 module ActionController #:nodoc:
-  # Responder is responsible for exposing a resource to different mime requests,
+  # Responsible for exposing a resource to different mime requests,
   # usually depending on the HTTP verb. The responder is triggered when
   # <code>respond_with</code> is called. The simplest case to study is a GET request:
   #
@@ -24,10 +24,10 @@ module ActionController #:nodoc:
   #
   # === Builtin HTTP verb semantics
   #
-  # The default Rails responder holds semantics for each HTTP verb. Depending on the
+  # The default \Rails responder holds semantics for each HTTP verb. Depending on the
   # content type, verb and the resource status, it will behave differently.
   #
-  # Using Rails default responder, a POST request for creating an object could
+  # Using \Rails default responder, a POST request for creating an object could
   # be written as:
   #
   #   def create
@@ -77,8 +77,6 @@ module ActionController #:nodoc:
   #
   #   respond_with(@project, :manager, @task)
   #
-  # Check <code>polymorphic_url</code> documentation for more examples.
-  #
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
@@ -89,6 +87,8 @@ module ActionController #:nodoc:
 
     def initialize(controller, resources, options={})
       @controller = controller
+      @request = @controller.request
+      @format = @controller.formats.first
       @resource = resources.last
       @resources = resources
       @options = options
@@ -98,14 +98,6 @@ module ActionController #:nodoc:
 
     delegate :head, :render, :redirect_to,   :to => :controller
     delegate :get?, :post?, :put?, :delete?, :to => :request
-
-    def request
-      @request ||= @controller.request
-    end
-
-    def format
-      @format ||= @controller.formats.first
-    end
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)
@@ -121,7 +113,7 @@ module ActionController #:nodoc:
     # Main entry point for responder responsible to dispatch to the proper format.
     #
     def respond
-      method = :"to_#{format}"
+      method = "to_#{format}"
       respond_to?(method) ? send(method) : to_format
     end
 
@@ -146,7 +138,7 @@ module ActionController #:nodoc:
 
   protected
 
-    # This is the common behavior for "navigation" requests, like :html, :iphone and so forth.
+    # This is the common behavior for formats associated with browsing, like :html, :iphone and so forth.
     def navigation_behavior(error)
       if get?
         raise error
@@ -157,7 +149,7 @@ module ActionController #:nodoc:
       end
     end
 
-    # This is the common behavior for "API" requests, like :xml and :json.
+    # This is the common behavior for formats associated with APIs, such as :xml and :json.
     def api_behavior(error)
       raise error unless resourceful?
 
@@ -167,6 +159,8 @@ module ActionController #:nodoc:
         display resource.errors, :status => :unprocessable_entity
       elsif post?
         display resource, :status => :created, :location => api_location
+      elsif has_empty_resource_definition?
+        display empty_resource, :status => :ok
       else
         head :ok
       end
@@ -175,7 +169,7 @@ module ActionController #:nodoc:
     # Checks whether the resource responds to the current format or not.
     #
     def resourceful?
-      resource.respond_to?(:"to_#{format}")
+      resource.respond_to?("to_#{format}")
     end
 
     # Returns the resource location by retrieving it from the options or
@@ -226,6 +220,24 @@ module ActionController #:nodoc:
     #
     def default_action
       @action ||= ACTIONS_FOR_VERBS[request.request_method_symbol]
+    end
+
+    # Check whether resource needs a specific definition of empty resource to be valid
+    #
+    def has_empty_resource_definition?
+      respond_to?("empty_#{format}_resource")
+    end
+
+    # Delegate to proper empty resource method
+    #
+    def empty_resource
+      send("empty_#{format}_resource")
+    end
+
+    # Return a valid empty JSON resource
+    #
+    def empty_json_resource
+      "{}"
     end
   end
 end

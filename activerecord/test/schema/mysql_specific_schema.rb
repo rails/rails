@@ -21,4 +21,15 @@ BEGIN
 END
 SQL
 
+  ActiveRecord::Base.connection.execute <<-SQL
+DROP PROCEDURE IF EXISTS topics;
+SQL
+
+  ActiveRecord::Base.connection.execute <<-SQL
+CREATE PROCEDURE topics() SQL SECURITY INVOKER
+BEGIN
+	select * from topics limit 1;
+END
+SQL
+
 end

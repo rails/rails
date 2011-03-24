@@ -3,24 +3,6 @@ require 'abstract_unit'
 class WorkshopsController < ActionController::Base
 end
 
-class Workshop
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-  attr_accessor :id
-
-  def initialize(id)
-    @id = id
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def to_s
-    id.to_s
-  end
-end
-
 class RedirectController < ActionController::Base
   def simple_redirect
     redirect_to :action => "hello_world"
@@ -97,6 +79,19 @@ class RedirectController < ActionController::Base
 
   def redirect_to_nil
     redirect_to nil
+  end
+
+  def redirect_to_with_block
+    redirect_to proc { "http://www.rubyonrails.org/" }
+  end
+
+  def redirect_to_with_block_and_assigns
+    @url = "http://www.rubyonrails.org/"
+    redirect_to proc { @url }
+  end
+
+  def redirect_to_with_block_and_options
+    redirect_to proc { {:action => "hello_world"} }
   end
 
   def rescue_errors(e) raise e end
@@ -232,7 +227,7 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_record
     with_routing do |set|
-      set.draw do |map|
+      set.draw do
         resources :workshops
         match ':controller/:action'
       end
@@ -250,6 +245,31 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_nil
     assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
+    end
+  end
+
+  def test_redirect_to_with_block
+    get :redirect_to_with_block
+    assert_response :redirect
+    assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_with_block_and_assigns
+    get :redirect_to_with_block_and_assigns
+    assert_response :redirect
+    assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_with_block_and_accepted_options
+    with_routing do |set|
+      set.draw do
+        match ':controller/:action'
+      end
+
+      get :redirect_to_with_block_and_options
+
+      assert_response :redirect
+      assert_redirected_to "http://test.host/redirect/hello_world"
     end
   end
 end

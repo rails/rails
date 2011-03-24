@@ -23,6 +23,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 53.0, value
   end
 
+  def test_should_return_decimal_average_of_integer_field
+    value = Account.average(:id)
+    assert_equal 3.5, value
+  end
+
+  def test_should_return_integer_average_if_db_returns_such
+    Account.connection.stubs :select_value => 3
+    value = Account.average(:id)
+    assert_equal 3, value
+  end
+
   def test_should_return_nil_as_average
     assert_nil NumericData.average(:bank_balance)
   end
@@ -54,6 +65,19 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Account.sum(:credit_limit, :group => :firm_id)
     [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
   end
+  
+  def test_should_group_by_multiple_fields
+    c = Account.count(:all, :group => ['firm_id', :credit_limit])
+    [ [nil, 50], [1, 50], [6, 50], [6, 55], [9, 53], [2, 60] ].each { |firm_and_limit| assert c.keys.include?(firm_and_limit) }
+  end
+
+  def test_should_group_by_multiple_fields_having_functions
+    c = Topic.group(:author_name, 'COALESCE(type, title)').count(:all)
+    assert_equal 1, c[["Carl", "The Third Topic of the day"]]
+    assert_equal 1, c[["Mary", "Reply"]]
+    assert_equal 1, c[["David", "The First Topic"]]
+    assert_equal 1, c[["Carl", "Reply"]]
+  end
 
   def test_should_group_by_summed_field
     c = Account.sum(:credit_limit, :group => :firm_id)
@@ -83,6 +107,36 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Account.sum(:credit_limit, :conditions => "firm_id IS NOT NULL",
                     :group => :firm_id, :order => "firm_id", :limit => 2, :offset => 1)
     assert_equal [2, 6], c.keys.compact
+  end
+
+  def test_limit_with_offset_is_kept
+    return if current_adapter?(:OracleAdapter)
+
+    queries = assert_sql { Account.limit(1).offset(1).count }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+    assert_match(/OFFSET/, queries.first)
+  end
+
+  def test_offset_without_limit_removes_offset
+    queries = assert_sql { Account.offset(1).count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_limit_without_offset_removes_limit
+    queries = assert_sql { Account.limit(1).count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_no_limit_no_offset
+    queries = assert_sql { Account.count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
   end
 
   def test_should_group_by_summed_field_having_condition
@@ -275,6 +329,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 2, Account.count(:firm_id, :conditions => "credit_limit = 50 AND firm_id IS NOT NULL")
   end
 
+  def test_should_count_field_in_joined_table
+    assert_equal 5, Account.count('companies.id', :joins => :firm)
+    assert_equal 4, Account.count('companies.id', :joins => :firm, :distinct => true)
+  end
+
+  def test_should_count_field_in_joined_table_with_group_by
+    c = Account.count('companies.id', :group => 'accounts.firm_id', :joins => :firm)
+
+    [1,6,2,9].each { |firm_id| assert c.keys.include?(firm_id) }
+  end
+
   def test_count_with_no_parameters_isnt_deprecated
     assert_not_deprecated { Account.count }
   end
@@ -336,4 +401,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Account.count(:all), Company.count(:all, :from => 'accounts')
   end
 
+  def test_distinct_is_honored_when_used_with_count_operation_after_group
+    # Count the number of authors for approved topics
+    approved_topics_count = Topic.group(:approved).count(:author_name)[true]
+    assert_equal approved_topics_count, 3
+    # Count the number of distinct authors for approved Topics
+    distinct_authors_for_approved_count = Topic.group(:approved).count(:author_name, :distinct => true)[true]
+    assert_equal distinct_authors_for_approved_count, 2
+  end
 end

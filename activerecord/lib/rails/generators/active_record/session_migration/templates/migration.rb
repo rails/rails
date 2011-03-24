@@ -1,5 +1,5 @@
 class <%= migration_class_name %> < ActiveRecord::Migration
-  def self.up
+  def up
     create_table :<%= session_table_name %> do |t|
       t.string :session_id, :null => false
       t.text :data
@@ -10,7 +10,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
     add_index :<%= session_table_name %>, :updated_at
   end
 
-  def self.down
+  def down
     drop_table :<%= session_table_name %>
   end
 end

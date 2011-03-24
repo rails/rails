@@ -58,16 +58,16 @@ begin
           metric.send(mode) { __send__ @method_name }
         rescue ::Test::Unit::AssertionFailedError => e
           add_failure(e.message, e.backtrace)
-        rescue StandardError, ScriptError
-          add_error($!)
+        rescue StandardError, ScriptError => e
+          add_error(e)
         ensure
           begin
             teardown
             run_callbacks :teardown, :enumerator => :reverse_each
           rescue ::Test::Unit::AssertionFailedError => e
             add_failure(e.message, e.backtrace)
-          rescue StandardError, ScriptError
-            add_error($!)
+          rescue StandardError, ScriptError => e
+            add_error(e)
           end
         end
 
@@ -401,7 +401,7 @@ begin
             Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
             # Ruby 1.9 with GC::Profiler
-            if GC.respond_to?(:total_time)
+            if defined?(GC::Profiler) && GC::Profiler.respond_to?(:total_time)
               def measure
                 GC::Profiler.total_time
               end

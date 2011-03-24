@@ -16,7 +16,11 @@ module ActionController
       payload   = event.payload
       additions = ActionController::Base.log_process_action(payload)
 
-      message = "Completed #{payload[:status]} #{Rack::Utils::HTTP_STATUS_CODES[payload[:status]]} in %.0fms" % event.duration
+      status = payload[:status]
+      if status.nil? && payload[:exception].present?
+        status = Rack::Utils.status_code(ActionDispatch::ShowExceptions.rescue_responses[payload[:exception].first]) rescue nil 
+      end 
+      message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in %.0fms" % event.duration
       message << " (#{additions.join(" | ")})" unless additions.blank?
 
       info(message)
@@ -42,7 +46,7 @@ module ActionController
         def #{method}(event)
           key_or_path = event.payload[:key] || event.payload[:path]
           human_name  = #{method.to_s.humanize.inspect}
-          info("\#{human_name} \#{key_or_path} (%.1fms)" % event.duration)
+          info("\#{human_name} \#{key_or_path} \#{"(%.1fms)" % event.duration}")
         end
       METHOD
     end

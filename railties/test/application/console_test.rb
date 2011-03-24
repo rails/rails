@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 class ConsoleTest < Test::Unit::TestCase
-  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::Isolation  
 
   def setup
     build_app
@@ -14,27 +14,26 @@ class ConsoleTest < Test::Unit::TestCase
   end
 
   def test_app_method_should_return_integration_session
+    TestHelpers::Rack.send :remove_method, :app
     load_environment
     console_session = app
-    assert_not_nil console_session
-    assert_instance_of ActionController::Integration::Session, console_session
+    assert_instance_of ActionDispatch::Integration::Session, console_session
   end
 
   def test_new_session_should_return_integration_session
     load_environment
     session = new_session
-    assert_not_nil session
-    assert_instance_of ActionController::Integration::Session, session
+    assert_instance_of ActionDispatch::Integration::Session, session
   end
 
-  def test_reload_should_fire_preparation_callbacks
+  def test_reload_should_fire_preparation_and_cleanup_callbacks
     load_environment
     a = b = c = nil
 
     # TODO: These should be defined on the initializer
-    ActionDispatch::Callbacks.to_prepare { a = b = c = 1 }
-    ActionDispatch::Callbacks.to_prepare { b = c = 2 }
-    ActionDispatch::Callbacks.to_prepare { c = 3 }
+    ActionDispatch::Reloader.to_cleanup { a = b = c = 1 }
+    ActionDispatch::Reloader.to_cleanup { b = c = 2 }
+    ActionDispatch::Reloader.to_prepare { c = 3 }
 
     # Hide Reloading... output
     silence_stream(STDOUT) { reload! }

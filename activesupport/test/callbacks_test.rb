@@ -3,6 +3,27 @@ require 'test/unit'
 require 'active_support'
 
 module CallbacksTest
+  class Phone
+    include ActiveSupport::Callbacks
+    define_callbacks :save, :rescuable => true
+
+    set_callback :save, :before, :before_save1
+    set_callback :save, :after, :after_save1
+
+    def before_save1; self.history << :before; end
+    def after_save1; self.history << :after; end
+
+    def save
+      run_callbacks :save do
+        raise 'boom'
+      end
+    end
+
+    def history
+      @history ||= []
+    end
+  end
+
   class Record
     include ActiveSupport::Callbacks
 
@@ -149,6 +170,27 @@ module CallbacksTest
     end
   end
 
+  class AfterSaveConditionalPerson < Record
+    after_save Proc.new { |r| r.history << [:after_save, :string1] }
+    after_save Proc.new { |r| r.history << [:after_save, :string2] }
+    def save
+      run_callbacks :save
+    end
+  end
+
+  class AfterSaveConditionalPersonCallbackTest < Test::Unit::TestCase
+    def test_after_save_runs_in_the_reverse_order
+      person = AfterSaveConditionalPerson.new
+      person.save
+      assert_equal [
+        [:after_save, :string2],
+        [:after_save, :string1]
+      ], person.history
+    end
+  end
+
+
+
   class ConditionalPerson < Record
     # proc
     before_save Proc.new { |r| r.history << [:before_save, :proc] }, :if => Proc.new { |r| true }
@@ -257,6 +299,32 @@ module CallbacksTest
       end
     end
   end
+  
+  class AroundPersonResult < MySuper
+    attr_reader :result
+
+    set_callback :save, :after, :tweedle_1
+    set_callback :save, :around, :tweedle_dum
+    set_callback :save, :after, :tweedle_2
+
+    def tweedle_dum
+      @result = yield
+    end
+    
+    def tweedle_1
+      :tweedle_1
+    end
+
+    def tweedle_2
+      :tweedle_2
+    end
+    
+    def save
+      run_callbacks :save do
+        :running
+      end
+    end
+  end
 
   class HyphenatedCallbacks
     include ActiveSupport::Callbacks
@@ -296,6 +364,14 @@ module CallbacksTest
       ], around.history
     end
   end
+  
+  class AroundCallbackResultTest < Test::Unit::TestCase
+    def test_save_around
+      around = AroundPersonResult.new
+      around.save
+      assert_equal :running, around.result
+    end
+  end
 
   class SkipCallbacksTest < Test::Unit::TestCase
     def test_skip_person
@@ -317,6 +393,14 @@ module CallbacksTest
   end
 
   class CallbacksTest < Test::Unit::TestCase
+    def test_save_phone
+      phone = Phone.new
+      assert_raise RuntimeError do
+        phone.save
+      end
+      assert_equal [:before, :after], phone.history
+    end
+
     def test_save_person
       person = Person.new
       assert_equal [], person.history
@@ -351,6 +435,8 @@ module CallbacksTest
       ], person.history
     end
   end
+
+
 
   class ResetCallbackTest < Test::Unit::TestCase
     def test_save_conditional_person
@@ -524,4 +610,31 @@ module CallbacksTest
       assert_equal "ACTION", obj.stuff
     end
   end
+
+  class WriterSkipper < Person
+    attr_accessor :age
+    skip_callback :save, :before, :before_save_method, :if => lambda {self.age > 21}
+  end
+
+  class WriterCallbacksTest < Test::Unit::TestCase
+    def test_skip_writer
+      writer = WriterSkipper.new
+      writer.age = 18
+      assert_equal [], writer.history
+      writer.save
+      assert_equal [
+        [:before_save, :symbol],
+        [:before_save, :string],
+        [:before_save, :proc],
+        [:before_save, :object],
+        [:before_save, :block],
+        [:after_save, :block],
+        [:after_save, :object],
+        [:after_save, :proc],
+        [:after_save, :string],
+        [:after_save, :symbol]
+      ], writer.history
+    end
+  end
+
 end

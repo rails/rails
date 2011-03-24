@@ -83,6 +83,9 @@ module RenderAction
   end
 
   class RenderLayoutTest < Rack::TestCase
+    def setup
+    end
+
     describe "Both <controller_path>.html.erb and application.html.erb are missing"
 
     test "rendering with layout => true" do

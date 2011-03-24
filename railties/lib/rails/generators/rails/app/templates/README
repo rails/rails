@@ -91,7 +91,7 @@ mode. With gems, use <tt>sudo gem install ruby-debug</tt>. Example:
 
   class WeblogController < ActionController::Base
     def index
-      @posts = Post.find(:all)
+      @posts = Post.all
       debugger
     end
   end
@@ -139,7 +139,7 @@ To reload your controllers and models after launching the console run
 <tt>reload!</tt>
 
 More information about irb can be found at:
-link:http://www.rubycentral.com/pickaxe/irb.html
+link:http://www.rubycentral.org/pickaxe/irb.html
 
 
 == dbconsole
@@ -158,6 +158,7 @@ The default directory structure of a generated Ruby on Rails application:
   |-- app
   |   |-- controllers
   |   |-- helpers
+  |   |-- mailers
   |   |-- models
   |   `-- views
   |       `-- layouts
@@ -175,7 +176,6 @@ The default directory structure of a generated Ruby on Rails application:
   |   |-- javascripts
   |   `-- stylesheets
   |-- script
-  |   `-- performance
   |-- test
   |   |-- fixtures
   |   |-- functional

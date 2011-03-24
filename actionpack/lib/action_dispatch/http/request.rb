@@ -2,8 +2,10 @@ require 'tempfile'
 require 'stringio'
 require 'strscan'
 
+require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
+require 'active_support/inflector'
 require 'action_dispatch/http/headers'
 
 module ActionDispatch
@@ -14,6 +16,8 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
+
+    LOCALHOST = [/^127\.0\.0\.\d{1,3}$/, "::1", /^0:0:0:0:0:0:0:1(%.*)?$/].freeze
 
     %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
@@ -42,8 +46,24 @@ module ActionDispatch
       @env.key?(key)
     end
 
-    HTTP_METHODS = %w(get head put post delete options)
-    HTTP_METHOD_LOOKUP = HTTP_METHODS.inject({}) { |h, m| h[m] = h[m.upcase] = m.to_sym; h }
+    # List of HTTP request methods from the following RFCs:
+    # Hypertext Transfer Protocol -- HTTP/1.1 (http://www.ietf.org/rfc/rfc2616.txt)
+    # HTTP Extensions for Distributed Authoring -- WEBDAV (http://www.ietf.org/rfc/rfc2518.txt)
+    # Versioning Extensions to WebDAV (http://www.ietf.org/rfc/rfc3253.txt)
+    # Ordered Collections Protocol (WebDAV) (http://www.ietf.org/rfc/rfc3648.txt)
+    # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (http://www.ietf.org/rfc/rfc3744.txt)
+    # Web Distributed Authoring and Versioning (WebDAV) SEARCH (http://www.ietf.org/rfc/rfc5323.txt)
+    # PATCH Method for HTTP (http://www.ietf.org/rfc/rfc5789.txt)
+    RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
+    RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
+    RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
+    RFC3648 = %w(ORDERPATCH)
+    RFC3744 = %w(ACL)
+    RFC5323 = %w(SEARCH)
+    RFC5789 = %w(PATCH)
+
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
+    HTTP_METHOD_LOOKUP = Hash.new { |h, m| h[m] = m.underscore.to_sym if HTTP_METHODS.include?(m) }
 
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware
@@ -52,11 +72,7 @@ module ActionDispatch
     # the application should use), this \method returns the overridden
     # value, not the original.
     def request_method
-      @request_method ||= begin
-        method = env["REQUEST_METHOD"]
-        HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-        method
-      end
+      @request_method ||= check_method(env["REQUEST_METHOD"])
     end
 
     # Returns a symbol form of the #request_method
@@ -68,11 +84,7 @@ module ActionDispatch
     # even if it was overridden by middleware. See #request_method for
     # more information.
     def method
-      @method ||= begin
-        method = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
-        HTTP_METHOD_LOOKUP[method] || raise(ActionController::UnknownHttpMethod, "#{method}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-        method
-      end
+      @method ||= check_method(env["rack.methodoverride.original_method"] || env['REQUEST_METHOD'])
     end
 
     # Returns a symbol form of the #method
@@ -122,8 +134,9 @@ module ActionDispatch
     end
 
     def forgery_whitelisted?
-      get? || xhr? || content_mime_type.nil? || !content_mime_type.verify_request?
+      get?
     end
+    deprecate :forgery_whitelisted? => "it is just an alias for 'get?' now, update your code"
 
     def media_type
       content_mime_type.to_s
@@ -134,11 +147,11 @@ module ActionDispatch
       super.to_i
     end
 
-    # Returns true if the request's "X-Requested-With" header contains
-    # "XMLHttpRequest". (The Prototype Javascript library sends this header with
-    # every Ajax request.)
+    # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
+    # (case-insensitive). All major JavaScript libraries send this header with
+    # every Ajax request.
     def xml_http_request?
-      !(@env['HTTP_X_REQUESTED_WITH'] !~ /XMLHttpRequest/i)
+      @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
     end
     alias :xhr? :xml_http_request?
 
@@ -147,8 +160,16 @@ module ActionDispatch
     end
 
     # Which IP addresses are "trusted proxies" that can be stripped from
-    # the right-hand-side of X-Forwarded-For
-    TRUSTED_PROXIES = /^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
+    # the right-hand-side of X-Forwarded-For.
+    #
+    # http://en.wikipedia.org/wiki/Private_network#Private_IPv4_address_spaces.
+    TRUSTED_PROXIES = %r{
+      ^127\.0\.0\.1$                | # localhost
+      ^(10                          | # private IP 10.x.x.x
+        172\.(1[6-9]|2[0-9]|3[0-1]) | # private IP in the range 172.16.0.0 .. 172.31.255.255
+        192\.168                      # private IP 192.168.x.x
+       )\.
+    }x
 
     # Determines originating IP address.  REMOTE_ADDR is the standard
     # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
@@ -197,7 +218,7 @@ module ActionDispatch
     # TODO This should be broken apart into AD::Request::Session and probably
     # be included by the session middleware.
     def reset_session
-      session.destroy if session
+      session.destroy if session && session.respond_to?(:destroy)
       self.session = {}
       @env['action_dispatch.request.flash_hash'] = nil
     end
@@ -212,13 +233,13 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= normalize_parameters(super)
+      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= normalize_parameters(super)
+      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
     end
     alias :request_parameters :POST
 
@@ -230,6 +251,18 @@ module ActionDispatch
       @env['X-HTTP_AUTHORIZATION'] ||
       @env['X_HTTP_AUTHORIZATION'] ||
       @env['REDIRECT_X_HTTP_AUTHORIZATION']
+    end
+
+    # True if the request came from localhost, 127.0.0.1.
+    def local?
+      LOCALHOST.any? { |local_ip| local_ip === remote_addr && local_ip === remote_ip }
+    end
+
+    private
+
+    def check_method(name)
+      HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+      name
     end
   end
 end

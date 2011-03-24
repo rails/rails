@@ -4,17 +4,16 @@ require 'active_support/core_ext/class/attribute_accessors'
 class Logger #:nodoc:
   def self.define_around_helper(level)
     module_eval <<-end_eval, __FILE__, __LINE__ + 1
-      def around_#{level}(before_message, after_message, &block)  # def around_debug(before_message, after_message, &block)
-        self.#{level}(before_message)                             #   self.debug(before_message)
-        return_value = block.call(self)                           #   return_value = block.call(self)
-        self.#{level}(after_message)                              #   self.debug(after_message)
-        return return_value                                       #   return return_value
-      end                                                         # end
+      def around_#{level}(before_message, after_message)  # def around_debug(before_message, after_message, &block)
+        self.#{level}(before_message)                     #   self.debug(before_message)
+        return_value = yield(self)                        #   return_value = yield(self)
+        self.#{level}(after_message)                      #   self.debug(after_message)
+        return_value                                      #   return_value
+      end                                                 # end
     end_eval
   end
   [:debug, :info, :error, :fatal].each {|level| define_around_helper(level) }
 end
-
 
 require 'logger'
 
@@ -65,11 +64,11 @@ class Logger
     formatter.datetime_format if formatter.respond_to?(:datetime_format)
   end
 
-  alias :old_formatter :formatter if method_defined?(:formatter)
-  # Get the current formatter. The default formatter is a SimpleFormatter which only
-  # displays the log message
-  def formatter
-    @formatter ||= SimpleFormatter.new
+  alias :old_initialize :initialize
+  # Overwrite initialize to set a default formatter.
+  def initialize(*args)
+    old_initialize(*args)
+    self.formatter = SimpleFormatter.new
   end
 
   # Simple formatter which only displays the message.
@@ -79,30 +78,4 @@ class Logger
       "#{String === msg ? msg : msg.inspect}\n"
     end
   end
-
-  private
-    alias old_format_message format_message
-
-    # Ruby 1.8.3 transposed the msg and progname arguments to format_message.
-    # We can't test RUBY_VERSION because some distributions don't keep Ruby
-    # and its standard library in sync, leading to installations of Ruby 1.8.2
-    # with Logger from 1.8.3 and vice versa.
-    if method_defined?(:formatter=)
-      def format_message(severity, timestamp, progname, msg)
-        formatter.call(severity, timestamp, progname, msg)
-      end
-    else
-      def format_message(severity, timestamp, msg, progname)
-        formatter.call(severity, timestamp, progname, msg)
-      end
-
-      attr_writer :formatter
-      public :formatter=
-
-      alias old_format_datetime format_datetime
-      def format_datetime(datetime) datetime end
-
-      alias old_msg2str msg2str
-      def msg2str(msg) msg end
-    end
 end

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= app_const_base %></title>
+  <title><%= camelized %></title>
   <%%= stylesheet_link_tag :all %>
   <%%= javascript_include_tag :defaults %>
-  <%%= csrf_meta_tag %>
+  <%%= csrf_meta_tags %>
 </head>
 <body>
 

@@ -1,4 +1,10 @@
 require 'erb'
+
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'yaml'
 require 'optparse'
 require 'rbconfig'
@@ -42,7 +48,7 @@ module Rails
 
       def find_cmd(*commands)
         dirs_on_path = ENV['PATH'].to_s.split(File::PATH_SEPARATOR)
-        commands += commands.map{|cmd| "#{cmd}.exe"} if Config::CONFIG['host_os'] =~ /mswin|mingw/
+        commands += commands.map{|cmd| "#{cmd}.exe"} if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
 
         full_path_command = nil
         found = commands.detect do |cmd|
@@ -74,7 +80,7 @@ module Rails
 
         exec(find_cmd('mysql', 'mysql5'), *args)
 
-      when "postgresql"
+      when "postgresql", "postgres"
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
@@ -113,5 +119,5 @@ end
 
 # Has to set the RAILS_ENV before config/application is required
 if ARGV.first && !ARGV.first.index("-") && env = ARGV.first
-  ENV['RAILS_ENV'] = %w(production development test).find { |e| e.index(env) } || env
+  ENV['RAILS_ENV'] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
 end

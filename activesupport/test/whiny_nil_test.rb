@@ -33,9 +33,11 @@ class WhinyNilTest < Test::Unit::TestCase
   end
 
   def test_id
+    nil.stubs(:object_id).returns(999)
     nil.id
   rescue RuntimeError => nme
     assert_no_match(/nil:NilClass/, nme.message)
+    assert_match(/999/, nme.message)
   end
 
   def test_no_to_ary_coercion

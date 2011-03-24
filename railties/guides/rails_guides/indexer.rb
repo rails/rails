@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/ordered_hash'
+require 'active_support/core_ext/string/inflections'
 
 module RailsGuides
   class Indexer
@@ -58,7 +59,7 @@ module RailsGuides
     end
 
     def title_to_idx(title)
-      idx = title.strip.downcase.gsub(/\s+|_/, '-').delete('^a-z0-9-').sub(/^[^a-z]*/, '')
+      idx = title.strip.parameterize.sub(/^\d+/, '')
       if warnings && idx.blank?
         puts "BLANK ID: please put an explicit ID for section #{title}, as in h5(#my-id)"
       end

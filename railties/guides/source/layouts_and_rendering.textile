@@ -27,7 +27,7 @@ I'll cover each of these methods in turn. But first, a few words about the very 
 
 h4. Rendering by Default: Convention Over Configuration in Action
 
-You've heard that Rails promotes "convention over configuration." Default rendering is an excellent example of this. By default, controllers in Rails automatically render views with names that correspond to valid routes. For example, if you have this code in your +BooksController+ class:
+You've heard that Rails promotes "convention over configuration". Default rendering is an excellent example of this. By default, controllers in Rails automatically render views with names that correspond to valid routes. For example, if you have this code in your +BooksController+ class:
 
 <ruby>
 class BooksController < ApplicationController
@@ -46,7 +46,7 @@ And you have a view file +app/views/books/index.html.erb+:
 <h1>Books are coming soon!</h1>
 </ruby>
 
-Rails will automatically render +app/views/books/index.html.erb+ when you navigate to +/books+ and you will see on your screen that "Books are coming soon!"
+Rails will automatically render +app/views/books/index.html.erb+ when you navigate to +/books+ and you will see "Books are coming soon!" on your screen.
 
 However a coming soon screen is only minimally useful, so you will soon create your +Book+ model and add the index action to +BooksController+:
 
@@ -58,9 +58,9 @@ class BooksController < ApplicationController
 end
 </ruby>
 
-Note that again, we have convention over configuration, in that there is no explicit render at the end of this index action.  The rule is that if you do not explicitly render something by the end of the controller action, rails will look for the +action_name.html.erb+ template in the controllers view path and then render that, so in this case, Rails will render the  +app/views/books/index.html.erb+ file.
+Note that we don't have explicit render at the end of the index action in accordance with "convention over configuration" principle. The rule is that if you do not explicitly render something at the end of a controller action, Rails will automatically look for the +action_name.html.erb+ template in the controller's view path and render it. So in this case, Rails will render the +app/views/books/index.html.erb+ file.
 
-So in our view, we want to display the properties of all the books, we could do this with an ERB template like this:
+If we want to display the properties of all the books in our view, we can do so with an ERB template like this:
 
 <ruby>
 <h1>Listing Books</h1>
@@ -90,7 +90,7 @@ So in our view, we want to display the properties of all the books, we could do 
 <%= link_to 'New book', new_book_path %>
 </ruby>
 
-NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (javascript with embedded ruby) and +.builder+ for Builder (XML generator).
+NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (JavaScript with embedded ruby) and +.builder+ for Builder (XML generator).
 
 h4. Using +render+
 
@@ -106,10 +106,10 @@ Perhaps the simplest thing you can do with +render+ is to render nothing at all:
 render :nothing => true
 </ruby>
 
-If you look at the response for this using Curl you will see the following:
+If you look at the response for this using cURL, you will see the following:
 
 <shell>
- $ curl -i 127.0.0.1:3000/books
+$ curl -i 127.0.0.1:3000/books
 HTTP/1.1 200 OK
 Connection: close
 Date: Sun, 24 Jan 2010 09:25:18 GMT
@@ -123,7 +123,7 @@ Cache-Control: no-cache
  $
 </shell>
 
-We see there is an empty response (no data after the +Cache-Control+ line), but that Rails has set the response to 200 OK, so the request was successful.  You can set the +:status+ options on render to change this response.  Rendering nothing can be useful for AJAX requests where all you want to send back to the browser is an acknowledgement that the request was completed.
+We see there is an empty response (no data after the +Cache-Control+ line), but the request was successful because Rails has set the response to 200 OK. You can set the +:status+ option on render to change this response. Rendering nothing can be useful for AJAX requests where all you want to send back to the browser is an acknowledgement that the request was completed.
 
 TIP: You should probably be using the +head+ method, discussed later in this guide, instead of +render :nothing+. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.
 
@@ -134,27 +134,25 @@ If you want to render the view that corresponds to a different action within the
 <ruby>
 def update
   @book = Book.find(params[:id])
-    if @book.update_attributes(params[:book])
-      redirect_to(@book)
-    else
-      render "edit"
-    end
+  if @book.update_attributes(params[:book])
+    redirect_to(@book)
+  else
+    render "edit"
   end
 end
 </ruby>
 
-If the call to +update_attributes+ fails, calling the +update+ action in this controller will render the +edit.html.erb+ template belonging to the same controller.  
+If the call to +update_attributes+ fails, calling the +update+ action in this controller will render the +edit.html.erb+ template belonging to the same controller.
 
 If you prefer, you can use a symbol instead of a string to specify the action to render:
 
 <ruby>
 def update
   @book = Book.find(params[:id])
-    if @book.update_attributes(params[:book])
-      redirect_to(@book)
-    else
-      render :edit
-    end
+  if @book.update_attributes(params[:book])
+    redirect_to(@book)
+  else
+    render :edit
   end
 end
 </ruby>
@@ -164,11 +162,10 @@ To be explicit, you can use +render+ with the +:action+ option (though this is n
 <ruby>
 def update
   @book = Book.find(params[:id])
-    if @book.update_attributes(params[:book])
-      redirect_to(@book)
-    else
-      render :action => "edit"
-    end
+  if @book.update_attributes(params[:book])
+    redirect_to(@book)
+  else
+    render :action => "edit"
   end
 end
 </ruby>
@@ -200,7 +197,7 @@ render "/u/apps/warehouse_app/current/app/views/products/show"
 Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the +:file+ option (which was required on Rails 2.2 and earlier):
 
 <ruby>
-render :file => 
+render :file =>
   "/u/apps/warehouse_app/current/app/views/products/show"
 </ruby>
 
@@ -208,13 +205,13 @@ The +:file+ option takes an absolute file-system path. Of course, you need to ha
 
 NOTE: By default, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the +:layout => true+ option.
 
-TIP: If you're running on Microsoft Windows, you should use the +:file+ option to render a file, because Windows filenames do not have the same format as Unix filenames.
+TIP: If you're running Rails on Microsoft Windows, you should use the +:file+ option to render a file, because Windows filenames do not have the same format as Unix filenames.
 
 h5. Wrapping it up
 
-The above three methods of render (rendering another template within the controller, rendering a template within another controller and rendering an arbitrary file on the file system) are actually all variants of the same action.
+The above three ways of rendering (rendering another template within the controller, rendering a template within another controller and rendering an arbitrary file on the file system) are actually variants of the same action.
 
-In fact, in the BooksController method, inside of the edit action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the +edit.html.erb+ template in the +views/books+ directory:
+In fact, in the BooksController class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the +edit.html.erb+ template in the +views/books+ directory:
 
 <ruby>
 render :edit
@@ -240,22 +237,22 @@ h5. Using +render+ with +:inline+
 The +render+ method can do without a view completely, if you're willing to use the +:inline+ option to supply ERB as part of the method call. This is perfectly valid:
 
 <ruby>
-render :inline => 
-  "<% products.each do |p| %><p><%= p.name %><p><% end %>"
+render :inline =>
+  "<% products.each do |p| %><p><%= p.name %></p><% end %>"
 </ruby>
 
 WARNING: There is seldom any good reason to use this option. Mixing ERB into your controllers defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. Use a separate erb view instead.
 
-By default, inline rendering uses ERb. You can force it to use Builder instead with the +:type+ option:
+By default, inline rendering uses ERB. You can force it to use Builder instead with the +:type+ option:
 
 <ruby>
-render :inline => 
+render :inline =>
   "xml.p {'Horrid coding practice!'}", :type => :builder
 </ruby>
 
 h5. Using +render+ with +:update+
 
-You can also render javascript-based page updates inline using the +:update+ option to +render+:
+You can also render JavaScript-based page updates inline using the +:update+ option to +render+:
 
 <ruby>
 render :update do |page|
@@ -263,7 +260,7 @@ render :update do |page|
 end
 </ruby>
 
-WARNING: Placing javascript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. We recommend using a separate rjs template instead, no matter how small the update.
+WARNING: Placing JavaScript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. We recommend using a separate RJS template instead, no matter how small the update.
 
 h5. Rendering Text
 
@@ -275,11 +272,11 @@ render :text => "OK"
 
 TIP: Rendering pure text is most useful when you're responding to AJAX or web service requests that are expecting something other than proper HTML.
 
-NOTE: By default, if you use the +:text+ option the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the +:layout => true+ option.
+NOTE: By default, if you use the +:text+ option, the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the +:layout => true+ option.
 
 h5. Rendering JSON
 
-JSON is a javascript data format used by many AJAX libraries. Rails has built-in support for converting objects to JSON and rendering that JSON back to the browser:
+JSON is a JavaScript data format used by many AJAX libraries. Rails has built-in support for converting objects to JSON and rendering that JSON back to the browser:
 
 <ruby>
 render :json => @product
@@ -342,14 +339,14 @@ render :layout => false
 
 h6. The +:status+ Option
 
-Rails will automatically generate a response with the correct HTML status code (in most cases, this is +200 OK+). You can use the +:status+ option to change this:
+Rails will automatically generate a response with the correct HTTP status code (in most cases, this is +200 OK+). You can use the +:status+ option to change this:
 
 <ruby>
 render :status => 500
 render :status => :forbidden
 </ruby>
 
-Rails understands either numeric status codes or symbols for status codes. You can find its list of status codes in +actionpack/lib/action_controller/status_codes.rb+. You can also see there how Rails maps symbols to status codes.
+Rails understands both numeric status codes and symbols for status codes.
 
 h6. The +:location+ Option
 
@@ -498,7 +495,7 @@ def show
 end
 </ruby>
 
-If +@book.special?+ evaluates to +true+, Rails will start the rendering process to dump the +@book+ variable into the +special_show+ view. But this will _not_ stop the rest of the code in the +show+ action from running, and when Rails hits the end of the action, it will start to render the +show+ view - and throw an error. The solution is simple: make sure that you only have one call to +render+ or +redirect+ in a single code path. One thing that can help is +and return+. Here's a patched version of the method:
+If +@book.special?+ evaluates to +true+, Rails will start the rendering process to dump the +@book+ variable into the +special_show+ view. But this will _not_ stop the rest of the code in the +show+ action from running, and when Rails hits the end of the action, it will start to render the +regular_show+ view - and throw an error. The solution is simple: make sure that you have only one call to +render+ or +redirect+ in a single code path. One thing that can help is +and return+. Here's a patched version of the method:
 
 <ruby>
 def show
@@ -568,7 +565,7 @@ def show
 end
 </ruby>
 
-With the code in this form, there will be likely be a problem if the +@book+ variable is +nil+. Remember, a +render :action+ doesn't run any code in the target action, so nothing will set up the +@books+ variable that the +index+ view is presumably depending on. One way to fix this is to redirect instead of rendering:
+With the code in this form, there will likely be a problem if the +@book+ variable is +nil+. Remember, a +render :action+ doesn't run any code in the target action, so nothing will set up the +@books+ variable that the +index+ view is presumably depending on. One way to fix this is to redirect instead of rendering:
 
 <ruby>
 def index
@@ -585,7 +582,7 @@ end
 
 With this code, the browser will make a fresh request for the index page, the code in the +index+ method will run, and all will be well.
 
-The only downside to this code, is that it requires a round trip to the browser, the browser requested the show action with +/books/1+ and the controller finds that there are no books, so the controller sends out a 301 redirect response to the browser telling it to go to +/books/+, the browser complies and sends a new request back to the controller asking now for the +index+ action, the controller then gets all the books in the database and renders the index template, sending it back down to the browser which then shows it on your screen.
+The only downside to this code, is that it requires a round trip to the browser, the browser requested the show action with +/books/1+ and the controller finds that there are no books, so the controller sends out a 302 redirect response to the browser telling it to go to +/books/+, the browser complies and sends a new request back to the controller asking now for the +index+ action, the controller then gets all the books in the database and renders the index template, sending it back down to the browser which then shows it on your screen.
 
 While in a small app, this added latency might not be a problem, it is something to think about when speed of response is of the essence.  One way to handle this double request (though a contrived example) could be:
 
@@ -603,11 +600,11 @@ def show
 end
 </ruby>
 
-Which would detect that there are no books populate the +@books+ instance variable with all the books in the database and then directly render the +index.html.erb+ template returning it to the browser with a flash alert message telling the user what happened.
+Which would detect that there are no books, populate the +@books+ instance variable with all the books in the database and then directly render the +index.html.erb+ template returning it to the browser with a flash alert message telling the user what happened.
 
 h4. Using +head+ To Build Header-Only Responses
 
-The +head+ method exists to let you send back responses to the browser that have only headers. It provides a more obvious alternative to calling +render :nothing+. The +head+ method takes one response, which is interpreted as a hash of header names and values. For example, you can return only an error header:
+The +head+ method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling +render :nothing+. The +head+ method takes one parameter, which is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 <ruby>
 head :bad_request
@@ -654,11 +651,9 @@ When Rails renders a view as a response, it does so by combining the view with t
 * +yield+ and +content_for+
 * Partials
 
-I'll discuss each of these in turn.
-
 h4. Asset Tags
 
-Asset tags provide methods for generating HTML that links views to assets like images, videos, audio, javascript, stylesheets, and feeds. There are six types of include tag:
+Asset tags provide methods for generating HTML that links views to feeds, JavaScript, stylesheets, images, videos and audios. These are the six asset tags available in Rails:
 
 * +auto_discovery_link_tag+
 * +javascript_include_tag+
@@ -676,17 +671,17 @@ h5. Linking to Feeds with +auto_discovery_link_tag+
 The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 <erb>
-<%= auto_discovery_link_tag(:rss, {:action => "feed"}, 
+<%= auto_discovery_link_tag(:rss, {:action => "feed"},
   {:title => "RSS Feed"}) %>
 </erb>
 
 There are three tag options available for +auto_discovery_link_tag+:
 
 * +:rel+ specifies the +rel+ value in the link (defaults to "alternate")
-* +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically
+* +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
 * +:title+ specifies the title of the link
 
-h5. Linking to Javascript Files with +javascript_include_tag+
+h5. Linking to JavaScript Files with +javascript_include_tag+
 
 The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided. Rails looks in +public/javascripts+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/javascripts/main.js+:
 
@@ -718,7 +713,7 @@ The +defaults+ option loads the Prototype and Scriptaculous libraries:
 <%= javascript_include_tag :defaults %>
 </erb>
 
-The +all+ option loads every javascript file in +public/javascripts+, starting with the Prototype and Scriptaculous libraries:
+The +all+ option loads every JavaScript file in +public/javascripts+, starting with the Prototype and Scriptaculous libraries:
 
 <erb>
 <%= javascript_include_tag :all %>
@@ -730,7 +725,7 @@ You can supply the +:recursive+ option to load files in subfolders of +public/ja
 <%= javascript_include_tag :all, :recursive => true %>
 </erb>
 
-If you're loading multiple javascript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +javascript_include_tag+:
+If you're loading multiple JavaScript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify +:cache => true+ in your +javascript_include_tag+:
 
 <erb>
 <%= javascript_include_tag "main", "columns", :cache => true %>
@@ -739,7 +734,7 @@ If you're loading multiple javascript files, you can create a better user experi
 By default, the combined file will be delivered as +javascripts/all.js+. You can specify a location for the cached asset file instead:
 
 <erb>
-<%= javascript_include_tag "main", "columns", 
+<%= javascript_include_tag "main", "columns",
   :cache => 'cache/main/display' %>
 </erb>
 
@@ -798,7 +793,7 @@ If you're loading multiple CSS files, you can create a better user experience by
 By default, the combined file will be delivered as +stylesheets/all.css+. You can specify a location for the cached asset file instead:
 
 <erb>
-<%= stylesheet_link_tag "main", "columns", 
+<%= stylesheet_link_tag "main", "columns",
   :cache => 'cache/main/display' %>
 </erb>
 
@@ -806,7 +801,9 @@ You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to Images with +image_tag+
 
-The +image_tag+ helper builds an HTML +&lt;img /&gt;+ tag to the specified file. By default, files are loaded from +public/images+, note, you must specify the extension, previous versions of Rails would allow you to just call the image name and would append +.png+ if no extension was given, Rails 3.0 does not.
+The +image_tag+ helper builds an HTML +&lt;img /&gt;+ tag to the specified file. By default, files are loaded from +public/images+.
+
+WARNING: Note that you must specify the extension of the image. Previous versions of Rails would allow you to just use the image name and would append +.png+ if no extension was given but Rails 3.0 does not.
 
 <erb>
 <%= image_tag "header.png" %>
@@ -830,7 +827,7 @@ You can also supply an alternate image to show on mouseover:
 <%= image_tag "home.gif", :onmouseover => "menu/home_highlight.gif" %>
 </erb>
 
-Or alternate text if the user has rendering images turned off in their browser, if you do not specify an explicit alt tag, it defaults to the file name of the file, capitalized and with no extension, for example, these two image tags would return the same code:
+You can supply alternate text for the image which will be used if the user has images turned off in their browser. If you do not specify an alt text explicitly, it defaults to the file name of the file, capitalized and with no extension. For example, these two image tags would return the same code:
 
 <erb>
 <%= image_tag "home.gif" %>
@@ -843,7 +840,7 @@ You can also specify a special size tag, in the format "{width}x{height}":
 <%= image_tag "home.gif", :size => "50x20" %>
 </erb>
 
-In addition to the above special tags, you can supply a final hash of standard HTML options, such as +:class+ or +:id+ or +:name+:
+In addition to the above special tags, you can supply a final hash of standard HTML options, such as +:class+, +:id+ or +:name+:
 
 <erb>
 <%= image_tag "home.gif", :alt => "Go Home",
@@ -940,7 +937,7 @@ The main body of the view will always render into the unnamed +yield+. To render
 
 h4. Using +content_for+
 
-The +content_for+ method allows you to insert content into a +yield+ block in your layout. You only use +content_for+ to insert content in named yields. For example, this view would work with the layout that you just saw:
+The +content_for+ method allows you to insert content into a named +yield+ block in your layout. For example, this view would work with the layout that you just saw:
 
 <erb>
 <% content_for :head do %>
@@ -963,15 +960,15 @@ The result of rendering this page into the supplied layout would be this HTML:
 </html>
 </erb>
 
-The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific javascript or css files into the header of an otherwise generic layout.
+The +content_for+ method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific JavaScript or css files into the header of an otherwise generic layout.
 
 h4. Using Partials
 
-Partial templates - usually just called "partials" - are another device for breaking apart the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
+Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
 
 h5. Naming Partials
 
-To render a partial as part of a view, you use the +render+ method within the view, and include the +:partial+ option:
+To render a partial as part of a view, you use the +render+ method within the view:
 
 <ruby>
 <%= render "menu" %>
@@ -1009,10 +1006,12 @@ h5. Partial Layouts
 A partial can use its own layout file, just as a view can use a layout. For example, you might call a partial like this:
 
 <erb>
-<%= render "link_area", :layout => "graybar" %>
+<%= render :partial => "link_area", :layout => "graybar" %>
 </erb>
 
 This would look for a partial named +_link_area.html.erb+ and render it using the layout +_graybar.html.erb+. Note that layouts for partials follow the same leading-underscore naming as regular partials, and are placed in the same folder with the partial that they belong to (not in the master +layouts+ folder).
+
+Also note that explicitly specifying +:partial+ is required when passing additional options such as +:layout+.
 
 h5. Passing Local Variables
 
@@ -1085,16 +1084,14 @@ Partials are very useful in rendering collections. When you pass a collection to
 <p>Product Name: <%= product.name %></p>
 </erb>
 
-When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product+, and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered. 
+When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product+, and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered.
 
-In Rails 3.0 there is also a shorthand for this, assuming +@posts+ is a collection of +post+ instances, you can simply do in the +index.html.erb+:
+In Rails 3.0, there is also a shorthand for this. Assuming +@products+ is a collection of +product+ instances, you can simply write this in the +index.html.erb+ to produce the same result:
 
 <erb>
 <h1>Products</h1>
 <%= render @products %>
 </erb>
-
-To produce the same result.
 
 Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:
 
@@ -1132,7 +1129,7 @@ With this change, you can access an instance of the +@products+ collection as th
 You can also pass in arbitrary local variables to any partial you are rendering with the +:locals => {}+ option:
 
 <erb>
-<%= render :partial => 'products', :collection => @products, 
+<%= render :partial => 'products', :collection => @products,
            :as => :item, :locals => {:title => "Products Page"} %>
 </erb>
 
@@ -1186,16 +1183,14 @@ On pages generated by +NewsController+, you want to hide the top menu and add a 
   <div id="right_menu">Right menu items here</div>
   <%= yield(:news_content) or yield %>
 <% end %>
-<%= render :file => 'layouts/application' %>
+<%= render :template => 'layouts/application' %>
 </erb>
 
 That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
 
-There are several ways of getting similar results with different sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render :file => 'layouts/news'+ to base a new layout on the News layout. If you are sure you will not subtemplate the +News+ layout, you can replace the +yield(:news_content) or yield+ with simply +yield+.
+There are several ways of getting similar results with different sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the +ActionView::render+ method via +render :template => 'layouts/news'+ to base a new layout on the News layout. If you are sure you will not subtemplate the +News+ layout, you can replace the +yield(:news_content) or yield+ with simply +yield+.
 
 h3. Changelog
-
-"Lighthouse ticket":http://rails.lighthouseapp.com/projects/16213-rails-guides/tickets/15
 
 * April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * January 25, 2010: Rails 3.0 Update by "Mikel Lindsaar":credits.html#raasdnil

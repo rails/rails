@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2010 David Heinemeier Hansson
+# Copyright (c) 2004-2011 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -33,17 +33,16 @@ require 'active_support/i18n'
 require 'active_model'
 require 'arel'
 
+require 'active_record/version'
+
 module ActiveRecord
   extend ActiveSupport::Autoload
 
   eager_autoload do
-    autoload :VERSION
-
     autoload :ActiveRecordError, 'active_record/errors'
     autoload :ConnectionNotEstablished, 'active_record/errors'
 
     autoload :Aggregations
-    autoload :AssociationPreload
     autoload :Associations
     autoload :AttributeMethods
     autoload :AutosaveAssociation
@@ -79,6 +78,11 @@ module ActiveRecord
     autoload :Timestamp
     autoload :Transactions
     autoload :Validations
+    autoload :IdentityMap
+  end
+
+  module Coders
+    autoload :YAMLColumn, 'active_record/coders/yaml_column'
   end
 
   module AttributeMethods
@@ -118,7 +122,7 @@ module ActiveRecord
 end
 
 ActiveSupport.on_load(:active_record) do
-  Arel::Table.engine = Arel::Sql::Engine.new(self)
+  Arel::Table.engine = self
 end
 
 I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'

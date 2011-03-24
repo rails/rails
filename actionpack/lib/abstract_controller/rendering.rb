@@ -12,16 +12,16 @@ module AbstractController
 
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
   # it will trigger the lookup_context and consequently expire the cache.
-  # TODO Add some deprecation warnings to remove I18n.locale from controllers
   class I18nProxy < ::I18n::Config #:nodoc:
-    attr_reader :i18n_config, :lookup_context
+    attr_reader :original_config, :lookup_context
 
-    def initialize(i18n_config, lookup_context)
-      @i18n_config, @lookup_context = i18n_config, lookup_context
+    def initialize(original_config, lookup_context)
+      original_config = original_config.original_config if original_config.respond_to?(:original_config)
+      @original_config, @lookup_context = original_config, lookup_context
     end
 
     def locale
-      @i18n_config.locale
+      @original_config.locale
     end
 
     def locale=(value)
@@ -47,17 +47,32 @@ module AbstractController
         @view_context_class ||= begin
           controller = self
           Class.new(ActionView::Base) do
+            if controller.respond_to?(:_routes) && controller._routes
+              include controller._routes.url_helpers
+              include controller._routes.mounted_helpers
+            end
+
             if controller.respond_to?(:_helpers)
               include controller._helpers
-
-              if controller.respond_to?(:_routes)
-                include controller._routes.url_helpers
-              end
 
               # TODO: Fix RJS to not require this
               self.helpers = controller._helpers
             end
           end
+        end
+      end
+
+      def parent_prefixes
+        @parent_prefixes ||= begin
+          parent_controller = superclass
+          prefixes = []
+
+          until parent_controller.abstract?
+            prefixes << parent_controller.controller_path
+            parent_controller = parent_controller.superclass
+          end
+
+          prefixes
         end
       end
     end
@@ -98,7 +113,7 @@ module AbstractController
     def render_to_string(*args, &block)
       options = _normalize_args(*args, &block)
       _normalize_options(options)
-      render_to_body(options)
+      render_to_body(options).tap { self.response_body = nil }
     end
 
     # Raw rendering of a template to a Rack-compatible body.
@@ -114,12 +129,15 @@ module AbstractController
       view_context.render(options)
     end
 
-    # The prefix used in render "foo" shortcuts.
-    def _prefix
-      controller_path
+    # The prefixes used in render "foo" shortcuts.
+    def _prefixes
+      @_prefixes ||= begin
+        parent_prefixes = self.class.parent_prefixes
+        parent_prefixes.dup.unshift(controller_path)
+      end
     end
 
-  private
+    private
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
@@ -128,7 +146,7 @@ module AbstractController
       hash = {}
       variables  = instance_variable_names
       variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
-      variables.each { |name| hash[name.to_s[1..-1]] = instance_variable_get(name) }
+      variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
       hash
     end
 
@@ -138,13 +156,13 @@ module AbstractController
       case action
       when NilClass
       when Hash
-        options, action = action, nil
+        options = action
       when String, Symbol
         action = action.to_s
         key = action.include?(?/) ? :file : :action
         options[key] = action
       else
-        options.merge!(:partial => action)
+        options[:partial] = action
       end
 
       options
@@ -155,8 +173,8 @@ module AbstractController
         options[:partial] = action_name
       end
 
-      if (options.keys & [:partial, :file, :template]).empty?
-        options[:prefix] ||= _prefix
+      if (options.keys & [:partial, :file, :template, :once]).empty?
+        options[:prefixes] ||= _prefixes
       end
 
       options[:template] ||= (options[:action] || action_name).to_s

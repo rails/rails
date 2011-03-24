@@ -11,7 +11,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
     render :partial => @topic.replies
   end
 
-  def render_with_named_scope
+  def render_with_scope
     render :partial => Reply.base
   end
 
@@ -62,8 +62,8 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     assert_equal 'Birdman is better!', @response.body
   end
 
-  def test_rendering_partial_with_named_scope
-    get :render_with_named_scope
+  def test_rendering_partial_with_scope
+    get :render_with_scope
     assert_template 'replies/_reply'
     assert_equal 'Birdman is better!Nuh uh!', @response.body
   end
@@ -90,38 +90,6 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
     get :render_with_has_one_association
     assert_template 'mascots/_mascot'
     assert_equal mascot.name, @response.body
-  end
-end
-
-class RenderPartialWithRecordIdentificationController < ActionController::Base
-  def render_with_has_many_and_belongs_to_association
-    @developer = Developer.find(1)
-    render :partial => @developer.projects
-  end
-
-  def render_with_has_many_association
-    @topic = Topic.find(1)
-    render :partial => @topic.replies
-  end
-
-  def render_with_has_many_through_association
-    @developer = Developer.find(:first)
-    render :partial => @developer.topics
-  end
-
-  def render_with_belongs_to_association
-    @reply = Reply.find(1)
-    render :partial => @reply.topic
-  end
-
-  def render_with_record
-    @developer = Developer.find(:first)
-    render :partial => @developer
-  end
-
-  def render_with_record_collection
-    @developers = Developer.find(:all)
-    render :partial => @developers
   end
 end
 

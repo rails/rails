@@ -6,10 +6,7 @@ module Rails
     module Bootstrap
       include Initializable
 
-      initializer :load_environment_config do
-        environment = config.paths.config.environments.to_a.first
-        require environment if environment
-      end
+      initializer :load_environment_hook do end
 
       initializer :load_active_support do
         require 'active_support/dependencies'
@@ -26,7 +23,7 @@ module Rails
       # Initialize the logger early in the stack in case we need to log some deprecation.
       initializer :initialize_logger do
         Rails.logger ||= config.logger || begin
-          path = config.paths.log.to_a.first
+          path = config.paths["log"].first
           logger = ActiveSupport::BufferedLogger.new(path)
           logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
           logger.auto_flushing = false if Rails.env.production?
@@ -54,11 +51,9 @@ module Rails
       end
 
       initializer :set_clear_dependencies_hook do
-        unless config.cache_classes
-          ActionDispatch::Callbacks.after do
-            ActiveSupport::DescendantsTracker.clear
-            ActiveSupport::Dependencies.clear
-          end
+        ActionDispatch::Reloader.to_cleanup do
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
         end
       end
 

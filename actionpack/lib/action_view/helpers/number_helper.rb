@@ -1,6 +1,7 @@
 require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/core_ext/float/rounding'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Number Helpers
@@ -14,7 +15,7 @@ module ActionView
     # unchanged if can't be converted into a valid number.
     module NumberHelper
 
-      DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :unit => "$", :separator => ".", :delimiter => ",",
+      DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
                                   :precision => 2, :significant => false, :strip_insignificant_zeros => false }
 
       # Raised when argument +number+ param given to the helpers is invalid and
@@ -47,51 +48,51 @@ module ActionView
       #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
       #  => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         begin
           Float(number)
-          is_number_html_safe = true
         rescue ArgumentError, TypeError
-          if options[:raise]
-            raise InvalidNumberError, number
-          else
-            is_number_html_safe = number.to_s.html_safe?
-          end
-        end
+          raise InvalidNumberError, number
+        end if options[:raise]
 
         number       = number.to_s.strip
         options      = options.symbolize_keys
-        area_code    = options[:area_code] || nil
+        area_code    = options[:area_code]
         delimiter    = options[:delimiter] || "-"
-        extension    = options[:extension].to_s.strip || nil
-        country_code = options[:country_code] || nil
+        extension    = options[:extension]
+        country_code = options[:country_code]
 
-        str = ""
-        str << "+#{country_code}#{delimiter}" unless country_code.blank?
-        str << if area_code
-          number.gsub!(/([0-9]{1,3})([0-9]{3})([0-9]{4}$)/,"(\\1) \\2#{delimiter}\\3")
+        if area_code
+          number.gsub!(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
         else
-          number.gsub!(/([0-9]{0,3})([0-9]{3})([0-9]{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          number.starts_with?('-') ? number.slice!(1..-1) : number
+          number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
+          number.slice!(0, 1) if number.starts_with?('-')
         end
+
+        str = []
+        str << "+#{country_code}#{delimiter}" unless country_code.blank?
+        str << number
         str << " x #{extension}" unless extension.blank?
-        is_number_html_safe ? str.html_safe : str
+        ERB::Util.html_escape(str.join)
       end
 
       # Formats a +number+ into a currency string (e.g., $13.65). You can customize the format
       # in the +options+ hash.
       #
       # ==== Options
-      # * <tt>:locale</tt>     -  Sets the locale to be used for formatting (defaults to current locale).
-      # * <tt>:precision</tt>  -  Sets the level of precision (defaults to 2).
-      # * <tt>:unit</tt>       - Sets the denomination of the currency (defaults to "$").
-      # * <tt>:separator</tt>  - Sets the separator between the units (defaults to ".").
-      # * <tt>:delimiter</tt>  - Sets the thousands delimiter (defaults to ",").
-      # * <tt>:format</tt>     - Sets the format of the output string (defaults to "%u%n"). The field types are:
-      #
-      #     %u  The currency unit
-      #     %n  The number
+      # * <tt>:locale</tt>           - Sets the locale to be used for formatting (defaults to current locale).
+      # * <tt>:precision</tt>        - Sets the level of precision (defaults to 2).
+      # * <tt>:unit</tt>             - Sets the denomination of the currency (defaults to "$").
+      # * <tt>:separator</tt>        - Sets the separator between the units (defaults to ".").
+      # * <tt>:delimiter</tt>        - Sets the thousands delimiter (defaults to ",").
+      # * <tt>:format</tt>           - Sets the format for non-negative numbers (defaults to "%u%n").
+      #                                Fields are <tt>%u</tt> for the currency, and <tt>%n</tt>
+      #                                for the number.
+      # * <tt>:negative_format</tt>  - Sets the format for negative numbers (defaults to prepending
+      #                                an hyphen to the formatted number given by <tt>:format</tt>).
+      #                                Accepts the same fields than <tt>:format</tt>, except
+      #                                <tt>%n</tt> is here the absolute value of the number.
       #
       # ==== Examples
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
@@ -99,12 +100,14 @@ module ActionView
       #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
       #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,506 €
       #
+      #  number_to_currency(1234567890.50, :negative_format => "(%u%n)")
+      #  # => ($1,234,567,890.51)
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
       #  # => &pound;1234567890,50
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
       #  # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         options.symbolize_keys!
 
@@ -112,10 +115,16 @@ module ActionView
         currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
 
         defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
+        defaults[:negative_format] = "-" + options[:format] if options[:format]
         options   = defaults.merge!(options)
 
         unit      = options.delete(:unit)
         format    = options.delete(:format)
+
+        if number.to_f < 0
+          format = options.delete(:negative_format)
+          number = number.respond_to?("abs") ? number.abs : number.sub(/^-/, '')
+        end
 
         begin
           value = number_with_precision(number, options.merge(:raise => true))
@@ -149,7 +158,7 @@ module ActionView
       #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
       #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
       def number_to_percentage(number, options = {})
-        return nil if number.nil?
+        return unless number
 
         options.symbolize_keys!
 
@@ -260,13 +269,14 @@ module ActionView
           if number == 0
             digits, rounded_number = 1, 0
           else
-            digits = (Math.log10(number) + 1).floor
-            rounded_number = BigDecimal.new((number / 10 ** (digits - precision)).to_s).round.to_f * 10 ** (digits - precision)
+            digits = (Math.log10(number.abs) + 1).floor
+            rounded_number = (BigDecimal.new(number.to_s) / BigDecimal.new((10 ** (digits - precision)).to_f.to_s)).round.to_f * 10 ** (digits - precision)
+            digits = (Math.log10(rounded_number.abs) + 1).floor # After rounding, the number of digits may have changed
           end
-          precision = precision - digits
+          precision -= digits
           precision = precision > 0 ? precision : 0  #don't let it be negative
         else
-          rounded_number = BigDecimal.new((number * (10 ** precision)).to_s).round.to_f / 10 ** precision
+          rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
         end
         formatted_number = number_with_delimiter("%01.#{precision}f" % rounded_number, options)
         if strip_insignificant_zeros
@@ -325,7 +335,7 @@ module ActionView
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
         defaults = defaults.merge(human)
-        
+
         options = options.reverse_merge(defaults)
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
@@ -359,7 +369,7 @@ module ActionView
       # See <tt>number_to_human_size</tt> if you want to print a file size.
       #
       # You can also define you own unit-quantifier names if you want to use other decimal units
-      # (eg.: 1500 becomes "1.5 kilometers", 0.150 becomes "150 mililiters", etc). You may define
+      # (eg.: 1500 becomes "1.5 kilometers", 0.150 becomes "150 milliliters", etc). You may define
       # a wide range of unit quantifiers, even fractional ones (centi, deci, mili, etc).
       #
       # ==== Options
@@ -415,13 +425,13 @@ module ActionView
       #     thousand:
       #       one: "kilometer"
       #       other: "kilometers"
-      #     billion: "gazilion-distance"
+      #     billion: "gazillion-distance"
       #
       # Then you could do:
       #
       #  number_to_human(543934, :units => :distance)                              # => "544 kilometers"
       #  number_to_human(54393498, :units => :distance)                            # => "54400 kilometers"
-      #  number_to_human(54393498000, :units => :distance)                         # => "54.4 gazilion-distance"
+      #  number_to_human(54393498000, :units => :distance)                         # => "54.4 gazillion-distance"
       #  number_to_human(343, :units => :distance, :precision => 1)                # => "300 meters"
       #  number_to_human(1, :units => :distance)                                   # => "1 meter"
       #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
@@ -447,6 +457,8 @@ module ActionView
         #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
+        inverted_du = DECIMAL_UNITS.invert
+
         units = options.delete :units
         unit_exponents = case units
         when Hash
@@ -457,10 +469,10 @@ module ActionView
           I18n.translate(:"number.human.decimal_units.units", :locale => options[:locale], :raise => true)
         else
           raise ArgumentError, ":units must be a Hash or String translation scope."
-        end.keys.map{|e_name| DECIMAL_UNITS.invert[e_name] }.sort_by{|e| -e}
+        end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
 
-        number_exponent = Math.log10(number).floor
-        display_exponent = unit_exponents.find{|e| number_exponent >= e }
+        number_exponent = number != 0 ? Math.log10(number.abs).floor : 0
+        display_exponent = unit_exponents.find{ |e| number_exponent >= e } || 0
         number  /= 10 ** display_exponent
 
         unit = case units

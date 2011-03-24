@@ -11,9 +11,7 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal 200, status
     assert_equal({
-      "Content-Type" => "text/html; charset=utf-8",
-      "Cache-Control" => "max-age=0, private, must-revalidate",
-      "ETag" => '"65a8e27d8879283831b664bd8b7f0ad4"'
+      "Content-Type" => "text/html; charset=utf-8"
     }, headers)
 
     parts = []
@@ -21,15 +19,17 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal ["Hello, World!"], parts
   end
 
+  test "status handled properly in initialize" do
+    assert_equal 200, ActionDispatch::Response.new('200 OK').status
+  end
+
   test "utf8 output" do
     @response.body = [1090, 1077, 1089, 1090].pack("U*")
 
-    status, headers, body = @response.to_a
+    status, headers, _ = @response.to_a
     assert_equal 200, status
     assert_equal({
-      "Content-Type" => "text/html; charset=utf-8",
-      "Cache-Control" => "max-age=0, private, must-revalidate",
-      "ETag" => '"ebb5e89e8a94e9dd22abf5d915d112b2"'
+      "Content-Type" => "text/html; charset=utf-8"
     }, headers)
   end
 
@@ -41,8 +41,7 @@ class ResponseTest < ActiveSupport::TestCase
     status, headers, body = @response.to_a
     assert_equal 200, status
     assert_equal({
-      "Content-Type" => "text/html; charset=utf-8",
-      "Cache-Control" => "no-cache"
+      "Content-Type" => "text/html; charset=utf-8"
     }, headers)
 
     parts = []
@@ -53,20 +52,20 @@ class ResponseTest < ActiveSupport::TestCase
   test "content type" do
     [204, 304].each do |c|
       @response.status = c.to_s
-      status, headers, body = @response.to_a
+      _, headers, _ = @response.to_a
       assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
       @response.status = c.to_s
-      status, headers, body = @response.to_a
+      _, headers, _ = @response.to_a
       assert headers.has_key?("Content-Type"), "#{c} did not have Content-Type header"
     end
   end
 
   test "does not include Status header" do
     @response.status = "200 OK"
-    status, headers, body = @response.to_a
+    _, headers, _ = @response.to_a
     assert !headers.has_key?('Status')
   end
 
@@ -120,10 +119,10 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read cache control" do
-    resp = ActionDispatch::Response.new.tap { |resp|
-      resp.cache_control[:public] = true
-      resp.etag = '123'
-      resp.body = 'Hello'
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.cache_control[:public] = true
+      response.etag = '123'
+      response.body = 'Hello'
     }
     resp.to_a
 
@@ -135,10 +134,10 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read charset and content type" do
-    resp = ActionDispatch::Response.new.tap { |resp|
-      resp.charset = 'utf-16'
-      resp.content_type = Mime::XML
-      resp.body = 'Hello'
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.charset = 'utf-16'
+      response.content_type = Mime::XML
+      response.body = 'Hello'
     }
     resp.to_a
 

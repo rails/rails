@@ -6,7 +6,11 @@ module Render
       "render/blank_render/index.html.erb"                  => "Hello world!",
       "render/blank_render/access_request.html.erb"         => "The request: <%= request.method.to_s.upcase %>",
       "render/blank_render/access_action_name.html.erb"     => "Action Name: <%= action_name %>",
-      "render/blank_render/access_controller_name.html.erb" => "Controller Name: <%= controller_name %>"
+      "render/blank_render/access_controller_name.html.erb" => "Controller Name: <%= controller_name %>",
+      "render/blank_render/overriden_with_own_view_paths_appended.html.erb"              => "parent content",
+      "render/blank_render/overriden_with_own_view_paths_prepended.html.erb"              => "parent content",
+      "render/blank_render/overriden.html.erb"              => "parent content",
+      "render/child_render/overriden.html.erb"              => "child content"
     )]
 
     def index
@@ -19,6 +23,15 @@ module Render
 
     def render_action_name
       render :action => "access_action_name"
+    end
+
+    def overriden_with_own_view_paths_appended
+    end
+
+    def overriden_with_own_view_paths_prepended
+    end
+
+    def overriden
     end
 
     private
@@ -35,17 +48,34 @@ module Render
     end
   end
 
+  class ChildRenderController < BlankRenderController
+    append_view_path ActionView::FixtureResolver.new("render/child_render/overriden_with_own_view_paths_appended.html.erb" => "child content")
+    prepend_view_path ActionView::FixtureResolver.new("render/child_render/overriden_with_own_view_paths_prepended.html.erb" => "child content")
+  end
+
   class RenderTest < Rack::TestCase
     test "render with blank" do
-      get "/render/blank_render"
+      with_routing do |set|
+        set.draw do
+          match ":controller", :action => 'index'
+        end
 
-      assert_body "Hello world!"
-      assert_status 200
+        get "/render/blank_render"
+
+        assert_body "Hello world!"
+        assert_status 200
+      end
     end
 
     test "rendering more than once raises an exception" do
-      assert_raises(AbstractController::DoubleRenderError) do
-        get "/render/double_render", {}, "action_dispatch.show_exceptions" => false
+      with_routing do |set|
+        set.draw do
+          match ":controller", :action => 'index'
+        end
+
+        assert_raises(AbstractController::DoubleRenderError) do
+          get "/render/double_render", {}, "action_dispatch.show_exceptions" => false
+        end
       end
     end
   end
@@ -65,7 +95,7 @@ module Render
       end
     end
   end
-  
+
   class TestVariousObjectsAvailableInView < Rack::TestCase
     test "The request object is accessible in the view" do
       get "/render/blank_render/access_request"
@@ -80,6 +110,28 @@ module Render
     test "The controller_name is accessible in the view" do
       get "/render/blank_render/access_controller_name"
       assert_body "Controller Name: blank_render"
+    end
+  end
+
+  class TestViewInheritance < Rack::TestCase
+    test "Template from child controller gets picked over parent one" do
+      get "/render/child_render/overriden"
+      assert_body "child content"
+    end
+
+    test "Template from child controller with custom view_paths prepended gets picked over parent one" do
+      get "/render/child_render/overriden_with_own_view_paths_prepended"
+      assert_body "child content"
+    end
+
+    test "Template from child controller with custom view_paths appended gets picked over parent one" do
+      get "/render/child_render/overriden_with_own_view_paths_appended"
+      assert_body "child content"
+    end
+
+    test "Template from parent controller gets picked if missing in child controller" do
+      get "/render/child_render/index"
+      assert_body "Hello world!"
     end
   end
 end

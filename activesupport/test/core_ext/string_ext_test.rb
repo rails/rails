@@ -6,9 +6,41 @@ require 'inflector_test_cases'
 require 'active_support/core_ext/string'
 require 'active_support/time'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/string/strip'
 
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
+
+  def test_strip_heredoc_on_an_empty_string
+    assert_equal '', ''.strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_string_with_no_lines
+    assert_equal 'x', 'x'.strip_heredoc
+    assert_equal 'x', '    x'.strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_heredoc_with_no_margin
+    assert_equal "foo\nbar", "foo\nbar".strip_heredoc
+    assert_equal "foo\n  bar", "foo\n  bar".strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_regular_indented_heredoc
+    assert_equal "foo\n  bar\nbaz\n", <<-EOS.strip_heredoc
+      foo
+        bar
+      baz
+    EOS
+  end
+
+  def test_strip_heredoc_on_a_regular_indented_heredoc_with_blank_lines
+    assert_equal "foo\n  bar\n\nbaz\n", <<-EOS.strip_heredoc
+      foo
+        bar
+
+      baz
+    EOS
+  end
 
   def test_pluralize
     SingularToPlural.each do |singular, plural|
@@ -218,7 +250,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
-  
+
   def test_truncate
     assert_equal "Hello World!", "Hello World!".truncate(12)
     assert_equal "Hello Wor...", "Hello World!!".truncate(12)
@@ -286,75 +318,6 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
     def test_mb_chars_returns_instance_of_proxy_class
       assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
     end
-  end
-end
-
-=begin
-  string.rb - Interpolation for String.
-
-  Copyright (C) 2005-2009 Masao Mutoh
-
-  You may redistribute it and/or modify it under the same
-  license terms as Ruby.
-=end
-class TestGetTextString < Test::Unit::TestCase
-  def test_sprintf
-    assert_equal("foo is a number", "%{msg} is a number" % {:msg => "foo"})
-    assert_equal("bar is a number", "%s is a number" % ["bar"])
-    assert_equal("bar is a number", "%s is a number" % "bar")
-    assert_equal("1, test", "%{num}, %{record}" % {:num => 1, :record => "test"})
-    assert_equal("test, 1", "%{record}, %{num}" % {:num => 1, :record => "test"})
-    assert_equal("1, test", "%d, %s" % [1, "test"])
-    assert_equal("test, 1", "%2$s, %1$d" % [1, "test"])
-    assert_raise(ArgumentError) { "%-%" % [1] }
-  end
-
-  def test_percent
-    assert_equal("% 1", "%% %<num>d" % {:num => 1.0})
-    assert_equal("%{num} %<num>d 1", "%%{num} %%<num>d %<num>d" % {:num => 1})
-  end
-
-  def test_sprintf_percent_in_replacement
-    assert_equal("%<not_translated>s", "%{msg}" % { :msg => '%<not_translated>s', :not_translated => 'should not happen' })
-  end
-
-  def test_sprintf_lack_argument
-    assert_raises(KeyError) { "%{num}, %{record}" % {:record => "test"} }
-    assert_raises(KeyError) { "%{record}" % {:num => 1} }
-  end
-
-  def test_no_placeholder
-    # Causes a "too many arguments for format string" warning
-    # on 1.8.7 and 1.9 but we still want to make sure the behavior works
-    silence_warnings do
-      assert_equal("aaa", "aaa" % {:num => 1})
-      assert_equal("bbb", "bbb" % [1])
-    end
-  end
-
-  def test_sprintf_ruby19_style
-    assert_equal("1", "%<num>d" % {:num => 1})
-    assert_equal("0b1", "%<num>#b" % {:num => 1})
-    assert_equal("foo", "%<msg>s" % {:msg => "foo"})
-    assert_equal("1.000000", "%<num>f" % {:num => 1.0})
-    assert_equal("  1", "%<num>3.0f" % {:num => 1.0})
-    assert_equal("100.00", "%<num>2.2f" % {:num => 100.0})
-    assert_equal("0x64", "%<num>#x" % {:num => 100.0})
-    assert_raise(ArgumentError) { "%<num>,d" % {:num => 100} }
-    assert_raise(ArgumentError) { "%<num>/d" % {:num => 100} }
-  end
-
-  def test_sprintf_old_style
-    assert_equal("foo 1.000000", "%s %f" % ["foo", 1.0])
-  end
-
-  def test_sprintf_mix_unformatted_and_formatted_named_placeholders
-    assert_equal("foo 1.000000", "%{name} %<num>f" % {:name => "foo", :num => 1.0})
-  end
-
-  def test_string_interpolation_raises_an_argument_error_when_mixing_named_and_unnamed_placeholders
-    assert_raises(ArgumentError) { "%{name} %f" % [1.0] }
-    assert_raises(ArgumentError) { "%{name} %f" % [1.0, 2.0] }
   end
 end
 

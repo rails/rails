@@ -7,8 +7,6 @@ class Hash
   #   {:a => 1}.with_indifferent_access["a"] # => 1
   #
   def with_indifferent_access
-    hash = ActiveSupport::HashWithIndifferentAccess.new(self)
-    hash.default = self.default
-    hash
+    ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default(self)
   end
 end

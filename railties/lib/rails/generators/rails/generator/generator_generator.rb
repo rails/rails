@@ -14,9 +14,9 @@ module Rails
 
         def generator_dir
           if options[:namespace]
-            File.join("lib", "generators", file_name)
+            File.join("lib", "generators", regular_class_path, file_name)
           else
-            File.join("lib", "generators")
+            File.join("lib", "generators", regular_class_path)
           end
         end
 

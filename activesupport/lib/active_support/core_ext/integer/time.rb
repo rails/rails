@@ -1,7 +1,7 @@
 class Integer
   # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.
   #
-  # These methods use Time#advance for precise date calculations when using from_now, ago, etc. 
+  # These methods use Time#advance for precise date calculations when using from_now, ago, etc.
   # as well as adding or subtracting their results from a Time object. For example:
   #
   #   # equivalent to Time.now.advance(:months => 1)
@@ -12,7 +12,7 @@ class Integer
   #
   #   # equivalent to Time.now.advance(:months => 4, :years => 5)
   #   (4.months + 5.years).from_now
-  # 
+  #
   # While these methods provide precise calculation when used as in the examples above, care
   # should be taken to note that this is not true if the result of `months', `years', etc is
   # converted before use:

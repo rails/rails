@@ -11,7 +11,7 @@ class Module
           @@#{sym}
         end
       EOS
-      
+
       unless options[:instance_reader] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}

@@ -4,6 +4,7 @@ require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 
 # TODO: Autoload these files
+require 'active_record/connection_adapters/column'
 require 'active_record/connection_adapters/abstract/schema_definitions'
 require 'active_record/connection_adapters/abstract/schema_statements'
 require 'active_record/connection_adapters/abstract/database_statements'
@@ -12,6 +13,7 @@ require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_record/connection_adapters/abstract/connection_specification'
 require 'active_record/connection_adapters/abstract/query_cache'
 require 'active_record/connection_adapters/abstract/database_limits'
+require 'active_record/result'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -40,7 +42,7 @@ module ActiveRecord
         @active = nil
         @connection, @logger = connection, logger
         @query_cache_enabled = false
-        @query_cache = {}
+        @query_cache = Hash.new { |h,sql| h[sql] = {} }
         @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
@@ -76,8 +78,12 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support savepoints? PostgreSQL and MySQL do, SQLite
-      # does not.
+      def supports_bulk_alter?
+        false
+      end
+
+      # Does this adapter support savepoints? PostgreSQL and MySQL do,
+      # SQLite < 3.6.8 does not.
       def supports_savepoints?
         false
       end
@@ -95,6 +101,12 @@ module ActiveRecord
       # Override to return the quoted table name. Defaults to column quoting.
       def quote_table_name(name)
         quote_column_name(name)
+      end
+
+      # Returns a bind substitution value given a +column+ and list of current
+      # +binds+
+      def substitute_for(column, binds)
+        Arel.sql '?'
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -132,6 +144,13 @@ module ActiveRecord
       # The default implementation does nothing; the implementation should be
       # overridden by concrete adapters.
       def reset!
+        # this should be overridden by concrete adapters
+      end
+
+      ###
+      # Clear any caching the database adapter may be doing, for example
+      # clearing the prepared statement cache.  This is database specific.
+      def clear_cache!
         # this should be overridden by concrete adapters
       end
 
@@ -190,12 +209,13 @@ module ActiveRecord
 
       protected
 
-        def log(sql, name)
-          name ||= "SQL"
-          @instrumenter.instrument("sql.active_record",
-            :sql => sql, :name => name, :connection_id => object_id) do
-            yield
-          end
+        def log(sql, name = "SQL", binds = [])
+          @instrumenter.instrument(
+            "sql.active_record",
+            :sql           => sql,
+            :name          => name,
+            :connection_id => object_id,
+            :binds         => binds) { yield }
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
           @logger.debug message if @logger

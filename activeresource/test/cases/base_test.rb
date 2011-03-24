@@ -5,6 +5,8 @@ require "fixtures/street_address"
 require "fixtures/sound"
 require "fixtures/beast"
 require "fixtures/proxy"
+require "fixtures/address"
+require "fixtures/subscription_plan"
 require 'active_support/json'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
@@ -12,101 +14,8 @@ require 'mocha'
 
 class BaseTest < Test::Unit::TestCase
   def setup
-    @default_request_headers = { 'Content-Type' => 'application/xml' }
-    @matz   = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
-    @david  = { :id => 2, :name => 'David' }.to_xml(:root => 'person')
-    @greg   = { :id => 3, :name => 'Greg' }.to_xml(:root => 'person')
-    @addy   = { :id => 1, :street => '12345 Street', :country => 'Australia' }.to_xml(:root => 'address')
-    @rick   = { :name => "Rick", :age => 25 }.to_xml(:root => "person")
-    @joe    = { 'person' => { :id => 6, :name => 'Joe' }}.to_json
-    @people = [{ :id => 1, :name => 'Matz' }, { :id => 2, :name => 'David' }].to_xml(:root => 'people')
-    @people_david = [{ :id => 2, :name => 'David' }].to_xml(:root => 'people')
-    @addresses    = [{ :id => 1, :street => '12345 Street', :country => 'Australia' }].to_xml(:root => 'addresses')
-
-    # - deep nested resource -
-    # - Luis (Customer)
-    #   - JK (Customer::Friend)
-    #     - Mateo (Customer::Friend::Brother)
-    #       - Edith (Customer::Friend::Brother::Child)
-    #       - Martha (Customer::Friend::Brother::Child)
-    #     - Felipe (Customer::Friend::Brother)
-    #       - Bryan (Customer::Friend::Brother::Child)
-    #       - Luke (Customer::Friend::Brother::Child)
-    #   - Eduardo (Customer::Friend)
-    #     - Sebas (Customer::Friend::Brother)
-    #       - Andres (Customer::Friend::Brother::Child)
-    #       - Jorge (Customer::Friend::Brother::Child)
-    #     - Elsa (Customer::Friend::Brother)
-    #       - Natacha (Customer::Friend::Brother::Child)
-    #     - Milena (Customer::Friend::Brother)
-    #
-    @luis = {:id => 1, :name => 'Luis',
-              :friends => [{:name => 'JK',
-                            :brothers => [{:name => 'Mateo',
-                                           :children => [{:name => 'Edith'},{:name => 'Martha'}]},
-                                          {:name => 'Felipe',
-                                           :children => [{:name => 'Bryan'},{:name => 'Luke'}]}]},
-                           {:name => 'Eduardo',
-                            :brothers => [{:name => 'Sebas',
-                                           :children => [{:name => 'Andres'},{:name => 'Jorge'}]},
-                                          {:name => 'Elsa',
-                                           :children => [{:name => 'Natacha'}]},
-                                          {:name => 'Milena',
-                                           :children => []}]}]}.to_xml(:root => 'customer')
-    # - resource with yaml array of strings; for ARs using serialize :bar, Array
-    @marty = <<-eof.strip
-      <?xml version=\"1.0\" encoding=\"UTF-8\"?>
-      <person>
-        <id type=\"integer\">5</id>
-        <name>Marty</name>
-        <colors type=\"yaml\">---
-      - \"red\"
-      - \"green\"
-      - \"blue\"
-      </colors>
-      </person>
-    eof
-
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/1.xml",                {}, @matz
-      mock.get    "/people/2.xml",                {}, @david
-      mock.get    "/people/6.json",               {}, @joe
-      mock.get    "/people/5.xml",                {}, @marty
-      mock.get    "/people/Greg.xml",             {}, @greg
-      mock.get    "/people/4.xml",                {'key' => 'value'}, nil, 404
-      mock.put    "/people/1.xml",                {}, nil, 204
-      mock.delete "/people/1.xml",                {}, nil, 200
-      mock.delete "/people/2.xml",                {}, nil, 400
-      mock.get    "/people/99.xml",               {}, nil, 404
-      mock.post   "/people.xml",                  {}, @rick, 201, 'Location' => '/people/5.xml'
-      mock.get    "/people.xml",                  {}, @people
-      mock.get    "/people/1/addresses.xml",      {}, @addresses
-      mock.get    "/people/1/addresses/1.xml",    {}, @addy
-      mock.get    "/people/1/addresses/2.xml",    {}, nil, 404
-      mock.get    "/people/2/addresses/1.xml",    {}, nil, 404
-      mock.get    "/people/Greg/addresses/1.xml", {}, @addy
-      mock.put    "/people/1/addresses/1.xml",    {}, nil, 204
-      mock.delete "/people/1/addresses/1.xml",    {}, nil, 200
-      mock.post   "/people/1/addresses.xml",      {}, nil, 201, 'Location' => '/people/1/addresses/5'
-      mock.get    "/people//addresses.xml",       {}, nil, 404
-      mock.get    "/people//addresses/1.xml",     {}, nil, 404
-      mock.put    "/people//addresses/1.xml",     {}, nil, 404
-      mock.delete "/people//addresses/1.xml",     {}, nil, 404
-      mock.post   "/people//addresses.xml",       {}, nil, 404
-      mock.head   "/people/1.xml",                {}, nil, 200
-      mock.head   "/people/Greg.xml",             {}, nil, 200
-      mock.head   "/people/99.xml",               {}, nil, 404
-      mock.head   "/people/1/addresses/1.xml",    {}, nil, 200
-      mock.head   "/people/1/addresses/2.xml",    {}, nil, 404
-      mock.head   "/people/2/addresses/1.xml",    {}, nil, 404
-      mock.head   "/people/Greg/addresses/1.xml", {}, nil, 200
-      # customer
-      mock.get    "/customers/1.xml",             {}, @luis
-    end
-
+    setup_response # find me in abstract_unit
     @original_person_site = Person.site
-    Person.user = nil
-    Person.password = nil
   end
 
   def teardown
@@ -554,9 +463,9 @@ class BaseTest < Test::Unit::TestCase
     assert Person.collection_path(:gender => 'male', :student => true).include?('gender=male')
     assert Person.collection_path(:gender => 'male', :student => true).include?('student=true')
 
-    assert_equal '/people.xml?name[]=bob&name[]=your+uncle%2Bme&name[]=&name[]=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
+    assert_equal '/people.xml?name%5B%5D=bob&name%5B%5D=your+uncle%2Bme&name%5B%5D=&name%5B%5D=false', Person.collection_path(:name => ['bob', 'your uncle+me', nil, false])
 
-    assert_equal '/people.xml?struct[a][]=2&struct[a][]=1&struct[b]=fred', Person.collection_path(:struct => ActiveSupport::OrderedHash[:a, [2,1], 'b', 'fred'])
+    assert_equal '/people.xml?struct%5Ba%5D%5B%5D=2&struct%5Ba%5D%5B%5D=1&struct%5Bb%5D=fred', Person.collection_path(:struct => ActiveSupport::OrderedHash[:a, [2,1], 'b', 'fred'])
   end
 
   def test_custom_element_path
@@ -564,6 +473,12 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people/1/addresses/1.xml', StreetAddress.element_path(1, 'person_id' => 1)
     assert_equal '/people/Greg/addresses/1.xml', StreetAddress.element_path(1, 'person_id' => 'Greg')
     assert_equal '/people/ann%20mary/addresses/ann%20mary.xml', StreetAddress.element_path(:'ann mary', 'person_id' => 'ann mary')
+  end
+
+  def test_custom_element_path_without_required_prefix_param
+    assert_raise ActiveResource::MissingPrefixParam do
+      StreetAddress.element_path(1)
+    end
   end
 
   def test_module_element_path
@@ -597,11 +512,17 @@ class BaseTest < Test::Unit::TestCase
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, :person_id => 1, :type => 'work')
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, 'person_id' => 1, :type => 'work')
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, :type => 'work', :person_id => 1)
-    assert_equal '/people/1/addresses/1.xml?type[]=work&type[]=play+time', StreetAddress.element_path(1, :person_id => 1, :type => ['work', 'play time'])
+    assert_equal '/people/1/addresses/1.xml?type%5B%5D=work&type%5B%5D=play+time', StreetAddress.element_path(1, :person_id => 1, :type => ['work', 'play time'])
   end
 
   def test_custom_element_path_with_prefix_and_parameters
     assert_equal '/people/1/addresses/1.xml?type=work', StreetAddress.element_path(1, {:person_id => 1}, {:type => 'work'})
+  end
+
+  def test_custom_collection_path_without_required_prefix_param
+    assert_raise ActiveResource::MissingPrefixParam do
+      StreetAddress.collection_path
+    end
   end
 
   def test_custom_collection_path
@@ -651,6 +572,8 @@ class BaseTest < Test::Unit::TestCase
       assert_equal Set.new([:the_param1]), person_class.prefix_parameters
       person_class.prefix = "the_prefix/:the_param2"
       assert_equal Set.new([:the_param2]), person_class.prefix_parameters
+      person_class.prefix = "the_prefix/:the_param1/other_prefix/:the_param2"
+      assert_equal Set.new([:the_param2, :the_param1]), person_class.prefix_parameters
     end
   end
 
@@ -712,6 +635,14 @@ class BaseTest < Test::Unit::TestCase
     resp = {}
     assert_nil p.__send__(:id_from_response, resp)
   end
+
+  def test_load_attributes_from_response
+    p = Person.new
+    resp = ActiveResource::Response.new(nil)
+    resp['Content-Length'] = "100"
+    assert_nil p.__send__(:load_attributes_from_response, resp)
+  end
+
 
   def test_create_with_custom_prefix
     matzs_house = StreetAddress.new(:person_id => 1)
@@ -945,7 +876,7 @@ class BaseTest < Test::Unit::TestCase
   end
 
   ########################################################################
-  # Tests the more miscelaneous helper methods
+  # Tests the more miscellaneous helper methods
   ########################################################################
   def test_exists
     # Class method.
@@ -1042,6 +973,12 @@ class BaseTest < Test::Unit::TestCase
     Person.element_name = old_elem_name
   end
 
+  def test_to_xml_with_private_method_name_as_attribute
+    assert_nothing_raised(ArgumentError) {
+      Customer.new(:test => true).to_xml
+    }
+  end
+
   def test_to_json
     Person.include_root_in_json = true
     Person.format = :json
@@ -1112,5 +1049,57 @@ class BaseTest < Test::Unit::TestCase
         assert_kind_of String, color
       end
     end
+  end
+
+  def test_with_custom_formatter
+    @addresses = [{:id => "1", :street => "1 Infinite Loop", :city => "Cupertino", :state => "CA"}].to_xml(:root => 'addresses')
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/addresses.xml", {}, @addresses, 200
+    end
+
+    # late bind the site
+    AddressResource.site = "http://localhost"
+    addresses = AddressResource.find(:all)
+
+    assert_equal "Cupertino, CA", addresses.first.city_state
+  end
+
+  def test_create_with_custom_primary_key
+    silver_plan = {:code => "silver", :price => 5.00}.to_xml(:root => "plan")
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post "/plans.xml", {}, silver_plan, 201, 'Location' => '/plans/silver.xml'
+    end
+
+    plan = SubscriptionPlan.new(:code => "silver", :price => 5.00)
+    assert plan.new?
+
+    plan.save!
+    assert !plan.new?
+  end
+
+  def test_update_with_custom_primary_key
+    silver_plan = {:code => "silver", :price => 5.00}.to_xml(:root => "plan")
+    silver_plan_updated = {:code => "silver", :price => 10.00}.to_xml(:root => "plan")
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/plans/silver.xml", {}, silver_plan
+      mock.put "/plans/silver.xml", {}, silver_plan_updated, 201, 'Location' => '/plans/silver.xml'
+    end
+
+    plan = SubscriptionPlan.find("silver")
+    assert !plan.new?
+    assert_equal 5.00, plan.price
+
+    # update price
+    plan.price = 10.00
+    plan.save!
+    assert_equal 10.00, plan.price
+  end
+  
+  def test_namespacing
+    sound = Asset::Sound.find(1)
+    assert_equal "Asset::Sound::Author", sound.author.class.to_s
   end
 end

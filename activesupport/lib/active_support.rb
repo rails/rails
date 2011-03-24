@@ -35,12 +35,14 @@ module ActiveSupport
 end
 
 require "active_support/dependencies/autoload"
+require "active_support/version"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :DescendantsTracker
   autoload :FileUpdateChecker
+  autoload :FileWatcher
   autoload :LogSubscriber
   autoload :Notifications
 

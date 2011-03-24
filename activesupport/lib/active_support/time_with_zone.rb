@@ -18,7 +18,7 @@ module ActiveSupport
   #
   # See Time and TimeZone for further documentation of these methods.
   #
-  # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangeable. 
+  # TimeWithZone instances implement the same API as Ruby Time instances, so that Time and TimeWithZone instances are interchangeable.
   # Examples:
   #
   #   t = Time.zone.now                     # => Sun, 18 May 2008 13:27:25 EDT -04:00
@@ -32,11 +32,12 @@ module ActiveSupport
   #   t > Time.utc(1999)                    # => true
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
+  #
   class TimeWithZone
     def self.name
       'Time' # Report class name as 'Time' to thwart type checking
     end
-    
+
     include Comparable
     attr_reader :time_zone
 
@@ -72,7 +73,7 @@ module ActiveSupport
 
     # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your system's <tt>ENV['TZ']</tt> zone
     def localtime
-      utc.getlocal
+      utc.respond_to?(:getlocal) ? utc.getlocal : utc.to_time.getlocal
     end
     alias_method :getlocal, :localtime
 
@@ -127,6 +128,7 @@ module ActiveSupport
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
     #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
     #   # => "2005/02/01 15:15:10 +0000"
+    #
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
         xmlschema
@@ -135,12 +137,18 @@ module ActiveSupport
       end
     end
 
-    def to_yaml(options = {})
-      if options.kind_of?(YAML::Emitter)
-        utc.to_yaml(options)
+    def encode_with(coder)
+      if coder.respond_to?(:represent_object)
+        coder.represent_object(nil, utc)
       else
-        time.to_yaml(options).gsub('Z', formatted_offset(true, 'Z'))
+        coder.represent_scalar(nil, utc.strftime("%Y-%m-%d %H:%M:%S.%9NZ"))
       end
+    end
+
+    def to_yaml(options = {})
+      return super if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+
+      utc.to_yaml(options)
     end
 
     def httpdate
@@ -273,7 +281,7 @@ module ActiveSupport
 
     # A TimeWithZone acts like a Time, so just return +self+.
     def to_time
-      self
+      utc
     end
 
     def to_datetime

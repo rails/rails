@@ -1,6 +1,7 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/string/output_safety'
 
 module ActionView
   # = Action View Form Tag Helpers
@@ -24,8 +25,11 @@ module ActionView
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
       #   If "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
       #   is added to simulate the verb over post.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
+      #   pass custom authenticity token string, or to not add authenticity_token field at all
+      #   (by passing <tt>false</tt>).
       # * A list of parameters to feed to the URL the form will be posted to.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the 
+      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behaviour. By default this behaviour is an ajax submit.
       #
       # ==== Examples
@@ -38,14 +42,20 @@ module ActionView
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">
       #
-      #   <%= form_tag('/posts')do -%>
+      #   <%= form_tag('/posts') do -%>
       #     <div><%= submit_tag 'Save' %></div>
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
-      # 
+      #
       #  <%= form_tag('/posts', :remote => true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
-      #   
+      #
+      #   form_tag('http://far.away.com/form', :authenticity_token => false)
+      #   # form without authenticity token
+      #
+      #   form_tag('http://far.away.com/form', :authenticity_token => "cf50faa3fe97702ca1ae")
+      #   # form with custom authenticity token
+      #
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
         html_options = html_options_for_form(url_for_options, options, *parameters_for_url)
         if block_given?
@@ -67,7 +77,7 @@ module ActionView
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
-      #   select_tag "people", options_from_collection_for_select(@people, "name", "id")
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name")
       #   # <select id="people" name="people"><option value="1">David</option></select>
       #
       #   select_tag "people", "<option>David</option>"
@@ -93,10 +103,6 @@ module ActionView
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
       #   #    <option>Paris</option><option>Rome</option></select>
       def select_tag(name, option_tags = nil, options = {})
-        if Array === option_tags
-          ActiveSupport::Deprecation.warn 'Passing an array of option_tags to select_tag implicitly joins them without marking them as HTML-safe. Pass option_tags.join.html_safe instead.', caller
-        end
-
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
         if blank = options.delete(:include_blank)
           if blank.kind_of?(String)
@@ -115,6 +121,7 @@ module ActionView
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:size</tt> - The number of visible characters that will fit in the input.
       # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
+      # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -123,6 +130,9 @@ module ActionView
       #
       #   text_field_tag 'query', 'Enter your search query here'
       #   # => <input id="query" name="query" type="text" value="Enter your search query here" />
+      #
+      #   text_field_tag 'search', nil, :placeholder => 'Enter search term...'
+      #   # => <input id="search" name="search" placeholder="Enter search term..." type="text" />
       #
       #   text_field_tag 'request', nil, :class => 'special_input'
       #   # => <input class="special_input" id="request" name="request" type="text" />
@@ -291,7 +301,7 @@ module ActionView
         end
 
         escape = options.key?("escape") ? options.delete("escape") : true
-        content = html_escape(content) if escape
+        content = ERB::Util.html_escape(content) if escape
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
@@ -351,12 +361,12 @@ module ActionView
       # Creates a submit button with the text <tt>value</tt> as the caption.
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript 
-      #   drivers will provide a prompt with the question specified. If the user accepts, 
+      # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript
+      #   drivers will provide a prompt with the question specified. If the user accepts,
       #   the form is processed normally, otherwise no action is taken.
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a 
-      #   disabled version of the submit button when the form is submitted. This feature is 
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
+      #   disabled version of the submit button when the form is submitted. This feature is
       #   provided by the unobtrusive JavaScript driver.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -383,7 +393,7 @@ module ActionView
       #   #    name="commit" type="submit" value="Edit" />
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
-      #   # => <input name='commit' type='submit' value='Save' 
+      #   # => <input name='commit' type='submit' value='Save'
       #         data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
@@ -394,10 +404,63 @@ module ActionView
         end
 
         if confirm = options.delete("confirm")
-          add_confirm_to_attributes!(options, confirm)
+          options["data-confirm"] = confirm
         end
 
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
+      end
+
+      # Creates a button element that defines a <tt>submit</tt> button,
+      # <tt>reset</tt>button or a generic button which can be used in
+      # JavaScript, for example. You can use the button tag as a regular
+      # submit tag but it isn't supported in legacy browsers. However,
+      # the button tag allows richer labels such as images and emphasis,
+      # so this helper will also accept a block.
+      #
+      # ==== Options
+      # * <tt>:confirm => 'question?'</tt> - If present, the
+      #   unobtrusive JavaScript drivers will provide a prompt with
+      #   the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
+      # * <tt>:disabled</tt> - If true, the user will not be able to
+      #   use this input.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
+      # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Examples
+      #   button_tag
+      #   # => <button name="button" type="submit">Button</button>
+      #
+      #   button_tag(:type => 'button') do
+      #     content_tag(:strong, 'Ask me!')
+      #   end
+      #   # => <button name="button" type="button">
+      #          <strong>Ask me!</strong>
+      #        </button>
+      #
+      #   button_tag "Checkout", :disable_with => "Please wait..."
+      #   # => <button data-disable-with="Please wait..." name="button"
+      #                type="submit">Checkout</button>
+      #
+      def button_tag(content_or_options = nil, options = nil, &block)
+        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
+        options ||= {}
+        options.stringify_keys!
+
+        if disable_with = options.delete("disable_with")
+          options["data-disable-with"] = disable_with
+        end
+
+        if confirm = options.delete("confirm")
+          options["data-confirm"] = confirm
+        end
+
+        options.reverse_merge! 'name' => 'button', 'type' => 'submit'
+
+        content_tag :button, content_or_options || 'Button', options, &block
       end
 
       # Displays an image which when clicked will submit the form.
@@ -427,7 +490,7 @@ module ActionView
         options.stringify_keys!
 
         if confirm = options.delete("confirm")
-          add_confirm_to_attributes!(options, confirm)
+          options["data-confirm"] = confirm
         end
 
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
@@ -529,17 +592,19 @@ module ActionView
           options.stringify_keys.tap do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             # The following URL is unescaped, this is just a hash of options, and it is the
-            # responsability of the caller to escape all the values.
+            # responsibility of the caller to escape all the values.
             html_options["action"]  = url_for(url_for_options, *parameters_for_url)
             html_options["accept-charset"] = "UTF-8"
             html_options["data-remote"] = true if html_options.delete("remote")
+            html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
           end
         end
 
         def extra_tags_for_form(html_options)
           snowman_tag = tag(:input, :type => "hidden",
-                            :name => "_e", :value => "&#9731;".html_safe)
+                            :name => "utf8", :value => "&#x2713;".html_safe)
 
+          authenticity_token = html_options.delete("authenticity_token")
           method = html_options.delete("method").to_s
 
           method_tag = case method
@@ -548,10 +613,10 @@ module ActionView
               ''
             when /^post$/i, "", nil
               html_options["method"] = "post"
-              token_tag
+              token_tag(authenticity_token)
             else
               html_options["method"] = "post"
-              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag
+              tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
           end
 
           tags = snowman_tag << method_tag
@@ -571,11 +636,12 @@ module ActionView
           output.safe_concat("</form>")
         end
 
-        def token_tag
-          unless protect_against_forgery?
+        def token_tag(token)
+          if token == false || !protect_against_forgery?
             ''
           else
-            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => form_authenticity_token)
+            token = form_authenticity_token if token.nil?
+            tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
           end
         end
 

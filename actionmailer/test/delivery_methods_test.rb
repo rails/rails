@@ -128,7 +128,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
     Mail::Message.any_instance.expects(:deliver!).never
     DeliveryMailer.welcome.deliver
   end
-  
+
   test "does not append the deliveries collection if told not to perform the delivery" do
     DeliveryMailer.perform_deliveries = false
     DeliveryMailer.deliveries.clear
@@ -160,7 +160,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
       DeliveryMailer.welcome.deliver
     end
   end
-  
+
   test "does not increment the deliveries collection on bogus deliveries" do
     DeliveryMailer.delivery_method = BogusDelivery
     DeliveryMailer.raise_delivery_errors = false
@@ -168,5 +168,5 @@ class MailDeliveryTest < ActiveSupport::TestCase
     DeliveryMailer.welcome.deliver
     assert_equal(0, DeliveryMailer.deliveries.length)
   end
-  
+
 end

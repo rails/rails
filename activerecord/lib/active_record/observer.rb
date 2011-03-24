@@ -3,7 +3,7 @@ require 'active_support/core_ext/class/attribute'
 module ActiveRecord
   # = Active Record Observer
   #
-  # Observer classes respond to lifecycle callbacks to implement trigger-like
+  # Observer classes respond to life cycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with
   # functionality that doesn't pertain to the core responsibility of the
@@ -67,7 +67,7 @@ module ActiveRecord
   #
   # == Configuration
   #
-  # In order to activate an observer, list it in the <tt>config.active_record.observers</tt> configuration 
+  # In order to activate an observer, list it in the <tt>config.active_record.observers</tt> configuration
   # setting in your <tt>config/application.rb</tt> file.
   #
   #   config.active_record.observers = :comment_observer, :signup_observer
@@ -89,50 +89,31 @@ module ActiveRecord
   # singletons and that call instantiates and registers them.
   #
   class Observer < ActiveModel::Observer
-    class_attribute :observed_methods
-    self.observed_methods = [].freeze
-
-    def initialize
-      super
-      observed_descendants.each { |klass| add_observer!(klass) }
-    end
-
-    def self.method_added(method)
-      method = method.to_sym
-
-      if ActiveRecord::Callbacks::CALLBACKS.include?(method)
-        self.observed_methods += [method]
-        self.observed_methods.freeze
-      end
-    end
 
     protected
 
-      def observed_descendants
-        observed_classes.sum([]) { |klass| klass.descendants }
-      end
-
-      def observe_callbacks?
-        self.class.observed_methods.any?
+      def observed_classes
+        klasses = super
+        klasses + klasses.map { |klass| klass.descendants }.flatten
       end
 
       def add_observer!(klass)
         super
-        define_callbacks klass if observe_callbacks?
+        define_callbacks klass
       end
 
       def define_callbacks(klass)
-        existing_methods = klass.instance_methods.map(&:to_sym)
         observer = self
         observer_name = observer.class.name.underscore.gsub('/', '__')
 
-        self.class.observed_methods.each do |method|
-          callback = :"_notify_#{observer_name}_for_#{method}"
-          unless existing_methods.include? callback
-            klass.send(:define_method, callback) do  # def _notify_user_observer_for_before_save
-              observer.update(method, self)          #   observer.update(:before_save, self)
-            end                                      # end
-            klass.send(method, callback)             # before_save :_notify_user_observer_for_before_save
+        ActiveRecord::Callbacks::CALLBACKS.each do |callback|
+          next unless respond_to?(callback)
+          callback_meth = :"_notify_#{observer_name}_for_#{callback}"
+          unless klass.respond_to?(callback_meth)
+            klass.send(:define_method, callback_meth) do
+              observer.send(callback, self)
+            end
+            klass.send(callback, callback_meth)
           end
         end
       end

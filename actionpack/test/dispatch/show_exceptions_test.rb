@@ -1,20 +1,7 @@
 require 'abstract_unit'
 
-module ActionDispatch
-  class ShowExceptions
-    private
-      def public_path
-        "#{FIXTURE_LOAD_PATH}/public"
-      end
+class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
-      # Silence logger
-      def logger
-        nil
-      end
-  end
-end
-
-class ShowExceptionsTest < ActionController::IntegrationTest
   Boomer = lambda do |env|
     req = ActionDispatch::Request.new(env)
     case req.path
@@ -26,6 +13,8 @@ class ShowExceptionsTest < ActionController::IntegrationTest
       raise ActionController::NotImplemented
     when "/unprocessable_entity"
       raise ActionController::InvalidAuthenticityToken
+    when "/not_found_original_exception"
+      raise ActionView::Template::Error.new('template', {}, AbstractController::ActionNotFound.new)
     else
       raise "puke!"
     end
@@ -58,15 +47,15 @@ class ShowExceptionsTest < ActionController::IntegrationTest
 
       get "/", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 500
-      assert_match /puke/, body
+      assert_match(/puke/, body)
 
       get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 404
-      assert_match /#{ActionController::UnknownAction.name}/, body
+      assert_match(/#{ActionController::UnknownAction.name}/, body)
 
       get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
       assert_response 405
-      assert_match /ActionController::MethodNotAllowed/, body
+      assert_match(/ActionController::MethodNotAllowed/, body)
     end
   end
 
@@ -96,15 +85,15 @@ class ShowExceptionsTest < ActionController::IntegrationTest
 
     get "/", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 500
-    assert_match /puke/, body
+    assert_match(/puke/, body)
 
     get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
-    assert_match /#{ActionController::UnknownAction.name}/, body
+    assert_match(/#{ActionController::UnknownAction.name}/, body)
 
     get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
-    assert_match /ActionController::MethodNotAllowed/, body
+    assert_match(/ActionController::MethodNotAllowed/, body)
   end
 
   test "does not show filtered parameters" do
@@ -113,6 +102,23 @@ class ShowExceptionsTest < ActionController::IntegrationTest
     get "/", {"foo"=>"bar"}, {'action_dispatch.show_exceptions' => true,
       'action_dispatch.parameter_filter' => [:foo]}
     assert_response 500
-    assert_match "&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body
+    assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
+  end
+
+  test "show registered original exception for wrapped exceptions when consider_all_requests_local is false" do
+    @app = ProductionApp
+    self.remote_addr = '208.77.188.166'
+
+    get "/not_found_original_exception", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 404
+    assert_match(/404 error/, body)
+  end
+
+  test "show registered original exception for wrapped exceptions when consider_all_requests_local is true" do
+    @app = DevelopmentApp
+
+    get "/not_found_original_exception", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 404
+    assert_match(/AbstractController::ActionNotFound/, body)
   end
 end

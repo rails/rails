@@ -9,7 +9,7 @@ module ActionView
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       extend ActiveSupport::Concern
-      # This +sanitize+ helper will html encode all tags and strip all attributes that 
+      # This +sanitize+ helper will html encode all tags and strip all attributes that
       # aren't specifically allowed.
       #
       # It also strips href/src tags with invalid protocols, like javascript: especially.
@@ -21,7 +21,7 @@ module ActionView
       #
       # You can add or remove tags/attributes if you want to customize it a bit.
       # See ActionView::Base for full docs on the available options.  You can add
-      # tags/attributes for single uses of +sanitize+ by passing either the 
+      # tags/attributes for single uses of +sanitize+ by passing either the
       # <tt>:attributes</tt> or <tt>:tags</tt> options:
       #
       # Normal Use

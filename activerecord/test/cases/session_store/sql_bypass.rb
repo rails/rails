@@ -18,9 +18,9 @@ module ActiveRecord
         assert !Session.table_exists?
       end
 
-      def test_new_record?
+      def test_persisted?
         s = SqlBypass.new :data => 'foo', :session_id => 10
-        assert s.new_record?, 'this is a new record!'
+        assert !s.persisted?, 'this is a new record!'
       end
 
       def test_not_loaded?

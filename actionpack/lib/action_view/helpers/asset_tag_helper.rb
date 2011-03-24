@@ -1,9 +1,6 @@
-require 'thread'
-require 'cgi'
-require 'action_view/helpers/url_helper'
-require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/file'
-require 'active_support/core_ext/object/blank'
+require 'action_view/helpers/asset_tag_helpers/javascript_tag_helpers'
+require 'action_view/helpers/asset_tag_helpers/stylesheet_tag_helpers'
+require 'action_view/helpers/asset_tag_helpers/asset_paths'
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -152,7 +149,7 @@ module ActionView
     #
     #   # Normally you'd calculate RELEASE_NUMBER at startup.
     #   RELEASE_NUMBER = 12345
-    #   config.action_controller.asset_path_template = proc { |asset_path|
+    #   config.action_controller.asset_path = proc { |asset_path|
     #     "/release-#{RELEASE_NUMBER}#{asset_path}"
     #   }
     #
@@ -194,20 +191,8 @@ module ActionView
     #   RewriteEngine On
     #   RewriteRule ^/release-\d+/(images|javascripts|stylesheets)/(.*)$ /$1/$2 [L]
     module AssetTagHelper
-      mattr_reader :javascript_expansions
-      @@javascript_expansions = { }
-
-      mattr_reader :stylesheet_expansions
-      @@stylesheet_expansions = {}
-
-      # You can enable or disable the asset tag timestamps cache.
-      # With the cache enabled, the asset tag helper methods will make fewer
-      # expensive file system calls. However this prevents you from modifying
-      # any asset files while the server is running.
-      #
-      #   ActionView::Helpers::AssetTagHelper.cache_asset_timestamps = false
-      mattr_accessor :cache_asset_timestamps
-
+      include JavascriptTagHelpers
+      include StylesheetTagHelpers
       # Returns a link tag that browsers and news readers can use to auto-detect
       # an RSS or ATOM feed. The +type+ can either be <tt>:rss</tt> (default) or
       # <tt>:atom</tt>. Control the link options in url_for format using the
@@ -239,263 +224,6 @@ module ActionView
           "title" => tag_options[:title] || type.to_s.upcase,
           "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
         )
-      end
-
-      # Computes the path to a javascript asset in the public javascripts directory.
-      # If the +source+ filename has no extension, .js will be appended (except for explicit URIs)
-      # Full paths from the document root will be passed through.
-      # Used internally by javascript_include_tag to build the script path.
-      #
-      # ==== Examples
-      #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
-      #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
-      #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
-      #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
-      #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
-      def javascript_path(source)
-        compute_public_path(source, 'javascripts', 'js')
-      end
-      alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
-
-      # Returns an html script tag for each of the +sources+ provided. You
-      # can pass in the filename (.js extension is optional) of javascript files
-      # that exist in your public/javascripts directory for inclusion into the
-      # current page or you can pass the full path relative to your document
-      # root. To include the Prototype and Scriptaculous javascript libraries in
-      # your application, pass <tt>:defaults</tt> as the source. When using
-      # <tt>:defaults</tt>, if an application.js file exists in your public
-      # javascripts directory, it will be included as well. You can modify the
-      # html attributes of the script tag by passing a hash as the last argument.
-      #
-      # ==== Examples
-      #   javascript_include_tag "xmlhr" # =>
-      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
-      #
-      #   javascript_include_tag "xmlhr.js" # =>
-      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
-      #
-      #   javascript_include_tag "common.javascript", "/elsewhere/cools" # =>
-      #     <script type="text/javascript" src="/javascripts/common.javascript"></script>
-      #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
-      #
-      #   javascript_include_tag "http://www.railsapplication.com/xmlhr" # =>
-      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
-      #
-      #   javascript_include_tag "http://www.railsapplication.com/xmlhr.js" # =>
-      #     <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js"></script>
-      #
-      #   javascript_include_tag :defaults # =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
-      #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script>
-      #
-      # * = The application.js file is only referenced if it exists
-      #
-      # Though it's not really recommended practice, if you need to extend the default JavaScript set for any reason
-      # (e.g., you're going to be using a certain .js file in every action), then take a look at the register_javascript_include_default method.
-      #
-      # You can also include all javascripts in the javascripts directory using <tt>:all</tt> as the source:
-      #
-      #   javascript_include_tag :all # =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
-      #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script>
-      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
-      #
-      # Note that the default javascript files will be included first. So Prototype and Scriptaculous are available to
-      # all subsequently included files.
-      #
-      # If you want Rails to search in all the subdirectories under javascripts, you should explicitly set <tt>:recursive</tt>:
-      #
-      #   javascript_include_tag :all, :recursive => true
-      #
-      # == Caching multiple javascripts into one
-      #
-      # You can also cache multiple javascripts into one file, which requires less HTTP connections to download and can better be
-      # compressed by gzip (leading to faster transfers). Caching will only happen if config.perform_caching
-      # is set to <tt>true</tt> (which is the case by default for the Rails production environment, but not for the development
-      # environment).
-      #
-      # ==== Examples
-      #   javascript_include_tag :all, :cache => true # when config.perform_caching is false =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
-      #     ...
-      #     <script type="text/javascript" src="/javascripts/application.js"></script>
-      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
-      #
-      #   javascript_include_tag :all, :cache => true # when config.perform_caching is true =>
-      #     <script type="text/javascript" src="/javascripts/all.js"></script>
-      #
-      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is false =>
-      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/cart.js"></script>
-      #     <script type="text/javascript" src="/javascripts/checkout.js"></script>
-      #
-      #   javascript_include_tag "prototype", "cart", "checkout", :cache => "shop" # when config.perform_caching is true =>
-      #     <script type="text/javascript" src="/javascripts/shop.js"></script>
-      #
-      # The <tt>:recursive</tt> option is also available for caching:
-      #
-      #   javascript_include_tag :all, :cache => true, :recursive => true
-      def javascript_include_tag(*sources)
-        options = sources.extract_options!.stringify_keys
-        concat  = options.delete("concat")
-        cache   = concat || options.delete("cache")
-        recursive = options.delete("recursive")
-
-        if concat || (config.perform_caching && cache)
-          joined_javascript_name = (cache == true ? "all" : cache) + ".js"
-          joined_javascript_path = File.join(joined_javascript_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.javascripts_dir, joined_javascript_name)
-
-          unless config.perform_caching && File.exists?(joined_javascript_path)
-            write_asset_file_contents(joined_javascript_path, compute_javascript_paths(sources, recursive))
-          end
-          javascript_src_tag(joined_javascript_name, options)
-        else
-          sources = expand_javascript_sources(sources, recursive)
-          ensure_javascript_sources!(sources) if cache
-          sources.collect { |source| javascript_src_tag(source, options) }.join("\n").html_safe
-        end
-      end
-
-      # Register one or more javascript files to be included when <tt>symbol</tt>
-      # is passed to <tt>javascript_include_tag</tt>. This method is typically intended
-      # to be called from plugin initialization to register javascript files
-      # that the plugin installed in <tt>public/javascripts</tt>.
-      #
-      #   ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
-      #
-      #   javascript_include_tag :monkey # =>
-      #     <script type="text/javascript" src="/javascripts/head.js"></script>
-      #     <script type="text/javascript" src="/javascripts/body.js"></script>
-      #     <script type="text/javascript" src="/javascripts/tail.js"></script>
-      def self.register_javascript_expansion(expansions)
-        @@javascript_expansions.merge!(expansions)
-      end
-
-      # Register one or more stylesheet files to be included when <tt>symbol</tt>
-      # is passed to <tt>stylesheet_link_tag</tt>. This method is typically intended
-      # to be called from plugin initialization to register stylesheet files
-      # that the plugin installed in <tt>public/stylesheets</tt>.
-      #
-      #   ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
-      #
-      #   stylesheet_link_tag :monkey # =>
-      #     <link href="/stylesheets/head.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
-      def self.register_stylesheet_expansion(expansions)
-        @@stylesheet_expansions.merge!(expansions)
-      end
-
-      # Computes the path to a stylesheet asset in the public stylesheets directory.
-      # If the +source+ filename has no extension, <tt>.css</tt> will be appended (except for explicit URIs).
-      # Full paths from the document root will be passed through.
-      # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
-      #
-      # ==== Examples
-      #   stylesheet_path "style" # => /stylesheets/style.css
-      #   stylesheet_path "dir/style.css" # => /stylesheets/dir/style.css
-      #   stylesheet_path "/dir/style.css" # => /dir/style.css
-      #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style
-      #   stylesheet_path "http://www.railsapplication.com/css/style.css" # => http://www.railsapplication.com/css/style.css
-      def stylesheet_path(source)
-        compute_public_path(source, 'stylesheets', 'css')
-      end
-      alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
-
-      # Returns a stylesheet link tag for the sources specified as arguments. If
-      # you don't specify an extension, <tt>.css</tt> will be appended automatically.
-      # You can modify the link attributes by passing a hash as the last argument.
-      #
-      # ==== Examples
-      #   stylesheet_link_tag "style" # =>
-      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "style.css" # =>
-      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "http://www.railsapplication.com/style.css" # =>
-      #     <link href="http://www.railsapplication.com/style.css" media="screen" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "style", :media => "all" # =>
-      #     <link href="/stylesheets/style.css" media="all" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "style", :media => "print" # =>
-      #     <link href="/stylesheets/style.css" media="print" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
-      #     <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/css/stylish.css" media="screen" rel="stylesheet" type="text/css" />
-      #
-      # You can also include all styles in the stylesheets directory using <tt>:all</tt> as the source:
-      #
-      #   stylesheet_link_tag :all # =>
-      #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
-      #
-      # If you want Rails to search in all the subdirectories under stylesheets, you should explicitly set <tt>:recursive</tt>:
-      #
-      #   stylesheet_link_tag :all, :recursive => true
-      #
-      # == Caching multiple stylesheets into one
-      #
-      # You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be
-      # compressed by gzip (leading to faster transfers). Caching will only happen if config.perform_caching
-      # is set to true (which is the case by default for the Rails production environment, but not for the development
-      # environment). Examples:
-      #
-      # ==== Examples
-      #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is false =>
-      #     <link href="/stylesheets/style1.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleB.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/styleX2.css" media="screen" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag :all, :cache => true # when config.perform_caching is true =>
-      #     <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is false =>
-      #     <link href="/stylesheets/shop.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/cart.css"  media="screen" rel="stylesheet" type="text/css" />
-      #     <link href="/stylesheets/checkout.css" media="screen" rel="stylesheet" type="text/css" />
-      #
-      #   stylesheet_link_tag "shop", "cart", "checkout", :cache => "payment" # when config.perform_caching is true =>
-      #     <link href="/stylesheets/payment.css"  media="screen" rel="stylesheet" type="text/css" />
-      #
-      # The <tt>:recursive</tt> option is also available for caching:
-      #
-      #   stylesheet_link_tag :all, :cache => true, :recursive => true
-      #
-      # To force concatenation (even in development mode) set <tt>:concat</tt> to true. This is useful if
-      # you have too many stylesheets for IE to load.
-      #
-      #   stylesheet_link_tag :all, :concat => true
-      #
-      def stylesheet_link_tag(*sources)
-        options = sources.extract_options!.stringify_keys
-        concat  = options.delete("concat")
-        cache   = concat || options.delete("cache")
-        recursive = options.delete("recursive")
-
-        if concat || (config.perform_caching && cache)
-          joined_stylesheet_name = (cache == true ? "all" : cache) + ".css"
-          joined_stylesheet_path = File.join(joined_stylesheet_name[/^#{File::SEPARATOR}/] ? config.assets_dir : config.stylesheets_dir, joined_stylesheet_name)
-
-          unless config.perform_caching && File.exists?(joined_stylesheet_path)
-            write_asset_file_contents(joined_stylesheet_path, compute_stylesheet_paths(sources, recursive))
-          end
-          stylesheet_tag(joined_stylesheet_name, options)
-        else
-          sources = expand_stylesheet_sources(sources, recursive)
-          ensure_stylesheet_sources!(sources) if cache
-          sources.collect { |source| stylesheet_tag(source, options) }.join("\n").html_safe
-        end
       end
 
       # Web browsers cache favicons. If you just throw a <tt>favicon.ico</tt> into the document
@@ -546,7 +274,7 @@ module ActionView
       # The alias +path_to_image+ is provided to avoid that. Rails uses the alias internally, and
       # plugin authors are encouraged to do so.
       def image_path(source)
-        compute_public_path(source, 'images')
+        asset_paths.compute_public_path(source, 'images')
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
@@ -561,7 +289,7 @@ module ActionView
       #   video_path("/trailers/hd.avi")                              # => /trailers/hd.avi
       #   video_path("http://www.railsapplication.com/vid/hd.avi") # => http://www.railsapplication.com/vid/hd.avi
       def video_path(source)
-        compute_public_path(source, 'videos')
+        asset_paths.compute_public_path(source, 'videos')
       end
       alias_method :path_to_video, :video_path # aliased to avoid conflicts with a video_path named route
 
@@ -571,12 +299,12 @@ module ActionView
       #
       # ==== Examples
       #   audio_path("horse")                                            # => /audios/horse
-      #   audio_path("horse.wav")                                        # => /audios/horse.avi
-      #   audio_path("sounds/horse.wav")                                 # => /audios/sounds/horse.avi
-      #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.avi
+      #   audio_path("horse.wav")                                        # => /audios/horse.wav
+      #   audio_path("sounds/horse.wav")                                 # => /audios/sounds/horse.wav
+      #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.wav
       #   audio_path("http://www.railsapplication.com/sounds/horse.wav") # => http://www.railsapplication.com/sounds/horse.wav
       def audio_path(source)
-        compute_public_path(source, 'audios')
+        asset_paths.compute_public_path(source, 'audios')
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
@@ -705,202 +433,8 @@ module ActionView
 
       private
 
-        def rewrite_extension?(source, dir, ext)
-          source_ext = File.extname(source)[1..-1]
-          ext && (source_ext.blank? || (ext != source_ext && File.exist?(File.join(config.assets_dir, dir, "#{source}.#{ext}"))))
-        end
-
-        def rewrite_host_and_protocol(source, has_request)
-          host = compute_asset_host(source)
-          if has_request && host.present? && !is_uri?(host)
-            host = "#{controller.request.protocol}#{host}"
-          end
-          "#{host}#{source}"
-        end
-
-        # Add the the extension +ext+ if not present. Return full URLs otherwise untouched.
-        # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
-        # roots. Rewrite the asset path for cache-busting asset ids. Include
-        # asset host, if configured, with the correct request protocol.
-        def compute_public_path(source, dir, ext = nil, include_host = true)
-          return source if is_uri?(source)
-
-          source += ".#{ext}" if rewrite_extension?(source, dir, ext)
-          source  = "/#{dir}/#{source}" unless source[0] == ?/
-          source = rewrite_asset_path(source, config.asset_path)
-
-          has_request = controller.respond_to?(:request)
-          if has_request && include_host && source !~ %r{^#{controller.config.relative_url_root}/}
-            source = "#{controller.config.relative_url_root}#{source}"
-          end
-          source = rewrite_host_and_protocol(source, has_request) if include_host
-
-          source
-        end
-
-        def is_uri?(path)
-          path =~ %r{^[-a-z]+://|^cid:}
-        end
-
-        # Pick an asset host for this source. Returns +nil+ if no host is set,
-        # the host if no wildcard is set, the host interpolated with the
-        # numbers 0-3 if it contains <tt>%d</tt> (the number is the source hash mod 4),
-        # or the value returned from invoking the proc if it's a proc or the value from
-        # invoking call if it's an object responding to call.
-        def compute_asset_host(source)
-          if host = config.asset_host
-            if host.is_a?(Proc) || host.respond_to?(:call)
-              case host.is_a?(Proc) ? host.arity : host.method(:call).arity
-              when 2
-                request = controller.respond_to?(:request) && controller.request
-                host.call(source, request)
-              else
-                host.call(source)
-              end
-            else
-              (host =~ /%d/) ? host % (source.hash % 4) : host
-            end
-          end
-        end
-
-        @@asset_timestamps_cache = {}
-        @@asset_timestamps_cache_guard = Mutex.new
-
-        # Use the RAILS_ASSET_ID environment variable or the source's
-        # modification time as its cache-busting asset id.
-        def rails_asset_id(source)
-          if asset_id = ENV["RAILS_ASSET_ID"]
-            asset_id
-          else
-            if @@cache_asset_timestamps && (asset_id = @@asset_timestamps_cache[source])
-              asset_id
-            else
-              path = File.join(config.assets_dir, source)
-              asset_id = File.exist?(path) ? File.mtime(path).to_i.to_s : ''
-
-              if @@cache_asset_timestamps
-                @@asset_timestamps_cache_guard.synchronize do
-                  @@asset_timestamps_cache[source] = asset_id
-                end
-              end
-
-              asset_id
-            end
-          end
-        end
-
-        # Break out the asset path rewrite in case plugins wish to put the asset id
-        # someplace other than the query string.
-        def rewrite_asset_path(source, path = nil)
-          if path && path.respond_to?(:call)
-            return path.call(source)
-          elsif path && path.is_a?(String)
-            return path % [source]
-          end
-
-          asset_id = rails_asset_id(source)
-          if asset_id.blank?
-            source
-          else
-            source + "?#{asset_id}"
-          end
-        end
-
-        def javascript_src_tag(source, options)
-          content_tag("script", "", { "type" => Mime::JS, "src" => path_to_javascript(source) }.merge(options))
-        end
-
-        def stylesheet_tag(source, options)
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => html_escape(path_to_stylesheet(source)) }.merge(options), false, false)
-        end
-
-        def compute_javascript_paths(*args)
-          expand_javascript_sources(*args).collect { |source| compute_public_path(source, 'javascripts', 'js', false) }
-        end
-
-        def compute_stylesheet_paths(*args)
-          expand_stylesheet_sources(*args).collect { |source| compute_public_path(source, 'stylesheets', 'css', false) }
-        end
-
-        def expand_javascript_sources(sources, recursive = false)
-          if sources.include?(:all)
-            all_javascript_files = collect_asset_files(config.javascripts_dir, ('**' if recursive), '*.js')
-            ((determine_source(:defaults, @@javascript_expansions).dup & all_javascript_files) + all_javascript_files).uniq
-          else
-            expanded_sources = sources.collect do |source|
-              determine_source(source, @@javascript_expansions)
-            end.flatten
-            expanded_sources << "application" if sources.include?(:defaults) && File.exist?(File.join(config.javascripts_dir, "application.js"))
-            expanded_sources
-          end
-        end
-
-        def expand_stylesheet_sources(sources, recursive)
-          if sources.first == :all
-            collect_asset_files(config.stylesheets_dir, ('**' if recursive), '*.css')
-          else
-            sources.collect do |source|
-              determine_source(source, @@stylesheet_expansions)
-            end.flatten
-          end
-        end
-
-        def determine_source(source, collection)
-          case source
-          when Symbol
-            collection[source] || raise(ArgumentError, "No expansion found for #{source.inspect}")
-          else
-            source
-          end
-        end
-
-        def ensure_stylesheet_sources!(sources)
-          sources.each do |source|
-            asset_file_path!(path_to_stylesheet(source))
-          end
-          return sources
-        end
-
-        def ensure_javascript_sources!(sources)
-          sources.each do |source|
-            asset_file_path!(path_to_javascript(source))
-          end
-          return sources
-        end
-
-        def join_asset_file_contents(paths)
-          paths.collect { |path| File.read(asset_file_path!(path)) }.join("\n\n")
-        end
-
-        def write_asset_file_contents(joined_asset_path, asset_paths)
-
-          FileUtils.mkdir_p(File.dirname(joined_asset_path))
-          File.atomic_write(joined_asset_path) { |cache| cache.write(join_asset_file_contents(asset_paths)) }
-
-          # Set mtime to the latest of the combined files to allow for
-          # consistent ETag without a shared filesystem.
-          mt = asset_paths.map { |p| File.mtime(asset_file_path(p)) }.max
-          File.utime(mt, mt, joined_asset_path)
-        end
-
-        def asset_file_path(path)
-          File.join(config.assets_dir, path.split('?').first)
-        end
-
-        def asset_file_path!(path)
-          unless is_uri?(path)
-            absolute_path = asset_file_path(path)
-            raise(Errno::ENOENT, "Asset file not found at '#{absolute_path}'" ) unless File.exist?(absolute_path)
-            return absolute_path
-          end
-        end
-
-        def collect_asset_files(*path)
-          dir = path.first
-
-          Dir[File.join(*path.compact)].collect do |file|
-            file[-(file.size - dir.size - 1)..-1].sub(/\.\w+$/, '')
-          end.sort
+        def asset_paths
+          @asset_paths ||= AssetPaths.new(config, controller)
         end
     end
   end

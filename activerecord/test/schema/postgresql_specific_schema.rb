@@ -100,7 +100,7 @@ _SQL
     obj_id OID
   );
 _SQL
-  
+
   execute <<_SQL
   CREATE TABLE postgresql_timestamp_with_zones (
     id SERIAL PRIMARY KEY,

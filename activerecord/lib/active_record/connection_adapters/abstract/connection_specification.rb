@@ -67,12 +67,12 @@ module ActiveRecord
 
           begin
             require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
-          rescue LoadError
-            raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{$!})"
+          rescue LoadError => e
+            raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{e})"
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
-          if !respond_to?(adapter_method)
+          unless respond_to?(adapter_method)
             raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
           end
 
@@ -87,6 +87,16 @@ module ActiveRecord
       # to any of the specific Active Records.
       def connection
         retrieve_connection
+      end
+
+      # Returns the configuration of the associated connection as a hash:
+      #
+      #  ActiveRecord::Base.connection_config
+      #  # => {:pool=>5, :timeout=>5000, :database=>"db/development.sqlite3", :adapter=>"sqlite3"}
+      #
+      # Please use only for reading.
+      def connection_config
+        connection_pool.spec.config
       end
 
       def connection_pool

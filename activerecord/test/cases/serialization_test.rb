@@ -5,7 +5,7 @@ require 'models/reply'
 require 'models/company'
 
 class SerializationTest < ActiveRecord::TestCase
-  
+
   fixtures :topics, :companies, :accounts
 
   FORMATS = [ :xml, :json ]
@@ -21,6 +21,12 @@ class SerializationTest < ActiveRecord::TestCase
     }
 
     @contact = Contact.new(@contact_attributes)
+  end
+
+  def test_serialized_init_with
+    topic = Topic.allocate
+    topic.init_with('attributes' => { 'content' => '--- foo' })
+    assert_equal 'foo', topic.content
   end
 
   def test_to_xml
