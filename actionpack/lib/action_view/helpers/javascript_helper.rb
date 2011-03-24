@@ -129,54 +129,19 @@ module ActionView
         tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
       end
 
-      # Returns a link of the given +name+ that will trigger a JavaScript +function+ using the
-      # onclick handler and return false after the fact.
+      # Returns a link whose +onclick+ handler triggers the passed JavaScript.
       #
-      # The first argument +name+ is used as the link text.
+      # The helper receives a name, JavaScript code, and an optional hash of HTML options. The
+      # name is used as the link text and the JavaScript code goes into the +onclick+ attribute.
+      # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+. Once all
+      # the JavaScript is set, the helper appends "; return false;".
       #
-      # The next arguments are optional and may include the javascript function definition and a hash of html_options.
+      # The +href+ attribute of the tag is set to "#" unles +html_options+ has one.
       #
-      # The +function+ argument can be omitted in favor of an +update_page+
-      # block, which evaluates to a string when the template is rendered
-      # (instead of making an Ajax request first).
-      #
-      # The +html_options+ will accept a hash of html attributes for the link tag. Some examples are :class => "nav_button", :id => "articles_nav_button"
-      #
-      # Note: if you choose to specify the javascript function in a block, but would like to pass html_options, set the +function+ parameter to nil
-      #
-      #
-      # Examples:
-      #   link_to_function "Greeting", "alert('Hello world!')"
+      #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
       #     Produces:
-      #       <a onclick="alert('Hello world!'); return false;" href="#">Greeting</a>
-      #
-      #   link_to_function(image_tag("delete"), "if (confirm('Really?')) do_delete()")
-      #     Produces:
-      #       <a onclick="if (confirm('Really?')) do_delete(); return false;" href="#">
-      #         <img src="/images/delete.png?" alt="Delete"/>
-      #       </a>
-      #
-      #   link_to_function("Show me more", nil, :id => "more_link") do |page|
-      #     page[:details].visual_effect  :toggle_blind
-      #     page[:more_link].replace_html "Show me less"
-      #   end
-      #     Produces:
-      #       <a href="#" id="more_link" onclick="try {
-      #         $(&quot;details&quot;).visualEffect(&quot;toggle_blind&quot;);
-      #         $(&quot;more_link&quot;).update(&quot;Show me less&quot;);
-      #       }
-      #       catch (e) {
-      #         alert('RJS error:\n\n' + e.toString());
-      #         alert('$(\&quot;details\&quot;).visualEffect(\&quot;toggle_blind\&quot;);
-      #         \n$(\&quot;more_link\&quot;).update(\&quot;Show me less\&quot;);');
-      #         throw e
-      #       };
-      #       return false;">Show me more</a>
-      #
-      def link_to_function(name, *args, &block)
-        html_options = args.extract_options!.symbolize_keys
-
-        function = block_given? ? update_page(&block) : args[0] || ''
+      #       <a onclick="alert('Hello world!'); return false;" href="#" class="nav_link">Greeting</a>
+      def link_to_function(name, function, html_options={})
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
         href = html_options[:href] || '#'
 
