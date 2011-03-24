@@ -35,20 +35,6 @@ class JavaScriptHelperTest < ActionView::TestCase
       button_to_function("Greeting", "alert('Hello world!')")
   end
 
-  def test_button_to_function_with_rjs_block
-    html = button_to_function( "Greet me!" ) do |page|
-      page.replace_html 'header', "<h1>Greetings</h1>"
-    end
-    assert_dom_equal %(<input type="button" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C/h1\\u003E&quot;);;" value="Greet me!" />), html
-  end
-
-  def test_button_to_function_with_rjs_block_and_options
-    html = button_to_function( "Greet me!", :class => "greeter" ) do |page|
-      page.replace_html 'header', "<h1>Greetings</h1>"
-    end
-    assert_dom_equal %(<input type="button" class="greeter" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C\/h1\\u003E&quot;);;" value="Greet me!" />), html
-  end
-
   def test_button_to_function_with_onclick
     assert_dom_equal "<input onclick=\"alert('Goodbye World :('); alert('Hello world!');\" type=\"button\" value=\"Greeting\" />",
       button_to_function("Greeting", "alert('Hello world!')", :onclick => "alert('Goodbye World :(')")
