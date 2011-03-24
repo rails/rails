@@ -305,7 +305,7 @@ begin
           end
 
           class ProcessTime < Time
-            Mode = RubyProf::PROCESS_TIME
+            Mode = RubyProf::PROCESS_TIME if RubyProf.const_defined?(:PROCESS_TIME)
 
             def measure
               RubyProf.measure_process_time
@@ -313,7 +313,7 @@ begin
           end
 
           class WallTime < Time
-            Mode = RubyProf::WALL_TIME
+            Mode = RubyProf::WALL_TIME if RubyProf.const_defined?(:WALL_TIME)
 
             def measure
               RubyProf.measure_wall_time
