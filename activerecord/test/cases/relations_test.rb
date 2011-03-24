@@ -667,14 +667,14 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_size_with_limit
-    posts = Post.limit(6)
+    posts = Post.limit(10)
 
-    assert_queries(1) { assert_equal 6, posts.size }
+    assert_queries(1) { assert_equal 10, posts.size }
     assert ! posts.loaded?
 
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
-    assert_no_queries { assert_equal 5, best_posts.size }
+    assert_no_queries { assert_equal 9, best_posts.size }
   end
 
   def test_size_with_zero_limit

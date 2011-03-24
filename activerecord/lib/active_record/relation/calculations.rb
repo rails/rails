@@ -183,13 +183,10 @@ module ActiveRecord
       end
     end
 
-    def aggregate_column(column_name, subquery_alias = nil)
+    def aggregate_column(column_name)
       if @klass.column_names.include?(column_name.to_s)
-        Arel::Attribute.new(subquery_alias || @klass.unscoped.table, column_name)
+        Arel::Attribute.new(@klass.unscoped.table, column_name)
       else
-        if subquery_alias && (split_name = column_name.to_s.split(".")).length > 1
-          column_name = split_name.last
-        end
         Arel.sql(column_name == :all ? "*" : column_name.to_s)
       end
     end
@@ -315,14 +312,16 @@ module ActiveRecord
     end
 
     def build_count_subquery(relation, column_name, distinct)
-      # Arel doesn't do subqueries
-      subquery_alias = arel_table.alias("subquery_for_count")
-      aliased_column = aggregate_column(column_name, subquery_alias)
-      select_value = operation_over_aggregate_column(aliased_column, 'count', distinct)
+      column_alias = Arel.sql('count_column')
+      subquery_alias = Arel.sql('subquery_for_count')
 
-      relation.select_values = [(column_name == :all ? 1 : aggregate_column(column_name))]
-      subquery_sql = "(#{relation.arel.to_sql}) #{subquery_alias.name}"
-      subquery_alias.relation.select_manager.project(select_value).from(subquery_sql)
+      aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
+      relation.select_values = [aliased_column]
+      subquery = relation.arel.as(subquery_alias)
+
+      sm = Arel::SelectManager.new relation.engine
+      select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
+      sm.project(select_value).from(subquery)
     end
   end
 end
