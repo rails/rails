@@ -101,6 +101,23 @@ module Arel
           manager.project table['id']
           manager.to_sql.must_be_like 'SELECT "users"."id" FROM users'
         end
+
+        it 'should support any ast' do
+          table   = Table.new :users
+          manager1 = Arel::SelectManager.new Table.engine
+
+          manager2 = Arel::SelectManager.new Table.engine
+          manager2.project(Arel.sql('*'))
+          manager2.from table
+
+          manager1.project Arel.sql('lol')
+          as = manager2.as manager2.grouping(manager2.ast), Arel.sql('omg')
+          manager1.from as
+
+          manager1.to_sql.must_be_like %{
+            SELECT lol FROM (SELECT * FROM "users" ) AS omg
+          }
+        end
       end
 
       describe 'having' do

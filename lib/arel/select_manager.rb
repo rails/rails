@@ -38,6 +38,10 @@ module Arel
       Arel::Nodes::Exists.new @ast
     end
 
+    def as node, expr
+      Arel::Nodes::As.new node, expr
+    end
+
     def where_clauses
       if $VERBOSE
         warn "(#{caller.first}) where_clauses is deprecated and will be removed in arel 3.0.0 with no replacement"
@@ -86,10 +90,10 @@ module Arel
       # from the AR tests.
 
       case table
-      when Nodes::SqlLiteral, Arel::Table
-        @ctx.source.left = table
       when Nodes::Join
         @ctx.source.right << table
+      else
+        @ctx.source.left = table
       end
 
       self
