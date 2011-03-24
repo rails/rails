@@ -121,8 +121,8 @@ module ActionView
       # The +href+ attribute of the tag is set to "#" unles +html_options+ has one.
       #
       #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
-      #     Produces:
-      #       <a onclick="alert('Hello world!'); return false;" href="#" class="nav_link">Greeting</a>
+      #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
+      #
       def link_to_function(name, function, html_options={})
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
         href = html_options[:href] || '#'
