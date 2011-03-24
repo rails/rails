@@ -95,41 +95,32 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_skipping_javascripts_without_mountable_option
     run_generator
-    assert_no_file "public/javascripts/prototype.js"
+    assert_no_file "public/javascripts/jquery.js"
     assert_no_file "public/javascripts/rails.js"
-    assert_no_file "public/javascripts/controls.js"
-    assert_no_file "public/javascripts/dragdrop.js"
-    assert_no_file "public/javascripts/dragdrop.js"
     assert_no_file "public/javascripts/application.js"
   end
 
   def test_javascripts_generation
     run_generator [destination_root, "--mountable"]
+    assert_file "public/javascripts/jquery.js"
     assert_file "public/javascripts/rails.js"
-    assert_file "public/javascripts/prototype.js"
-    assert_file "public/javascripts/controls.js"
-    assert_file "public/javascripts/dragdrop.js"
-    assert_file "public/javascripts/dragdrop.js"
     assert_file "public/javascripts/application.js"
   end
 
   def test_skip_javascripts
     run_generator [destination_root, "--skip-javascript", "--mountable"]
-    assert_no_file "public/javascripts/prototype.js"
+    assert_no_file "public/javascripts/jquery.js"
     assert_no_file "public/javascripts/rails.js"
-    assert_no_file "public/javascripts/controls.js"
-    assert_no_file "public/javascripts/dragdrop.js"
-    assert_no_file "public/javascripts/dragdrop.js"
   end
 
   def test_ensure_that_javascript_option_is_passed_to_app_generator
-    run_generator [destination_root, "--javascript", "jquery"]
-    assert_file "test/dummy/public/javascripts/jquery.js"
+    run_generator [destination_root, "--javascript", "prototype"]
+    assert_file "test/dummy/public/javascripts/prototype.js"
   end
 
   def test_ensure_that_skip_javascript_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_javascript"]
-    assert_no_file "test/dummy/public/javascripts/prototype.js"
+    assert_no_file "test/dummy/public/javascripts/jquery.js"
   end
 
   def test_template_from_dir_pwd

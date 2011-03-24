@@ -6,7 +6,7 @@ module ActionView
   class Railtie < Rails::Railtie
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.stylesheet_expansions = {}
-    config.action_view.javascript_expansions = { :defaults => ['prototype', 'effects', 'dragdrop', 'controls', 'rails'] }
+    config.action_view.javascript_expansions = { :defaults => %w(jquery rails) }
 
     initializer "action_view.cache_asset_ids" do |app|
       unless app.config.cache_classes

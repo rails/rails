@@ -707,17 +707,27 @@ To include +http://example.com/main.js+:
 <%= javascript_include_tag "http://example.com/main.js" %>
 </erb>
 
-The +defaults+ option loads the Prototype and Scriptaculous libraries:
+The +:defaults+ option loads jQuery by default:
 
 <erb>
 <%= javascript_include_tag :defaults %>
 </erb>
 
-The +all+ option loads every JavaScript file in +public/javascripts+, starting with the Prototype and Scriptaculous libraries:
+If the application was generated with "-j prototype" <tt>:defaults</tt> loads Prototype and Scriptaculous. And you can in any case override the expansion in <tt>config/application.rb</tt>:
+
+<ruby>
+config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
+</ruby>
+
+When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at then end.
+
+The +:all+ option loads every JavaScript file in +public/javascripts+:
 
 <erb>
 <%= javascript_include_tag :all %>
 </erb>
+
+Note that your defaults of choice will be included first, so they will be available to all subsequently included files.
 
 You can supply the +:recursive+ option to load files in subfolders of +public/javascripts+ as well:
 
