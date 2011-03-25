@@ -123,7 +123,7 @@ module ActiveRecord
       end
     end
 
-    # Same as #first! but raises RecordNotFound if no record is returned
+    # Same as #first but raises RecordNotFound if no record is returned
     def first!(*args)
       self.first(*args) or raise RecordNotFound
     end
@@ -142,7 +142,7 @@ module ActiveRecord
       end
     end
 
-    # Same as #last! but raises RecordNotFound if no record is returned
+    # Same as #last but raises RecordNotFound if no record is returned
     def last!(*args)
       self.last(*args) or raise RecordNotFound
     end
