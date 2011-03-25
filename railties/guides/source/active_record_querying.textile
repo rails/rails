@@ -76,7 +76,7 @@ Primary operation of <tt>Model.find(options)</tt> can be summarized as:
 
 h4. Retrieving a Single Object
 
-Active Record lets you retrieve a single object using three different ways.
+Active Record lets you retrieve a single object using five different ways.
 
 h5. Using a Primary Key
 
@@ -132,7 +132,7 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 h5. +first!+
 
-<tt>Model.first!</tt> finds the first record matched by the supplied options. For example:
+<tt>Model.first!</tt> finds the first record. For example:
 
 <ruby>
 client = Client.first!
@@ -149,7 +149,7 @@ SELECT * FROM clients LIMIT 1
 
 h5. +last!+
 
-<tt>Model.last!</tt> finds the last record matched by the supplied options. For example:
+<tt>Model.last!</tt> finds the last record. For example:
 
 <ruby>
 client = Client.last!
