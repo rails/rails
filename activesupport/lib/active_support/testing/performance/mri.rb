@@ -158,7 +158,7 @@ module ActiveSupport
           end
         end
 
-        class Objects < Base
+        class Objects < Amount
           Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
 
           # Ruby 1.9 + GCdata patch
@@ -175,7 +175,7 @@ module ActiveSupport
           end
         end
 
-        class GcRuns < Base
+        class GcRuns < Amount
           Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
 
           # Ruby 1.9
@@ -192,7 +192,7 @@ module ActiveSupport
           end
         end
 
-        class GcTime < Base
+        class GcTime < Time
           Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
           # Ruby 1.9 with GC::Profiler

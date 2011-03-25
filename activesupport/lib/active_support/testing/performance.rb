@@ -2,6 +2,7 @@ require 'fileutils'
 require 'rails/version'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
+require 'action_view/helpers/number_helper'
 
 module ActiveSupport
   module Testing
@@ -179,6 +180,8 @@ module ActiveSupport
         end
 
         class Base
+          include ActionView::Helpers::NumberHelper
+          
           attr_reader :total
 
           def initialize
@@ -219,6 +222,12 @@ module ActiveSupport
           end
         end
         
+        class Amount < Base
+          def format(measurement)
+            number_with_delimiter(measurement)
+          end
+        end
+        
         class ProcessTime < Time
           # overridden by each implementation
           def measure; end
@@ -239,35 +248,23 @@ module ActiveSupport
           def measure; end
             
           def format(measurement)
-            '%.2f KB' % measurement
+            number_to_human_size(measurement, :precision => 2)
           end
         end
         
-        class Objects < Base
+        class Objects < Amount
           # overridden by each implementation
           def measure; end
-          
-          def format(measurement)
-            measurement.to_i.to_s
-          end
         end
 
-        class GcRuns < Base
+        class GcRuns < Amount
           # overridden by each implementation
           def measure; end
-          
-          def format(measurement)
-            measurement.to_i.to_s
-          end
         end
 
-        class GcTime < Base
+        class GcTime < Time
           # overridden by each implementation
           def measure; end
-          
-          def format(measurement)
-            '%.2f ms' % measurement
-          end
         end
       end
     end
