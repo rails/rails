@@ -273,8 +273,8 @@ end
 
 RUBY_ENGINE = 'ruby' unless defined?(RUBY_ENGINE) # mri 1.8
 case RUBY_ENGINE
-  when 'ruby'     then require 'active_support/testing/performance/ruby'
-  when 'rubinius' then require 'active_support/testing/performance/rubinius'
+  when 'ruby' then require 'active_support/testing/performance/ruby'
+  when 'rbx'  then require 'active_support/testing/performance/rubinius'
   else
     $stderr.puts 'Your ruby interpreter is not supported for benchmarking.'
     exit
