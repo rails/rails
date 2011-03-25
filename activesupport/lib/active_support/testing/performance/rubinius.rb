@@ -58,11 +58,15 @@ module ActiveSupport
         end
 
         class GcRuns < Amount
-          def measure; 0; end
+          def measure
+            loopback.get("system.gc.full.count").last + loopback.get("system.gc.young.count").last
+          end
         end
 
         class GcTime < Time
-          def measure; 0; end
+          def measure
+            loopback.get("system.gc.full.wallclock").last + loopback.get("system.gc.young.wallclock").last
+          end
         end
       end
     end
