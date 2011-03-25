@@ -8,17 +8,12 @@ end
 module ActiveSupport
   module Testing
     module Performance
+      
       protected
-        def run_warmup
-          GC.start
-
-          time = Metrics::Time.new
-          run_test(time, :benchmark)
-          puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
-
+        def run_gc
           GC.start
         end
-        
+              
       class Performer; end
 
       class Profiler < Performer
@@ -81,6 +76,10 @@ module ActiveSupport
 
       module Metrics
         class Base
+          def measure_mode
+            self.class::Mode
+          end
+          
           def profile
             RubyProf.resume
             yield
@@ -106,11 +105,6 @@ module ActiveSupport
                 yield
               ensure
                 GC.disable_stats
-              end
-
-            else
-              def with_gc_stats
-                yield
               end
             end
         end
@@ -162,10 +156,6 @@ module ActiveSupport
               RubyProf.measure_memory / 1024.0
             end
           end
-
-          def format(measurement)
-            '%.2f KB' % measurement
-          end
         end
 
         class Objects < Base
@@ -182,10 +172,6 @@ module ActiveSupport
             def measure
               RubyProf.measure_allocations
             end
-          end
-
-          def format(measurement)
-            measurement.to_i.to_s
           end
         end
 
@@ -204,10 +190,6 @@ module ActiveSupport
               RubyProf.measure_gc_runs
             end
           end
-
-          def format(measurement)
-            measurement.to_i.to_s
-          end
         end
 
         class GcTime < Base
@@ -224,10 +206,6 @@ module ActiveSupport
             def measure
               RubyProf.measure_gc_time / 1000
             end
-          end
-
-          def format(measurement)
-            '%.2f ms' % measurement
           end
         end
       end

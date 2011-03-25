@@ -3,17 +3,6 @@ require 'rails/version'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
 
-if !defined?(RUBY_ENGINE) or RUBY_ENGINE == "ruby" # MRI 1.8 or 1.9
-  begin
-    require 'ruby-prof'
-  rescue LoadError
-    $stderr.puts "Specify ruby-prof as application's dependency in Gemfile to run benchmarks."
-    exit
-  end
-  
-  require 'active_support/testing/performance/mri'
-end
-
 module ActiveSupport
   module Testing
     module Performance      
@@ -80,6 +69,19 @@ module ActiveSupport
       end
 
       protected
+        # overridden by each implementation
+        def run_gc; end
+      
+        def run_warmup
+          run_gc
+
+          time = Metrics::Time.new
+          run_test(time, :benchmark)
+          puts "%s (%s warmup)" % [full_test_name, time.format(time.total)]
+
+          run_gc
+        end
+        
         def run_profile(metric)
           klass = profile_options[:benchmark] ? Benchmarker : Profiler
           performer = klass.new(self, metric)
@@ -105,6 +107,13 @@ module ActiveSupport
           def output_filename
             "#{profile_options[:output]}/#{full_test_name}_#{@metric.name}"
           end
+      end
+      
+      # overridden by each implementation
+      class Profiler < Performer
+        def run;    end
+        def report; end
+        def record; end
       end
 
       class Benchmarker < Performer
@@ -180,14 +189,6 @@ module ActiveSupport
             @name ||= self.class.name.demodulize.underscore
           end
 
-          def measure_mode
-            self.class::Mode
-          end
-
-          def measure
-            0
-          end
-
           def benchmark
             with_gc_stats do
               before = measure
@@ -195,6 +196,13 @@ module ActiveSupport
               @total += (measure - before)
             end
           end
+          
+          # overridden by each implementation
+          def profile; end
+            
+          protected
+            # overridden by each implementation
+            def with_gc_stats; end
         end
         
         class Time < Base
@@ -210,7 +218,60 @@ module ActiveSupport
             end
           end
         end
+        
+        class ProcessTime < Time
+          # overridden by each implementation
+          def measure; end
+        end
+        
+        class WallTime < Time
+          # overridden by each implementation
+          def measure; end
+        end
+        
+        class CpuTime < Time
+          # overridden by each implementation
+          def measure; end
+        end
+        
+        class Memory < Base
+          # overridden by each implementation
+          def measure; end
+            
+          def format(measurement)
+            '%.2f KB' % measurement
+          end
+        end
+        
+        class Objects < Base
+          # overridden by each implementation
+          def measure; end
+          
+          def format(measurement)
+            measurement.to_i.to_s
+          end
+        end
+
+        class GcRuns < Base
+          # overridden by each implementation
+          def measure; end
+          
+          def format(measurement)
+            measurement.to_i.to_s
+          end
+        end
+
+        class GcTime < Base
+          # overridden by each implementation
+          def measure; end
+          
+          def format(measurement)
+            '%.2f ms' % measurement
+          end
+        end
       end
     end
   end
 end
+
+require 'active_support/testing/performance/mri'
