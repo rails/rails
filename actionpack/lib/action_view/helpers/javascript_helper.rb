@@ -105,7 +105,7 @@ module ActionView
       #   button_to_function "Greeting", "alert('Hello world!')", :class => "ok"
       #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
       #
-      def button_to_function(name, function='', html_options={})
+      def button_to_function(name, function=nil, html_options={})
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
 
         tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
