@@ -157,11 +157,11 @@ module ActiveSupport
   end
 end
 
-if RUBY_VERSION >= "1.9.2"
+if RUBY_VERSION >= '1.9.2'
   require 'active_support/testing/performance/ruby/yarv'
-elsif RUBY_VERSION >= "1.8.6"
+elsif RUBY_VERSION >= '1.8.6'
   require 'active_support/testing/performance/ruby/mri'
 else
-  $stderr.puts "Update your ruby interpreter to be able to run benchmarks."
+  $stderr.puts 'Update your ruby interpreter to be able to run benchmarks.'
   exit
 end
