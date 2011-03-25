@@ -131,15 +131,15 @@ class Module
           remove_possible_method("#{prefix}#{method}")
         end
 
-        def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
-          #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
-        rescue NoMethodError                                # rescue NoMethodError
-          if #{to}.nil?                                     #   if client.nil?
-            #{on_nil}                                       #     return # depends on :allow_nil
-          else                                              #   else
-            raise                                           #     raise
-          end                                               #   end
-        end                                                 # end
+        def #{prefix}#{method}(*args, &block)                   # def customer_name(*args, &block)
+          self.#{to}.__send__(#{method.inspect}, *args, &block) #   self.client.__send__(:name, *args, &block)
+        rescue NoMethodError                                    # rescue NoMethodError
+          if self.#{to}.nil?                                    #   if self.client.nil?
+            #{on_nil}                                           #     return # depends on :allow_nil
+          else                                                  #   else
+            raise                                               #     raise
+          end                                                   #   end
+        end                                                     # end
       EOS
     end
   end
