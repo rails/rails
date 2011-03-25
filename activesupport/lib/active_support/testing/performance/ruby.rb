@@ -8,7 +8,6 @@ end
 module ActiveSupport
   module Testing
     module Performance
-      
       protected
         def run_gc
           GC.start
@@ -88,24 +87,9 @@ module ActiveSupport
           end
 
           protected
-            # Ruby 1.9 with GC::Profiler
-            if defined?(GC::Profiler)
-              def with_gc_stats
-                GC::Profiler.enable
-                GC.start
-                yield
-              ensure
-                GC::Profiler.disable
-              end
-
-            # Ruby 1.8 + ruby-prof wrapper (enable/disable stats for Benchmarker)
-            elsif GC.respond_to?(:enable_stats)
-              def with_gc_stats
-                GC.enable_stats
-                yield
-              ensure
-                GC.disable_stats
-              end
+            # overridden by each implementation
+            def with_gc_stats
+              yield
             end
         end
         
@@ -143,72 +127,41 @@ module ActiveSupport
 
         class Memory < Base
           Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
-
-          # Ruby 1.9 + GCdata patch
-          if GC.respond_to?(:malloc_allocated_size)
-            def measure
-              GC.malloc_allocated_size / 1024.0
-            end
-
-          # Ruby 1.8 + ruby-prof wrapper
-          elsif RubyProf.respond_to?(:measure_memory)
-            def measure
-              RubyProf.measure_memory / 1024.0
-            end
-          end
+          
+          # overridden by each implementation
+          def measure; 0; end
         end
 
         class Objects < Amount
           Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
-
-          # Ruby 1.9 + GCdata patch
-          if GC.respond_to?(:malloc_allocations)
-            def measure
-              GC.malloc_allocations
-            end
-
-          # Ruby 1.8 + ruby-prof wrapper
-          elsif RubyProf.respond_to?(:measure_allocations)
-            def measure
-              RubyProf.measure_allocations
-            end
-          end
+          
+          # overridden by each implementation
+          def measure; 0; end
         end
 
         class GcRuns < Amount
           Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
-
-          # Ruby 1.9
-          if GC.respond_to?(:count)
-            def measure
-              GC.count
-            end
-
-          # Ruby 1.8 + ruby-prof wrapper
-          elsif RubyProf.respond_to?(:measure_gc_runs)
-            def measure
-              RubyProf.measure_gc_runs
-            end
-          end
+          
+          # overridden by each implementation
+          def measure; 0; end
         end
 
         class GcTime < Time
           Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
-          # Ruby 1.9 with GC::Profiler
-          if defined?(GC::Profiler) && GC::Profiler.respond_to?(:total_time)
-            def measure
-              GC::Profiler.total_time
-            end
-
-          # Ruby 1.8 + ruby-prof wrapper
-          elsif RubyProf.respond_to?(:measure_gc_time)
-            def measure
-              RubyProf.measure_gc_time / 1000
-            end
-          end
+          # overridden by each implementation
+          def measure; 0; end
         end
       end
     end
   end
+end
+
+if RUBY_VERSION >= "1.9.2"
+  require 'active_support/testing/performance/ruby/yarv'
+elsif RUBY_VERSION >= "1.8.6"
+  require 'active_support/testing/performance/ruby/mri'
+else
+  $stderr.puts "Update your ruby interpreter to be able to run benchmarks."
+  exit
 end
