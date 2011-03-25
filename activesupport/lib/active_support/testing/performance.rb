@@ -271,4 +271,10 @@ module ActiveSupport
   end
 end
 
-require 'active_support/testing/performance/mri'
+RUBY_ENGINE ||= "ruby"
+case RUBY_ENGINE
+  when "ruby" then require 'active_support/testing/performance/mri'
+  else
+    $stderr.puts "Your ruby interpreter is not supported for benchmarking."
+    exit
+end
