@@ -3,14 +3,14 @@ h2. AJAX on Rails
 This guide covers the built-in Ajax/JavaScript functionality of Rails (and more); it will enable you to create rich and dynamic AJAX applications with ease! We will cover the following topics:
 
 * Quick introduction to AJAX and related technologies
-* Handling JavaScript the Rails way: Rails helpers, RJS, Prototype and script.aculo.us
+* Handling JavaScript the Rails way: Rails helpers, Prototype and script.aculo.us
 * Testing JavaScript functionality
 
 endprologue.
 
 h3. Hello AJAX - a Quick Intro
 
-If you are a 'show me the code' type of person, you might want to skip this part and jump to the RJS section right away. However, I would really recommend to read it - you'll need the basics of DOM, http requests and other topics discussed here to really understand Ajax on Rails.
+You'll need the basics of DOM, HTTP requests and other topics discussed here to really understand Ajax on Rails.
 
 h4. Asynchronous JavaScript + XML
 
@@ -62,7 +62,7 @@ link_to_remote "Add to cart",
 
 * The second parameter, the +options+ hash is the most interesting part as it has the AJAX specific stuff:
 ** *:url* This is the only parameter that is always required to generate the simplest remote link (technically speaking, it is not required, you can pass an empty +options+ hash to +link_to_remote+ - but in this case the URL used for the POST request will be equal to your current URL which is probably not your intention). This URL points to your AJAX action handler. The URL is typically specified by Rails REST view helpers, but you can use the +url_for+ format too.
-** *:update* There are basically two ways of injecting the server response into the page: One is involving RJS and we will discuss it in the next chapter, and the other is specifying a DOM id of the element we would like to update. The above example demonstrates the simplest way of accomplishing this - however, we are in trouble if the server responds with an error message because that will be injected into the page too! However, Rails has a solution for this situation:
+** *:update* Specifying a DOM id of the element we would like to update. The above example demonstrates the simplest way of accomplishing this - however, we are in trouble if the server responds with an error message because that will be injected into the page too! However, Rails has a solution for this situation:
 
 <ruby>
 link_to_remote "Add to cart",
@@ -178,7 +178,7 @@ h5. +remote_function+
 
 h5. +update_page+
 
-h4. JavaScript without RJS
+h4. Serving JavaScript
 
 First we'll check out how to send JavaScript to the server manually. You are practically never going to need this, but it's interesting to understand what's going on under the hood.
 
@@ -193,15 +193,6 @@ end
 
 What happens here is that by specifying the Content-Type header variable, we instruct the browser to evaluate the text we are sending over (rather than displaying it as plain text, which is the default behavior).
 
-h4. RJS Templates
-
-If you don't want to clutter your controllers with view code (especially when your inline RJS is more than a few lines), you can move your RJS code to a template file. RJS templates should go to the +/app/views/+ directory, just as +.html.erb+ or any other view files of the appropriate controller, conventionally named +js.rjs+.
-
-To rewrite the above example, you can leave the body of the action empty, and create a RJS template named +javascript_test.js.rjs+, containing the following line:
-
-<ruby>
-page.alert "Hello from inline RJS"
-</ruby>
 
 h3. Testing JavaScript
 

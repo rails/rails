@@ -90,7 +90,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <%= link_to 'New book', new_book_path %>
 </ruby>
 
-NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), +.rjs+ for RJS (JavaScript with embedded ruby) and +.builder+ for Builder (XML generator).
+NOTE: The actual rendering is done by subclasses of +ActionView::TemplateHandlers+. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. In Rails 2, the standard extensions are +.erb+ for ERB (HTML with embedded Ruby), and +.builder+ for Builder (XML generator).
 
 h4. Using +render+
 
@@ -284,7 +284,7 @@ TIP: You don't need to call +to_xml+ on the object that you want to render. If y
 
 h5. Rendering Vanilla JavaScript
 
-Rails can render vanilla JavaScript (as an alternative to using +update+ with an +.rjs+ file):
+Rails can render vanilla JavaScript:
 
 <ruby>
 render :js => "alert('Hello Rails');"

@@ -33,10 +33,10 @@ module ActionController #:nodoc:
       # and all actions except <tt>:edit</tt> respond to <tt>:xml</tt> and
       # <tt>:json</tt>.
       #
-      #   respond_to :rjs, :only => :create
+      #   respond_to :json, :only => :create
       #
       # This specifies that the <tt>:create</tt> action and no other responds
-      # to <tt>:rjs</tt>.
+      # to <tt>:json</tt>.
       def respond_to(*mimes)
         options = mimes.extract_options!
 
@@ -106,8 +106,8 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # If the client wants HTML, we just redirect them back to the person list. If they want Javascript
-    # (format.js), then it is an RJS request and we render the RJS template associated with this action.
+    # If the client wants HTML, we just redirect them back to the person list. If they want JavaScript,
+    # then it is an Ajax request and we render the JavaScript template associated with this action.
     # Lastly, if the client wants XML, we render the created person as XML, but with a twist: we also
     # include the person's company in the rendered XML, so you get something like this:
     #
