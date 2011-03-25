@@ -82,8 +82,10 @@ module InflectorTestCases
 
     "louse"       => "lice",
     "house"       => "houses",
-    "octopus"     => "octopi",
-    "virus"       => "viri",
+    "octopus"     => "octopuses",
+    "virus"       => "viruses",
+    "alumnus"     => "alumni",
+    "radius"      => "radii",
     "alias"       => "aliases",
     "portfolio"   => "portfolios",
 

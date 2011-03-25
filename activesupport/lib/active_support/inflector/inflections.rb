@@ -46,7 +46,7 @@ module ActiveSupport
       # for strings, not regular expressions. You simply pass the irregular in singular and plural form.
       #
       # Examples:
-      #   irregular 'octopus', 'octopi'
+      #   irregular 'alumnus', 'alumnus'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
         @uncountables.delete(singular)
@@ -122,10 +122,10 @@ module ActiveSupport
     #
     # Examples:
     #   "post".pluralize             # => "posts"
-    #   "octopus".pluralize          # => "octopi"
+    #   "alumnus".pluralize          # => "alumni"
     #   "sheep".pluralize            # => "sheep"
     #   "words".pluralize            # => "words"
-    #   "CamelOctopus".pluralize     # => "CamelOctopi"
+    #   "CamelAlumnus".pluralize     # => "CamelAlumnus"
     def pluralize(word)
       result = word.to_s.dup
 
@@ -141,10 +141,10 @@ module ActiveSupport
     #
     # Examples:
     #   "posts".singularize            # => "post"
-    #   "octopi".singularize           # => "octopus"
+    #   "alumni".singularize           # => "alumnus"
     #   "sheep".singularize            # => "sheep"
     #   "word".singularize             # => "word"
-    #   "CamelOctopi".singularize      # => "CamelOctopus"
+    #   "CamelAlumni".singularize      # => "CamelAlumnus"
     def singularize(word)
       result = word.to_s.dup
 
