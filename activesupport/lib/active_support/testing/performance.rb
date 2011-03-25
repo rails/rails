@@ -3,11 +3,13 @@ require 'rails/version'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
 
-begin
-  require 'ruby-prof'
-rescue LoadError
-  $stderr.puts "Specify ruby-prof as application's dependency in Gemfile to run benchmarks."
-  exit
+if !defined?(RUBY_ENGINE) or RUBY_ENGINE == "ruby" # MRI 1.8 or 1.9
+  begin
+    require 'ruby-prof'
+  rescue LoadError
+    $stderr.puts "Specify ruby-prof as application's dependency in Gemfile to run benchmarks."
+    exit
+  end
 end
 
 module ActiveSupport
