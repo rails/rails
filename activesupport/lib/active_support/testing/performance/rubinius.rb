@@ -14,6 +14,10 @@ module ActiveSupport
           def profile
             yield
           end
+          
+          def loopback
+            @loopback ||= Rubinius::Agent.loopback
+          end
 
           protected
             # overridden by each implementation
@@ -42,11 +46,15 @@ module ActiveSupport
         end
 
         class Memory < Base
-          def measure; 0; end
+          def measure
+            loopback.get("system.memory.counter.bytes").last
+          end
         end
 
         class Objects < Amount
-          def measure; 0; end
+          def measure
+            loopback.get("system.memory.counter.bytes").last
+          end
         end
 
         class GcRuns < Amount
