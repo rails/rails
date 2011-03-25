@@ -124,8 +124,8 @@ module ActiveRecord
     end
 
     # Same as #first but raises RecordNotFound if no record is returned
-    def first!(*args)
-      self.first(*args) or raise RecordNotFound
+    def first!
+      self.first or raise RecordNotFound
     end
 
     # A convenience wrapper for <tt>find(:last, *args)</tt>. You can pass in all the
@@ -143,8 +143,8 @@ module ActiveRecord
     end
 
     # Same as #last but raises RecordNotFound if no record is returned
-    def last!(*args)
-      self.last(*args) or raise RecordNotFound
+    def last!
+      self.last or raise RecordNotFound
     end
 
     # A convenience wrapper for <tt>find(:all, *args)</tt>. You can pass in all the
