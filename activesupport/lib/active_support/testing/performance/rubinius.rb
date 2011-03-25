@@ -1,3 +1,5 @@
+require 'rubinius/agent'
+
 module ActiveSupport
   module Testing
     module Performance
