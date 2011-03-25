@@ -178,11 +178,6 @@ h5. +remote_function+
 
 h5. +update_page+
 
-
-h3. JavaScript the Rails way: RJS
-
-In the last section we sent some AJAX requests to the server, and inserted the HTML response into the page (with the +:update+ option). However, sometimes a more complicated interaction with the page is needed, which you can either achieve with JavaScript... or with RJS! You are sending JavaScript instructions to the server in both cases, but while in the former case you have to write vanilla JavaScript, in the second you can code Rails, and sit back while Rails generates the JavaScript for you - so basically RJS is a Ruby DSL to write JavaScript in your Rails code.
-
 h4. JavaScript without RJS
 
 First we'll check out how to send JavaScript to the server manually. You are practically never going to need this, but it's interesting to understand what's going on under the hood.
@@ -198,20 +193,6 @@ end
 
 What happens here is that by specifying the Content-Type header variable, we instruct the browser to evaluate the text we are sending over (rather than displaying it as plain text, which is the default behavior).
 
-h4. Inline RJS
-
-As we said, the purpose of RJS is to write Ruby which is then auto-magically turned into JavaScript by Rails. The above example didn't look too Ruby-esque so let's see how to do it the Rails way:
-
-<ruby>
-def javascript_test
-  render :update do |page|
-    page.alert "Hello from inline RJS"
-  end
-end
-</ruby>
-
-The above code snippet does exactly the same as the one in the previous section - going about it much more elegantly though. You don't need to worry about headers,write ugly JavaScript code into a string etc. When the first parameter to +render+ is +:update+, Rails expects a block with a single parameter (+page+ in our case, which is the traditional naming convention) which is an instance of the JavaScriptGenerator:"http://api.rubyonrails.org/classes/ActionView/Helpers/PrototypeHelper/JavaScriptGenerator/GeneratorMethods.html" object. As it's name  suggests, JavaScriptGenerator is responsible for generating JavaScript from your Ruby code. You can execute multiple method calls on the +page+ instance - it's all turned into JavaScript code and sent to the server with the appropriate Content Type, "text/javascript".
-
 h4. RJS Templates
 
 If you don't want to clutter your controllers with view code (especially when your inline RJS is more than a few lines), you can move your RJS code to a template file. RJS templates should go to the +/app/views/+ directory, just as +.html.erb+ or any other view files of the appropriate controller, conventionally named +js.rjs+.
@@ -221,113 +202,6 @@ To rewrite the above example, you can leave the body of the action empty, and cr
 <ruby>
 page.alert "Hello from inline RJS"
 </ruby>
-
-h4. RJS Reference
-
-In this section we'll go through the methods RJS offers.
-
-h5. JavaScriptGenerator Methods
-
-h6. DOM Element Manipulation
-
-It is possible to manipulate multiple elements at once through the +page+ JavaScriptGenerator instance. Let's see this in action:
-
-<ruby>
-page.show :div_one, :div_two
-page.hide :div_one
-page.remove :div_one, :div_two, :div_three
-page.toggle :other_div
-</ruby>
-
-The above methods (+show+, +hide+, +remove+, +toggle+) have the same semantics as the Prototype methods of the same name. You can pass an arbitrary number (but at least one) of DOM ids to these calls.
-
-
-h6. Inserting and Replacing Content
-
-You can insert content into an element on the page with the +insert_html+ method:
-
-<ruby>
-page.insert_html :top, :result, '42'
-</ruby>
-
-The first parameter is the position of the new content relative to the element specified by the second parameter, a DOM id.
-
-Position can be one of these four values:
-
-*** +:before+ Inserts the response text just before the target element.
-*** +:after+ The response is inserted after the target element.
-*** +:top+ Inserts the text into the target element, before it's original content.
-*** +:bottom+ The counterpart of +:top+: the response is inserted after the target element's original content.
-
-The third parameter can either be a string, or a hash of options to be passed to ActionView::Base#render - for example:
-
-<ruby>
-page.insert_html :top, :result, :partial => "the_answer"
-</ruby>
-
-You can replace the contents (innerHTML) of an element with the +replace_html+ method. The only difference is that since it's clear where should the new content go, there is no need for a position parameter - so +replace_html+ takes only two arguments,
-the DOM id of the element you wish to modify and a string or a hash of options to be passed to ActionView::Base#render.
-
-h6. Delay
-
-You can delay the execution of a block of code with +delay+:
-
-<ruby>
-page.delay(10) { page.alert('Hey! Just waited 10 seconds') }
-</ruby>
-
-+delay+ takes one parameter (time to wait in seconds) and a block which will be executed after the specified time has passed - whatever else follows a +page.delay+ line is executed immediately, the delay affects only the code in the block.
-
-h6. Reloading and Redirecting
-
-You can reload the page with the +reload+ method:
-
-<ruby>
-page.reload
-</ruby>
-
-When using AJAX, you can't rely on the standard +redirect_to+ controller method - you have to use the +page+'s instance method, also called +redirect_to+:
-
-<ruby>
-page.redirect_to some_url
-</ruby>
-
-h6. Generating Arbitrary JavaScript
-
-Sometimes even the full power of RJS is not enough to accomplish everything, but you still don't want to drop to pure JavaScript. A nice golden mean is offered by the combination of +<<+, +assign+ and +call+ methods:
-
-<ruby>
-  page << "alert('1+1 equals 3')"
-</ruby>
-
-So +<<+ is used to execute an arbitrary JavaScript statement, passed as string to the method. The above code is equivalent to:
-
-<ruby>
-  page.assign :result, 3
-  page.call   :alert, '1+1 equals ' + result
-</ruby>
-
-+assign+ simply assigns a value to a variable. +call+ is similar to +<<+ with a slightly different syntax: the first parameter is the name of the function to call, followed by the list of parameters passed  to the function.
-
-h6. Class Proxies
-
-h5. Element Proxies
-
-h5. Collection Proxies
-
-h5. RJS Helpers
-
-
-
-h3. I Want my Yellow Thingy: Quick overview of Script.aculo.us
-
-h4. Introduction
-
-h4. Visual Effects
-
-h4. Drag and Drop
-
-
 
 h3. Testing JavaScript
 

@@ -517,15 +517,6 @@ class TestController < ActionController::Base
     render :partial => 'partial'
   end
 
-  def render_alternate_default
-    # For this test, the method "default_render" is overridden:
-    @alternate_default_render = lambda do
-      render :update do |page|
-        page.replace :foo, :partial => 'partial'
-      end
-    end
-  end
-
   def render_to_string_with_partial
     @partial_only = render_to_string :partial => "partial_only"
     @partial_with_locals = render_to_string :partial => "customer", :locals => { :customer => Customer.new("david") }

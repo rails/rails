@@ -41,7 +41,7 @@ module ActionController
     end
 
     # Hash of available renderers, mapping a renderer name to its proc.
-    # Default keys are :json, :js, :xml and :update.
+    # Default keys are :json, :js, :xml.
     RENDERERS = {}
 
     # Adds a new renderer to call within controller actions.
@@ -106,13 +106,6 @@ module ActionController
     add :xml do |xml, options|
       self.content_type ||= Mime::XML
       self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
-    end
-
-    add :update do |proc, options|
-      view_context = self.view_context
-      generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(view_context, &proc)
-      self.content_type  = Mime::JS
-      self.response_body = generator.to_s
     end
   end
 end

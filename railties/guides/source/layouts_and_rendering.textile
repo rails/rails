@@ -250,18 +250,6 @@ render :inline =>
   "xml.p {'Horrid coding practice!'}", :type => :builder
 </ruby>
 
-h5. Using +render+ with +:update+
-
-You can also render JavaScript-based page updates inline using the +:update+ option to +render+:
-
-<ruby>
-render :update do |page|
-  page.replace_html 'warning', "Invalid options supplied"
-end
-</ruby>
-
-WARNING: Placing JavaScript updates in your controller may seem to streamline small updates, but it defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. We recommend using a separate RJS template instead, no matter how small the update.
-
 h5. Rendering Text
 
 You can send plain text - with no markup at all - back to the browser by using the +:text+ option to +render+:

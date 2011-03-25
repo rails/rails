@@ -34,13 +34,6 @@ class AssertSelectTest < ActionController::TestCase
       @content = nil
     end
 
-    def rjs()
-      render :update do |page|
-        @update.call page
-      end
-      @update = nil
-    end
-
     def xml()
       render :text=>@content, :layout=>false, :content_type=>Mime::XML
       @content = nil
@@ -219,35 +212,6 @@ class AssertSelectTest < ActionController::TestCase
     end
   end
 
-  # With single result.
-  def test_assert_select_from_rjs_with_single_result
-    render_rjs do |page|
-      page.replace_html "test", "<div id=\"1\">foo</div>\n<div id=\"2\">foo</div>"
-    end
-    assert_select "div" do |elements|
-      assert elements.size == 2
-      assert_select "#1"
-      assert_select "#2"
-    end
-    assert_select "div#?", /\d+/ do |elements|
-      assert_select "#1"
-      assert_select "#2"
-    end
-  end
-
-  # With multiple results.
-  def test_assert_select_from_rjs_with_multiple_results
-    render_rjs do |page|
-      page.replace_html "test", "<div id=\"1\">foo</div>"
-      page.replace_html "test2", "<div id=\"2\">foo</div>"
-    end
-    assert_select "div" do |elements|
-      assert elements.size == 2
-      assert_select "#1"
-      assert_select "#2"
-    end
-  end
-
   def test_elect_with_xml_namespace_attributes
     render_html %Q{<link xlink:href="http://nowhere.com"></link>}
     assert_nothing_raised { assert_select "link[xlink:href=http://nowhere.com]" }
@@ -279,28 +243,6 @@ class AssertSelectTest < ActionController::TestCase
         assert !css_select("#2").empty?
       end
     end
-  end
-
-  # With one result.
-  def test_css_select_from_rjs_with_single_result
-    render_rjs do |page|
-      page.replace_html "test", "<div id=\"1\">foo</div>\n<div id=\"2\">foo</div>"
-    end
-    assert_equal 2, css_select("div").size
-    assert_equal 1, css_select("#1").size
-    assert_equal 1, css_select("#2").size
-  end
-
-  # With multiple results.
-  def test_css_select_from_rjs_with_multiple_results
-    render_rjs do |page|
-      page.replace_html "test", "<div id=\"1\">foo</div>"
-      page.replace_html "test2", "<div id=\"2\">foo</div>"
-    end
-
-    assert_equal 2, css_select("div").size
-    assert_equal 1, css_select("#1").size
-    assert_equal 1, css_select("#2").size
   end
 
   def test_feed_item_encoded
@@ -375,11 +317,6 @@ EOF
     def render_html(html)
       @controller.response_with = html
       get :html
-    end
-
-    def render_rjs(&block)
-      @controller.response_with(&block)
-      get :rjs
     end
 
     def render_xml(xml)
