@@ -9,19 +9,18 @@ module ActiveSupport
         end
 
       module Metrics        
-        class Base          
+        class Base
+          attr_reader :loopback
+                    
           # TODO
           def profile
             yield
-          end
-          
-          def loopback
-            @loopback ||= Rubinius::Agent.loopback
           end
 
           protected
             # overridden by each implementation
             def with_gc_stats
+              @loopback = Rubinius::Agent.loopback
               GC.run(true)
               yield
             end
@@ -53,7 +52,7 @@ module ActiveSupport
 
         class Objects < Amount
           def measure
-            loopback.get("system.memory.counter.bytes").last
+            loopback.get("system.memory.counter.objects").last
           end
         end
 
@@ -65,7 +64,7 @@ module ActiveSupport
 
         class GcTime < Time
           def measure
-            loopback.get("system.gc.full.wallclock").last + loopback.get("system.gc.young.wallclock").last
+            (loopback.get("system.gc.full.wallclock").last + loopback.get("system.gc.young.wallclock").last) / 1000.0
           end
         end
       end

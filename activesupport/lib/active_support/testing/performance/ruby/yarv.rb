@@ -20,7 +20,7 @@ module ActiveSupport
             # Ruby 1.9 + GCdata patch
           if GC.respond_to?(:malloc_allocated_size)
             def measure
-              GC.malloc_allocated_size / 1024.0
+              GC.malloc_allocated_size
             end
           end
         end

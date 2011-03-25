@@ -19,7 +19,7 @@ module ActiveSupport
           # Ruby 1.8 + ruby-prof wrapper
           if RubyProf.respond_to?(:measure_memory)
             def measure
-              RubyProf.measure_memory / 1024.0
+              RubyProf.measure_memory
             end
           end
         end
@@ -48,7 +48,7 @@ module ActiveSupport
           # Ruby 1.8 + ruby-prof wrapper
           if RubyProf.respond_to?(:measure_gc_time)
             def measure
-              RubyProf.measure_gc_time / 1000
+              RubyProf.measure_gc_time / 1000.0 / 1000.0
             end
           end
         end
