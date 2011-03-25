@@ -271,9 +271,9 @@ module ActiveSupport
   end
 end
 
-RUBY_ENGINE ||= "ruby"
+RUBY_ENGINE = "ruby" unless defined?(RUBY_ENGINE)
 case RUBY_ENGINE
-  when "ruby" then require 'active_support/testing/performance/mri'
+  when "ruby" then require 'active_support/testing/performance/ruby'
   else
     $stderr.puts "Your ruby interpreter is not supported for benchmarking."
     exit
