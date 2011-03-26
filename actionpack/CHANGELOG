@@ -1,5 +1,9 @@
 *Rails 3.1.0 (unreleased)*
 
+* Allow FormHelper#form_for to specify the :method as a direct option instead of through the :html hash [DHH]
+
+    form_for(@post, remote: true, method: :delete) instead of form_for(@post, remote: true, html: { method: :delete })
+
 * Make JavaScriptHelper#j() an alias for JavaScriptHelper#escape_javascript() -- note this then supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper [DHH]
 
 * Sensitive query string parameters (specified in config.filter_parameters) will now be filtered out from the request paths in the log file. [Prem Sichanugrist, fxn]
