@@ -3,16 +3,70 @@ require 'rubinius/agent'
 module ActiveSupport
   module Testing
     module Performance
+      if !ARGV.include?('--benchmark')
+        DEFAULTS.merge!(
+          { :metrics => [:wall_time],
+            :formats => [:flat, :graph] })
+      end
+      
       protected
         def run_gc
           GC.run(true)
         end
+        
+      class Performer; end        
+
+      class Profiler < Performer
+        def initialize(*args)
+          super
+        end
+        
+        def run
+          @profiler = Rubinius::Profiler::Instrumenter.new
+          
+          @profiler.profile(false) do
+            profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+          end
+          
+          @total = @profiler.info[:runtime] / 1000 / 1000 / 1000.0 # seconds
+        end
+        
+        def report
+          super
+        end
+        
+        def record
+          if(profile_options[:formats].include?(:flat))
+            File.open(output_filename('FlatPrinter'), 'wb') do |file|
+              @profiler.show(file)
+            end
+          end
+          
+          if(profile_options[:formats].include?(:graph))
+            @profiler.set_options({:graph => true})
+            File.open(output_filename('GraphPrinter'), 'wb') do |file|
+              @profiler.show(file)
+            end
+          end
+        end
+        
+        protected
+          def output_filename(printer)
+            suffix =
+              case printer
+                when 'FlatPrinter';                 'flat.txt'
+                when 'GraphPrinter';                'graph.txt'
+                else printer.sub(/Printer$/, '').underscore
+              end
+
+            "#{super()}_#{suffix}"
+          end
+      end
 
       module Metrics        
         class Base
           attr_reader :loopback
-                    
-          # TODO
+          
           def profile
             yield
           end

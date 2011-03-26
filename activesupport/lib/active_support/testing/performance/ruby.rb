@@ -8,6 +8,12 @@ end
 module ActiveSupport
   module Testing
     module Performance
+      if !ARGV.include?('--benchmark')
+        DEFAULTS.merge!(
+          { :metrics => [:process_time, :memory, :objects],
+            :formats => [:flat, :graph_html, :call_tree] })
+      end
+      
       protected
         def run_gc
           GC.start

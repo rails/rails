@@ -6,9 +6,10 @@ require 'action_view/helpers/number_helper'
 
 module ActiveSupport
   module Testing
-    module Performance      
+    module Performance
+      # modified by each implementation
       DEFAULTS =
-        if benchmark = ARGV.include?('--benchmark')  # HAX for rake test
+        if ARGV.include?('--benchmark')  # HAX for rake test
           { :benchmark => true,
             :runs => 4,
             :metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time],
@@ -17,10 +18,8 @@ module ActiveSupport
           { :benchmark => false,
             :runs => 1,
             :min_percent => 0.01,
-            :metrics => [:process_time, :memory, :objects],
-            :formats => [:flat, :graph_html, :call_tree],
             :output => 'tmp/performance' }
-        end.freeze
+        end
 
       def self.included(base)
         base.superclass_delegating_accessor :profile_options
