@@ -113,7 +113,8 @@ class TimestampTest < ActiveRecord::TestCase
 
     pet = Pet.first
     owner = pet.owner
-    owner.update_attribute(:happy_at, 3.days.ago)
+    owner.happy_at = 3.days.ago
+    owner.save
     previously_owner_updated_at = owner.updated_at
 
     pet.name = "I'm a parrot"
@@ -131,8 +132,9 @@ class TimestampTest < ActiveRecord::TestCase
     toy = Toy.first
     pet = toy.pet
     owner = pet.owner
+    time = 3.days.ago
 
-    owner.update_attribute(:updated_at, (time = 3.days.ago))
+    owner.update_column(:updated_at, time)
     toy.touch
     owner.reload
 
