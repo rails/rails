@@ -107,8 +107,8 @@ module ActionView
       #     <%= javascript_include_tag :defaults %>
       #   <% end %>
       #
-      # That will place <tt>script</tt> tags for Prototype, Scriptaculous, and application.js (if it exists)
-      # on the page; this technique is useful if you'll only be using these scripts in a few views.
+      # That will place +script+ tags for your default set of JavaScript files on the page;
+      # this technique is useful if you'll only be using these scripts in a few views.
       #
       # Note that content_for concatenates the blocks it is given for a particular
       # identifier in order. For example:

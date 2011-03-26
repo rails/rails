@@ -1,39 +1,7 @@
 require 'action_view/helpers/tag_helper'
 
 module ActionView
-  # = Action View JavaScript Helpers
   module Helpers
-    # Provides functionality for working with JavaScript in your views.
-    #
-    # == Ajax, controls and visual effects
-    #
-    # * For information on using Ajax, see
-    #   ActionView::Helpers::PrototypeHelper.
-    # * For information on using controls and visual effects, see
-    #   ActionView::Helpers::ScriptaculousHelper.
-    #
-    # == Including the JavaScript libraries into your pages
-    #
-    # Rails includes the Prototype JavaScript framework and the Scriptaculous
-    # JavaScript controls and visual effects library.  If you wish to use
-    # these libraries and their helpers (ActionView::Helpers::PrototypeHelper
-    # and ActionView::Helpers::ScriptaculousHelper), you must do one of the
-    # following:
-    #
-    # * Use <tt><%= javascript_include_tag :defaults %></tt> in the HEAD
-    #   section of your page (recommended): This function will return
-    #   references to the JavaScript files created by the +rails+ command in
-    #   your <tt>public/javascripts</tt> directory. Using it is recommended as
-    #   the browser can then cache the libraries instead of fetching all the
-    #   functions anew on every request.
-    # * Use <tt><%= javascript_include_tag 'prototype' %></tt>: As above, but
-    #   will only include the Prototype core library, which means you are able
-    #   to use all basic AJAX functionality. For the Scriptaculous-based
-    #   JavaScript helpers, like visual effects, autocompletion, drag and drop
-    #   and so on, you should use the method described above.
-    #
-    # For documentation on +javascript_include_tag+ see
-    # ActionView::Helpers::AssetTagHelper.
     module JavaScriptHelper
       include PrototypeHelper
 

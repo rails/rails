@@ -21,7 +21,6 @@ module ActionView #:nodoc:
     autoload :OutputSafetyHelper
     autoload :RecordTagHelper
     autoload :SanitizeHelper
-    autoload :ScriptaculousHelper
     autoload :SprocketsHelper
     autoload :TagHelper
     autoload :TextHelper
@@ -52,7 +51,6 @@ module ActionView #:nodoc:
     include OutputSafetyHelper
     include RecordTagHelper
     include SanitizeHelper
-    include ScriptaculousHelper
     include SprocketsHelper
     include TagHelper
     include TextHelper
