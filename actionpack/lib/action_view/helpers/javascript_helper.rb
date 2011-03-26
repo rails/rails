@@ -3,8 +3,6 @@ require 'action_view/helpers/tag_helper'
 module ActionView
   module Helpers
     module JavaScriptHelper
-      include PrototypeHelper
-
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',
         '</'    => '<\/',
