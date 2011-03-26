@@ -131,6 +131,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_read_attributes_after_type_cast_on_datetime
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+
+      record.written_on = "2011-03-24"
+      assert_equal "2011-03-24", record.written_on_before_type_cast
+      assert_equal Time.zone.parse("2011-03-24"), record.written_on
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"],
+        record.written_on.time_zone
+
+      record.save
+      record.reload
+
+      assert_equal Time.zone.parse("2011-03-24"), record.written_on
+    end
+  end
+
   def test_hash_content
     topic = Topic.new
     topic.content = { "one" => 1, "two" => 2 }
