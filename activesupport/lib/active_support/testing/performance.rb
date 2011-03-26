@@ -111,6 +111,10 @@ module ActiveSupport
       
       # overridden by each implementation
       class Profiler < Performer
+        def initialize(*args)
+          super
+        end
+        
         def run;    end
         def report; end
         def record; end
@@ -272,8 +276,9 @@ end
 
 RUBY_ENGINE = 'ruby' unless defined?(RUBY_ENGINE) # mri 1.8
 case RUBY_ENGINE
-  when 'ruby' then require 'active_support/testing/performance/ruby'
-  when 'rbx'  then require 'active_support/testing/performance/rubinius'
+  when 'ruby'   then require 'active_support/testing/performance/ruby'
+  when 'rbx'    then require 'active_support/testing/performance/rubinius'
+  when 'jruby'  then require 'active_support/testing/performance/jruby'
   else
     $stderr.puts 'Your ruby interpreter is not supported for benchmarking.'
     exit

@@ -16,11 +16,7 @@ module ActiveSupport
         
       class Performer; end        
 
-      class Profiler < Performer
-        def initialize(*args)
-          super
-        end
-        
+      class Profiler < Performer        
         def run
           @profiler = Rubinius::Profiler::Instrumenter.new
           
@@ -72,7 +68,6 @@ module ActiveSupport
           end
 
           protected
-            # overridden by each implementation
             def with_gc_stats
               @loopback = Rubinius::Agent.loopback
               GC.run(true)
