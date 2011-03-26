@@ -237,7 +237,6 @@ module ActiveRecord
       #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
       # generates
       #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
-
       def add_limit_offset!(sql, options)
         if limit = options[:limit]
           sql << " LIMIT #{sanitize_limit(limit)}"
@@ -270,6 +269,10 @@ module ActiveRecord
         end
 
         execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
+      end
+
+      def null_insert_value
+        Arel.sql 'DEFAULT'
       end
 
       def empty_insert_statement_value

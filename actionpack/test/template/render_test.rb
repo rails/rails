@@ -381,7 +381,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     end
 
     def test_render_utf8_template_with_incompatible_external_encoding
-      with_external_encoding Encoding::SJIS do
+      with_external_encoding Encoding::SHIFT_JIS do
         begin
           result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'
@@ -392,7 +392,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     end
 
     def test_render_utf8_template_with_partial_with_incompatible_encoding
-      with_external_encoding Encoding::SJIS do
+      with_external_encoding Encoding::SHIFT_JIS do
         begin
           result = @view.render(:file => "test/utf8_magic_with_bare_partial.html.erb", :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'

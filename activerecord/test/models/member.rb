@@ -11,6 +11,17 @@ class Member < ActiveRecord::Base
   has_one :organization, :through => :member_detail
   belongs_to :member_type
 
+  has_many :nested_member_types, :through => :member_detail, :source => :member_type
+  has_one :nested_member_type, :through => :member_detail, :source => :member_type
+
+  has_many :nested_sponsors, :through => :sponsor_club, :source => :sponsor
+  has_one :nested_sponsor, :through => :sponsor_club, :source => :sponsor
+
+  has_many :organization_member_details, :through => :member_detail
+  has_many :organization_member_details_2, :through => :organization, :source => :member_details
+
+  has_one :club_category, :through => :club, :source => :category
+
   has_many :current_memberships
   has_one :club_through_many, :through => :current_memberships, :source => :club
 

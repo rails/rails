@@ -195,7 +195,9 @@ class NumberHelperTest < ActionView::TestCase
 
   def test_number_to_human
     assert_equal '-123', number_to_human(-123)
-    assert_equal '0', number_to_human(0)
+    assert_equal '-0.5', number_to_human(-0.5)
+    assert_equal '0',   number_to_human(0)
+    assert_equal '0.5', number_to_human(0.5)
     assert_equal '123', number_to_human(123)
     assert_equal '1.23 Thousand', number_to_human(1234)
     assert_equal '12.3 Thousand', number_to_human(12345)

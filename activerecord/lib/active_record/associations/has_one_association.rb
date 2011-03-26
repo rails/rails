@@ -39,13 +39,7 @@ module ActiveRecord
         end
       end
 
-      def association_scope
-        super.order(options[:order])
-      end
-
       private
-
-        alias creation_attributes construct_owner_attributes
 
         # The reason that the save param for replace is false, if for create (not just build),
         # is because the setting of the foreign keys is actually handled by the scoping when

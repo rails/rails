@@ -36,6 +36,9 @@ platforms :mri_19 do
 end
 
 platforms :ruby do
+  if ENV["RB_FSEVENT"]
+    gem 'rb-fsevent'
+  end
   gem 'json'
   gem 'yajl-ruby'
   gem "nokogiri", ">= 1.4.4"
