@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Make JavaScriptHelper#j() an alias for JavaScriptHelper#escape_javascript() -- note this then supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper [DHH]
+
 * Sensitive query string parameters (specified in config.filter_parameters) will now be filtered out from the request paths in the log file. [Prem Sichanugrist, fxn]
 
 * URL parameters which return false for to_param now appear in the query string (previously they were removed) [Andrew White]
