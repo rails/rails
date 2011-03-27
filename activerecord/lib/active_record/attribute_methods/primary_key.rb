@@ -16,6 +16,11 @@ module ActiveRecord
           reset_primary_key
         end
 
+        # Returns a quoted version of the primary key name, used to construct SQL statements.
+        def quoted_primary_key
+          @quoted_primary_key ||= connection.quote_column_name(primary_key)
+        end
+
         def reset_primary_key #:nodoc:
           key = get_primary_key(base_class.name)
           set_primary_key(key)
@@ -41,6 +46,7 @@ module ActiveRecord
         #     set_primary_key "sysid"
         #   end
         def set_primary_key(value = nil, &block)
+          @quoted_primary_key = nil
           define_attr_method :primary_key, value, &block
         end
         alias :primary_key= :set_primary_key
