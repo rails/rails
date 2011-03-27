@@ -1,5 +1,6 @@
 require 'digest/md5'
 require 'active_support/secure_random'
+require 'active_support/core_ext/string/strip'
 require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
 require 'open-uri'
@@ -125,25 +126,25 @@ module Rails
 
       def rails_gemfile_entry
         if options.dev?
-          <<-GEMFILE
-gem 'rails', :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-gem 'arel',  :git => 'git://github.com/rails/arel.git'
-gem 'rack',  :git => 'git://github.com/rack/rack.git'
+          <<-GEMFILE.strip_heredoc
+            gem 'rails', :path => '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'arel',  :git => 'git://github.com/rails/arel.git'
+            gem 'rack',  :git => 'git://github.com/rack/rack.git'
           GEMFILE
         elsif options.edge?
-          <<-GEMFILE
-gem 'rails', :git => 'git://github.com/rails/rails.git'
-gem 'arel',  :git => 'git://github.com/rails/arel.git'
-gem 'rack',  :git => 'git://github.com/rack/rack.git'
+          <<-GEMFILE.strip_heredoc
+            gem 'rails', :git => 'git://github.com/rails/rails.git'
+            gem 'arel',  :git => 'git://github.com/rails/arel.git'
+            gem 'rack',  :git => 'git://github.com/rack/rack.git'
           GEMFILE
         else
-          <<-GEMFILE
-gem 'rails', '#{Rails::VERSION::STRING}'
+          <<-GEMFILE.strip_heredoc
+            gem 'rails', '#{Rails::VERSION::STRING}'
 
-# Bundle edge Rails instead:
-# gem 'rails',  :git => 'git://github.com/rails/rails.git'
-# gem 'arel',   :git => 'git://github.com/rails/arel.git'
-# gem 'rack',   :git => 'git://github.com/rack/rack.git'
+            # Bundle edge Rails instead:
+            # gem 'rails',  :git => 'git://github.com/rails/rails.git'
+            # gem 'arel',   :git => 'git://github.com/rails/arel.git'
+            # gem 'rack',   :git => 'git://github.com/rack/rack.git'
           GEMFILE
         end
       end
