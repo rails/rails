@@ -8,6 +8,7 @@ module ActiveSupport
             if GC.respond_to?(:enable_stats)
               def with_gc_stats
                 GC.enable_stats
+                GC.start
                 yield
               ensure
                 GC.disable_stats
