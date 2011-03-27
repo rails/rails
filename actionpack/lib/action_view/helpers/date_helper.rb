@@ -810,6 +810,12 @@ module ActionView
           step          = options.delete(:step) || 1
           options.reverse_merge!({:leading_zeros => true})
           leading_zeros = options.delete(:leading_zeros)
+          limit         = (stop - start).abs
+          max_options   = 1000
+
+          if limit / step.abs > max_options
+            raise ArgumentError, "Cannot build too many options for select."
+          end
 
           select_options = []
           start.step(stop, step) do |i|
