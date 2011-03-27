@@ -52,7 +52,7 @@ module ApplicationTests
       assert_equal "Rack::Cache", middleware.first
     end
 
-    test "Rack::SSL is present with force_ssl is set" do
+    test "Rack::SSL is present when force_ssl is set" do
       add_to_config "config.force_ssl = true"
       boot!
       assert middleware.include?("Rack::SSL")
