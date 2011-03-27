@@ -13,8 +13,8 @@ module ActiveSupport
         def run_gc
           GC.run(true)
         end
-        
-      class Performer; end        
+      
+      class Performer; end
 
       class Profiler < Performer        
         def run
@@ -33,29 +33,25 @@ module ActiveSupport
         
         def record
           if(profile_options[:formats].include?(:flat))
-            File.open(output_filename('FlatPrinter'), 'wb') do |file|
+            create_path_and_open_file(:flat) do |file|
               @profiler.show(file)
             end
           end
           
           if(profile_options[:formats].include?(:graph))
-            @profiler.set_options({:graph => true})
-            File.open(output_filename('GraphPrinter'), 'wb') do |file|
+            create_path_and_open_file(:graph) do |file|
               @profiler.show(file)
             end
           end
         end
         
         protected
-          def output_filename(printer)
-            suffix =
-              case printer
-                when 'FlatPrinter';                 'flat.txt'
-                when 'GraphPrinter';                'graph.txt'
-                else printer.sub(/Printer$/, '').underscore
-              end
-
-            "#{super()}_#{suffix}"
+          def create_path_and_open_file(printer_name)
+            fname = "#{output_filename}_#{printer_name}.txt"
+            FileUtils.mkdir_p(fname)
+            File.open(fname, 'wb') do |file|
+              yield(file)
+            end
           end
       end
 
