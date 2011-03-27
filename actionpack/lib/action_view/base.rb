@@ -157,11 +157,6 @@ module ActionView #:nodoc:
   class Base
     include Helpers, Rendering, Partials, ::ERB::Util, Context
 
-    # Specify whether RJS responses should be wrapped in a try/catch block
-    # that alert()s the caught exception (and then re-raises it).
-    cattr_accessor :debug_rjs
-    @@debug_rjs = false
-
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
     @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
