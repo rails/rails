@@ -714,6 +714,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [categories(:general).id], authors(:mary).categories_like_general_ids
   end
 
+  def test_get_collection_singular_ids_on_has_many_through_with_conditions_and_include
+    person = Person.first
+    assert_equal person.posts_with_no_comment_ids, person.posts_with_no_comments.map(&:id)
+  end
+
   def test_count_has_many_through_with_named_scope
     assert_equal 2, authors(:mary).categories.count
     assert_equal 1, authors(:mary).categories.general.count
