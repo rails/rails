@@ -131,8 +131,9 @@ class TimestampTest < ActiveRecord::TestCase
     toy = Toy.first
     pet = toy.pet
     owner = pet.owner
+    time = 3.days.ago
 
-    owner.update_attribute(:updated_at, (time = 3.days.ago))
+    owner.update_column(:updated_at, time)
     toy.touch
     owner.reload
 

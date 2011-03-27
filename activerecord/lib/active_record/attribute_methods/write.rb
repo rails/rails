@@ -32,6 +32,7 @@ module ActiveRecord
           @attributes[attr_name] = value
         end
       end
+      alias_method :raw_write_attribute, :write_attribute
 
       private
         # Handle *= for method_missing.
