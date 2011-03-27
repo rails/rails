@@ -10,7 +10,8 @@ module ActiveSupport
     module Performance
       if !ARGV.include?('--benchmark')
         DEFAULTS.merge!(
-          { :metrics => [:process_time, :memory, :objects],
+          { :min_percent => 0.01,
+            :metrics => [:process_time, :memory, :objects],
             :formats => [:flat, :graph_html, :call_tree] })
       end
       

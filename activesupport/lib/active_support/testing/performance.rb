@@ -17,7 +17,6 @@ module ActiveSupport
         else
           { :benchmark => false,
             :runs => 1,
-            :min_percent => 0.01,
             :output => 'tmp/performance' }
         end
 
