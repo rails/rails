@@ -112,7 +112,15 @@ module Rails
       end
 
       def database_gemfile_entry
-        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
+        entry = options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
+        if options[:database] == 'mysql'
+          if options.dev? || options.edge?
+            entry += ", :git => 'git://github.com/brianmario/mysql2.git'"
+          else
+            entry += "\n# gem 'mysql2', :git => 'git://github.com/brianmario/mysql2.git'"
+          end
+        end
+        entry
       end
 
       def rails_gemfile_entry
@@ -120,22 +128,22 @@ module Rails
           <<-GEMFILE
 gem 'rails', :path => '#{Rails::Generators::RAILS_DEV_PATH}'
 gem 'arel',  :git => 'git://github.com/rails/arel.git'
-gem "rack", :git => "git://github.com/rack/rack.git"
+gem 'rack',  :git => 'git://github.com/rack/rack.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE
 gem 'rails', :git => 'git://github.com/rails/rails.git'
 gem 'arel',  :git => 'git://github.com/rails/arel.git'
-gem "rack", :git => "git://github.com/rack/rack.git"
+gem 'rack',  :git => 'git://github.com/rack/rack.git'
           GEMFILE
         else
           <<-GEMFILE
 gem 'rails', '#{Rails::VERSION::STRING}'
 
 # Bundle edge Rails instead:
-# gem 'rails', :git => 'git://github.com/rails/rails.git'
-# gem 'arel',  :git => 'git://github.com/rails/arel.git'
-# gem "rack", :git => "git://github.com/rack/rack.git"
+# gem 'rails',  :git => 'git://github.com/rails/rails.git'
+# gem 'arel',   :git => 'git://github.com/rails/arel.git'
+# gem 'rack',   :git => 'git://github.com/rack/rack.git'
           GEMFILE
         end
       end
