@@ -413,7 +413,7 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_updates(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
       topic = Topic.select('id, author_name').first
-      topic.update_attribute :author_name, 'John'
+      topic.update_column :author_name, 'John'
       topic = Topic.first
       assert_not_nil topic.content
     end
@@ -487,7 +487,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.previous_changes.key?('created_on')
 
     pirate = Pirate.find_by_catchphrase("Ahoy!")
-    pirate.update_attribute(:catchphrase, "Ninjas suck!")
+    pirate.catchphrase = "Ninjas suck!"
+    pirate.save(:validations => false)
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes['catchphrase']

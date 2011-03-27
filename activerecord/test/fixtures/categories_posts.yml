@@ -21,3 +21,11 @@ sti_test_sti_habtm:
 general_hello:
   category_id: 1
   post_id: 4
+
+general_misc_by_bob:
+  category_id: 1
+  post_id: 8
+
+cooking_misc_by_bob:
+  category_id: 4
+  post_id: 8

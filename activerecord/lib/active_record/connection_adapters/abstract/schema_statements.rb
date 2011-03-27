@@ -279,12 +279,11 @@ module ActiveRecord
         raise NotImplementedError, "change_column is not implemented"
       end
 
-      # Sets a new default value for a column.  If you want to set the default
-      # value to +NULL+, you are out of luck.  You need to
-      # DatabaseStatements#execute the appropriate SQL statement yourself.
+      # Sets a new default value for a column.
       # ===== Examples
       #  change_column_default(:suppliers, :qualification, 'new')
       #  change_column_default(:accounts, :authorized, 1)
+      #  change_column_default(:users, :email, nil)
       def change_column_default(table_name, column_name, default)
         raise NotImplementedError, "change_column_default is not implemented"
       end

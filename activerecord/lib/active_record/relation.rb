@@ -30,15 +30,26 @@ module ActiveRecord
     end
 
     def insert(values)
-      im = arel.compile_insert values
-      im.into @table
-
       primary_key_value = nil
 
       if primary_key && Hash === values
         primary_key_value = values[values.keys.find { |k|
           k.name == primary_key
         }]
+
+        if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
+          primary_key_value = connection.next_sequence_value(klass.sequence_name)
+          values[klass.arel_table[klass.primary_key]] = primary_key_value
+        end
+      end
+
+      im = arel.create_insert
+      im.into @table
+
+      if values.empty? # empty insert
+        im.values = im.create_values [connection.null_insert_value], []
+      else
+        im.insert values
       end
 
       @klass.connection.insert(

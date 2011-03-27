@@ -7,24 +7,24 @@ module ActiveRecord::Associations::Builder
     def build
       reflection = super
       check_validity(reflection)
-      redefine_destroy
+      define_after_destroy_method
       reflection
     end
 
     private
 
-      def redefine_destroy
-        # Don't use a before_destroy callback since users' before_destroy
-        # callbacks will be executed after the association is wiped out.
+      def define_after_destroy_method
         name = self.name
-        model.send(:include, Module.new {
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def destroy          # def destroy
-              super              #   super
-              #{name}.clear      #   posts.clear
-            end                  # end
-          RUBY
-        })
+        model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
+          def #{after_destroy_method_name}
+            association(#{name.to_sym.inspect}).delete_all
+          end
+        eoruby
+        model.after_destroy after_destroy_method_name
+      end
+
+      def after_destroy_method_name
+        "has_and_belongs_to_many_after_destroy_for_#{name}"
       end
 
       # TODO: These checks should probably be moved into the Reflection, and we should not be

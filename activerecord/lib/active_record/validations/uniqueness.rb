@@ -173,10 +173,17 @@ module ActiveRecord
       # This technique is also known as optimistic concurrency control:
       # http://en.wikipedia.org/wiki/Optimistic_concurrency_control
       #
-      # Active Record currently provides no way to distinguish unique
-      # index constraint errors from other types of database errors, so you
-      # will have to parse the (database-specific) exception message to detect
-      # such a case.
+      # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
+      # constraint errors from other types of database errors by throwing an
+      # ActiveRecord::RecordNotUnique exception.
+      # For other adapters you will have to parse the (database-specific) exception
+      # message to detect such a case.
+      # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
+      # * ActiveRecord::ConnectionAdapters::MysqlAdapter
+      # * ActiveRecord::ConnectionAdapters::Mysql2Adapter
+      # * ActiveRecord::ConnectionAdapters::SQLiteAdapter
+      # * ActiveRecord::ConnectionAdapters::SQLite3Adapter
+      # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
       #
       def validates_uniqueness_of(*attr_names)
         validates_with UniquenessValidator, _merge_attributes(attr_names)

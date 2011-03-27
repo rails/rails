@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/tag'
 require 'models/tagging'
 require 'models/post'
+require 'models/rating'
 require 'models/item'
 require 'models/comment'
 require 'models/author'
@@ -160,7 +161,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_delete_polymorphic_has_many_with_delete_all
     assert_equal 1, posts(:welcome).taggings.count
-    posts(:welcome).taggings.first.update_attribute :taggable_type, 'PostWithHasManyDeleteAll'
+    posts(:welcome).taggings.first.update_column :taggable_type, 'PostWithHasManyDeleteAll'
     post = find_post_with_dependency(1, :has_many, :taggings, :delete_all)
 
     old_count = Tagging.count
@@ -171,7 +172,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_delete_polymorphic_has_many_with_destroy
     assert_equal 1, posts(:welcome).taggings.count
-    posts(:welcome).taggings.first.update_attribute :taggable_type, 'PostWithHasManyDestroy'
+    posts(:welcome).taggings.first.update_column :taggable_type, 'PostWithHasManyDestroy'
     post = find_post_with_dependency(1, :has_many, :taggings, :destroy)
 
     old_count = Tagging.count
@@ -182,7 +183,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_delete_polymorphic_has_many_with_nullify
     assert_equal 1, posts(:welcome).taggings.count
-    posts(:welcome).taggings.first.update_attribute :taggable_type, 'PostWithHasManyNullify'
+    posts(:welcome).taggings.first.update_column :taggable_type, 'PostWithHasManyNullify'
     post = find_post_with_dependency(1, :has_many, :taggings, :nullify)
 
     old_count = Tagging.count
@@ -193,7 +194,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_delete_polymorphic_has_one_with_destroy
     assert posts(:welcome).tagging
-    posts(:welcome).tagging.update_attribute :taggable_type, 'PostWithHasOneDestroy'
+    posts(:welcome).tagging.update_column :taggable_type, 'PostWithHasOneDestroy'
     post = find_post_with_dependency(1, :has_one, :tagging, :destroy)
 
     old_count = Tagging.count
@@ -204,7 +205,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_delete_polymorphic_has_one_with_nullify
     assert posts(:welcome).tagging
-    posts(:welcome).tagging.update_attribute :taggable_type, 'PostWithHasOneNullify'
+    posts(:welcome).tagging.update_column :taggable_type, 'PostWithHasOneNullify'
     post = find_post_with_dependency(1, :has_one, :tagging, :nullify)
 
     old_count = Tagging.count
@@ -288,7 +289,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_going_through_join_model_with_custom_foreign_key
-    assert_equal [], posts(:thinking).authors
+    assert_equal [authors(:bob)], posts(:thinking).authors
     assert_equal [authors(:mary)], posts(:authorless).authors
   end
 
@@ -305,7 +306,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_custom_primary_key_on_has_many_source
-    assert_equal [authors(:david)], posts(:thinking).authors_using_custom_pk
+    assert_equal [authors(:david), authors(:bob)], posts(:thinking).authors_using_custom_pk.order('authors.id')
   end
 
   def test_both_scoped_and_explicit_joins_should_be_respected
@@ -397,14 +398,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
     end
-  end
-
-  def test_has_many_through_has_many_through
-    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).tags }
-  end
-
-  def test_has_many_through_habtm
-    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).post_categories }
   end
 
   def test_eager_load_has_many_through_has_many
@@ -714,7 +707,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
       class_name = "PostWith#{association.to_s.classify}#{dependency.to_s.classify}"
-      Post.find(post_id).update_attribute :type, class_name
+      Post.find(post_id).update_column :type, class_name
       klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
       klass.set_table_name 'posts'
       klass.send(association, association_name, :as => :taggable, :dependent => dependency)

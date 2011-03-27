@@ -505,6 +505,21 @@ class FilterTest < ActionController::TestCase
     end
   end
 
+  class ImplicitActionsController < ActionController::Base
+    before_filter :find_only, :only => :edit
+    before_filter :find_except, :except => :edit
+
+    private
+
+    def find_only
+      @only = 'Only'
+    end
+
+    def find_except
+      @except = 'Except'
+    end
+  end
+
   def test_sweeper_should_not_block_rendering
     response = test_process(SweeperTestController)
     assert_equal 'hello world', response.body
@@ -781,6 +796,18 @@ class FilterTest < ActionController::TestCase
 
     assert response.success?
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
+  end
+
+  def test_filters_obey_only_and_except_for_implicit_actions
+    test_process(ImplicitActionsController, 'show')
+    assert_equal 'Except', assigns(:except)
+    assert_nil assigns(:only)
+    assert_equal 'show', response.body
+
+    test_process(ImplicitActionsController, 'edit')
+    assert_equal 'Only', assigns(:only)
+    assert_nil assigns(:except)
+    assert_equal 'edit', response.body
   end
 
   private

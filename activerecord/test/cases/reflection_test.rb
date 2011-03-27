@@ -7,9 +7,16 @@ require 'models/subscriber'
 require 'models/ship'
 require 'models/pirate'
 require 'models/price_estimate'
-require 'models/tagging'
+require 'models/essay'
 require 'models/author'
+require 'models/organization'
 require 'models/post'
+require 'models/tagging'
+require 'models/category'
+require 'models/book'
+require 'models/subscriber'
+require 'models/subscription'
+require 'models/tag'
 require 'models/sponsor'
 
 class ReflectionTest < ActiveRecord::TestCase
@@ -195,10 +202,54 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
   end
 
+  def test_chain
+    expected = [
+      Organization.reflect_on_association(:author_essay_categories),
+      Author.reflect_on_association(:essays),
+      Organization.reflect_on_association(:authors)
+    ]
+    actual = Organization.reflect_on_association(:author_essay_categories).chain
+
+    assert_equal expected, actual
+  end
+
+  def test_conditions
+    expected = [
+      [{ :tags => { :name => 'Blue' } }],
+      [{ :taggings => { :comment => 'first' } }, { "taggable_type" => "Post" }],
+      [{ :posts => { :title => ['misc post by bob', 'misc post by mary'] } }]
+    ]
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags).conditions
+    assert_equal expected, actual
+
+    expected = [
+      [{ :tags => { :name => 'Blue' } }, { :taggings => { :comment => 'first' } }, { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }],
+      [{ "taggable_type" => "Post" }],
+      []
+    ]
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
+    assert_equal expected, actual
+  end
+
+  def test_nested?
+    assert !Author.reflect_on_association(:comments).nested?
+    assert Author.reflect_on_association(:tags).nested?
+
+    # Only goes :through once, but the through_reflection is a has_and_belongs_to_many, so this is
+    # a nested through association
+    assert Category.reflect_on_association(:post_comments).nested?
+  end
+
   def test_association_primary_key
-    assert_equal "id", Author.reflect_on_association(:posts).association_primary_key.to_s
+    # Normal association
+    assert_equal "id",   Author.reflect_on_association(:posts).association_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
-    assert_equal "id", Tagging.reflect_on_association(:taggable).association_primary_key.to_s
+    assert_equal "id",   Tagging.reflect_on_association(:taggable).association_primary_key.to_s
+
+    # Through association (uses the :primary_key option from the source reflection)
+    assert_equal "nick", Author.reflect_on_association(:subscribers).association_primary_key.to_s
+    assert_equal "name", Author.reflect_on_association(:essay_category).association_primary_key.to_s
+    assert_equal "custom_primary_key", Author.reflect_on_association(:tags_with_primary_key).association_primary_key.to_s # nested
   end
 
   def test_active_record_primary_key

@@ -17,6 +17,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %({"matzue": "松江", "asakusa": "浅草"}) => {"matzue" => "松江", "asakusa" => "浅草"},
     %({"a": "2007-01-01"})                       => {'a' => Date.new(2007, 1, 1)},
     %({"a": "2007-01-01 01:12:34 Z"})            => {'a' => Time.utc(2007, 1, 1, 1, 12, 34)},
+    %(["2007-01-01 01:12:34 Z"])                 => [Time.utc(2007, 1, 1, 1, 12, 34)],
+    %(["2007-01-01 01:12:34 Z", "2007-01-01 01:12:35 Z"]) => [Time.utc(2007, 1, 1, 1, 12, 34), Time.utc(2007, 1, 1, 1, 12, 35)],
     # no time zone
     %({"a": "2007-01-01 01:12:34"})              => {'a' => "2007-01-01 01:12:34"},
     # invalid date
@@ -72,13 +74,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
         end
       end
     end
-  end
 
-  if backends.include?("JSONGem")
-    test "json decodes time json with time parsing disabled" do
+    test "json decodes time json with time parsing disabled with the #{backend} backend" do
       ActiveSupport.parse_json_times = false
       expected = {"a" => "2007-01-01 01:12:34 Z"}
-      ActiveSupport::JSON.with_backend "JSONGem" do
+      ActiveSupport::JSON.with_backend backend do
         assert_equal expected, ActiveSupport::JSON.decode(%({"a": "2007-01-01 01:12:34 Z"}))
       end
     end

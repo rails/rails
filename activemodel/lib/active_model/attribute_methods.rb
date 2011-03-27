@@ -106,11 +106,14 @@ module ActiveModel
         if block_given?
           sing.send :define_method, name, &block
         else
-          # use eval instead of a block to work around a memory leak in dev
-          # mode in fcgi
-          sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
-            def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
-          eorb
+          if name =~ /^[a-zA-Z_]\w*[!?=]?$/
+            sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
+                def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
+            eorb
+          else
+            value = value.to_s if value
+            sing.send(:define_method, name) { value }
+          end
         end
       end
 

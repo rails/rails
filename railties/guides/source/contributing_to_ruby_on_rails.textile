@@ -364,19 +364,6 @@ Please make sure the patch does not introduce whitespace errors:
 $ git apply --whitespace=error-all mynew_patch.diff
 </shell>
 
-You can check your patches by applying your patch to an different dedicated branch:
-
-<shell>
-$ git checkout -b testing_branch
-$ git apply --check my_new_patch.diff
-</shell>
-
-You can make sure your patches don't add any whitespace by applying it yourself using the --whitespace=error-all option. Make sure you are on your dedicated test branche and:
-
-<shell>
-$ git apply --whitespace=error-all mynew_patch.diff
-</shell>
-
 
 h4. Create a Lighthouse Ticket
 
@@ -384,7 +371,7 @@ Now create a ticket with your patch. Go to the "new ticket":http://rails.lightho
 
 h4. Get Some Feedback
 
-Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the rubyonrails-core mailing list or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
+Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the "rubyonrails-core mailing list":http://groups.google.com/group/rubyonrails-core/ or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
 
 h4. Iterate as Necessary
 

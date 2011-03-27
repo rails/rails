@@ -25,7 +25,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_each_should_execute_if_id_is_in_select
-    assert_queries(4) do
+    assert_queries(6) do
       Post.find_each(:select => "id, title, type", :batch_size => 2) do |post|
         assert_kind_of Post, post
       end

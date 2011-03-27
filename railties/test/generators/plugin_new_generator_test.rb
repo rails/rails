@@ -55,7 +55,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
     FileUtils.cd(Rails.root)
-    assert_no_match /It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"])
+    assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
   def test_ensure_that_test_dummy_can_be_generated_from_a_template
@@ -85,7 +85,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
     assert_no_file "test/dummy/config/database.yml"
-    assert_no_match /ActiveRecord/, File.read(File.join(destination_root, "test/test_helper.rb"))
+    assert_no_match(/ActiveRecord/, File.read(File.join(destination_root, "test/test_helper.rb")))
   end
 
   def test_ensure_that_database_option_is_passed_to_app_generator
@@ -134,21 +134,21 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
-    assert_match /It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"])
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
   def test_ensure_that_tests_works
     run_generator
     FileUtils.cd destination_root
     `bundle install`
-    assert_match /1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`
+    assert_match(/1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
   def test_ensure_that_tests_works_in_full_mode
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     `bundle install`
-    assert_match /2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`
+    assert_match(/2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
   def test_creating_engine_in_full_mode
@@ -159,7 +159,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_being_quiet_while_creating_dummy_application
-    assert_no_match /create\s+config\/application.rb/, run_generator
+    assert_no_match(/create\s+config\/application.rb/, run_generator)
   end
 
   def test_create_mountable_application_with_mountable_option

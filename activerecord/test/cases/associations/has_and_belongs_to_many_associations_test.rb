@@ -604,7 +604,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project = SpecialProject.create("name" => "Special Project")
     assert developer.save
     developer.projects << project
-    developer.update_attribute("name", "Bruza")
+    developer.update_column("name", "Bruza")
     assert_equal 1, Developer.connection.select_value(<<-end_sql).to_i
       SELECT count(*) FROM developers_projects
       WHERE project_id = #{project.id}
@@ -642,12 +642,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_find_grouped
     all_posts_from_category1 = Post.find(:all, :conditions => "category_id = 1", :joins => :categories)
     grouped_posts_of_category1 = Post.find(:all, :conditions => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories)
-    assert_equal 4, all_posts_from_category1.size
-    assert_equal 1, grouped_posts_of_category1.size
+    assert_equal 5, all_posts_from_category1.size
+    assert_equal 2, grouped_posts_of_category1.size
   end
 
   def test_find_scoped_grouped
-    assert_equal 4, categories(:general).posts_grouped_by_title.size
+    assert_equal 5, categories(:general).posts_grouped_by_title.size
     assert_equal 1, categories(:technology).posts_grouped_by_title.size
   end
 

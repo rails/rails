@@ -21,6 +21,9 @@ class Person < ActiveRecord::Base
   has_many :agents_of_agents, :through => :agents, :source => :agents
   belongs_to :number1_fan, :class_name => 'Person'
 
+  has_many :agents_posts, :through => :agents, :source => :posts
+  has_many :agents_posts_authors, :through => :agents_posts, :source => :author
+
   scope :males, :conditions => { :gender => 'M' }
   scope :females, :conditions => { :gender => 'F' }
 end

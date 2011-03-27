@@ -335,7 +335,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     end
 
     records = klass.all
-    assert_equal 1, records.length
+    assert_equal 3, records.length
     assert_equal 2, records.first.author_id
   end
 

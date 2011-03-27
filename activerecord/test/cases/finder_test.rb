@@ -124,11 +124,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_all_with_limit_and_offset_and_multiple_order_clauses
     first_three_posts = Post.find :all, :order => 'author_id, id', :limit => 3, :offset => 0
     second_three_posts = Post.find :all, :order => ' author_id,id ', :limit => 3, :offset => 3
-    last_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 6
+    third_three_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 6
+    last_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 9
 
     assert_equal [[0,3],[1,1],[1,2]], first_three_posts.map { |p| [p.author_id, p.id] }
     assert_equal [[1,4],[1,5],[1,6]], second_three_posts.map { |p| [p.author_id, p.id] }
-    assert_equal [[2,7]], last_posts.map { |p| [p.author_id, p.id] }
+    assert_equal [[2,7],[2,9],[2,11]], third_three_posts.map { |p| [p.author_id, p.id] }
+    assert_equal [[3,8],[3,10]], last_posts.map { |p| [p.author_id, p.id] }
   end
 
 
@@ -187,6 +189,30 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_first_failing
     assert_nil Topic.where("title = 'The Second Topic of the day!'").first
+  end
+
+  def test_first_bang_present
+    assert_nothing_raised do
+      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").first!
+    end
+  end
+
+  def test_first_bang_missing
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.where("title = 'This title does not exist'").first!
+    end
+  end
+
+  def test_last_bang_present
+    assert_nothing_raised do
+      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
+    end
+  end
+
+  def test_last_bang_missing
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.where("title = 'This title does not exist'").last!
+    end
   end
 
   def test_unexisting_record_exception_handling
