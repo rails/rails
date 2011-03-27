@@ -14,6 +14,7 @@ module ActionController
     autoload :ConditionalGet
     autoload :Cookies
     autoload :Flash
+    autoload :ForceSSL
     autoload :Head
     autoload :Helpers
     autoload :HideActions

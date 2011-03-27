@@ -816,6 +816,28 @@ end
 
 NOTE: Certain exceptions are only rescuable from the +ApplicationController+ class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's "article":http://m.onkey.org/2008/7/20/rescue-from-dispatching on the subject for more information.
 
+h3. Force HTTPS protocol
+
+Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reason. Since Rails 3.1 you can now use +force_ssl+ method in your controller to enforce that:
+
+<ruby>
+class DinnerController
+  force_ssl
+end
+</ruby>
+
+Just like the filter, you could also passing +:only+ and +:except+ to enforce the secure connection only to specific actions
+
+<ruby>
+class DinnerController
+  force_ssl :only => :cheeseburger
+  # or
+  force_ssl :except => :cheeseburger
+end
+</ruby>
+
+Please note that if you found yourself adding +force_ssl+ to many controllers, you may found yourself wanting to force the whole application to use HTTPS instead. In that case, you can set the +config.force_ssl+ in your environment file.
+
 h3. Changelog
 
 * February 17, 2009: Yet another proofread by Xavier Noria.
