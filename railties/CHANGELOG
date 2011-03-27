@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added `config.force_ssl` configuration which loads Rack::SSL middleware and force all requests to be under HTTPS protocol [DHH, Prem Sichanugrist, and Josh Peek]
+
 * Added `rails plugin new` command which generates rails plugin with gemspec, tests and dummy application for testing [Piotr Sarnacki]
 
 * Added -j parameter with jquery/prototype as options. Now you can create your apps with jQuery using `rails new myapp -j jquery`. The default is still Prototype. [siong1987]
