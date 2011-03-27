@@ -138,16 +138,18 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     in_time_zone tz do
       record = @target.new
 
-      record.written_on = "2011-03-24"
-      assert_equal "2011-03-24", record.written_on_before_type_cast
-      assert_equal Time.zone.parse("2011-03-24"), record.written_on
-      assert_equal ActiveSupport::TimeZone[tz],
-        record.written_on.time_zone
+      date_string = "2011-03-24"
+      time        = Time.zone.parse date_string
+
+      record.written_on = date_string
+      assert_equal date_string, record.written_on_before_type_cast
+      assert_equal time, record.written_on
+      assert_equal ActiveSupport::TimeZone[tz], record.written_on.time_zone
 
       record.save
       record.reload
 
-      assert_equal Time.zone.parse("2011-03-24"), record.written_on
+      assert_equal time, record.written_on
     end
   end
 
