@@ -1,9 +1,21 @@
+require 'jruby/profiler'
+require 'java' 
+import java.lang.management.ManagementFactory
+
 module ActiveSupport
   module Testing
-    module Performance      
+    module Performance
+      if ARGV.include?('--benchmark')
+        DEFAULTS.merge!({:metrics => [:wall_time, :user_time, :memory, :gc_runs, :gc_time, :ola]})
+      else
+        DEFAULTS.merge!(
+          { :metrics => [:wall_time],
+            :formats => [:flat, :graph] })
+      end
+      
       protected
         def run_gc
-          GC.start
+          ManagementFactory.memory_mx_bean.gc
         end
         
       class Performer; end        

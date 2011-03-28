@@ -3,7 +3,9 @@ require 'rubinius/agent'
 module ActiveSupport
   module Testing
     module Performance
-      if !ARGV.include?('--benchmark')
+      if ARGV.include?('--benchmark')
+        DEFAULTS.merge!({:metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time]})
+      else
         DEFAULTS.merge!(
           { :metrics => [:wall_time],
             :formats => [:flat, :graph] })

@@ -8,7 +8,9 @@ end
 module ActiveSupport
   module Testing
     module Performance
-      if !ARGV.include?('--benchmark')
+      if ARGV.include?('--benchmark')
+        DEFAULTS.merge!({:metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time]})
+      else
         DEFAULTS.merge!(
           { :min_percent => 0.01,
             :metrics => [:process_time, :memory, :objects],
