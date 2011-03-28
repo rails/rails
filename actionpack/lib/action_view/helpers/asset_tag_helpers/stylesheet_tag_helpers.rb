@@ -136,16 +136,6 @@ module ActionView
         #   stylesheet_link_tag :all, :concat => true
         #
         def stylesheet_link_tag(*sources)
-          if config.perform_caching
-            sources = sources.map do |source|
-              if source =~ /^\/assets\/(.+)/
-                "/assets/#{Rails.application.assets.url($1)}"
-              else
-                source
-              end
-            end
-          end
-
           @stylesheet_include ||= StylesheetIncludeTag.new(config, asset_paths)
           @stylesheet_include.include_tag(*sources)
         end

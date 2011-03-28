@@ -173,16 +173,6 @@ module ActionView
         #
         #   javascript_include_tag :all, :cache => true, :recursive => true
         def javascript_include_tag(*sources)
-          if config.perform_caching
-            sources = sources.map do |source|
-              if source =~ /^\/assets\/(.+)/
-                "/assets/#{Rails.application.assets.url($1)}"
-              else
-                source
-              end
-            end
-          end
-
           @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
           @javascript_include.include_tag(*sources)
         end
