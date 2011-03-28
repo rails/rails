@@ -151,6 +151,12 @@ module ActiveRecord
         @reserved_connections[current_connection_id] ||= checkout
       end
 
+      # Check to see if there is an active connection in this connection
+      # pool.
+      def active_connection?
+        @reserved_connections.key? current_connection_id
+      end
+
       # Signal that the thread is finished with the current connection.
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
