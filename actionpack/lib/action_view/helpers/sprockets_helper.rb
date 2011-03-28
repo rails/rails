@@ -46,7 +46,7 @@ module ActionView
           end
 
           # Fingerprint url
-          source = Rails.application.assets.url(source)
+          source = Rails.application.assets.path(source)
 
           host = compute_asset_host(source)
 
