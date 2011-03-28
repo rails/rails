@@ -22,6 +22,7 @@ module ActionView #:nodoc:
     autoload :RecordTagHelper
     autoload :SanitizeHelper
     autoload :ScriptaculousHelper
+    autoload :SprocketsHelper
     autoload :TagHelper
     autoload :TextHelper
     autoload :TranslationHelper
@@ -52,6 +53,7 @@ module ActionView #:nodoc:
     include RecordTagHelper
     include SanitizeHelper
     include ScriptaculousHelper
+    include SprocketsHelper
     include TagHelper
     include TextHelper
     include TranslationHelper
