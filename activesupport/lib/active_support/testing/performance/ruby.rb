@@ -8,14 +8,14 @@ end
 module ActiveSupport
   module Testing
     module Performance
-      if ARGV.include?('--benchmark')
-        DEFAULTS.merge!({:metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time]})
-      else
-        DEFAULTS.merge!(
+      DEFAULTS.merge!(
+        if ARGV.include?('--benchmark')
+          ({:metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time]}
+        else
           { :min_percent => 0.01,
             :metrics => [:process_time, :memory, :objects],
-            :formats => [:flat, :graph_html, :call_tree] })
-      end
+            :formats => [:flat, :graph_html, :call_tree] }
+        end).freeze
       
       protected
         def run_gc
@@ -36,7 +36,7 @@ module ActiveSupport
           RubyProf.measure_mode = @metric.measure_mode
           RubyProf.start
           RubyProf.pause
-          profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+          full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           @data = RubyProf.stop
           @total = @data.threads.values.sum(0) { |method_infos| method_infos.max.total_time }
         end
@@ -52,13 +52,13 @@ module ActiveSupport
         def record
           return unless @supported
 
-          klasses = profile_options[:formats].map { |f| RubyProf.const_get("#{f.to_s.camelize}Printer") }.compact
+          klasses = full_profile_options[:formats].map { |f| RubyProf.const_get("#{f.to_s.camelize}Printer") }.compact
 
           klasses.each do |klass|
             fname = output_filename(klass)
             FileUtils.mkdir_p(File.dirname(fname))
             File.open(fname, 'wb') do |file|
-              klass.new(@data).print(file, profile_options.slice(:min_percent))
+              klass.new(@data).print(file, full_profile_options.slice(:min_percent))
             end
           end
         end
@@ -166,9 +166,9 @@ module ActiveSupport
   end
 end
 
-if RUBY_VERSION >= '1.9.2'
+if RUBY_VERSION.between?('1.9.2', '2.0')
   require 'active_support/testing/performance/ruby/yarv'
-elsif RUBY_VERSION >= '1.8.6'
+elsif RUBY_VERSION.between?('1.8.6', '1.9')
   require 'active_support/testing/performance/ruby/mri'
 else
   $stderr.puts 'Update your ruby interpreter to be able to run benchmarks.'

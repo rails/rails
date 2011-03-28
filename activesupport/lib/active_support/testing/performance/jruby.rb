@@ -5,13 +5,13 @@ import java.lang.management.ManagementFactory
 module ActiveSupport
   module Testing
     module Performance
-      if ARGV.include?('--benchmark')
-        DEFAULTS.merge!({:metrics => [:wall_time, :user_time, :memory, :gc_runs, :gc_time]})
-      else
-        DEFAULTS.merge!(
+      DEFAULTS.merge!(
+        if ARGV.include?('--benchmark')
+          {:metrics => [:wall_time, :user_time, :memory, :gc_runs, :gc_time]}
+        else
           { :metrics => [:wall_time],
-            :formats => [:flat, :graph] })
-      end
+              :formats => [:flat, :graph] }
+        end).freeze
       
       protected
         def run_gc
@@ -23,7 +23,7 @@ module ActiveSupport
       class Profiler < Performer
         def run
           @data = JRuby::Profiler.profile do
-            profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+            full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           end
           
           profile_printer = JRuby::Profiler::GraphProfilePrinter.new(@data)
@@ -37,7 +37,7 @@ module ActiveSupport
         end
 
         def record
-          klasses = profile_options[:formats].map { |f| JRuby::Profiler.const_get("#{f.to_s.camelize}ProfilePrinter") }.compact
+          klasses = full_profile_options[:formats].map { |f| JRuby::Profiler.const_get("#{f.to_s.camelize}ProfilePrinter") }.compact
 
           klasses.each do |klass|
             fname = output_filename(klass)

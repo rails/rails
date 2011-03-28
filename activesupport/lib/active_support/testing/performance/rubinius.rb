@@ -3,13 +3,13 @@ require 'rubinius/agent'
 module ActiveSupport
   module Testing
     module Performance
-      if ARGV.include?('--benchmark')
-        DEFAULTS.merge!({:metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time]})
-      else
-        DEFAULTS.merge!(
+      DEFAULTS.merge!(
+        if ARGV.include?('--benchmark')
+          {:metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time]}
+        else
           { :metrics => [:wall_time],
-            :formats => [:flat, :graph] })
-      end
+            :formats => [:flat, :graph] }
+        end).freeze
       
       protected
         def run_gc
@@ -23,7 +23,7 @@ module ActiveSupport
           @profiler = Rubinius::Profiler::Instrumenter.new
           
           @profiler.profile(false) do
-            profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+            full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           end
           
           @total = @profiler.info[:runtime] / 1000 / 1000 / 1000.0 # seconds
@@ -34,13 +34,13 @@ module ActiveSupport
         end
         
         def record
-          if(profile_options[:formats].include?(:flat))
+          if(full_profile_options[:formats].include?(:flat))
             create_path_and_open_file(:flat) do |file|
               @profiler.show(file)
             end
           end
           
-          if(profile_options[:formats].include?(:graph))
+          if(full_profile_options[:formats].include?(:graph))
             create_path_and_open_file(:graph) do |file|
               @profiler.show(file)
             end

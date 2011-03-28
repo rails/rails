@@ -7,7 +7,7 @@ require 'action_view/helpers/number_helper'
 module ActiveSupport
   module Testing
     module Performance
-      # modified by each implementation
+      # each implementation should define metrics and freeze the defaults
       DEFAULTS =
         if ARGV.include?('--benchmark')  # HAX for rake test
           { :benchmark => true,
@@ -21,13 +21,16 @@ module ActiveSupport
 
       def self.included(base)
         base.superclass_delegating_accessor :profile_options
-        base.profile_options = DEFAULTS
+      end
+      
+      def full_profile_options
+        DEFAULTS.merge(profile_options)
       end
 
       def full_test_name
         "#{self.class.name}##{method_name}"
       end
-
+      
       def run(result)
         return if method_name =~ /^default_test$/
 
@@ -35,13 +38,13 @@ module ActiveSupport
         @_result = result
 
         run_warmup
-        if profile_options && metrics = profile_options[:metrics]
+        if full_profile_options && metrics = full_profile_options[:metrics]
           metrics.each do |metric_name|
             if klass = Metrics[metric_name.to_sym]
               run_profile(klass.new)
               result.add_run
             else
-              puts '%20s: unsupported' % metric_name
+              puts '%20s: unsupported' % @metric.name
             end
           end
         end
@@ -83,7 +86,7 @@ module ActiveSupport
         end
         
         def run_profile(metric)
-          klass = profile_options[:benchmark] ? Benchmarker : Profiler
+          klass = full_profile_options[:benchmark] ? Benchmarker : Profiler
           performer = klass.new(self, metric)
 
           performer.run
@@ -92,20 +95,20 @@ module ActiveSupport
         end
 
       class Performer
-        delegate :run_test, :profile_options, :full_test_name, :to => :@harness
+        delegate :run_test, :full_profile_options, :full_test_name, :to => :@harness
 
         def initialize(harness, metric)
           @harness, @metric = harness, metric
         end
 
         def report
-          rate = @total / profile_options[:runs]
+          rate = @total / full_profile_options[:runs]
           '%20s: %s' % [@metric.name, @metric.format(rate)]
         end
 
         protected
           def output_filename
-            "#{profile_options[:output]}/#{full_test_name}_#{@metric.name}"
+            "#{full_profile_options[:output]}/#{full_test_name}_#{@metric.name}"
           end
       end
       
@@ -122,12 +125,12 @@ module ActiveSupport
 
       class Benchmarker < Performer
         def run
-          profile_options[:runs].to_i.times { run_test(@metric, :benchmark) }
+          full_profile_options[:runs].to_i.times { run_test(@metric, :benchmark) }
           @total = @metric.total
         end
 
         def record
-          avg = @metric.total / profile_options[:runs].to_i
+          avg = @metric.total / full_profile_options[:runs].to_i
           now = Time.now.utc.xmlschema
           with_output_file do |file|
             file.puts "#{avg},#{now},#{environment}"
