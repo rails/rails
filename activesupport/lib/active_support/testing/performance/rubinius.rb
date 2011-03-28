@@ -72,13 +72,6 @@ module ActiveSupport
               yield
             end
         end
-        
-        class Time < Base; end
-        
-        class ProcessTime < Time
-          # unsupported
-          def measure; 0; end
-        end
 
         class WallTime < Time
           def measure
@@ -86,12 +79,7 @@ module ActiveSupport
           end
         end
 
-        class CpuTime < Time
-          # unsupported
-          def measure; 0; end
-        end
-
-        class Memory < Base
+        class Memory < DigitalInformationUnit
           def measure
             loopback.get("system.memory.counter.bytes").last
           end

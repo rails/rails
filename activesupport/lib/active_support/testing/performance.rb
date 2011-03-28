@@ -235,44 +235,13 @@ module ActiveSupport
           end
         end
         
-        class ProcessTime < Time
-          # overridden by each implementation
-          def measure; end
-        end
-        
-        class WallTime < Time
-          # overridden by each implementation
-          def measure; end
-        end
-        
-        class CpuTime < Time
-          # overridden by each implementation
-          def measure; end
-        end
-        
-        class Memory < Base
-          # overridden by each implementation
-          def measure; end
-            
+        class DigitalInformationUnit < Base
           def format(measurement)
             number_to_human_size(measurement, :precision => 2)
           end
         end
         
-        class Objects < Amount
-          # overridden by each implementation
-          def measure; end
-        end
-
-        class GcRuns < Amount
-          # overridden by each implementation
-          def measure; end
-        end
-
-        class GcTime < Time
-          # overridden by each implementation
-          def measure; end
-        end
+        # each implementation provides its own metrics like ProcessTime, Memory or GcRuns
       end
     end
   end

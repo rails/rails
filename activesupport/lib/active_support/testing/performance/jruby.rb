@@ -73,8 +73,6 @@ module ActiveSupport
               yield
             end
         end
-            
-        class Time < Base; end
 
         class WallTime < Time
           def measure
@@ -94,7 +92,7 @@ module ActiveSupport
           end
         end
 
-        class Memory < Base
+        class Memory < DigitalInformationUnit
           def measure
             ManagementFactory.memory_mx_bean.non_heap_memory_usage.used + ManagementFactory.memory_mx_bean.heap_memory_usage.used
           end

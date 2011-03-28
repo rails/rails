@@ -102,8 +102,6 @@ module ActiveSupport
             end
         end
         
-        class Time < Base; end
-        
         class ProcessTime < Time
           Mode = RubyProf::PROCESS_TIME if RubyProf.const_defined?(:PROCESS_TIME)
 
@@ -134,7 +132,7 @@ module ActiveSupport
           end
         end
 
-        class Memory < Base
+        class Memory < DigitalInformationUnit
           Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
           
           # overridden by each implementation

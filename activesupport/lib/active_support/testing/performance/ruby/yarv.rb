@@ -23,7 +23,7 @@ module ActiveSupport
             end
         end
         
-        class Memory < Base
+        class Memory < DigitalInformationUnit
             # Ruby 1.9 + GCdata patch
           if GC.respond_to?(:malloc_allocated_size)
             def measure

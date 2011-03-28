@@ -16,7 +16,7 @@ module ActiveSupport
             end
         end
             
-        class Memory < Base
+        class Memory < DigitalInformationUnit
           # Ruby 1.8 + ruby-prof wrapper
           if RubyProf.respond_to?(:measure_memory)
             def measure
