@@ -6,7 +6,7 @@ module ActiveSupport
   module Testing
     module Performance
       if ARGV.include?('--benchmark')
-        DEFAULTS.merge!({:metrics => [:wall_time, :user_time, :memory, :gc_runs, :gc_time, :ola]})
+        DEFAULTS.merge!({:metrics => [:wall_time, :user_time, :memory, :gc_runs, :gc_time]})
       else
         DEFAULTS.merge!(
           { :metrics => [:wall_time],
@@ -22,33 +22,59 @@ module ActiveSupport
 
       class Profiler < Performer
         def run
+          @data = JRuby::Profiler.profile do
+            profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+          end
+          
+          profile_printer = JRuby::Profiler::GraphProfilePrinter.new(@data)
+          profile_printer.printProfile(STDOUT)
+          
+          @total = @data.getDuration / 1000 / 1000 / 1000.0 # seconds
         end
-        
+
         def report
+          super
         end
-        
+
         def record
+          klasses = profile_options[:formats].map { |f| JRuby::Profiler.const_get("#{f.to_s.camelize}ProfilePrinter") }.compact
+
+          klasses.each do |klass|
+            fname = output_filename(klass)
+            FileUtils.mkdir_p(File.dirname(fname))
+            file = File.open(fname, 'wb') do |file|
+              klass.new(@data).printProfile(file)
+            end
+          end
         end
-        
+
         protected
           def output_filename(printer_class)
+            suffix =
+              case printer_class.name.demodulize
+                when 'FlatProfilePrinter';  'flat.txt'
+                when 'GraphProfilePrinter'; 'graph.txt'
+                else printer_class.name.sub(/ProfilePrinter$/, '').underscore
+              end
+
+            "#{super()}_#{suffix}"
           end
       end
 
       module Metrics        
         class Base
           def profile
+            yield
           end
 
           protected
             def with_gc_stats
+              ManagementFactory.memory_mx_bean.gc
+              yield
             end
+        end
             
         class Time < Base; end
-        
-        class ProcessTime < Time
-          def measure; 0; end
-        end
 
         class WallTime < Time
           def measure
@@ -57,24 +83,33 @@ module ActiveSupport
         end
 
         class CpuTime < Time
-          def measure; 0; end
+          def measure
+            ManagementFactory.thread_mx_bean.get_current_thread_cpu_time / 1000 / 1000 / 1000.0 # seconds
+          end
+        end
+        
+        class UserTime < Time
+          def measure
+            ManagementFactory.thread_mx_bean.get_current_thread_user_time / 1000 / 1000 / 1000.0 # seconds
+          end
         end
 
         class Memory < Base
-          def measure; 0; end
+          def measure
+            ManagementFactory.memory_mx_bean.non_heap_memory_usage.used + ManagementFactory.memory_mx_bean.heap_memory_usage.used
+          end
         end
-
-        class Objects < Amount
-          def measure; 0; end
-        end
-
+        
         class GcRuns < Amount
-          def measure; 0; end
+          def measure
+            ManagementFactory.garbage_collector_mx_beans.inject(0) { |total_runs, current_gc| total_runs += current_gc.collection_count }
+          end
         end
 
         class GcTime < Time
-          def measure; 0; end
-        end
+          def measure
+            ManagementFactory.garbage_collector_mx_beans.inject(0) { |total_time, current_gc| total_time += current_gc.collection_time } / 1000.0 # seconds
+          end
         end
       end
     end
