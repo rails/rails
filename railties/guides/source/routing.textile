@@ -554,6 +554,12 @@ match '*a/foo/*b' => 'test#index'
 
 would match +zoo/woo/foo/bar/baz+ with +params[:a]+ equals +"zoo/woo"+, and +params[:b]+ equals +"bar/baz"+.
 
+NOTE: If the wildcard segment is the last segment of the route, the format segment will not be added to the path unless you explicitly specify it as a constraint.
+
+<ruby>
+match '/:path(.:format)', :to => 'pages#show', :constraints => { :path => /.+?/ }
+</ruby>
+
 h4. Redirection
 
 You can redirect any path to another path using the +redirect+ helper in your router:

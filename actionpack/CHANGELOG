@@ -1,5 +1,7 @@
 *Rails 3.0.6 (unreleased)*
 
+* Fixes the output of `rake routes` to be correctly match to the behavior of the application, as the regular expression used to match the path is greedy and won't capture the format part by default [Prem Sichanugrist]
+
 * Fixes an issue with number_to_human when converting values which are less than 1 but greater than -1 [Josh Kalderimis]
 
 * Sensitive query string parameters (specified in config.filter_parameters) will now be filtered out from the request paths in the log file. [Prem Sichanugrist, fxn]
