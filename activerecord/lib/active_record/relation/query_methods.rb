@@ -54,7 +54,6 @@ module ActiveRecord
     end
 
     def reorder(*args)
-      ActiveSupport::Deprecation.warn "reorder is deprecated. Please use except(:order).order(...) instead", caller
       relation = clone
       unless args.blank?
         relation.order_values = args

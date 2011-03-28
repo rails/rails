@@ -1,5 +1,7 @@
 *Rails 3.0.6 (unreleased)*
 
+* Un-deprecate reorder method [Sebastian Martinez]
+
 * Extensions are applied when calling +except+ or +only+ on relations.
   Thanks to Iain Hecker.
 
