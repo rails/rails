@@ -7,6 +7,14 @@
 
 * Schemas set in set_table_name are respected by the mysql adapter. LH #5322
 
+* Fixed a bug when empty? was called on a grouped Relation that wasn't loaded.
+  LH #5829
+
+* Reapply extensions when using except and only. Thanks Iain Hecker.
+
+* Binary data is escaped when being inserted to SQLite3 Databases. Thanks
+  Naruse!
+
 *Rails 3.0.5 (February 26, 2011)*
 
 * Model.where(:column => 1).where(:column => 2) will always produce an AND
