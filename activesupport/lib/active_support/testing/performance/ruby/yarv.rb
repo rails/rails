@@ -1,5 +1,5 @@
 begin
-  require 'test-unit'
+  gem 'test-unit'
 rescue LoadError
   $stderr.puts 'Specify test-unit as application\'s dependency in Gemfile to run benchmarks.'
   exit

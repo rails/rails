@@ -21,6 +21,7 @@ module ActiveSupport
 
       def self.included(base)
         base.superclass_delegating_accessor :profile_options
+        base.profile_options = {}
       end
       
       def full_profile_options
@@ -44,7 +45,7 @@ module ActiveSupport
               run_profile(klass.new)
               result.add_run
             else
-              puts '%20s: unsupported' % @metric.name
+              puts '%20s: unsupported' % metric_name
             end
           end
         end
