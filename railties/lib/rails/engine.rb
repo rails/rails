@@ -434,7 +434,7 @@ module Rails
 
     def routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
-      @routes.add_route(assets, {}, {}, {}, nil, false)
+      @routes.add_route(assets, {}, {}, {}, nil, false) if config.use_sprockets
       @routes.append(&Proc.new) if block_given?
       @routes
     end
@@ -458,6 +458,8 @@ module Rails
     end
 
     def build_asset_environment
+      return nil if !use_sprockets
+
       require 'sprockets'
 
       env = Sprockets::Environment.new(root.to_s)

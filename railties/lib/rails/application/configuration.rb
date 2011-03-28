@@ -9,8 +9,7 @@ module Rails
                     :filter_parameters, :helpers_paths, :logger,
                     :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
-                    :time_zone, :whiny_nils,
-                    :compile_assets
+                    :time_zone, :whiny_nils
 
       attr_writer :log_level
 
@@ -29,7 +28,6 @@ module Rails
         @log_level                   = nil
         @middleware                  = app_middleware
         @generators                  = app_generators
-        @compile_assets              = []
       end
 
       def compiled_asset_path
