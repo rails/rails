@@ -44,6 +44,7 @@ class Post < ActiveRecord::Base
       :conditions => proc { ["#{"#{aliased_table_name}." rescue ""}body = ?", 'Thank you for the welcome'] }
   has_many :comments_with_deprecated_interpolated_conditions, :class_name => 'Comment',
       :conditions => ['#{"#{aliased_table_name}." rescue ""}body = ?', 'Thank you for the welcome']
+  has_one :first_post_comment, :class_name => 'Comment', :conditions => {:body => 'First Post!'}
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, :class_name => "VerySpecialComment", :include => :post

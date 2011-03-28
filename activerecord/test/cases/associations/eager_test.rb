@@ -670,6 +670,23 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
   end
 
+  def test_preload_has_one_with_conditions
+    # pre-heat our cache
+    Post.arel_table.columns
+    Comment.columns
+
+    Post.connection.column_calls_by_table['comments'] = 0
+    Post.includes(:very_special_comment).all.to_a
+    assert_equal 0, Post.connection.column_calls_by_table['comments']
+
+    Post.connection.column_calls_by_table['comments'] = 0
+    Post.includes(:first_post_comment).all.to_a
+
+    # Don't care exactly how many column lookup are done,
+    # as long as the number is small
+    assert(Post.connection.column_calls_by_table['comments'] < 3)
+  end
+
   def test_polymorphic_type_condition
     post = Post.find(posts(:thinking).id, :include => :taggings)
     assert post.taggings.include?(taggings(:thinking_general))
