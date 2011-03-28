@@ -39,11 +39,14 @@ ActiveRecord::Base.connection.class.class_eval do
 end
 
 ActiveRecord::Base.connection.class.class_eval {
-  attr_accessor :column_calls
+  attr_accessor :column_calls, :column_calls_by_table
 
   def columns_with_calls(*args)
     @column_calls ||= 0
+    @column_calls_by_table ||= Hash.new {|h,table| h[table] = 0}
+
     @column_calls += 1
+    @column_calls_by_table[args.first.to_s] += 1
     columns_without_calls(*args)
   end
 

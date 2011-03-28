@@ -102,7 +102,7 @@ module ActiveRecord
       # Returns the SQL string that corresponds to the <tt>:conditions</tt>
       # option of the macro, if given, or +nil+ otherwise.
       def conditions
-        @conditions ||= @reflection.options[:conditions] && interpolate_and_sanitize_sql(@reflection.options[:conditions])
+        @conditions ||= interpolate_sanitized_sql(@reflection.sanitized_conditions) if @reflection.sanitized_conditions
       end
       alias :sql_conditions :conditions
 
@@ -159,6 +159,10 @@ module ActiveRecord
         # Does the association have a <tt>:dependent</tt> option?
         def dependent?
           @reflection.options[:dependent]
+        end
+
+        def interpolate_sanitized_sql(sql, record = nil, sanitize_klass = @reflection.klass)
+          @owner.send(:interpolate_sanitized_sql, sql, record, sanitize_klass)
         end
 
         def interpolate_and_sanitize_sql(sql, record = nil, sanitize_klass = @reflection.klass)
