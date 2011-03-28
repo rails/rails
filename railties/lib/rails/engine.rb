@@ -434,8 +434,43 @@ module Rails
 
     def routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
+      @routes.add_route(assets, {}, {}, {}, nil, false)
       @routes.append(&Proc.new) if block_given?
       @routes
+    end
+
+    def self.default_sprockets_paths
+      [
+       "app/assets",
+       "app/assets/javascripts",
+       "app/assets/stylesheets",
+       "vendor/plugins/*/app/assets",
+       "vendor/plugins/*/app/assets/javascripts",
+       "vendor/plugins/*/app/assets/stylesheets",
+       "vendor/plugins/*/assets",
+       "vendor/plugins/*/assets/javascripts",
+       "vendor/plugins/*/assets/stylesheets"
+      ]
+    end
+
+    def assets
+      @assets ||= build_asset_environment
+    end
+
+    def build_asset_environment
+      require 'sprockets'
+
+      env = Sprockets::Environment.new(root.to_s)
+      env.logger = Rails.logger
+      env.static_root = root.join("public")
+
+      self.class.default_sprockets_paths.each do |pattern|
+        Dir[root.join(pattern)].each do |dir|
+          env.paths << dir
+        end
+      end
+
+      env
     end
 
     def initializers
