@@ -458,7 +458,7 @@ module Rails
     end
 
     def build_asset_environment
-      return nil if !use_sprockets
+      return nil if !config.use_sprockets
 
       require 'sprockets'
 
