@@ -440,26 +440,31 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
+  # Note: these next two are kinda odd because they are essentially just testing that the
+  # query cache works as it should, but they are here for legacy reasons as they was previously
+  # a separate cache on association proxies, and these show that that is not necessary.
   def test_scopes_are_cached_on_associations
     post = posts(:welcome)
 
-    assert_equal post.comments.containing_the_letter_e.object_id, post.comments.containing_the_letter_e.object_id
-
-    post.comments.containing_the_letter_e.all # force load
-    assert_no_queries { post.comments.containing_the_letter_e.all }
+    Post.cache do
+      assert_queries(1) { post.comments.containing_the_letter_e.all }
+      assert_no_queries { post.comments.containing_the_letter_e.all }
+    end
   end
 
   def test_scopes_with_arguments_are_cached_on_associations
     post = posts(:welcome)
 
-    one = post.comments.limit_by(1).all
-    assert_equal 1, one.size
+    Post.cache do
+      one = assert_queries(1) { post.comments.limit_by(1).all }
+      assert_equal 1, one.size
 
-    two = post.comments.limit_by(2).all
-    assert_equal 2, two.size
+      two = assert_queries(1) { post.comments.limit_by(2).all }
+      assert_equal 2, two.size
 
-    assert_no_queries { post.comments.limit_by(1).all }
-    assert_no_queries { post.comments.limit_by(2).all }
+      assert_no_queries { post.comments.limit_by(1).all }
+      assert_no_queries { post.comments.limit_by(2).all }
+    end
   end
 
   def test_scopes_are_reset_on_association_reload
