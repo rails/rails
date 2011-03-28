@@ -1,5 +1,13 @@
 *Rails 3.1.0 (unreleased)*
 
+* Wildcard route will always matching the optional format segment by default. For example if you have this route:
+
+    map '*pages' => 'pages#show'
+
+  by requesting '/foo/bar.json', your `params[:pages]` will be equals to "foo/bar" with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `:format => false` like this:
+
+    map '*pages' => 'pages#show', :format => false
+
 * Added Base.http_basic_authenticate_with to do simple http basic authentication with a single class method call [DHH]
 
     class PostsController < ApplicationController
