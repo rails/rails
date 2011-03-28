@@ -27,6 +27,7 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript( %(backslash\\test) )
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
+    assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
 
   def test_button_to_function

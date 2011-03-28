@@ -81,7 +81,7 @@ Each fixture is given a name followed by an indented list of colon-separated key
 
 h5. ERb'in It Up
 
-ERb allows you embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERb when you load fixtures. This allows you to use Ruby to help you generate some sample data.
+ERb allows you to embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERb when you load fixtures. This allows you to use Ruby to help you generate some sample data.
 
 <erb>
 <% earth_size = 20 %>
@@ -227,7 +227,7 @@ $ rake db:migrate
 $ rake db:test:load
 </shell>
 
-Above +rake db:migrate+ runs any pending migrations on the _development_ environment and updates +db/schema.rb+. +rake db:test:load+ recreates the test database from the current +db/schema.rb+. On subsequent attempts, it is a good idea to first run +db:test:prepare+, as it first checks for pending migrations and warns you appropriately.
+The +rake db:migrate+ above runs any pending migrations on the _development_ environment and updates +db/schema.rb+. The +rake db:test:load+ recreates the test database from the current +db/schema.rb+. On subsequent attempts, it is a good idea to first run +db:test:prepare+, as it first checks for pending migrations and warns you appropriately.
 
 NOTE: +db:test:prepare+ will fail with an error if +db/schema.rb+ doesn't exist.
 

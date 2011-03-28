@@ -119,6 +119,20 @@ module ActiveRecord
       save(:validate => false)
     end
 
+    # Updates a single attribute of an object, without calling save.
+    #
+    # * Validation is skipped.
+    # * Callbacks are skipped.
+    # * updated_at/updated_on column is not updated if that column is available.
+    #
+    def update_column(name, value)
+      name = name.to_s
+      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+      raise ActiveRecordError, "can not update on a new record object" unless persisted?
+      raw_write_attribute(name, value)
+      self.class.update_all({ name => value }, self.class.primary_key => id) == 1
+    end
+
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.

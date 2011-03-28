@@ -120,15 +120,36 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_attributes_before_type_cast_on_datetime
     in_time_zone "Pacific Time (US & Canada)" do
       record = @target.new
-    
+
       record.written_on = "345643456"
       assert_equal "345643456", record.written_on_before_type_cast
       assert_equal nil, record.written_on
-    
+
       record.written_on = "2009-10-11 12:13:14"
       assert_equal "2009-10-11 12:13:14", record.written_on_before_type_cast
       assert_equal Time.zone.parse("2009-10-11 12:13:14"), record.written_on
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
+    end
+  end
+
+  def test_read_attributes_after_type_cast_on_datetime
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
+      record = @target.new
+
+      date_string = "2011-03-24"
+      time        = Time.zone.parse date_string
+
+      record.written_on = date_string
+      assert_equal date_string, record.written_on_before_type_cast
+      assert_equal time, record.written_on
+      assert_equal ActiveSupport::TimeZone[tz], record.written_on.time_zone
+
+      record.save
+      record.reload
+
+      assert_equal time, record.written_on
     end
   end
 
