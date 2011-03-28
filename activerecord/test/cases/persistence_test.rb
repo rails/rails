@@ -327,66 +327,62 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_raise(ActiveSupport::FrozenObjectError) { client.name = "something else" }
   end
 
-  def test_update_attribute
-    assert !Topic.find(1).approved?
-    Topic.find(1).update_attribute("approved", true)
-    assert Topic.find(1).approved?
+  def test_update_column
+    topic = Topic.find(1)
+    topic.update_column("approved", true)
+    assert topic.approved?
+    topic.reload
+    assert topic.approved?
 
-    Topic.find(1).update_attribute(:approved, false)
-    assert !Topic.find(1).approved?
+    topic.update_column(:approved, false)
+    assert !topic.approved?
+    topic.reload
+    assert !topic.approved?
   end
 
-  def test_update_attribute_for_readonly_attribute
+  def test_update_column_with_model_having_primary_key_other_than_id
     minivan = Minivan.find('m1')
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
+    new_name = 'sebavan'
+
+    minivan.update_column(:name, new_name)
+    assert_equal new_name, minivan.name
   end
 
-  # This test is correct, but it is hard to fix it since
-  # update_attribute trigger simply call save! that triggers
-  # all callbacks.
-  # def test_update_attribute_with_one_changed_and_one_updated
-  #   t = Topic.order('id').limit(1).first
-  #   title, author_name = t.title, t.author_name
-  #   t.author_name = 'John'
-  #   t.update_attribute(:title, 'super_title')
-  #   assert_equal 'John', t.author_name
-  #   assert_equal 'super_title', t.title
-  #   assert t.changed?, "topic should have changed"
-  #   assert t.author_name_changed?, "author_name should have changed"
-  #   assert !t.title_changed?, "title should not have changed"
-  #   assert_nil t.title_change, 'title change should be nil'
-  #   assert_equal ['author_name'], t.changed
-  #
-  #   t.reload
-  #   assert_equal 'David', t.author_name
-  #   assert_equal 'super_title', t.title
-  # end
-
-  def test_update_attribute_with_one_updated
-    t = Topic.first
-    title = t.title
-    t.update_attribute(:title, 'super_title')
-    assert_equal 'super_title', t.title
-    assert !t.changed?, "topic should not have changed"
-    assert !t.title_changed?, "title should not have changed"
-    assert_nil t.title_change, 'title change should be nil'
-
-    t.reload
-    assert_equal 'super_title', t.title
+  def test_update_column_for_readonly_attribute
+    minivan = Minivan.find('m1')
+    prev_color = minivan.color
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_column(:color, 'black') }
+    assert_equal prev_color, minivan.color
   end
 
-  def test_update_attribute_for_updated_at_on
+  def test_update_column_should_not_modify_updated_at
     developer = Developer.find(1)
     prev_month = Time.now.prev_month
 
-    developer.update_attribute(:updated_at, prev_month)
+    developer.update_column(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
 
-    developer.update_attribute(:salary, 80001)
-    assert_not_equal prev_month, developer.updated_at
+    developer.update_column(:salary, 80001)
+    assert_equal prev_month, developer.updated_at
 
     developer.reload
-    assert_not_equal prev_month, developer.updated_at
+    assert_equal prev_month, developer.updated_at
+  end
+
+  def test_update_column_with_one_changed_and_one_updated
+    t = Topic.order('id').limit(1).first
+    title, author_name = t.title, t.author_name
+    t.author_name = 'John'
+    t.update_column(:title, 'super_title')
+    assert_equal 'John', t.author_name
+    assert_equal 'super_title', t.title
+    assert t.changed?, "topic should have changed"
+    assert t.author_name_changed?, "author_name should have changed"
+    assert t.title_changed?, "title should have changed"
+
+    t.reload
+    assert_equal author_name, t.author_name
+    assert_equal 'super_title', t.title
   end
 
   def test_update_attributes

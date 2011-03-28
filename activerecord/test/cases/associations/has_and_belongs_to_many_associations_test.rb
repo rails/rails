@@ -604,7 +604,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project = SpecialProject.create("name" => "Special Project")
     assert developer.save
     developer.projects << project
-    developer.update_attribute("name", "Bruza")
+    developer.update_column("name", "Bruza")
     assert_equal 1, Developer.connection.select_value(<<-end_sql).to_i
       SELECT count(*) FROM developers_projects
       WHERE project_id = #{project.id}

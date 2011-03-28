@@ -1,5 +1,13 @@
 *Rails 3.1.0 (unreleased)*
 
+* Allow you to add `force_ssl` into controller to force browser to transfer data via HTTPS protocol on that particular controller. You can also specify `:only` or `:except` to specific it to particular action. [DHH and Prem Sichanugrist]
+
+* Allow FormHelper#form_for to specify the :method as a direct option instead of through the :html hash [DHH]
+
+    form_for(@post, remote: true, method: :delete) instead of form_for(@post, remote: true, html: { method: :delete })
+
+* Make JavaScriptHelper#j() an alias for JavaScriptHelper#escape_javascript() -- note this then supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper [DHH]
+
 * Sensitive query string parameters (specified in config.filter_parameters) will now be filtered out from the request paths in the log file. [Prem Sichanugrist, fxn]
 
 * URL parameters which return false for to_param now appear in the query string (previously they were removed) [Andrew White]

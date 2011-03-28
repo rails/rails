@@ -83,6 +83,7 @@ The following methods skip validations, and will save the object to the database
 * +increment_counter+
 * +toggle!+
 * +update_all+
+* +update_attribute+
 * +update_column+
 * +update_counters+
 
@@ -964,6 +965,7 @@ The following methods trigger callbacks:
 * +save(false)+
 * +toggle!+
 * +update+
+* +update_attribute+
 * +update_attributes+
 * +update_attributes!+
 * +valid?+

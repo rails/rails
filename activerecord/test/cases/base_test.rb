@@ -484,7 +484,7 @@ class BasicsTest < ActiveRecord::TestCase
     weird.reload
     assert_equal 'value', weird.send('a$b')
 
-    weird.update_attribute('a$b', 'value2')
+    weird.update_column('a$b', 'value2')
     weird.reload
     assert_equal 'value2', weird.send('a$b')
   end
