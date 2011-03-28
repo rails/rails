@@ -12,7 +12,6 @@ module ActiveSupport
         if ARGV.include?('--benchmark')  # HAX for rake test
           { :benchmark => true,
             :runs => 4,
-            :metrics => [:wall_time, :memory, :objects, :gc_runs, :gc_time],
             :output => 'tmp/performance' }
         else
           { :benchmark => false,
@@ -41,6 +40,8 @@ module ActiveSupport
             if klass = Metrics[metric_name.to_sym]
               run_profile(klass.new)
               result.add_run
+            else
+              puts '%20s: unsupported' % metric_name
             end
           end
         end
