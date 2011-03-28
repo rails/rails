@@ -461,7 +461,7 @@ module Rails
       require 'sprockets'
 
       env = Sprockets::Environment.new(root.to_s)
-      env.logger = Rails.logger
+      # env.logger = Rails.logger
       env.static_root = root.join("public")
 
       self.class.default_sprockets_paths.each do |pattern|
