@@ -1,3 +1,10 @@
+begin
+  require 'test-unit'
+rescue LoadError
+  $stderr.puts 'Specify test-unit as application\'s dependency in Gemfile to run benchmarks.'
+  exit
+end
+
 module ActiveSupport
   module Testing
     module Performance
@@ -57,6 +64,3 @@ module ActiveSupport
     end
   end
 end
-        
-            
-            
