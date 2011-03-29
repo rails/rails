@@ -171,10 +171,6 @@ module ActionController
     end
 
     def recycle!
-      write_cookies!
-      @env.delete('HTTP_COOKIE') if @cookies.blank?
-      @env.delete('action_dispatch.cookies')
-      @cookies = nil
       @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
@@ -301,11 +297,7 @@ module ActionController
   # and cookies, though. For sessions, you just do:
   #
   #   @request.session[:key] = "value"
-  #   @request.cookies[:key] = "value"
-  #
-  # To clear the cookies for a test just clear the request's cookies hash:
-  #
-  #   @request.cookies.clear
+  #   @request.cookies["key"] = "value"
   #
   # == Testing named routes
   #
@@ -419,7 +411,6 @@ module ActionController
         Base.class_eval { include Testing }
         @controller.process_with_new_base_test(@request, @response)
         @request.session.delete('flash') if @request.session['flash'].blank?
-        @request.cookies.merge!(@response.cookies)
         @response
       end
 

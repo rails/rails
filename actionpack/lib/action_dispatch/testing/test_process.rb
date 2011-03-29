@@ -22,7 +22,7 @@ module ActionDispatch
     end
 
     def cookies
-      @request.cookies.merge(@response.cookies).with_indifferent_access
+      @request.cookies.merge(@response.cookies)
     end
 
     def redirect_to_url
