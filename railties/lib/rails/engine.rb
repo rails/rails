@@ -433,10 +433,22 @@ module Rails
     end
 
     def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new
-      @routes.add_route(assets, {}, {}, {}, nil, false) if config.use_sprockets
+      @routes ||= build_route_set
       @routes.append(&Proc.new) if block_given?
       @routes
+    end
+
+    def build_route_set
+      routes = ActionDispatch::Routing::RouteSet.new
+
+      engine = self
+      routes.append do
+        if engine.config.use_sprockets
+          routes.add_route(engine.assets, {}, {}, {}, nil, false)
+        end
+      end
+
+      routes
     end
 
     def self.default_sprockets_paths
