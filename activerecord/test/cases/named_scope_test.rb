@@ -236,6 +236,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_no_queries { assert topics.any? }
   end
 
+  def test_model_class_should_respond_to_any
+    assert Topic.any?
+    Topic.delete_all
+    assert !Topic.any?
+  end
+
   def test_many_should_not_load_results
     topics = Topic.base
     assert_queries(2) do
@@ -268,6 +274,15 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_many_should_return_true_if_more_than_one
     assert Topic.base.many?
+  end
+
+  def test_model_class_should_respond_to_many
+    Topic.delete_all
+    assert !Topic.many?
+    Topic.create!
+    assert !Topic.many?
+    Topic.create!
+    assert Topic.many?
   end
 
   def test_should_build_on_top_of_named_scope

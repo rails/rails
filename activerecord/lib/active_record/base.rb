@@ -436,7 +436,8 @@ module ActiveRecord #:nodoc:
       end
       alias :colorize_logging= :colorize_logging
 
-      delegate :find, :first, :last, :all, :destroy, :destroy_all, :exists?, :delete, :delete_all, :update, :update_all, :to => :scoped
+      delegate :find, :first, :last, :all, :exists?, :any?, :many?, :to => :scoped
+      delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :reorder, :except, :limit, :offset, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
