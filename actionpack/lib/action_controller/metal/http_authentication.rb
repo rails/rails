@@ -8,7 +8,7 @@ module ActionController
     # === Simple \Basic example
     #
     #   class PostsController < ApplicationController
-    #     http_basic_authenticate_with :name => "dhh", "secret", :except => :index
+    #     http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
     #
     #     def index
     #       render :text => "Everyone can see me!"
