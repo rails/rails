@@ -231,7 +231,7 @@ module ActiveSupport
         
         class Amount < Base
           def format(measurement)
-            number_with_delimiter(measurement)
+            number_with_delimiter(measurement.floor)
           end
         end
         
