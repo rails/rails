@@ -9,7 +9,7 @@ module ActionView
 
       def sprockets_javascript_include_tag(source, options = {})
         options = {
-          'type' => "application/javascript",
+          'type' => "text/javascript",
           'src'  => sprockets_javascript_path(source)
         }.merge(options.stringify_keys)
 
@@ -33,6 +33,8 @@ module ActionView
 
       private
         def compute_sprockets_path(source, dir, default_ext)
+          source = source.to_s
+
           return source if URI.parse(source).host
 
           # Add /javscripts to relative paths
@@ -46,15 +48,15 @@ module ActionView
           end
 
           # Fingerprint url
-          source = Rails.application.assets.path(source)
+          source = assets.path(source)
 
           host = compute_asset_host(source)
 
-          if controller.respond_to?(:request) && host && URI.parse(host).host.nil?
-            host = "#{controller.request.protocol}#{host}"
+          if controller.respond_to?(:request) && host && URI.parse(host).host
+            source = "#{controller.request.protocol}#{host}#{source}"
           end
 
-          "#{host}#{source}"
+          source
         end
 
         def compute_asset_host(source)
@@ -71,6 +73,10 @@ module ActionView
               (host =~ /%d/) ? host % (source.hash % 4) : host
             end
           end
+        end
+
+        def assets
+          Rails.application.assets
         end
     end
   end
