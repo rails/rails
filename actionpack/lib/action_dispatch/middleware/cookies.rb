@@ -185,6 +185,11 @@ module ActionDispatch
         value
       end
 
+      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
+      def clear(options = {})
+        @cookies.each_key{ |k| delete(k, options) }
+      end
+
       # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
       #
       #   cookies.permanent[:prefers_open_id] = true
@@ -220,6 +225,11 @@ module ActionDispatch
       def write(headers)
         @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
+      end
+
+      def reset! #:nodoc:
+        @set_cookies.clear
+        @delete_cookies.clear
       end
 
       private

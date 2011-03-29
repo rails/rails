@@ -1,5 +1,23 @@
 *Rails 3.1.0 (unreleased)*
 
+* Refactor ActionController::TestCase cookies [Andrew White]
+
+  Assigning cookies for test cases should now use cookies[], e.g:
+
+    cookies[:email] = 'user@example.com'
+    get :index
+    assert_equal 'user@example.com', cookies[:email]
+
+  To clear the cookies, use clear, e.g:
+
+    cookies.clear
+    get :index
+    assert_nil cookies[:email]
+
+  We now no longer write out HTTP_COOKIE and the cookie jar is
+  persistent between requests so if you need to manipulate the environment
+  for your test you need to do it before the cookie jar is created.
+
 * Added 'ActionView::Helpers::FormHelper.fields_for_with_index', similar to fields_for but allows to have access to the current iteration index [Jorge Bejar]
 
 * Warn if we cannot verify CSRF token authenticity [José Valim]
