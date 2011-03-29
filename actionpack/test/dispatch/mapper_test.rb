@@ -56,7 +56,7 @@ module ActionDispatch
         mapper = Mapper.new fakeset
         mapper.match '/*path', :to => 'pages#show'
         assert_equal '/*path(.:format)', fakeset.conditions.first[:path_info]
-        assert_equal /.+?/, fakeset.requirements.first[:path]
+        assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
       def test_map_wildcard_with_other_element
@@ -73,7 +73,7 @@ module ActionDispatch
         mapper.match '/*foo/*bar', :to => 'pages#show'
         assert_equal '/*foo/*bar(.:format)', fakeset.conditions.first[:path_info]
         assert_nil fakeset.requirements.first[:foo]
-        assert_equal /.+?/, fakeset.requirements.first[:bar]
+        assert_equal(/.+?/, fakeset.requirements.first[:bar])
       end
 
       def test_map_wildcard_with_format_false
