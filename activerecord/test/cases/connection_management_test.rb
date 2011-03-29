@@ -11,7 +11,7 @@ module ActiveRecord
 
         def call(env)
           @calls << env
-          [200, {}, [['hi mom']]]
+          [200, {}, ['hi mom']]
         end
       end
 
@@ -32,9 +32,29 @@ module ActiveRecord
         assert_equal [@env], @app.calls
       end
 
-      test "clears active connections after each call" do
+      def test_connections_are_active_after_call
         @management.call(@env)
+        assert ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      def test_body_responds_to_each
+        _, _, body = @management.call(@env)
+        bits = []
+        body.each { |bit| bits << bit }
+        assert_equal ['hi mom'], bits
+      end
+
+      def test_connections_are_cleared_after_body_close
+        _, _, body = @management.call(@env)
+        body.close
         assert !ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      def test_active_connections_are_not_cleared_on_body_close_during_test
+        @env['rack.test'] = true
+        _, _, body = @management.call(@env)
+        body.close
+        assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
       test "doesn't clear active connections when running in a test case" do

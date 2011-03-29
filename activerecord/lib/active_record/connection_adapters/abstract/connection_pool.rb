@@ -417,18 +417,35 @@ module ActiveRecord
     end
 
     class ConnectionManagement
+      class Proxy # :nodoc:
+        attr_reader :body, :testing
+
+        def initialize(body, testing = false)
+          @body    = body
+          @testing = testing
+        end
+
+        def each(&block)
+          body.each(&block)
+        end
+
+        def close
+          body.close if body.respond_to?(:close)
+
+          # Don't return connection (and perform implicit rollback) if
+          # this request is a part of integration test
+          ActiveRecord::Base.clear_active_connections! unless testing
+        end
+      end
+
       def initialize(app)
         @app = app
       end
 
       def call(env)
-        @app.call(env)
-      ensure
-        # Don't return connection (and perform implicit rollback) if
-        # this request is a part of integration test
-        unless env.key?("rack.test")
-          ActiveRecord::Base.clear_active_connections!
-        end
+        status, headers, body = @app.call(env)
+
+        [status, headers, Proxy.new(body, env.key?('rack.test'))]
       end
     end
   end
