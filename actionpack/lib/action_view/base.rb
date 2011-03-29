@@ -8,9 +8,8 @@ require 'action_view/log_subscriber'
 module ActionView #:nodoc:
   # = Action View Base
   #
-  # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERB
+  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
   # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
-  # If the template file has a <tt>.rjs</tt> extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
   #
   # == ERB
   #
@@ -131,29 +130,6 @@ module ActionView #:nodoc:
   #   end
   #
   # More builder documentation can be found at http://builder.rubyforge.org.
-  #
-  # == JavaScriptGenerator
-  #
-  # JavaScriptGenerator templates end in <tt>.rjs</tt>. Unlike conventional templates which are used to
-  # render the results of an action, these templates generate instructions on how to modify an already rendered page. This makes it easy to
-  # modify multiple elements on your page in one declarative Ajax response. Actions with these templates are called in the background with Ajax
-  # and make updates to the page where the request originated from.
-  #
-  # An instance of the JavaScriptGenerator object named +page+ is automatically made available to your template, which is implicitly wrapped in an ActionView::Helpers::PrototypeHelper#update_page block.
-  #
-  # When an <tt>.rjs</tt> action is called with +link_to_remote+, the generated JavaScript is automatically evaluated.  Example:
-  #
-  #   link_to_remote :url => {:action => 'delete'}
-  #
-  # The subsequently rendered <tt>delete.rjs</tt> might look like:
-  #
-  #   page.replace_html  'sidebar', :partial => 'sidebar'
-  #   page.remove        "person-#{@person.id}"
-  #   page.visual_effect :highlight, 'user-list'
-  #
-  # This refreshes the sidebar, removes a person element and highlights the user list.
-  #
-  # See the ActionView::Helpers::PrototypeHelper::JavaScriptGenerator::GeneratorMethods documentation for more details.
   class Base
     include Helpers, Rendering, Partials, ::ERB::Util, Context
 
