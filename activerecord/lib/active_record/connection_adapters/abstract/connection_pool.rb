@@ -352,6 +352,12 @@ module ActiveRecord
         @connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
+      # Returns true if there are any active connections among the connection
+      # pools that the ConnectionHandler is managing.
+      def active_connections?
+        connection_pools.values.any? { |pool| pool.active_connection? }
+      end
+
       # Returns any connections in use by the current thread back to the pool,
       # and also returns connections to the pool cached by threads that are no
       # longer alive.
