@@ -50,7 +50,7 @@ module ActiveSupport
         protected
           def create_path_and_open_file(printer_name)
             fname = "#{output_filename}_#{printer_name}.txt"
-            FileUtils.mkdir_p(fname)
+            FileUtils.mkdir_p(File.dirname(fname))
             File.open(fname, 'wb') do |file|
               yield(file)
             end
