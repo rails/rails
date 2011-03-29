@@ -20,8 +20,9 @@ module ActiveRecord
         @app = App.new
         @management = ConnectionManagement.new(@app)
 
-        @connections_cleared = false
-        ActiveRecord::Base.stubs(:clear_active_connections!).with { @connections_cleared = true }
+        # make sure we have an active connection
+        assert ActiveRecord::Base.connection
+        assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
       def test_app_delegation
@@ -33,13 +34,13 @@ module ActiveRecord
 
       test "clears active connections after each call" do
         @management.call(@env)
-        assert @connections_cleared
+        assert !ActiveRecord::Base.connection_handler.active_connections?
       end
 
       test "doesn't clear active connections when running in a test case" do
         @env['rack.test'] = true
         @management.call(@env)
-        assert !@connections_cleared
+        assert ActiveRecord::Base.connection_handler.active_connections?
       end
     end
   end
