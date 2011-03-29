@@ -183,7 +183,9 @@ module ActiveRecord
     def exists?(id = nil)
       id = id.id if ActiveRecord::Base === id
 
-      relation = select("1").limit(1)
+      join_dependency = construct_join_dependency_for_association_find
+      relation = construct_relation_for_association_find(join_dependency)
+      relation = relation.except(:select).select("1").limit(1)
 
       case id
       when Array, Hash
@@ -192,19 +194,23 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(id)) if id
       end
 
-      relation.first ? true : false
+      connection.select_value(relation.to_sql) ? true : false
     end
 
     protected
 
     def find_with_associations
-      including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
+      join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
       rows = connection.select_all(relation.to_sql, 'SQL', relation.bind_values)
       join_dependency.instantiate(rows)
     rescue ThrowResult
       []
+    end
+
+    def construct_join_dependency_for_association_find
+      including = (@eager_load_values + @includes_values).uniq
+      ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
     end
 
     def construct_relation_for_association_calculations
