@@ -110,10 +110,8 @@ module ActionController
         module ClassMethods
           def http_basic_authenticate_with(options = {})
             before_filter(options.except(:name, :password, :realm)) do
-              authenticate_or_request_with_http_basic(options[:realm] || "Application") do
-                authenticate_or_request_with_http_basic do |name, password|
-                  name == options[:name] && password == options[:password]
-                end
+              authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
+                name == options[:name] && password == options[:password]
               end
             end
           end
