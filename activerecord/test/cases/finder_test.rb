@@ -208,6 +208,14 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_model_class_responds_to_first_bang
+    assert_equal topics(:first), Topic.first!
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.delete_all
+      Topic.first!
+    end
+  end
+
   def test_last_bang_present
     assert_nothing_raised do
       assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
@@ -217,6 +225,14 @@ class FinderTest < ActiveRecord::TestCase
   def test_last_bang_missing
     assert_raises ActiveRecord::RecordNotFound do
       Topic.where("title = 'This title does not exist'").last!
+    end
+  end
+
+  def test_model_class_responds_to_last_bang
+    assert_equal topics(:fourth), Topic.last!
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.delete_all
+      Topic.last!
     end
   end
 
