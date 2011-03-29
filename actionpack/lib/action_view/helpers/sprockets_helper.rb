@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module SprocketsHelper
       def sprockets_javascript_path(source)
-        compute_sprockets_path source, 'javascripts', 'js'
+        compute_sprockets_path source, 'assets', 'js'
       end
 
       def sprockets_javascript_include_tag(source, options = {})
@@ -17,7 +17,7 @@ module ActionView
       end
 
       def sprockets_stylesheet_path(source)
-        compute_sprockets_path source, 'stylesheets', 'css'
+        compute_sprockets_path source, 'assets', 'css'
       end
 
       def sprockets_stylesheet_link_tag(source, options = {})

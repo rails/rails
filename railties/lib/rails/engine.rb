@@ -444,7 +444,7 @@ module Rails
       engine = self
       routes.append do
         if engine.config.use_sprockets
-          routes.add_route(engine.assets, {}, {}, {}, nil, false)
+          routes.add_route(engine.assets, {:path_info => "/assets"}, {}, {}, nil, false)
         end
       end
 
@@ -453,15 +453,12 @@ module Rails
 
     def self.default_sprockets_paths
       [
-       "app/assets",
-       "app/assets/javascripts",
-       "app/assets/stylesheets",
-       "vendor/plugins/*/app/assets",
-       "vendor/plugins/*/app/assets/javascripts",
-       "vendor/plugins/*/app/assets/stylesheets",
-       "vendor/plugins/*/assets",
-       "vendor/plugins/*/assets/javascripts",
-       "vendor/plugins/*/assets/stylesheets"
+       "app/javascripts",
+       "app/stylesheets",
+       "vendor/plugins/*/app/javascripts",
+       "vendor/plugins/*/app/stylesheets",
+       "vendor/plugins/*/javascripts",
+       "vendor/plugins/*/stylesheets"
       ]
     end
 
@@ -475,7 +472,7 @@ module Rails
       require 'sprockets'
 
       env = Sprockets::Environment.new(root.to_s)
-      env.static_root = root.join("public")
+      env.static_root = root.join("public/assets")
 
       self.class.default_sprockets_paths.each do |pattern|
         Dir[root.join(pattern)].each do |dir|
