@@ -86,7 +86,11 @@ module ActionView
         #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
         #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
         def javascript_path(source)
-          asset_paths.compute_public_path(source, 'javascripts', 'js')
+          if config.use_sprockets
+            sprockets_javascript_path(source)
+          else
+            asset_paths.compute_public_path(source, 'javascripts', 'js')
+          end
         end
         alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
@@ -173,8 +177,12 @@ module ActionView
         #
         #   javascript_include_tag :all, :cache => true, :recursive => true
         def javascript_include_tag(*sources)
-          @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
-          @javascript_include.include_tag(*sources)
+          if config.use_sprockets
+            sprockets_javascript_include_tag(*sources)
+          else
+            @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
+            @javascript_include.include_tag(*sources)
+          end
         end
 
       end
