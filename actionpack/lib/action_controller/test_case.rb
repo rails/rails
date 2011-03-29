@@ -175,10 +175,6 @@ module ActionController
     end
 
     def recycle!
-      write_cookies!
-      @env.delete('HTTP_COOKIE') if @cookies.blank?
-      @env.delete('action_dispatch.cookies')
-      @cookies = nil
       @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
@@ -186,6 +182,7 @@ module ActionController
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = nil
       @env['action_dispatch.request.query_parameters'] = {}
+      cookie_jar.reset!
     end
   end
 
@@ -301,18 +298,17 @@ module ActionController
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.
   #
-  # == Manipulating the request collections
+  # == Manipulating session and cookie variables
   #
-  # The collections described above link to the response, so you can test if what the actions were expected to do happened. But
-  # sometimes you also want to manipulate these collections in the incoming request. This is really only relevant for sessions
-  # and cookies, though. For sessions, you just do:
+  # Sometimes you need to set up the session and cookie variables for a test.
+  # To do this just assign a value to the session or cookie collection:
   #
-  #   @request.session[:key] = "value"
-  #   @request.cookies[:key] = "value"
+  #   session[:key] = "value"
+  #   cookies[:key] = "value"
   #
-  # To clear the cookies for a test just clear the request's cookies hash:
+  # To clear the cookies for a test just clear the cookie collection:
   #
-  #   @request.cookies.clear
+  #   cookies.clear
   #
   # == \Testing named routes
   #
@@ -450,7 +446,6 @@ module ActionController
         @controller.process_with_new_base_test(@request, @response)
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?
-        @request.cookies.merge!(@response.cookies)
         @response
       end
 
