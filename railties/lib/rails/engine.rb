@@ -463,7 +463,6 @@ module Rails
       require 'sprockets'
 
       env = Sprockets::Environment.new(root.to_s)
-      # env.logger = Rails.logger
       env.static_root = root.join("public")
 
       self.class.default_sprockets_paths.each do |pattern|
@@ -570,6 +569,10 @@ module Rails
     initializer :engines_blank_point do
       # We need this initializer so all extra initializers added in engines are
       # consistently executed after all the initializers above across all engines.
+    end
+
+    initializer "sprockets.logger" do
+      assets.logger = Rails.logger
     end
 
     rake_tasks do
