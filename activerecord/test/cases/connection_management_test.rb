@@ -57,6 +57,13 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
+      def test_connections_closed_if_exception
+        app       = Class.new(App) { def call(env); raise; end }.new
+        explosive = ConnectionManagement.new(app)
+        assert_raises(RuntimeError) { explosive.call(@env) }
+        assert !ActiveRecord::Base.connection_handler.active_connections?
+      end
+
       test "doesn't clear active connections when running in a test case" do
         @env['rack.test'] = true
         @management.call(@env)

@@ -446,6 +446,9 @@ module ActiveRecord
         status, headers, body = @app.call(env)
 
         [status, headers, Proxy.new(body, env.key?('rack.test'))]
+      rescue
+        ActiveRecord::Base.clear_active_connections!
+        raise
       end
     end
   end
