@@ -23,7 +23,7 @@ require 'test_helper'
 require 'rails/performance_test_help'
 
 # Profiling results for each test method are written to tmp/performance.
-class BrowsingTest < ActionController::PerformanceTest
+class BrowsingTest < ActionDispatch::PerformanceTest
   def test_homepage
     get '/'
   end
@@ -34,10 +34,10 @@ This example is a simple performance test case for profiling a GET request to th
 
 h4. Generating Performance Tests
 
-Rails provides a generator called +test_unit:performance+ for creating new performance tests:
+Rails provides a generator called +performance_test+ for creating new performance tests:
 
 <shell>
-$ rails generate test_unit:performance homepage
+$ rails generate performance_test homepage
 </shell>
 
 This generates +homepage_test.rb+ in the +test/performance+ directory:
@@ -46,7 +46,7 @@ This generates +homepage_test.rb+ in the +test/performance+ directory:
 require 'test_helper'
 require 'rails/performance_test_help'
 
-class HomepageTest < ActionController::PerformanceTest
+class HomepageTest < ActionDispatch::PerformanceTest
   # Replace this with your real tests.
   def test_homepage
     get '/'
@@ -105,7 +105,7 @@ Here's the performance test for +HomeController#dashboard+ and +PostsController#
 require 'test_helper'
 require 'rails/performance_test_help'
 
-class PostPerformanceTest < ActionController::PerformanceTest
+class PostPerformanceTest < ActionDispatch::PerformanceTest
   def setup
     # Application requires logged-in user
     login_as(:lifo)
@@ -133,7 +133,7 @@ Performance test for +Post+ model:
 require 'test_helper'
 require 'rails/performance_test_help'
 
-class PostModelTest < ActionController::PerformanceTest
+class PostModelTest < ActionDispatch::PerformanceTest
   def test_creation
     Post.create :body => 'still fooling you', :cost => '100'
   end
