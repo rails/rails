@@ -1210,7 +1210,7 @@ To use the authentication system, we specify it at the top of our +PostsControll
 <ruby>
 class PostsController < ApplicationController
 
-  http_basic_authenticate_with :name => "dhh", "secret", :except => :index
+  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
 
   # GET /posts
   # GET /posts.xml
@@ -1225,7 +1225,7 @@ We also only want to allow authenticated users to delete comments, so in the +Co
 <ruby>
 class CommentsController < ApplicationController
 
-  http_basic_authenticate_with :name => "dhh", "secret", :only => :destroy
+  http_basic_authenticate_with :name => "dhh", :password => "secret", :only => :destroy
 
   def create
     @post = Post.find(params[:post_id])

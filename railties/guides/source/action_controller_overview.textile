@@ -619,7 +619,7 @@ HTTP basic authentication is an authentication scheme that is supported by the m
 
 <ruby>
 class AdminController < ApplicationController
-  http_basic_authenticate_with :name => "humbaba", "5baa61e4"
+  http_basic_authenticate_with :name => "humbaba", :password => "5baa61e4"
 end
 </ruby>
 
