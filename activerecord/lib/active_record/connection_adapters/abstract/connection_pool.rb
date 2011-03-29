@@ -443,11 +443,13 @@ module ActiveRecord
       end
 
       def call(env)
+        testing = env.key?('rack.test')
+
         status, headers, body = @app.call(env)
 
-        [status, headers, Proxy.new(body, env.key?('rack.test'))]
+        [status, headers, Proxy.new(body, testing)]
       rescue
-        ActiveRecord::Base.clear_active_connections!
+        ActiveRecord::Base.clear_active_connections! unless testing
         raise
       end
     end
