@@ -1,8 +1,8 @@
 module Arel
   module Nodes
     class TableAlias < Arel::Nodes::Binary
-      alias :name :left
-      alias :relation :right
+      alias :name :right
+      alias :relation :left
       alias :table_alias :name
 
       def [] name

@@ -19,6 +19,7 @@
   * MSSQL adds TOP to sub selects
   * Assigning nil to take() removes LIMIT from statement.
   * Assigning nil to offset() removes OFFSET from statement.
+  * TableAlias leg ordering fixed
 
 * Deprecations
 
