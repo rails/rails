@@ -10,7 +10,7 @@ module ActiveSupport
           {:metrics => [:wall_time, :user_time, :memory, :gc_runs, :gc_time]}
         else
           { :metrics => [:wall_time],
-              :formats => [:flat, :graph] }
+            :formats => [:flat, :graph] }
         end).freeze
       
       protected
@@ -21,7 +21,14 @@ module ActiveSupport
       class Performer; end        
 
       class Profiler < Performer
+        def initialize(*args)
+          super
+          @supported = @metric.is_a?(Metrics::WallTime)
+        end
+        
         def run
+          return unless @supported
+          
           @data = JRuby::Profiler.profile do
             full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           end
@@ -32,11 +39,9 @@ module ActiveSupport
           @total = @data.getDuration / 1000 / 1000 / 1000.0 # seconds
         end
 
-        def report
-          super
-        end
-
         def record
+          return unless @supported
+          
           klasses = full_profile_options[:formats].map { |f| JRuby::Profiler.const_get("#{f.to_s.camelize}ProfilePrinter") }.compact
 
           klasses.each do |klass|

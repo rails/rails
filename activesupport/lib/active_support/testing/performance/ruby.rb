@@ -41,14 +41,6 @@ module ActiveSupport
           @total = @data.threads.values.sum(0) { |method_infos| method_infos.max.total_time }
         end
 
-        def report
-          if @supported
-            super
-          else
-            '%20s: unsupported' % @metric.name
-          end
-        end
-
         def record
           return unless @supported
 

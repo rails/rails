@@ -18,8 +18,15 @@ module ActiveSupport
       
       class Performer; end
 
-      class Profiler < Performer        
+      class Profiler < Performer
+        def initialize(*args)
+          super
+          @supported = @metric.is_a?(Metrics::WallTime)
+        end
+                
         def run
+          return unless @supported
+          
           @profiler = Rubinius::Profiler::Instrumenter.new
           
           @profiler.profile(false) do
@@ -29,11 +36,9 @@ module ActiveSupport
           @total = @profiler.info[:runtime] / 1000 / 1000 / 1000.0 # seconds
         end
         
-        def report
-          super
-        end
-        
         def record
+          return unless @supported
+          
           if(full_profile_options[:formats].include?(:flat))
             create_path_and_open_file(:flat) do |file|
               @profiler.show(file)
