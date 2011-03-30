@@ -128,20 +128,23 @@ module AbstractController
       self.class.action_methods
     end
 
-    private
+    # Returns true if the name can be considered an action. This can
+    # be overridden in subclasses to modify the semantics of what
+    # can be considered an action.
+    #
+    # For instance, this is overriden by ActionController to add
+    # the implicit rendering feature.
+    #
+    # ==== Parameters
+    # * <tt>name</tt> - The name of an action to be tested
+    #
+    # ==== Returns
+    # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
+    def action_method?(name)
+      self.class.action_methods.include?(name)
+    end
 
-      # Returns true if the name can be considered an action. This can
-      # be overridden in subclasses to modify the semantics of what
-      # can be considered an action.
-      #
-      # ==== Parameters
-      # * <tt>name</tt> - The name of an action to be tested
-      #
-      # ==== Returns
-      # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
-      def action_method?(name)
-        self.class.action_methods.include?(name)
-      end
+    private
 
       # Call the action. Override this in a subclass to modify the
       # behavior around processing an action. This, and not #process,
@@ -160,8 +163,8 @@ module AbstractController
       # If the action name was not found, but a method called "action_missing"
       # was found, #method_for_action will return "_handle_action_missing".
       # This method calls #action_missing with the current action name.
-      def _handle_action_missing
-        action_missing(@_action_name)
+      def _handle_action_missing(*args)
+        action_missing(@_action_name, *args)
       end
 
       # Takes an action name and returns the name of the method that will
