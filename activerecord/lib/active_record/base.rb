@@ -1733,7 +1733,10 @@ MSG
 
       def interpolate_and_sanitize_sql(sql, record = nil, sanitize_klass = self.class)
         sanitized = sanitize_klass.send(:sanitize_sql, sql)
+        interpolate_sanitized_sql(sanitized, record, sanitize_klass)
+      end
 
+      def interpolate_sanitized_sql(sanitized, record = nil, sanitize_klass = self.class)
         if sanitized =~ /\#\{.*\}/
           ActiveSupport::Deprecation.warn(
             'String-based interpolation of association conditions is deprecated. Please use a ' \
@@ -1741,8 +1744,8 @@ MSG
             'should be changed to has_many :older_friends, :conditions => proc { "age > #{age}" }.'
           )
           instance_eval("%@#{sanitized.gsub('@', '\@')}@", __FILE__, __LINE__)
-        elsif sql.respond_to?(:to_proc)
-          sanitize_klass.send(:sanitize_sql, instance_exec(record, &sql))
+        elsif sanitized.respond_to?(:to_proc)
+          sanitize_klass.send(:sanitize_sql, instance_exec(record, &sanitized))
         else
           sanitized
         end
