@@ -953,6 +953,23 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal 201, @response.status
   end
 
+  def test_using_resource_with_status_and_location_with_invalid_resource
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+
+    @request.accept = "text/xml"
+
+    post :using_resource_with_status_and_location
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+
+    put :using_resource_with_status_and_location
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+  end
+
   def test_using_resource_with_responder
     get :using_resource_with_responder
     assert_equal "Resource name is david", @response.body
