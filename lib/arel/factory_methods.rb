@@ -2,6 +2,10 @@ module Arel
   ###
   # Methods for creating various nodes
   module FactoryMethods
+    def create_table_alias relation, name
+      Nodes::TableAlias.new(relation, name)
+    end
+
     def create_join to, constraint = nil, klass = Nodes::InnerJoin
       klass.new(to, constraint)
     end

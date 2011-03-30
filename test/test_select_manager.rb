@@ -131,7 +131,7 @@ module Arel
           manager1.from(as)
 
           manager1.to_sql.must_be_like %{
-            SELECT lol FROM (SELECT * FROM "users" ) AS omg
+            SELECT lol FROM (SELECT * FROM "users" ) omg
           }
         end
       end

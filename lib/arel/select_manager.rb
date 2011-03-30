@@ -39,7 +39,7 @@ module Arel
     end
 
     def as other
-      Nodes::As.new grouping(@ast), Nodes::SqlLiteral.new(other)
+      create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
     end
 
     def where_clauses
