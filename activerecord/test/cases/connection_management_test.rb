@@ -1,25 +1,82 @@
 require "cases/helper"
 
-class ConnectionManagementTest < ActiveRecord::TestCase
-  def setup
-    @env = {}
-    @app = stub('App')
-    @management = ActiveRecord::ConnectionAdapters::ConnectionManagement.new(@app)
+module ActiveRecord
+  module ConnectionAdapters
+    class ConnectionManagementTest < ActiveRecord::TestCase
+      class App
+        attr_reader :calls
+        def initialize
+          @calls = []
+        end
 
-    @connections_cleared = false
-    ActiveRecord::Base.stubs(:clear_active_connections!).with { @connections_cleared = true }
-  end
+        def call(env)
+          @calls << env
+          [200, {}, ['hi mom']]
+        end
+      end
 
-  test "clears active connections after each call" do
-    @app.expects(:call).with(@env)
-    @management.call(@env)
-    assert @connections_cleared
-  end
+      def setup
+        @env = {}
+        @app = App.new
+        @management = ConnectionManagement.new(@app)
 
-  test "doesn't clear active connections when running in a test case" do
-    @env['rack.test'] = true
-    @app.expects(:call).with(@env)
-    @management.call(@env)
-    assert !@connections_cleared
+        # make sure we have an active connection
+        assert ActiveRecord::Base.connection
+        assert ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      def test_app_delegation
+        manager = ConnectionManagement.new(@app)
+
+        manager.call @env
+        assert_equal [@env], @app.calls
+      end
+
+      def test_connections_are_active_after_call
+        @management.call(@env)
+        assert ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      def test_body_responds_to_each
+        _, _, body = @management.call(@env)
+        bits = []
+        body.each { |bit| bits << bit }
+        assert_equal ['hi mom'], bits
+      end
+
+      def test_connections_are_cleared_after_body_close
+        _, _, body = @management.call(@env)
+        body.close
+        assert !ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      def test_active_connections_are_not_cleared_on_body_close_during_test
+        @env['rack.test'] = true
+        _, _, body = @management.call(@env)
+        body.close
+        assert ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      def test_connections_closed_if_exception
+        app       = Class.new(App) { def call(env); raise; end }.new
+        explosive = ConnectionManagement.new(app)
+        assert_raises(RuntimeError) { explosive.call(@env) }
+        assert !ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      def test_connections_not_closed_if_exception_and_test
+        @env['rack.test'] = true
+        app               = Class.new(App) { def call(env); raise; end }.new
+        explosive         = ConnectionManagement.new(app)
+        assert_raises(RuntimeError) { explosive.call(@env) }
+        assert ActiveRecord::Base.connection_handler.active_connections?
+      end
+
+      test "doesn't clear active connections when running in a test case" do
+        @env['rack.test'] = true
+        @management.call(@env)
+        assert ActiveRecord::Base.connection_handler.active_connections?
+      end
+    end
   end
 end

@@ -1,9 +1,13 @@
 module ActionController
   module ImplicitRender
-    def send_action(*)
-      ret = super
-      default_render unless response_body
-      ret
+    def send_action(method, *args)
+      if respond_to?(method, true)
+        ret = super
+        default_render unless response_body
+        ret
+      else
+        default_render
+      end
     end
 
     def default_render
@@ -11,10 +15,8 @@ module ActionController
     end
 
     def method_for_action(action_name)
-      super || begin
-        if template_exists?(action_name.to_s, _prefixes)
-          "default_render"
-        end
+      super || if template_exists?(action_name.to_s, _prefixes)
+        action_name.to_s
       end
     end
   end

@@ -457,7 +457,7 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal prev_month, developer.updated_at
 
     developer.reload
-    assert_equal prev_month, developer.updated_at
+    assert_equal prev_month.to_i, developer.updated_at.to_i
   end
 
   def test_update_column_with_one_changed_and_one_updated

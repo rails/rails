@@ -136,4 +136,13 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       assert_nil ActiveRecord::Base.connection.primary_key('developers_projects')
     end
   end
+
+  def test_quoted_primary_key_after_set_primary_key
+    k = Class.new( ActiveRecord::Base )
+    assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
+    k.primary_key = "foo"
+    assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
+    k.set_primary_key "bar"
+    assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
+  end
 end
