@@ -209,7 +209,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_model_class_responds_to_first_bang
-    assert_equal topics(:first), Topic.first!
+    assert_equal topics(:first), Topic.order(:id).first!
     assert_raises ActiveRecord::RecordNotFound do
       Topic.delete_all
       Topic.first!
