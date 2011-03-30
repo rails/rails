@@ -112,7 +112,7 @@ module ActiveRecord
       #     end
       #
       #     def self.titles
-      #       map {|article| article.title}
+      #       map(&:title)
       #     end
       #
       #   end
