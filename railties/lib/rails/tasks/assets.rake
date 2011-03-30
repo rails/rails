@@ -1,6 +1,6 @@
 namespace :assets do
   task :compile => :environment do
-    assets = ENV['assets'].split(',')
+    assets = Rails.application.config.precompile_assets
     Rails.application.assets.precompile(*assets)
   end
 end

@@ -10,7 +10,7 @@ module Rails
                     :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils,
-                    :asset_pipeline, :compile_assets
+                    :asset_pipeline, :precompile_assets
 
       attr_writer :log_level
 
@@ -30,7 +30,7 @@ module Rails
         @middleware                  = app_middleware
         @generators                  = app_generators
         @asset_pipeline              = false
-        @compile_assets              = []
+        @precompile_assets           = []
       end
 
       def compiled_asset_path
