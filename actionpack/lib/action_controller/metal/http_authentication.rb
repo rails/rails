@@ -8,9 +8,7 @@ module ActionController
     # === Simple \Basic example
     #
     #   class PostsController < ApplicationController
-    #     USER_NAME, PASSWORD = "dhh", "secret"
-    #
-    #     before_filter :authenticate, :except => [ :index ]
+    #     http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
     #
     #     def index
     #       render :text => "Everyone can see me!"
@@ -19,15 +17,7 @@ module ActionController
     #     def edit
     #       render :text => "I'm only accessible if you know the password"
     #     end
-    #
-    #     private
-    #       def authenticate
-    #         authenticate_or_request_with_http_basic do |user_name, password|
-    #           user_name == USER_NAME && password == PASSWORD
-    #         end
-    #       end
-    #   end
-    #
+    #  end
     #
     # === Advanced \Basic example
     #
@@ -115,6 +105,18 @@ module ActionController
       extend self
 
       module ControllerMethods
+        extend ActiveSupport::Concern
+        
+        module ClassMethods
+          def http_basic_authenticate_with(options = {})
+            before_filter(options.except(:name, :password, :realm)) do
+              authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
+                name == options[:name] && password == options[:password]
+              end
+            end
+          end
+        end
+        
         def authenticate_or_request_with_http_basic(realm = "Application", &login_procedure)
           authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm)
         end
@@ -378,7 +380,6 @@ module ActionController
     #
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
-
       extend self
 
       module ControllerMethods
@@ -458,6 +459,5 @@ module ActionController
         controller.__send__ :render, :text => "HTTP Token: Access denied.\n", :status => :unauthorized
       end
     end
-
   end
 end

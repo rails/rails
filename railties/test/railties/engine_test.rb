@@ -559,6 +559,45 @@ module RailtiesTest
       assert_match /name="post\[title\]"/, last_response.body
     end
 
+    test "isolated engine should set correct route module prefix for nested namespace" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          module Awesome
+            class Engine < ::Rails::Engine
+              isolate_namespace Bukkits::Awesome
+            end
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          mount Bukkits::Awesome::Engine => "/bukkits", :as => "bukkits"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Awesome::Engine.routes.draw do
+          match "/foo" => "foo#index"
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/awesome/foo_controller.rb", <<-RUBY
+        class Bukkits::Awesome::FooController < ActionController::Base
+          def index
+            render :text => "ok"
+          end
+        end
+      RUBY
+
+      add_to_config("config.action_dispatch.show_exceptions = false")
+
+      boot_rails
+
+      get("/bukkits/foo")
+      assert_equal "ok", last_response.body
+    end
+
     test "loading seed data" do
       @plugin.write "db/seeds.rb", <<-RUBY
         Bukkits::Engine.config.bukkits_seeds_loaded = true

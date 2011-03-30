@@ -62,6 +62,10 @@ module ActiveRecord
       relation
     end
 
+    def reorder(*args)
+      except(:order).order(args)
+    end
+
     def joins(*args)
       return self if args.compact.blank?
 

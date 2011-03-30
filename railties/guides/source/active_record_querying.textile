@@ -76,7 +76,7 @@ Primary operation of <tt>Model.find(options)</tt> can be summarized as:
 
 h4. Retrieving a Single Object
 
-Active Record lets you retrieve a single object using three different ways.
+Active Record lets you retrieve a single object using five different ways.
 
 h5. Using a Primary Key
 
@@ -129,6 +129,40 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 </sql>
 
 <tt>Model.last</tt> returns +nil+ if no matching record is found. No exception will be raised.
+
+h5. +first!+
+
+<tt>Model.first!</tt> finds the first record. For example:
+
+<ruby>
+client = Client.first!
+=> #<Client id: 1, first_name: "Lifo">
+</ruby>
+
+SQL equivalent of the above is:
+
+<sql>
+SELECT * FROM clients LIMIT 1
+</sql>
+
+<tt>Model.first!</tt> raises +RecordNotFound+ if no matching record is found.
+
+h5. +last!+
+
+<tt>Model.last!</tt> finds the last record. For example:
+
+<ruby>
+client = Client.last!
+=> #<Client id: 221, first_name: "Russel">
+</ruby>
+
+SQL equivalent of the above is:
+
+<sql>
+SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
+</sql>
+
+<tt>Model.last!</tt> raises +RecordNotFound+ if no matching record is found.
 
 h4. Retrieving Multiple Objects
 
@@ -927,6 +961,26 @@ Client.exists?
 </ruby>
 
 The above returns +false+ if the +clients+ table is empty and +true+ otherwise.
+
+You can also use +any?+ and +many?+ to check for existence on a model or relation.
+
+<ruby>
+# via a model
+Post.any?
+Post.many?
+
+# via a named scope
+Post.recent.any?
+Post.recent.many?
+
+# via a relation
+Post.where(:published => true).any?
+Post.where(:published => true).many?
+
+# via an association
+Post.first.categories.any?
+Post.first.categories.many?
+</ruby>
 
 h3. Calculations
 

@@ -639,7 +639,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_deleting_updates_counter_cache_with_dependent_delete_all
     post = posts(:welcome)
-    post.update_attribute(:taggings_with_delete_all_count, post.taggings_count)
+    post.update_column(:taggings_with_delete_all_count, post.taggings_count)
 
     assert_difference "post.reload.taggings_with_delete_all_count", -1 do
       post.taggings_with_delete_all.delete(post.taggings_with_delete_all.first)
@@ -648,7 +648,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_deleting_updates_counter_cache_with_dependent_destroy
     post = posts(:welcome)
-    post.update_attribute(:taggings_with_destroy_count, post.taggings_count)
+    post.update_column(:taggings_with_destroy_count, post.taggings_count)
 
     assert_difference "post.reload.taggings_with_destroy_count", -1 do
       post.taggings_with_destroy.delete(post.taggings_with_destroy.first)
@@ -787,7 +787,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.find(:first)
     # break the vanilla firm_id foreign key
     assert_equal 2, firm.clients.count
-    firm.clients.first.update_attribute(:firm_id, nil)
+    firm.clients.first.update_column(:firm_id, nil)
     assert_equal 1, firm.clients(true).count
     assert_equal 1, firm.clients_using_primary_key_with_delete_all.count
     old_record = firm.clients_using_primary_key_with_delete_all.first

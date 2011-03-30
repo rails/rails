@@ -83,4 +83,14 @@ class EachTest < ActiveRecord::TestCase
       Post.find_in_batches(:batch_size => post_count + 1) {|batch| assert_kind_of Array, batch }
     end
   end
+
+  def test_find_in_batches_should_quote_batch_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{c.quote_table_name('posts')}.#{c.quote_column_name('id')}/) do
+      Post.find_in_batches(:batch_size => 1) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
 end

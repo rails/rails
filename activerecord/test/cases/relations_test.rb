@@ -151,6 +151,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fourth).title, topics.first.title
   end
 
+  def test_finding_with_reorder
+    topics = Topic.order('author_name').order('title').reorder('id').all
+    topics_titles = topics.map{ |t| t.title }
+    assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day'], topics_titles
+  end
+
   def test_finding_with_order_and_take
     entrants = Entrant.order("id ASC").limit(2).to_a
 
