@@ -20,7 +20,10 @@ class SprocketsHelperTest < ActionView::TestCase
     @controller.request = @request
 
     @assets = Sprockets::Environment.new
-    @assets.paths << FIXTURES.join("sprockets/app/assets")
+    @assets.paths << FIXTURES.join("sprockets/app/javascripts")
+    @assets.paths << FIXTURES.join("sprockets/app/stylesheets")
+
+    config.perform_caching = true
   end
 
   def url_for(*args)
@@ -28,12 +31,12 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "javascript path" do
-    assert_equal "/javascripts/application-d41d8cd98f00b204e9800998ecf8427e.js",
+    assert_equal "/assets/application-d41d8cd98f00b204e9800998ecf8427e.js",
       sprockets_javascript_path(:application)
 
-    assert_equal "/javascripts/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js",
+    assert_equal "/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js",
       sprockets_javascript_path("xmlhr")
-    assert_equal "/javascripts/dir/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js",
+    assert_equal "/assets/dir/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js",
       sprockets_javascript_path("dir/xmlhr.js")
 
     assert_equal "/dir/xmlhr.js",
@@ -46,24 +49,24 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "javascript include tag" do
-    assert_equal '<script src="/javascripts/application-d41d8cd98f00b204e9800998ecf8427e.js" type="text/javascript"></script>',
+    assert_equal '<script src="/assets/application-d41d8cd98f00b204e9800998ecf8427e.js" type="text/javascript"></script>',
       sprockets_javascript_include_tag(:application)
 
-    assert_equal '<script src="/javascripts/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js" type="text/javascript"></script>',
+    assert_equal '<script src="/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js" type="text/javascript"></script>',
       sprockets_javascript_include_tag("xmlhr")
-    assert_equal '<script src="/javascripts/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js" type="text/javascript"></script>',
+    assert_equal '<script src="/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js" type="text/javascript"></script>',
       sprockets_javascript_include_tag("xmlhr.js")
     assert_equal '<script src="http://www.railsapplication.com/xmlhr" type="text/javascript"></script>',
       sprockets_javascript_include_tag("http://www.railsapplication.com/xmlhr")
   end
 
   test "stylesheet path" do
-    assert_equal "/stylesheets/application-d41d8cd98f00b204e9800998ecf8427e.css",
+    assert_equal "/assets/application-d41d8cd98f00b204e9800998ecf8427e.css",
       sprockets_stylesheet_path(:application)
 
-    assert_equal "/stylesheets/style-d41d8cd98f00b204e9800998ecf8427e.css",
+    assert_equal "/assets/style-d41d8cd98f00b204e9800998ecf8427e.css",
       sprockets_stylesheet_path("style")
-    assert_equal "/stylesheets/dir/style-d41d8cd98f00b204e9800998ecf8427e.css",
+    assert_equal "/assets/dir/style-d41d8cd98f00b204e9800998ecf8427e.css",
       sprockets_stylesheet_path("dir/style.css")
     assert_equal "/dir/style.css",
       sprockets_stylesheet_path("/dir/style.css")
@@ -75,19 +78,19 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "stylesheet link tag" do
-    assert_equal '<link href="/stylesheets/application-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
+    assert_equal '<link href="/assets/application-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag(:application)
 
-    assert_equal '<link href="/stylesheets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
+    assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("style")
-    assert_equal '<link href="/stylesheets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
+    assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("style.css")
 
     assert_equal '<link href="http://www.railsapplication.com/style.css" media="screen" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("http://www.railsapplication.com/style.css")
-    assert_equal '<link href="/stylesheets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="all" rel="stylesheet" type="text/css" />',
+    assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="all" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("style", :media => "all")
-    assert_equal '<link href="/stylesheets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="print" rel="stylesheet" type="text/css" />',
+    assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="print" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("style", :media => "print")
   end
 end

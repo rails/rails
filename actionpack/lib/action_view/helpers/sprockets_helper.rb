@@ -48,7 +48,9 @@ module ActionView
           end
 
           # Fingerprint url
-          source = assets.path(source, config.perform_caching)
+          if source =~ /^\/#{dir}\/(.+)/
+            source = assets.path($1, config.perform_caching, dir)
+          end
 
           host = compute_asset_host(source)
 
