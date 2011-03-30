@@ -21,7 +21,7 @@ module ActionController
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.use_sprockets        ||= app.config.use_sprockets
+      options.use_sprockets        ||= app.config.asset_pipeline
       options.assets_dir           ||= paths["public"].first
       options.javascripts_dir      ||= paths["public/javascripts"].first
       options.stylesheets_dir      ||= paths["public/stylesheets"].first

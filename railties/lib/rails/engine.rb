@@ -535,10 +535,6 @@ module Rails
       # consistently executed after all the initializers above across all engines.
     end
 
-    initializer "sprockets.logger" do
-      assets.logger = Rails.logger
-    end
-
     rake_tasks do
       next if self.is_a?(Rails::Application)
 

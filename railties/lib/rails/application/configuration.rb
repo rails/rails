@@ -10,7 +10,7 @@ module Rails
                     :preload_frameworks, :reload_plugins,
                     :secret_token, :serve_static_assets, :session_options,
                     :time_zone, :whiny_nils,
-                    :use_sprockets, :compile_assets
+                    :asset_pipeline, :compile_assets
 
       attr_writer :log_level
 
@@ -29,7 +29,7 @@ module Rails
         @log_level                   = nil
         @middleware                  = app_middleware
         @generators                  = app_generators
-        @use_sprockets               = false
+        @asset_pipeline              = false
         @compile_assets              = []
       end
 
