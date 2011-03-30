@@ -104,7 +104,7 @@ module ActiveRecord
       # on scopes
       # 
       #   class Article < ActiveRecord::Base
-      #     scope :pubished, where(:published => true)
+      #     scope :published, where(:published => true)
       #     scope :featured, where(:featured => true)
       #     
       #     def self.latest_article
