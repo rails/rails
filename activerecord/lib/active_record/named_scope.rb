@@ -101,24 +101,25 @@ module ActiveRecord
       #   Article.published.create.published # => true
       #
       # Class methods on your model are automatically available
-      # on scopes
-      # 
+      # on scopes. Assuming the following setup:
+      #
       #   class Article < ActiveRecord::Base
       #     scope :published, where(:published => true)
       #     scope :featured, where(:featured => true)
-      #     
+      #
       #     def self.latest_article
-      #       order('published_at desc').first  
+      #       order('published_at desc').first
       #     end
-      #     
+      #
       #     def self.titles
       #       map {|article| article.title}
       #     end
       #
       #   end
-      #   
-      # Example usage:
-      #   Article.published.featured.latest_article 
+      #
+      # We are able to call the methods like this:
+      #
+      #   Article.published.featured.latest_article
       #   Article.featured.titles
 
       def scope(name, scope_options = {})
