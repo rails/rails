@@ -5,15 +5,12 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :plugins, :asset_path, :use_sprockets, :compile_assets
+      attr_accessor :plugins, :asset_path
 
       def initialize(root=nil)
         super()
         @root = root
         @generators = app_generators.dup
-
-        @use_sprockets  = false
-        @compile_assets = []
       end
 
       # Returns the middleware stack for the engine.

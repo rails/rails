@@ -137,6 +137,33 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
+    def assets
+      @assets ||= build_asset_environment
+    end
+
+    def build_asset_environment
+      return nil if !config.use_sprockets
+      require 'sprockets'
+      env = Sprockets::Environment.new(root.to_s)
+      env.static_root = root.join("public/assets")
+      env
+    end
+
+    initializer :add_sprockets_paths do |app|
+      [
+       "app/javascripts",
+       "app/stylesheets",
+       "vendor/plugins/*/app/javascripts",
+       "vendor/plugins/*/app/stylesheets",
+       "vendor/plugins/*/javascripts",
+       "vendor/plugins/*/stylesheets"
+      ].each do |pattern|
+        Dir[app.root.join(pattern)].each do |dir|
+          app.assets.paths << dir
+        end
+      end
+    end
+
   protected
 
     def default_asset_path

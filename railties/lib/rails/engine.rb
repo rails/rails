@@ -433,54 +433,9 @@ module Rails
     end
 
     def routes
-      @routes ||= build_route_set
+      @routes ||= ActionDispatch::Routing::RouteSet.new
       @routes.append(&Proc.new) if block_given?
       @routes
-    end
-
-    def build_route_set
-      routes = ActionDispatch::Routing::RouteSet.new
-
-      engine = self
-      routes.append do
-        if engine.config.use_sprockets
-          routes.add_route(engine.assets, {:path_info => "/assets"}, {}, {}, nil, false)
-        end
-      end
-
-      routes
-    end
-
-    def self.default_sprockets_paths
-      [
-       "app/javascripts",
-       "app/stylesheets",
-       "vendor/plugins/*/app/javascripts",
-       "vendor/plugins/*/app/stylesheets",
-       "vendor/plugins/*/javascripts",
-       "vendor/plugins/*/stylesheets"
-      ]
-    end
-
-    def assets
-      @assets ||= build_asset_environment
-    end
-
-    def build_asset_environment
-      return nil if !config.use_sprockets
-
-      require 'sprockets'
-
-      env = Sprockets::Environment.new(root.to_s)
-      env.static_root = root.join("public/assets")
-
-      self.class.default_sprockets_paths.each do |pattern|
-        Dir[root.join(pattern)].each do |dir|
-          env.paths << dir
-        end
-      end
-
-      env
     end
 
     def initializers

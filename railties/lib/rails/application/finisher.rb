@@ -33,6 +33,14 @@ module Rails
         end
       end
 
+      initializer :add_sprockets_route do |app|
+        if config.use_sprockets
+          app.routes.append do
+            mount app.assets => "/assets"
+          end
+        end
+      end
+
       initializer :build_middleware_stack do
         build_middleware_stack
       end
