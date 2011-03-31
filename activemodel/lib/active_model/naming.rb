@@ -14,7 +14,7 @@ module ActiveModel
       @human = ActiveSupport::Inflector.humanize(@element).freeze
       @collection = ActiveSupport::Inflector.tableize(self).freeze
       @partial_path = "#{@collection}/#{@element}".freeze
-      @i18n_key = self.underscore.to_sym
+      @i18n_key = ActiveSupport::Inflector.underscore(self).tr('/', '.').to_sym
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -28,8 +28,9 @@ module ActiveModel
                            @klass.respond_to?(:i18n_scope)
 
       defaults = @klass.lookup_ancestors.map do |klass|
-        klass.model_name.i18n_key
-      end
+        [klass.model_name.i18n_key,
+         klass.model_name.i18n_key.to_s.tr('.', '/').to_sym]
+      end.flatten
 
       defaults << options.delete(:default) if options[:default]
       defaults << @human
