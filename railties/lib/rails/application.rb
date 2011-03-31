@@ -145,7 +145,7 @@ module Rails
       return unless config.assets.enabled
       require 'sprockets'
       env = Sprockets::Environment.new(root.to_s)
-      env.static_root = root.join("public").join(config.assets.prefix)
+      env.static_root = File.join(root.join("public"), config.assets.prefix)
       env
     end
 
