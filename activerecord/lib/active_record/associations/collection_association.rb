@@ -331,11 +331,6 @@ module ActiveRecord
         @scopes_cache[method][args] ||= scoped.readonly(nil).send(method, *args)
       end
 
-      def association_scope
-        options = reflection.options.slice(:order, :limit, :joins, :group, :having, :offset)
-        super.apply_finder_options(options)
-      end
-
       def load_target
         if find_target?
           targets = []
@@ -372,14 +367,6 @@ module ActiveRecord
       end
 
       private
-
-        def select_value
-          super || uniq_select_value
-        end
-
-        def uniq_select_value
-          options[:uniq] && "DISTINCT #{reflection.quoted_table_name}.*"
-        end
 
         def custom_counter_sql
           if options[:counter_sql]

@@ -262,15 +262,29 @@ module ActiveRecord
       end
 
       def through_reflection
-        false
-      end
-
-      def through_reflection_foreign_key
+        nil
       end
 
       def source_reflection
         nil
       end
+
+      # A chain of reflections from this one back to the owner. For more see the explanation in
+      # ThroughReflection.
+      def chain
+        [self]
+      end
+
+      # An array of arrays of conditions. Each item in the outside array corresponds to a reflection
+      # in the #chain. The inside arrays are simply conditions (and each condition may itself be
+      # a hash, array, arel predicate, etc...)
+      def conditions
+        conditions = [options[:conditions]].compact
+        conditions << { type => active_record.base_class.name } if options[:as]
+        [conditions]
+      end
+
+      alias :source_macro :macro
 
       def has_inverse?
         @options[:inverse_of]
@@ -363,7 +377,7 @@ module ActiveRecord
     # Holds all the meta-data about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
-      delegate :association_primary_key, :foreign_type, :to => :source_reflection
+      delegate :foreign_key, :foreign_type, :association_foreign_key, :active_record_primary_key, :to => :source_reflection
 
       # Gets the source of the through reflection.  It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
@@ -390,6 +404,88 @@ module ActiveRecord
       #
       def through_reflection
         @through_reflection ||= active_record.reflect_on_association(options[:through])
+      end
+
+      # Returns an array of reflections which are involved in this association. Each item in the
+      # array corresponds to a table which will be part of the query for this association.
+      #
+      # The chain is built by recursively calling #chain on the source reflection and the through
+      # reflection. The base case for the recursion is a normal association, which just returns
+      # [self] as its #chain.
+      def chain
+        @chain ||= begin
+          chain = source_reflection.chain + through_reflection.chain
+          chain[0] = self # Use self so we don't lose the information from :source_type
+          chain
+        end
+      end
+
+      # Consider the following example:
+      #
+      #   class Person
+      #     has_many :articles
+      #     has_many :comment_tags, :through => :articles
+      #   end
+      #
+      #   class Article
+      #     has_many :comments
+      #     has_many :comment_tags, :through => :comments, :source => :tags
+      #   end
+      #
+      #   class Comment
+      #     has_many :tags
+      #   end
+      #
+      # There may be conditions on Person.comment_tags, Article.comment_tags and/or Comment.tags,
+      # but only Comment.tags will be represented in the #chain. So this method creates an array
+      # of conditions corresponding to the chain. Each item in the #conditions array corresponds
+      # to an item in the #chain, and is itself an array of conditions from an arbitrary number
+      # of relevant reflections, plus any :source_type or polymorphic :as constraints.
+      def conditions
+        @conditions ||= begin
+          conditions = source_reflection.conditions
+
+          # Add to it the conditions from this reflection if necessary.
+          conditions.first << options[:conditions] if options[:conditions]
+
+          through_conditions = through_reflection.conditions
+
+          if options[:source_type]
+            through_conditions.first << { foreign_type => options[:source_type] }
+          end
+
+          # Recursively fill out the rest of the array from the through reflection
+          conditions += through_conditions
+
+          # And return
+          conditions
+        end
+      end
+
+      # The macro used by the source association
+      def source_macro
+        source_reflection.source_macro
+      end
+
+      # A through association is nested iff there would be more than one join table
+      def nested?
+        chain.length > 2 || through_reflection.macro == :has_and_belongs_to_many
+      end
+
+      # We want to use the klass from this reflection, rather than just delegate straight to
+      # the source_reflection, because the source_reflection may be polymorphic. We still
+      # need to respect the source_reflection's :primary_key option, though.
+      def association_primary_key
+        @association_primary_key ||= begin
+          # Get the "actual" source reflection if the immediate source reflection has a
+          # source reflection itself
+          source_reflection = self.source_reflection
+          while source_reflection.source_reflection
+            source_reflection = source_reflection.source_reflection
+          end
+
+          source_reflection.options[:primary_key] || klass.primary_key
+        end
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names:
@@ -429,23 +525,11 @@ module ActiveRecord
           raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
         end
 
-        unless [:belongs_to, :has_many, :has_one].include?(source_reflection.macro) && source_reflection.options[:through].nil?
-          raise HasManyThroughSourceAssociationMacroError.new(self)
-        end
-
         if macro == :has_one && through_reflection.collection?
           raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 
         check_validity_of_inverse!
-      end
-
-      def through_reflection_primary_key
-        through_reflection.belongs_to? ? through_reflection.klass.primary_key : through_reflection.foreign_key
-      end
-
-      def through_reflection_foreign_key
-        through_reflection.foreign_key if through_reflection.belongs_to?
       end
 
       private

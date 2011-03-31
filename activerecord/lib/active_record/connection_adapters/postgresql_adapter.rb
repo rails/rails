@@ -453,7 +453,7 @@ module ActiveRecord
           # If a pk is given, fallback to default sequence name.
           # Don't fetch last insert id for a table without a pk.
           if pk && sequence_name ||= default_sequence_name(table, pk)
-            last_insert_id(table, sequence_name)
+            last_insert_id(sequence_name)
           end
         end
       end
@@ -1038,8 +1038,9 @@ module ActiveRecord
         end
 
         # Returns the current ID of a table's sequence.
-        def last_insert_id(table, sequence_name) #:nodoc:
-          Integer(select_value("SELECT currval('#{sequence_name}')"))
+        def last_insert_id(sequence_name) #:nodoc:
+          r = exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
+          Integer(r.rows.first.first)
         end
 
         # Executes a SELECT query and returns the results, performing any data type

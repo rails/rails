@@ -118,22 +118,18 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_read_attributes_before_type_cast_on_datetime
-    developer = Developer.find(:first)
-    if current_adapter?(:Mysql2Adapter, :OracleAdapter)
-      # Mysql2 and Oracle adapters keep the value in Time instance
-      assert_equal developer.created_at.to_s(:db), developer.attributes_before_type_cast["created_at"].to_s(:db)
-    else
-      assert_equal developer.created_at.to_s(:db), developer.attributes_before_type_cast["created_at"].to_s
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+    
+      record.written_on = "345643456"
+      assert_equal "345643456", record.written_on_before_type_cast
+      assert_equal nil, record.written_on
+    
+      record.written_on = "2009-10-11 12:13:14"
+      assert_equal "2009-10-11 12:13:14", record.written_on_before_type_cast
+      assert_equal Time.zone.parse("2009-10-11 12:13:14"), record.written_on
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
     end
-
-    developer.created_at = "345643456"
-
-    assert_equal developer.created_at_before_type_cast, "345643456"
-    assert_equal developer.created_at, nil
-
-    developer.created_at = "2010-03-21 21:23:32"
-    assert_equal developer.created_at_before_type_cast, "2010-03-21 21:23:32"
-    assert_equal developer.created_at, Time.parse("2010-03-21 21:23:32")
   end
 
   def test_hash_content

@@ -8,6 +8,7 @@ class Comment < ActiveRecord::Base
               :conditions => { "posts.author_id" => 1 }
 
   belongs_to :post, :counter_cache => true
+  has_many :ratings
 
   def self.what_are_you
     'a comment...'

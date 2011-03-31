@@ -371,7 +371,7 @@ Now create a ticket with your patch. Go to the "new ticket":http://rails.lightho
 
 h4. Get Some Feedback
 
-Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the rubyonrails-core mailing list or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
+Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the "rubyonrails-core mailing list":http://groups.google.com/group/rubyonrails-core/ or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
 
 h4. Iterate as Necessary
 

@@ -15,17 +15,17 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
-    assert_equal 2, authors.size
+    assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
-    assert_equal 1, authors[1].posts.size
+    assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
     authors = Author.find(:all, :include=>[{:posts=>:comments}, :categorizations], :order=>"authors.id")
-    assert_equal 2, authors.size
+    assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
-    assert_equal 1, authors[1].posts.size
+    assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
     assert_equal 1, authors[0].categorizations.size
     assert_equal 2, authors[1].categorizations.size
@@ -51,24 +51,24 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     categories = Category.joins(:categorizations).includes([{:posts=>:comments}, :authors])
 
     assert_nothing_raised do
-      assert_equal 2, categories.count
-      assert_equal 2, categories.all.uniq.size # Must uniq since instantiating with inner joins will get dupes
+      assert_equal 3, categories.count
+      assert_equal 3, categories.all.uniq.size # Must uniq since instantiating with inner joins will get dupes
     end
   end
 
   def test_cascaded_eager_association_loading_with_duplicated_includes
     categories = Category.includes(:categorizations).includes(:categorizations => :author).where("categorizations.id is not null")
     assert_nothing_raised do
-      assert_equal 2, categories.count
-      assert_equal 2, categories.all.size
+      assert_equal 3, categories.count
+      assert_equal 3, categories.all.size
     end
   end
 
   def test_cascaded_eager_association_loading_with_twice_includes_edge_cases
     categories = Category.includes(:categorizations => :author).includes(:categorizations => :post).where("posts.id is not null")
     assert_nothing_raised do
-      assert_equal 2, categories.count
-      assert_equal 2, categories.all.size
+      assert_equal 3, categories.count
+      assert_equal 3, categories.all.size
     end
   end
 
@@ -81,15 +81,15 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
     authors = Author.find(:all, :include=>{:posts=>[:comments, :categorizations]}, :order=>"authors.id")
-    assert_equal 2, authors.size
+    assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
-    assert_equal 1, authors[1].posts.size
+    assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_and_self_table_reference
     authors = Author.find(:all, :include=>{:posts=>[:comments, :author]}, :order=>"authors.id")
-    assert_equal 2, authors.size
+    assert_equal 3, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal authors(:david).name, authors[0].name
     assert_equal [authors(:david).name], authors[0].posts.collect{|post| post.author.name}.uniq
@@ -157,9 +157,9 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_where_first_level_returns_nil
     authors = Author.find(:all, :include => {:post_about_thinking => :comments}, :order => 'authors.id DESC')
-    assert_equal [authors(:mary), authors(:david)], authors
+    assert_equal [authors(:bob), authors(:mary), authors(:david)], authors
     assert_no_queries do
-      authors[1].post_about_thinking.comments.first
+      authors[2].post_about_thinking.comments.first
     end
   end
 end

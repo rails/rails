@@ -107,7 +107,7 @@ module ActionDispatch
             if @options[:format] == false
               @options.delete(:format)
               path
-            elsif path.include?(":format") || path.end_with?('/')
+            elsif path.include?(":format") || path.end_with?('/') || path.match(/^\/?\*/)
               path
             else
               "#{path}(.:format)"
@@ -364,6 +364,13 @@ module ActionDispatch
         #     match 'path' => 'c#a', :defaults => { :format => 'jpg' }
         #
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
+        #
+        # [:anchor]
+        #   Boolean to anchor a #match pattern. Default is true. When set to
+        #   false, the pattern matches any request prefixed with the given path.
+        #
+        #     # Matches any request starting with 'path'
+        #     match 'path' => 'c#a', :anchor => false
         def match(path, options=nil)
           mapping = Mapping.new(@set, @scope, path, options || {})
           app, conditions, requirements, defaults, as, anchor = mapping.to_route

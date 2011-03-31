@@ -124,11 +124,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_all_with_limit_and_offset_and_multiple_order_clauses
     first_three_posts = Post.find :all, :order => 'author_id, id', :limit => 3, :offset => 0
     second_three_posts = Post.find :all, :order => ' author_id,id ', :limit => 3, :offset => 3
-    last_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 6
+    third_three_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 6
+    last_posts = Post.find :all, :order => ' author_id, id  ', :limit => 3, :offset => 9
 
     assert_equal [[0,3],[1,1],[1,2]], first_three_posts.map { |p| [p.author_id, p.id] }
     assert_equal [[1,4],[1,5],[1,6]], second_three_posts.map { |p| [p.author_id, p.id] }
-    assert_equal [[2,7]], last_posts.map { |p| [p.author_id, p.id] }
+    assert_equal [[2,7],[2,9],[2,11]], third_three_posts.map { |p| [p.author_id, p.id] }
+    assert_equal [[3,8],[3,10]], last_posts.map { |p| [p.author_id, p.id] }
   end
 
 

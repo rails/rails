@@ -973,8 +973,8 @@ module ActiveRecord #:nodoc:
           relation
         end
 
-        def type_condition
-          sti_column = arel_table[inheritance_column.to_sym]
+        def type_condition(table = arel_table)
+          sti_column = table[inheritance_column.to_sym]
           sti_names  = ([self] + descendants).map { |model| model.sti_name }
 
           sti_column.in(sti_names)
@@ -995,7 +995,7 @@ module ActiveRecord #:nodoc:
             if parent < ActiveRecord::Base && !parent.abstract_class?
               contained = parent.table_name
               contained = contained.singularize if parent.pluralize_table_names
-              contained << '_'
+              contained += '_'
             end
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{table_name_suffix}"
           else

@@ -68,8 +68,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_with_ordering
     list = Post.find(:all, :include => :comments, :order => "posts.id DESC")
-    [:eager_other, :sti_habtm, :sti_post_and_comments, :sti_comments,
-     :authorless, :thinking, :welcome
+    [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
+     :sti_habtm, :sti_post_and_comments, :sti_comments, :authorless, :thinking, :welcome
     ].each_with_index do |post, index|
       assert_equal posts(post), list[index]
     end
@@ -97,25 +97,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.find(:all, :include=>:comments)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.find(:all, :include=>:comments)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.find(:all, :include=>:categories)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.find(:all, :include=>:categories)
-    assert_equal 7, posts.size
+    assert_equal 11, posts.size
   end
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
