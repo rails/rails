@@ -16,8 +16,12 @@ rescue LoadError
 end
 
 # Added by Turn to support natural case names in the output formatting
-if defined?(MiniTest) && MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
-  MiniTest::Unit.use_natural_language_case_names = true 
+if defined?(MiniTest)
+  require 'turn'
+  
+  if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
+    MiniTest::Unit.use_natural_language_case_names = true 
+  end
 end
 
 module ActiveSupport
