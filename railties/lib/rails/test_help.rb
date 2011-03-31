@@ -13,6 +13,14 @@ if defined?(Test::Unit::Util::BacktraceFilter) && ENV['BACKTRACE'].nil?
   Test::Unit::Util::BacktraceFilter.module_eval { include Rails::BacktraceFilterForTestUnit }
 end
 
+if defined?(MiniTest)
+  require 'turn'
+
+  if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
+    MiniTest::Unit.use_natural_language_case_names = true 
+  end
+end
+
 if defined?(ActiveRecord)
   require 'active_record/test_case'
 

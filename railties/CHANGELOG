@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Add using Turn with natural language test case names for test_help.rb when running with minitest (Ruby 1.9.2+) [DHH]
+
 * Direct logging of Active Record to STDOUT so it's shown inline with the results in the console [DHH]
 
 * Added `config.force_ssl` configuration which loads Rack::SSL middleware and force all requests to be under HTTPS protocol [DHH, Prem Sichanugrist, and Josh Peek]

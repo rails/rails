@@ -1,7 +1,5 @@
 *Rails 3.1.0 (unreleased)*
 
-* Add using Turn with natural language test case names if the library is available (which it will be in Rails 3.1) [DHH]
-
 * LocalCache strategy is now a real middleware class, not an anonymous class
 posing for pictures.
 

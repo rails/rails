@@ -36,7 +36,7 @@ module Rails
       end
       
       if defined?(ActiveRecord)
-        ActiveRecord::Base.logger = Logger.new(STDOUT)
+        ActiveRecord::Base.logger = Logger.new(STDERR)
       end
 
       if options[:sandbox]
