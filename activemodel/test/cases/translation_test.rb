@@ -53,5 +53,15 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     I18n.backend.store_translations 'en', :activemodel => {:models => {:person => 'person model'} }
     assert_equal 'person model', Child.model_name.human
   end
+
+  def test_alternate_namespaced_model_attribute_translation
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:gender => {:attribute => 'person gender attribute'}}}}
+    assert_equal 'person gender attribute', Person::Gender.human_attribute_name('attribute')
+  end
+
+  def test_alternate_namespaced_model_translation
+    I18n.backend.store_translations 'en', :activemodel => {:models => {:person => {:gender => 'person gender model'}}}
+    assert_equal 'person gender model', Person::Gender.model_name.human
+  end
 end
 
