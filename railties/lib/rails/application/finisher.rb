@@ -34,15 +34,16 @@ module Rails
       end
 
       initializer :add_sprockets_route do |app|
-        if config.asset_pipeline
+        assets = config.assets
+        if assets.enabled
           app.routes.append do
-            mount app.assets => "/assets"
+            mount app.assets => assets.prefix
           end
         end
       end
 
       initializer :set_sprockets_logger do |app|
-        if config.asset_pipeline
+        if config.assets.enabled
           app.assets.logger = Rails.logger
         end
       end

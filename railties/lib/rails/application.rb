@@ -142,23 +142,25 @@ module Rails
     end
 
     def build_asset_environment
-      return unless config.asset_pipeline
+      return unless config.assets.enabled
       require 'sprockets'
       env = Sprockets::Environment.new(root.to_s)
-      env.static_root = root.join("public/assets")
+      env.static_root = root.join("public/#{config.assets.prefix}")
       env
     end
 
     initializer :add_sprockets_paths do |app|
-      if config.asset_pipeline
-        [
-         "app/javascripts",
-         "app/stylesheets",
-         "vendor/plugins/*/app/javascripts",
-         "vendor/plugins/*/app/stylesheets",
-         "vendor/plugins/*/javascripts",
-         "vendor/plugins/*/stylesheets"
-        ].each do |pattern|
+      if config.assets.enabled
+        paths = [
+          "app/javascripts",
+          "app/stylesheets",
+          "vendor/plugins/*/app/javascripts",
+          "vendor/plugins/*/app/stylesheets",
+          "vendor/plugins/*/javascripts",
+          "vendor/plugins/*/stylesheets"
+        ] + config.assets.paths
+
+        paths.each do |pattern|
           Dir[app.root.join(pattern)].each do |dir|
             app.assets.paths << dir
           end
