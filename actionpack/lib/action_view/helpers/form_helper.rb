@@ -185,7 +185,7 @@ module ActionView
       #
       # is equivalent to something like:
       #
-      #   <%= form_for @post, :as => :post, :url => post_path(@post), :html => { :method => :put, :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => post_path(@post), :method => :put, :html => { :class => "edit_post", :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -235,6 +235,16 @@ module ActionView
       #
       # Where <tt>@document = Document.find(params[:id])</tt> and
       # <tt>@comment = Comment.new</tt>.
+      #
+      # === Setting the method
+      #
+      # You can force the form to use the full array of HTTP verbs by setting 
+      #
+      #    :method => (:get|:post|:put|:delete)
+      #
+      # in the options hash. If the verb is not GET or POST, which are natively supported by HTML forms, the
+      # form will be set to POST and a hidden input called _method will carry the intended verb for the server
+      # to interpret.
       #
       # === Unobtrusive JavaScript
       #
@@ -298,7 +308,7 @@ module ActionView
       #
       # In this case, if you use this:
       #
-      #   <%= render :partial => f %>
+      #   <%= render f %>
       #
       # The rendered template is <tt>people/_labelling_form</tt> and the local
       # variable referencing the form builder is called
@@ -350,6 +360,7 @@ module ActionView
         end
 
         options[:html][:remote] = options.delete(:remote)
+        options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
 
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options, &proc)

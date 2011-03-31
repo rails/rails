@@ -47,6 +47,9 @@ module ActionView
         "'"     => "\\'" }
 
       # Escape carrier returns and single and double quotes for JavaScript segments.
+      # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
+      #
+      #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
           javascript.gsub(/(\\|<\/|\r\n|[\n\r"'])/) { JS_ESCAPE_MAP[$1] }
@@ -54,6 +57,8 @@ module ActionView
           ''
         end
       end
+
+      alias_method :j, :escape_javascript
 
       # Returns a JavaScript tag with the +content+ inside. Example:
       #   javascript_tag "alert('All is good')"

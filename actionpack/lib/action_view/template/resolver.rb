@@ -157,8 +157,8 @@ module ActionView
         query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
       }
 
-      query.gsub!(/\.{html,/, ".{html,text.html,")
-      query.gsub!(/\.{text,/, ".{text,text.plain,")
+      query.gsub!('.{html,', '.{html,text.html,')
+      query.gsub!('.{text,', '.{text,text.plain,')
 
       File.expand_path(query, @path)
     end

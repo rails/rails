@@ -83,7 +83,7 @@ module ActiveRecord
     private
 
     def batch_order
-      "#{table_name}.#{primary_key} ASC"
+      "#{quoted_table_name}.#{quoted_primary_key} ASC"
     end
   end
 end

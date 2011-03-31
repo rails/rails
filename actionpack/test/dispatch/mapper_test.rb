@@ -25,6 +25,10 @@ module ActionDispatch
         def conditions
           routes.map { |x| x[1] }
         end
+
+        def requirements
+          routes.map { |x| x[2] }
+        end
       end
 
       def test_initialize
@@ -50,8 +54,34 @@ module ActionDispatch
       def test_map_wildcard
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        mapper.match '/*path', :to => 'pages#show', :as => :page
+        mapper.match '/*path', :to => 'pages#show'
+        assert_equal '/*path(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal(/.+?/, fakeset.requirements.first[:path])
+      end
+
+      def test_map_wildcard_with_other_element
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.match '/*path/foo/:bar', :to => 'pages#show'
+        assert_equal '/*path/foo/:bar(.:format)', fakeset.conditions.first[:path_info]
+        assert_nil fakeset.requirements.first[:path]
+      end
+
+      def test_map_wildcard_with_multiple_wildcard
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.match '/*foo/*bar', :to => 'pages#show'
+        assert_equal '/*foo/*bar(.:format)', fakeset.conditions.first[:path_info]
+        assert_nil fakeset.requirements.first[:foo]
+        assert_equal(/.+?/, fakeset.requirements.first[:bar])
+      end
+
+      def test_map_wildcard_with_format_false
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.match '/*path', :to => 'pages#show', :format => false
         assert_equal '/*path', fakeset.conditions.first[:path_info]
+        assert_nil fakeset.requirements.first[:path]
       end
     end
   end

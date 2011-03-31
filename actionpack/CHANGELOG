@@ -1,5 +1,58 @@
 *Rails 3.1.0 (unreleased)*
 
+* Wildcard route will always matching the optional format segment by default. For example if you have this route:
+
+    map '*pages' => 'pages#show'
+
+  by requesting '/foo/bar.json', your `params[:pages]` will be equals to "foo/bar" with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `:format => false` like this:
+
+    map '*pages' => 'pages#show', :format => false
+
+* Added Base.http_basic_authenticate_with to do simple http basic authentication with a single class method call [DHH]
+
+    class PostsController < ApplicationController
+      USER_NAME, PASSWORD = "dhh", "secret"
+
+      before_filter :authenticate, :except => [ :index ]
+
+      def index
+        render :text => "Everyone can see me!"
+      end
+
+      def edit
+        render :text => "I'm only accessible if you know the password"
+      end
+
+      private
+        def authenticate
+          authenticate_or_request_with_http_basic do |user_name, password|
+            user_name == USER_NAME && password == PASSWORD
+          end
+        end
+    end
+
+  ..can now be written as
+
+    class PostsController < ApplicationController
+      http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+
+      def index
+        render :text => "Everyone can see me!"
+      end
+
+      def edit
+        render :text => "I'm only accessible if you know the password"
+      end
+    end
+
+* Allow you to add `force_ssl` into controller to force browser to transfer data via HTTPS protocol on that particular controller. You can also specify `:only` or `:except` to specific it to particular action. [DHH and Prem Sichanugrist]
+
+* Allow FormHelper#form_for to specify the :method as a direct option instead of through the :html hash [DHH]
+
+    form_for(@post, remote: true, method: :delete) instead of form_for(@post, remote: true, html: { method: :delete })
+
+* Make JavaScriptHelper#j() an alias for JavaScriptHelper#escape_javascript() -- note this then supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper [DHH]
+
 * Sensitive query string parameters (specified in config.filter_parameters) will now be filtered out from the request paths in the log file. [Prem Sichanugrist, fxn]
 
 * URL parameters which return false for to_param now appear in the query string (previously they were removed) [Andrew White]

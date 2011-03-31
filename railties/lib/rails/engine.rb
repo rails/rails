@@ -360,11 +360,11 @@ module Rails
       def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod))
 
-        name = engine_name
-        self.routes.default_scope = {:module => name}
+        self.routes.default_scope = { :module => ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
 
         unless mod.respond_to?(:_railtie)
+          name = engine_name
           _railtie = self
           mod.singleton_class.instance_eval do
             define_method(:_railtie) do
