@@ -15,6 +15,11 @@ rescue LoadError
   Mocha.const_set :ExpectationError, Class.new(StandardError)
 end
 
+# Added by Turn to support natural case names in the output formatting
+if defined?(MiniTest) && MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
+  MiniTest::Unit.use_natural_language_case_names = true 
+end
+
 module ActiveSupport
   class TestCase < ::Test::Unit::TestCase
     if defined? MiniTest
