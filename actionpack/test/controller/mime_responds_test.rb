@@ -558,6 +558,10 @@ class RespondWithController < ActionController::Base
     respond_with(resource, :location => "http://test.host/", :status => :created)
   end
 
+  def using_invalid_resource_with_template
+    respond_with(resource)
+  end
+
   def using_resource_with_responder
     responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
     respond_with(resource, :responder => responder)
@@ -965,6 +969,23 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal nil, @response.location
 
     put :using_resource_with_status_and_location
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+  end
+
+  def test_using_invalid_resource_with_template
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+
+    @request.accept = "text/xml"
+
+    post :using_invalid_resource_with_template
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+
+    put :using_invalid_resource_with_template
     assert_equal errors.to_xml, @response.body
     assert_equal 422, @response.status
     assert_equal nil, @response.location

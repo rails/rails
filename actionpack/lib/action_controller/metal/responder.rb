@@ -131,7 +131,11 @@ module ActionController #:nodoc:
     # responds to :to_format and display it.
     #
     def to_format
-      default_render
+      if get? || !has_errors?
+        default_render
+      else
+        display_errors
+      end
     rescue ActionView::MissingTemplate => e
       api_behavior(e)
     end
@@ -155,9 +159,6 @@ module ActionController #:nodoc:
 
       if get?
         display resource
-      elsif has_errors?
-        # bypass the options merging of display
-        controller.render format => resource.errors, :status => :unprocessable_entity
       elsif post?
         display resource, :status => :created, :location => api_location
       elsif has_empty_resource_definition?
@@ -208,6 +209,10 @@ module ActionController #:nodoc:
     #
     def display(resource, given_options={})
       controller.render given_options.merge!(options).merge!(format => resource)
+    end
+
+    def display_errors
+      controller.render format => resource.errors, :status => :unprocessable_entity
     end
 
     # Check whether the resource has errors.
