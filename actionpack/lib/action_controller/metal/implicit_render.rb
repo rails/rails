@@ -10,8 +10,8 @@ module ActionController
       end
     end
 
-    def default_render
-      render
+    def default_render(*args)
+      render(*args)
     end
 
     def action_method?(action_name)

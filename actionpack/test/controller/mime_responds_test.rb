@@ -562,6 +562,11 @@ class RespondWithController < ActionController::Base
     respond_with(resource)
   end
 
+  def using_options_with_template
+    @customer = resource
+    respond_with(@customer, :status => 123, :location => "http://test.host/")
+  end
+
   def using_resource_with_responder
     responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
     respond_with(resource, :responder => responder)
@@ -989,6 +994,20 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal errors.to_xml, @response.body
     assert_equal 422, @response.status
     assert_equal nil, @response.location
+  end
+
+  def test_using_options_with_template
+    @request.accept = "text/xml"
+
+    post :using_options_with_template
+    assert_equal "<customer-name>david</customer-name>", @response.body
+    assert_equal 123, @response.status
+    assert_equal "http://test.host/", @response.location
+
+    put :using_options_with_template
+    assert_equal "<customer-name>david</customer-name>", @response.body
+    assert_equal 123, @response.status
+    assert_equal "http://test.host/", @response.location
   end
 
   def test_using_resource_with_responder

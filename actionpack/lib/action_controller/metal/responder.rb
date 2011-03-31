@@ -187,7 +187,7 @@ module ActionController #:nodoc:
     # controller.
     #
     def default_render
-      @default_response.call
+      @default_response.call(options)
     end
 
     # Display is just a shortcut to render a resource with the current format.
