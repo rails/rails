@@ -26,31 +26,31 @@ module ActionDispatch
       # object's <tt>@response</tt> instance variable will point to the same
       # response object.
       #
-      # You can also perform POST, PUT, DELETE, and HEAD requests with +post+,
-      # +put+, +delete+, and +head+.
+      # You can also perform POST, PUT, DELETE, and HEAD requests with +#post+,
+      # +#put+, +#delete+, and +#head+.
       def get(path, parameters = nil, headers = nil)
         process :get, path, parameters, headers
       end
 
-      # Performs a POST request with the given parameters. See get() for more
+      # Performs a POST request with the given parameters. See +#get+ for more
       # details.
       def post(path, parameters = nil, headers = nil)
         process :post, path, parameters, headers
       end
 
-      # Performs a PUT request with the given parameters. See get() for more
+      # Performs a PUT request with the given parameters. See +#get+ for more
       # details.
       def put(path, parameters = nil, headers = nil)
         process :put, path, parameters, headers
       end
 
-      # Performs a DELETE request with the given parameters. See get() for
+      # Performs a DELETE request with the given parameters. See +#get+ for
       # more details.
       def delete(path, parameters = nil, headers = nil)
         process :delete, path, parameters, headers
       end
 
-      # Performs a HEAD request with the given parameters. See get() for more
+      # Performs a HEAD request with the given parameters. See +#get+ for more
       # details.
       def head(path, parameters = nil, headers = nil)
         process :head, path, parameters, headers
@@ -59,7 +59,7 @@ module ActionDispatch
       # Performs an XMLHttpRequest request with the given parameters, mirroring
       # a request from the Prototype library.
       #
-      # The request_method is :get, :post, :put, :delete or :head; the
+      # The request_method is +:get+, +:post+, +:put+, +:delete+ or +:head+; the
       # parameters are +nil+, a hash, or a url-encoded or multipart string;
       # the headers are a hash.  Keys are automatically upcased and prefixed
       # with 'HTTP_' if not already.
@@ -384,7 +384,7 @@ module ActionDispatch
     end
   end
 
-  # An test that spans multiple controllers and actions,
+  # An integration test spans multiple controllers and actions,
   # tying them all together to ensure they work together as expected. It tests
   # more completely than either unit or functional tests do, exercising the
   # entire stack, from the dispatcher to the database.
