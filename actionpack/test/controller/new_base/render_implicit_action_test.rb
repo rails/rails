@@ -24,5 +24,10 @@ module RenderImplicitAction
       assert_body   "Hello hyphen-ated!"
       assert_status 200
     end
+
+    test "action_method? returns true for implicit actions" do
+      assert SimpleController.new.action_method?(:hello_world)
+      assert SimpleController.new.action_method?(:"hyphen-ated")
+    end
   end
 end

@@ -151,6 +151,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fourth).title, topics.first.title
   end
 
+  def test_finding_with_reorder
+    topics = Topic.order('author_name').order('title').reorder('id').all
+    topics_titles = topics.map{ |t| t.title }
+    assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day'], topics_titles
+  end
+
   def test_finding_with_order_and_take
     entrants = Entrant.order("id ASC").limit(2).to_a
 
@@ -664,6 +670,34 @@ class RelationTest < ActiveRecord::TestCase
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
     assert_no_queries { assert_equal 9, best_posts.size }
+  end
+
+  def test_size_with_limit
+    posts = Post.limit(10)
+
+    assert_queries(1) { assert_equal 10, posts.size }
+    assert ! posts.loaded?
+
+    best_posts = posts.where(:comments_count => 0)
+    best_posts.to_a # force load
+    assert_no_queries { assert_equal 9, best_posts.size }
+  end
+
+  def test_size_with_zero_limit
+    posts = Post.limit(0)
+
+    assert_no_queries { assert_equal 0, posts.size }
+    assert ! posts.loaded?
+
+    posts.to_a # force load
+    assert_no_queries { assert_equal 0, posts.size }
+  end
+
+  def test_empty_with_zero_limit
+    posts = Post.limit(0)
+
+    assert_no_queries { assert_equal true, posts.empty? }
+    assert ! posts.loaded?
   end
 
   def test_count_complex_chained_relations

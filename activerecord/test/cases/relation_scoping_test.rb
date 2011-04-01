@@ -429,9 +429,9 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_except_and_order_overrides_default_scope_order
+  def test_reorder_overrides_default_scope_order
     expected = Developer.order('name DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.except(:order).order('name DESC').collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.reorder('name DESC').collect { |dev| dev.name }
     assert_equal expected, received
   end
 

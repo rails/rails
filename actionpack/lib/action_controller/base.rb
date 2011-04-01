@@ -198,6 +198,7 @@ module ActionController
       Cookies,
       Flash,
       RequestForgeryProtection,
+      ForceSSL,
       Streaming,
       RecordIdentifier,
       HttpAuthentication::Basic::ControllerMethods,

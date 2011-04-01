@@ -1,5 +1,17 @@
 *Rails 3.1.0 (unreleased)*
 
+* ConnectionManagement middleware is changed to clean up the connection pool
+  after the rack body has been flushed.
+
+* Added an update_column method on ActiveRecord. This new method updates a given attribute on an object, skipping validations and callbacks.
+  It is recommended to use #update_attribute unless you are sure you do not want to execute any callback, including the modification of
+  the updated_at column. It should not be called on new records.
+  Example:
+
+    User.first.update_column(:name, "sebastian")         # => true
+
+  [Sebastian Martinez]
+
 * Associations with a :through option can now use *any* association as the
   through or source association, including other associations which have a
   :through option and has_and_belongs_to_many associations

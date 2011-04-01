@@ -58,7 +58,7 @@ module ActionView
         end
       end
 
-      alias_method :escape_javascript, :j
+      alias_method :j, :escape_javascript
 
       # Returns a JavaScript tag with the +content+ inside. Example:
       #   javascript_tag "alert('All is good')"

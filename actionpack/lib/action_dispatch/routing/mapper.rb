@@ -104,10 +104,16 @@ module ActionDispatch
               @options.reverse_merge!(:controller => /.+?/)
             end
 
+            # Add a constraint for wildcard route to make it non-greedy and match the
+            # optional format part of the route by default
+            if path.match(/\*([^\/]+)$/) && @options[:format] != false
+              @options.reverse_merge!(:"#{$1}" => /.+?/)
+            end
+
             if @options[:format] == false
               @options.delete(:format)
               path
-            elsif path.include?(":format") || path.end_with?('/') || path.match(/^\/?\*/)
+            elsif path.include?(":format") || path.end_with?('/')
               path
             else
               "#{path}(.:format)"
