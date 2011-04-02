@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
 
   s.bindir             = 'bin'
   s.executables        = ['rails']
-  s.default_executable = 'rails'
 
   s.add_dependency('activesupport',  version)
   s.add_dependency('actionpack',     version)
