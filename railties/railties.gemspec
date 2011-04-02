@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
   s.require_path       = 'lib'
 
   s.rdoc_options << '--exclude' << '.'
-  s.has_rdoc = false
 
   s.add_dependency('rake',          '>= 0.8.7')
   s.add_dependency('thor',          '~> 0.14.4')
