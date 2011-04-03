@@ -50,7 +50,14 @@ module ActiveRecord
 
       def get(klass, primary_key)
         obj = repository[klass.symbolized_base_class][primary_key]
-        obj.is_a?(klass) ? obj : nil
+        if obj.is_a?(klass)
+          if ActiveRecord::Base.logger
+            ActiveRecord::Base.logger.debug "#{klass} with ID = #{primary_key} loaded from Identity Map"
+          end
+          obj
+        else
+          nil
+        end
       end
 
       def add(record)
