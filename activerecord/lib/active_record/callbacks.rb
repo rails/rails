@@ -214,6 +214,24 @@ module ActiveRecord
   # needs to be aware of it because an ordinary +save+ will raise such exception
   # instead of quietly returning +false+.
   #
+  # == Debugging callbacks
+  # 
+  # The callback chain is accessible via the <tt>_*_callbacks</tt> method on an object. ActiveModel Callbacks support 
+  # <tt>:before</tt>, <tt>:after</tt> and <tt>:around</tt> as values for the <tt>kind</tt> property. The <tt>kind</tt> property
+  # defines what part of the chain the callback runs in.
+  # 
+  # To find all callbacks in the before_save callback chain: 
+  # 
+  #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }
+  # 
+  # Returns an array of callback objects that form the before_save chain.
+  # 
+  # To further check if the before_save chain contains a proc defined as <tt>rest_when_dead</tt> use the <tt>filter</tt> property of the callback object:
+  # 
+  #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }.collect(&:filter).include?(:rest_when_dead)
+  # 
+  # Returns true or false depending on whether the proc is contained in the before_save callback chain on a Topic model.
+  # 
   module Callbacks
     extend ActiveSupport::Concern
 

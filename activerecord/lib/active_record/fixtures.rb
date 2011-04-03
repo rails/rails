@@ -173,10 +173,10 @@ class FixturesFileNotFound < StandardError; end
 # traversed in the database to create the fixture hash and/or instance variables. This is expensive for
 # large sets of fixtured data.
 #
-# = Dynamic fixtures with ERb
+# = Dynamic fixtures with ERB
 #
 # Some times you don't care about the content of the fixtures as much as you care about the volume. In these cases, you can
-# mix ERb in with your YAML or CSV fixtures to create a bunch of fixtures for load testing, like:
+# mix ERB in with your YAML or CSV fixtures to create a bunch of fixtures for load testing, like:
 #
 #   <% for i in 1..1000 %>
 #   fix_<%= i %>:
@@ -186,7 +186,7 @@ class FixturesFileNotFound < StandardError; end
 #
 # This will create 1000 very simple YAML fixtures.
 #
-# Using ERb, you can also inject dynamic values into your fixtures with inserts like <tt><%= Date.today.strftime("%Y-%m-%d") %></tt>.
+# Using ERB, you can also inject dynamic values into your fixtures with inserts like <tt><%= Date.today.strftime("%Y-%m-%d") %></tt>.
 # This is however a feature to be used with some caution. The point of fixtures are that they're
 # stable units of predictable sample data. If you feel that you need to inject dynamic values, then
 # perhaps you should reexamine whether your application is properly testable. Hence, dynamic values

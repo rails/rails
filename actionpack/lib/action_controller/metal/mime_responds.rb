@@ -222,6 +222,9 @@ module ActionController #:nodoc:
     # is quite simple (it just needs to respond to call), you can even give
     # a proc to it.
     #
+    # In order to use respond_with, first you need to declare the formats your
+    # controller responds to in the class level with a call to <tt>respond_to</tt>.
+    #
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?

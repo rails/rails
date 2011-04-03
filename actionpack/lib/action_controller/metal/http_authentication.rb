@@ -67,7 +67,7 @@ module ActionController
     #   class PostsController < ApplicationController
     #     REALM = "SuperSecret"
     #     USERS = {"dhh" => "secret", #plain text password
-    #              "dap" => Digest:MD5::hexdigest(["dap",REALM,"secret"].join(":"))  #ha1 digest password
+    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))  #ha1 digest password
     #
     #     before_filter :authenticate, :except => [:index]
     #
