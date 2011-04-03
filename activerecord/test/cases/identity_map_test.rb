@@ -388,6 +388,15 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_not_nil post.title
   end
 
+  def test_log
+    log = StringIO.new
+    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger.level = Logger::DEBUG
+    Post.find 1
+    Post.find 1
+    assert_match(/Post with ID = 1 loaded from Identity Map/, log.string)
+  end
+
 # Currently AR is not allowing changing primary key (see Persistence#update)
 # So we ignore it. If this changes, this test needs to be uncommented.
 #  def test_updating_of_pkey
