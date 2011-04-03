@@ -22,6 +22,33 @@ class LogSubscriberTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
   end
 
+  def test_schema_statements_are_ignored
+    event = Struct.new(:duration, :payload)
+
+    logger = Class.new(ActiveRecord::LogSubscriber) {
+      attr_accessor :debugs
+
+      def initialize
+        @debugs = []
+        super
+      end
+
+      def debug message
+        @debugs << message
+      end
+    }.new
+    assert_equal 0, logger.debugs.length
+
+    logger.sql(event.new(0, { :sql => 'hi mom!' }))
+    assert_equal 1, logger.debugs.length
+
+    logger.sql(event.new(0, { :sql => 'hi mom!', :name => 'foo' }))
+    assert_equal 2, logger.debugs.length
+
+    logger.sql(event.new(0, { :sql => 'hi mom!', :name => 'SCHEMA' }))
+    assert_equal 2, logger.debugs.length
+  end
+
   def test_basic_query_logging
     Developer.all
     wait

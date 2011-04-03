@@ -478,8 +478,7 @@ The next line in +config/application.rb+ is:
   require 'rails/all'
 </ruby>
 
-h4 +railties/lib/rails/all.rb+
-
+h4. +railties/lib/rails/all.rb+
 
 This file is responsible for requiring all the individual parts of Rails like so:
 
@@ -591,7 +590,7 @@ h4. +activesupport/lib/active_support/deprecation/behaviors.rb+
 
 This file defines the behavior of the +ActiveSupport::Deprecation+ module, setting up the +DEFAULT_BEHAVIORS+ hash constant which contains the three defaults to outputting deprecation warnings: +:stderr+, +:log+ and +:notify+. This file begins by requiring +activesupport/notifications+ and +activesupport/core_ext/array/wrap+.
 
-h4 +activesupport/lib/active_support/notifications.rb+
+h4. +activesupport/lib/active_support/notifications.rb+
 
 TODO: document +ActiveSupport::Notifications+.
 

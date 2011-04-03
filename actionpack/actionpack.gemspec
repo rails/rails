@@ -17,8 +17,6 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.requirements << 'none'
 
-  s.has_rdoc = true
-
   s.add_dependency('activesupport',    version)
   s.add_dependency('activemodel',      version)
   s.add_dependency('rack-cache',       '~> 1.0.0')
@@ -26,7 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency('i18n',             '~> 0.5.0')
   s.add_dependency('rack',             '~> 1.2.1')
   s.add_dependency('rack-test',        '~> 0.5.7')
-  s.add_dependency('rack-mount',       '~> 0.6.13')
+  s.add_dependency('rack-mount',       '~> 0.7.1')
   s.add_dependency('tzinfo',           '~> 0.3.23')
-  s.add_dependency('erubis',           '~> 2.6.6')
+  s.add_dependency('erubis',           '~> 2.7.0')
 end

@@ -12,7 +12,7 @@ module ActiveRecord
 
     # These are explicitly delegated to improve performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :table_name, :primary_key, :to => :klass
+    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :to => :klass
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions

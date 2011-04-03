@@ -46,7 +46,7 @@ module ActionDispatch
         expected_options.stringify_keys!
         msg = build_message(message, "The recognized options <?> did not match <?>, difference: <?>",
             request.path_parameters, expected_options, expected_options.diff(request.path_parameters))
-        assert_block(msg) { request.path_parameters == expected_options }
+        assert_equal(expected_options, request.path_parameters, msg)
       end
 
       # Asserts that the provided options can be used to generate the provided path.  This is the inverse of +assert_recognizes+.
@@ -84,11 +84,11 @@ module ActionDispatch
         found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
-        assert_block(msg) { found_extras == extras }
+        assert_equal(extras, found_extras, msg)
 
         msg = build_message(message, "The generated path <?> did not match <?>", generated_path,
             expected_path)
-        assert_block(msg) { expected_path == generated_path }
+        assert_equal(expected_path, generated_path, msg)
       end
 
       # Asserts that path and options match both ways; in other words, it verifies that <tt>path</tt> generates

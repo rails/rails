@@ -18,6 +18,14 @@ module ActiveRecord
         end
       end
 
+      def test_active_connection?
+        assert !@pool.active_connection?
+        assert @pool.connection
+        assert @pool.active_connection?
+        @pool.release_connection
+        assert !@pool.active_connection?
+      end
+
       def test_pool_caches_columns
         columns = @pool.columns['posts']
         assert_equal columns, @pool.columns['posts']

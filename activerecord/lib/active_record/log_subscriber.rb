@@ -23,6 +23,9 @@ module ActiveRecord
       return unless logger.debug?
 
       payload = event.payload
+
+      return if 'SCHEMA' == payload[:name]
+
       name    = '%s (%.1fms)' % [payload[:name], event.duration]
       sql     = payload[:sql].squeeze(' ')
       binds   = nil
