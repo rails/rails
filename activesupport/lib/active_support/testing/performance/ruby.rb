@@ -21,8 +21,6 @@ module ActiveSupport
         def run_gc
           GC.start
         end
-              
-      class Performer; end
 
       class Profiler < Performer
         def initialize(*args)
@@ -128,28 +126,28 @@ module ActiveSupport
           Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
           
           # overridden by each implementation
-          def measure; 0; end
+          def measure; end
         end
 
         class Objects < Amount
           Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
           
           # overridden by each implementation
-          def measure; 0; end
+          def measure; end
         end
 
         class GcRuns < Amount
           Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
           
           # overridden by each implementation
-          def measure; 0; end
+          def measure; end
         end
 
         class GcTime < Time
           Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
 
           # overridden by each implementation
-          def measure; 0; end
+          def measure; end
         end
       end
     end

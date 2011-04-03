@@ -16,9 +16,7 @@ module ActiveSupport
       protected
         def run_gc
           ManagementFactory.memory_mx_bean.gc
-        end
-        
-      class Performer; end        
+        end   
 
       class Profiler < Performer
         def initialize(*args)
@@ -32,9 +30,6 @@ module ActiveSupport
           @data = JRuby::Profiler.profile do
             full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
           end
-          
-          profile_printer = JRuby::Profiler::GraphProfilePrinter.new(@data)
-          profile_printer.printProfile(STDOUT)
           
           @total = @data.getDuration / 1000 / 1000 / 1000.0 # seconds
         end

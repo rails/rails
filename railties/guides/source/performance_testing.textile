@@ -223,7 +223,7 @@ h6. Profiling
 |_.Rubinius   | yes       | no           | no       | no        | no     | no      | no      | no      |
 |_.JRuby      | yes       | no           | no       | no        | no     | no      | no      | no      |
 
-WARNING: Profiling under JRuby is currently unavailable because of a bug with rake and JRuby's +--profile.api+ option. You should resort exclusively to benchmarking.
+NOTE: To profile under JRuby you'll need to run +export JRUBY_OPTS="-Xlaunch.inproc=false --profile.api"+ *before* the performance tests.
 
 h4. Understanding the Output
 
@@ -308,8 +308,6 @@ h6. Output Availability
 |_.REE      | yes  | yes   | yes  |
 |_.Rubinius | yes  | yes   | no   |
 |_.JRuby    | yes  | yes   | no   |
-
-WARNING: Again, profiling under JRuby is currently unavailable because of a bug with rake and JRuby's +--profile.api+ option.
 
 h4. Tuning Test Runs
 

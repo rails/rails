@@ -24,8 +24,6 @@ module ActiveSupport
             end
           end
         end
-        
-        class Amount < Base; end
           
         class Objects < Amount
           # Ruby 1.8 + ruby-prof wrapper
