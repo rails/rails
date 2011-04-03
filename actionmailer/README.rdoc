@@ -72,6 +72,87 @@ Or you can just chain the methods together like:
 
   Notifier.welcome.deliver    # Creates the email and sends it immediately
 
+== Setting defaults
+
+Sometimes you have an Action Mailer class with more than one method for sending e-mails. Think of an authentication system in which you would like to send users a welcome message after sign up, a forgot your password message and a message to send when the user closes his account. Your class would look something like this.
+
+Example:
+
+  class Authenticationmailer < ActionMailer::Base
+    def signed_up(user)
+       # prepare the view
+       ....
+      
+      # and send the e-mail 
+      mail(:to         => user.email, 
+             :subject => "Welcome to our awesome application!",
+             :from     => "awesome@application.com")
+    end
+
+    def forgot_password(user)
+      # prepare the view
+      ....
+
+      mail(:to         => user.email,
+             :subject => "Forgot your password? No worry, we're awesome at that too!",
+             :from     => "awesome@application.com")
+    end
+
+    def closed_account(user)
+      # prepare the view
+      ....
+
+      mail(:to         => user.email,
+             :subject => "Closing your account, are you? That's not awesome, dude!",
+             :from     => "awesome@application.com")
+    end
+  end
+
+Now this works fine, but it would be nice if we could remove the <tt>:from</tt> from the method, seeing that it is a static value that is the same across all the methods, and just assign it once. Introducing the <tt>default</tt> method. With this method you can assign default values that will be used by all of the mail methods. Now you can refactor the above example to just assign the <tt>:from</tt> value only once.
+
+Example:
+
+  class Authenticationmailer < ActionMailer::Base
+    default :from => "awesome@application.com"
+
+    def signed_up(user)
+       # prepare the view
+       ....
+      
+      # and send the e-mail 
+      mail(:to         => user.email, 
+             :subject => "Welcome to our awesome application!")
+    end
+
+    def forgot_password(user)
+      # prepare the view
+      ....
+
+      mail(:to         => user.email,
+             :subject => "Forgot your password? No worry, we're awesome at that too!")
+    end
+
+    def closed_account(user)
+      # prepare the view
+      ....
+
+      mail(:to         => user.email,
+             :subject => "Closing your account, are you? That's not awesome, dude!")
+    end
+  end
+
+The default method takes a Hash, so it is possible to assign more values in one method.
+
+Example:
+
+  class Authenticationmailer < ActionMailer::Base
+    default :from => "awesome@application.com", :subject => "Default subject"
+
+    .....
+  end
+
+The default value is overwritten if you use them in the mail method.
+
 == Receiving emails
 
 To receive emails, you need to implement a public instance method called <tt>receive</tt> that takes an
