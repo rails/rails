@@ -29,11 +29,11 @@ module ActiveSupport
           
           @profiler = Rubinius::Profiler::Instrumenter.new
           
-          @profiler.profile(false) do
-            full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+          @total = time_with_block do
+            @profiler.profile(false) do
+              full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+            end
           end
-          
-          @total = @profiler.info[:runtime] / 1000 / 1000 / 1000.0 # seconds
         end
         
         def record

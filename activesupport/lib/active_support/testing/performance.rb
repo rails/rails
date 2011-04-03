@@ -126,6 +126,12 @@ module ActiveSupport
           end
         end
         
+        def time_with_block
+          before = Time.now
+          yield
+          Time.now - before
+        end
+        
         def run;    end
         def record; end
       end

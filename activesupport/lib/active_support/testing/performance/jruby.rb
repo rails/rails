@@ -27,11 +27,11 @@ module ActiveSupport
         def run
           return unless @supported
           
-          @data = JRuby::Profiler.profile do
-            full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+          @total = time_with_block do
+            @data = JRuby::Profiler.profile do
+              full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
+            end
           end
-          
-          @total = @data.getDuration / 1000 / 1000 / 1000.0 # seconds
         end
 
         def record
