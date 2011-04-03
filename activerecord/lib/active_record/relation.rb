@@ -194,6 +194,7 @@ module ActiveRecord
     #   # The same idea applies to limit and order
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
     def update_all(updates, conditions = nil, options = {})
+      IdentityMap.repository[symbolized_base_class].clear if IdentityMap.enabled?
       if conditions || options.present?
         where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
       else
@@ -322,6 +323,7 @@ module ActiveRecord
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     def delete_all(conditions = nil)
+      IdentityMap.repository[symbolized_base_class] = {} if IdentityMap.enabled?
       if conditions
         where(conditions).delete_all
       else
@@ -353,6 +355,7 @@ module ActiveRecord
     #   # Delete multiple rows
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
+      IdentityMap.remove_by_id(self.symbolized_base_class, id_or_array) if IdentityMap.enabled?
       where(primary_key => id_or_array).delete_all
     end
 
