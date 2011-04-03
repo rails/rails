@@ -189,7 +189,7 @@ module ActionController #:nodoc:
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       if response = retrieve_response_from_mimes(mimes, &block)
-        response.call
+        response.call(nil)
       end
     end
 
@@ -259,7 +259,7 @@ module ActionController #:nodoc:
     #
     def retrieve_response_from_mimes(mimes=nil, &block)
       mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes) { default_render }
+      collector = Collector.new(mimes) { |options| default_render(options || {}) }
       block.call(collector) if block_given?
 
       if format = request.negotiate_mime(collector.order)

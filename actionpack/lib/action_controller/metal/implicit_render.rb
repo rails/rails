@@ -10,14 +10,12 @@ module ActionController
       end
     end
 
-    def default_render
-      render
+    def default_render(*args)
+      render(*args)
     end
 
-    def method_for_action(action_name)
-      super || if template_exists?(action_name.to_s, _prefixes)
-        action_name.to_s
-      end
+    def action_method?(action_name)
+      super || template_exists?(action_name.to_s, _prefixes)
     end
   end
 end

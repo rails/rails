@@ -17,8 +17,6 @@ Gem::Specification.new do |s|
   s.files        = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
-  s.has_rdoc = true
-
   s.add_dependency('activesupport', version)
   s.add_dependency('builder',       '~> 3.0.0')
   s.add_dependency('i18n',          '~> 0.5.0')
