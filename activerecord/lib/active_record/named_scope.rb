@@ -35,7 +35,7 @@ module ActiveRecord
         if options
           scoped.apply_finder_options(options)
         else
-          current_scoped_methods ? relation.merge(current_scoped_methods) : relation.clone
+          (current_scope || relation).clone
         end
       end
 

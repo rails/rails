@@ -132,8 +132,6 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_ensure_that_method_scoping_is_correctly_restored
-    scoped_methods = Developer.send(:current_scoped_methods)
-
     begin
       Developer.where("name = 'Jamis'").scoping do
         raise "an exception"
@@ -141,7 +139,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert_equal scoped_methods, Developer.send(:current_scoped_methods)
+    assert !Developer.scoped.where_values.include?("name = 'Jamis'")
   end
 end
 
@@ -310,35 +308,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
-  def test_default_scope_with_lambda
-    expected = Post.find_all_by_author_id(2)
-    PostForAuthor.selected_author = 2
-    received = PostForAuthor.all
-    assert_equal expected, received
-    expected = Post.find_all_by_author_id(1)
-    PostForAuthor.selected_author = 1
-    received = PostForAuthor.all
-    assert_equal expected, received
-  end
-
-  def test_default_scope_with_thing_that_responds_to_call
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'posts'
-    end
-
-    klass.class_eval do
-      default_scope Class.new(Struct.new(:klass)) {
-        def call
-          klass.where(:author_id => 2)
-        end
-      }.new(self)
-    end
-
-    records = klass.all
-    assert_equal 3, records.length
-    assert_equal 2, records.first.author_id
-  end
-
   def test_default_scope_is_unscoped_on_find
     assert_equal 1, DeveloperCalledDavid.count
     assert_equal 11, DeveloperCalledDavid.unscoped.count
@@ -364,49 +333,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_default_scoping_with_inheritance
-    # Inherit a class having a default scope and define a new default scope
-    klass = Class.new(DeveloperOrderedBySalary)
-    klass.send :default_scope, :limit => 1
-
-    # Scopes added on children should append to parent scope
-    assert_equal 1,               klass.scoped.limit_value
-    assert_equal ['salary DESC'], klass.scoped.order_values
-
-    # Parent should still have the original scope
-    assert_nil DeveloperOrderedBySalary.scoped.limit_value
-    assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values
-  end
-
-  def test_default_scope_called_twice_merges_conditions
-    Developer.destroy_all
-    Developer.create!(:name => "David", :salary => 80000)
-    Developer.create!(:name => "David", :salary => 100000)
-    Developer.create!(:name => "Brian", :salary => 100000)
-
-    klass = Class.new(Developer)
-    klass.__send__ :default_scope, :conditions => { :name => "David" }
-    klass.__send__ :default_scope, :conditions => { :salary => 100000 }
-    assert_equal 1,       klass.count
-    assert_equal "David", klass.first.name
-    assert_equal 100000,  klass.first.salary
-  end
-
-  def test_default_scope_called_twice_in_different_place_merges_where_clause
-    Developer.destroy_all
-    Developer.create!(:name => "David", :salary => 80000)
-    Developer.create!(:name => "David", :salary => 100000)
-    Developer.create!(:name => "Brian", :salary => 100000)
-
-    klass = Class.new(Developer)
-    klass.class_eval do
-      default_scope where("name = 'David'")
-      default_scope where("salary = 100000")
-    end
-
-    assert_equal 1,       klass.count
-    assert_equal "David", klass.first.name
-    assert_equal 100000,  klass.first.salary
+  def test_default_scope_with_inheritance
+    wheres = InheritedPoorDeveloperCalledJamis.scoped.where_values_hash
+    assert_equal "Jamis", wheres[:name]
+    assert_equal 50000,   wheres[:salary]
   end
 
   def test_method_scope
@@ -447,12 +377,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
     expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
     assert_equal expected, received
-  end
-
-  def test_default_scope_using_relation
-    posts = PostWithComment.scoped
-    assert_equal 2, posts.count
-    assert_equal posts(:thinking), posts.first
   end
 
   def test_create_attribute_overwrites_default_scoping
@@ -501,6 +425,179 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_create_with_reset
     jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with(nil).new
+    assert_equal 'Jamis', jamis.name
+  end
+end
+
+class DeprecatedDefaultScopingTest < ActiveRecord::TestCase
+  fixtures :developers, :posts
+
+  def test_default_scope
+    expected = Developer.find(:all, :order => 'salary DESC').collect { |dev| dev.salary }
+    received = DeprecatedDeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
+    assert_equal expected, received
+  end
+
+  def test_default_scope_is_unscoped_on_find
+    assert_equal 1, DeprecatedDeveloperCalledDavid.count
+    assert_equal 11, DeprecatedDeveloperCalledDavid.unscoped.count
+  end
+
+  def test_default_scope_is_unscoped_on_create
+    assert_nil DeprecatedDeveloperCalledJamis.unscoped.create!.name
+  end
+
+  def test_default_scope_with_conditions_string
+    assert_equal Developer.find_all_by_name('David').map(&:id).sort, DeprecatedDeveloperCalledDavid.find(:all).map(&:id).sort
+    assert_equal nil, DeprecatedDeveloperCalledDavid.create!.name
+  end
+
+  def test_default_scope_with_conditions_hash
+    assert_equal Developer.find_all_by_name('Jamis').map(&:id).sort, DeprecatedDeveloperCalledJamis.find(:all).map(&:id).sort
+    assert_equal 'Jamis', DeprecatedDeveloperCalledJamis.create!.name
+  end
+
+  def test_default_scoping_with_threads
+    2.times do
+      Thread.new { assert_equal ['salary DESC'], DeprecatedDeveloperOrderedBySalary.scoped.order_values }.join
+    end
+  end
+
+  def test_default_scoping_with_inheritance
+    # Inherit a class having a default scope and define a new default scope
+    klass = Class.new(DeprecatedDeveloperOrderedBySalary)
+    ActiveSupport::Deprecation.silence { klass.send :default_scope, :limit => 1 }
+
+    # Scopes added on children should append to parent scope
+    assert_equal 1,               klass.scoped.limit_value
+    assert_equal ['salary DESC'], klass.scoped.order_values
+
+    # Parent should still have the original scope
+    assert_nil DeprecatedDeveloperOrderedBySalary.scoped.limit_value
+    assert_equal ['salary DESC'], DeprecatedDeveloperOrderedBySalary.scoped.order_values
+  end
+
+  def test_default_scope_called_twice_merges_conditions
+    Developer.destroy_all
+    Developer.create!(:name => "David", :salary => 80000)
+    Developer.create!(:name => "David", :salary => 100000)
+    Developer.create!(:name => "Brian", :salary => 100000)
+
+    klass = Class.new(Developer)
+    ActiveSupport::Deprecation.silence do
+      klass.__send__ :default_scope, :conditions => { :name => "David" }
+      klass.__send__ :default_scope, :conditions => { :salary => 100000 }
+    end
+    assert_equal 1,       klass.count
+    assert_equal "David", klass.first.name
+    assert_equal 100000,  klass.first.salary
+  end
+
+  def test_default_scope_called_twice_in_different_place_merges_where_clause
+    Developer.destroy_all
+    Developer.create!(:name => "David", :salary => 80000)
+    Developer.create!(:name => "David", :salary => 100000)
+    Developer.create!(:name => "Brian", :salary => 100000)
+
+    klass = Class.new(Developer)
+    ActiveSupport::Deprecation.silence do
+      klass.class_eval do
+        default_scope where("name = 'David'")
+        default_scope where("salary = 100000")
+      end
+    end
+
+    assert_equal 1,       klass.count
+    assert_equal "David", klass.first.name
+    assert_equal 100000,  klass.first.salary
+  end
+
+  def test_method_scope
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
+    received = DeprecatedDeveloperOrderedBySalary.all_ordered_by_name.collect { |dev| dev.salary }
+    assert_equal expected, received
+  end
+
+  def test_nested_scope
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.salary }
+    received = DeprecatedDeveloperOrderedBySalary.send(:with_scope, :find => { :order => 'name DESC'}) do
+      DeprecatedDeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
+    end
+    assert_equal expected, received
+  end
+
+  def test_scope_overwrites_default
+    expected = Developer.find(:all, :order => 'salary DESC, name DESC').collect { |dev| dev.name }
+    received = DeprecatedDeveloperOrderedBySalary.by_name.find(:all).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_reorder_overrides_default_scope_order
+    expected = Developer.order('name DESC').collect { |dev| dev.name }
+    received = DeprecatedDeveloperOrderedBySalary.reorder('name DESC').collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
+  def test_nested_exclusive_scope
+    expected = Developer.find(:all, :limit => 100).collect { |dev| dev.salary }
+    received = DeprecatedDeveloperOrderedBySalary.send(:with_exclusive_scope, :find => { :limit => 100 }) do
+      DeprecatedDeveloperOrderedBySalary.find(:all).collect { |dev| dev.salary }
+    end
+    assert_equal expected, received
+  end
+
+  def test_order_in_default_scope_should_prevail
+    expected = Developer.find(:all, :order => 'salary desc').collect { |dev| dev.salary }
+    received = DeprecatedDeveloperOrderedBySalary.find(:all, :order => 'salary').collect { |dev| dev.salary }
+    assert_equal expected, received
+  end
+
+  def test_default_scope_using_relation
+    posts = DeprecatedPostWithComment.scoped
+    assert_equal 2, posts.to_a.length
+    assert_equal posts(:thinking), posts.first
+  end
+
+  def test_create_attribute_overwrites_default_scoping
+    assert_equal 'David', DeprecatedPoorDeveloperCalledJamis.create!(:name => 'David').name
+    assert_equal 200000, DeprecatedPoorDeveloperCalledJamis.create!(:name => 'David', :salary => 200000).salary
+  end
+
+  def test_create_attribute_overwrites_default_values
+    assert_equal nil, DeprecatedPoorDeveloperCalledJamis.create!(:salary => nil).salary
+    assert_equal 50000, DeprecatedPoorDeveloperCalledJamis.create!(:name => 'David').salary
+  end
+
+  def test_default_scope_attribute
+    jamis = DeprecatedPoorDeveloperCalledJamis.new(:name => 'David')
+    assert_equal 50000, jamis.salary
+  end
+
+  def test_where_attribute
+    aaron = DeprecatedPoorDeveloperCalledJamis.where(:salary => 20).new(:name => 'Aaron')
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_where_attribute_merge
+    aaron = DeprecatedPoorDeveloperCalledJamis.where(:name => 'foo').new(:name => 'Aaron')
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_create_with_merge
+    aaron = DeprecatedPoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).merge(
+              DeprecatedPoorDeveloperCalledJamis.create_with(:name => 'Aaron')).new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+
+    aaron = DeprecatedPoorDeveloperCalledJamis.create_with(:name => 'foo', :salary => 20).
+                                     create_with(:name => 'Aaron').new
+    assert_equal 20, aaron.salary
+    assert_equal 'Aaron', aaron.name
+  end
+
+  def test_create_with_reset
+    jamis = DeprecatedPoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with(nil).new
     assert_equal 'Jamis', jamis.name
   end
 end

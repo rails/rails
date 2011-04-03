@@ -425,8 +425,8 @@ module ActiveRecord #:nodoc:
     self.store_full_sti_class = true
 
     # Stores the default scope for the class
-    class_attribute :default_scoping, :instance_writer => false
-    self.default_scoping = []
+    class_attribute :default_scopes, :instance_writer => false
+    self.default_scopes = []
 
     # Returns a hash of all the attributes that have been specified for serialization as
     # keys and their class restriction as values.
@@ -870,7 +870,9 @@ module ActiveRecord #:nodoc:
       # Returns a scope for this class without taking into account the default_scope.
       #
       #   class Post < ActiveRecord::Base
-      #     default_scope :published => true
+      #     def self.default_scope
+      #       where :published => true
+      #     end
       #   end
       #
       #   Post.all          # Fires "SELECT * FROM posts WHERE published = true"
@@ -892,13 +894,8 @@ module ActiveRecord #:nodoc:
         block_given? ? relation.scoping { yield } : relation
       end
 
-      def scoped_methods #:nodoc:
-        key = :"#{self}_scoped_methods"
-        Thread.current[key] = Thread.current[key].presence || self.default_scoping.dup
-      end
-
       def before_remove_const #:nodoc:
-        reset_scoped_methods
+        self.current_scope = nil
       end
 
       # Specifies how the record is loaded by +Marshal+.
@@ -1020,7 +1017,7 @@ module ActiveRecord #:nodoc:
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
               options = arguments.extract_options!
-              relation = options.any? ? construct_finder_arel(options, current_scoped_methods) : scoped
+              relation = options.any? ? scoped(options) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
               scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
@@ -1109,43 +1106,48 @@ module ActiveRecord #:nodoc:
         #   end
         #
         # *Note*: the +:find+ scope also has effect on update and deletion methods, like +update_all+ and +delete_all+.
-        def with_scope(method_scoping = {}, action = :merge, &block)
-          method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
+        def with_scope(scope = {}, action = :merge, &block)
+          # If another Active Record class has been passed in, get its current scope
+          scope = scope.current_scope if !scope.is_a?(Relation) && scope.respond_to?(:current_scope)
 
-          if method_scoping.is_a?(Hash)
+          # Cannot use self.current_scope, because that could trigger build_default_scope, which
+          # could in turn result in with_scope being called and hence an infinite loop.
+          previous_scope = Thread.current[:"#{self}_current_scope"]
+
+          if scope.is_a?(Hash)
             # Dup first and second level of hash (method and params).
-            method_scoping = method_scoping.dup
-            method_scoping.each do |method, params|
-              method_scoping[method] = params.dup unless params == true
+            scope = scope.dup
+            scope.each do |method, params|
+              scope[method] = params.dup unless params == true
             end
 
-            method_scoping.assert_valid_keys([ :find, :create ])
-            relation = construct_finder_arel(method_scoping[:find] || {})
+            scope.assert_valid_keys([ :find, :create ])
+            relation = construct_finder_arel(scope[:find] || {})
 
-            if current_scoped_methods && current_scoped_methods.create_with_value && method_scoping[:create]
+            if previous_scope && previous_scope.create_with_value && scope[:create]
               scope_for_create = if action == :merge
-                current_scoped_methods.create_with_value.merge(method_scoping[:create])
+                previous_scope.create_with_value.merge(scope[:create])
               else
-                method_scoping[:create]
+                scope[:create]
               end
 
               relation = relation.create_with(scope_for_create)
             else
-              scope_for_create = method_scoping[:create]
-              scope_for_create ||= current_scoped_methods.create_with_value if current_scoped_methods
+              scope_for_create = scope[:create]
+              scope_for_create ||= previous_scope.create_with_value if previous_scope
               relation = relation.create_with(scope_for_create) if scope_for_create
             end
 
-            method_scoping = relation
+            scope = relation
           end
 
-          method_scoping = current_scoped_methods.merge(method_scoping) if current_scoped_methods && action ==  :merge
+          scope = previous_scope.merge(scope) if previous_scope && action == :merge
 
-          self.scoped_methods << method_scoping
+          self.current_scope = scope
           begin
             yield
           ensure
-            self.scoped_methods.pop
+            self.current_scope = previous_scope
           end
         end
 
@@ -1168,39 +1170,82 @@ MSG
           with_scope(method_scoping, :overwrite, &block)
         end
 
-        # Sets the default options for the model. The format of the
-        # <tt>options</tt> argument is the same as in find.
+        def current_scope #:nodoc:
+          Thread.current[:"#{self}_current_scope"] ||= build_default_scope
+        end
+
+        def current_scope=(scope) #:nodoc:
+          Thread.current[:"#{self}_current_scope"] = scope
+        end
+
+        # Implement this method in your model to set a default scope for all operations on
+        # the model.
+        #
+        #   class Person < ActiveRecord::Base
+        #     def self.default_scope
+        #       order('last_name, first_name')
+        #     end
+        #   end
+        #
+        #   Person.all # => SELECT * FROM people ORDER BY last_name, first_name
+        #
+        # The <tt>default_scope</tt> is also applied while creating/building a record. It is not
+        # applied while updating a record.
+        #
+        #   class Article < ActiveRecord::Base
+        #     def self.default_scope
+        #       where(:published => true)
+        #     end
+        #   end
+        #
+        #   Article.new.published    # => true
+        #   Article.create.published # => true
+        #
+        # === Deprecation warning
+        #
+        # There is an alternative syntax as follows:
         #
         #   class Person < ActiveRecord::Base
         #     default_scope order('last_name, first_name')
         #   end
         #
-        # <tt>default_scope</tt> is also applied while creating/building a record. It is not
-        # applied while updating a record.
-        #
-        #   class Article < ActiveRecord::Base
-        #     default_scope where(:published => true)
-        #   end
-        #
-        #   Article.new.published    # => true
-        #   Article.create.published # => true
-        def default_scope(options = {})
-          reset_scoped_methods
-          default_scoping = self.default_scoping.dup
-          self.default_scoping = default_scoping << construct_finder_arel(options, default_scoping.pop)
+        # This is now deprecated and will be removed in Rails 3.2.
+        def default_scope(scope = {})
+          ActiveSupport::Deprecation.warn <<-WARN
+Passing a hash or scope to default_scope is deprecated and will be removed in Rails 3.2. You should create a class method for your scope instead. For example, change this:
+
+class Post < ActiveRecord::Base
+  default_scope where(:published => true)
+end
+
+To this:
+
+class Post < ActiveRecord::Base
+  def self.default_scope
+    where(:published => true)
+  end
+end
+WARN
+
+          # Reset the current scope as it may contain scopes based on a now-invalid default scope
+          self.current_scope = nil
+          self.default_scopes = default_scopes.dup << scope
         end
 
-        def current_scoped_methods #:nodoc:
-          method = scoped_methods.last
-          if method.respond_to?(:call)
-            relation.scoping { method.call }
-          else
-            method
+        def build_default_scope #:nodoc:
+          if method(:default_scope).owner != Base.singleton_class
+            # Exclusively scope to just the relation, to avoid infinite recursion where the
+            # default scope tries to use the default scope tries to use the default scope...
+            relation.scoping { default_scope }
+          elsif default_scopes.any?
+            default_scopes.inject(relation) do |default_scope, scope|
+              if scope.is_a?(Hash)
+                default_scope.apply_finder_options(scope)
+              else
+                default_scope.merge(scope)
+              end
+            end
           end
-        end
-
-        def reset_scoped_methods #:nodoc:
-          Thread.current[:"#{self}_scoped_methods"] = nil
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
@@ -1916,11 +1961,8 @@ MSG
       end
 
       def populate_with_current_scope_attributes
-        if scope = self.class.send(:current_scoped_methods)
-          create_with = scope.scope_for_create
-          create_with.each { |att,value|
-            respond_to?("#{att}=") && send("#{att}=", value)
-          }
+        self.class.scoped.scope_for_create.each do |att,value|
+          respond_to?("#{att}=") && send("#{att}=", value)
         end
       end
 

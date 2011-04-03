@@ -1630,14 +1630,18 @@ class BasicsTest < ActiveRecord::TestCase
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
     UnloadablePost.table_name = 'posts'
     UnloadablePost.class_eval do
-      default_scope order('posts.comments_count ASC')
+      class << self
+        def default_scope
+          order('posts.comments_count ASC')
+        end
+      end
     end
-    UnloadablePost.scoped_methods # make Thread.current[:UnloadablePost_scoped_methods] not nil
+    UnloadablePost.scoped # make Thread.current[:UnloadablePost_scoped_methods] not nil
 
     UnloadablePost.unloadable
-    assert_not_nil Thread.current[:UnloadablePost_scoped_methods]
+    assert_not_nil Thread.current[:UnloadablePost_current_scope]
     ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil Thread.current[:UnloadablePost_scoped_methods]
+    assert_nil Thread.current[:UnloadablePost_current_scope]
   ensure
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end

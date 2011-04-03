@@ -1,5 +1,26 @@
 *Rails 3.1.0 (unreleased)*
 
+* Deprecated support for passing hashes and relations to 'default_scope'. Please create a class
+  method for your scope instead. For example, change this:
+
+    class Post < ActiveRecord::Base
+      default_scope where(:published => true)
+    end
+
+    To this:
+
+    class Post < ActiveRecord::Base
+      def self.default_scope
+        where(:published => true)
+      end
+    end
+
+  Rationale: It will make the implementation simpler because we can simply use inheritance to
+  handle inheritance scenarios, rather than trying to make up our own rules about what should
+  happen when you call default_scope multiple times or in subclasses.
+
+  [Jon Leighton]
+
 * PostgreSQL adapter only supports PostgreSQL version 8.2 and higher.
 
 * ConnectionManagement middleware is changed to clean up the connection pool

@@ -142,20 +142,25 @@ class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
 
-class PostWithComment < ActiveRecord::Base
-  self.table_name = 'posts'
-  default_scope where("posts.comments_count > 0").order("posts.comments_count ASC")
+ActiveSupport::Deprecation.silence do
+  class DeprecatedPostWithComment < ActiveRecord::Base
+    self.table_name = 'posts'
+    default_scope where("posts.comments_count > 0").order("posts.comments_count ASC")
+  end
 end
 
 class PostForAuthor < ActiveRecord::Base
   self.table_name = 'posts'
   cattr_accessor :selected_author
-  default_scope lambda { where(:author_id => PostForAuthor.selected_author) }
 end
 
 class FirstPost < ActiveRecord::Base
   self.table_name = 'posts'
-  default_scope where(:id => 1)
+
+  def self.default_scope
+    where(:id => 1)
+  end
+
   has_many :comments, :foreign_key => :post_id
   has_one  :comment,  :foreign_key => :post_id
 end

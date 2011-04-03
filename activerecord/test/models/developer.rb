@@ -86,7 +86,11 @@ end
 
 class DeveloperOrderedBySalary < ActiveRecord::Base
   self.table_name = 'developers'
-  default_scope :order => 'salary DESC'
+
+  def self.default_scope
+    order('salary DESC')
+  end
+
   scope :by_name, order('name DESC')
 
   def self.all_ordered_by_name
@@ -98,15 +102,72 @@ end
 
 class DeveloperCalledDavid < ActiveRecord::Base
   self.table_name = 'developers'
-  default_scope :conditions => "name = 'David'"
+
+  def self.default_scope
+    where "name = 'David'"
+  end
 end
 
 class DeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
-  default_scope :conditions => { :name => 'Jamis' }
+
+  def self.default_scope
+    where :name => 'Jamis'
+  end
+end
+
+class AbstractDeveloperCalledJamis < ActiveRecord::Base
+  self.abstract_class = true
+
+  def self.default_scope
+    where :name => 'Jamis'
+  end
 end
 
 class PoorDeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
-  default_scope :conditions => { :name => 'Jamis', :salary => 50000 }
+
+  def self.default_scope
+    where :name => 'Jamis', :salary => 50000
+  end
+end
+
+class InheritedPoorDeveloperCalledJamis < DeveloperCalledJamis
+  self.table_name = 'developers'
+
+  def self.default_scope
+    super.where :salary => 50000
+  end
+end
+
+ActiveSupport::Deprecation.silence do
+  class DeprecatedDeveloperOrderedBySalary < ActiveRecord::Base
+    self.table_name = 'developers'
+    default_scope :order => 'salary DESC'
+
+    def self.by_name
+      order('name DESC')
+    end
+
+    def self.all_ordered_by_name
+      with_scope(:find => { :order => 'name DESC' }) do
+        find(:all)
+      end
+    end
+  end
+
+  class DeprecatedDeveloperCalledDavid < ActiveRecord::Base
+    self.table_name = 'developers'
+    default_scope :conditions => "name = 'David'"
+  end
+
+  class DeprecatedDeveloperCalledJamis < ActiveRecord::Base
+    self.table_name = 'developers'
+    default_scope :conditions => { :name => 'Jamis' }
+  end
+
+  class DeprecatedPoorDeveloperCalledJamis < ActiveRecord::Base
+    self.table_name = 'developers'
+    default_scope :conditions => { :name => 'Jamis', :salary => 50000 }
+  end
 end

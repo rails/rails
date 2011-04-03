@@ -249,22 +249,21 @@ class MethodScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_with_duck_typing
-    scoping = Struct.new(:method_scoping).new(:find => { :conditions => ["name = ?", 'David'] })
+    scoping = Struct.new(:current_scope).new(:find => { :conditions => ["name = ?", 'David'] })
     Developer.send(:with_scope, scoping) do
        assert_equal %w(David), Developer.find(:all).map { |d| d.name }
     end
   end
 
   def test_ensure_that_method_scoping_is_correctly_restored
-    scoped_methods = Developer.instance_eval('current_scoped_methods')
-
     begin
       Developer.send(:with_scope, :find => { :conditions => "name = 'Jamis'" }) do
         raise "an exception"
       end
     rescue
     end
-    assert_equal scoped_methods, Developer.instance_eval('current_scoped_methods')
+
+    assert !Developer.scoped.where_values.include?("name = 'Jamis'")
   end
 end
 
@@ -509,14 +508,15 @@ class NestedScopingTest < ActiveRecord::TestCase
 
   def test_ensure_that_method_scoping_is_correctly_restored
     Developer.send(:with_scope, :find => { :conditions => "name = 'David'" }) do
-      scoped_methods = Developer.instance_eval('current_scoped_methods')
       begin
         Developer.send(:with_scope, :find => { :conditions => "name = 'Maiha'" }) do
           raise "an exception"
         end
       rescue
       end
-      assert_equal scoped_methods, Developer.instance_eval('current_scoped_methods')
+
+      assert Developer.scoped.where_values.include?("name = 'David'")
+      assert !Developer.scoped.where_values.include?("name = 'Maiha'")
     end
   end
 
