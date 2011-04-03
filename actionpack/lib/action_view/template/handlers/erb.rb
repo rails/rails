@@ -55,7 +55,7 @@ module ActionView
 
       class ERB
         # Specify trim mode for the ERB compiler. Defaults to '-'.
-        # See ERb documentation for suitable values.
+        # See ERB documentation for suitable values.
         class_attribute :erb_trim_mode
         self.erb_trim_mode = '-'
 

@@ -11,7 +11,7 @@
 #
 # Annotations are looked for in comments and modulus whitespace they have to
 # start with the tag optionally followed by a colon. Everything up to the end
-# of the line (or closing ERb comment tag) is considered to be their text.
+# of the line (or closing ERB comment tag) is considered to be their text.
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
 
