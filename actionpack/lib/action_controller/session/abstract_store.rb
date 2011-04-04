@@ -196,6 +196,7 @@ module ActionController
 
           if (request_cookies.nil? || request_cookies[@key] != sid) || options[:expire_after]
             cookie = {:value => sid}
+            cookie[:expires] = Time.now + options[:expire_after] if options[:expire_after]
             Rack::Utils.set_cookie_header!(response[1], @key, cookie.merge(options))
           end
         end
