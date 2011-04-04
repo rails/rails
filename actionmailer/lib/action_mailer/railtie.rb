@@ -19,6 +19,10 @@ module ActionMailer
 
       ActiveSupport.on_load(:action_mailer) do
         include app.routes.url_helpers
+
+        register_interceptors(options.delete(:interceptors))
+        register_observers(options.delete(:observers))
+
         options.each { |k,v| send("#{k}=", v) }
       end
     end

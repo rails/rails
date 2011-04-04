@@ -4,6 +4,7 @@ require 'action_mailer/collector'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/proc'
+require 'active_support/core_ext/string/inflections'
 require 'action_mailer/log_subscriber'
 
 module ActionMailer #:nodoc:
@@ -348,9 +349,6 @@ module ActionMailer #:nodoc:
     include ActionMailer::OldApi
     include ActionMailer::DeprecatedApi
 
-    delegate :register_observer, :to => Mail
-    delegate :register_interceptor, :to => Mail
-
     private_class_method :new #:nodoc:
 
     class_attribute :default_params
@@ -362,6 +360,31 @@ module ActionMailer #:nodoc:
     }.freeze
 
     class << self
+      # Register one or more Observers which will be notified when mail is delivered.
+      def register_observers(*observers)
+        observers.flatten.compact.each { |observer| register_observer(observer) }
+      end
+
+      # Register one or more Interceptors which will be called before mail is sent.
+      def register_interceptors(*interceptors)
+        interceptors.flatten.compact.each { |interceptor| register_interceptor(interceptor) }
+      end
+
+      # Register an Observer which will be notified when mail is delivered.
+      # Either a class or a string can be passed in as the Observer. If a string is passed in
+      # it will be <tt>constantize</tt>d.
+      def register_observer(observer)
+        delivery_observer = (observer.is_a?(String) ? observer.constantize : observer)
+        Mail.register_observer(delivery_observer)
+      end
+
+      # Register an Inteceptor which will be called before mail is sent.
+      # Either a class or a string can be passed in as the Observer. If a string is passed in
+      # it will be <tt>constantize</tt>d.
+      def register_interceptor(interceptor)
+        delivery_interceptor = (interceptor.is_a?(String) ? interceptor.constantize : interceptor)
+        Mail.register_interceptor(delivery_interceptor)
+      end
 
       def mailer_name
         @mailer_name ||= name.underscore
