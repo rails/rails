@@ -310,6 +310,28 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
 
+    test "valid timezone is setup correctly" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.time_zone = "Wellington"
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal "Wellington", Rails.application.config.time_zone
+    end
+
+    test "raises when an invalid timezone is defined in the config" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.time_zone = "That big hill over yonder hill"
+      RUBY
+
+      assert_raise(ArgumentError) do
+        require "#{app_path}/config/environment"
+      end
+    end
+
     test "config.action_controller.perform_caching = false" do
       make_basic_app do |app|
         app.config.action_controller.perform_caching = false

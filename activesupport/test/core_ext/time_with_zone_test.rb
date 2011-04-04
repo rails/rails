@@ -871,6 +871,24 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
     assert_raise(ArgumentError){ Time.zone = Object.new }
   end
 
+  def test_find_zone_without_bang_returns_nil_if_time_zone_can_not_be_found
+    assert_nil Time.find_zone('No such timezone exists')
+    assert_nil Time.find_zone(-15.hours)
+    assert_nil Time.find_zone(Object.new)
+  end
+
+  def test_find_zone_with_bang_raises_if_time_zone_can_not_be_found
+    assert_raise(ArgumentError) { Time.find_zone!('No such timezone exists') }
+    assert_raise(ArgumentError) { Time.find_zone!(-15.hours) }
+    assert_raise(ArgumentError) { Time.find_zone!(Object.new) }
+  end
+
+  def test_time_zone_setter_with_find_zone_without_bang
+    assert_nil Time.zone = Time.find_zone('No such timezone exists')
+    assert_nil Time.zone = Time.find_zone(-15.hours)
+    assert_nil Time.zone = Time.find_zone(Object.new)
+  end
+
   def test_current_returns_time_now_when_zone_not_set
     with_env_tz 'US/Eastern' do
       Time.stubs(:now).returns Time.local(2000)

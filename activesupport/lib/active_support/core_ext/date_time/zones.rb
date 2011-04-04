@@ -16,6 +16,6 @@ class DateTime
   def in_time_zone(zone = ::Time.zone)
     return self unless zone
 
-    ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.__send__(:get_zone, zone))
+    ActiveSupport::TimeWithZone.new(utc? ? self : getutc, ::Time.find_zone!(zone))
   end
 end
