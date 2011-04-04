@@ -14,7 +14,7 @@ module ActionView
       # variable. You can then use this variable anywhere in your templates or layout.
       #
       # ==== Examples
-      # The capture method can be used in ERb templates...
+      # The capture method can be used in ERB templates...
       #
       #   <% @greeting = capture do %>
       #     Welcome to my shiny new web page!  The date and time is

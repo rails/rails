@@ -32,7 +32,7 @@ This can be as simple as:
   end
 
 The body of the email is created by using an Action View template (regular
-ERb) that has the instance variables that are declared in the mailer action.
+ERB) that has the instance variables that are declared in the mailer action.
 
 So the corresponding body template for the method above could look like this:
 

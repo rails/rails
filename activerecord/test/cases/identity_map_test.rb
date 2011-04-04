@@ -90,6 +90,13 @@ class IdentityMapTest < ActiveRecord::TestCase
     )
   end
 
+  def test_queries_are_not_executed_when_finding_by_id
+    Post.find 1
+    assert_no_queries do
+      Post.find 1
+    end
+  end
+
   ##############################################################################
   # Tests checking if IM is functioning properly on more advanced finds        #
   # and associations                                                           #
@@ -144,7 +151,7 @@ class IdentityMapTest < ActiveRecord::TestCase
 
     s = Subscriber.find('swistak')
 
-    assert_equal({'name' => ["Raczkowski Marcin", "Swistak Sreberkowiec"]}, swistak.changes)
+    assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
     assert_equal("Swistak Sreberkowiec", swistak.name)
   end
 
@@ -159,8 +166,8 @@ class IdentityMapTest < ActiveRecord::TestCase
     s = Subscriber.find('swistak')
 
     assert_equal("Swistak Sreberkowiec", swistak.name)
-    assert_equal({}, swistak.changes)
-    assert !swistak.name_changed?
+    assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
+    assert swistak.name_changed?
   end
 
   def test_has_many_associations
@@ -379,6 +386,15 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal post_id, post
     assert_same post_id, post
     assert_not_nil post.title
+  end
+
+  def test_log
+    log = StringIO.new
+    ActiveRecord::Base.logger = Logger.new(log)
+    ActiveRecord::Base.logger.level = Logger::DEBUG
+    Post.find 1
+    Post.find 1
+    assert_match(/Post with ID = 1 loaded from Identity Map/, log.string)
   end
 
 # Currently AR is not allowing changing primary key (see Persistence#update)

@@ -79,9 +79,9 @@ steve:
 
 Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are separated by a blank space. You can place comments in a fixture file by using the # character in the first column.
 
-h5. ERb'in It Up
+h5. ERB'in It Up
 
-ERb allows you to embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERb when you load fixtures. This allows you to use Ruby to help you generate some sample data.
+ERB allows you to embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERB when you load fixtures. This allows you to use Ruby to help you generate some sample data.
 
 <erb>
 <% earth_size = 20 %>
@@ -391,7 +391,7 @@ There are a bunch of different types of assertions you can use. Here's the compl
 |+assert_nil( obj, [msg] )+                                        |Ensures that +obj.nil?+ is true.|
 |+assert_not_nil( obj, [msg] )+                                    |Ensures that +obj.nil?+ is false.|
 |+assert_match( regexp, string, [msg] )+                           |Ensures that a string matches the regular expression.|
-|+assert_no_match( regexp, string, [msg] )+                        |Ensures that a string doesn't matches the regular expression.|
+|+assert_no_match( regexp, string, [msg] )+                        |Ensures that a string doesn't match the regular expression.|
 |+assert_in_delta( expecting, actual, delta, [msg] )+              |Ensures that the numbers +expecting+ and +actual+ are within +delta+ of each other.|
 |+assert_throws( symbol, [msg] ) { block }+                        |Ensures that the given block throws the symbol.|
 |+assert_raise( exception1, exception2, ... ) { block }+           |Ensures that the given block raises one of the given exceptions.|
@@ -748,7 +748,8 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 
 h3. Brief Note About +Test::Unit+
 
-Ruby ships with a boat load of libraries. One little gem of a library is +Test::Unit+, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in +Test::Unit::Assertions+. The class +ActiveSupport::TestCase+ which we have been using in our unit and functional tests extends +Test::Unit::TestCase+ that it is how we can use all the basic assertions in our tests.
+Ruby ships with a boat load of libraries. One little gem of a library is +Test::Unit+, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in +Test::Unit::Assertions+. The class +ActiveSupport::TestCase+ which we have been using in our unit and functional tests extends +Test::Unit::TestCase+, allowing
+us to use all of the basic assertions in our tests.
 
 NOTE: For more information on +Test::Unit+, refer to "test/unit Documentation":http://ruby-doc.org/stdlib/libdoc/test/unit/rdoc/
 

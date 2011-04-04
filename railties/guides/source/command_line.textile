@@ -484,7 +484,7 @@ end
 We take whatever args are supplied, save them to an instance variable, and literally copying from the Rails source, implement a +manifest+ method, which calls +record+ with a block, and we:
 
 * Check there's a *public* directory. You bet there is.
-* Run the ERb template called "tutorial.erb".
+* Run the ERB template called "tutorial.erb".
 * Save it into "Rails.root/public/tutorial.txt".
 * Pass in the arguments we saved through the +:assigns+ parameter.
 
