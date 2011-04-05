@@ -80,7 +80,7 @@ module ActionDispatch
 
           return matches
         else
-          root = response_from_page_or_rjs
+          root = response_from_page
         end
 
         case arg
@@ -204,7 +204,7 @@ module ActionDispatch
           root.children.concat @selected
         else
           # Otherwise just operate on the response document.
-          root = response_from_page_or_rjs
+          root = response_from_page
         end
 
         # First or second argument is the selector: string and we pass
@@ -425,62 +425,9 @@ module ActionDispatch
       end
 
       protected
-        RJS_PATTERN_HTML  = "\"((\\\\\"|[^\"])*)\""
-        RJS_ANY_ID        = "\"([^\"])*\""
-        RJS_STATEMENTS    = {
-          :chained_replace      => "\\$\\(#{RJS_ANY_ID}\\)\\.replace\\(#{RJS_PATTERN_HTML}\\)",
-          :chained_replace_html => "\\$\\(#{RJS_ANY_ID}\\)\\.update\\(#{RJS_PATTERN_HTML}\\)",
-          :replace_html         => "Element\\.update\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
-          :replace              => "Element\\.replace\\(#{RJS_ANY_ID}, #{RJS_PATTERN_HTML}\\)",
-          :redirect             => "window.location.href = #{RJS_ANY_ID}"
-        }
-        [:remove, :show, :hide, :toggle].each do |action|
-          RJS_STATEMENTS[action] = "Element\\.#{action}\\(#{RJS_ANY_ID}\\)"
-        end
-        RJS_INSERTIONS = ["top", "bottom", "before", "after"]
-        RJS_INSERTIONS.each do |insertion|
-          RJS_STATEMENTS["insert_#{insertion}".to_sym] = "Element.insert\\(#{RJS_ANY_ID}, \\{ #{insertion}: #{RJS_PATTERN_HTML} \\}\\)"
-        end
-        RJS_STATEMENTS[:insert_html] = "Element.insert\\(#{RJS_ANY_ID}, \\{ (#{RJS_INSERTIONS.join('|')}): #{RJS_PATTERN_HTML} \\}\\)"
-        RJS_STATEMENTS[:any] = Regexp.new("(#{RJS_STATEMENTS.values.join('|')})")
-        RJS_PATTERN_UNICODE_ESCAPED_CHAR = /\\u([0-9a-zA-Z]{4})/
-
-        # +assert_select+ and +css_select+ call this to obtain the content in the HTML
-        # page, or from all the RJS statements, depending on the type of response.
-        def response_from_page_or_rjs()
-          content_type = @response.content_type
-
-          if content_type && Mime::JS =~ content_type
-            body = @response.body.dup
-            root = HTML::Node.new(nil)
-
-            while true
-              next if body.sub!(RJS_STATEMENTS[:any]) do |match|
-                html = unescape_rjs(match)
-                matches = HTML::Document.new(html).root.children.select { |n| n.tag? }
-                root.children.concat matches
-                ""
-              end
-              break
-            end
-
-            root
-          else
-            html_document.root
-          end
-        end
-
-        # Unescapes a RJS string.
-        def unescape_rjs(rjs_string)
-          # RJS encodes double quotes and line breaks.
-          unescaped= rjs_string.gsub('\"', '"')
-          unescaped.gsub!(/\\\//, '/')
-          unescaped.gsub!('\n', "\n")
-          unescaped.gsub!('\076', '>')
-          unescaped.gsub!('\074', '<')
-          # RJS encodes non-ascii characters.
-          unescaped.gsub!(RJS_PATTERN_UNICODE_ESCAPED_CHAR) {|u| [$1.hex].pack('U*')}
-          unescaped
+        # +assert_select+ and +css_select+ call this to obtain the content in the HTML page.
+        def response_from_page
+          html_document.root
         end
     end
   end
