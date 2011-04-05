@@ -43,9 +43,15 @@ module ActionDispatch
     class FlashNow #:nodoc:
       def initialize(flash)
         @flash = flash
+        @closed = false
       end
 
+      attr_reader :closed
+      alias :closed? :closed
+      def close!; @closed = true end
+
       def []=(k, v)
+        raise ClosedError, "Cannot modify flash because it was closed. This means it was already streamed back to the client or converted to HTTP headers." if closed?
         @flash[k] = v
         @flash.discard(k)
         v
@@ -70,9 +76,15 @@ module ActionDispatch
       def initialize #:nodoc:
         super
         @used = Set.new
+        @closed = false
       end
 
+      attr_reader :closed
+      alias :closed? :closed
+      def close!; @closed = true end
+
       def []=(k, v) #:nodoc:
+        raise ClosedError, "Cannot modify flash because it was closed. This means it was already streamed back to the client or converted to HTTP headers." if closed?
         keep(k)
         super
       end
@@ -184,13 +196,19 @@ module ActionDispatch
       session    = env['rack.session'] || {}
       flash_hash = env['action_dispatch.request.flash_hash']
 
-      if flash_hash && (!flash_hash.empty? || session.key?('flash'))
+      if flash_hash
+       if !flash_hash.empty? || session.key?('flash')
         session["flash"] = flash_hash
+       end
+       flash_hash.close!
       end
 
       if session.key?('flash') && session['flash'].empty?
         session.delete('flash')
       end
     end
+  end
+
+  class ClosedError < StandardError #:nodoc:
   end
 end
