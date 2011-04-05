@@ -402,6 +402,7 @@ module ActiveRecord
     end
 
     def call_reject_if(association_name, attributes)
+      return false if has_destroy_flag?(attributes)
       case callback = nested_attributes_options[association_name][:reject_if]
       when Symbol
         method(callback).arity == 0 ? send(callback) : send(callback, attributes)
