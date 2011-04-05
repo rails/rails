@@ -1,4 +1,4 @@
-*Rails 3.0.6 (unreleased)*
+*Rails 3.0.6 (April 5, 2011)
 
 * Fixed XSS vulnerability in `auto_link`.  `auto_link` no longer marks input as
   html safe.  Please make sure that calls to auto_link() are wrapped in a
