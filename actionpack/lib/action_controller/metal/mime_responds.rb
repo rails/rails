@@ -189,7 +189,7 @@ module ActionController #:nodoc:
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       if response = retrieve_response_from_mimes(mimes, &block)
-        response.call
+        response.call(nil)
       end
     end
 
@@ -221,6 +221,9 @@ module ActionController #:nodoc:
     # except for the option :responder itself. Since the responder interface
     # is quite simple (it just needs to respond to call), you can even give
     # a proc to it.
+    #
+    # In order to use respond_with, first you need to declare the formats your
+    # controller responds to in the class level with a call to <tt>respond_to</tt>.
     #
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
@@ -259,7 +262,7 @@ module ActionController #:nodoc:
     #
     def retrieve_response_from_mimes(mimes=nil, &block)
       mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes) { default_render }
+      collector = Collector.new(mimes) { |options| default_render(options || {}) }
       block.call(collector) if block_given?
 
       if format = request.negotiate_mime(collector.order)

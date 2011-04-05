@@ -34,8 +34,7 @@ module ActiveRecord
             when :destroy
               target.destroy
             when :nullify
-              target.send("#{reflection.foreign_key}=", nil)
-              target.save(:validations => false)
+              target.update_attribute(reflection.foreign_key, nil)
           end
         end
       end

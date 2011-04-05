@@ -8,13 +8,13 @@ require 'action_view/log_subscriber'
 module ActionView #:nodoc:
   # = Action View Base
   #
-  # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
+  # Action View templates can be written in three ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERB
   # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
   # If the template file has a <tt>.rjs</tt> extension then it will use ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.
   #
-  # == ERb
+  # == ERB
   #
-  # You trigger ERb by using embeddings such as <% %>, <% -%>, and <%= %>. The <%= %> tag set is used when you want output. Consider the
+  # You trigger ERB by using embeddings such as <% %>, <% -%>, and <%= %>. The <%= %> tag set is used when you want output. Consider the
   # following loop for names:
   #
   #   <b>Names of all the people</b>
@@ -23,7 +23,7 @@ module ActionView #:nodoc:
   #   <% end %>
   #
   # The loop is setup in regular embedding tags <% %> and the name is written using the output embedding tag <%= %>. Note that this
-  # is not just a usage suggestion. Regular output functions like print or puts won't work with ERb templates. So this would be wrong:
+  # is not just a usage suggestion. Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
   #
   #   <%# WRONG %>
   #   Hi, Mr. <% puts "Frodo" %>
@@ -81,7 +81,7 @@ module ActionView #:nodoc:
   #
   # == Builder
   #
-  # Builder templates are a more programmatic alternative to ERb. They are especially useful for generating XML content. An XmlMarkup object
+  # Builder templates are a more programmatic alternative to ERB. They are especially useful for generating XML content. An XmlMarkup object
   # named +xml+ is automatically made available to templates with a <tt>.builder</tt> extension.
   #
   # Here are some basic examples:

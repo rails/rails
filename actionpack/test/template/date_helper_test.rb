@@ -2720,11 +2720,11 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_tag_pubdate_option
-    assert_match /<time.*pubdate="pubdate">.*<\/time>/, time_tag(Time.now, :pubdate => true)
+    assert_match(/<time.*pubdate="pubdate">.*<\/time>/, time_tag(Time.now, :pubdate => true))
   end
 
   def test_time_tag_with_given_text
-    assert_match /<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now')
+    assert_match(/<time.*>Right now<\/time>/, time_tag(Time.now, 'Right now'))
   end
 
   def test_time_tag_with_different_format

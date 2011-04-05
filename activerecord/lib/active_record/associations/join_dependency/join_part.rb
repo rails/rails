@@ -22,7 +22,7 @@ module ActiveRecord
         end
 
         def aliased_table
-          Arel::Nodes::TableAlias.new aliased_table_name, table
+          Arel::Nodes::TableAlias.new table, aliased_table_name
         end
 
         def ==(other)
