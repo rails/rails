@@ -115,13 +115,10 @@ module ActionDispatch
         @delete_cookies = {}
         @host = host
         @secure = secure
-        @closed = false
         @cookies = {}
       end
 
-      attr_reader :closed
-      alias :closed? :closed
-      def close!; @closed = true end
+      alias :closed? :frozen?
 
       # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
       def [](name)
@@ -330,7 +327,7 @@ module ActionDispatch
       [status, headers, body]
     ensure
       cookie_jar = ActionDispatch::Request.new(env).cookie_jar unless cookie_jar
-      cookie_jar.close!
+      cookie_jar.freeze
     end
   end
 end
