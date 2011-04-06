@@ -495,3 +495,54 @@ class CookiesTest < ActionController::TestCase
       end
     end
 end
+
+class CookiesIntegrationTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    def dont_set_cookies
+      head :ok
+    end
+
+    def set_cookies
+      cookies["that"] = "hello"
+      head :ok
+    end
+  end
+
+  def test_setting_cookies_raises_after_stream_back_to_client
+    with_test_route_set do
+      env = {}
+      get '/set_cookies', nil, env
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar['alert'] = 'alert'
+        cookies['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
+    with_test_route_set do
+      env = {}
+      get '/dont_set_cookies', nil, {}
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar['alert'] = 'alert'
+      }
+    end
+  end
+
+  private
+
+  def with_test_route_set
+    with_routing do |set|
+      set.draw do
+        match ':action', :to => CookiesIntegrationTest::TestController
+      end
+
+      @app = self.class.build_app(set) do |middleware|
+        middleware.use ActionDispatch::Cookies
+        middleware.delete "ActionDispatch::ShowExceptions"
+      end
+
+      yield
+    end
+  end
+end
