@@ -51,7 +51,7 @@ module ActionDispatch
       def close!; @closed = true end
 
       def []=(k, v)
-        raise ClosedError, "Cannot modify flash because it was closed. This means it was already streamed back to the client or converted to HTTP headers." if closed?
+        raise ClosedError, :flash if closed?
         @flash[k] = v
         @flash.discard(k)
         v
@@ -84,7 +84,7 @@ module ActionDispatch
       def close!; @closed = true end
 
       def []=(k, v) #:nodoc:
-        raise ClosedError, "Cannot modify flash because it was closed. This means it was already streamed back to the client or converted to HTTP headers." if closed?
+        raise ClosedError, :flash if closed?
         keep(k)
         super
       end
@@ -207,8 +207,5 @@ module ActionDispatch
         session.delete('flash')
       end
     end
-  end
-
-  class ClosedError < StandardError #:nodoc:
   end
 end
