@@ -513,7 +513,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_cookies_raises_after_stream_back_to_client
     with_test_route_set do
-      get '/set_cookies', nil, {}
+      get '/set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
         request.cookie_jar['alert'] = 'alert'
         cookies['alert'] = 'alert'
@@ -523,7 +523,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
     with_test_route_set do
-      get '/dont_set_cookies', nil, {}
+      get '/dont_set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
         request.cookie_jar['alert'] = 'alert'
       }
@@ -532,7 +532,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_permanent_cookies_raises_after_stream_back_to_client
     with_test_route_set do
-      get '/set_cookies', nil, {}
+      get '/set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
         request.cookie_jar.permanent['alert'] = 'alert'
         cookies['alert'] = 'alert'
@@ -542,7 +542,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_permanent_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
     with_test_route_set do
-      get '/dont_set_cookies', nil, {}
+      get '/dont_set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
         request.cookie_jar.permanent['alert'] = 'alert'
       }
@@ -551,7 +551,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_signed_cookies_raises_after_stream_back_to_client
     with_test_route_set do
-      get '/set_cookies', nil, {}
+      get '/set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
         request.cookie_jar.signed['alert'] = 'alert'
         cookies['alert'] = 'alert'
@@ -561,7 +561,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_setting_signed_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
     with_test_route_set do
-      get '/dont_set_cookies', nil, {}
+      get '/dont_set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
         request.cookie_jar.signed['alert'] = 'alert'
       }
