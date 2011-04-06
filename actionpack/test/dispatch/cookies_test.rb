@@ -497,6 +497,9 @@ class CookiesTest < ActionController::TestCase
 end
 
 class CookiesIntegrationTest < ActionDispatch::IntegrationTest
+  SessionKey = '_myapp_session'
+  SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
+
   class TestController < ActionController::Base
     def dont_set_cookies
       head :ok
@@ -529,7 +532,55 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_setting_permanent_cookies_raises_after_stream_back_to_client
+    with_test_route_set do
+      env = {}
+      get '/set_cookies', nil, env
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar.permanent['alert'] = 'alert'
+        cookies['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_permanent_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
+    with_test_route_set do
+      env = {}
+      get '/dont_set_cookies', nil, {}
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar.permanent['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_signed_cookies_raises_after_stream_back_to_client
+    with_test_route_set do
+      env = {}
+      get '/set_cookies', nil, env
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar.signed['alert'] = 'alert'
+        cookies['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_signed_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
+    with_test_route_set do
+      env = {}
+      get '/dont_set_cookies', nil, {}
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar.signed['alert'] = 'alert'
+      }
+    end
+  end
+
   private
+
+  # Overwrite get to send SessionSecret in env hash
+  def get(path, parameters = nil, env = {})
+    env["action_dispatch.secret_token"] ||= SessionSecret
+    super
+  end
 
   def with_test_route_set
     with_routing do |set|
