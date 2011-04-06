@@ -83,7 +83,7 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     class CookieOverflow < StandardError; end
 
-    class CookieJar < Hash #:nodoc:
+    class CookieJar #:nodoc:
 
       # This regular expression is used to split the levels of a domain.
       # The top level domain can be any string without a period or
@@ -116,8 +116,7 @@ module ActionDispatch
         @host = host
         @secure = secure
         @closed = false
-
-        super()
+        @cookies = {}
       end
 
       attr_reader :closed
@@ -126,7 +125,12 @@ module ActionDispatch
 
       # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
       def [](name)
-        super(name.to_s)
+        @cookies[name.to_s]
+      end
+
+      def update(other_hash)
+        @cookies.update other_hash
+        self
       end
 
       def handle_options(options) #:nodoc:
@@ -159,7 +163,7 @@ module ActionDispatch
           options = { :value => value }
         end
 
-        value = super(key.to_s, value)
+        value = @cookies[key.to_s] = value
 
         handle_options(options)
 
@@ -176,7 +180,7 @@ module ActionDispatch
 
         handle_options(options)
 
-        value = super(key.to_s)
+        value = @cookies.delete(key.to_s)
         @delete_cookies[key] = options
         value
       end
