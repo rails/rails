@@ -243,7 +243,8 @@ module ActionDispatch
         end
 
         # Performs the actual request.
-        def process(method, path, parameters = nil, rack_environment = nil)
+        def process(method, path, parameters = nil, env = nil)
+          env ||= {}
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
@@ -259,7 +260,7 @@ module ActionDispatch
 
           hostname, port = host.split(':')
 
-          env = {
+          default_env = {
             :method => method,
             :params => parameters,
 
@@ -277,9 +278,7 @@ module ActionDispatch
 
           session = Rack::Test::Session.new(_mock_session)
 
-          (rack_environment || {}).each do |key, value|
-            env[key] = value
-          end
+          env.reverse_merge!(default_env)
 
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
