@@ -72,11 +72,13 @@ module ActionDispatch
       end
     end
 
-    class FlashHash < Hash
+    class FlashHash
+      include Enumerable
+
       def initialize #:nodoc:
-        super
-        @used = Set.new
-        @closed = false
+        @used    = Set.new
+        @closed  = false
+        @flashes = {}
       end
 
       attr_reader :closed
@@ -86,19 +88,50 @@ module ActionDispatch
       def []=(k, v) #:nodoc:
         raise ClosedError, :flash if closed?
         keep(k)
-        super
+        @flashes[k] = v
+      end
+
+      def [](k)
+        @flashes[k]
       end
 
       def update(h) #:nodoc:
         h.keys.each { |k| keep(k) }
-        super
+        @flashes.update h
+        self
+      end
+
+      def keys
+        @flashes.keys
+      end
+
+      def delete(key)
+        @flashes.delete key
+        self
+      end
+
+      def to_hash
+        @flashes.dup
+      end
+
+      def empty?
+        @flashes.empty?
+      end
+
+      def clear
+        @flashes.clear
+      end
+
+      def each(&block)
+        @flashes.each(&block)
       end
 
       alias :merge! :update
 
       def replace(h) #:nodoc:
         @used = Set.new
-        super
+        @flashes.replace h
+        self
       end
 
       # Sets a flash that will not be available to the next action, only to the current.
