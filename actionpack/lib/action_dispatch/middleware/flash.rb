@@ -43,9 +43,12 @@ module ActionDispatch
     class FlashNow #:nodoc:
       def initialize(flash)
         @flash = flash
+        @closed = false
       end
 
-      alias :closed? :frozen?
+      attr_reader :closed
+      alias :closed? :closed
+      def close!; @closed = true end
 
       def []=(k, v)
         raise ClosedError, :flash if closed?
@@ -73,9 +76,12 @@ module ActionDispatch
       def initialize #:nodoc:
         super
         @used = Set.new
+        @closed = false
       end
 
-      alias :closed? :frozen?
+      attr_reader :closed
+      alias :closed? :closed
+      def close!; @closed = true end
 
       def []=(k, v) #:nodoc:
         raise ClosedError, :flash if closed?
@@ -194,7 +200,7 @@ module ActionDispatch
        if !flash_hash.empty? || session.key?('flash')
         session["flash"] = flash_hash
        end
-       flash_hash.freeze
+       flash_hash.close!
       end
 
       if session.key?('flash') && session['flash'].empty?

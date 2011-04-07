@@ -502,16 +502,10 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
 
   class TestController < ActionController::Base
     def dont_set_cookies
-      # initialize lazy loaded objects
-      cookies.permanent
-      cookies.signed
       head :ok
     end
 
     def set_cookies
-      # initialize lazy loaded objects
-      cookies.permanent
-      cookies.signed
       cookies["that"] = "hello"
       head :ok
     end
