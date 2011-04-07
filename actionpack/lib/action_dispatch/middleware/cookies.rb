@@ -116,6 +116,8 @@ module ActionDispatch
         @host = host
         @secure = secure
         @cookies = {}
+        @permanent = PermanentCookieJar.new(self, @secret)
+        @signed = @secret && SignedCookieJar.new(self, @secret)
       end
 
       alias :closed? :frozen?
@@ -193,9 +195,7 @@ module ActionDispatch
       #
       #   cookies.permanent.signed[:remember_me] = current_user.id
       #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
-      def permanent
-        @permanent ||= PermanentCookieJar.new(self, @secret)
-      end
+      attr_reader :permanent
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
@@ -211,7 +211,8 @@ module ActionDispatch
       #
       #   cookies.signed[:discount] # => 45
       def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
+        SignedCookieJar.ensure_secret_provided(@secret)
+        @signed
       end
 
       def write(headers)
@@ -228,7 +229,9 @@ module ActionDispatch
 
     class PermanentCookieJar < CookieJar #:nodoc:
       def initialize(parent_jar, secret)
-        @parent_jar, @secret = parent_jar, secret
+        @parent_jar = parent_jar
+        @secret = secret
+        @signed = @secret && SignedCookieJar.new(self, @secret)
       end
 
       def []=(key, options)
@@ -244,7 +247,8 @@ module ActionDispatch
       end
 
       def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
+        SignedCookieJar.ensure_secret_provided(@secret)
+        @signed
       end
 
       def method_missing(method, *arguments, &block)
@@ -257,7 +261,8 @@ module ActionDispatch
       SECRET_MIN_LENGTH = 30 # Characters
 
       def initialize(parent_jar, secret)
-        ensure_secret_secure(secret)
+        self.class.ensure_secret_provided(secret)
+        self.class.ensure_secret_length(secret)
         @parent_jar = parent_jar
         @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
@@ -289,9 +294,7 @@ module ActionDispatch
 
     protected
 
-      # To prevent users from using something insecure like "Password" we make sure that the
-      # secret they've provided is at least 30 characters in length.
-      def ensure_secret_secure(secret)
+      def self.ensure_secret_provided(secret)
         if secret.blank?
           raise ArgumentError, "A secret is required to generate an " +
             "integrity hash for cookie session data. Use " +
@@ -299,7 +302,11 @@ module ActionDispatch
             "least #{SECRET_MIN_LENGTH} characters\"" +
             "in config/initializers/secret_token.rb"
         end
+      end
 
+      # To prevent users from using something insecure like "Password" we make sure that the
+      # secret they've provided is at least 30 characters in length.
+      def self.ensure_secret_length(secret)
         if secret.length < SECRET_MIN_LENGTH
           raise ArgumentError, "Secret should be something secure, " +
             "like \"#{ActiveSupport::SecureRandom.hex(16)}\".  The value you " +
