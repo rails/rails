@@ -527,7 +527,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_setting_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
+  def test_setting_cookies_raises_after_stream_back_to_client_even_without_cookies
     with_test_route_set do
       get '/dont_set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
@@ -546,7 +546,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_setting_permanent_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
+  def test_setting_permanent_cookies_raises_after_stream_back_to_client_even_without_cookies
     with_test_route_set do
       get '/dont_set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
@@ -565,7 +565,7 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_setting_signed_cookies_raises_after_stream_back_to_client_even_with_an_empty_flash
+  def test_setting_signed_cookies_raises_after_stream_back_to_client_even_without_cookies
     with_test_route_set do
       get '/dont_set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
