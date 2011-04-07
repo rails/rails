@@ -149,7 +149,7 @@ module ActionDispatch
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
       def now
-        FlashNow.new(self)
+        @now ||= FlashNow.new(self)
       end
 
       # Keeps either the entire current flash or a specific flash entry available for the next action:
