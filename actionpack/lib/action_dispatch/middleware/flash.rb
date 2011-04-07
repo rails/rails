@@ -105,6 +105,10 @@ module ActionDispatch
         @flashes.keys
       end
 
+      def key?(name)
+        @flashes.key? name
+      end
+
       def delete(key)
         @flashes.delete key
         self
