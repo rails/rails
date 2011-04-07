@@ -86,15 +86,5 @@ module ActionDispatch
       @hash.sweep
       assert_equal({'omg' => 'world'}, @hash.to_hash)
     end
-
-    def test_discard_many_args
-      @hash['hello'] = 'world'
-      @hash['<3']    = 'world'
-      @hash['omg']   = 'world'
-
-      @hash.discard ['hello', 'omg']
-      @hash.sweep
-      assert_equal({'<3' => 'world'}, @hash.to_hash)
-    end
   end
 end
