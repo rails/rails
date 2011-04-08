@@ -416,8 +416,6 @@ module ActiveRecord
     def method_missing(method, *args, &block)
       if Array.method_defined?(method)
         to_a.send(method, *args, &block)
-      elsif @klass.scopes[method]
-        merge(@klass.send(method, *args, &block))
       elsif @klass.respond_to?(method)
         scoping { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)

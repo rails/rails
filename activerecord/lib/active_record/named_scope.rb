@@ -9,11 +9,6 @@ module ActiveRecord
   module NamedScope
     extend ActiveSupport::Concern
 
-    included do
-      class_attribute :scopes
-      self.scopes = {}
-    end
-
     module ClassMethods
       # Returns an anonymous \scope.
       #
@@ -135,27 +130,20 @@ module ActiveRecord
 
         scope_proc = lambda do |*args|
           options = scope_options.respond_to?(:call) ? scope_options.call(*args) : scope_options
+          options = scoped.apply_finder_options(options) if options.is_a?(Hash)
 
-          relation = if options.is_a?(Hash)
-            scoped.apply_finder_options(options)
-          elsif options
-            scoped.merge(options)
-          else
-            scoped
-          end
+          relation = scoped.merge(options)
 
           extension ? relation.extending(extension) : relation
         end
 
-        self.scopes = self.scopes.merge name => scope_proc
-
-        singleton_class.send(:redefine_method, name, &scopes[name])
+        singleton_class.send(:redefine_method, name, &scope_proc)
       end
 
     protected
 
       def valid_scope_name?(name)
-        if !scopes[name] && respond_to?(name, true)
+        if respond_to?(name, true)
           logger.warn "Creating scope :#{name}. " \
                       "Overwriting existing method #{self.name}.#{name}."
         end
