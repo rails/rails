@@ -172,13 +172,11 @@ end
 class RequestForgeryProtectionControllerTest < ActionController::TestCase
   include RequestForgeryProtectionTests
 
-  test 'should emit a csrf-token meta tag' do
+  test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token + '<=?')
     get :meta
-    assert_equal <<-METAS.strip_heredoc.chomp, @response.body
-      <meta name="csrf-param" content="authenticity_token"/>
-      <meta name="csrf-token" content="cf50faa3fe97702ca1ae&lt;=?"/>
-    METAS
+    assert_select 'meta[name=?][content=?]', 'csrf-param', 'authenticity_token'
+    assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
   end
 end
 

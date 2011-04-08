@@ -17,10 +17,12 @@ module ActionView
       # Note that regular forms generate hidden fields, and that Ajax calls are whitelisted,
       # so they do not use these tags.
       def csrf_meta_tags
-        <<-METAS.strip_heredoc.chomp.html_safe if protect_against_forgery?
-          <meta name="csrf-param" content="#{Rack::Utils.escape_html(request_forgery_protection_token)}"/>
-          <meta name="csrf-token" content="#{Rack::Utils.escape_html(form_authenticity_token)}"/>
-        METAS
+        if protect_against_forgery?
+          [
+            tag('meta', :name => 'csrf-param', :content => request_forgery_protection_token),
+            tag('meta', :name => 'csrf-token', :content => form_authenticity_token)
+          ].join("\n").html_safe
+        end
       end
 
       # For backwards compatibility.
