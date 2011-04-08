@@ -19,6 +19,18 @@ module ActiveRecord
         eosql
       end
 
+      def test_exec_insert
+        column = @conn.columns('items').find { |col| col.name == 'number' }
+        vals   = [[column, 10]]
+        @conn.exec_insert('insert into items (number) VALUES (?)', 'SQL', vals)
+
+        result = @conn.exec_query(
+          'select number from items where number = ?', 'SQL', vals)
+
+        assert_equal 1, result.rows.length
+        assert_equal 10, result.rows.first.first
+      end
+
       def test_primary_key_returns_nil_for_no_pk
         @conn.exec_query('create table ex(id int, data string)')
         assert_nil @conn.primary_key('ex')

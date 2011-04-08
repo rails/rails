@@ -173,6 +173,10 @@ module ActiveRecord
         end
       end
 
+      def exec_insert(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
       def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.execute(sql) }
       end
