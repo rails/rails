@@ -506,7 +506,7 @@ module ActiveRecord
 
       def tables(name = nil, database = nil) #:nodoc:
         tables = []
-        result = execute(["SHOW TABLES", database].compact.join(' IN '), name)
+        result = execute(["SHOW TABLES", database].compact.join(' IN '), 'SCHEMA')
         result.each { |field| tables << field[0] }
         result.free
         tables
@@ -551,7 +551,7 @@ module ActiveRecord
       def columns(table_name, name = nil)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql)
+        result = execute(sql, 'SCHEMA')
         result.each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
         result.free
         columns
@@ -638,7 +638,7 @@ module ActiveRecord
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table) #:nodoc:
         keys = []
-        result = execute("describe #{quote_table_name(table)}")
+        result = execute("describe #{quote_table_name(table)}", 'SCHEMA')
         result.each_hash do |h|
           keys << h["Field"]if h["Key"] == "PRI"
         end
