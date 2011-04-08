@@ -1,12 +1,22 @@
+# encoding: utf-8
 require "cases/helper"
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::TestCase
+      class DualEncoding < ActiveRecord::Base
+      end
+
       def setup
         @conn = Base.sqlite3_connection :database => ':memory:',
                                        :adapter => 'sqlite3',
                                        :timeout => 100
+        @conn.execute <<-eosql
+          CREATE TABLE items (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer
+          )
+        eosql
       end
 
       def test_primary_key_returns_nil_for_no_pk
@@ -101,6 +111,211 @@ module ActiveRecord
         assert_equal 2, result.columns.length
 
         assert_equal [[1, 'foo']], result.rows
+      end
+
+      def test_quote_binary_column_escapes_it
+        DualEncoding.connection.execute(<<-eosql)
+          CREATE TABLE dual_encodings (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            name string,
+            data binary
+          )
+        eosql
+        str = "\x80".force_encoding("ASCII-8BIT")
+        binary = DualEncoding.new :name => 'いただきます！', :data => str
+        binary.save!
+        assert_equal str, binary.data
+      end
+
+      def test_execute
+        @conn.execute "INSERT INTO items (number) VALUES (10)"
+        records = @conn.execute "SELECT * FROM items"
+        assert_equal 1, records.length
+
+        record = records.first
+        assert_equal 10, record['number']
+        assert_equal 1, record['id']
+      end
+
+      def test_quote_string
+        assert_equal "''", @conn.quote_string("'")
+      end
+
+      def test_insert_sql
+        2.times do |i|
+          rv = @conn.insert_sql "INSERT INTO items (number) VALUES (#{i})"
+          assert_equal(i + 1, rv)
+        end
+
+        records = @conn.execute "SELECT * FROM items"
+        assert_equal 2, records.length
+      end
+
+      def test_insert_sql_logged
+        sql = "INSERT INTO items (number) VALUES (10)"
+        name = "foo"
+
+        assert_logged([[sql, name, []]]) do
+          @conn.insert_sql sql, name
+        end
+      end
+
+      def test_insert_id_value_returned
+        sql = "INSERT INTO items (number) VALUES (10)"
+        idval = 'vuvuzela'
+        id = @conn.insert_sql sql, nil, nil, idval
+        assert_equal idval, id
+      end
+
+      def test_select_rows
+        2.times do |i|
+          @conn.create "INSERT INTO items (number) VALUES (#{i})"
+        end
+        rows = @conn.select_rows 'select number, id from items'
+        assert_equal [[0, 1], [1, 2]], rows
+      end
+
+      def test_select_rows_logged
+        sql = "select * from items"
+        name = "foo"
+
+        assert_logged([[sql, name, []]]) do
+          @conn.select_rows sql, name
+        end
+      end
+
+      def test_transaction
+        count_sql = 'select count(*) from items'
+
+        @conn.begin_db_transaction
+        @conn.create "INSERT INTO items (number) VALUES (10)"
+
+        assert_equal 1, @conn.select_rows(count_sql).first.first
+        @conn.rollback_db_transaction
+        assert_equal 0, @conn.select_rows(count_sql).first.first
+      end
+
+      def test_tables
+        assert_equal %w{ items }, @conn.tables
+
+        @conn.execute <<-eosql
+          CREATE TABLE people (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer
+          )
+        eosql
+        assert_equal %w{ items people }.sort, @conn.tables.sort
+      end
+
+      def test_tables_logs_name
+        name = "hello"
+        assert_logged [[name, []]] do
+          @conn.tables(name)
+          assert_not_nil @conn.logged.first.shift
+        end
+      end
+
+      def test_columns
+        columns = @conn.columns('items').sort_by { |x| x.name }
+        assert_equal 2, columns.length
+        assert_equal %w{ id number }.sort, columns.map { |x| x.name }
+        assert_equal [nil, nil], columns.map { |x| x.default }
+        assert_equal [true, true], columns.map { |x| x.null }
+      end
+
+      def test_columns_with_default
+        @conn.execute <<-eosql
+          CREATE TABLE columns_with_default (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer default 10
+          )
+        eosql
+        column = @conn.columns('columns_with_default').find { |x|
+          x.name == 'number'
+        }
+        assert_equal 10, column.default
+      end
+
+      def test_columns_with_not_null
+        @conn.execute <<-eosql
+          CREATE TABLE columns_with_default (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer not null
+          )
+        eosql
+        column = @conn.columns('columns_with_default').find { |x|
+          x.name == 'number'
+        }
+        assert !column.null, "column should not be null"
+      end
+
+      def test_indexes_logs
+        intercept_logs_on @conn
+        assert_difference('@conn.logged.length') do
+          @conn.indexes('items')
+        end
+        assert_match(/items/, @conn.logged.last.first)
+      end
+
+      def test_no_indexes
+        assert_equal [], @conn.indexes('items')
+      end
+
+      def test_index
+        @conn.add_index 'items', 'id', :unique => true, :name => 'fun'
+        index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
+
+        assert_equal 'items', index.table
+        assert index.unique, 'index is unique'
+        assert_equal ['id'], index.columns
+      end
+
+      def test_non_unique_index
+        @conn.add_index 'items', 'id', :name => 'fun'
+        index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
+        assert !index.unique, 'index is not unique'
+      end
+
+      def test_compound_index
+        @conn.add_index 'items', %w{ id number }, :name => 'fun'
+        index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
+        assert_equal %w{ id number }.sort, index.columns.sort
+      end
+
+      def test_primary_key
+        assert_equal 'id', @conn.primary_key('items')
+
+        @conn.execute <<-eosql
+          CREATE TABLE foos (
+            internet integer PRIMARY KEY AUTOINCREMENT,
+            number integer not null
+          )
+        eosql
+        assert_equal 'internet', @conn.primary_key('foos')
+      end
+
+      def test_no_primary_key
+        @conn.execute 'CREATE TABLE failboat (number integer not null)'
+        assert_nil @conn.primary_key('failboat')
+      end
+
+      private
+
+      def assert_logged logs
+        intercept_logs_on @conn
+        yield
+        assert_equal logs, @conn.logged
+      end
+
+      def intercept_logs_on ctx
+        @conn.extend(Module.new {
+          attr_accessor :logged
+          def log sql, name, binds = []
+            @logged << [sql, name, binds]
+            yield
+          end
+        })
+        @conn.logged = []
       end
     end
   end
