@@ -114,6 +114,8 @@ class DeveloperCalledJamis < ActiveRecord::Base
   def self.default_scope
     where :name => 'Jamis'
   end
+
+  scope :poor, where('salary < 150000')
 end
 
 class AbstractDeveloperCalledJamis < ActiveRecord::Base

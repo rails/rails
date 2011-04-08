@@ -1110,9 +1110,7 @@ module ActiveRecord #:nodoc:
           # If another Active Record class has been passed in, get its current scope
           scope = scope.current_scope if !scope.is_a?(Relation) && scope.respond_to?(:current_scope)
 
-          # Cannot use self.current_scope, because that could trigger build_default_scope, which
-          # could in turn result in with_scope being called and hence an infinite loop.
-          previous_scope = Thread.current[:"#{self}_current_scope"]
+          previous_scope = self.current_scope
 
           if scope.is_a?(Hash)
             # Dup first and second level of hash (method and params).
@@ -1123,6 +1121,7 @@ module ActiveRecord #:nodoc:
 
             scope.assert_valid_keys([ :find, :create ])
             relation = construct_finder_arel(scope[:find] || {})
+            relation.default_scoped = true unless action == :overwrite
 
             if previous_scope && previous_scope.create_with_value && scope[:create]
               scope_for_create = if action == :merge
@@ -1171,7 +1170,7 @@ MSG
         end
 
         def current_scope #:nodoc:
-          Thread.current[:"#{self}_current_scope"] ||= build_default_scope
+          Thread.current[:"#{self}_current_scope"]
         end
 
         def current_scope=(scope) #:nodoc:
@@ -1227,15 +1226,13 @@ class Post < ActiveRecord::Base
 end
 WARN
 
-          # Reset the current scope as it may contain scopes based on a now-invalid default scope
-          self.current_scope = nil
           self.default_scopes = default_scopes.dup << scope
         end
 
         def build_default_scope #:nodoc:
           if method(:default_scope).owner != Base.singleton_class
-            # Exclusively scope to just the relation, to avoid infinite recursion where the
-            # default scope tries to use the default scope tries to use the default scope...
+            # Use relation.scoping to ensure we ignore whatever the current value of
+            # self.current_scope may be.
             relation.scoping { default_scope }
           elsif default_scopes.any?
             default_scopes.inject(relation) do |default_scope, scope|

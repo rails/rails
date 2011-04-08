@@ -1,5 +1,16 @@
 *Rails 3.1.0 (unreleased)*
 
+* Default scopes are now evaluated at the latest possible moment, to avoid problems where
+  scopes would be created which would implicitly contain the default scope, which would then
+  be impossible to get rid of via Model.unscoped.
+
+  Note that this means that if you are inspecting the internal structure of an
+  ActiveRecord::Relation, it will *not* contain the default scope, though the resulting
+  query will do. You can get a relation containing the default scope by calling
+  ActiveRecord#with_default_scope, though this is not part of the public API.
+
+  [Jon Leighton]
+
 * Deprecated support for passing hashes and relations to 'default_scope'. Please create a class
   method for your scope instead. For example, change this:
 

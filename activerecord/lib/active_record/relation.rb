@@ -6,7 +6,7 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from, :reorder]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
@@ -15,14 +15,16 @@ module ActiveRecord
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :to => :klass
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :extensions
+    attr_accessor :extensions, :default_scoped
     alias :loaded? :loaded
+    alias :default_scoped? :default_scoped
 
     def initialize(klass, table)
       @klass, @table = klass, table
 
       @implicit_readonly = nil
       @loaded            = false
+      @default_scoped    = false
 
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
@@ -372,7 +374,7 @@ module ActiveRecord
     end
 
     def where_values_hash
-      equalities = @where_values.grep(Arel::Nodes::Equality).find_all { |node|
+      equalities = with_default_scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
         node.left.relation.name == table_name
       }
 
@@ -398,6 +400,15 @@ module ActiveRecord
 
     def inspect
       to_a.inspect
+    end
+
+    def with_default_scope #:nodoc:
+      if default_scoped?
+        default_scope = @klass.send(:build_default_scope)
+        default_scope ? default_scope.merge(self) : self
+      else
+        self
+      end
     end
 
     protected

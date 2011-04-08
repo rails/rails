@@ -329,7 +329,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scoping_with_threads
     2.times do
-      Thread.new { assert_equal ['salary DESC'], DeveloperOrderedBySalary.scoped.order_values }.join
+      Thread.new { assert DeveloperOrderedBySalary.scoped.to_sql.include?('salary DESC') }.join
     end
   end
 
@@ -427,6 +427,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with(nil).new
     assert_equal 'Jamis', jamis.name
   end
+
+  def test_unscoped_with_named_scope_should_not_have_default_scope
+    assert_equal [DeveloperCalledJamis.find(developers(:poor_jamis).id)], DeveloperCalledJamis.poor
+
+    assert DeveloperCalledJamis.unscoped.poor.include?(developers(:david).becomes(DeveloperCalledJamis))
+    assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
+  end
 end
 
 class DeprecatedDefaultScopingTest < ActiveRecord::TestCase
@@ -459,7 +466,7 @@ class DeprecatedDefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scoping_with_threads
     2.times do
-      Thread.new { assert_equal ['salary DESC'], DeprecatedDeveloperOrderedBySalary.scoped.order_values }.join
+      Thread.new { assert DeprecatedDeveloperOrderedBySalary.scoped.to_sql.include?('salary DESC') }.join
     end
   end
 
@@ -469,12 +476,10 @@ class DeprecatedDefaultScopingTest < ActiveRecord::TestCase
     ActiveSupport::Deprecation.silence { klass.send :default_scope, :limit => 1 }
 
     # Scopes added on children should append to parent scope
-    assert_equal 1,               klass.scoped.limit_value
-    assert_equal ['salary DESC'], klass.scoped.order_values
+    assert_equal [developers(:jamis).id], klass.all.map(&:id)
 
     # Parent should still have the original scope
-    assert_nil DeprecatedDeveloperOrderedBySalary.scoped.limit_value
-    assert_equal ['salary DESC'], DeprecatedDeveloperOrderedBySalary.scoped.order_values
+    assert_equal Developer.order('salary DESC').map(&:id), DeprecatedDeveloperOrderedBySalary.all.map(&:id)
   end
 
   def test_default_scope_called_twice_merges_conditions
