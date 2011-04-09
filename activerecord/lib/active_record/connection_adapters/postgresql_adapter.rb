@@ -234,7 +234,7 @@ module ActiveRecord
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
-        @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
+        @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
       def clear_cache!
@@ -298,7 +298,7 @@ module ActiveRecord
       # Enable standard-conforming strings if available.
       def set_standard_conforming_strings
         old, self.client_min_messages = client_min_messages, 'panic'
-        execute('SET standard_conforming_strings = on') rescue nil
+        execute('SET standard_conforming_strings = on', 'SCHEMA') rescue nil
       ensure
         self.client_min_messages = old
       end
@@ -637,7 +637,7 @@ module ActiveRecord
 
       # Returns the list of all tables in the schema search path or a specified schema.
       def tables(name = nil)
-        query(<<-SQL, name).map { |row| row[0] }
+        query(<<-SQL, 'SCHEMA').map { |row| row[0] }
           SELECT tablename
           FROM pg_tables
           WHERE schemaname = ANY (current_schemas(false))
@@ -658,7 +658,7 @@ module ActiveRecord
           schema = nil
         end
 
-        query(<<-SQL).first[0].to_i > 0
+        query(<<-SQL, 'SCHEMA').first[0].to_i > 0
             SELECT COUNT(*)
             FROM pg_tables
             WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
@@ -740,12 +740,12 @@ module ActiveRecord
 
       # Returns the current client message level.
       def client_min_messages
-        query('SHOW client_min_messages')[0][0]
+        query('SHOW client_min_messages', 'SCHEMA')[0][0]
       end
 
       # Set the client message level.
       def client_min_messages=(level)
-        execute("SET client_min_messages TO '#{level}'")
+        execute("SET client_min_messages TO '#{level}'", 'SCHEMA')
       end
 
       # Returns the sequence name for a table's primary key or some other specified key.
@@ -778,7 +778,7 @@ module ActiveRecord
       def pk_and_sequence_for(table) #:nodoc:
         # First try looking for a sequence with a dependency on the
         # given table's primary key.
-        result = exec_query(<<-end_sql, 'PK and serial sequence').rows.first
+        result = exec_query(<<-end_sql, 'SCHEMA').rows.first
           SELECT attr.attname, seq.relname
           FROM pg_class      seq,
                pg_attribute  attr,
@@ -977,9 +977,9 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
           if ActiveRecord::Base.default_timezone == :utc
-            execute("SET time zone 'UTC'")
+            execute("SET time zone 'UTC'", 'SCHEMA')
           elsif @local_tz
-            execute("SET time zone '#{@local_tz}'")
+            execute("SET time zone '#{@local_tz}'", 'SCHEMA')
           end
         end
 
@@ -1022,7 +1022,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name) #:nodoc:
-          exec_query(<<-end_sql).rows
+          exec_query(<<-end_sql, 'SCHEMA').rows
             SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull
               FROM pg_attribute a LEFT JOIN pg_attrdef d
                 ON a.attrelid = d.adrelid AND a.attnum = d.adnum
