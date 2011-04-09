@@ -554,6 +554,10 @@ module ActiveRecord
         end
       end
 
+      def exec_insert(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
       # Executes an UPDATE query and returns the number of affected tuples.
       def update_sql(sql, name = nil)
         super.cmd_tuples

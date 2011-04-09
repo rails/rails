@@ -126,6 +126,8 @@ module ActiveRecord
       end
 
       def test_quote_binary_column_escapes_it
+        return unless "<3".respond_to?(:encode)
+
         DualEncoding.connection.execute(<<-eosql)
           CREATE TABLE dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
