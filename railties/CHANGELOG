@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Changed scaffold_controller generator to create format block for JSON instead of XML [Prem Sichanugrist]
+
 * Add using Turn with natural language test case names for test_help.rb when running with minitest (Ruby 1.9.2+) [DHH]
 
 * Direct logging of Active Record to STDOUT so it's shown inline with the results in the console [DHH]
