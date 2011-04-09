@@ -55,7 +55,7 @@ module ActiveRecord
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|
-          [@conn.columns('ex').find { |x| x.name == name }, value]
+          [ctx.columns('ex').find { |x| x.name == name }, value]
         }
         columns = binds.map(&:first).map(&:name)
 
