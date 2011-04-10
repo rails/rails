@@ -16,8 +16,8 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         exclusions = options[:in].respond_to?(:call) ? options[:in].call(record) : options[:in]
-        if exclusions.send(inclusion_method(exclusions), value)
-          record.errors.add(attribute, :exclusion, options.except(:in).merge!(:value => value))
+        if exclusions.send(inclusion_method(exclusions, options[:use_include]), value)
+          record.errors.add(attribute, :exclusion, options.except(:in, :use_include).merge!(:value => value))
         end
       rescue NoMethodError
         raise ArgumentError, "Exclusion validation for :#{attribute} in #{record.class.name}: #{ERROR_MESSAGE}"
@@ -28,8 +28,8 @@ module ActiveModel
       # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the
       # range for equality, so it may be slow for large ranges. The new <tt>Range#cover?</tt>
       # uses the previous logic of comparing a value with the range endpoints.
-      def inclusion_method(enumerable)
-        enumerable.is_a?(Range) ? :cover? : :include?
+      def inclusion_method(enumerable, use_include = nil)
+        !use_include && enumerable.is_a?(Range) ? :cover? : :include?
       end
     end
 
@@ -45,9 +45,11 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:in</tt> - An enumerable object of items that the value shouldn't be part of.
-      #   This can be supplied as a proc or lambda which returns an enumerable. If the enumerable
-      #   is a range the test is performed with <tt>Range#cover?</tt>
-      #   (backported in Active Support for 1.8), otherwise with <tt>include?</tt>.
+      #   This can be supplied as a proc or lambda which returns an enumerable.
+      # * <tt>:use_include</tt> - If set to true and the enumerable in <tt>:in</tt> option is a range,
+      #   it will explicitly use <tt>Range#include?</tt> to perform the test. Otherwise <tt>Range#cover?</tt>
+      #   will be used to perform the test for performance reason.
+      #   (Range#cover? was backported in Active Support for 1.8.x)
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is reserved").
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).
       # * <tt>:allow_blank</tt> - If set to true, skips this validation if the attribute is blank (default is +false+).
