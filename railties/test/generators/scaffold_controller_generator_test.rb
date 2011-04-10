@@ -133,4 +133,11 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_force_old_style_hash
+    run_generator ["User", "--old-style-hash"]
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match /\{ render :action => "new" \}/, content
+    end
+  end
 end

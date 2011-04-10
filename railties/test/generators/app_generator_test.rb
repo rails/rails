@@ -226,6 +226,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_force_old_style_hash
+    run_generator [destination_root, "--old-style-hash"]
+    assert_file "config/initializers/session_store.rb" do |file|
+      assert_match /config.session_store :cookie_store, :key => '_.+_session'/, file
+    end
+  end
+
 protected
 
   def action(*args, &block)
