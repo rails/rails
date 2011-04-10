@@ -1,6 +1,6 @@
 *Rails 3.1.0 (unreleased)*
 
-* Changed scaffold generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
+* Changed scaffold and app generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
 
   So instead of creating something like:
 
