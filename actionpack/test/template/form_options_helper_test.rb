@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'tzinfo'
+require 'active_support/core_ext/object/inclusion'
 
 class Map < Hash
   def category
@@ -82,7 +83,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_proc_for_disabled
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => lambda{|p| %w(Babe Cabe).include? p.author_name })
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => lambda{|p| p.author_name.either?("Babe", "Cabe") })
     )
   end
 

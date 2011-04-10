@@ -1,4 +1,5 @@
 require 'rails/generators/active_record'
+require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   module Generators
@@ -13,7 +14,7 @@ module ActiveRecord
 
         def session_table_name
           current_table_name = ActiveRecord::SessionStore::Session.table_name
-          if ["sessions", "session"].include?(current_table_name)
+          if current_table_name.either?("sessions", "session")
             current_table_name = (ActiveRecord::Base.pluralize_table_names ? 'session'.pluralize : 'session')
           end
           current_table_name

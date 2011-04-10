@@ -1,5 +1,6 @@
 require 'active_support/core_ext/benchmark'
 require 'active_support/core_ext/uri'
+require 'active_support/core_ext/object/inclusion'
 require 'net/https'
 require 'date'
 require 'time'
@@ -277,7 +278,7 @@ module ActiveResource
       def legitimize_auth_type(auth_type)
         return :basic if auth_type.nil?
         auth_type = auth_type.to_sym
-        [:basic, :digest].include?(auth_type) ? auth_type : :basic
+        auth_type.either?(:basic, :digest) ? auth_type : :basic
       end
   end
 end

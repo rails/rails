@@ -1,6 +1,7 @@
 require 'stringio'
 require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/core_ext/object/inclusion'
 require 'active_support/core_ext/object/try'
 require 'rack/test'
 require 'test/unit/assertions'
@@ -320,7 +321,7 @@ module ActionDispatch
         define_method(method) do |*args|
           reset! unless integration_session
           # reset the html_document variable, but only for new get/post calls
-          @html_document = nil unless %w(cookies assigns).include?(method)
+          @html_document = nil unless method.either?("cookies", "assigns")
           integration_session.__send__(method, *args).tap do
             copy_session_variables!
           end

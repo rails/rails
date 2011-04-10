@@ -1,5 +1,6 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/deprecation'
+require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   # = Active Record Reflection
@@ -163,7 +164,7 @@ module ActiveRecord
 
       def initialize(macro, name, options, active_record)
         super
-        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
+        @collection = macro.either?(:has_many, :has_and_belongs_to_many)
       end
 
       # Returns a new, unsaved instance of the associated class. +options+ will

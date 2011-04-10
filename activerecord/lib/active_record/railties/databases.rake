@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/inclusion'
+
 db_namespace = namespace :db do
   task :load_config => :rails_env do
     require 'active_record'
@@ -135,7 +137,7 @@ db_namespace = namespace :db do
   end
 
   def local_database?(config, &block)
-    if %w( 127.0.0.1 localhost ).include?(config['host']) || config['host'].blank?
+    if config['host'].either?("127.0.0.1", "localhost") || config['host'].blank?
       yield
     else
       $stderr.puts "This task only modifies local databases. #{config['database']} is on a remote host."

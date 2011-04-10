@@ -1,5 +1,7 @@
 require 'rails/version'
-if %w(--version -v).include? ARGV.first
+require 'active_support/core_ext/object/inclusion'
+
+if ARGV.first.either?('--version', '-v')
   puts "Rails #{Rails::VERSION::STRING}"
   exit(0)
 end

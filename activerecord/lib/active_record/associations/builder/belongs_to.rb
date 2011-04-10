@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/inclusion'
+
 module ActiveRecord::Associations::Builder
   class BelongsTo < SingularAssociation #:nodoc:
     self.macro = :belongs_to
@@ -65,7 +67,7 @@ module ActiveRecord::Associations::Builder
 
       def configure_dependency
         if options[:dependent]
-          unless [:destroy, :delete].include?(options[:dependent])
+          unless options[:dependent].either?(:destroy, :delete)
             raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{options[:dependent].inspect})"
           end
 

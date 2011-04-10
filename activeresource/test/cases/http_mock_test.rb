@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/object/inclusion'
 
 class HttpMockTest < ActiveSupport::TestCase
   setup do
@@ -192,7 +193,7 @@ class HttpMockTest < ActiveSupport::TestCase
   end
 
   def request(method, path, headers = {}, body = nil)
-    if [:put, :post].include? method
+    if method.either?(:put, :post)
       @http.send(method, path, body, headers)
     else
       @http.send(method, path, headers)

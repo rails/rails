@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   module Associations
@@ -163,7 +164,7 @@ module ActiveRecord
         def creation_attributes
           attributes = {}
 
-          if [:has_one, :has_many].include?(reflection.macro) && !options[:through]
+          if reflection.macro.either?(:has_one, :has_many) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]

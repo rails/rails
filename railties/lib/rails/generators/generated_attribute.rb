@@ -1,4 +1,5 @@
 require 'active_support/time'
+require 'active_support/core_ext/object/inclusion'
 
 module Rails
   module Generators
@@ -44,7 +45,7 @@ module Rails
       end
 
       def reference?
-        [ :references, :belongs_to ].include?(self.type)
+        self.type.either?(:references, :belongs_to)
       end
     end
   end

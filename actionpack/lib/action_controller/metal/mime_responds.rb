@@ -1,5 +1,6 @@
 require 'abstract_controller/collector'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/object/inclusion'
 
 module ActionController #:nodoc:
   module MimeResponds #:nodoc:
@@ -248,9 +249,9 @@ module ActionController #:nodoc:
         config = self.class.mimes_for_respond_to[mime]
 
         if config[:except]
-          !config[:except].include?(action)
+          !action.in?(config[:except])
         elsif config[:only]
-          config[:only].include?(action)
+          action.in?(config[:only])
         else
           true
         end

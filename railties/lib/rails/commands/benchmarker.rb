@@ -1,4 +1,6 @@
-if [nil, "-h", "--help"].include?(ARGV.first)
+require 'active_support/core_ext/object/inclusion'
+
+if ARGV.first.either?(nil, "-h", "--help")
   puts "Usage: rails benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
   exit 1
 end
