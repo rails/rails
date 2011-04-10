@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/core_ext/object/inclusion'
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'
@@ -638,7 +639,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def time_related_columns_on_topic
-    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
+    Topic.columns.select { |c| c.type.either?(:time, :date, :datetime, :timestamp) }
   end
 
   def serialized_columns_on_topic

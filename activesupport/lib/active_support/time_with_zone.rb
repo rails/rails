@@ -1,5 +1,6 @@
 require "active_support/values/time_zone"
 require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/object/inclusion'
 
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary because standard Ruby Time instances are
@@ -344,7 +345,7 @@ module ActiveSupport
       end
 
       def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.any? {|p| [:years, :months, :days].include? p[0] }
+        ActiveSupport::Duration === obj && obj.parts.any? {|p| p[0].either?(:years, :months, :days) }
       end
   end
 end

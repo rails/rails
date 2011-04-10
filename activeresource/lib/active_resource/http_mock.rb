@@ -1,4 +1,5 @@
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/object/inclusion'
 
 module ActiveResource
   class InvalidRequestError < StandardError; end #:nodoc:
@@ -299,7 +300,7 @@ module ActiveResource
     end
 
     def success?
-      (200..299).include?(code)
+      code.in?(200..299)
     end
 
     def [](key)

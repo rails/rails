@@ -1,4 +1,5 @@
 require 'action_controller/vendor/html-scanner'
+require 'active_support/core_ext/object/inclusion'
 
 #--
 # Copyright (c) 2006 Assaf Arkin (http://labnotes.org)
@@ -441,7 +442,7 @@ module ActionDispatch
 
         if matches
           assert_block("") { true } # to count the assertion
-          if block_given? && !([:remove, :show, :hide, :toggle].include? rjs_type)
+          if block_given? && !rjs_type.either?(:remove, :show, :hide, :toggle)
             begin
               @selected ||= nil
               in_scope, @selected = @selected, matches

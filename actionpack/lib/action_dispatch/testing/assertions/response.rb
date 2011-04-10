@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/inclusion'
+
 module ActionDispatch
   module Assertions
     # A small suite of assertions that test responses from \Rails applications.
@@ -33,7 +35,7 @@ module ActionDispatch
       def assert_response(type, message = nil)
         validate_request!
 
-        if [ :success, :missing, :redirect, :error ].include?(type) && @response.send("#{type}?")
+        if type.either?(:success, :missing, :redirect, :error) && @response.send("#{type}?")
           assert_block("") { true } # to count the assertion
         elsif type.is_a?(Fixnum) && @response.response_code == type
           assert_block("") { true } # to count the assertion

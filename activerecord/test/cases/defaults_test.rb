@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/core_ext/object/inclusion'
 require 'models/default'
 require 'models/entrant'
 
@@ -94,7 +95,7 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       assert_equal 0, klass.columns_hash['zero'].default
       assert !klass.columns_hash['zero'].null
       # 0 in MySQL 4, nil in 5.
-      assert [0, nil].include?(klass.columns_hash['omit'].default)
+      assert klass.columns_hash['omit'].default.either?(0, nil)
       assert !klass.columns_hash['omit'].null
 
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }

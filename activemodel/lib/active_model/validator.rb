@@ -1,6 +1,7 @@
 require 'active_support/core_ext/array/wrap'
 require "active_support/core_ext/module/anonymous"
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/inclusion'
 
 module ActiveModel #:nodoc:
 
@@ -67,7 +68,7 @@ module ActiveModel #:nodoc:
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
-  #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless ['Mr.', 'Mrs.', 'Dr.'].include?(value)
+  #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless value.either?('Mr.', 'Mrs.', 'Dr.')
   #     end
   #   end
   #

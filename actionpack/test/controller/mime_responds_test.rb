@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 require 'active_support/core_ext/hash/conversions'
+require 'active_support/core_ext/object/inclusion'
 
 class StarStarMimeController < ActionController::Base
   layout nil
@@ -158,7 +159,7 @@ class RespondToController < ActionController::Base
 
   protected
     def set_layout
-      if ["all_types_with_layout", "iphone_with_html_response_type"].include?(action_name)
+      if action_name.either?("all_types_with_layout", "iphone_with_html_response_type")
         "respond_to/layouts/standard"
       elsif action_name == "iphone_with_html_response_type_without_layout"
         "respond_to/layouts/missing"
