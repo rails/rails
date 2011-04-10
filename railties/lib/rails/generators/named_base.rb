@@ -181,6 +181,16 @@ module Rails
             class_collisions "#{options[:prefix]}#{name}#{options[:suffix]}"
           end
         end
+
+        # Returns Ruby 1.9 style key-value pair if current code is running on
+        # Ruby 1.9.x. Returns the old-style (with hash rocket) otherwise.
+        def key_value(key, value)
+          if RUBY_VERSION < '1.9'
+            ":#{key} => #{value}"
+          else
+            "#{key}: #{value}"
+          end
+        end
     end
   end
 end

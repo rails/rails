@@ -1,5 +1,15 @@
 *Rails 3.1.0 (unreleased)*
 
+* Changed scaffold generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
+
+  So instead of creating something like:
+
+    redirect_to users_path, :notice => "User has been created"
+
+  it will now be like this:
+
+    redirect_to users_path, notice: "User has been created"
+
 * Changed scaffold_controller generator to create format block for JSON instead of XML [Prem Sichanugrist]
 
 * Add using Turn with natural language test case names for test_help.rb when running with minitest (Ruby 1.9.2+) [DHH]

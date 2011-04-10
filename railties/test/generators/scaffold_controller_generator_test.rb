@@ -122,4 +122,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   ensure
     Unknown::Generators.send :remove_const, :ActiveModel
   end
+
+  def test_new_hash_style
+    run_generator
+    assert_file "app/controllers/users_controller.rb" do |content|
+      if RUBY_VERSION < "1.9"
+        assert_match /\{ render :action => "new" \}/, content
+      else
+        assert_match /\{ render action: "new" \}/, content
+      end
+    end
+  end
 end
