@@ -10,6 +10,8 @@
 
     redirect_to users_path, notice: "User has been created"
 
+  You can also passing `--old-style-hash` to make Rails generate old style hash even you're on Ruby 1.9
+
 * Changed scaffold_controller generator to create format block for JSON instead of XML [Prem Sichanugrist]
 
 * Add using Turn with natural language test case names for test_help.rb when running with minitest (Ruby 1.9.2+) [DHH]

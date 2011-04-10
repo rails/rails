@@ -53,6 +53,9 @@ module Rails
 
         class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
                                           :desc => "Show this help message and quit"
+
+        class_option :old_style_hash,     :type => :boolean, :default => false,
+                                          :desc => "Force using old style hash (:foo => 'bar') on Ruby >= 1.9"
       end
 
       def initialize(*args)
@@ -177,7 +180,7 @@ module Rails
       # Returns Ruby 1.9 style key-value pair if current code is running on
       # Ruby 1.9.x. Returns the old-style (with hash rocket) otherwise.
       def key_value(key, value)
-        if RUBY_VERSION < '1.9'
+        if options[:old_style_hash] || RUBY_VERSION < '1.9'
           ":#{key} => #{value}"
         else
           "#{key}: #{value}"
