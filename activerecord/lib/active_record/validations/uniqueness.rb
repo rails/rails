@@ -14,6 +14,7 @@ module ActiveRecord
 
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
+        table = finder_class.arel_table
 
         coder = record.class.serialized_attributes[attribute.to_s]
 
@@ -21,21 +22,15 @@ module ActiveRecord
           value = coder.dump value
         end
 
-        sql, params = mount_sql_and_params(finder_class, record.class.quoted_table_name, attribute, value)
-
-        relation = finder_class.unscoped.where(sql, *params)
+        relation = build_relation(finder_class, table, attribute, value)
+        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.send(:id))) if record.persisted?
 
         Array.wrap(options[:scope]).each do |scope_item|
           scope_value = record.send(scope_item)
-          relation = relation.where(scope_item => scope_value)
+          relation = relation.and(table[scope_item].eq(scope_value))
         end
 
-        if record.persisted?
-          # TODO : This should be in Arel
-          relation = relation.where("#{record.class.quoted_table_name}.#{record.class.primary_key} <> ?", record.send(:id))
-        end
-
-        if relation.exists?
+        if finder_class.unscoped.where(relation).exists?
           record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope).merge(:value => value))
         end
       end
@@ -57,27 +52,17 @@ module ActiveRecord
         class_hierarchy.detect { |klass| !klass.abstract_class? }
       end
 
-      def mount_sql_and_params(klass, table_name, attribute, value) #:nodoc:
+      def build_relation(klass, table, attribute, value) #:nodoc:
         column = klass.columns_hash[attribute.to_s]
+        value = column.limit ? value.to_s.mb_chars[0, column.limit] : value.to_s if column.text?
 
-        operator = if value.nil?
-          "IS ?"
-        elsif column.text?
-          value = column.limit ? value.to_s.mb_chars[0, column.limit] : value.to_s
-          "#{klass.connection.case_sensitive_equality_operator} ?"
+        if !options[:case_sensitive] && column.text?
+          relation = table[attribute].matches(value)
         else
-          "= ?"
+          relation = table[attribute].eq(value)
         end
 
-        sql_attribute = "#{table_name}.#{klass.connection.quote_column_name(attribute)}"
-
-        if value.nil? || (options[:case_sensitive] || !column.text?)
-          sql = "#{sql_attribute} #{operator}"
-        else
-          sql = "LOWER(#{sql_attribute}) = LOWER(?)"
-        end
-
-        [sql, [value]]
+        relation
       end
     end
 
