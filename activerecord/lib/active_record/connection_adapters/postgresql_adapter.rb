@@ -433,12 +433,9 @@ module ActiveRecord
       # Executes an INSERT query and returns the new record's ID
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         # Extract the table from the insert sql. Yuck.
-        table = sql.split(" ", 4)[2].gsub('"', '')
+        _, table = extract_schema_and_table(sql.split(" ", 4)[2])
 
-        # If neither pk nor sequence name is given, look them up.
-        unless pk || sequence_name
-          pk, sequence_name = *pk_and_sequence_for(table)
-        end
+        pk ||= primary_key(table)
 
         if pk
           select_value("#{sql} RETURNING #{quote_column_name(pk)}")
@@ -638,7 +635,18 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        name          = name.to_s
+        schema, table = extract_schema_and_table(name.to_s)
+
+        query(<<-SQL, 'SCHEMA').first[0].to_i > 0
+            SELECT COUNT(*)
+            FROM pg_tables
+            WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
+            #{schema ? "AND schemaname = '#{schema}'" : ''}
+        SQL
+      end
+
+      # Extracts the table and schema name from +name+
+      def extract_schema_and_table(name)
         schema, table = name.split('.', 2)
 
         unless table # A table was provided without a schema
@@ -650,13 +658,7 @@ module ActiveRecord
           table  = name
           schema = nil
         end
-
-        query(<<-SQL, 'SCHEMA').first[0].to_i > 0
-            SELECT COUNT(*)
-            FROM pg_tables
-            WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
-            #{schema ? "AND schemaname = '#{schema}'" : ''}
-        SQL
+        [schema, table]
       end
 
       # Returns the list of all indexes for a table.
