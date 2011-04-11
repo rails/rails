@@ -431,7 +431,7 @@ module ActiveRecord
       end
 
       # Executes an INSERT query and returns the new record's ID
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         # Extract the table from the insert sql. Yuck.
         table = sql.split(" ", 4)[2].gsub('"', '')
 
@@ -440,7 +440,6 @@ module ActiveRecord
           pk, sequence_name = *pk_and_sequence_for(table) unless pk
           if pk
             id = select_value("#{sql} RETURNING #{quote_column_name(pk)}")
-            clear_query_cache
             return id
           end
         end
