@@ -796,8 +796,21 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table)
-        pk_and_sequence = pk_and_sequence_for(table)
-        pk_and_sequence && pk_and_sequence.first
+        row = exec_query(<<-end_sql, 'SCHEMA', [[nil, table]]).rows.first
+          SELECT DISTINCT(attr.attname)
+          FROM pg_attribute  attr,
+               pg_depend     dep,
+               pg_namespace  name,
+               pg_constraint cons
+          WHERE attr.attrelid     = dep.refobjid
+            AND attr.attnum       = dep.refobjsubid
+            AND attr.attrelid     = cons.conrelid
+            AND attr.attnum       = cons.conkey[1]
+            AND cons.contype      = 'p'
+            AND dep.refobjid      = $1::regclass
+        end_sql
+
+        row && row.first
       end
 
       # Renames a table.
