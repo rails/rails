@@ -447,11 +447,12 @@ module ActiveRecord
 
         super
 
+        return unless pk
+
         # If a pk is given, fallback to default sequence name.
         # Don't fetch last insert id for a table without a pk.
-        if pk && sequence_name ||= default_sequence_name(table, pk)
-          last_insert_id(sequence_name)
-        end
+        sequence_name ||= "#{table}_#{pk}_seq"
+        last_insert_id(sequence_name)
       end
       alias :create :insert
 
