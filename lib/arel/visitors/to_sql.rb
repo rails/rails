@@ -133,6 +133,10 @@ key on UpdateManager using UpdateManager#key=
         ].compact.join ' '
       end
 
+      def visit_Arel_Nodes_Bin o
+        visit o.expr
+      end
+
       def visit_Arel_Nodes_With o
         "WITH #{o.children.map { |x| visit x }.join(', ')}"
       end

@@ -2,6 +2,10 @@ module Arel
   module Visitors
     class MySQL < Arel::Visitors::ToSql
       private
+      def visit_Arel_Nodes_Bin o
+        "BINARY #{visit o.expr}"
+      end
+
       def visit_Arel_Nodes_Lock o
         visit o.expr
       end

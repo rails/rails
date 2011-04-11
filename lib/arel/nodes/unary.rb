@@ -10,6 +10,7 @@ module Arel
     end
 
     %w{
+      Bin
       Group
       Grouping
       Having
