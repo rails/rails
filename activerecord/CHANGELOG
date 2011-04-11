@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* PostgreSQL adapter only supports PostgreSQL version 8.2 and higher.
+
 * ConnectionManagement middleware is changed to clean up the connection pool
   after the rack body has been flushed.
 
