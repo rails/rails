@@ -441,20 +441,17 @@ module ActiveRecord
           return id
         end
 
-        # Otherwise, insert then grab last_insert_id.
-        if insert_id = super
-          insert_id
-        else
-          # If neither pk nor sequence name is given, look them up.
-          unless pk || sequence_name
-            pk, sequence_name = *pk_and_sequence_for(table)
-          end
+        super
 
-          # If a pk is given, fallback to default sequence name.
-          # Don't fetch last insert id for a table without a pk.
-          if pk && sequence_name ||= default_sequence_name(table, pk)
-            last_insert_id(sequence_name)
-          end
+        # If neither pk nor sequence name is given, look them up.
+        unless pk || sequence_name
+          pk, sequence_name = *pk_and_sequence_for(table)
+        end
+
+        # If a pk is given, fallback to default sequence name.
+        # Don't fetch last insert id for a table without a pk.
+        if pk && sequence_name ||= default_sequence_name(table, pk)
+          last_insert_id(sequence_name)
         end
       end
       alias :create :insert
