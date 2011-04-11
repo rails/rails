@@ -15,7 +15,8 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        exclusions = options[:in].respond_to?(:call) ? options[:in].call(record) : options[:in]
+        delimiter = options[:in]
+        exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
         unless exclusions.send(inclusion_method(exclusions), value)
           record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
         end

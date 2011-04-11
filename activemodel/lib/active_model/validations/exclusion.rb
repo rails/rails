@@ -9,13 +9,14 @@ module ActiveModel
                       "and must be supplied as the :in option of the configuration hash"
 
       def check_validity!
-        unless [:include?, :call].any?{ |method| options[:in].respond_to?(method) }
+        unless [:include?, :call].any? { |method| options[:in].respond_to?(method) }
           raise ArgumentError, ERROR_MESSAGE
         end
       end
 
       def validate_each(record, attribute, value)
-        exclusions = options[:in].respond_to?(:call) ? options[:in].call(record) : options[:in]
+        delimiter = options[:in]
+        exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
         if exclusions.send(inclusion_method(exclusions), value)
           record.errors.add(attribute, :exclusion, options.except(:in).merge!(:value => value))
         end

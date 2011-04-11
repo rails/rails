@@ -5,19 +5,11 @@ module ActiveModel
     class FormatValidator < EachValidator
       def validate_each(record, attribute, value)
         if options[:with]
-          regexp = options[:with].respond_to?(:call) ? options[:with].call(record) : options[:with]
-          if regexp.is_a?(Regexp)
-            record.errors.add(attribute, :invalid, options.except(:with).merge!(:value => value)) if value.to_s !~ regexp
-          else
-            raise ArgumentError, "A proc or lambda given to :with option must returns a regular expression"
-          end
+          regexp = option_call(record, :with)
+          record_error(record, attribute, :with, value) if value.to_s !~ regexp
         elsif options[:without]
-          regexp = options[:without].respond_to?(:call) ? options[:without].call(record) : options[:without]
-          if regexp.is_a?(Regexp)
-            record.errors.add(attribute, :invalid, options.except(:without).merge!(:value => value)) if value.to_s =~ regexp
-          else
-            raise ArgumentError, "A proc or lambda given to :without option must returns a regular expression"
-          end
+          regexp = option_call(record, :without)
+          record_error(record, attribute, :without, value) if value.to_s =~ regexp
         end
       end
 
@@ -26,12 +18,25 @@ module ActiveModel
           raise ArgumentError, "Either :with or :without must be supplied (but not both)"
         end
 
-        if options[:with] && !options[:with].is_a?(Regexp) && !options[:with].respond_to?(:call)
-          raise ArgumentError, "A regular expression or a proc or lambda must be supplied as the :with option of the configuration hash"
-        end
+        check_options_validity(options, :with)
+        check_options_validity(options, :without)
+      end
 
-        if options[:without] && !options[:without].is_a?(Regexp) && !options[:without].respond_to?(:call)
-          raise ArgumentError, "A regular expression or a proc or lambda must be supplied as the :without option of the configuration hash"
+      private
+
+      def option_call(record, name)
+        option = options[name]
+        option.respond_to?(:call) ? option.call(record) : option
+      end
+
+      def record_error(record, attribute, name, value)
+        record.errors.add(attribute, :invalid, options.except(name).merge!(:value => value))
+      end
+
+      def check_options_validity(options, name)
+        option = options[name]
+        if option && !option.is_a?(Regexp) && !option.respond_to?(:call)
+          raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
         end
       end
     end
