@@ -748,8 +748,16 @@ module ActiveRecord
 
       # Returns the sequence name for a table's primary key or some other specified key.
       def default_sequence_name(table_name, pk = nil) #:nodoc:
-        default_pk, default_seq = pk_and_sequence_for(table_name)
-        default_seq || "#{table_name}_#{pk || default_pk || 'id'}_seq"
+        serial_sequence(table_name, pk || 'id').split('.').last
+      rescue ActiveRecord::StatementInvalid
+        "#{table_name}_#{pk || 'id'}_seq"
+      end
+
+      def serial_sequence(table, column)
+        result = exec_query(<<-eosql, 'SCHEMA', [[nil, table], [nil, column]])
+          SELECT pg_get_serial_sequence($1, $2)
+        eosql
+        result.rows.first.first
       end
 
       # Resets the sequence of a table's primary key to the maximum value.

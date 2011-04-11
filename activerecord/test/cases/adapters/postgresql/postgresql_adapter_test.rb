@@ -10,6 +10,31 @@ module ActiveRecord
         @connection.exec_query('create table ex(id serial primary key, number integer, data character varying(255))')
       end
 
+      def test_serial_sequence
+        assert_equal 'public.accounts_id_seq',
+          @connection.serial_sequence('accounts', 'id')
+
+        assert_raises(ActiveRecord::StatementInvalid) do
+          @connection.serial_sequence('zomg', 'id')
+        end
+      end
+
+      def test_default_sequence_name
+        assert_equal 'accounts_id_seq',
+          @connection.default_sequence_name('accounts', 'id')
+
+        assert_equal 'accounts_id_seq',
+          @connection.default_sequence_name('accounts')
+      end
+
+      def test_default_sequence_name_bad_table
+        assert_equal 'zomg_id_seq',
+          @connection.default_sequence_name('zomg', 'id')
+
+        assert_equal 'zomg_id_seq',
+          @connection.default_sequence_name('zomg')
+      end
+
       def test_exec_insert_number
         insert(@connection, 'number' => 10)
 
