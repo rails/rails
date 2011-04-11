@@ -441,18 +441,10 @@ module ActiveRecord
         end
 
         if pk
-          id = select_value("#{sql} RETURNING #{quote_column_name(pk)}")
-          return id
+          select_value("#{sql} RETURNING #{quote_column_name(pk)}")
+        else
+          super
         end
-
-        super
-
-        return unless pk
-
-        # If a pk is given, fallback to default sequence name.
-        # Don't fetch last insert id for a table without a pk.
-        sequence_name ||= "#{table}_#{pk}_seq"
-        last_insert_id(sequence_name)
       end
       alias :create :insert
 
