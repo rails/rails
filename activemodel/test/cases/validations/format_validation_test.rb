@@ -138,6 +138,44 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError){ p.valid? }
   end
 
+  def test_find_format_alias_that_is_valid
+    ActiveModel::Validations::FormatValidator.register_format_alias(:valid_alias, /\d+/)
+
+    regexp = ActiveModel::Validations::FormatValidator.find_format_alias(:valid_alias)
+
+    assert_equal regexp, /\d+/
+  end
+
+  def test_find_format_alias_that_is_not_valid
+    assert_raise(ArgumentError) { ActiveModel::Validations::FormatValidator.find_format_alias(:invalid_alias) }
+  end
+
+  def test_validates_format_with_using_pre_defined_alias
+    ActiveModel::Validations::FormatValidator.register_format_alias(:test_number, /\d+/)
+
+    Topic.validates_format_of :content, :with => :test_number
+
+    p = Topic.new
+    p.content = "hello"
+    assert p.invalid?
+
+    p.content = "1234"
+    assert p.valid?
+  end
+
+  def test_validates_format_without_using_pre_defined_alias
+    ActiveModel::Validations::FormatValidator.register_format_alias(:test_number, /\d+/)
+
+    Topic.validates_format_of :content, :without => :test_number
+
+    p = Topic.new
+    p.content = "1234"
+    assert p.invalid?
+
+    p.content = "hello"
+    assert p.valid?
+  end
+
   def test_validates_format_of_for_ruby_class
     Person.validates_format_of :karma, :with => /\A\d+\Z/
 

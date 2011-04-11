@@ -3,16 +3,34 @@ module ActiveModel
   # == Active Model Format Validator
   module Validations
     class FormatValidator < EachValidator
+      class << self
+        def register_format_alias(name, expression)
+          @aliased_formats ||= {}
+          @aliased_formats[name.to_sym] = expression
+        end
+
+        def find_format_alias(name)
+          @aliased_formats ||= {}
+          regexp = @aliased_formats[name]
+
+          raise ArgumentError, "Format alias '#{name}' is not defined." unless regexp
+
+          regexp
+        end
+      end
+
       def validate_each(record, attribute, value)
         if options[:with]
-          regexp = options[:with].respond_to?(:call) ? options[:with].call(record) : options[:with]
+          regexp = options[:with].is_a?(Symbol) ? self.class.find_format_alias(options[:with]) : options[:with]
+          regexp = regexp.call(record) if regexp.respond_to?(:call)
           if regexp.is_a?(Regexp)
             record.errors.add(attribute, :invalid, options.except(:with).merge!(:value => value)) if value.to_s !~ regexp
           else
             raise ArgumentError, "A proc or lambda given to :with option must returns a regular expression"
           end
         elsif options[:without]
-          regexp = options[:without].respond_to?(:call) ? options[:without].call(record) : options[:without]
+          regexp = options[:without].is_a?(Symbol) ? self.class.find_format_alias(options[:without]) : options[:without]
+          regexp = regexp.call(record) if regexp.respond_to?(:call)
           if regexp.is_a?(Regexp)
             record.errors.add(attribute, :invalid, options.except(:without).merge!(:value => value)) if value.to_s =~ regexp
           else
@@ -28,11 +46,11 @@ module ActiveModel
           raise ArgumentError, "Either :with or :without must be supplied (but not both)"
         end
 
-        if options[:with] && !options[:with].is_a?(Regexp) && !options[:with].respond_to?(:call)
+        if options[:with] && !options[:with].is_a?(Regexp) && !options[:with].is_a?(Symbol) && !options[:with].respond_to?(:call)
           raise ArgumentError, "A regular expression or a proc or lambda must be supplied as the :with option of the configuration hash"
         end
 
-        if options[:without] && !options[:without].is_a?(Regexp) && !options[:without].respond_to?(:call)
+        if options[:without] && !options[:without].is_a?(Regexp) && !options[:without].is_a?(Symbol) && !options[:without].respond_to?(:call)
           raise ArgumentError, "A regular expression or a proc or lambda must be supplied as the :without option of the configuration hash"
         end
       end
