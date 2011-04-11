@@ -19,8 +19,6 @@ module ActiveModel
             raise ArgumentError, "A proc or lambda given to :without option must returns a regular expression"
           end
         end
-      rescue TypeError
-        raise ArgumentError, "A proc or lambda given to :with or :without option must returns a regular expression"
       end
 
       def check_validity!

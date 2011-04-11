@@ -19,8 +19,6 @@ module ActiveModel
         unless exclusions.send(inclusion_method(exclusions), value)
           record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
         end
-      rescue NoMethodError
-        raise ArgumentError, "Exclusion validation for :#{attribute} in #{record.class.name}: #{ERROR_MESSAGE}"
       end
 
     private

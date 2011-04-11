@@ -122,22 +122,6 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert p.valid?
   end
 
-  def test_validates_format_of_with_lambda_not_returns_regexp
-    Topic.validates_format_of :content, :with => lambda{ |topic| false }
-
-    p = Topic.new
-    p.content = "Pixies"
-    assert_raise(ArgumentError){ p.valid? }
-  end
-
-  def test_validates_format_of_without_lambda_not_returns_regexp
-    Topic.validates_format_of :content, :without => lambda{ |topic| false }
-
-    p = Topic.new
-    p.content = "Pixies"
-    assert_raise(ArgumentError){ p.valid? }
-  end
-
   def test_validates_format_of_for_ruby_class
     Person.validates_format_of :karma, :with => /\A\d+\Z/
 

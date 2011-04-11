@@ -86,13 +86,4 @@ class InclusionValidationTest < ActiveModel::TestCase
     p.title = "elephant"
     assert p.valid?
   end
-
-  def test_validates_inclustion_with_invalid_lambda_return
-    Topic.validates_inclusion_of :title, :in => lambda{ |topic| false }
-
-    p = Topic.new
-    p.title = "monkey"
-    p.author_name = "sikachu"
-    assert_raise(ArgumentError){ p.valid? }
-  end
 end

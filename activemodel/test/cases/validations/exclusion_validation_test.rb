@@ -54,13 +54,4 @@ class ExclusionValidationTest < ActiveModel::TestCase
     p.title = "wasabi"
     assert p.valid?
   end
-
-  def test_validates_exclustion_with_invalid_lambda_return
-    Topic.validates_exclusion_of :title, :in => lambda{ |topic| false }
-
-    p = Topic.new
-    p.title = "wasabi"
-    p.author_name = "sikachu"
-    assert_raise(ArgumentError){ p.valid? }
-  end
 end
