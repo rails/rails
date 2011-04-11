@@ -49,6 +49,9 @@
   * Arel::SelectManager#where_clauses is deprecated and will be removed in
   3.0.0 with no replacement.
 
+  * Arel::SelectManager#wheres is deprecated and will be removed in
+  3.0.0 with no replacement.
+
 == 2.0.7 (unreleased)
 
 * Bug Fixes

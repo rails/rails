@@ -143,6 +143,7 @@ module Arel
     end
 
     def wheres
+      warn "#{caller[0]}: SelectManager#wheres is deprecated and will be removed in ARel 3.0.0 with no replacement"
       Compatibility::Wheres.new @engine, @ctx.wheres
     end
 
