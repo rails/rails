@@ -592,8 +592,26 @@ module ActiveRecord
 
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
-        def select(sql, name = nil)
-          execute(sql, name).each(:as => :hash)
+        def select(sql, name = nil, binds = [])
+          exec_query(sql, name, binds).to_a
+        end
+
+        def exec_query(sql, name = 'SQL', binds = [])
+          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+
+          log(sql, name, binds) do
+            begin
+              result = @connection.query(sql)
+            rescue ActiveRecord::StatementInvalid => exception
+              if exception.message.split(":").first =~ /Packets out of order/
+                raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
+              else
+                raise
+              end
+            end
+
+            ActiveRecord::Result.new(result.fields, result.to_a)
+          end
         end
 
         def supports_views?
