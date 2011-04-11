@@ -229,6 +229,11 @@ module ActiveRecord
         @statements = {}
 
         connect
+
+        if postgresql_version < 80200
+          raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
+        end
+
         @local_tz = execute('SHOW TIME ZONE').first["TimeZone"]
       end
 
@@ -299,7 +304,7 @@ module ActiveRecord
       end
 
       def supports_insert_with_returning?
-        postgresql_version >= 80200
+        true
       end
 
       def supports_ddl_transactions?
@@ -310,10 +315,9 @@ module ActiveRecord
         true
       end
 
-      # Returns the configured supported identifier length supported by PostgreSQL,
-      # or report the default of 63 on PostgreSQL 7.x.
+      # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
-        @table_alias_length ||= (postgresql_version >= 80000 ? query('SHOW max_identifier_length')[0][0].to_i : 63)
+        @table_alias_length ||= query('SHOW max_identifier_length')[0][0].to_i
       end
 
       # QUOTING ==================================================
@@ -404,7 +408,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def supports_disable_referential_integrity?() #:nodoc:
-        postgresql_version >= 80100
+        true
       end
 
       def disable_referential_integrity #:nodoc:
@@ -632,15 +636,7 @@ module ActiveRecord
       # Example:
       #   drop_database 'matt_development'
       def drop_database(name) #:nodoc:
-        if postgresql_version >= 80200
-          execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
-        else
-          begin
-            execute "DROP DATABASE #{quote_table_name(name)}"
-          rescue ActiveRecord::StatementInvalid
-            @logger.warn "#{name} database doesn't exist." if @logger
-          end
-        end
+        execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
       end
 
       # Returns the list of all tables in the schema search path or a specified schema.
@@ -803,28 +799,6 @@ module ActiveRecord
             AND dep.refobjid      = '#{quote_table_name(table)}'::regclass
         end_sql
 
-        if result.nil? or result.empty?
-          # If that fails, try parsing the primary key's default value.
-          # Support the 7.x and 8.0 nextval('foo'::text) as well as
-          # the 8.1+ nextval('foo'::regclass).
-          result = query(<<-end_sql, 'PK and custom sequence')[0]
-            SELECT attr.attname,
-              CASE
-                WHEN split_part(def.adsrc, '''', 2) ~ '.' THEN
-                  substr(split_part(def.adsrc, '''', 2),
-                         strpos(split_part(def.adsrc, '''', 2), '.')+1)
-                ELSE split_part(def.adsrc, '''', 2)
-              END
-            FROM pg_class       t
-            JOIN pg_attribute   attr ON (t.oid = attrelid)
-            JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
-            JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
-            WHERE t.oid = '#{quote_table_name(table)}'::regclass
-              AND cons.contype = 'p'
-              AND def.adsrc ~* 'nextval'
-          end_sql
-        end
-
         # [primary_key, sequence]
         [result.first, result.last]
       rescue
@@ -848,38 +822,14 @@ module ActiveRecord
         add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         add_column_options!(add_column_sql, options)
 
-        begin
-          execute add_column_sql
-        rescue ActiveRecord::StatementInvalid => e
-          raise e if postgresql_version > 80000
-
-          execute("ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}")
-          change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
-          change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
-        end
+        execute add_column_sql
       end
 
       # Changes the column of a table.
       def change_column(table_name, column_name, type, options = {})
         quoted_table_name = quote_table_name(table_name)
 
-        begin
-          execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
-        rescue ActiveRecord::StatementInvalid => e
-          raise e if postgresql_version > 80000
-          # This is PostgreSQL 7.x, so we have to use a more arcane way of doing it.
-          begin
-            begin_db_transaction
-            tmp_column_name = "#{column_name}_ar_tmp"
-            add_column(table_name, tmp_column_name, type, options)
-            execute "UPDATE #{quoted_table_name} SET #{quote_column_name(tmp_column_name)} = CAST(#{quote_column_name(column_name)} AS #{type_to_sql(type, options[:limit], options[:precision], options[:scale])})"
-            remove_column(table_name, column_name)
-            rename_column(table_name, tmp_column_name, column_name)
-            commit_db_transaction
-          rescue
-            rollback_db_transaction
-          end
-        end
+        execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
 
         change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
         change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
