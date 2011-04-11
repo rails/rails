@@ -203,6 +203,10 @@ module ActiveRecord
       def release_savepoint
       end
 
+      def case_sensitive_modifier(node)
+        node
+      end
+
       def current_savepoint_name
         "active_record_#{open_transactions}"
       end

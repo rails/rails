@@ -59,6 +59,7 @@ module ActiveRecord
         if !options[:case_sensitive] && column.text?
           relation = table[attribute].matches(value)
         else
+          value    = klass.connection.case_sensitive_modifier(value)
           relation = table[attribute].eq(value)
         end
 
