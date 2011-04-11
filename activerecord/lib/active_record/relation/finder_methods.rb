@@ -352,8 +352,8 @@ module ActiveRecord
       if result.size == expected_size
         result
       else
-        conditions = arel.wheres.map { |x| x.value }.join(', ')
-        conditions = " [WHERE #{conditions}]" if conditions.present?
+        conditions = arel.where_sql
+        conditions = " [#{conditions}]" if conditions
 
         error = "Couldn't find all #{@klass.name.pluralize} with IDs "
         error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
