@@ -63,14 +63,4 @@ class ExclusionValidationTest < ActiveModel::TestCase
     p.author_name = "sikachu"
     assert_raise(ArgumentError){ p.valid? }
   end
-
-  def test_validates_inclusion_with_explicit_include
-    range = (1..100)
-    Topic.validates_exclusion_of :title, :in => range, :use_include => true
-    range.expects(:include?).returns(false)
-
-    t = Topic.new
-    t.title = 102
-    assert t.valid?
-  end
 end
