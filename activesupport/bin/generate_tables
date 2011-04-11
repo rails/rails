@@ -105,7 +105,7 @@ module ActiveSupport
 
         def normalize_boundary_map
           @ucd.boundary.each do |k,v|
-            if k.in(:lf, :cr)
+            if [:lf, :cr].include? k
               @ucd.boundary[k] = v[0]
             end
           end
