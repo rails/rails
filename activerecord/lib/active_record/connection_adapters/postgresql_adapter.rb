@@ -637,11 +637,14 @@ module ActiveRecord
       def table_exists?(name)
         schema, table = extract_schema_and_table(name.to_s)
 
-        query(<<-SQL, 'SCHEMA').first[0].to_i > 0
+        binds = [[nil, table.gsub(/(^"|"$)/,'')]]
+        binds << [nil, schema] if schema
+
+        exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
             SELECT COUNT(*)
             FROM pg_tables
-            WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
-            #{schema ? "AND schemaname = '#{schema}'" : ''}
+            WHERE tablename = $1
+            #{schema ? "AND schemaname = $2" : ''}
         SQL
       end
 
