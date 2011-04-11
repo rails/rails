@@ -59,7 +59,7 @@ module ActiveRecord
         if !options[:case_sensitive] && column.text?
           relation = table[attribute].matches(value)
         else
-          relation = table[attribute].eq(value)
+          relation = Arel::Nodes::Bin.new(table[attribute].eq(value))
         end
 
         relation
