@@ -4,7 +4,14 @@
 
 ## DESCRIPTION
 
-Arel is a Relational Algebra for Ruby. It 1) simplifies the generation complex of SQL queries and it 2) adapts to various RDBMS systems. It is intended to be a framework framework; that is, you can build your own ORM with it, focusing on innovative object and collection modeling as opposed to database compatibility and query generation.
+Arel is a SQL AST manager for Ruby. It
+
+1. Simplifies the generation complex of SQL queries
+2. Adapts to various RDBMS systems
+
+It is intended to be a framework framework; that is, you can build your own ORM
+with it, focusing on innovative object and collection modeling as opposed to
+database compatibility and query generation.
 
 ## Status
 
