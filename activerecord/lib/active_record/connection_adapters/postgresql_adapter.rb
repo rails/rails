@@ -435,13 +435,10 @@ module ActiveRecord
         # Extract the table from the insert sql. Yuck.
         table = sql.split(" ", 4)[2].gsub('"', '')
 
-        # Try an insert with 'returning id' if available (PG >= 8.2)
-        if supports_insert_with_returning?
-          pk, sequence_name = *pk_and_sequence_for(table) unless pk
-          if pk
-            id = select_value("#{sql} RETURNING #{quote_column_name(pk)}")
-            return id
-          end
+        pk, sequence_name = *pk_and_sequence_for(table) unless pk
+        if pk
+          id = select_value("#{sql} RETURNING #{quote_column_name(pk)}")
+          return id
         end
 
         # Otherwise, insert then grab last_insert_id.
