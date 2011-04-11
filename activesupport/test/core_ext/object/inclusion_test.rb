@@ -31,9 +31,9 @@ class InTest < Test::Unit::TestCase
   end
 
   def test_either
-    assert 1.either?(1,2,3)
-    assert !5.either?(1,2,3)
-    assert [1,2,3].either?([1,2,3], 2, [3,4,5])
+    assert 1.among?(1,2,3)
+    assert !5.among?(1,2,3)
+    assert [1,2,3].among?([1,2,3], 2, [3,4,5])
   end
 
   module A

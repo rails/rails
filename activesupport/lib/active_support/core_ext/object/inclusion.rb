@@ -12,9 +12,9 @@ class Object
   # Returns true if this object is included in the argument list. Usage:
   #
   #   username = "sikachu"
-  #   username.either?("josevalim", "dhh", "wycats") # => false
+  #   username.among?("josevalim", "dhh", "wycats") # => false
   #
-  def either?(*objects)
+  def among?(*objects)
     objects.include?(self)
   end
 end

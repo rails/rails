@@ -1744,7 +1744,7 @@ class FormHelperTest < ActionView::TestCase
   def snowman(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if method && !method.to_s.either?('get', 'post')
+    if method && !method.to_s.among?('get', 'post')
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
     txt << %{</div>}

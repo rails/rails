@@ -193,7 +193,7 @@ class HttpMockTest < ActiveSupport::TestCase
   end
 
   def request(method, path, headers = {}, body = nil)
-    if method.either?(:put, :post)
+    if method.among?(:put, :post)
       @http.send(method, path, body, headers)
     else
       @http.send(method, path, headers)

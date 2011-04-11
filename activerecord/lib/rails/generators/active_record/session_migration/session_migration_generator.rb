@@ -14,7 +14,7 @@ module ActiveRecord
 
         def session_table_name
           current_table_name = ActiveRecord::SessionStore::Session.table_name
-          if current_table_name.either?("sessions", "session")
+          if current_table_name.among?("sessions", "session")
             current_table_name = (ActiveRecord::Base.pluralize_table_names ? 'session'.pluralize : 'session')
           end
           current_table_name

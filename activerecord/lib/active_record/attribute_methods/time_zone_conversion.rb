@@ -59,7 +59,7 @@ module ActiveRecord
 
         private
           def create_time_zone_conversion_attribute?(name, column)
-            time_zone_aware_attributes && !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) && column.type.either?(:datetime, :timestamp)
+            time_zone_aware_attributes && !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) && column.type.among?(:datetime, :timestamp)
           end
       end
     end

@@ -16,7 +16,7 @@ module ActiveRecord::Associations::Builder
 
       def configure_dependency
         if options[:dependent]
-          unless options[:dependent].either?(:destroy, :delete_all, :nullify, :restrict)
+          unless options[:dependent].among?(:destroy, :delete_all, :nullify, :restrict)
             raise ArgumentError, "The :dependent option expects either :destroy, :delete_all, " \
                                  ":nullify or :restrict (#{options[:dependent].inspect})"
           end

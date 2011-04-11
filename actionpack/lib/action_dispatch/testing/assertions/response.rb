@@ -35,7 +35,7 @@ module ActionDispatch
       def assert_response(type, message = nil)
         validate_request!
 
-        if type.either?(:success, :missing, :redirect, :error) && @response.send("#{type}?")
+        if type.among?(:success, :missing, :redirect, :error) && @response.send("#{type}?")
           assert_block("") { true } # to count the assertion
         elsif type.is_a?(Fixnum) && @response.response_code == type
           assert_block("") { true } # to count the assertion

@@ -278,7 +278,7 @@ module ActiveResource
       def legitimize_auth_type(auth_type)
         return :basic if auth_type.nil?
         auth_type = auth_type.to_sym
-        auth_type.either?(:basic, :digest) ? auth_type : :basic
+        auth_type.among?(:basic, :digest) ? auth_type : :basic
       end
   end
 end

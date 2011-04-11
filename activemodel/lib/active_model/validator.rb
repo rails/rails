@@ -68,7 +68,7 @@ module ActiveModel #:nodoc:
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
-  #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless value.either?('Mr.', 'Mrs.', 'Dr.')
+  #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless value.among?('Mr.', 'Mrs.', 'Dr.')
   #     end
   #   end
   #

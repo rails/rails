@@ -413,7 +413,7 @@ module ActiveSupport
       # CallbackChain.
       #
       def __update_callbacks(name, filters = [], block = nil) #:nodoc:
-        type = filters.first.either?(:before, :after, :around) ? filters.shift : :before
+        type = filters.first.among?(:before, :after, :around) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
 

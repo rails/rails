@@ -1,6 +1,6 @@
 *Rails 3.1.0 (unreleased)*
 
-* Add Object#in? to test if an object is included in another object, and Object#either? to test if an object is included in a list of objects which will be passed as arguments. [Prem Sichanugrist, Brian Morearty, John Reitano]
+* Add Object#in? to test if an object is included in another object, and Object#among? to test if an object is included in a list of objects which will be passed as arguments. [Prem Sichanugrist, Brian Morearty, John Reitano]
 
 * LocalCache strategy is now a real middleware class, not an anonymous class
 posing for pictures.

@@ -442,7 +442,7 @@ module ActionDispatch
 
         if matches
           assert_block("") { true } # to count the assertion
-          if block_given? && !rjs_type.either?(:remove, :show, :hide, :toggle)
+          if block_given? && !rjs_type.among?(:remove, :show, :hide, :toggle)
             begin
               @selected ||= nil
               in_scope, @selected = @selected, matches
