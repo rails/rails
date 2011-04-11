@@ -764,19 +764,21 @@ module ActiveRecord
       def reset_pk_sequence!(table, pk = nil, sequence = nil) #:nodoc:
         unless pk and sequence
           default_pk, default_sequence = pk_and_sequence_for(table)
+
           pk ||= default_pk
           sequence ||= default_sequence
         end
-        if pk
-          if sequence
-            quoted_sequence = quote_column_name(sequence)
 
-            select_value <<-end_sql, 'Reset sequence'
-              SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
-            end_sql
-          else
-            @logger.warn "#{table} has primary key #{pk} with no default sequence" if @logger
-          end
+        if @logger && pk && !sequence
+          @logger.warn "#{table} has primary key #{pk} with no default sequence"
+        end
+
+        if pk && sequence
+          quoted_sequence = quote_column_name(sequence)
+
+          select_value <<-end_sql, 'Reset sequence'
+            SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
+          end_sql
         end
       end
 
