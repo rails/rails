@@ -31,11 +31,10 @@ module ActiveModel
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
       def has_secure_password
         attr_reader   :password
-        attr_accessor :password_confirmation
 
         validates_confirmation_of :password
         validates_presence_of     :password_digest
-        
+
         include InstanceMethodsOnActivation
 
         if respond_to?(:attributes_protected_by_default)
