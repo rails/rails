@@ -435,18 +435,17 @@ module ActiveRecord
         # Extract the table from the insert sql. Yuck.
         table = sql.split(" ", 4)[2].gsub('"', '')
 
-        pk, sequence_name = *pk_and_sequence_for(table) unless pk
+        # If neither pk nor sequence name is given, look them up.
+        unless pk || sequence_name
+          pk, sequence_name = *pk_and_sequence_for(table)
+        end
+
         if pk
           id = select_value("#{sql} RETURNING #{quote_column_name(pk)}")
           return id
         end
 
         super
-
-        # If neither pk nor sequence name is given, look them up.
-        unless pk || sequence_name
-          pk, sequence_name = *pk_and_sequence_for(table)
-        end
 
         # If a pk is given, fallback to default sequence name.
         # Don't fetch last insert id for a table without a pk.
