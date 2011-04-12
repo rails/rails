@@ -501,8 +501,8 @@ def index
   @posts = Post.all
 
   respond_to do |format|
-    format.html # index.html.erb
-    format.xml  { render :xml => @posts }
+    format.html  # index.html.erb
+    format.json  { render :json => @posts }
   end
 end
 </ruby>
@@ -511,7 +511,7 @@ end
 
 TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 
-The +respond_to+ block handles both HTML and XML calls to this action. If you browse to "http://localhost:3000/posts.xml":http://localhost:3000/posts.xml, you'll see all of the posts in XML format. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/views/posts/index.html.erb+:
+The +respond_to+ block handles both HTML and JSON calls to this action. If you browse to "http://localhost:3000/posts.json":http://localhost:3000/posts.json, you'll see a JSON containing all of the posts. The HTML format looks for a view in +app/views/posts/+ with a name that corresponds to the action name. Rails makes all of the instance variables from the action available to the view. Here's +app/views/posts/index.html.erb+:
 
 <erb>
 <h1>Listing posts</h1>
@@ -584,8 +584,8 @@ def new
   @post = Post.new
 
   respond_to do |format|
-    format.html # new.html.erb
-    format.xml  { render :xml => @post }
+    format.html  # new.html.erb
+    format.json  { render :json => @post }
   end
 end
 </ruby>
@@ -653,13 +653,13 @@ def create
 
   respond_to do |format|
     if @post.save
-      format.html { redirect_to(@post,
+      format.html  { redirect_to(@post,
                     :notice => 'Post was successfully created.') }
-      format.xml  { render :xml => @post,
+      format.json  { render :json => @post,
                     :status => :created, :location => @post }
     else
-      format.html { render :action => "new" }
-      format.xml  { render :xml => @post.errors,
+      format.html  { render :action => "new" }
+      format.json  { render :json => @post.errors,
                     :status => :unprocessable_entity }
     end
   end
@@ -681,8 +681,8 @@ def show
   @post = Post.find(params[:id])
 
   respond_to do |format|
-    format.html # show.html.erb
-    format.xml  { render :xml => @post }
+    format.html  # show.html.erb
+    format.json  { render :json => @post }
   end
 end
 </ruby>
@@ -743,12 +743,12 @@ def update
 
   respond_to do |format|
     if @post.update_attributes(params[:post])
-      format.html { redirect_to(@post,
+      format.html  { redirect_to(@post,
                     :notice => 'Post was successfully updated.') }
-      format.xml  { head :ok }
+      format.json  { render :json => {}, :status => :ok }
     else
-      format.html { render :action => "edit" }
-      format.xml  { render :xml => @post.errors,
+      format.html  { render :action => "edit" }
+      format.json  { render :json => @post.errors,
                     :status => :unprocessable_entity }
     end
   end
@@ -767,8 +767,8 @@ def destroy
   @post.destroy
 
   respond_to do |format|
-    format.html { redirect_to(posts_url) }
-    format.xml  { head :ok }
+    format.html  { redirect_to(posts_url) }
+    format.json  { render :json => {}, :status => :ok }
   end
 end
 </ruby>
@@ -1213,7 +1213,7 @@ class PostsController < ApplicationController
   http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
 
   # GET /posts
-  # GET /posts.xml
+  # GET /posts.json
   def index
     @posts = Post.all
     respond_to do |format|
@@ -1458,6 +1458,7 @@ Two very common sources of data that are not UTF-8:
 
 h3. Changelog
 
+* April 11, 2011: Changed scaffold_controller generator to create format block for JSON instead of XML "Sebastian Martinez":http://www.wyeworks.com
 * August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
 * May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
