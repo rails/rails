@@ -81,8 +81,11 @@ module ActionView
       #   # => /workshops
       #
       #   <%= url_for(@workshop) %>
-      #   # calls @workshop.to_s
+      #   # calls @workshop.to_param which by default returns the id
       #   # => /workshops/5
+      #
+      #   # to_param can be re-defined in a model to provide different URL names:
+      #   # => /workshops/1-workshop-name
       #
       #   <%= url_for("http://www.example.com") %>
       #   # => http://www.example.com

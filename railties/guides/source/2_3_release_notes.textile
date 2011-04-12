@@ -410,7 +410,7 @@ You're likely familiar with Rails' practice of adding timestamps to static asset
 
 h4. Asset Hosts as Objects
 
-Asset hosts get more flexible in edge Rails with the ability to declare an asset host as a specific object that responds to a call. This allows you to to implement any complex logic you need in your asset hosting.
+Asset hosts get more flexible in edge Rails with the ability to declare an asset host as a specific object that responds to a call. This allows you to implement any complex logic you need in your asset hosting.
 
 * More Information: "asset-hosting-with-minimum-ssl":http://github.com/dhh/asset-hosting-with-minimum-ssl/tree/master
 

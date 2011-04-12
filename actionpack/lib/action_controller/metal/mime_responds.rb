@@ -3,7 +3,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/object/inclusion'
 
 module ActionController #:nodoc:
-  module MimeResponds #:nodoc:
+  module MimeResponds
     extend ActiveSupport::Concern
 
     included do
@@ -261,7 +261,7 @@ module ActionController #:nodoc:
     # Collects mimes and return the response for the negotiated format. Returns
     # nil if :not_acceptable was sent to the client.
     #
-    def retrieve_response_from_mimes(mimes=nil, &block)
+    def retrieve_response_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
       collector = Collector.new(mimes) { |options| default_render(options || {}) }
       block.call(collector) if block_given?

@@ -48,7 +48,7 @@ more separate. Each of these packages can be used independently outside of
 
     "Welcome aboard: You're riding Ruby on Rails!"
 
-5. Follow the guidelines to start developing your application. You can find the following resources handy:
+5. Follow the guidelines to start developing your application. You may find the following resources handy:
 
 * The README file created within your application.
 * The {Getting Started with Rails}[http://guides.rubyonrails.org/getting_started.html].
