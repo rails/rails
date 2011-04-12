@@ -8,13 +8,4 @@ class Object
   def in?(another_object)
     another_object.include?(self)
   end
-
-  # Returns true if this object is included in the argument list. Usage:
-  #
-  #   username = "sikachu"
-  #   username.among?("josevalim", "dhh", "wycats") # => false
-  #
-  def among?(*objects)
-    objects.include?(self)
-  end
 end

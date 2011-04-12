@@ -345,7 +345,7 @@ module ActiveSupport
       end
 
       def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.any? {|p| p[0].among?(:years, :months, :days) }
+        ActiveSupport::Duration === obj && obj.parts.any? {|p| p[0].in?([:years, :months, :days]) }
       end
   end
 end

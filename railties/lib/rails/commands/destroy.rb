@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/inclusion'
 
 Rails::Generators.configure!
 
-if ARGV.first.among?(nil, "-h", "--help")
+if ARGV.first.in?([nil, "-h", "--help"])
   Rails::Generators.help 'destroy'
   exit
 end

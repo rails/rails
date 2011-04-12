@@ -137,7 +137,7 @@ db_namespace = namespace :db do
   end
 
   def local_database?(config, &block)
-    if config['host'].among?("127.0.0.1", "localhost") || config['host'].blank?
+    if config['host'].in?(["127.0.0.1", "localhost"]) || config['host'].blank?
       yield
     else
       $stderr.puts "This task only modifies local databases. #{config['database']} is on a remote host."

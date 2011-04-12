@@ -30,12 +30,6 @@ class InTest < Test::Unit::TestCase
     assert !3.in?(s)
   end
 
-  def test_among
-    assert 1.among?(1,2,3)
-    assert !5.among?(1,2,3)
-    assert [1,2,3].among?([1,2,3], 2, [3,4,5])
-  end
-
   module A
   end
   class B

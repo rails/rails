@@ -1,6 +1,6 @@
 require 'active_support/core_ext/object/inclusion'
 
-if ARGV.first.among?(nil, "-h", "--help")
+if ARGV.first.in?([nil, "-h", "--help"])
   puts "Usage: rails benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
   exit 1
 end
