@@ -442,9 +442,9 @@ require_library_or_gem('mysql')
 
 NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
 
-h4. +in?+ and +either?+
+h4. +in?+ and +among?+
 
-The predicate +in?+ tests if an object is included in another object, and the predicate +either?+ tests if an object is included in a list of objects which will be passed as arguments.
+The predicate +in?+ tests if an object is included in another object, and the predicate +among?+ tests if an object is included in a list of objects which will be passed as arguments.
 
 Examples of +in?+:
 
@@ -454,12 +454,12 @@ Examples of +in?+:
   25.in?(30..50)      # => false
 </ruby>
 
-Examples of +either?+:
+Examples of +among?+:
 
 <ruby>
-  1.either?(1,2,3)                      # => true
-  5.either?(1,2,3)                      # => false
-  [1,2,3].either?([1,2,3], 2, [3,4,5])  # => true
+  1.among?(1,2,3)                      # => true
+  5.among?(1,2,3)                      # => false
+  [1,2,3].among?([1,2,3], 2, [3,4,5])  # => true
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
