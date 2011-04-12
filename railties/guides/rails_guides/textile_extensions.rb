@@ -5,7 +5,7 @@ module RailsGuides
     def notestuff(body)
       body.gsub!(/^(IMPORTANT|CAUTION|WARNING|NOTE|INFO)[.:](.*)$/) do |m|
         css_class = $1.downcase
-        css_class = 'warning' if css_class.among?('caution', 'important')
+        css_class = 'warning' if css_class.in?(['caution', 'important'])
 
         result = "<div class='#{css_class}'><p>"
         result << $2.strip
@@ -35,7 +35,7 @@ module RailsGuides
     def code(body)
       body.gsub!(%r{<(yaml|shell|ruby|erb|html|sql|plain)>(.*?)</\1>}m) do |m|
         es = ERB::Util.h($2)
-        css_class = $1.among?('erb', 'shell') ? 'html' : $1
+        css_class = $1.in?(['erb', 'shell']) ? 'html' : $1
         %{<notextile><div class="code_container"><code class="#{css_class}">#{es}</code></div></notextile>}
       end
     end

@@ -21,7 +21,7 @@ module ActiveSupport
       end
 
       def clear(options = nil)
-        root_dirs = Dir.entries(cache_path).reject{|f| f.among?('.', '..')}
+        root_dirs = Dir.entries(cache_path).reject{|f| f.in?(['.', '..'])}
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
@@ -162,7 +162,7 @@ module ActiveSupport
         # Delete empty directories in the cache.
         def delete_empty_directories(dir)
           return if dir == cache_path
-          if Dir.entries(dir).reject{|f| f.among?('.', '..')}.empty?
+          if Dir.entries(dir).reject{|f| f.in?(['.', '..'])}.empty?
             File.delete(dir) rescue nil
             delete_empty_directories(File.dirname(dir))
           end

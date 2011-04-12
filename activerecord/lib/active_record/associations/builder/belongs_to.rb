@@ -67,7 +67,7 @@ module ActiveRecord::Associations::Builder
 
       def configure_dependency
         if options[:dependent]
-          unless options[:dependent].among?(:destroy, :delete)
+          unless options[:dependent].in?([:destroy, :delete])
             raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{options[:dependent].inspect})"
           end
 

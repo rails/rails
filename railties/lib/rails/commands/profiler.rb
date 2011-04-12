@@ -1,6 +1,6 @@
 require 'active_support/core_ext/object/inclusion'
 
-if ARGV.first.among?(nil, "-h", "--help")
+if ARGV.first.in?([nil, "-h", "--help"])
   $stderr.puts "Usage: rails profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]"
   exit(1)
 end

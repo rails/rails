@@ -45,7 +45,7 @@ module Rails
       end
 
       def reference?
-        self.type.among?(:references, :belongs_to)
+        self.type.in?([:references, :belongs_to])
       end
     end
   end

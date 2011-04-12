@@ -52,7 +52,7 @@ module ActiveRecord
         end
 
         def remove_target!(method)
-          if method.among?(:delete, :destroy)
+          if method.in?([:delete, :destroy])
             target.send(method)
           else
             nullify_owner_attributes(target)

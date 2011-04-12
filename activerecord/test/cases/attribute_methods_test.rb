@@ -639,7 +639,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def time_related_columns_on_topic
-    Topic.columns.select { |c| c.type.among?(:time, :date, :datetime, :timestamp) }
+    Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
   end
 
   def serialized_columns_on_topic

@@ -71,7 +71,7 @@ when '--version', '-v'
   require 'rails/commands/application'
 
 else
-  puts "Error: Command not recognized" unless command.among?('-h', '--help')
+  puts "Error: Command not recognized" unless command.in?(['-h', '--help'])
   puts <<-EOT
 Usage: rails COMMAND [ARGS]
 

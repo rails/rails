@@ -157,7 +157,7 @@ class RespondToController < ActionController::Base
 
   protected
     def set_layout
-      if action_name.among?("all_types_with_layout", "iphone_with_html_response_type")
+      if action_name.in?(["all_types_with_layout", "iphone_with_html_response_type"])
         "respond_to/layouts/standard"
       elsif action_name == "iphone_with_html_response_type_without_layout"
         "respond_to/layouts/missing"

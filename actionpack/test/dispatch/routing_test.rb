@@ -496,7 +496,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :todos, :id => /\d+/
       end
 
-      scope '/countries/:country', :constraints => lambda { |params, req| params[:country].among?("all", "France") } do
+      scope '/countries/:country', :constraints => lambda { |params, req| params[:country].in?(["all", "France"]) } do
         match '/',       :to => 'countries#index'
         match '/cities', :to => 'countries#cities'
       end

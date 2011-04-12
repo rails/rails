@@ -1346,11 +1346,11 @@ module ActionDispatch
           end
 
           def resource_scope? #:nodoc:
-            @scope[:scope_level].among?(:resource, :resources)
+            @scope[:scope_level].in?([:resource, :resources])
           end
 
           def resource_method_scope? #:nodoc:
-            @scope[:scope_level].among?(:collection, :member, :new)
+            @scope[:scope_level].in?([:collection, :member, :new])
           end
 
           def with_exclusive_scope

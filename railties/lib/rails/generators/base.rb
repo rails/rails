@@ -165,7 +165,7 @@ module Rails
         names.each do |name|
           defaults = if options[:type] == :boolean
             { }
-          elsif default_value_for_option(name, options).among?(true, false)
+          elsif default_value_for_option(name, options).in?([true, false])
             { :banner => "" }
           else
             { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }

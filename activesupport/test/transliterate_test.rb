@@ -16,7 +16,7 @@ class TransliterateTest < Test::Unit::TestCase
     # create string with range of Unicode"s western characters with
     # diacritics, excluding the division and multiplication signs which for
     # some reason or other are floating in the middle of all the letters.
-    string = (0xC0..0x17E).to_a.reject {|c| c.among?(0xD7, 0xF7)}.pack("U*")
+    string = (0xC0..0x17E).to_a.reject {|c| c.in?([0xD7, 0xF7])}.pack("U*")
     string.each_char do |char|
       assert_match %r{^[a-zA-Z']*$}, ActiveSupport::Inflector.transliterate(string)
     end
