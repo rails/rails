@@ -89,14 +89,7 @@ module ActiveRecord
               foreign_key = reflection.active_record_primary_key
             end
 
-            constraint = table[key].eq(foreign_table[foreign_key])
-
-            if reflection.klass.finder_needs_type_condition?
-              constraint = table.create_and([
-                constraint,
-                reflection.klass.send(:type_condition, table)
-              ])
-            end
+            constraint = build_constraint(reflection, table, key, foreign_table, foreign_key)
 
             relation.from(join(table, constraint))
 
@@ -109,6 +102,19 @@ module ActiveRecord
           end
 
           relation
+        end
+
+        def build_constraint(reflection, table, key, foreign_table, foreign_key)
+          constraint = table[key].eq(foreign_table[foreign_key])
+
+          if reflection.klass.finder_needs_type_condition?
+            constraint = table.create_and([
+              constraint,
+              reflection.klass.send(:type_condition, table)
+            ])
+          end
+
+          constraint
         end
 
         def join_relation(joining_relation)
