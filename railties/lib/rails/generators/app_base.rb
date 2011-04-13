@@ -130,24 +130,27 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE.strip_heredoc
-            gem 'rails', :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'arel',  :git => 'git://github.com/rails/arel.git'
-            gem 'rack',  :git => 'git://github.com/rack/rack.git'
+            gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'rack',      :git => 'git://github.com/rack/rack.git'
+            gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails', :git => 'git://github.com/rails/rails.git'
-            gem 'arel',  :git => 'git://github.com/rails/arel.git'
-            gem 'rack',  :git => 'git://github.com/rack/rack.git'
+            gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'rack',      :git => 'git://github.com/rack/rack.git'
+            gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails',  :git => 'git://github.com/rails/rails.git'
-            # gem 'arel',   :git => 'git://github.com/rails/arel.git'
-            # gem 'rack',   :git => 'git://github.com/rack/rack.git'
+            # gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            # gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            # gem 'rack',      :git => 'git://github.com/rack/rack.git'
+            # gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
           GEMFILE
         end
       end
