@@ -124,7 +124,7 @@ module Rails
             entry += "\n# gem 'mysql2', :git => 'git://github.com/brianmario/mysql2.git'"
           end
         end
-        entry
+        entry + "\n"
       end
 
       def rails_gemfile_entry
@@ -163,6 +163,25 @@ module Rails
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
         else options[:database]
+        end
+      end
+      
+      def gem_for_ruby_debugger
+        if RUBY_VERSION < "1.9.2"
+          "gem 'ruby-debug'"
+        else
+          "gem 'ruby-debug19', :require => 'ruby-debug'"
+        end
+      end
+      
+      def gem_for_turn
+        unless RUBY_VERSION < "1.9.2"
+          <<-GEMFILE.strip_heredoc
+            group :test do
+              # Pretty printed test output
+              gem 'turn', :require => false
+            end
+          GEMFILE
         end
       end
 

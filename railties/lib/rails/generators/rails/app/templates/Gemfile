@@ -5,8 +5,8 @@ source 'http://rubygems.org'
 <%= database_gemfile_entry -%>
 
 # Asset template engines
-gem 'json'  # Not needed on Ruby 1.9
-gem 'sass', :git => 'git://github.com/nex3/sass.git'
+<%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
+gem 'sass', '~> 3.1.0.alpha'
 gem 'coffee-script'
 
 # Use unicorn as the web server
@@ -15,24 +15,7 @@ gem 'coffee-script'
 # Deploy with Capistrano
 # gem 'capistrano'
 
-# To use debugger (ruby-debug for Ruby 1.8.7+, ruby-debug19 for Ruby 1.9.2+)
-# gem 'ruby-debug'
-# gem 'ruby-debug19', :require => 'ruby-debug'
+# To use debugger
+# <%= gem_for_ruby_debugger %>
 
-# Bundle the extra gems:
-# gem 'bj'
-# gem 'nokogiri'
-# gem 'sqlite3'
-# gem 'rack-bug', :require => 'rack/bug'
-
-# Bundle gems for the local environment. Make sure to
-# put test-only gems in this group so their generators
-# and rake tasks are available in development mode:
-
-group :development, :test do
-  # Pretty printed test output for minitest on Ruby 1.9.2+
-  gem 'turn', :require => false
-end
-
-# Needed for guides generation
-# gem "RedCloth", "~> 4.2"
+<%= gem_for_turn -%>
