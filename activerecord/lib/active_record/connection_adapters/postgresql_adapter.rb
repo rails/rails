@@ -544,6 +544,18 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
+      def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        unless pk
+          _, table = extract_schema_and_table(sql.split(" ", 4)[2])
+
+          pk = primary_key(table)
+        end
+
+        sql = "#{sql} RETURNING #{quote_column_name(pk)}" if pk
+
+        [sql, binds]
+      end
+
       # Executes an UPDATE query and returns the number of affected tuples.
       def update_sql(sql, name = nil)
         super.cmd_tuples

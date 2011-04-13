@@ -56,8 +56,17 @@ module ActiveRecord
       end
 
       # Returns the last auto-generated ID from the affected table.
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        insert_sql(sql, name, pk, id_value, sequence_name)
+      #
+      # +id_value+ will be returned unless the value is nil, in
+      # which case the database will attempt to calculate the last inserted
+      # id and return that value.
+      #
+      # If the next id was calculated in advance (as in Oracle), it should be
+      # passed in as +id_value+.
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        sql, binds = sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        value      = exec_insert(sql, name, binds)
+        id_value || last_inserted_id(value)
       end
 
       # Executes the update statement and returns the number of rows affected.
@@ -364,6 +373,15 @@ module ActiveRecord
             end
           end
         end
+
+      def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        [sql, binds]
+      end
+
+      def last_inserted_id(result)
+        row = result.rows.first
+        row && row.first
+      end
     end
   end
 end

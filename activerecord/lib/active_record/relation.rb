@@ -48,17 +48,35 @@ module ActiveRecord
       im = arel.create_insert
       im.into @table
 
+      conn = @klass.connection
+
       if values.empty? # empty insert
         im.values = im.create_values [connection.null_insert_value], []
+        @klass.connection.insert(
+          im.to_sql,
+          'SQL',
+          primary_key,
+          primary_key_value)
       else
-        im.insert values
+        substitutes = values.to_a
+        binds       = substitutes.map do |arel_attr, value|
+          [@klass.columns_hash[arel_attr.name], value]
+        end
+        substitutes.each_with_index do |tuple, i|
+          tuple[1] = conn.substitute_at(tuple.first, i)
+        end
+
+        im.insert substitutes
+
+        conn.insert(
+          im.to_sql,
+          'SQL',
+          primary_key,
+          primary_key_value,
+          nil,
+          binds)
       end
 
-      @klass.connection.insert(
-        im.to_sql,
-        'SQL',
-        primary_key,
-        primary_key_value)
     end
 
     def new(*args, &block)

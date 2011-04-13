@@ -425,6 +425,10 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
+      def last_inserted_id(result)
+        @connection.insert_id
+      end
+
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
         # Some queries, like SHOW CREATE TABLE don't work through the prepared
         # statement API.  For those queries, we need to use this method. :'(
