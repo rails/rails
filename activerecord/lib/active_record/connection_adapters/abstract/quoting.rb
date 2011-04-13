@@ -39,6 +39,42 @@ module ActiveRecord
         end
       end
 
+      # Cast a +value+ to a type that the database understands. For example,
+      # SQLite does not understand dates, so this method will convert a Date
+      # to a String.
+      def type_cast(value, column)
+        return value.id if value.respond_to?(:quoted_id)
+
+        case value
+        when String, ActiveSupport::Multibyte::Chars
+          value = value.to_s
+          return value unless column
+
+          case column.type
+          when :binary then value
+          when :integer then value.to_i
+          when :float then value.to_f
+          else
+            value
+          end
+
+        when true, false
+          if column && column.type == :integer
+            value ? 1 : 0
+          else
+            value ? 't' : 'f'
+          end
+          # BigDecimals need to be put in a non-normalized form and quoted.
+        when nil        then nil
+        when BigDecimal then value.to_f
+        when Numeric    then value
+        when Date, Time then quoted_date(value)
+        when Symbol     then value.to_s
+        else
+          YAML.dump(value)
+        end
+      end
+
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
