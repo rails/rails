@@ -6,7 +6,7 @@ source 'http://rubygems.org'
 
 # Asset template engines
 gem 'coffee-script'
-gem 'sass'
+gem 'sass', :git => 'git://github.com/nex3/sass.git'
 
 # Use unicorn as the web server
 # gem 'unicorn'
