@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* jQuery is the new default JavaScript library. [fxn]
+
 * Changed scaffold and app generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
 
   So instead of creating something like:
