@@ -1,9 +1,9 @@
 module ActiveRecord
   ###
-  # This class encapsulates a Result returned from calling +exec+ on any
+  # This class encapsulates a Result returned from calling +exec_query+ on any
   # database connection adapter.  For example:
   #
-  #   x = ActiveRecord::Base.connection.exec('SELECT * FROM foo')
+  #   x = ActiveRecord::Base.connection.exec_query('SELECT * FROM foo')
   #   x # => #<ActiveRecord::Result:0xdeadbeef>
   class Result
     include Enumerable

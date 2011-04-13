@@ -173,6 +173,10 @@ module ActiveRecord
         end
       end
 
+      def exec_insert(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
       def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.execute(sql) }
       end
@@ -188,7 +192,8 @@ module ActiveRecord
       end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
-        super || @connection.last_insert_row_id
+        super
+        id_value || @connection.last_insert_row_id
       end
       alias :create :insert_sql
 

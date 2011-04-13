@@ -70,16 +70,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   # would be convenient), because this would cause that scope to be applied to any callbacks etc.
   def test_build_and_create_should_not_happen_within_scope
     car = cars(:honda)
-    original_scoped_methods = Bulb.scoped_methods
+    scoped_count = car.foo_bulbs.scoped.where_values.count
 
-    bulb = car.bulbs.build
-    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+    bulb = car.foo_bulbs.build
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
 
-    bulb = car.bulbs.create
-    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+    bulb = car.foo_bulbs.create
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
 
-    bulb = car.bulbs.create!
-    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+    bulb = car.foo_bulbs.create!
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
   end
 
   def test_no_sql_should_be_fired_if_association_already_loaded

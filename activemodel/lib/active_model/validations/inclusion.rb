@@ -5,20 +5,30 @@ module ActiveModel
   # == Active Model Inclusion Validator
   module Validations
     class InclusionValidator < EachValidator
+      ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
+                      "and must be supplied as the :in option of the configuration hash"
+
       def check_validity!
-         raise ArgumentError, "An object with the method include? is required must be supplied as the " <<
-                              ":in option of the configuration hash" unless options[:in].respond_to?(:include?)
+        unless [:include?, :call].any?{ |method| options[:in].respond_to?(method) }
+          raise ArgumentError, ERROR_MESSAGE
+        end
       end
 
       def validate_each(record, attribute, value)
-        record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value)) unless options[:in].send(include?, value)
+        delimiter = options[:in]
+        exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
+        unless exclusions.send(inclusion_method(exclusions), value)
+          record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
+        end
       end
+
+    private
 
       # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the
       # range for equality, so it may be slow for large ranges. The new <tt>Range#cover?</tt>
       # uses the previous logic of comparing a value with the range endpoints.
-      def include?
-        options[:in].is_a?(Range) ? :cover? : :include?
+      def inclusion_method(enumerable)
+        enumerable.is_a?(Range) ? :cover? : :include?
       end
     end
 
@@ -29,11 +39,13 @@ module ActiveModel
       #     validates_inclusion_of :gender, :in => %w( m f )
       #     validates_inclusion_of :age, :in => 0..99
       #     validates_inclusion_of :format, :in => %w( jpg gif png ), :message => "extension %{value} is not included in the list"
+      #     validates_inclusion_of :states, :in => lambda{ |person| STATES[person.country] }
       #   end
       #
       # Configuration options:
-      # * <tt>:in</tt> - An enumerable object of available items.
-      #   If the enumerable is a range the test is performed with <tt>Range#cover?</tt>
+      # * <tt>:in</tt> - An enumerable object of available items. This can be
+      #   supplied as a proc or lambda which returns an enumerable. If the enumerable
+      #   is a range the test is performed with <tt>Range#cover?</tt>
       #   (backported in Active Support for 1.8), otherwise with <tt>include?</tt>.
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is not included in the list").
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute is +nil+ (default is +false+).

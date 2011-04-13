@@ -8,7 +8,7 @@ module ActiveModel
   # Provides a way to track changes in your object in the same way as
   # Active Record does.
   #
-  # The requirements to implement ActiveModel::Dirty are to:
+  # The requirements for implementing ActiveModel::Dirty are:
   #
   # * <tt>include ActiveModel::Dirty</tt> in your object
   # * Call <tt>define_attribute_methods</tt> passing each method you want to

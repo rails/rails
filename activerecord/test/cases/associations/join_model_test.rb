@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/core_ext/object/inclusion'
 require 'models/tag'
 require 'models/tagging'
 require 'models/post'
@@ -453,7 +454,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert saved_post.tags.include?(new_tag)
 
     assert new_tag.persisted?
-    assert saved_post.reload.tags(true).include?(new_tag)
+    assert new_tag.in?(saved_post.reload.tags(true))
 
 
     new_post = Post.new(:title => "Association replacmenet works!", :body => "You best believe it.")
@@ -466,7 +467,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     new_post.save!
     assert new_post.persisted?
-    assert new_post.reload.tags(true).include?(saved_tag)
+    assert saved_tag.in?(new_post.reload.tags(true))
 
     assert !posts(:thinking).tags.build.persisted?
     assert !posts(:thinking).tags.new.persisted?

@@ -1,3 +1,5 @@
 class WithoutTable < ActiveRecord::Base
-  default_scope where(:published => true)
+  def self.default_scope
+    where(:published => true)
+  end
 end

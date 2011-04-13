@@ -615,26 +615,15 @@ Rails comes with two built-in HTTP authentication mechanisms:
 
 h4. HTTP Basic Authentication
 
-HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, +authenticate_or_request_with_http_basic+.
+HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, +http_basic_authenticate_with+.
 
 <ruby>
 class AdminController < ApplicationController
-  USERNAME, PASSWORD = "humbaba", "5baa61e4"
-
-  before_filter :authenticate
-
-  private
-
-  def authenticate
-    authenticate_or_request_with_http_basic do |username, password|
-      username == USERNAME &&
-      Digest::SHA1.hexdigest(password) == PASSWORD
-    end
-  end
+  http_basic_authenticate_with :name => "humbaba", :password => "5baa61e4"
 end
 </ruby>
 
-With this in place, you can create namespaced controllers that inherit from +AdminController+. The before filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
+With this in place, you can create namespaced controllers that inherit from +AdminController+. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
 h4. HTTP Digest Authentication
 

@@ -309,6 +309,15 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
+      if IdentityMap.enabled? && where_values.blank? &&
+        limit_value.blank? && order_values.blank? &&
+        includes_values.blank? && preload_values.blank? &&
+        readonly_value.nil? && joins_values.blank? &&
+        !@klass.locking_enabled? &&
+        record = IdentityMap.get(@klass, id)
+        return record
+      end
+
       column = columns_hash[primary_key]
 
       substitute = connection.substitute_for(column, @bind_values)
@@ -343,8 +352,8 @@ module ActiveRecord
       if result.size == expected_size
         result
       else
-        conditions = arel.wheres.map { |x| x.value }.join(', ')
-        conditions = " [WHERE #{conditions}]" if conditions.present?
+        conditions = arel.where_sql
+        conditions = " [#{conditions}]" if conditions
 
         error = "Couldn't find all #{@klass.name.pluralize} with IDs "
         error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"

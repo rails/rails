@@ -1,5 +1,18 @@
 require "isolation/abstract_unit"
 
+class ::MyMailInterceptor
+  def self.delivering_email(email); email; end
+end
+
+class ::MyOtherMailInterceptor < ::MyMailInterceptor; end
+
+class ::MyMailObserver
+  def self.delivered_email(email); email; end
+end
+
+class ::MyOtherMailObserver < ::MyMailObserver; end
+
+
 module ApplicationTests
   class ConfigurationTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
@@ -243,6 +256,80 @@ module ApplicationTests
       res = last_response.body
       get "/"
       assert_equal res, last_response.body # value should be unchanged
+    end
+
+    test "registers interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.interceptors = MyMailInterceptor
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      ActionMailer::Base
+
+      assert_equal [::MyMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
+    end
+
+    test "registers multiple interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.interceptors = [MyMailInterceptor, "MyOtherMailInterceptor"]
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      ActionMailer::Base
+
+      assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
+    end
+
+    test "registers observers with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.observers = MyMailObserver
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      ActionMailer::Base
+
+      assert_equal [::MyMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
+    end
+
+    test "registers multiple observers with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.observers = [MyMailObserver, "MyOtherMailObserver"]
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      ActionMailer::Base
+
+      assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
+    end
+
+    test "valid timezone is setup correctly" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.time_zone = "Wellington"
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal "Wellington", Rails.application.config.time_zone
+    end
+
+    test "raises when an invalid timezone is defined in the config" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.time_zone = "That big hill over yonder hill"
+      RUBY
+
+      assert_raise(ArgumentError) do
+        require "#{app_path}/config/environment"
+      end
     end
 
     test "config.action_controller.perform_caching = false" do

@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 require 'active_support/core_ext/hash/conversions'
+require 'active_support/core_ext/object/inclusion'
 
 class StarStarMimeController < ActionController::Base
   layout nil
@@ -158,7 +159,7 @@ class RespondToController < ActionController::Base
 
   protected
     def set_layout
-      if ["all_types_with_layout", "iphone_with_html_response_type"].include?(action_name)
+      if action_name.among?("all_types_with_layout", "iphone_with_html_response_type")
         "respond_to/layouts/standard"
       elsif action_name == "iphone_with_html_response_type_without_layout"
         "respond_to/layouts/missing"
@@ -558,6 +559,15 @@ class RespondWithController < ActionController::Base
     respond_with(resource, :location => "http://test.host/", :status => :created)
   end
 
+  def using_invalid_resource_with_template
+    respond_with(resource)
+  end
+
+  def using_options_with_template
+    @customer = resource
+    respond_with(@customer, :status => 123, :location => "http://test.host/")
+  end
+
   def using_resource_with_responder
     responder = proc { |c, r, o| c.render :text => "Resource name is #{r.first.name}" }
     respond_with(resource, :responder => responder)
@@ -951,6 +961,54 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/xml"
     get :using_resource_with_status_and_location
     assert_equal 201, @response.status
+  end
+
+  def test_using_resource_with_status_and_location_with_invalid_resource
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+
+    @request.accept = "text/xml"
+
+    post :using_resource_with_status_and_location
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+
+    put :using_resource_with_status_and_location
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+  end
+
+  def test_using_invalid_resource_with_template
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+
+    @request.accept = "text/xml"
+
+    post :using_invalid_resource_with_template
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+
+    put :using_invalid_resource_with_template
+    assert_equal errors.to_xml, @response.body
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+  end
+
+  def test_using_options_with_template
+    @request.accept = "text/xml"
+
+    post :using_options_with_template
+    assert_equal "<customer-name>david</customer-name>", @response.body
+    assert_equal 123, @response.status
+    assert_equal "http://test.host/", @response.location
+
+    put :using_options_with_template
+    assert_equal "<customer-name>david</customer-name>", @response.body
+    assert_equal 123, @response.status
+    assert_equal "http://test.host/", @response.location
   end
 
   def test_using_resource_with_responder

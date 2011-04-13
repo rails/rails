@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/object/inclusion'
 
 class ErbUtilTest < Test::Unit::TestCase
   include ERB::Util
@@ -29,7 +30,7 @@ class ErbUtilTest < Test::Unit::TestCase
 
   def test_rest_in_ascii
     (0..127).to_a.map {|int| int.chr }.each do |chr|
-      next if %w(& " < >).include?(chr)
+      next if chr.in?('&"<>')
       assert_equal chr, html_escape(chr)
     end
   end

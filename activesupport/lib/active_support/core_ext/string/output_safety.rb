@@ -9,7 +9,7 @@ class ERB
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
     #
-    # In your ERb templates, use this method to escape any unsafe content. For example:
+    # In your ERB templates, use this method to escape any unsafe content. For example:
     #   <%=h @person.name %>
     #
     # ==== Example:

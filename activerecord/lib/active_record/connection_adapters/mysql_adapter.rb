@@ -196,6 +196,7 @@ module ActiveRecord
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
         @statements = {}
+        @client_encoding = nil
         connect
       end
 
@@ -330,6 +331,63 @@ module ActiveRecord
         @statements.clear
       end
 
+      if "<3".respond_to?(:encode)
+        # Taken from here:
+        #   https://github.com/tmtm/ruby-mysql/blob/master/lib/mysql/charset.rb
+        # Author: TOMITA Masahiro <tommy@tmtm.org>
+        ENCODINGS = {
+          "armscii8" => nil,
+          "ascii"    => Encoding::US_ASCII,
+          "big5"     => Encoding::Big5,
+          "binary"   => Encoding::ASCII_8BIT,
+          "cp1250"   => Encoding::Windows_1250,
+          "cp1251"   => Encoding::Windows_1251,
+          "cp1256"   => Encoding::Windows_1256,
+          "cp1257"   => Encoding::Windows_1257,
+          "cp850"    => Encoding::CP850,
+          "cp852"    => Encoding::CP852,
+          "cp866"    => Encoding::IBM866,
+          "cp932"    => Encoding::Windows_31J,
+          "dec8"     => nil,
+          "eucjpms"  => Encoding::EucJP_ms,
+          "euckr"    => Encoding::EUC_KR,
+          "gb2312"   => Encoding::EUC_CN,
+          "gbk"      => Encoding::GBK,
+          "geostd8"  => nil,
+          "greek"    => Encoding::ISO_8859_7,
+          "hebrew"   => Encoding::ISO_8859_8,
+          "hp8"      => nil,
+          "keybcs2"  => nil,
+          "koi8r"    => Encoding::KOI8_R,
+          "koi8u"    => Encoding::KOI8_U,
+          "latin1"   => Encoding::ISO_8859_1,
+          "latin2"   => Encoding::ISO_8859_2,
+          "latin5"   => Encoding::ISO_8859_9,
+          "latin7"   => Encoding::ISO_8859_13,
+          "macce"    => Encoding::MacCentEuro,
+          "macroman" => Encoding::MacRoman,
+          "sjis"     => Encoding::SHIFT_JIS,
+          "swe7"     => nil,
+          "tis620"   => Encoding::TIS_620,
+          "ucs2"     => Encoding::UTF_16BE,
+          "ujis"     => Encoding::EucJP_ms,
+          "utf8"     => Encoding::UTF_8,
+          "utf8mb4"  => Encoding::UTF_8,
+        }
+      else
+        ENCODINGS = Hash.new { |h,k| h[k] = k }
+      end
+
+      # Get the client encoding for this database
+      def client_encoding
+        return @client_encoding if @client_encoding
+
+        result = exec_query(
+          "SHOW VARIABLES WHERE Variable_name = 'character_set_client'",
+          'SCHEMA')
+        @client_encoding = ENCODINGS[result.rows.last.last]
+      end
+
       def exec_query(sql, name = 'SQL', binds = [])
         log(sql, name, binds) do
           result = nil
@@ -361,6 +419,10 @@ module ActiveRecord
 
           result
         end
+      end
+
+      def exec_insert(sql, name, binds)
+        exec_query(sql, name, binds)
       end
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
@@ -506,7 +568,7 @@ module ActiveRecord
 
       def tables(name = nil, database = nil) #:nodoc:
         tables = []
-        result = execute(["SHOW TABLES", database].compact.join(' IN '), name)
+        result = execute(["SHOW TABLES", database].compact.join(' IN '), 'SCHEMA')
         result.each { |field| tables << field[0] }
         result.free
         tables
@@ -551,7 +613,7 @@ module ActiveRecord
       def columns(table_name, name = nil)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql)
+        result = execute(sql, 'SCHEMA')
         result.each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
         result.free
         columns
@@ -638,7 +700,7 @@ module ActiveRecord
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table) #:nodoc:
         keys = []
-        result = execute("describe #{quote_table_name(table)}")
+        result = execute("describe #{quote_table_name(table)}", 'SCHEMA')
         result.each_hash do |h|
           keys << h["Field"]if h["Key"] == "PRI"
         end
@@ -654,6 +716,11 @@ module ActiveRecord
 
       def case_sensitive_equality_operator
         "= BINARY"
+      end
+      deprecate :case_sensitive_equality_operator
+
+      def case_sensitive_modifier(node)
+        Arel::Nodes::Bin.new(node)
       end
 
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)

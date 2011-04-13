@@ -19,7 +19,7 @@ It consists of several modules:
 
 * Action View, which handles view template lookup and rendering, and provides
   view helpers that assist when building HTML forms, Atom feeds and more.
-  Template formats that Action View handles are ERb (embedded Ruby, typically
+  Template formats that Action View handles are ERB (embedded Ruby, typically
   used to inline short Ruby snippets inside HTML), XML Builder and RJS
   (dynamically generated JavaScript from Ruby code).
 
@@ -57,7 +57,7 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActionController/Base.html]
 
 
-* ERb templates (static content mixed with dynamic output from ruby)
+* ERB templates (static content mixed with dynamic output from ruby)
 
     <% for post in @posts %>
       Title: <%= post.title %>
