@@ -48,6 +48,12 @@ module Rails
         end
       end
 
+      initializer :index_sprockets_environment do |app|
+        if config.assets.enabled && config.action_controller.perform_caching
+          app.assets = app.assets.index
+        end
+      end
+
       initializer :build_middleware_stack do
         build_middleware_stack
       end

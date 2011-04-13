@@ -140,6 +140,7 @@ module Rails
     def assets
       @assets ||= build_asset_environment
     end
+    attr_writer :assets
 
     def build_asset_environment
       return unless config.assets.enabled
