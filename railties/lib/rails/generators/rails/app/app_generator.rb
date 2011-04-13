@@ -46,6 +46,8 @@ module Rails
 
     def app
       directory 'app'
+      git_keep  'app/mailers'
+      git_keep  'app/models'
     end
 
     def config
@@ -80,14 +82,7 @@ module Rails
     end
 
     def log
-      empty_directory "log"
-
-      inside "log" do
-        %w( server production development test ).each do |file|
-          create_file "#{file}.log"
-          chmod "#{file}.log", 0666, :verbose => false
-        end
-      end
+      empty_directory_with_gitkeep "log"
     end
 
     def public_directory
@@ -98,27 +93,6 @@ module Rails
       directory "public/images"
     end
 
-    def stylesheets
-      empty_directory_with_gitkeep "public/stylesheets"
-    end
-
-    def javascripts
-      empty_directory "public/javascripts"
-
-      unless options[:skip_javascript]
-        copy_file "public/javascripts/#{options[:javascript]}.js"
-        copy_file "public/javascripts/#{options[:javascript]}_ujs.js", "public/javascripts/rails.js"
-
-        if options[:javascript] == "prototype"
-          copy_file "public/javascripts/controls.js"
-          copy_file "public/javascripts/dragdrop.js"
-          copy_file "public/javascripts/effects.js"
-        end
-      end
-
-      copy_file "public/javascripts/application.js"
-    end
-
     def script
       directory "script" do |content|
         "#{shebang}\n" + content
@@ -127,19 +101,38 @@ module Rails
     end
 
     def test
-      directory "test"
+      empty_directory_with_gitkeep "test/fixtures"
+      empty_directory_with_gitkeep "test/functional"
+      empty_directory_with_gitkeep "test/integration"
+      empty_directory_with_gitkeep "test/unit"
+
+      #empty_directory "test/performance"
+      copy_file "test/performance/browsing_test.rb"
     end
 
     def tmp
-      empty_directory "tmp"
+      empty_directory_with_gitkeep "tmp"
+    end
 
-      inside "tmp" do
-        %w(sessions sockets cache pids).each do |dir|
-          empty_directory(dir)
+    def vendor_javascripts
+      if options[:skip_javascript]
+        empty_directory_with_gitkeep "vendor/assets/javascripts"
+      else
+        copy_file "vendor/assets/javascripts/#{options[:javascript]}.js"
+        copy_file "vendor/assets/javascripts/#{options[:javascript]}_ujs.js"
+
+        if options[:javascript] == "prototype"
+          copy_file "vendor/assets/javascripts/controls.js"
+          copy_file "vendor/assets/javascripts/dragdrop.js"
+          copy_file "vendor/assets/javascripts/effects.js"
         end
       end
     end
 
+    def vendor_stylesheets
+      empty_directory_with_gitkeep "vendor/assets/stylesheets"
+    end
+    
     def vendor_plugins
       empty_directory_with_gitkeep "vendor/plugins"
     end
@@ -150,15 +143,14 @@ module Rails
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
 
-    RESERVED_NAMES = %w[application destroy benchmarker profiler
-                        plugin runner test]
+    RESERVED_NAMES = %w[application destroy benchmarker profiler plugin runner test]
 
     class AppGenerator < AppBase
       add_shared_options_for "application"
 
       # Add bin/rails options
-      class_option :version,            :type => :boolean, :aliases => "-v", :group => :rails,
-                                        :desc => "Show Rails version number and quit"
+      class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
+                             :desc => "Show Rails version number and quit"
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?
@@ -246,7 +238,7 @@ module Rails
       end
 
       def create_vendor_files
-        build(:vendor_plugins)
+        build(:vendor)
       end
 
       def finish_template
