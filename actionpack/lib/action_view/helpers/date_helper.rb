@@ -26,9 +26,9 @@ module ActionView
       #   30 secs <-> 1 min, 29 secs                                                # => 1 minute
       #   1 min, 30 secs <-> 44 mins, 29 secs                                       # => [2..44] minutes
       #   44 mins, 30 secs <-> 89 mins, 29 secs                                     # => about 1 hour
-      #   89 mins, 29 secs <-> 23 hrs, 59 mins, 29 secs                             # => about [2..24] hours
-      #   23 hrs, 59 mins, 29 secs <-> 47 hrs, 59 mins, 29 secs                     # => 1 day
-      #   47 hrs, 59 mins, 29 secs <-> 29 days, 23 hrs, 59 mins, 29 secs            # => [2..29] days
+      #   89 mins, 30 secs <-> 23 hrs, 59 mins, 29 secs                             # => about [2..24] hours
+      #   23 hrs, 59 mins, 30 secs <-> 41 hrs, 59 mins, 29 secs                     # => 1 day
+      #   41 hrs, 59 mins, 30 secs  <-> 29 days, 23 hrs, 59 mins, 29 secs                              # => [2..29] days
       #   29 days, 23 hrs, 59 mins, 30 secs <-> 59 days, 23 hrs, 59 mins, 29 secs   # => about 1 month
       #   59 days, 23 hrs, 59 mins, 30 secs <-> 1 yr minus 1 sec                    # => [2..12] months
       #   1 yr <-> 1 yr, 3 months                                                   # => about 1 year
@@ -89,8 +89,8 @@ module ActionView
             when 2..44           then locale.t :x_minutes,      :count => distance_in_minutes
             when 45..89          then locale.t :about_x_hours,  :count => 1
             when 90..1439        then locale.t :about_x_hours,  :count => (distance_in_minutes.to_f / 60.0).round
-            when 1440..2529      then locale.t :x_days,         :count => 1
-            when 2530..43199     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
+            when 1440..2519      then locale.t :x_days,         :count => 1
+            when 2520..43199     then locale.t :x_days,         :count => (distance_in_minutes.to_f / 1440.0).round
             when 43200..86399    then locale.t :about_x_months, :count => 1
             when 86400..525599   then locale.t :x_months,       :count => (distance_in_minutes.to_f / 43200.0).round
             else
