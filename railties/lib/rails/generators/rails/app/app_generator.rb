@@ -114,6 +114,12 @@ module Rails
       empty_directory_with_gitkeep "tmp"
     end
 
+    def vendor
+      vendor_javascripts
+      vendor_stylesheets
+      vendor_plugins
+    end
+
     def vendor_javascripts
       if options[:skip_javascript]
         empty_directory_with_gitkeep "vendor/assets/javascripts"
@@ -215,14 +221,6 @@ module Rails
 
       def create_public_image_files
         build(:images)
-      end
-
-      def create_public_stylesheets_files
-        build(:stylesheets)
-      end
-
-      def create_javascript_files
-        build(:javascripts)
       end
 
       def create_script_files
