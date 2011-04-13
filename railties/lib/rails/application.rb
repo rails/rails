@@ -153,8 +153,10 @@ module Rails
     initializer :add_sprockets_paths do |app|
       if config.assets.enabled
         paths = [
-          "app/javascripts",
-          "app/stylesheets",
+          "app/assets/javascripts",
+          "app/assets/stylesheets",
+          "vendor/assets/javascripts",
+          "vendor/assets/stylesheets",
           "vendor/plugins/*/app/javascripts",
           "vendor/plugins/*/app/stylesheets",
           "vendor/plugins/*/javascripts",
