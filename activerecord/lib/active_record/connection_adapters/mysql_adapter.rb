@@ -403,7 +403,7 @@ module ActiveRecord
           end
 
           stmt.execute(*binds.map { |col, val|
-            col ? col.type_cast(val) : val
+            type_cast(val, col)
           })
           if metadata = stmt.result_metadata
             cols = cache[:cols] ||= metadata.fetch_fields.map { |field|

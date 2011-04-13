@@ -360,6 +360,18 @@ module ActiveRecord
         end
       end
 
+      def type_cast(value, column)
+        return super unless column
+
+        case value
+        when String
+          return super unless 'bytea' == column.sql_type
+          escape_bytea(value)
+        else
+          super
+        end
+      end
+
       # Quotes strings for use in SQL input.
       def quote_string(s) #:nodoc:
         @connection.escape(s)
@@ -530,7 +542,7 @@ module ActiveRecord
           # Clear the queue
           @connection.get_last_result
           @connection.send_query_prepared(key, binds.map { |col, val|
-            col ? col.type_cast(val) : val
+            type_cast(val, col)
           })
           @connection.block
           result = @connection.get_last_result
