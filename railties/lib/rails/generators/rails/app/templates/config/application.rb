@@ -64,6 +64,6 @@ module <%= app_const_base %>
 <% end -%>
 
     # Enable the asset pipeline
-    config.assets.enable = true
+    config.assets.enabled = true
   end
 end
