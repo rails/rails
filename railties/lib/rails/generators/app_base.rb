@@ -134,7 +134,8 @@ module Rails
             gem 'arel',      :git => 'git://github.com/rails/arel.git'
             gem 'rack',      :git => 'git://github.com/rack/rack.git'
             gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
-            gem 'json'       # Sprockets dependency
+            gem 'coffee-script'
+            gem 'json'       # CoffeeScript and Sprockets dependency
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
@@ -142,7 +143,8 @@ module Rails
             gem 'arel',      :git => 'git://github.com/rails/arel.git'
             gem 'rack',      :git => 'git://github.com/rack/rack.git'
             gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
-            gem 'json'       # Sprockets dependency
+            gem 'coffee-script'
+            gem 'json'       # CoffeeScript and Sprockets dependency
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
