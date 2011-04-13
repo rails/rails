@@ -66,7 +66,7 @@ module ActiveRecord
           end
           # BigDecimals need to be put in a non-normalized form and quoted.
         when nil        then nil
-        when BigDecimal then value.to_f
+        when BigDecimal then value.to_s('F')
         when Numeric    then value
         when Date, Time then quoted_date(value)
         when Symbol     then value.to_s

@@ -67,7 +67,7 @@ module ActiveRecord
 
         def test_type_cast_bigdecimal
           bd = BigDecimal.new '10.0'
-          assert_equal bd.to_f, @conn.type_cast(bd, nil)
+          assert_equal bd.to_s('F'), @conn.type_cast(bd, nil)
         end
 
         def test_type_cast_unknown
