@@ -30,10 +30,8 @@ gem 'coffee-script'
 # and rake tasks are available in development mode:
 
 group :development, :test do
-  # Depend "turn" for pretty printing test output, but disable autorequire.
+  # Pretty printed test output for minitest on Ruby 1.9.2+
   gem 'turn', :require => false
-
-  # gem 'webrat'
 end
 
 # Needed for guides generation
