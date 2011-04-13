@@ -1,4 +1,4 @@
-# Place your application-specific JavaScript functions and classes here
+# FIXME: Tell people that this is a manifest file, real code should go into discrete files
 # FIXME: Tell people how Sprockets and CoffeeScript works
 #
 #= require jquery
