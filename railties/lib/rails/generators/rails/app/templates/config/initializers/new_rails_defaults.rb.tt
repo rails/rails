@@ -1,3 +1,0 @@
-<%= app_const %>.configure do
-  config.assets.enabled = true
-end

@@ -62,5 +62,8 @@ module <%= app_const_base %>
     # Enable IdentityMap for Active Record, to disable set to false or remove the line below.
     config.active_record.identity_map = true
 <% end -%>
+
+    # Enable the asset pipeline
+    config.assets.enable = true
   end
 end
