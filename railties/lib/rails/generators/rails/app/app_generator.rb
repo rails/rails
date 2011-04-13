@@ -106,7 +106,6 @@ module Rails
       empty_directory_with_gitkeep "test/integration"
       empty_directory_with_gitkeep "test/unit"
 
-      #empty_directory "test/performance"
       copy_file "test/performance/browsing_test.rb"
     end
 
