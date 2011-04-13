@@ -125,7 +125,7 @@ module Rails
         empty_directory_with_gitkeep "vendor/assets/javascripts"
       else
         copy_file "vendor/assets/javascripts/#{options[:javascript]}.js"
-        copy_file "vendor/assets/javascripts/#{options[:javascript]}_ujs.js"
+        copy_file "vendor/assets/javascripts/#{options[:javascript]}_ujs.js", "vendor/assets/javascripts/rails.js"
 
         if options[:javascript] == "prototype"
           copy_file "vendor/assets/javascripts/controls.js"
