@@ -244,6 +244,12 @@ module ActiveRecord
         end
       end
 
+      def type_cast(value, column)
+        return super unless value == true || value == false
+
+        value ? 1 : 0
+      end
+
       def quote_column_name(name) #:nodoc:
         @quoted_column_names[name] ||= "`#{name}`"
       end
