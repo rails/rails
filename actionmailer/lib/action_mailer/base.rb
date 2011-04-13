@@ -5,6 +5,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/proc'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/hash/except'
 require 'action_mailer/log_subscriber'
 
 module ActionMailer #:nodoc:
