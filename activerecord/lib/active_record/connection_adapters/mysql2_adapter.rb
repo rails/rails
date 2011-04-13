@@ -282,6 +282,17 @@ module ActiveRecord
       end
       alias :create :insert_sql
 
+      def exec_insert(sql, name, binds)
+        binds = binds.dup
+
+        # Pretend to support bind parameters
+        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+      end
+
+      def last_inserted_id(result)
+        @connection.last_id
+      end
+
       def update_sql(sql, name = nil)
         super
         @connection.affected_rows
