@@ -13,8 +13,7 @@ class Post < ActiveRecord::Base
   end
 
   def self.with_authors_at_address(address)
-    where('authors.author_address_id = ?', address.id)
-      .joins('JOIN authors ON authors.id = posts.author_id')
+    where('authors.author_address_id = ?', address.id).joins('JOIN authors ON authors.id = posts.author_id')
   end
 
   belongs_to :author do
