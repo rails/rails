@@ -511,8 +511,8 @@ module ActiveRecord
         end
       end
 
-      def substitute_for(column, current_values)
-        Arel.sql("$#{current_values.length + 1}")
+      def substitute_at(column, index)
+        Arel.sql("$#{index + 1}")
       end
 
       def exec_query(sql, name = 'SQL', binds = [])

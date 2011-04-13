@@ -102,11 +102,11 @@ module ActiveRecord
         assert_equal [['1', 'foo']], result.rows
       end
 
-      def test_substitute_for
-        bind = @connection.substitute_for(nil, [])
+      def test_substitute_at
+        bind = @connection.substitute_at(nil, 0)
         assert_equal Arel.sql('$1'), bind
 
-        bind = @connection.substitute_for(nil, [nil])
+        bind = @connection.substitute_at(nil, 1)
         assert_equal Arel.sql('$2'), bind
       end
 

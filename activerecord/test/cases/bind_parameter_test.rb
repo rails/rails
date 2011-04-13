@@ -33,7 +33,7 @@ module ActiveRecord
       # FIXME: use skip with minitest
       return unless @connection.supports_statement_cache?
 
-      sub   = @connection.substitute_for(@pk, [])
+      sub   = @connection.substitute_at(@pk, 0)
       binds = [[@pk, 1]]
       sql   = "select * from topics where id = #{sub}"
 

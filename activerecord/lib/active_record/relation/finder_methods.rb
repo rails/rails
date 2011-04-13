@@ -320,7 +320,7 @@ module ActiveRecord
 
       column = columns_hash[primary_key]
 
-      substitute = connection.substitute_for(column, @bind_values)
+      substitute = connection.substitute_at(column, @bind_values.length)
       relation = where(table[primary_key].eq(substitute))
       relation.bind_values = [[column, id]]
       record = relation.first
