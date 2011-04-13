@@ -63,7 +63,11 @@ module ActionView
         #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style
         #   stylesheet_path "http://www.railsapplication.com/css/style.css" # => http://www.railsapplication.com/css/style.css
         def stylesheet_path(source)
-          asset_paths.compute_public_path(source, 'stylesheets', 'css')
+          if config.use_sprockets
+            sprockets_stylesheet_path(source)
+          else
+            asset_paths.compute_public_path(source, 'stylesheets', 'css')
+          end
         end
         alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
@@ -136,8 +140,12 @@ module ActionView
         #   stylesheet_link_tag :all, :concat => true
         #
         def stylesheet_link_tag(*sources)
-          @stylesheet_include ||= StylesheetIncludeTag.new(config, asset_paths)
-          @stylesheet_include.include_tag(*sources)
+          if config.use_sprockets
+            sprockets_stylesheet_link_tag(*sources)
+          else
+            @stylesheet_include ||= StylesheetIncludeTag.new(config, asset_paths)
+            @stylesheet_include.include_tag(*sources)
+          end
         end
 
       end

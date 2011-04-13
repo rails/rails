@@ -33,6 +33,27 @@ module Rails
         end
       end
 
+      initializer :add_sprockets_route do |app|
+        assets = config.assets
+        if assets.enabled
+          app.routes.append do
+            mount app.assets => assets.prefix
+          end
+        end
+      end
+
+      initializer :set_sprockets_logger do |app|
+        if config.assets.enabled
+          app.assets.logger = Rails.logger
+        end
+      end
+
+      initializer :index_sprockets_environment do |app|
+        if config.assets.enabled && config.action_controller.perform_caching
+          app.assets = app.assets.index
+        end
+      end
+
       initializer :build_middleware_stack do
         build_middleware_stack
       end
