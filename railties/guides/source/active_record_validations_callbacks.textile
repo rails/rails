@@ -822,7 +822,7 @@ The selectors to customize the style of error messages are:
 * +#errorExplanation p+ - Style for the paragraph that holds the message that appears right below the header of the +div+ element.
 * +#errorExplanation ul li+ - Style for the list items with individual error messages.
 
-Scaffolding for example generates +public/stylesheets/scaffold.css+, which defines the red-based style you saw above.
+Scaffolding for example generates +app/assets/stylesheets/scaffold.css.scss+, which later compiles to +app/assets/stylesheets/scaffold.css+ and defines the red-based style you saw above.
 
 The name of the class and the id can be changed with the +:class+ and +:id+ options, accepted by both helpers.
 

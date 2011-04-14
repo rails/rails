@@ -215,13 +215,13 @@ $ rails generate scaffold HighScore game:string score:integer
     create  app/views/layouts/
     exists  test/functional/
     create  test/unit/
-    create  public/stylesheets/
+    create  app/assets/stylesheets/
     create  app/views/high_scores/index.html.erb
     create  app/views/high_scores/show.html.erb
     create  app/views/high_scores/new.html.erb
     create  app/views/high_scores/edit.html.erb
     create  app/views/layouts/high_scores.html.erb
-    create  public/stylesheets/scaffold.css
+    create  app/assets/stylesheets/scaffold.css.scss
     create  app/controllers/high_scores_controller.rb
     create  test/functional/high_scores_controller_test.rb
     create  app/helpers/high_scores_helper.rb

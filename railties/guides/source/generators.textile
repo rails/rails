@@ -190,7 +190,7 @@ $ rails generate scaffold User name:string
       invoke      test_unit
       create        test/unit/helpers/users_helper_test.rb
       invoke  stylesheets
-      create    public/stylesheets/scaffold.css
+      create    app/assets/stylesheets/scaffold.css.scss
 </shell>
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
