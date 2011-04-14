@@ -368,7 +368,7 @@ The scaffold generator will build 15 files in your application, along with some 
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
 |config/routes.rb                             |Edited to include routing information for posts|
-|public/stylesheets/scaffold.css              |Cascading style sheet to make the scaffolded views look better|
+|app/assets/stylesheets/scaffold.css.scss     |Cascading style sheet to make the scaffolded views look better|
 
 h4. Running a Migration
 
