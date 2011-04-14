@@ -58,7 +58,9 @@ module ActiveModel
       # Encrypts the password into the password_digest attribute.
       def password=(unencrypted_password)
         @password = unencrypted_password
-        self.password_digest = BCrypt::Password.create(unencrypted_password)
+        unless unencrypted_password.blank?
+          self.password_digest = BCrypt::Password.create(unencrypted_password)
+        end
       end
     end
   end
