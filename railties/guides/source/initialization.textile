@@ -468,7 +468,7 @@ h4. +config/application.rb+
 
 This file requires +config/boot.rb+, but only if it hasn't been required before, which would be the case in +rails server+ but *wouldn't* be the case with Passenger.
 
-Then the fun begins! 
+Then the fun begins!
 
 h3. Loading Rails
 
@@ -664,7 +664,7 @@ The +active_support/inflector/methods+ file has already been required by +active
 
 h4. +activesupport/lib/active_support/inflector/inflections.rb+
 
-This file references the +ActiveSupport::Inflector+ constant which isn't loaded by this point. But there were autoloads set up in +activesupport/lib/active_support.rb+ which will load the file which loads this constant and so then it will be defined. Then this file defines pluralization and singularization rules for words in Rails. This is how Rails knows how to pluralize "tomato" to "tomatoes". 
+This file references the +ActiveSupport::Inflector+ constant which isn't loaded by this point. But there were autoloads set up in +activesupport/lib/active_support.rb+ which will load the file which loads this constant and so then it will be defined. Then this file defines pluralization and singularization rules for words in Rails. This is how Rails knows how to pluralize "tomato" to "tomatoes".
 
 h4. +activesupport/lib/active_support/inflector/transliterate.rb+
 
@@ -698,7 +698,7 @@ h4. Back to +railties/lib/rails/plugin.rb+
 
 The next file required in this is a core extension from Active Support called +array/conversions+ which is covered in "this section":http://guides.rubyonrails.org/active_support_core_extensions.html#array-conversions of the Active Support Core Extensions Guide.
 
-Once that file has finished loading, the +Rails::Plugin+ class is defined. 
+Once that file has finished loading, the +Rails::Plugin+ class is defined.
 
 h4. Back to +railties/lib/rails/application.rb+
 
@@ -708,7 +708,7 @@ Once this file's done then we go back to the +railties/lib/rails.rb+ file, which
 
 h4. +railties/lib/rails/version.rb+
 
-Much like +active_support/version+, this file defines the +VERSION+ constant which has a +STRING+ constant on it which returns the current version of Rails. 
+Much like +active_support/version+, this file defines the +VERSION+ constant which has a +STRING+ constant on it which returns the current version of Rails.
 
 Once this file has finished loading we go back to +railties/lib/rails.rb+ which then requires +active_support/railtie.rb+.
 
@@ -926,7 +926,7 @@ This file defines the +ActionDispatch::Railtie+ class, but not before requiring 
 
 h4. +activesupport/lib/action_dispatch.rb+
 
-This file attempts to locate the +active_support+ and +active_model+ libraries by looking a couple of directories back from the current file and then adds the +active_support+ and +active_model+ +lib+ directories to the load path, but only if they aren't already, which they are. 
+This file attempts to locate the +active_support+ and +active_model+ libraries by looking a couple of directories back from the current file and then adds the +active_support+ and +active_model+ +lib+ directories to the load path, but only if they aren't already, which they are.
 
 <ruby>
   activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
@@ -1112,4 +1112,4 @@ However the require after these is to a file that hasn't yet been loaded, +actio
 
 h4. +actionpack/lib/action_view.rb+
 
-+action_view.rb+ 
++action_view.rb+
