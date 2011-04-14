@@ -77,6 +77,17 @@ module ActiveModel
       #     validates_format_of :screen_name, :with => lambda{ |person| person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\Z/i : /\A[a-z][a-z0-9_\-]*\Z/i }
       #   end
       #
+      # And finally, you can register formats for easy use for later, for example, to register an integer format and them use the alias
+      # you can do by
+      #
+      #   # Register the alias
+      #   ActiveModel::Validations::FormatValidator.register_format_alias(:number, /\d+/)
+      #
+      #   class Person < ActiveRecord::Base
+      #     # Now using the registered alias
+      #     validates_format_of :screen_name, :with => :number
+      #   end
+      #
       # Note: use <tt>\A</tt> and <tt>\Z</tt> to match the start and end of the string, <tt>^</tt> and <tt>$</tt> match the start/end of a line.
       #
       # You must pass either <tt>:with</tt> or <tt>:without</tt> as an option. In addition, both must be a regular expression
