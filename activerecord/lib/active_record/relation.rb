@@ -50,7 +50,7 @@ module ActiveRecord
 
       conn = @klass.connection
 
-      substitutes = values.to_a
+      substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
       binds       = substitutes.map do |arel_attr, value|
         [@klass.columns_hash[arel_attr.name], value]
       end
