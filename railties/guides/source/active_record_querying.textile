@@ -993,7 +993,7 @@ Client.count
 # SELECT count(*) AS count_all FROM clients
 </ruby>
 
-Or on a relation :
+Or on a relation:
 
 <ruby>
 Client.where(:first_name => 'Ryan').count
