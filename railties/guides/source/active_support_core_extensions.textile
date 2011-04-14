@@ -444,7 +444,7 @@ NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
 
 h4. +in?+
 
-The predicate +in?+ tests if an object is included in another object.
+The predicate +in?+ tests if an object is included in another object. An +ArgumentError+ exception will be raised if the argument passed does not respond to +include?+.
 
 Examples of +in?+:
 
