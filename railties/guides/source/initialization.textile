@@ -1009,7 +1009,7 @@ The loading of this file finishes the loading of +active_model+ and so we go bac
 
 h4. Back to +activesupport/lib/action_dispatch.rb+
 
-The remainder of this file requires the +rack+ file from the Rack gem which defines the +Rack+ module. After +rack+, there's autoloads defined for the +Rack+,  +ActionDispatch+, +ActionDispatch::Http+, +ActionDispatch::Session+. A new method called +autoload_under+ is used here, and this simply prefixes the files where the modules are autoloaded from with the path specified. For example here:
+The remainder of this file requires the +rack+ file from the Rack gem which defines the +Rack+ module. After +rack+, there's autoloads defined for the +Rack+, +ActionDispatch+, +ActionDispatch::Http+, +ActionDispatch::Session+. A new method called +autoload_under+ is used here, and this simply prefixes the files where the modules are autoloaded from with the path specified. For example here:
 
 <ruby>
   autoload_under 'testing' do

@@ -262,9 +262,9 @@ Register one or more stylesheet files to be included when symbol is passed to +s
 ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
 
 stylesheet_link_tag :monkey # =>
-  <link href="/stylesheets/head.css"  media="screen" rel="stylesheet" type="text/css" />
-  <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
-  <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/head.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/body.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/tail.css" media="screen" rel="stylesheet" type="text/css" />
 </ruby>
 
 h5. auto_discovery_link_tag

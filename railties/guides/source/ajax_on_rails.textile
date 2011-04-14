@@ -42,7 +42,7 @@ You are ready to add some AJAX love to your Rails app!
 
 h4. The Quintessential AJAX Rails Helper: link_to_remote
 
-Let's start with what is probably the most often used helper: +link_to_remote+.  It has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
+Let's start with what is probably the most often used helper: +link_to_remote+. It has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
 
 The signature of +link_to_remote+ function is the same as that of the standard +link_to+ helper:
 
@@ -72,7 +72,7 @@ link_to_remote "Add to cart",
 
 If the server returns 200, the output of the above example is equivalent to our first, simple one. However, in case of error, the element with the DOM id +error+ is updated rather than the +cart+ element.
 
-** *position* By default (i.e. when not specifying this option, like in the examples before) the repsonse is injected into the element with the specified DOM id, replacing the original content of the element  (if there was any). You might want to alter this behavior by keeping the original content - the only question is where to place the new content? This can specified by the +position+ parameter, with four possibilities:
+** *position* By default (i.e. when not specifying this option, like in the examples before) the repsonse is injected into the element with the specified DOM id, replacing the original content of the element (if there was any). You might want to alter this behavior by keeping the original content - the only question is where to place the new content? This can specified by the +position+ parameter, with four possibilities:
 *** +:before+ Inserts the response text just before the target element. More precisely, it creates a text node from the response and inserts it as the left sibling of the target element.
 *** +:after+ Similar behavior to +:before+, but in this case the response is inserted after the target element.
 *** +:top+ Inserts the text into the target element, before it's original content. If the target element was empty, this is equivalent with not specifying +:position+ at all.
@@ -210,7 +210,7 @@ def javascript_test
 end
 </ruby>
 
-The above code snippet does exactly the same as the one in the previous section - going about it much more elegantly though. You don't need to worry about headers,write ugly JavaScript code into a string etc. When the first parameter to +render+ is +:update+, Rails expects a block with a single parameter (+page+ in our case, which is the traditional naming convention) which is an instance of the JavaScriptGenerator:"http://api.rubyonrails.org/classes/ActionView/Helpers/PrototypeHelper/JavaScriptGenerator/GeneratorMethods.html" object. As it's name  suggests, JavaScriptGenerator is responsible for generating JavaScript from your Ruby code. You can execute multiple method calls on the +page+ instance - it's all turned into JavaScript code and sent to the server with the appropriate Content Type, "text/javascript".
+The above code snippet does exactly the same as the one in the previous section - going about it much more elegantly though. You don't need to worry about headers,write ugly JavaScript code into a string etc. When the first parameter to +render+ is +:update+, Rails expects a block with a single parameter (+page+ in our case, which is the traditional naming convention) which is an instance of the JavaScriptGenerator:"http://api.rubyonrails.org/classes/ActionView/Helpers/PrototypeHelper/JavaScriptGenerator/GeneratorMethods.html" object. As it's name suggests, JavaScriptGenerator is responsible for generating JavaScript from your Ruby code. You can execute multiple method calls on the +page+ instance - it's all turned into JavaScript code and sent to the server with the appropriate Content Type, "text/javascript".
 
 h4. RJS Templates
 
@@ -307,7 +307,7 @@ So +<<+ is used to execute an arbitrary JavaScript statement, passed as string t
   page.call   :alert, '1+1 equals ' + result
 </ruby>
 
-+assign+ simply assigns a value to a variable. +call+ is similar to +<<+ with a slightly different syntax: the first parameter is the name of the function to call, followed by the list of parameters passed  to the function.
++assign+ simply assigns a value to a variable. +call+ is similar to +<<+ with a slightly different syntax: the first parameter is the name of the function to call, followed by the list of parameters passed to the function.
 
 h6. Class Proxies
 
