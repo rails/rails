@@ -9,7 +9,7 @@ Description:
     stub in app/assets/stylesheets.
     
     If CoffeeScript is available, JavaScripts will be generated with the .coffee extension.
-    If Sass 3 is available, stylesheets will be generated with the .css extension.
+    If Sass 3 is available, stylesheets will be generated with the .scss extension.
 
 Example:
     `rails generate assets posts`
