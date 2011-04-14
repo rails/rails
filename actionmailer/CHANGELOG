@@ -1,3 +1,8 @@
+*Rails 3.0.7 (unreleased)*
+
+*No changes.
+
+
 *Rails 3.0.6 (April 5, 2011)
 
 * Don't allow i18n to change the minor version, version now set to ~> 0.5.0 [Santiago Pastorino]
