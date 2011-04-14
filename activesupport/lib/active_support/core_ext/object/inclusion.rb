@@ -6,6 +6,7 @@ class Object
   #   "Konata".in?(characters) # => true
   #
   def in?(another_object)
+    raise ArgumentError.new("You must supply another object that responds to include?") unless another_object.respond_to?(:include?)
     another_object.include?(self)
   end
 end
