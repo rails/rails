@@ -14,7 +14,7 @@ module Rails
         end
       end
 
-      hook_for :template_engine, :test_framework, :helper
+      hook_for :template_engine, :test_framework, :helper, :assets
     end
   end
 end

@@ -1,0 +1,20 @@
+Description:
+    Stubs out a new asset placeholders. Pass the asset name, either CamelCased
+    or under_scored.
+
+    To create assets within a folder, specify the assets name as a
+    path like 'parent/name'.
+
+    This generates a JavaScript stub in app/assets/javascripts and a stylesheet
+    stub in app/assets/stylesheets.
+    
+    If CoffeeScript is available, JavaScripts will be generated with the .coffee extension.
+    If Sass 3 is available, stylesheets will be generated with the .css extension.
+
+Example:
+    `rails generate assets posts`
+
+    Posts assets.
+        Javascript:     app/assets/javascripts/posts.js
+        Stylesheet:     app/assets/stylesheets/posts.css
+

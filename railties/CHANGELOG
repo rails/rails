@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* The controller and resource generators will now automatically produce asset stubs (this can be turned off with --skip-assets). These stubs will use Coffee and Sass, if those libraries are available. [DHH]
+
 * jQuery is the new default JavaScript library. [fxn]
 
 * Changed scaffold and app generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
