@@ -322,7 +322,7 @@ You can use Hashes and Arrays of values as cache keys.
 
 <ruby>
 # This is a legal cache key
-Rails.cache.read(:site => "mysite", :owners => [owner_1, owner2])
+Rails.cache.read(:site => "mysite", :owners => [owner_1, owner_2])
 </ruby>
 
 The keys you use on +Rails.cache+ will not be the same as those actually used with the storage engine. They may be modified with a namespace or altered to fit technology backend constraints. This means, for instance, that you can't save values with +Rails.cache+ and then try to pull them out with the +memcache-client+ gem. However, you also don't need to worry about exceeding the memcached size limit or violating syntax rules.
