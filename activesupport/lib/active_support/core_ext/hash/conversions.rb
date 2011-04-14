@@ -108,7 +108,7 @@ class Hash
                   raise "can't typecast #{entries.inspect}"
                 end
               end
-            elsif value.has_key?("__content__")
+            elsif value.has_key?("__content__") && value["__content__"].gsub(/\s/, '').present?
               content = value["__content__"]
               if parser = ActiveSupport::XmlMini::PARSING[value["type"]]
                 parser.arity == 1 ? parser.call(content) : parser.call(content, value)
