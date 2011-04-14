@@ -129,8 +129,8 @@ module ActiveSupport
         @@_callback_sequence += 1
       end
 
-      def matches?(_kind, _filter)
-        @kind == _kind && @filter == _filter
+      def matches?(_kind, _filter, _options = {})
+        @kind == _kind && @filter == _filter && @options[:on] == _options[:on]
       end
 
       def _update_filter(filter_options, new_options)
@@ -492,7 +492,7 @@ module ActiveSupport
           end
 
           filters.each do |filter|
-            chain.delete_if {|c| c.matches?(type, filter) }
+            chain.delete_if {|c| c.matches?(type, filter, options) }
           end
 
           options[:prepend] ? chain.unshift(*(mapped.reverse)) : chain.push(*mapped)
@@ -511,7 +511,7 @@ module ActiveSupport
       def skip_callback(name, *filter_list, &block)
         __update_callbacks(name, filter_list, block) do |target, chain, type, filters, options|
           filters.each do |filter|
-            filter = chain.find {|c| c.matches?(type, filter) }
+            filter = chain.find {|c| c.matches?(type, filter, options) }
 
             if filter && options.any?
               new_filter = filter.clone(chain, self)
