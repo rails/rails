@@ -80,12 +80,26 @@ module Rails
 
         exec(find_cmd('mysql', 'mysql5'), *args)
 
-      when "postgresql", "postgres"
+      when "postgresql", "postgres", "jdbcpostgresql"
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
         ENV['PGPASSWORD'] = config["password"].to_s if config["password"] && include_password
-        exec(find_cmd('psql'), config["database"])
+        if RUBY_PLATFORM == "java"
+          require 'java'
+          if java.lang.System.getProperty("os.name") == "Linux"
+            # We use single argument of Kernel#exec due to psql is not executable file
+            # but symbolic link to pg_wrapper in Debian and Ubuntu and we need shell expansion.
+            # MRI doesn't respect Kernel#exec specification about single and many arguments of exec
+            # (http://www.ruby-doc.org/core/classes/Process.src/M001280.html), but JRuby does.
+            # And we redirect stdin/stdout to /dev/tty because JRuby doesn't handle it.
+            exec("#{find_cmd('psql')} #{config["database"]} < /dev/tty > /dev/tty 2>&1")
+          else
+            abort "Sorry, JRuby doesn't handle TTY in Kernel#exec (bug JRUBY-1608) and we have workaround only for Linux. Submit a Rails patch to add support!"
+          end
+        else
+          exec(find_cmd('psql'), config["database"])
+        end
 
       when "sqlite"
         exec(find_cmd('sqlite'), config["database"])
