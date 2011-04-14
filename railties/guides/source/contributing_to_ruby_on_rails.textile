@@ -361,7 +361,7 @@ $ git apply --check my_new_patch.diff
 Please make sure the patch does not introduce whitespace errors:
 
 <shell>
-$ git apply --whitespace=error-all mynew_patch.diff
+$ git apply --whitespace=error-all my_new_patch.diff
 </shell>
 
 
