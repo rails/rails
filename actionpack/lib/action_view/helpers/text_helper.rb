@@ -269,7 +269,9 @@ module ActionView
       # will limit what should be linked. You can add HTML attributes to the links using
       # <tt>:html</tt>. Possible values for <tt>:link</tt> are <tt>:all</tt> (default),
       # <tt>:email_addresses</tt>, and <tt>:urls</tt>. If a block is given, each URL and
-      # e-mail address is yielded and the result is used as the link text.
+      # e-mail address is yielded and the result is used as the link text. By default the 
+      # text given is sanitized, you can override this behaviour setting the
+      # <tt>:sanitize</tt> option to false.
       #
       # ==== Examples
       #   auto_link("Go to http://www.rubyonrails.org and say hello to david@loudthinking.com")
@@ -303,7 +305,7 @@ module ActionView
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.myblog.com</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
       def auto_link(text, *args, &block)#link = :all, html = {}, &block)
-        return '' if text.blank?
+        return ''.html_safe if text.blank?
 
         options = args.size == 2 ? {} : args.extract_options! # this is necessary because the old auto_link API has a Hash as its last parameter
         unless args.empty?
@@ -311,6 +313,8 @@ module ActionView
           options[:html] = args[1] || {}
         end
         options.reverse_merge!(:link => :all, :html => {})
+        
+        text = sanitize(text) unless options[:sanitize] == false
 
         case options[:link].to_sym
           when :all                         then auto_link_email_addresses(auto_link_urls(text, options[:html], options, &block), options[:html], &block)
