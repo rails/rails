@@ -199,13 +199,14 @@ module RailtiesTest
     end
 
     test "it allows to set asset_path" do
+      add_to_config("config.assets.enabled = false")
+
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           class Engine < ::Rails::Engine
           end
         end
       RUBY
-
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
@@ -774,6 +775,7 @@ module RailtiesTest
     test "ensure that engine properly sets assets directories" do
       add_to_config("config.action_dispatch.show_exceptions = false")
       add_to_config("config.serve_static_assets = true")
+      add_to_config("config.assets.enabled = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits

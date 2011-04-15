@@ -1,7 +1,7 @@
 namespace :railties do
   namespace :install do
     # desc "Copies missing assets from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
-    task :assets => :rails_env do
+    task :public => :rails_env do
       require 'rails/generators/base'
       Rails.application.initialize!
 

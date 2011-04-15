@@ -542,27 +542,30 @@ module Rails
 
     rake_tasks do
       next if self.is_a?(Rails::Application)
+      next unless has_migrations? or has_public?
 
       namespace railtie_name do
-        desc "Shortcut for running both rake #{railtie_name}:install:migrations and #{railtie_name}:install:assets"
+        desc "Shortcut for copying migrations and assets from #{railtie_name}"
         task :install do
-          Rake::Task["#{railtie_name}:install:migrations"].invoke
-          Rake::Task["#{railtie_name}:install:assets"].invoke
+          Rake::Task["#{railtie_name}:install:migrations"].invoke if has_migrations?
+          Rake::Task["#{railtie_name}:install:public"].invoke if has_public?
         end
 
         namespace :install do
-          # TODO Add assets copying to this list
-          # TODO Skip this if there is no paths["db/migrate"] for the engine
-          desc "Copy migrations from #{railtie_name} to application"
-          task :migrations do
-            ENV["FROM"] = railtie_name
-            Rake::Task["railties:install:migrations"].invoke
+          if has_migrations?
+            desc "Copy migrations from #{railtie_name} to application"
+            task :migrations do
+              ENV["FROM"] = railtie_name
+              Rake::Task["railties:install:migrations"].invoke
+            end
           end
 
-          desc "Copy assets from #{railtie_name} to application"
-          task :assets do
-            ENV["FROM"] = railtie_name
-            Rake::Task["railties:install:assets"].invoke
+          if has_public?
+            desc "Copy public from #{railtie_name} to application"
+            task :public do
+              ENV["FROM"] = railtie_name
+              Rake::Task["railties:install:public"].invoke
+            end
           end
         end
       end
@@ -576,6 +579,14 @@ module Rails
 
     def routes?
       defined?(@routes)
+    end
+
+    def has_migrations?
+      paths["db/migrate"].first.present?
+    end
+
+    def has_public?
+      paths["public"].first.present?
     end
 
     def find_root_with_flag(flag, default=nil)

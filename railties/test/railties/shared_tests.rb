@@ -32,13 +32,13 @@ module RailtiesTest
       end
     end
 
-    def test_copying_assets
+    def test_copying_public
       @plugin.write "public/javascripts/foo.js", "doSomething()"
       @plugin.write "public/stylesheets/foo.css", "h1 { font-size: 10000px }"
       @plugin.write "public/images/img.png", ""
 
       Dir.chdir(app_path) do
-        `rake bukkits:install:assets --trace`
+        `rake bukkits:install:public --trace`
 
         assert File.exists?(app_path("public/bukkits/javascripts/foo.js"))
         assert_equal "doSomething()\n", File.read(app_path("public/bukkits/javascripts/foo.js"))
