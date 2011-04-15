@@ -106,7 +106,8 @@ module Rails
       empty_directory_with_gitkeep "test/integration"
       empty_directory_with_gitkeep "test/unit"
 
-      copy_file "test/performance/browsing_test.rb"
+      template "test/performance/browsing_test.rb"
+      template "test/test_helper.rb"
     end
 
     def tmp
