@@ -1,5 +1,7 @@
 *Rails 3.0.7 (unreleased)*
 
+* Destroying records via nested attributes works independent of reject_if LH #6006 [Durran Jordan]
+
 * Delegate any? and many? to Model.scoped for consistency [Andrew White]
 
 * Quote the ORDER BY clause in batched finds - fixes #6620 [Andrew White]
