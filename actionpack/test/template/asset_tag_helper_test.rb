@@ -477,35 +477,12 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
   end
 
-  def test_env_asset_path
-    @controller.config.asset_path = "/assets%s"
-    def @controller.env; @_env ||= {} end
-    @controller.env["action_dispatch.asset_path"] = "/omg%s"
-
-    expected_path = "/assets/omg/images/rails.png"
-    assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
-  end
-
   def test_proc_asset_id
     @controller.config.asset_path = Proc.new do |asset_path|
       "/assets.v12345#{asset_path}"
     end
 
     expected_path = "/assets.v12345/images/rails.png"
-    assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
-  end
-
-  def test_env_proc_asset_path
-    @controller.config.asset_path = Proc.new do |asset_path|
-      "/assets.v12345#{asset_path}"
-    end
-
-    def @controller.env; @_env ||= {} end
-    @controller.env["action_dispatch.asset_path"] = Proc.new do |asset_path|
-      "/omg#{asset_path}"
-    end
-
-    expected_path = "/assets.v12345/omg/images/rails.png"
     assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
   end
 

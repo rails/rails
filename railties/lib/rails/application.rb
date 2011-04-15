@@ -161,7 +161,7 @@ module Rails
         end
 
         if config.serve_static_assets
-          middleware.use ::ActionDispatch::Static, "/" => paths["public"].first
+          middleware.use ::ActionDispatch::Static, paths["public"].first
         end
 
         middleware.use ::Rack::Lock unless config.allow_concurrency
