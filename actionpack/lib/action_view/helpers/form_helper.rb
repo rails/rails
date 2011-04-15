@@ -614,7 +614,7 @@ module ActionView
       # (if you are using ActiveRecord):
       #
       #   activerecord:
-      #     attribute:
+      #     attributes:
       #       post:
       #         cost: "Total cost"
       #
