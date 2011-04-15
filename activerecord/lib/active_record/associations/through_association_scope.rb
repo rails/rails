@@ -30,14 +30,14 @@ module ActiveRecord
       # Associate attributes pointing to owner, quoted.
       def construct_quoted_owner_attributes(reflection)
         if as = reflection.options[:as]
-          { "#{as}_id" => owner_quoted_id,
+          { "#{as}_id"   => @owner[reflection.active_record_primary_key],
             "#{as}_type" => reflection.klass.quote_value(
               @owner.class.base_class.name.to_s,
               reflection.klass.columns_hash["#{as}_type"]) }
         elsif reflection.macro == :belongs_to
           { reflection.klass.primary_key => @owner.class.quote_value(@owner[reflection.primary_key_name]) }
         else
-          { reflection.primary_key_name => owner_quoted_id }
+          { reflection.primary_key_name => @owner[reflection.active_record_primary_key] }
         end
       end
 
@@ -53,7 +53,8 @@ module ActiveRecord
       def construct_joins(custom_joins = nil)
         polymorphic_join = nil
         if @reflection.source_reflection.macro == :belongs_to
-          reflection_primary_key = @reflection.klass.primary_key
+          reflection_primary_key = @reflection.source_reflection.options[:primary_key] ||
+                                   @reflection.klass.primary_key
           source_primary_key     = @reflection.source_reflection.primary_key_name
           if @reflection.options[:source_type]
             polymorphic_join = "AND %s.%s = %s" % [
@@ -63,7 +64,8 @@ module ActiveRecord
           end
         else
           reflection_primary_key = @reflection.source_reflection.primary_key_name
-          source_primary_key     = @reflection.through_reflection.klass.primary_key
+          source_primary_key     = @reflection.source_reflection.options[:primary_key] ||
+                                   @reflection.through_reflection.klass.primary_key
           if @reflection.source_reflection.options[:as]
             polymorphic_join = "AND %s.%s = %s" % [
               @reflection.quoted_table_name, "#{@reflection.source_reflection.options[:as]}_type",

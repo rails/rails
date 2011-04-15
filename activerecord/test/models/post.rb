@@ -80,6 +80,16 @@ class Post < ActiveRecord::Base
   has_many :categorizations, :foreign_key => :category_id
   has_many :authors, :through => :categorizations
 
+  has_many :categorizations_using_author_id, :primary_key => :author_id, :foreign_key => :post_id, :class_name => 'Categorization'
+  has_many :authors_using_author_id, :through => :categorizations_using_author_id, :source => :author
+
+  has_many :taggings_using_author_id, :primary_key => :author_id, :as => :taggable, :class_name => 'Tagging'
+  has_many :tags_using_author_id, :through => :taggings_using_author_id, :source => :tag
+
+  has_many :standard_categorizations, :class_name => 'Categorization', :foreign_key => :post_id
+  has_many :author_using_custom_pk, :through => :standard_categorizations
+  has_many :authors_using_custom_pk, :through => :standard_categorizations
+
   has_many :readers
   has_many :readers_with_person, :include => :person, :class_name => "Reader"
   has_many :people, :through => :readers

@@ -513,10 +513,10 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_collection_size_uses_counter_cache_if_it_exists
-    author = authors(:david)
-    author.stubs(:read_attribute).with('comments_count').returns(100)
-    assert_equal 100, author.comments.size
-    assert !author.comments.loaded?
+    c = categories(:general)
+    c.categorizations_count = 100
+    assert_equal 100, c.categorizations.size
+    assert !c.categorizations.loaded?
   end
 
   def test_adding_junk_to_has_many_through_should_raise_type_mismatch
@@ -699,6 +699,22 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_comment = sub_sti_post.comments.create(:body => 'test')
 
     assert_equal [9, 10, new_comment.id], authors(:david).sti_post_comments.map(&:id).sort
+  end
+
+  def test_has_many_going_through_join_model_with_custom_primary_key
+    assert_equal [authors(:david)], posts(:thinking).authors_using_author_id
+  end
+
+  def test_has_many_going_through_polymorphic_join_model_with_custom_primary_key
+    assert_equal [tags(:general)], posts(:eager_other).tags_using_author_id
+  end
+
+  def test_has_many_through_with_custom_primary_key_on_belongs_to_source
+    assert_equal [authors(:david), authors(:david)], posts(:thinking).author_using_custom_pk
+  end
+
+  def test_has_many_through_with_custom_primary_key_on_has_many_source
+    assert_equal [authors(:david)], posts(:thinking).authors_using_custom_pk
   end
 
   private
