@@ -518,6 +518,11 @@ module Rails
       end
     end
 
+    initializer :append_app_assets_path do |app|
+      app.config.assets.paths.unshift *paths["vendor/assets"].existent
+      app.config.assets.paths.unshift *paths["app/assets"].existent
+    end
+
     initializer :prepend_helpers_path do |app|
       if !isolated? || (app == self)
         app.config.helpers_paths.unshift(*paths["app/helpers"].existent)

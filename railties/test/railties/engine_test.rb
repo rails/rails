@@ -1,8 +1,7 @@
 require "isolation/abstract_unit"
 require "railties/shared_tests"
-require 'stringio'
-require 'rack/test'
-require 'rack/file'
+require "stringio"
+require "rack/test"
 
 module RailtiesTest
   class EngineTest < Test::Unit::TestCase

@@ -48,6 +48,18 @@ module RailtiesTest
       end
     end
 
+    def test_serving_sprockets_assets
+      @plugin.write "app/assets/javascripts/engine.js.coffee", "square = (x) -> x * x"
+
+      boot_rails
+      require 'rack/test'
+      require 'coffee_script'
+      extend Rack::Test::Methods
+
+      get "/assets/engine.js"
+      assert_match "square = function(x) {", last_response.body
+    end
+
     def test_copying_migrations
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
         class CreateUsers < ActiveRecord::Migration

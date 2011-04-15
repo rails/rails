@@ -50,6 +50,7 @@ module Rails
       end
     end
 
+    attr_accessor :assets
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     # This method is called just after an application inherits from Rails::Application,
@@ -116,8 +117,6 @@ module Rails
       self
     end
 
-    alias :build_middleware_stack :app
-
     def env_config
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
@@ -137,41 +136,18 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
-    def assets
-      @assets ||= build_asset_environment
-    end
-    attr_writer :assets
+  protected
+
+    alias :build_middleware_stack :app
 
     def build_asset_environment
-      return unless config.assets.enabled
       require 'sprockets'
       env = Sprockets::Environment.new(root.to_s)
       env.static_root = File.join(root.join("public"), config.assets.prefix)
-      env
+      env.paths.concat config.assets.paths
+      env.logger = Rails.logger
+      @assets = env
     end
-
-    initializer :add_sprockets_paths do |app|
-      if config.assets.enabled
-        paths = [
-          "app/assets/javascripts",
-          "app/assets/stylesheets",
-          "vendor/assets/javascripts",
-          "vendor/assets/stylesheets",
-          "vendor/plugins/*/app/javascripts",
-          "vendor/plugins/*/app/stylesheets",
-          "vendor/plugins/*/javascripts",
-          "vendor/plugins/*/stylesheets"
-        ] + config.assets.paths
-
-        paths.each do |pattern|
-          Dir[app.root.join(pattern)].each do |dir|
-            app.assets.paths << dir
-          end
-        end
-      end
-    end
-
-  protected
 
     def default_asset_path
       nil
