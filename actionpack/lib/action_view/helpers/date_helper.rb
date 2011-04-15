@@ -115,7 +115,9 @@ module ActionView
       #   time_ago_in_words(Time.now - 15.hours)      # => 15 hours
       #   time_ago_in_words(Time.now)                 # => less than a minute
       #
-      #   from_time = Time.now - 3.days - 14.minutes - 25.seconds     # => 3 days
+      #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
+      #   time_ago_in_words(from_time)      # => 3 days
+      #
       def time_ago_in_words(from_time, include_seconds = false)
         distance_of_time_in_words(from_time, Time.now, include_seconds)
       end
