@@ -44,6 +44,7 @@ module ActionView
       autoload :AbstractRenderer
       autoload :PartialRenderer
       autoload :TemplateRenderer
+      autoload :FiberedTemplateRenderer
     end
 
     autoload_at "action_view/template/resolver" do

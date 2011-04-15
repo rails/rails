@@ -153,7 +153,7 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_accessor :_template
+    attr_accessor :_template, :_view_flow, :magic_medicine
     attr_internal :request, :controller, :config, :assigns, :lookup_context
 
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
@@ -181,8 +181,8 @@ module ActionView #:nodoc:
       self.helpers = Module.new unless self.class.helpers
 
       @_config = {}
-      @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
+      @_view_flow = Flow.new
       @output_buffer = nil
 
       if @_controller = controller
@@ -195,10 +195,6 @@ module ActionView #:nodoc:
       @_lookup_context.formats = formats if formats
     end
 
-    def store_content_for(key, value)
-      @_content_for[key] = value
-    end
-
     def controller_path
       @controller_path ||= controller && controller.controller_path
     end
@@ -208,5 +204,50 @@ module ActionView #:nodoc:
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)
+  end
+
+  class Flow
+    attr_reader :content
+
+    def initialize
+      @content = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
+    end
+
+    def get(key)
+      @content[key]
+    end
+
+    def set(key, value)
+      @content[key] = value
+    end
+
+    def append(key, value)
+      @content[key] << value
+    end
+  end
+
+  class FiberedFlow < Flow
+    def initialize(flow, fiber)
+      @content = flow.content
+      @fiber   = fiber
+    end
+
+    def get(key)
+      return super if @content.key?(key)
+
+      begin
+        @waiting_for = key
+        Fiber.yield
+      ensure
+        @waiting_for = nil
+      end
+
+      super
+    end
+
+    def set(key, value)
+      super
+      @fiber.resume if @waiting_for == key
+    end
   end
 end

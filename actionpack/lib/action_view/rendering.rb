@@ -73,24 +73,38 @@ module ActionView
     #     Hello David
     #   </html>
     #
-    def _layout_for(*args, &block)
+    def _layout_for(*args)
+      name = args.first
+      name = :layout unless name.is_a?(Symbol)
+      @_view_flow.get(name).html_safe
+    end
+
+    # Returns the content from the Flow unless we have a block.
+    def _block_layout_for(*args, &block)
       name = args.first
 
-      if name.is_a?(Symbol)
-        @_content_for[name].html_safe
-      elsif block
+      if !name.is_a?(Symbol) && block
         capture(*args, &block)
       else
-        @_content_for[:layout].html_safe
+        _layout_for(*args)
       end
     end
 
     def _render_template(options) #:nodoc:
-      _template_renderer.render(options)
+      if @magic_medicine
+        _fibered_template_renderer.render(options)
+      else
+        _template_renderer.render(options)
+      end
     end
 
     def _template_renderer #:nodoc:
       @_template_renderer ||= TemplateRenderer.new(self)
     end
+
+    def _fibered_template_renderer #:nodoc:
+      @_fibered_template_renderer ||= FiberedTemplateRenderer.new(self)
+    end
+
   end
 end

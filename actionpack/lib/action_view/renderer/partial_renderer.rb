@@ -79,7 +79,7 @@ module ActionView
       locals[as] = object
 
       content = @template.render(view, locals) do |*name|
-        view._layout_for(*name, &block)
+        view._block_layout_for(*name, &block)
       end
 
       content = layout.render(view, locals){ content } if layout

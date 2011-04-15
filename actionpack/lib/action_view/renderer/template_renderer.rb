@@ -7,6 +7,7 @@ module ActionView
     def render(options)
       wrap_formats(options[:template] || options[:file]) do
         template = determine_template(options)
+        freeze_formats(template.formats, true)
         render_template(template, options[:layout], options[:locals])
       end
     end
@@ -31,7 +32,6 @@ module ActionView
     # Renders the given template. An string representing the layout can be
     # supplied as well.
     def render_template(template, layout_name = nil, locals = {}) #:nodoc:
-      freeze_formats(template.formats, true)
       view, locals = @view, locals || {}
 
       render_with_layout(layout_name, locals) do |layout|
@@ -47,7 +47,7 @@ module ActionView
 
       if layout
         view = @view
-        view.store_content_for(:layout, content)
+        view._view_flow.set(:layout, content)
         layout.render(view, locals){ |*name| view._layout_for(*name) }
       else
         content
