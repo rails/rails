@@ -14,7 +14,7 @@ module AbstractController
     # Override AbstractController::Base's process_action to run the
     # process_action callbacks around the normal behavior.
     def process_action(method_name, *args)
-      run_callbacks(:process_action, action_name) do
+      run_callbacks(:process_action, method_name) do
         super
       end
     end
@@ -29,7 +29,7 @@ module AbstractController
       #
       # ==== Options
       # * <tt>only</tt>   - The callback should be run only for this action
-      # * <tt>except<tt>  - The callback should be run for all actions except this action
+      # * <tt>except</tt>  - The callback should be run for all actions except this action
       def _normalize_callback_options(options)
         if only = options[:only]
           only = Array(only).map {|o| "action_name == '#{o}'"}.join(" || ")

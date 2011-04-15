@@ -1295,7 +1295,7 @@ end
 
 h5. update_page_tag
 
-Works like update_page but wraps the generated JavaScript in a +script+ tag. Use this to include generated JavaScript in an ERb template.
+Works like update_page but wraps the generated JavaScript in a +script+ tag. Use this to include generated JavaScript in an ERB template.
 
 h4. PrototypeHelper::JavaScriptGenerator::GeneratorMethods
 

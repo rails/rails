@@ -3,12 +3,10 @@ module ActionView #:nodoc:
   class Template
     module Handlers #:nodoc:
       autoload :ERB, 'action_view/template/handlers/erb'
-      autoload :RJS, 'action_view/template/handlers/rjs'
       autoload :Builder, 'action_view/template/handlers/builder'
 
       def self.extended(base)
         base.register_default_template_handler :erb, ERB.new
-        base.register_template_handler :rjs, RJS.new
         base.register_template_handler :builder, Builder.new
       end
 

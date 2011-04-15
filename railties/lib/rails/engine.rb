@@ -360,11 +360,11 @@ module Rails
       def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod))
 
-        name = engine_name
-        self.routes.default_scope = {:module => name}
+        self.routes.default_scope = { :module => ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
 
         unless mod.respond_to?(:_railtie)
+          name = engine_name
           _railtie = self
           mod.singleton_class.instance_eval do
             define_method(:_railtie) do
@@ -516,6 +516,11 @@ module Rails
       if config.compiled_asset_path && File.exist?(public_path)
         config.static_asset_paths[config.compiled_asset_path] = public_path
       end
+    end
+
+    initializer :append_app_assets_path do |app|
+      app.config.assets.paths.unshift *paths["vendor/assets"].existent
+      app.config.assets.paths.unshift *paths["app/assets"].existent
     end
 
     initializer :prepend_helpers_path do |app|

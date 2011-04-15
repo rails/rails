@@ -165,16 +165,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_build_and_create_should_not_happen_within_scope
     pirate = pirates(:blackbeard)
-    original_scoped_methods = Bulb.scoped_methods.dup
+    scoped_count = pirate.association(:foo_bulb).scoped.where_values.count
 
-    bulb = pirate.build_bulb
-    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+    bulb = pirate.build_foo_bulb
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
 
-    bulb = pirate.create_bulb
-    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+    bulb = pirate.create_foo_bulb
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
 
-    bulb = pirate.create_bulb!
-    assert_equal original_scoped_methods, bulb.scoped_methods_after_initialize
+    bulb = pirate.create_foo_bulb!
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
   end
 
   def test_create_association

@@ -68,10 +68,6 @@ module RenderTestCases
     assert_equal "The secret is in the sauce\n", @view.render(:file => "test/dot.directory/render_file_with_ivar")
   end
 
-  def test_render_update
-    assert_equal 'alert("Hello, World!");', @view.render(:update) { |page| page.alert('Hello, World!') }
-  end
-
   def test_render_partial_from_default
     assert_equal "only partial", @view.render("test/partial_only")
   end

@@ -121,7 +121,7 @@ module ActionView
       # Support the selector assertions
       #
       # Need to experiment if this priority is the best one: rendered => output_buffer
-      def response_from_page_or_rjs
+      def response_from_page
         HTML::Document.new(@rendered.blank? ? @output_buffer : @rendered).root
       end
 

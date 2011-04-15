@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_models'
+require 'active_support/core_ext/object/inclusion'
 
 class FormHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
@@ -715,14 +716,31 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_for_with_method
-    form_for(@post, :url => '/', :html => { :id => 'create-post', :method => :put }) do |f|
+  def test_form_for_with_method_as_part_of_html_options
+    form_for(@post, :url => '/', :html => { :id => 'create-post', :method => :delete }) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected =  whole_form("/", "create-post", "edit_post", "put") do
+    expected =  whole_form("/", "create-post", "edit_post", "delete") do
+      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_method
+    form_for(@post, :url => '/', :method => :delete, :html => { :id => 'create-post' }) do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+    end
+
+    expected =  whole_form("/", "create-post", "edit_post", "delete") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
@@ -1726,7 +1744,7 @@ class FormHelperTest < ActionView::TestCase
   def snowman(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if (method && !['get','post'].include?(method.to_s))
+    if method && !method.to_s.in?(['get', 'post'])
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
     txt << %{</div>}

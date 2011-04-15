@@ -14,10 +14,6 @@ class RenderJSTest < ActionController::TestCase
       render :js => "alert('hello')"
     end
 
-    def greeting
-      # let's just rely on the template
-    end
-
     def show_partial
       render :partial => 'partial'
     end
@@ -29,11 +25,6 @@ class RenderJSTest < ActionController::TestCase
     get :render_vanilla_js_hello
     assert_equal "alert('hello')", @response.body
     assert_equal "text/javascript", @response.content_type
-  end
-
-  def test_render_with_default_from_accept_header
-    xhr :get, :greeting
-    assert_equal "$(\"body\").visualEffect(\"highlight\");", @response.body
   end
 
   def test_should_render_js_partial

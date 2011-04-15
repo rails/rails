@@ -1,5 +1,69 @@
 *Rails 3.1.0 (unreleased)*
 
+* Passing a proc (or other object that responds to #call) to scope is deprecated. If you need your
+  scope to be lazily evaluated, or takes parameters, please define it as a normal class method
+  instead. For example, change this:
+
+    class Post < ActiveRecord::Base
+      scope :unpublished, lambda { where('published_at > ?', Time.now) }
+    end
+
+  To this:
+
+    class Post < ActiveRecord::Base
+      def self.unpublished
+        where('published_at > ?', Time.now)
+      end
+    end
+
+  [Jon Leighton]
+
+* Default scopes are now evaluated at the latest possible moment, to avoid problems where
+  scopes would be created which would implicitly contain the default scope, which would then
+  be impossible to get rid of via Model.unscoped.
+
+  Note that this means that if you are inspecting the internal structure of an
+  ActiveRecord::Relation, it will *not* contain the default scope, though the resulting
+  query will do. You can get a relation containing the default scope by calling
+  ActiveRecord#with_default_scope, though this is not part of the public API.
+
+  [Jon Leighton]
+
+* Deprecated support for passing hashes and relations to 'default_scope'. Please create a class
+  method for your scope instead. For example, change this:
+
+    class Post < ActiveRecord::Base
+      default_scope where(:published => true)
+    end
+
+    To this:
+
+    class Post < ActiveRecord::Base
+      def self.default_scope
+        where(:published => true)
+      end
+    end
+
+  Rationale: It will make the implementation simpler because we can simply use inheritance to
+  handle inheritance scenarios, rather than trying to make up our own rules about what should
+  happen when you call default_scope multiple times or in subclasses.
+
+  [Jon Leighton]
+
+* PostgreSQL adapter only supports PostgreSQL version 8.2 and higher.
+
+* ConnectionManagement middleware is changed to clean up the connection pool
+  after the rack body has been flushed.
+
+* Added an update_column method on ActiveRecord. This new method updates a given attribute on an object, skipping validations and callbacks.
+  It is recommended to use #update_attribute unless you are sure you do not want to execute any callback, including the modification of
+  the updated_at column. It should not be called on new records.
+  Example:
+
+    User.first.update_column(:name, "sebastian")         # => true
+
+  [Sebastian Martinez]
+
 * Associations with a :through option can now use *any* association as the
   through or source association, including other associations which have a
   :through option and has_and_belongs_to_many associations

@@ -84,6 +84,7 @@ The following methods skip validations, and will save the object to the database
 * +toggle!+
 * +update_all+
 * +update_attribute+
+* +update_column+
 * +update_counters+
 
 Note that +save+ also has the ability to skip validations if passed +:validate => false+ as argument. This technique should be used with caution.
@@ -821,7 +822,7 @@ The selectors to customize the style of error messages are:
 * +#errorExplanation p+ - Style for the paragraph that holds the message that appears right below the header of the +div+ element.
 * +#errorExplanation ul li+ - Style for the list items with individual error messages.
 
-Scaffolding for example generates +public/stylesheets/scaffold.css+, which defines the red-based style you saw above.
+Scaffolding for example generates +app/assets/stylesheets/scaffold.css.scss+, which later compiles to +app/assets/stylesheets/scaffold.css+ and defines the red-based style you saw above.
 
 The name of the class and the id can be changed with the +:class+ and +:id+ options, accepted by both helpers.
 
@@ -993,6 +994,7 @@ Just as with validations, it's also possible to skip callbacks. These methods sh
 * +increment+
 * +increment_counter+
 * +toggle+
+* +update_column+
 * +update_all+
 * +update_counters+
 

@@ -50,6 +50,7 @@ module Rails
       end
     end
 
+    attr_accessor :assets
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     # This method is called just after an application inherits from Rails::Application,
@@ -116,8 +117,6 @@ module Rails
       self
     end
 
-    alias :build_middleware_stack :app
-
     def env_config
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
@@ -139,21 +138,38 @@ module Rails
 
   protected
 
+    alias :build_middleware_stack :app
+
+    def build_asset_environment
+      require 'sprockets'
+      env = Sprockets::Environment.new(root.to_s)
+      env.static_root = File.join(root.join("public"), config.assets.prefix)
+      env.paths.concat config.assets.paths
+      env.logger = Rails.logger
+      @assets = env
+    end
+
     def default_asset_path
       nil
     end
 
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
+        if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
+          require "action_dispatch/http/rack_cache"
+          middleware.use ::Rack::Cache, rack_cache
+        end
 
-        require "action_dispatch/http/rack_cache" if rack_cache
-        middleware.use ::Rack::Cache, rack_cache  if rack_cache
+        if config.force_ssl
+          require "rack/ssl"
+          middleware.use ::Rack::SSL
+        end
 
         if config.serve_static_assets
           asset_paths = ActiveSupport::OrderedHash[config.static_asset_paths.to_a.reverse]
           middleware.use ::ActionDispatch::Static, asset_paths
         end
+
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rails::Rack::Logger
@@ -174,7 +190,10 @@ module Rails
         middleware.use ::ActionDispatch::Head
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
-        middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support if config.action_dispatch.best_standards_support
+
+        if config.action_dispatch.best_standards_support
+          middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support
+        end
       end
     end
 

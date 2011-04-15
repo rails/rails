@@ -42,10 +42,10 @@ module <%= app_const_base %>
     # JavaScript files you want as :defaults (application.js is always included).
 <% if options[:skip_javascript] -%>
     config.action_view.javascript_expansions[:defaults] = %w()
-<% elsif options[:javascript] == 'jquery' -%>
-    config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
+<% elsif options[:javascript] == 'prototype' -%>
+    config.action_view.javascript_expansions[:defaults] = %w(prototype effects dragdrop controls rails)
 <% else -%>
-    # config.action_view.javascript_expansions[:defaults] = %w(jquery rails)
+    # config.action_view.javascript_expansions[:defaults] = %w(prototype effects dragdrop controls rails)
 <% end -%>
 
 <% if options[:skip_test_unit] -%>
@@ -62,5 +62,8 @@ module <%= app_const_base %>
     # Enable IdentityMap for Active Record, to disable set to false or remove the line below.
     config.active_record.identity_map = true
 <% end -%>
+
+    # Enable the asset pipeline
+    config.assets.enabled = true
   end
 end

@@ -65,7 +65,7 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Account.sum(:credit_limit, :group => :firm_id)
     [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
   end
-  
+
   def test_should_group_by_multiple_fields
     c = Account.count(:all, :group => ['firm_id', :credit_limit])
     [ [nil, 50], [1, 50], [6, 50], [6, 55], [9, 53], [2, 60] ].each { |firm_and_limit| assert c.keys.include?(firm_and_limit) }
@@ -109,6 +109,35 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [2, 6], c.keys.compact
   end
 
+  def test_limit_should_apply_before_count
+    accounts = Account.limit(3).where('firm_id IS NOT NULL')
+
+    assert_equal 3, accounts.count(:firm_id)
+    assert_equal 3, accounts.select(:firm_id).count
+  end
+
+  def test_count_should_shortcut_with_limit_zero
+    accounts = Account.limit(0)
+
+    assert_no_queries { assert_equal 0, accounts.count }
+  end
+
+  def test_limit_is_kept
+    return if current_adapter?(:OracleAdapter)
+
+    queries = assert_sql { Account.limit(1).count }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+  end
+
+  def test_offset_is_kept
+    return if current_adapter?(:OracleAdapter)
+
+    queries = assert_sql { Account.offset(1).count }
+    assert_equal 1, queries.length
+    assert_match(/OFFSET/, queries.first)
+  end
+
   def test_limit_with_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
@@ -116,20 +145,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
     assert_match(/OFFSET/, queries.first)
-  end
-
-  def test_offset_without_limit_removes_offset
-    queries = assert_sql { Account.offset(1).count }
-    assert_equal 1, queries.length
-    assert_no_match(/LIMIT/, queries.first)
-    assert_no_match(/OFFSET/, queries.first)
-  end
-
-  def test_limit_without_offset_removes_limit
-    queries = assert_sql { Account.limit(1).count }
-    assert_equal 1, queries.length
-    assert_no_match(/LIMIT/, queries.first)
-    assert_no_match(/OFFSET/, queries.first)
   end
 
   def test_no_limit_no_offset

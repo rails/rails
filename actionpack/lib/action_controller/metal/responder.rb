@@ -77,6 +77,37 @@ module ActionController #:nodoc:
   #
   #   respond_with(@project, :manager, @task)
   #
+  # === Custom options
+  #
+  # <code>respond_with</code> also allow you to pass options that are forwarded
+  # to the underlying render call. Those options are only applied success
+  # scenarios. For instance, you can do the following in the create method above:
+  #
+  #   def create
+  #     @project = Project.find(params[:project_id])
+  #     @task = @project.comments.build(params[:task])
+  #     flash[:notice] = 'Task was successfully created.' if @task.save
+  #     respond_with(@project, @task, :status => 201)
+  #   end
+  #
+  # This will return status 201 if the task was saved with success. If not,
+  # it will simply ignore the given options and return status 422 and the
+  # resource errors. To customize the failure scenario, you can pass a
+  # a block to <code>respond_with</code>:
+  #
+  #   def create
+  #     @project = Project.find(params[:project_id])
+  #     @task = @project.comments.build(params[:task])
+  #     respond_with(@project, @task, :status => 201) do |format|
+  #       if @task.save
+  #         flash[:notice] = 'Task was successfully created.'
+  #       else
+  #         format.html { render "some_special_template" }
+  #       end
+  #     end
+  #   end
+  #
+  # Using <code>respond_with</code> with a block follows the same syntax as <code>respond_to</code>.
   class Responder
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
@@ -131,7 +162,11 @@ module ActionController #:nodoc:
     # responds to :to_format and display it.
     #
     def to_format
-      default_render
+      if get? || !has_errors?
+        default_render
+      else
+        display_errors
+      end
     rescue ActionView::MissingTemplate => e
       api_behavior(e)
     end
@@ -155,8 +190,6 @@ module ActionController #:nodoc:
 
       if get?
         display resource
-      elsif has_errors?
-        display resource.errors, :status => :unprocessable_entity
       elsif post?
         display resource, :status => :created, :location => api_location
       elsif has_empty_resource_definition?
@@ -185,7 +218,7 @@ module ActionController #:nodoc:
     # controller.
     #
     def default_render
-      @default_response.call
+      @default_response.call(options)
     end
 
     # Display is just a shortcut to render a resource with the current format.
@@ -207,6 +240,10 @@ module ActionController #:nodoc:
     #
     def display(resource, given_options={})
       controller.render given_options.merge!(options).merge!(format => resource)
+    end
+
+    def display_errors
+      controller.render format => resource.errors, :status => :unprocessable_entity
     end
 
     # Check whether the resource has errors.

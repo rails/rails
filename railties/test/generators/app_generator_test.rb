@@ -146,15 +146,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
-  def test_prototype_and_test_unit_are_added_by_default
+  def test_jquery_and_test_unit_are_added_by_default
     run_generator
-    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
+    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype effects dragdrop controls rails\)/
     assert_file "public/javascripts/application.js"
-    assert_file "public/javascripts/prototype.js"
+    assert_file "public/javascripts/jquery.js"
     assert_file "public/javascripts/rails.js"
-    assert_file "public/javascripts/controls.js"
-    assert_file "public/javascripts/dragdrop.js"
-    assert_file "public/javascripts/effects.js"
     assert_file "test"
   end
 
@@ -162,24 +159,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-javascript"]
     assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
     assert_file "public/javascripts/application.js"
-    assert_no_file "public/javascripts/prototype.js"
+    assert_no_file "public/javascripts/jquery.js"
     assert_no_file "public/javascripts/rails.js"
   end
 
   def test_config_prototype_javascript_library
     run_generator [destination_root, "-j", "prototype"]
-    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
+    assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype effects dragdrop controls rails\)/
     assert_file "public/javascripts/application.js"
     assert_file "public/javascripts/prototype.js"
-    assert_file "public/javascripts/controls.js"
-    assert_file "public/javascripts/dragdrop.js"
     assert_file "public/javascripts/effects.js"
+    assert_file "public/javascripts/dragdrop.js"
+    assert_file "public/javascripts/controls.js"
     assert_file "public/javascripts/rails.js", /prototype/
   end
 
   def test_config_jquery_javascript_library
     run_generator [destination_root, "-j", "jquery"]
-    assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(jquery rails\)/
+    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype effects dragdrop controls rails\)/
     assert_file "public/javascripts/application.js"
     assert_file "public/javascripts/jquery.js"
     assert_file "public/javascripts/rails.js", /jQuery/
@@ -213,6 +210,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-test-unit"]
     assert_file "config/application.rb" do |file|
       assert_match /config.generators.test_framework = false/, file
+    end
+  end
+
+  def test_new_hash_style
+    run_generator [destination_root]
+    assert_file "config/initializers/session_store.rb" do |file|
+      if RUBY_VERSION < "1.9"
+        assert_match /config.session_store :cookie_store, :key => '_.+_session'/, file
+      else
+        assert_match /config.session_store :cookie_store, key: '_.+_session'/, file
+      end
+    end
+  end
+
+  def test_force_old_style_hash
+    run_generator [destination_root, "--old-style-hash"]
+    assert_file "config/initializers/session_store.rb" do |file|
+      assert_match /config.session_store :cookie_store, :key => '_.+_session'/, file
     end
   end
 

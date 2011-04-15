@@ -1,1 +1,0 @@
-page.call "document.write", render(:partial => "one")

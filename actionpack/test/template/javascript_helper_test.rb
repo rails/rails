@@ -27,25 +27,12 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript( %(backslash\\test) )
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
+    assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
 
   def test_button_to_function
     assert_dom_equal %(<input type="button" onclick="alert('Hello world!');" value="Greeting" />),
       button_to_function("Greeting", "alert('Hello world!')")
-  end
-
-  def test_button_to_function_with_rjs_block
-    html = button_to_function( "Greet me!" ) do |page|
-      page.replace_html 'header', "<h1>Greetings</h1>"
-    end
-    assert_dom_equal %(<input type="button" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C/h1\\u003E&quot;);;" value="Greet me!" />), html
-  end
-
-  def test_button_to_function_with_rjs_block_and_options
-    html = button_to_function( "Greet me!", :class => "greeter" ) do |page|
-      page.replace_html 'header', "<h1>Greetings</h1>"
-    end
-    assert_dom_equal %(<input type="button" class="greeter" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C\/h1\\u003E&quot;);;" value="Greet me!" />), html
   end
 
   def test_button_to_function_with_onclick
@@ -68,32 +55,9 @@ class JavaScriptHelperTest < ActionView::TestCase
       link_to_function("Greeting", "alert('Hello world!')", :onclick => "confirm('Sanity!')")
   end
 
-  def test_link_to_function_with_rjs_block
-    html = link_to_function( "Greet me!" ) do |page|
-      page.replace_html 'header', "<h1>Greetings</h1>"
-    end
-    assert_dom_equal %(<a href="#" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C/h1\\u003E&quot;);; return false;">Greet me!</a>), html
-  end
-
-  def test_link_to_function_with_rjs_block_and_options
-    html = link_to_function( "Greet me!", :class => "updater" ) do |page|
-      page.replace_html 'header', "<h1>Greetings</h1>"
-    end
-    assert_dom_equal %(<a href="#" class="updater" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C/h1\\u003E&quot;);; return false;">Greet me!</a>), html
-  end
-
-  def test_link_to_function_with_href
+  def test_function_with_href
     assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
       link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
-  end
-
-  def test_link_to_function_with_inner_block_does_not_raise_exception
-    html = link_to_function( "Greet me!" ) do |page|
-      page.replace_html 'header', (content_tag :h1 do
-        'Greetings'
-      end)
-    end
-    assert_dom_equal %(<a href="#" onclick="Element.update(&quot;header&quot;, &quot;\\u003Ch1\\u003EGreetings\\u003C/h1\\u003E&quot;);; return false;">Greet me!</a>), html
   end
 
   def test_javascript_tag

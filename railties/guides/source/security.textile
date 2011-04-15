@@ -57,7 +57,11 @@ Many web applications have an authentication system: a user provides a user name
 
 Hence, the cookie serves as temporary authentication for the web application. Everyone who seizes a cookie from someone else, may use the web application as this user – with possibly severe consequences. Here are some ways to hijack a session, and their countermeasures:
 
-* Sniff the cookie in an insecure network. A wireless LAN can be an example of such a network. In an unencrypted wireless LAN it is especially easy to listen to the traffic of all connected clients. This is one more reason not to work from a coffee shop. For the web application builder this means to _(highlight)provide a secure connection over SSL_.
+* Sniff the cookie in an insecure network. A wireless LAN can be an example of such a network. In an unencrypted wireless LAN it is especially easy to listen to the traffic of all connected clients. This is one more reason not to work from a coffee shop. For the web application builder this means to _(highlight)provide a secure connection over SSL_. In Rails 3.1 and later, this could be accomplished by always forcing SSL connection in your application config file:
+
+<ruby>
+config.force_ssl = true
+</ruby>
 
 * Most people don't clear out the cookies after working at a public terminal. So if the last user didn't log out of a web application, you would be able to use it as this user. Provide the user with a _(highlight)log-out button_ in the web application, and _(highlight)make it prominent_.
 
@@ -888,12 +892,6 @@ h4. Ajax Injection
 -- _The same security precautions have to be taken for Ajax actions as for “normal” ones. There is at least one exception, however: The output has to be escaped in the controller already, if the action doesn't render a view._
 
 If you use the "in_place_editor plugin":http://dev.rubyonrails.org/browser/plugins/in_place_editing, or actions that return a string, rather than rendering a view, _(highlight)you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
-
-h4. RJS Injection
-
--- _Don't forget to escape in JavaScript (RJS) templates, too._
-
-The RJS API generates blocks of JavaScript code based on Ruby code, thus allowing you to manipulate a view or parts of a view from the server side. <em class="highlight">If you allow user input in RJS templates, do escape it using +escape_javascript()+ within JavaScript functions, and in HTML parts using +h()+</em>. Otherwise an attacker could execute arbitrary JavaScript.
 
 h4. Command Line Injection
 

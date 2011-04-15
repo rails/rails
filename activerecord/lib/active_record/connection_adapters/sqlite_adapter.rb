@@ -165,12 +165,20 @@ module ActiveRecord
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
             stmt.bind_params binds.map { |col, val|
-              col ? col.type_cast(val) : val
+              type_cast(val, col)
             }
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)
         end
+      end
+
+      def exec_insert(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
+      def last_inserted_id(result)
+        @connection.last_insert_row_id
       end
 
       def execute(sql, name = nil) #:nodoc:
@@ -188,7 +196,8 @@ module ActiveRecord
       end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
-        super || @connection.last_insert_row_id
+        super
+        id_value || @connection.last_insert_row_id
       end
       alias :create :insert_sql
 
@@ -222,7 +231,7 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = nil) #:nodoc:
+      def tables(name = 'SCHEMA') #:nodoc:
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
@@ -350,7 +359,7 @@ module ActiveRecord
         end
 
         def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})").to_hash
+          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           structure
         end

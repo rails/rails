@@ -1,5 +1,31 @@
 *Rails 3.1.0 (unreleased)*
 
+* The scaffold controller will now produce SCSS file if Sass is available [Prem Sichanugrist]
+
+* The controller and resource generators will now automatically produce asset stubs (this can be turned off with --skip-assets). These stubs will use Coffee and Sass, if those libraries are available. [DHH]
+
+* jQuery is the new default JavaScript library. [fxn]
+
+* Changed scaffold and app generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
+
+  So instead of creating something like:
+
+    redirect_to users_path, :notice => "User has been created"
+
+  it will now be like this:
+
+    redirect_to users_path, notice: "User has been created"
+
+  You can also passing `--old-style-hash` to make Rails generate old style hash even you're on Ruby 1.9
+
+* Changed scaffold_controller generator to create format block for JSON instead of XML [Prem Sichanugrist]
+
+* Add using Turn with natural language test case names for test_help.rb when running with minitest (Ruby 1.9.2+) [DHH]
+
+* Direct logging of Active Record to STDOUT so it's shown inline with the results in the console [DHH]
+
+* Added `config.force_ssl` configuration which loads Rack::SSL middleware and force all requests to be under HTTPS protocol [DHH, Prem Sichanugrist, and Josh Peek]
+
 * Added `rails plugin new` command which generates rails plugin with gemspec, tests and dummy application for testing [Piotr Sarnacki]
 
 * Added -j parameter with jquery/prototype as options. Now you can create your apps with jQuery using `rails new myapp -j jquery`. The default is still Prototype. [siong1987]

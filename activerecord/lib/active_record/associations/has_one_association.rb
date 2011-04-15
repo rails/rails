@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/inclusion'
+
 module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
@@ -34,8 +36,7 @@ module ActiveRecord
             when :destroy
               target.destroy
             when :nullify
-              target.send("#{reflection.foreign_key}=", nil)
-              target.save(:validations => false)
+              target.update_attribute(reflection.foreign_key, nil)
           end
         end
       end
@@ -51,7 +52,7 @@ module ActiveRecord
         end
 
         def remove_target!(method)
-          if [:delete, :destroy].include?(method)
+          if method.in?([:delete, :destroy])
             target.send(method)
           else
             nullify_owner_attributes(target)

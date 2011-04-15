@@ -131,6 +131,35 @@ class ViewLoadPathsTest < ActionController::TestCase
     assert_equal "Hello overridden world!", @response.body
   end
 
+  def test_override_view_paths_with_custom_resolver
+    resolver_class = Class.new(ActionView::PathResolver) do
+      def initialize(path_set)
+        @path_set = path_set
+      end
+
+      def find_all(*args)
+        @path_set.find_all(*args).collect do |template|
+          ::ActionView::Template.new(
+            "Customized body",
+            template.identifier,
+            template.handler,
+            {
+              :virtual_path => template.virtual_path,
+              :format => template.formats
+            }
+          )
+        end
+      end
+    end
+
+    resolver = resolver_class.new(TestController.view_paths)
+    TestController.view_paths = ActionView::PathSet.new.push(resolver)
+
+    get :hello_world
+    assert_response :success
+    assert_equal "Customized body", @response.body
+  end
+
   def test_inheritance
     original_load_paths = ActionController::Base.view_paths
 

@@ -315,14 +315,20 @@ class TextHelperTest < ActionView::TestCase
     end
   end
 
-  def test_auto_link_should_be_html_safe
+  def test_auto_link_should_not_be_html_safe
     email_raw    = 'santiago@wyeworks.com'
     link_raw     = 'http://www.rubyonrails.org'
 
-    assert auto_link(nil).html_safe?
-    assert auto_link('').html_safe?
-    assert auto_link("#{link_raw} #{link_raw} #{link_raw}").html_safe?
-    assert auto_link("hello #{email_raw}").html_safe?
+    assert !auto_link(nil).html_safe?, 'should not be html safe'
+    assert !auto_link('').html_safe?, 'should not be html safe'
+    assert !auto_link("#{link_raw} #{link_raw} #{link_raw}").html_safe?, 'should not be html safe'
+    assert !auto_link("hello #{email_raw}").html_safe?, 'should not be html safe'
+  end
+
+  def test_auto_link_email_address
+    email_raw    = 'aaron@tenderlovemaking.com'
+    email_result = %{<a href="mailto:#{email_raw}">#{email_raw}</a>}
+    assert !auto_link_email_addresses(email_result).html_safe?, 'should not be html safe'
   end
 
   def test_auto_link

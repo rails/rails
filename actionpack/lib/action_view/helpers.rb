@@ -17,11 +17,10 @@ module ActionView #:nodoc:
     autoload :FormTagHelper
     autoload :JavaScriptHelper, "action_view/helpers/javascript_helper"
     autoload :NumberHelper
-    autoload :PrototypeHelper
     autoload :OutputSafetyHelper
     autoload :RecordTagHelper
     autoload :SanitizeHelper
-    autoload :ScriptaculousHelper
+    autoload :SprocketsHelper
     autoload :TagHelper
     autoload :TextHelper
     autoload :TranslationHelper
@@ -47,11 +46,10 @@ module ActionView #:nodoc:
     include FormTagHelper
     include JavaScriptHelper
     include NumberHelper
-    include PrototypeHelper
     include OutputSafetyHelper
     include RecordTagHelper
     include SanitizeHelper
-    include ScriptaculousHelper
+    include SprocketsHelper
     include TagHelper
     include TextHelper
     include TranslationHelper

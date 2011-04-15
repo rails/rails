@@ -113,8 +113,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     pet = Pet.first
     owner = pet.owner
-    owner.happy_at = 3.days.ago
-    owner.save
+    owner.update_attribute(:happy_at, 3.days.ago)
     previously_owner_updated_at = owner.updated_at
 
     pet.name = "I'm a parrot"

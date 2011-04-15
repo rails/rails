@@ -40,6 +40,7 @@ module Rails
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
           paths.add "app",                 :eager_load => true, :glob => "*"
+          paths.add "app/assets",          :glob => "*"
           paths.add "app/controllers",     :eager_load => true
           paths.add "app/helpers",         :eager_load => true
           paths.add "app/models",          :eager_load => true
@@ -59,6 +60,7 @@ module Rails
           paths.add "public/javascripts"
           paths.add "public/stylesheets"
           paths.add "vendor",              :load_path => true
+          paths.add "vendor/assets",       :glob => "*"
           paths.add "vendor/plugins"
           paths
         end

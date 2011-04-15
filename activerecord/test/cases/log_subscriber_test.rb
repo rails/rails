@@ -8,6 +8,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def setup
     @old_logger = ActiveRecord::Base.logger
+    @using_identity_map = ActiveRecord::IdentityMap.enabled?
+    ActiveRecord::IdentityMap.enabled = false
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
@@ -16,10 +18,38 @@ class LogSubscriberTest < ActiveRecord::TestCase
     super
     ActiveRecord::LogSubscriber.log_subscribers.pop
     ActiveRecord::Base.logger = @old_logger
+    ActiveRecord::IdentityMap.enabled = @using_identity_map
   end
 
   def set_logger(logger)
     ActiveRecord::Base.logger = logger
+  end
+
+  def test_schema_statements_are_ignored
+    event = Struct.new(:duration, :payload)
+
+    logger = Class.new(ActiveRecord::LogSubscriber) {
+      attr_accessor :debugs
+
+      def initialize
+        @debugs = []
+        super
+      end
+
+      def debug message
+        @debugs << message
+      end
+    }.new
+    assert_equal 0, logger.debugs.length
+
+    logger.sql(event.new(0, { :sql => 'hi mom!' }))
+    assert_equal 1, logger.debugs.length
+
+    logger.sql(event.new(0, { :sql => 'hi mom!', :name => 'foo' }))
+    assert_equal 2, logger.debugs.length
+
+    logger.sql(event.new(0, { :sql => 'hi mom!', :name => 'SCHEMA' }))
+    assert_equal 2, logger.debugs.length
   end
 
   def test_basic_query_logging

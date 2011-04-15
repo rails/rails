@@ -1,6 +1,7 @@
 require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/inclusion'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 
@@ -104,10 +105,16 @@ module ActionDispatch
               @options.reverse_merge!(:controller => /.+?/)
             end
 
+            # Add a constraint for wildcard route to make it non-greedy and match the
+            # optional format part of the route by default
+            if path.match(/\*([^\/]+)$/) && @options[:format] != false
+              @options.reverse_merge!(:"#{$1}" => /.+?/)
+            end
+
             if @options[:format] == false
               @options.delete(:format)
               path
-            elsif path.include?(":format") || path.end_with?('/') || path.match(/^\/?\*/)
+            elsif path.include?(":format") || path.end_with?('/')
               path
             else
               "#{path}(.:format)"
@@ -1339,11 +1346,11 @@ module ActionDispatch
           end
 
           def resource_scope? #:nodoc:
-            [:resource, :resources].include?(@scope[:scope_level])
+            @scope[:scope_level].in?([:resource, :resources])
           end
 
           def resource_method_scope? #:nodoc:
-            [:collection, :member, :new].include?(@scope[:scope_level])
+            @scope[:scope_level].in?([:collection, :member, :new])
           end
 
           def with_exclusive_scope

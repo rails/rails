@@ -74,6 +74,11 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_exists_does_not_instantiate_records
+    Developer.expects(:instantiate).never
+    Developer.exists?
+  end
+
   def test_find_by_array_of_one_id
     assert_kind_of(Array, Topic.find([ 1 ]))
     assert_equal(1, Topic.find([ 1 ]).length)
@@ -203,6 +208,14 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_model_class_responds_to_first_bang
+    assert Topic.first!
+    Topic.delete_all
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.first!
+    end
+  end
+
   def test_last_bang_present
     assert_nothing_raised do
       assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
@@ -212,6 +225,14 @@ class FinderTest < ActiveRecord::TestCase
   def test_last_bang_missing
     assert_raises ActiveRecord::RecordNotFound do
       Topic.where("title = 'This title does not exist'").last!
+    end
+  end
+
+  def test_model_class_responds_to_last_bang
+    assert_equal topics(:fourth), Topic.last!
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.delete_all
+      Topic.last!
     end
   end
 
@@ -226,9 +247,10 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_only_some_columns
     topic = Topic.find(1, :select => "author_name")
     assert_raise(ActiveModel::MissingAttributeError) {topic.title}
+    assert_nil topic.read_attribute("title")
     assert_equal "David", topic.author_name
     assert !topic.attribute_present?("title")
-    #assert !topic.respond_to?("title")
+    assert !topic.attribute_present?(:title)
     assert topic.attribute_present?("author_name")
     assert_respond_to topic, "author_name"
   end

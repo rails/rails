@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/inclusion'
+
 module ActiveRecord::Associations::Builder
   class HasOne < SingularAssociation #:nodoc:
     self.macro = :has_one
@@ -27,7 +29,7 @@ module ActiveRecord::Associations::Builder
 
       def configure_dependency
         if options[:dependent]
-          unless [:destroy, :delete, :nullify, :restrict].include?(options[:dependent])
+          unless options[:dependent].in?([:destroy, :delete, :nullify, :restrict])
             raise ArgumentError, "The :dependent option expects either :destroy, :delete, " \
                                  ":nullify or :restrict (#{options[:dependent].inspect})"
           end

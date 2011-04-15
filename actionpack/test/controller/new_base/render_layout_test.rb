@@ -70,8 +70,8 @@ module ControllerLayouts
   class MismatchFormatController < ::ApplicationController
     self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/application.html.erb" => "<html><%= yield %></html>",
-      "controller_layouts/mismatch_format/index.js.rjs" => "page[:test].ext",
-      "controller_layouts/mismatch_format/implicit.rjs" => "page[:test].ext"
+      "controller_layouts/mismatch_format/index.xml.builder" => "xml.instruct!",
+      "controller_layouts/mismatch_format/implicit.builder" => "xml.instruct!"
     )]
 
     def explicit
@@ -81,15 +81,17 @@ module ControllerLayouts
 
   class MismatchFormatTest < Rack::TestCase
     testing ControllerLayouts::MismatchFormatController
+    
+    XML_INSTRUCT = %Q(<?xml version="1.0" encoding="UTF-8"?>\n)
 
-    test "if JS is selected, an HTML template is not also selected" do
-      get :index, "format" => "js"
-      assert_response "$(\"test\").ext();"
+    test "if XML is selected, an HTML template is not also selected" do
+      get :index, :format => "xml"
+      assert_response XML_INSTRUCT
     end
 
-    test "if JS is implicitly selected, an HTML template is not also selected" do
+    test "if XML is implicitly selected, an HTML template is not also selected" do
       get :implicit
-      assert_response "$(\"test\").ext();"
+      assert_response XML_INSTRUCT
     end
 
     test "if an HTML template is explicitly provides for a JS template, an error is raised" do

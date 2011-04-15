@@ -183,7 +183,9 @@ module ActiveRecord
     def exists?(id = nil)
       id = id.id if ActiveRecord::Base === id
 
-      relation = select("1").limit(1)
+      join_dependency = construct_join_dependency_for_association_find
+      relation = construct_relation_for_association_find(join_dependency)
+      relation = relation.except(:select).select("1").limit(1)
 
       case id
       when Array, Hash
@@ -192,19 +194,23 @@ module ActiveRecord
         relation = relation.where(table[primary_key].eq(id)) if id
       end
 
-      relation.first ? true : false
+      connection.select_value(relation.to_sql) ? true : false
     end
 
     protected
 
     def find_with_associations
-      including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
+      join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
       rows = connection.select_all(relation.to_sql, 'SQL', relation.bind_values)
       join_dependency.instantiate(rows)
     rescue ThrowResult
       []
+    end
+
+    def construct_join_dependency_for_association_find
+      including = (@eager_load_values + @includes_values).uniq
+      ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
     end
 
     def construct_relation_for_association_calculations
@@ -303,9 +309,18 @@ module ActiveRecord
     def find_one(id)
       id = id.id if ActiveRecord::Base === id
 
+      if IdentityMap.enabled? && where_values.blank? &&
+        limit_value.blank? && order_values.blank? &&
+        includes_values.blank? && preload_values.blank? &&
+        readonly_value.nil? && joins_values.blank? &&
+        !@klass.locking_enabled? &&
+        record = IdentityMap.get(@klass, id)
+        return record
+      end
+
       column = columns_hash[primary_key]
 
-      substitute = connection.substitute_for(column, @bind_values)
+      substitute = connection.substitute_at(column, @bind_values.length)
       relation = where(table[primary_key].eq(substitute))
       relation.bind_values = [[column, id]]
       record = relation.first
@@ -337,8 +352,8 @@ module ActiveRecord
       if result.size == expected_size
         result
       else
-        conditions = arel.wheres.map { |x| x.value }.join(', ')
-        conditions = " [WHERE #{conditions}]" if conditions.present?
+        conditions = arel.where_sql
+        conditions = " [#{conditions}]" if conditions
 
         error = "Couldn't find all #{@klass.name.pluralize} with IDs "
         error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"

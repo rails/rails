@@ -35,9 +35,6 @@ class OldContentTypeController < ActionController::Base
   def render_default_for_builder
   end
 
-  def render_default_for_rjs
-  end
-
   def render_change_for_builder
     response.content_type = Mime::HTML
     render :action => "render_default_for_builder"
@@ -126,12 +123,6 @@ class ContentTypeTest < ActionController::TestCase
   def test_default_for_builder
     get :render_default_for_builder
     assert_equal Mime::XML, @response.content_type
-    assert_equal "utf-8", @response.charset
-  end
-
-  def test_default_for_rjs
-    xhr :post, :render_default_for_rjs
-    assert_equal Mime::JS, @response.content_type
     assert_equal "utf-8", @response.charset
   end
 

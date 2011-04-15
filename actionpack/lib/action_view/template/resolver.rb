@@ -157,8 +157,8 @@ module ActionView
         query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
       }
 
-      query.gsub!(/\.{html,/, ".{html,text.html,")
-      query.gsub!(/\.{text,/, ".{text,text.plain,")
+      query.gsub!('.{html,', '.{html,text.html,')
+      query.gsub!('.{text,', '.{text,text.plain,')
 
       File.expand_path(query, @path)
     end
@@ -186,7 +186,7 @@ module ActionView
   # ==== Examples
   #
   # Default pattern, loads views the same way as previous versions of rails, eg. when you're
-  # looking for `users/new` it will produce query glob: `users/new{.{en},}{.{html,js},}{.{erb,haml,rjs},}`
+  # looking for `users/new` it will produce query glob: `users/new{.{en},}{.{html,js},}{.{erb,haml},}`
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{.:handlers,}")
   #

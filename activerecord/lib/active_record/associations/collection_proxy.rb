@@ -82,8 +82,6 @@ module ActiveRecord
             end
           end
 
-        elsif @association.klass.scopes[method]
-          @association.cached_scope(method, args)
         else
           scoped.readonly(nil).send(method, *args, &block)
         end

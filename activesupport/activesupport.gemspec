@@ -16,6 +16,4 @@ Gem::Specification.new do |s|
 
   s.files        = Dir['CHANGELOG', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
-
-  s.has_rdoc = true
 end

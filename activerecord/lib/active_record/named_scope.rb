@@ -9,11 +9,6 @@ module ActiveRecord
   module NamedScope
     extend ActiveSupport::Concern
 
-    included do
-      class_attribute :scopes
-      self.scopes = {}
-    end
-
     module ClassMethods
       # Returns an anonymous \scope.
       #
@@ -35,7 +30,13 @@ module ActiveRecord
         if options
           scoped.apply_finder_options(options)
         else
-          current_scoped_methods ? relation.merge(current_scoped_methods) : relation.clone
+          if current_scope
+            current_scope.clone
+          else
+            scope = relation.clone
+            scope.default_scoped = true
+            scope
+          end
         end
       end
 
@@ -49,6 +50,14 @@ module ActiveRecord
       #
       # The above calls to <tt>scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red,
       # in effect, represents the query <tt>Shirt.where(:color => 'red')</tt>.
+      #
+      # Note that this is simply 'syntactic sugar' for defining an actual class method:
+      #
+      #   class Shirt < ActiveRecord::Base
+      #     def self.red
+      #       where(:color => 'red')
+      #     end
+      #   end
       #
       # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it
       # resembles the association object constructed by a <tt>has_many</tt> declaration. For instance,
@@ -73,13 +82,33 @@ module ActiveRecord
       # then <tt>elton.shirts.red.dry_clean_only</tt> will return all of Elton's red, dry clean
       # only shirts.
       #
-      # Named \scopes can also be procedural:
+      # If you need to pass parameters to a scope, define it as a normal method:
       #
       #   class Shirt < ActiveRecord::Base
-      #     scope :colored, lambda {|color| where(:color => color) }
+      #     def self.colored(color)
+      #       where(:color => color)
+      #     end
       #   end
       #
       # In this example, <tt>Shirt.colored('puce')</tt> finds all puce shirts.
+      #
+      # Note that scopes defined with \scope will be evaluated when they are defined, rather than
+      # when they are used. For example, the following would be incorrect:
+      #
+      #   class Post < ActiveRecord::Base
+      #     scope :recent, where('published_at >= ?', Time.now - 1.week)
+      #   end
+      #
+      # The example above would be 'frozen' to the <tt>Time.now</tt> value when the <tt>Post</tt>
+      # class was defined, and so the resultant SQL query would always be the same. The correct
+      # way to do this would be via a class method, which will re-evaluate the scope each time
+      # it is called:
+      #
+      #   class Post < ActiveRecord::Base
+      #     def self.recent
+      #       where('published_at >= ?', Time.now - 1.week)
+      #     end
+      #   end
       #
       # Named \scopes can also have extensions, just as with <tt>has_many</tt> declarations:
       #
@@ -87,6 +116,18 @@ module ActiveRecord
       #     scope :red, where(:color => 'red') do
       #       def dom_id
       #         'red_shirts'
+      #       end
+      #     end
+      #   end
+      #
+      # The above could also be written as a class method like so:
+      #
+      #   class Shirt < ActiveRecord::Base
+      #     def self.red
+      #       where(:color => 'red').extending do
+      #         def dom_id
+      #           'red_shirts'
+      #         end
       #       end
       #     end
       #   end
@@ -99,34 +140,68 @@ module ActiveRecord
       #
       #   Article.published.new.published    # => true
       #   Article.published.create.published # => true
+      #
+      # Class methods on your model are automatically available
+      # on scopes. Assuming the following setup:
+      #
+      #   class Article < ActiveRecord::Base
+      #     scope :published, where(:published => true)
+      #     scope :featured, where(:featured => true)
+      #
+      #     def self.latest_article
+      #       order('published_at desc').first
+      #     end
+      #
+      #     def self.titles
+      #       map(&:title)
+      #     end
+      #
+      #   end
+      #
+      # We are able to call the methods like this:
+      #
+      #   Article.published.featured.latest_article
+      #   Article.featured.titles
+
       def scope(name, scope_options = {})
         name = name.to_sym
         valid_scope_name?(name)
         extension = Module.new(&Proc.new) if block_given?
 
+        if !scope_options.is_a?(Relation) && scope_options.respond_to?(:call)
+          ActiveSupport::Deprecation.warn <<-WARN
+Passing a proc (or other object that responds to #call) to scope is deprecated. If you need your scope to be lazily evaluated, or takes parameters, please define it as a normal class method instead. For example, change this:
+
+class Post < ActiveRecord::Base
+  scope :unpublished, lambda { where('published_at > ?', Time.now) }
+end
+
+To this:
+
+class Post < ActiveRecord::Base
+  def self.unpublished
+    where('published_at > ?', Time.now)
+  end
+end
+          WARN
+        end
+
         scope_proc = lambda do |*args|
           options = scope_options.respond_to?(:call) ? scope_options.call(*args) : scope_options
+          options = scoped.apply_finder_options(options) if options.is_a?(Hash)
 
-          relation = if options.is_a?(Hash)
-            scoped.apply_finder_options(options)
-          elsif options
-            scoped.merge(options)
-          else
-            scoped
-          end
+          relation = scoped.merge(options)
 
           extension ? relation.extending(extension) : relation
         end
 
-        self.scopes = self.scopes.merge name => scope_proc
-
-        singleton_class.send(:redefine_method, name, &scopes[name])
+        singleton_class.send(:redefine_method, name, &scope_proc)
       end
 
     protected
 
       def valid_scope_name?(name)
-        if !scopes[name] && respond_to?(name, true)
+        if respond_to?(name, true)
           logger.warn "Creating scope :#{name}. " \
                       "Overwriting existing method #{self.name}.#{name}."
         end

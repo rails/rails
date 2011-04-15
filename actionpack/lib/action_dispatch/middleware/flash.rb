@@ -43,9 +43,15 @@ module ActionDispatch
     class FlashNow #:nodoc:
       def initialize(flash)
         @flash = flash
+        @closed = false
       end
 
+      attr_reader :closed
+      alias :closed? :closed
+      def close!; @closed = true end
+
       def []=(k, v)
+        raise ClosedError, :flash if closed?
         @flash[k] = v
         @flash.discard(k)
         v
@@ -66,27 +72,70 @@ module ActionDispatch
       end
     end
 
-    class FlashHash < Hash
+    class FlashHash
+      include Enumerable
+
       def initialize #:nodoc:
-        super
-        @used = Set.new
+        @used    = Set.new
+        @closed  = false
+        @flashes = {}
       end
 
+      attr_reader :closed
+      alias :closed? :closed
+      def close!; @closed = true end
+
       def []=(k, v) #:nodoc:
+        raise ClosedError, :flash if closed?
         keep(k)
-        super
+        @flashes[k] = v
+      end
+
+      def [](k)
+        @flashes[k]
       end
 
       def update(h) #:nodoc:
         h.keys.each { |k| keep(k) }
-        super
+        @flashes.update h
+        self
+      end
+
+      def keys
+        @flashes.keys
+      end
+
+      def key?(name)
+        @flashes.key? name
+      end
+
+      def delete(key)
+        @flashes.delete key
+        self
+      end
+
+      def to_hash
+        @flashes.dup
+      end
+
+      def empty?
+        @flashes.empty?
+      end
+
+      def clear
+        @flashes.clear
+      end
+
+      def each(&block)
+        @flashes.each(&block)
       end
 
       alias :merge! :update
 
       def replace(h) #:nodoc:
         @used = Set.new
-        super
+        @flashes.replace h
+        self
       end
 
       # Sets a flash that will not be available to the next action, only to the current.
@@ -100,7 +149,7 @@ module ActionDispatch
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
       def now
-        FlashNow.new(self)
+        @now ||= FlashNow.new(self)
       end
 
       # Keeps either the entire current flash or a specific flash entry available for the next action:
@@ -184,8 +233,11 @@ module ActionDispatch
       session    = env['rack.session'] || {}
       flash_hash = env['action_dispatch.request.flash_hash']
 
-      if flash_hash && (!flash_hash.empty? || session.key?('flash'))
+      if flash_hash
+       if !flash_hash.empty? || session.key?('flash')
         session["flash"] = flash_hash
+       end
+       flash_hash.close!
       end
 
       if session.key?('flash') && session['flash'].empty?

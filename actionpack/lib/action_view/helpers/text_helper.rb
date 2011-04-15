@@ -303,7 +303,7 @@ module ActionView
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.myblog.com</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
       def auto_link(text, *args, &block)#link = :all, html = {}, &block)
-        return ''.html_safe if text.blank?
+        return '' if text.blank?
 
         options = args.size == 2 ? {} : args.extract_options! # this is necessary because the old auto_link API has a Hash as its last parameter
         unless args.empty?
@@ -507,7 +507,7 @@ module ActionView
               end
               content_tag(:a, link_text, link_attributes.merge('href' => href), !!options[:sanitize]) + punctuation.reverse.join('')
             end
-          end.html_safe
+          end
         end
 
         # Turns all email addresses into clickable links.  If a block is given,

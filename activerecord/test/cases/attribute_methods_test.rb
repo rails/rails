@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/core_ext/object/inclusion'
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'
@@ -9,6 +10,7 @@ require 'models/company'
 require 'models/category'
 require 'models/reply'
 require 'models/contact'
+require 'models/keyboard'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
@@ -76,6 +78,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_respond_to?
     topic = Topic.find(1)
     assert_respond_to topic, "title"
+    assert_respond_to topic, "_title"
     assert_respond_to topic, "title?"
     assert_respond_to topic, "title="
     assert_respond_to topic, :title
@@ -85,6 +88,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, "attribute_names"
     assert !topic.respond_to?("nothingness")
     assert !topic.respond_to?(:nothingness)
+  end
+
+  def test_respond_to_with_custom_primary_key
+    keyboard = Keyboard.create
+    assert_not_nil keyboard.key_number
+    assert_equal keyboard.key_number, keyboard.id
+    assert keyboard.respond_to?('key_number')
+    assert keyboard.respond_to?('_key_number')
+    assert keyboard.respond_to?('id')
+    assert keyboard.respond_to?('_id')
   end
 
   # Syck calls respond_to? before actually calling initialize
@@ -133,19 +146,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_read_attributes_after_type_cast_on_datetime
-    in_time_zone "Pacific Time (US & Canada)" do
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
       record = @target.new
 
-      record.written_on = "2011-03-24"
-      assert_equal "2011-03-24", record.written_on_before_type_cast
-      assert_equal Time.zone.parse("2011-03-24"), record.written_on
-      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"],
-        record.written_on.time_zone
+      date_string = "2011-03-24"
+      time        = Time.zone.parse date_string
+
+      record.written_on = date_string
+      assert_equal date_string, record.written_on_before_type_cast
+      assert_equal time, record.written_on
+      assert_equal ActiveSupport::TimeZone[tz], record.written_on.time_zone
 
       record.save
       record.reload
 
-      assert_equal Time.zone.parse("2011-03-24"), record.written_on
+      assert_equal time, record.written_on
     end
   end
 
@@ -634,7 +651,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def time_related_columns_on_topic
-    Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
+    Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
   end
 
   def serialized_columns_on_topic
