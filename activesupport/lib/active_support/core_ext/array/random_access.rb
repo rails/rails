@@ -1,7 +1,9 @@
 class Array
   # Backport of Array#sample based on Marc-Andre Lafortune's https://github.com/marcandre/backports/
   # Returns a random element or +n+ random elements from the array.
-  # If the array is empty and +n+ is nil, returns <tt>nil</tt>. if +n+ is passed, returns <tt>[]</tt>.
+  # If the array is empty and +n+ is nil, returns <tt>nil</tt>.
+  # If +n+ is passed and its value is less than 0, it raises an +ArgumentError+ exception.
+  # If the value of +n+ is equal or greater than 0 it returns <tt>[]</tt>.
   #
   #   [1,2,3,4,5,6].sample    # => 4
   #   [1,2,3,4,5,6].sample(3) # => [2, 4, 5]
