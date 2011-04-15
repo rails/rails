@@ -1,4 +1,13 @@
+*Rails 3.0.8 (unreleased)*
+
+* Fix various problems with using :primary_key and :foreign_key options in conjunction with
+  :through associations. [Jon Leighton]
+
 *Rails 3.0.7 (unreleased)*
+
+* Fix performance bug with attribute accessors which only occurred on Ruby 1.8.7, and ensure we
+  cache type-casted values when the column returned from the db contains non-standard chars.
+  [Jon Leighton]
 
 * Fix a performance regression introduced here 86acbf1cc050c8fa8c74a10c735e467fb6fd7df8
   related to read_attribute method [Stian Grytøyr]
