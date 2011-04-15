@@ -43,7 +43,7 @@ module ActiveRecord
             end
 
             if attr_name == primary_key && attr_name != "id"
-              define_read_method(:id, attr_name, columns_hash[attr_name])
+              define_read_method('id', attr_name, columns_hash[attr_name])
             end
           end
 
@@ -59,7 +59,9 @@ module ActiveRecord
           end
 
           # Define an attribute reader method.  Cope with nil column.
-          def define_read_method(symbol, attr_name, column)
+          # method_name is the same as attr_name except when a non-standard primary key is used,
+          # we still define #id as an accessor for the key
+          def define_read_method(method_name, attr_name, column)
             cast_code = column.type_cast_code('v')
             access_code = "(v=@attributes['#{attr_name}']) && #{cast_code}"
 
@@ -71,9 +73,25 @@ module ActiveRecord
               access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
             end
 
-            generated_attribute_methods.module_eval do
-              define_method("_#{attr_name}") { eval(access_code) }
-              alias_method(attr_name, "_#{attr_name}")
+            # Where possible, generate the method by evalling a string, as this will result in
+            # faster accesses because it avoids the block eval and then string eval incurred
+            # by the second branch.
+            #
+            # The second, slower, branch is necessary to support instances where the database
+            # returns columns with extra stuff in (like 'my_column(omg)').
+            if method_name =~ /^[a-zA-Z_]\w*[!?=]?$/
+              generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__
+                def _#{method_name}
+                  #{access_code}
+                end
+
+                alias #{method_name} _#{method_name}
+              STR
+            else
+              generated_attribute_methods.module_eval do
+                define_method("_#{method_name}") { eval(access_code) }
+                alias_method(method_name, "_#{method_name}")
+              end
             end
           end
       end

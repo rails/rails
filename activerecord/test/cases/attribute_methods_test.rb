@@ -10,6 +10,7 @@ require 'models/company'
 require 'models/category'
 require 'models/reply'
 require 'models/contact'
+require 'models/keyboard'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
@@ -87,6 +88,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, "attribute_names"
     assert !topic.respond_to?("nothingness")
     assert !topic.respond_to?(:nothingness)
+  end
+
+  def test_respond_to_with_custom_primary_key
+    keyboard = Keyboard.create
+    assert_not_nil keyboard.key_number
+    assert_equal keyboard.key_number, keyboard.id
+    assert keyboard.respond_to?('key_number')
+    assert keyboard.respond_to?('_key_number')
+    assert keyboard.respond_to?('id')
+    assert keyboard.respond_to?('_id')
   end
 
   # Syck calls respond_to? before actually calling initialize
