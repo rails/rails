@@ -77,6 +77,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_respond_to?
     topic = Topic.find(1)
     assert_respond_to topic, "title"
+    assert_respond_to topic, "_title"
     assert_respond_to topic, "title?"
     assert_respond_to topic, "title="
     assert_respond_to topic, :title
