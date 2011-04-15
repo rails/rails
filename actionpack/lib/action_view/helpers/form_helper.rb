@@ -610,10 +610,11 @@ module ActionView
       #   label(:post, :body)
       #   # => <label for="post_body">Write your entire text here</label>
       #
-      #   Localization can also be based purely on the translation of the attribute-name like this:
+      # Localization can also be based purely on the translation of the attribute-name
+      # (if you are using ActiveRecord):
       #
-      #   activemodel:
-      #     attribute:
+      #   activerecord:
+      #     attributes:
       #       post:
       #         cost: "Total cost"
       #
