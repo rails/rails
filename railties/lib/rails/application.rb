@@ -121,7 +121,6 @@ module Rails
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
         "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.asset_path" => nil,
         "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions
       })
     end
@@ -149,10 +148,6 @@ module Rails
       @assets = env
     end
 
-    def default_asset_path
-      nil
-    end
-
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
@@ -166,8 +161,7 @@ module Rails
         end
 
         if config.serve_static_assets
-          asset_paths = ActiveSupport::OrderedHash[config.static_asset_paths.to_a.reverse]
-          middleware.use ::ActionDispatch::Static, asset_paths
+          middleware.use ::ActionDispatch::Static, "/" => paths["public"].first
         end
 
         middleware.use ::Rack::Lock unless config.allow_concurrency

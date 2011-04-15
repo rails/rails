@@ -171,32 +171,6 @@ module Rails
   #
   # Now, +Engine+ will get only requests that were not handled by +Application+.
   #
-  # == Asset path
-  #
-  # When you use +Engine+ with its own public directory, you will probably want to copy or symlink it
-  # to application's public directory. To simplify generating paths for assets, you can set <tt>asset_path</tt>
-  # for an engine:
-  #
-  #   module MyEngine
-  #     class Engine < Rails::Engine
-  #       config.asset_path = "/my_engine/%s"
-  #     end
-  #   end
-  #
-  # With such a config, asset paths will be automatically modified inside +Engine+:
-  #
-  #   image_path("foo.jpg") #=> "/my_engine/images/foo.jpg"
-  #
-  # == Serving static files
-  #
-  # By default, Rails uses <tt>ActionDispatch::Static</tt> to serve static files in development mode. This is ok
-  # while you develop your application, but when you want to deploy it, assets from an engine will not be
-  # served by default. You should choose one of the two following strategies:
-  #
-  # * enable serving static files by setting config.serve_static_assets to true
-  # * copy engine's public files to application's public folder with <tt>rake ENGINE_NAME:install:assets</tt>, for example
-  #   <tt>rake my_engine:install:assets</tt>
-  #
   # == Engine name
   #
   # There are some places where an Engine's name is used:
@@ -427,8 +401,7 @@ module Rails
 
     def env_config
       @env_config ||= {
-        'action_dispatch.routes' => routes,
-        'action_dispatch.asset_path' => config.asset_path
+        'action_dispatch.routes' => routes
       }
     end
 
@@ -509,16 +482,7 @@ module Rails
       require environment if environment
     end
 
-    initializer :append_asset_paths do
-      config.asset_path ||= default_asset_path
-
-      public_path = paths["public"].first
-      if config.compiled_asset_path && File.exist?(public_path)
-        config.static_asset_paths[config.compiled_asset_path] = public_path
-      end
-    end
-
-    initializer :append_app_assets_path do |app|
+    initializer :append_assets_path do |app|
       app.config.assets.paths.unshift *paths["vendor/assets"].existent
       app.config.assets.paths.unshift *paths["app/assets"].existent
     end
@@ -542,30 +506,14 @@ module Rails
 
     rake_tasks do
       next if self.is_a?(Rails::Application)
-      next unless has_migrations? or has_public?
+      next unless has_migrations?
 
       namespace railtie_name do
-        desc "Shortcut for copying migrations and assets from #{railtie_name}"
-        task :install do
-          Rake::Task["#{railtie_name}:install:migrations"].invoke if has_migrations?
-          Rake::Task["#{railtie_name}:install:public"].invoke if has_public?
-        end
-
         namespace :install do
-          if has_migrations?
-            desc "Copy migrations from #{railtie_name} to application"
-            task :migrations do
-              ENV["FROM"] = railtie_name
-              Rake::Task["railties:install:migrations"].invoke
-            end
-          end
-
-          if has_public?
-            desc "Copy public from #{railtie_name} to application"
-            task :public do
-              ENV["FROM"] = railtie_name
-              Rake::Task["railties:install:public"].invoke
-            end
+          desc "Copy migrations from #{railtie_name} to application"
+          task :migrations do
+            ENV["FROM"] = railtie_name
+            Rake::Task["railties:install:migrations"].invoke
           end
         end
       end
@@ -573,20 +521,12 @@ module Rails
 
   protected
 
-    def default_asset_path
-      "/#{railtie_name}%s"
-    end
-
     def routes?
       defined?(@routes)
     end
 
     def has_migrations?
       paths["db/migrate"].first.present?
-    end
-
-    def has_public?
-      paths["public"].first.present?
     end
 
     def find_root_with_flag(flag, default=nil)

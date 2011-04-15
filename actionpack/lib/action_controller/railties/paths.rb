@@ -16,14 +16,6 @@ module ActionController
             if klass.superclass == ActionController::Base && ActionController::Base.include_all_helpers
               klass.helper :all
             end
-
-            if app.config.serve_static_assets && namespace
-              paths = namespace._railtie.config.paths
-
-              klass.config.assets_dir      = paths["public"].first
-              klass.config.javascripts_dir = paths["public/javascripts"].first
-              klass.config.stylesheets_dir = paths["public/stylesheets"].first
-            end
           end
         end
       end
