@@ -187,6 +187,16 @@ module Arel
         m2.project "foo"
         mgr.to_sql.wont_equal m2.to_sql
       end
+
+      it 'makes updates to the correct copy' do
+        table   = Table.new :users, :engine => Table.engine, :as => 'foo'
+        mgr = table.from table
+        m2 = mgr.clone
+        m3 = m2.clone
+        m2.project "foo"
+        mgr.to_sql.wont_equal m2.to_sql
+        m3.to_sql.must_equal mgr.to_sql
+      end
     end
 
     describe 'initialize' do

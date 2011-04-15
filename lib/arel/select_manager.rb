@@ -9,6 +9,11 @@ module Arel
       from table
     end
 
+    def initialize_copy other
+      super
+      @ctx = @ast.cores.last
+    end
+
     def limit
       @ast.limit && @ast.limit.expr
     end
