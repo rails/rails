@@ -153,7 +153,7 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_accessor :_template, :_view_flow, :magic_medicine
+    attr_accessor :_template, :_view_flow
     attr_internal :request, :controller, :config, :assigns, :lookup_context
 
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
