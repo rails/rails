@@ -552,6 +552,21 @@ class Account < ActiveRecord::Base
 end
 </ruby>
 
+h4. Grouping conditional validations
+
+Sometimes it is useful to have multiple validations use one condition, it can be easily achieved using +with_options+.
+
+<ruby>
+class User < ActiveRecord::Base
+  with_options :if => :is_admin? do |admin|
+    admin.validates_length_of :password, :minimum => 10
+    admin.validates_presence_of :email
+  end
+end
+</ruby>
+
+All validations inside of +with_options+ block will have automatically passed the condition +:if => :is_admin?+
+
 h3. Creating Custom Validation Methods
 
 When the built-in validation helpers are not enough for your needs, you can write your own validation methods.
