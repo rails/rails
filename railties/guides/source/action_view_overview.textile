@@ -212,6 +212,16 @@ You can use a shorthand syntax for rendering collections. Assuming @products is 
 
 Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
 
+h5. Spacer Templates
+
+You can also specify a second partial to be rendered between instances of the main partial by using the +:spacer_template+ option:
+
+<erb>
+<%= render @products, :spacer_template => "product_ruler" %>
+</erb>
+
+Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
+
 h3. Using Templates, Partials and Layouts in "The Rails Way"
 
 TODO...
