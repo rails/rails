@@ -318,7 +318,7 @@ module ActionView
       # Non-significant zeros after the fractional separator are stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
       #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
-      #  number_to_human_size(524288000, :precision=>5)              # => "500 MB"
+      #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
         options.symbolize_keys!
 
@@ -407,7 +407,7 @@ module ActionView
       # Unsignificant zeros after the decimal separator are stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
       #  number_to_human(12345012345, :significant_digits => 6)       # => "12.345 Billion"
-      #  number_to_human(500000000, :precision=>5)                    # => "500 Million"
+      #  number_to_human(500000000, :precision => 5)                  # => "500 Million"
       #
       # ==== Custom Unit Quantifiers
       #
