@@ -51,7 +51,7 @@ module ActionView
       #   distance_of_time_in_words(from_time, from_time + 15.seconds)        # => less than a minute
       #   distance_of_time_in_words(from_time, from_time + 15.seconds, true)  # => less than 20 seconds
       #   distance_of_time_in_words(from_time, 3.years.from_now)              # => about 3 years
-      #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => about 3 days
+      #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => 3 days
       #   distance_of_time_in_words(from_time, from_time + 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, from_time - 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, 76.seconds.from_now)           # => 1 minute
