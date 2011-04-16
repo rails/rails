@@ -21,14 +21,7 @@ module ActiveRecord
       attr_reader :proxy
 
       def initialize(owner, reflection)
-        # When scopes are created via method_missing on the proxy, they are stored so that
-        # any records fetched from the database are kept around for future use.
-        @scopes_cache = Hash.new do |hash, method|
-          hash[method] = { }
-        end
-
         super
-
         @proxy = CollectionProxy.new(self)
       end
 
@@ -74,7 +67,6 @@ module ActiveRecord
       def reset
         @loaded = false
         @target = []
-        @scopes_cache.clear
       end
 
       def select(select = nil)
@@ -325,10 +317,6 @@ module ActiveRecord
         else
           false
         end
-      end
-
-      def cached_scope(method, args)
-        @scopes_cache[method][args] ||= scoped.readonly(nil).send(method, *args)
       end
 
       def load_target

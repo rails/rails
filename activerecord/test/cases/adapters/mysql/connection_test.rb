@@ -44,7 +44,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_bind_value_substitute
-    bind_param = @connection.substitute_for('foo', [])
+    bind_param = @connection.substitute_at('foo', 0)
     assert_equal Arel.sql('?'), bind_param
   end
 

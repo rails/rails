@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   module AttributeMethods
@@ -41,13 +42,13 @@ module ActiveRecord
         instance = @klass.new
 
         @klass.column_names.each do |name|
-          assert ! instance.methods.map(&:to_s).include?(name)
+          assert !name.in?(instance.methods.map(&:to_s))
         end
 
         @klass.define_attribute_methods
 
         @klass.column_names.each do |name|
-          assert(instance.methods.map(&:to_s).include?(name), "#{name} is not defined")
+          assert name.in?(instance.methods.map(&:to_s)), "#{name} is not defined"
         end
       end
 

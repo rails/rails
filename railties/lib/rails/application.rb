@@ -50,6 +50,7 @@ module Rails
       end
     end
 
+    attr_accessor :assets
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     # This method is called just after an application inherits from Rails::Application,
@@ -116,13 +117,10 @@ module Rails
       self
     end
 
-    alias :build_middleware_stack :app
-
     def env_config
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
         "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.asset_path" => nil,
         "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions
       })
     end
@@ -139,8 +137,15 @@ module Rails
 
   protected
 
-    def default_asset_path
-      nil
+    alias :build_middleware_stack :app
+
+    def build_asset_environment
+      require 'sprockets'
+      env = Sprockets::Environment.new(root.to_s)
+      env.static_root = File.join(root.join("public"), config.assets.prefix)
+      env.paths.concat config.assets.paths
+      env.logger = Rails.logger
+      @assets = env
     end
 
     def default_middleware_stack
@@ -156,8 +161,7 @@ module Rails
         end
 
         if config.serve_static_assets
-          asset_paths = ActiveSupport::OrderedHash[config.static_asset_paths.to_a.reverse]
-          middleware.use ::ActionDispatch::Static, asset_paths
+          middleware.use ::ActionDispatch::Static, paths["public"].first
         end
 
         middleware.use ::Rack::Lock unless config.allow_concurrency

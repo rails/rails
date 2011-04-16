@@ -1,5 +1,6 @@
 require "abstract_controller/base"
 require "action_view"
+require "active_support/core_ext/object/instance_variables"
 
 module AbstractController
   class DoubleRenderError < Error
@@ -173,7 +174,7 @@ module AbstractController
         options[:partial] = action_name
       end
 
-      if (options.keys & [:partial, :file, :template, :once]).empty?
+      if (options.keys & [:partial, :file, :template]).empty?
         options[:prefixes] ||= _prefixes
       end
 

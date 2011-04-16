@@ -34,7 +34,7 @@ class Pirate < ActiveRecord::Base
     :after_remove   => proc {|p,b| p.ship_log << "after_removing_proc_bird_#{b.id}"}
   has_many :birds_with_reject_all_blank, :class_name => "Bird"
 
-  has_one :bulb, :foreign_key => :car_id
+  has_one :foo_bulb, :foreign_key => :car_id, :class_name => "Bulb", :conditions => { :name => 'foo' }
 
   accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }

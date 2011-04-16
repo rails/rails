@@ -1,5 +1,14 @@
 *Rails 3.1.0 (unreleased)*
 
+* Add support for proc or lambda as an option for InclusionValidator,
+  ExclusionValidator, and FormatValidator [Prem Sichanugrist]
+
+  You can now supply Proc, lambda, or anything that respond to #call in those
+  validations, and it will be called with current record as an argument.
+  That given proc or lambda must returns an object which respond to #include? for
+  InclusionValidator and ExclusionValidator, and returns a regular expression
+  object for FormatValidator.
+
 * Added ActiveModel::SecurePassword to encapsulate dead-simple password usage with BCrypt encryption and salting [DHH]
 
 * ActiveModel::AttributeMethods allows attributes to be defined on demand [Alexander Uvarov]

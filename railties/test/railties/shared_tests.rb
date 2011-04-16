@@ -10,42 +10,16 @@ module RailtiesTest
       @app ||= Rails.application
     end
 
-    def test_install_migrations_and_assets
-      @plugin.write "public/javascripts/foo.js", "doSomething()"
+    def test_serving_sprockets_assets
+      @plugin.write "app/assets/javascripts/engine.js.coffee", "square = (x) -> x * x"
 
-      @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
-        class CreateUsers < ActiveRecord::Migration
-        end
-      RUBY
+      boot_rails
+      require 'rack/test'
+      require 'coffee_script'
+      extend Rack::Test::Methods
 
-      app_file "db/migrate/1_create_sessions.rb", <<-RUBY
-        class CreateSessions < ActiveRecord::Migration
-        end
-      RUBY
-
-      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
-
-      Dir.chdir(app_path) do
-        `rake bukkits:install`
-        assert File.exists?("#{app_path}/db/migrate/2_create_users.rb")
-        assert File.exists?(app_path("public/bukkits/javascripts/foo.js"))
-      end
-    end
-
-    def test_copying_assets
-      @plugin.write "public/javascripts/foo.js", "doSomething()"
-      @plugin.write "public/stylesheets/foo.css", "h1 { font-size: 10000px }"
-      @plugin.write "public/images/img.png", ""
-
-      Dir.chdir(app_path) do
-        `rake bukkits:install:assets --trace`
-
-        assert File.exists?(app_path("public/bukkits/javascripts/foo.js"))
-        assert_equal "doSomething()\n", File.read(app_path("public/bukkits/javascripts/foo.js"))
-        assert File.exists?(app_path("public/bukkits/stylesheets/foo.css"))
-        assert_equal "h1 { font-size: 10000px }\n", File.read(app_path("public/bukkits/stylesheets/foo.css"))
-        assert File.exists?(app_path("public/bukkits/images/img.png"))
-      end
+      get "/assets/engine.js"
+      assert_match "square = function(x) {", last_response.body
     end
 
     def test_copying_migrations

@@ -291,8 +291,6 @@ h4. Configuring Action View
 
 There are only a few configuration options for Action View, starting with four on +ActionView::Base+:
 
-* +config.action_view.debug_rjs+ specifies whether RJS responses should be wrapped in a try/catch block that alerts the caught exception (and then re-raises it). The default is +false+.
-
 * +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is <tt>Proc.new{ |html_tag, instance| %Q(%&lt;div class=&quot;field_with_errors&quot;&gt;#{html_tag}&lt;/div&gt;).html_safe }</tt>
 
 * +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.

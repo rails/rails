@@ -5,6 +5,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/proc'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/hash/except'
 require 'action_mailer/log_subscriber'
 
 module ActionMailer #:nodoc:
@@ -375,7 +376,7 @@ module ActionMailer #:nodoc:
       # Either a class or a string can be passed in as the Observer. If a string is passed in
       # it will be <tt>constantize</tt>d.
       def register_observer(observer)
-        delivery_observer = (observer.respond_to?(:delivered_email) ? observer : observer.constantize)
+        delivery_observer = (observer.is_a?(String) ? observer.constantize : observer)
         Mail.register_observer(delivery_observer)
       end
 
@@ -383,7 +384,7 @@ module ActionMailer #:nodoc:
       # Either a class or a string can be passed in as the Observer. If a string is passed in
       # it will be <tt>constantize</tt>d.
       def register_interceptor(interceptor)
-        delivery_interceptor = (interceptor.respond_to?(:delivering_email) ? interceptor : interceptor.constantize)
+        delivery_interceptor = (interceptor.is_a?(String) ? interceptor.constantize : interceptor)
         Mail.register_interceptor(delivery_interceptor)
       end
 

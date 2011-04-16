@@ -50,4 +50,30 @@ class OrderedOptionsTest < Test::Unit::TestCase
     assert_equal 2, a.size
     assert_equal 56, a.else_where
   end
+
+  def test_inheritable_options_continues_lookup_in_parent
+    parent = ActiveSupport::OrderedOptions.new
+    parent[:foo] = true
+
+    child = ActiveSupport::InheritableOptions.new(parent)
+    assert child.foo
+  end
+
+  def test_inheritable_options_can_override_parent
+    parent = ActiveSupport::OrderedOptions.new
+    parent[:foo] = :bar
+
+    child = ActiveSupport::InheritableOptions.new(parent)
+    child[:foo] = :baz
+
+    assert_equal :baz, child.foo
+  end
+
+  def test_inheritable_options_inheritable_copy
+    original = ActiveSupport::InheritableOptions.new
+    copy     = original.inheritable_copy
+
+    assert copy.kind_of?(original.class)
+    assert_not_equal copy.object_id, original.object_id
+  end
 end

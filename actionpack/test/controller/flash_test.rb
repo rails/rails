@@ -174,13 +174,13 @@ class FlashTest < ActionController::TestCase
 
     assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
     assert_nil flash.discard(:unknown) # non existant key passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard()) # nothing passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard(nil)) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard().to_hash) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard(nil).to_hash) # nothing passed
 
     assert_equal(:foo_indeed, flash.keep(:foo)) # valid key passed
     assert_nil flash.keep(:unknown) # non existant key passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep()) # nothing passed
-    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep(nil)) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep().to_hash) # nothing passed
+    assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep(nil).to_hash) # nothing passed
   end
 
   def test_redirect_to_with_alert
@@ -214,8 +214,17 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
   class TestController < ActionController::Base
+    def dont_set_flash
+      head :ok
+    end
+
     def set_flash
       flash["that"] = "hello"
+      head :ok
+    end
+
+    def set_flash_now
+      flash.now["that"] = "hello"
       head :ok
     end
 
@@ -244,6 +253,47 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       assert_equal "flash: ", @response.body
     end
   end
+
+  def test_setting_flash_raises_after_stream_back_to_client
+    with_test_route_set do
+      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
+      get '/set_flash', nil, env
+      assert_raise(ActionDispatch::ClosedError) {
+        @request.flash['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_flash_raises_after_stream_back_to_client_even_with_an_empty_flash
+    with_test_route_set do
+      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
+      get '/dont_set_flash', nil, env
+      assert_raise(ActionDispatch::ClosedError) {
+        @request.flash['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_flash_now_raises_after_stream_back_to_client
+    with_test_route_set do
+      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
+      get '/set_flash_now', nil, env
+      assert_raise(ActionDispatch::ClosedError) {
+        @request.flash.now['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_flash_now_raises_after_stream_back_to_client_even_with_an_empty_flash
+    with_test_route_set do
+      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
+      get '/dont_set_flash', nil, env
+      assert_raise(ActionDispatch::ClosedError) {
+        @request.flash.now['alert'] = 'alert'
+      }
+    end
+  end
+
 
   private
 

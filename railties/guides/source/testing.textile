@@ -592,7 +592,6 @@ There are more assertions that are primarily used in testing views:
 
 |_.Assertion                                                                        |_.Purpose|
 |+assert_select_email+                                                              |Allows you to make assertions on the body of an e-mail. |
-|+assert_select_rjs+                                                                |Allows you to make assertions on an RJS response. +assert_select_rjs+ has variants which allow you to narrow down on the updated element or even a particular operation on an element.|
 |+assert_select_encoded+                                                            |Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
 |+css_select(selector)+  or +css_select(element, selector)+                         |Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
 

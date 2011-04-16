@@ -1626,18 +1626,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal c1, c2
   end
 
-  def test_default_scope_is_reset
+  def test_current_scope_is_reset
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.table_name = 'posts'
-    UnloadablePost.class_eval do
-      default_scope order('posts.comments_count ASC')
-    end
-    UnloadablePost.scoped_methods # make Thread.current[:UnloadablePost_scoped_methods] not nil
+    UnloadablePost.send(:current_scope=, UnloadablePost.scoped)
 
     UnloadablePost.unloadable
-    assert_not_nil Thread.current[:UnloadablePost_scoped_methods]
+    assert_not_nil Thread.current[:UnloadablePost_current_scope]
     ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil Thread.current[:UnloadablePost_scoped_methods]
+    assert_nil Thread.current[:UnloadablePost_current_scope]
   ensure
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end

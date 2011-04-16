@@ -23,8 +23,7 @@ module ContentType
       "content_type/implied/i_am_html_erb.html.erb"         => "Hello world!",
       "content_type/implied/i_am_xml_erb.xml.erb"           => "<xml>Hello world!</xml>",
       "content_type/implied/i_am_html_builder.html.builder" => "xml.p 'Hello'",
-      "content_type/implied/i_am_xml_builder.xml.builder"   => "xml.awesome 'Hello'",
-      "content_type/implied/i_am_js_rjs.js.rjs"             => "page.alert 'hello'"
+      "content_type/implied/i_am_xml_builder.xml.builder"   => "xml.awesome 'Hello'"
     )]
   end
 
@@ -92,12 +91,6 @@ module ContentType
       get "/content_type/implied/i_am_xml_builder", "format" => "xml"
 
       assert_header "Content-Type", "application/xml; charset=utf-8"
-    end
-
-    test "sets Content-Type as text/javascript when rendering *.js" do
-      get "/content_type/implied/i_am_js_rjs", "format" => "js"
-
-      assert_header "Content-Type", "text/javascript; charset=utf-8"
     end
   end
 

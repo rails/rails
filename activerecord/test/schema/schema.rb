@@ -67,6 +67,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :binaries, :force => true do |t|
+    t.string :name
     t.binary :data
   end
 

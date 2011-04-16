@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'logger'
+require 'active_support/core_ext/object/inclusion'
 
 class SanitizerTest < ActiveModel::TestCase
 
@@ -9,7 +10,7 @@ class SanitizerTest < ActiveModel::TestCase
     attr_accessor :logger
 
     def deny?(key)
-       [ 'admin' ].include?(key)
+      key.in?(['admin'])
     end
 
   end

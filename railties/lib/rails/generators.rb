@@ -45,6 +45,7 @@ module Rails
       :rails => {
         :force_plural => false,
         :helper => true,
+        :assets => true,
         :orm => nil,
         :integration_tool => nil,
         :performance_tool => nil,

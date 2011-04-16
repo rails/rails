@@ -790,7 +790,7 @@ Post.includes(:comments).where("comments.visible", true)
 This would generate a query which contains a +LEFT OUTER JOIN+ whereas the +joins+ method would generate one using the +INNER JOIN+ function instead.
 
 <ruby>
-  SELECT "posts"."id" AS t0_r0, ... "comments"."updated_at" AS t1_r5 FROM "posts" LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id" WHERE (comments.visible)
+  SELECT "posts"."id" AS t0_r0, ... "comments"."updated_at" AS t1_r5 FROM "posts" LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id" WHERE (comments.visible = 1)
 </ruby>
 
 If there was no +where+ condition, this would generate the normal set of two queries.

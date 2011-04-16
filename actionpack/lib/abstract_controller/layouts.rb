@@ -334,7 +334,7 @@ module AbstractController
     # ==== Parameters
     # * <tt>details</tt> - A list of details to restrict the search by. This
     #   might include details like the format or locale of the template.
-    # * <tt>require_logout</tt> - If this is true, raise an ArgumentError
+    # * <tt>require_layout</tt> - If this is true, raise an ArgumentError
     #   with details about the fact that the exception could not be
     #   found (defaults to false)
     #

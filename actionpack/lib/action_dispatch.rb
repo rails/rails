@@ -60,6 +60,7 @@ module ActionDispatch
     autoload :Static
   end
 
+  autoload :ClosedError, 'action_dispatch/middleware/closed_error'
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
 

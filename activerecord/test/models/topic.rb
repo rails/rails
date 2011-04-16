@@ -1,10 +1,20 @@
 class Topic < ActiveRecord::Base
   scope :base
-  scope :written_before, lambda { |time|
-    if time
-      { :conditions => ['written_on < ?', time] }
-    end
-  }
+
+  ActiveSupport::Deprecation.silence do
+    scope :written_before, lambda { |time|
+      if time
+        { :conditions => ['written_on < ?', time] }
+      end
+    }
+
+    scope :with_object, Class.new(Struct.new(:klass)) {
+      def call
+        klass.where(:approved => true)
+      end
+    }.new(self)
+  end
+
   scope :approved, :conditions => {:approved => true}
   scope :rejected, :conditions => {:approved => false}
 
@@ -18,12 +28,6 @@ class Topic < ActiveRecord::Base
       1
     end
   end
-
-  scope :with_object, Class.new(Struct.new(:klass)) {
-    def call
-      klass.where(:approved => true)
-    end
-  }.new(self)
 
   module NamedExtension
     def two

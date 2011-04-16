@@ -20,8 +20,7 @@ It consists of several modules:
 * Action View, which handles view template lookup and rendering, and provides
   view helpers that assist when building HTML forms, Atom feeds and more.
   Template formats that Action View handles are ERB (embedded Ruby, typically
-  used to inline short Ruby snippets inside HTML), XML Builder and RJS
-  (dynamically generated JavaScript from Ruby code).
+  used to inline short Ruby snippets inside HTML), and XML Builder.
 
 With the Ruby on Rails framework, users only directly interface with the
 Action Controller module. Necessary Action Dispatch functionality is activated
