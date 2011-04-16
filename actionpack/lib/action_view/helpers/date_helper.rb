@@ -112,7 +112,7 @@ module ActionView
       #
       # ==== Examples
       #   time_ago_in_words(3.minutes.from_now)       # => 3 minutes
-      #   time_ago_in_words(Time.now - 15.hours)      # => 15 hours
+      #   time_ago_in_words(Time.now - 15.hours)      # => about 15 hours
       #   time_ago_in_words(Time.now)                 # => less than a minute
       #
       #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
