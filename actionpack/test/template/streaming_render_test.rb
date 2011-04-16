@@ -88,10 +88,18 @@ class FiberedTest < ActiveSupport::TestCase
   end
 
   def test_render_with_streaming_multiple_yields_provide_and_content_for
-    assert_equal "Yes, \nthis works\n like a charm.", buffered_render(:template => "test/streaming", :layout => "layouts/streaming")
+    assert_equal "Yes, \nthis works\n like a charm.",
+      buffered_render(:template => "test/streaming", :layout => "layouts/streaming")
   end
 
   def test_render_with_streaming_with_fake_yields_and_streaming_buster
-    assert_equal "This won't look\n good.", buffered_render(:template => "test/streaming_buster", :layout => "layouts/streaming")
+    assert_equal "This won't look\n good.",
+      buffered_render(:template => "test/streaming_buster", :layout => "layouts/streaming")
   end
+
+  def test_render_with_nested_streaming_multiple_yields_provide_and_content_for
+    assert_equal "?Yes, \n\nthis works\n\n? like a charm.",
+      buffered_render(:template => "test/nested_streaming", :layout => "layouts/streaming")
+  end
+
 end if defined?(Fiber)

@@ -47,13 +47,16 @@ class CaptureHelperTest < ActionView::TestCase
 
   def test_provide
     assert !content_for?(:title)
-    provide :title, "title"
+    provide :title, "hi"
     assert content_for?(:title)
-    assert_equal "title", @_view_flow.get(:title)
+    assert_equal "hi", @_view_flow.get(:title)
     provide :title, "<p>title</p>"
-    assert_equal "&lt;p&gt;title&lt;/p&gt;", @_view_flow.get(:title)
+    assert_equal "hi&lt;p&gt;title&lt;/p&gt;", @_view_flow.get(:title)
+
+    @_view_flow = ActionView::OutputFlow.new
+    provide :title, "hi"
     provide :title, "<p>title</p>".html_safe
-    assert_equal "<p>title</p>", @_view_flow.get(:title)
+    assert_equal "hi<p>title</p>", @_view_flow.get(:title)
   end
 
   def test_with_output_buffer_swaps_the_output_buffer_given_no_argument

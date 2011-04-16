@@ -19,6 +19,10 @@ module ActionView
     def append(key, value)
       @content[key] << value
     end
+
+    def append!(key, value)
+      @content[key] << value
+    end
   end
 
   class StreamingFlow < OutputFlow
@@ -58,6 +62,11 @@ module ActionView
     # by provides and resumes back to the fiber if it is
     # the key it is waiting for.
     def set(key, value)
+      @content[key] = (ActiveSupport::SafeBuffer.new << value)
+    end
+
+    # Append but also resume the fiber if it provided the right key.
+    def append!(key, value)
       super
       @fiber.resume if @waiting_for == key
     end
