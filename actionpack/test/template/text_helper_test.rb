@@ -326,6 +326,15 @@ class TextHelperTest < ActionView::TestCase
     assert auto_link("hello #{email_raw}").html_safe?, 'should be html safe'
     assert auto_link("hello #{email_raw} #{malicious_script}").html_safe?, 'should be html safe'
   end
+  
+  def test_auto_link_should_not_be_html_safe_when_sanitize_option_false
+    email_raw         = 'santiago@wyeworks.com'
+    link_raw          = 'http://www.rubyonrails.org'
+
+    assert !auto_link("hello", :sanitize => false).html_safe?, 'should not be html safe'
+    assert !auto_link("#{link_raw} #{link_raw} #{link_raw}", :sanitize => false).html_safe?, 'should not be html safe'
+    assert !auto_link("hello #{email_raw}", :sanitize => false).html_safe?, 'should not be html safe'
+  end
 
   def test_auto_link_email_address
     email_raw    = 'aaron@tenderlovemaking.com'
