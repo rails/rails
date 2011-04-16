@@ -60,7 +60,7 @@ end
 
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
-
+  gem "json"
   gem "activerecord-jdbcsqlite3-adapter"
 
   # This is needed by now to let tests work on JRuby
