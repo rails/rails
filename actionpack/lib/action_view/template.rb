@@ -132,11 +132,11 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, &block)
+    def render(view, locals, buffer=nil, &block)
       old_template, view._template = view._template, self
       ActiveSupport::Notifications.instrument("!render_template.action_view", :virtual_path => @virtual_path) do
         compile!(view)
-        view.send(method_name, locals, &block)
+        view.send(method_name, locals, buffer, &block)
       end
     rescue Exception => e
       handle_render_error(view, e)
@@ -165,28 +165,6 @@ module ActionView
       lookup.disable_cache do
         lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
       end
-    end
-
-    # Expires this template by setting his updated_at date to Jan 1st, 1970.
-    def expire!
-      @updated_at = Time.utc(1970)
-    end
-
-    # Receives a view context and renders a template exactly like self by using
-    # the @virtual_path. It raises an error if no @virtual_path was given.
-    def rerender(view)
-      raise "A template needs to have a virtual path in order to be rerendered" unless @virtual_path
-      name = @virtual_path.dup
-      if name.sub!(/(^|\/)_([^\/]*)$/, '\1\2')
-        view.render :partial => name
-      else
-        view.render :template => @virtual_path
-      end
-    end
-
-    # Used to store template data by template handlers.
-    def data
-      @data ||= {}
     end
 
     def inspect
@@ -274,13 +252,12 @@ module ActionView
           end
         end
 
-        arity = @handler.respond_to?(:arity) ? @handler.arity : @handler.method(:call).arity
-        code  = arity.abs == 1 ? @handler.call(self) : @handler.call(self, view)
+        code = @handler.call(self)
 
         # Make sure that the resulting String to be evalled is in the
         # encoding of the code
         source = <<-end_src
-          def #{method_name}(local_assigns)
+          def #{method_name}(local_assigns, output_buffer)
             _old_output_buffer = @output_buffer;#{locals_code};#{code}
           ensure
             @output_buffer = _old_output_buffer

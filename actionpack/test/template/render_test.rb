@@ -227,18 +227,9 @@ module RenderTestCases
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 
-  WithViewHandler = lambda do |template, view|
-    %'"#{template.class} #{view.class}"'
-  end
-
   def test_render_inline_with_render_from_to_proc
     ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
     assert_equal '3', @view.render(:inline => "(1 + 2).to_s", :type => :ruby_handler)
-  end
-
-  def test_render_inline_with_template_handler_with_view
-    ActionView::Template.register_template_handler :with_view, WithViewHandler
-    assert_equal 'ActionView::Template ActionView::Base', @view.render(:inline => "Hello, World!", :type => :with_view)
   end
 
   def test_render_inline_with_compilable_custom_type

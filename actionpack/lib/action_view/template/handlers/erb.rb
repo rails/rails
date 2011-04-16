@@ -22,7 +22,7 @@ module ActionView
     module Handlers
       class Erubis < ::Erubis::Eruby
         def add_preamble(src)
-          src << "@output_buffer = ActionView::OutputBuffer.new;"
+          src << "@output_buffer = output_buffer || ActionView::OutputBuffer.new;"
         end
 
         def add_text(src, text)
