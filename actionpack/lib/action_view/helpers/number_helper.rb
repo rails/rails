@@ -238,7 +238,7 @@ module ActionView
       #  number_with_precision(111.2345, :precision => 1, :significant => true)     # => 100
       #  number_with_precision(13, :precision => 5, :significant => true)           # => 13.000
       #  number_with_precision(111.234, :locale => :fr)                             # => 111,234
-      #  number_with_precision(13, :precision => 5, :significant => true, strip_insignificant_zeros => true)
+      #  number_with_precision(13, :precision => 5, :significant => true, :strip_insignificant_zeros => true)
       #  # => 13
       #  number_with_precision(389.32314, :precision => 4, :significant => true)    # => 389.3
       #  number_with_precision(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
