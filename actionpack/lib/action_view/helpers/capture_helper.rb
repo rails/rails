@@ -139,6 +139,17 @@ module ActionView
         result unless content
       end
 
+      # The same as +content_for+ but when used with streaming flushes
+      # straight back to the layout. In other words, if you want to
+      # concatenate several times to the same buffer when rendering a given
+      # template, you should use +content_for+, if not, use +provide+ as it
+      # has better streaming support.
+      def provide(name, content = nil, &block)
+        content = capture(&block) if block_given?
+        @_view_flow.set(name, content) if content
+        content
+      end
+
       # content_for? simply checks whether any content has been captured yet using content_for
       # Useful to render parts of your layout differently based on what is in your views.
       #

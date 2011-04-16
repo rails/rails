@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/array/wrap'
-require 'action_view/renderer/abstract_renderer'
 
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:

@@ -27,6 +27,19 @@ module ActionView
       end
     end
 
+    # Render but returns a valid Rack body. If fibers are defined, we return
+    # a streaming body that renders the template piece by piece.
+    #
+    # Note that partials are not supported to be rendered with streaming,
+    # so in such cases, we just wrap them in an array.
+    def render_body(options)
+      if options.key?(:partial)
+        [_render_partial(options)]
+      else
+        StreamingTemplateRenderer.new(self).render(options)
+      end
+    end
+
     # Returns the contents that are yielded to a layout, given a name or a block.
     #
     # You can think of a layout as a method that is called with a block. If the user calls
@@ -79,7 +92,7 @@ module ActionView
       @_view_flow.get(name).html_safe
     end
 
-    # Returns the content from the Flow unless we have a block.
+    # Handle layout for calls from partials that supports blocks.
     def _block_layout_for(*args, &block)
       name = args.first
 
@@ -91,20 +104,11 @@ module ActionView
     end
 
     def _render_template(options) #:nodoc:
-      if @magic_medicine
-        _fibered_template_renderer.render(options)
-      else
-        _template_renderer.render(options)
-      end
+      _template_renderer.render(options)
     end
 
     def _template_renderer #:nodoc:
       @_template_renderer ||= TemplateRenderer.new(self)
     end
-
-    def _fibered_template_renderer #:nodoc:
-      @_fibered_template_renderer ||= FiberedTemplateRenderer.new(self)
-    end
-
   end
 end

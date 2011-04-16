@@ -1,5 +1,3 @@
-require 'action_view/renderer/abstract_renderer'
-
 module ActionView
   class PartialRenderer < AbstractRenderer #:nodoc:
     PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }

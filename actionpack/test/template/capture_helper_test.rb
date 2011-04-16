@@ -4,7 +4,7 @@ class CaptureHelperTest < ActionView::TestCase
   def setup
     super
     @av = ActionView::Base.new
-    @_view_flow = ActionView::Flow.new
+    @_view_flow = ActionView::OutputFlow.new
   end
 
   def test_capture_captures_the_temporary_output_buffer_in_its_block

@@ -44,7 +44,7 @@ module ActionView
       autoload :AbstractRenderer
       autoload :PartialRenderer
       autoload :TemplateRenderer
-      autoload :FiberedTemplateRenderer
+      autoload :StreamingTemplateRenderer
     end
 
     autoload_at "action_view/template/resolver" do
@@ -52,6 +52,16 @@ module ActionView
       autoload :PathResolver
       autoload :FileSystemResolver
       autoload :FallbackFileSystemResolver
+    end
+
+    autoload_at "action_view/buffers" do
+      autoload :OutputBuffer
+      autoload :StreamingBuffer
+    end
+
+    autoload_at "action_view/flows" do
+      autoload :OutputFlow
+      autoload :StreamingFlow
     end
 
     autoload_at "action_view/template/error" do

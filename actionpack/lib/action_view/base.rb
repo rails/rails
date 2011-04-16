@@ -182,7 +182,7 @@ module ActionView #:nodoc:
 
       @_config = {}
       @_virtual_path = nil
-      @_view_flow = Flow.new
+      @_view_flow = OutputFlow.new
       @output_buffer = nil
 
       if @_controller = controller
@@ -204,50 +204,5 @@ module ActionView #:nodoc:
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)
-  end
-
-  class Flow
-    attr_reader :content
-
-    def initialize
-      @content = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
-    end
-
-    def get(key)
-      @content[key]
-    end
-
-    def set(key, value)
-      @content[key] = value
-    end
-
-    def append(key, value)
-      @content[key] << value
-    end
-  end
-
-  class FiberedFlow < Flow
-    def initialize(flow, fiber)
-      @content = flow.content
-      @fiber   = fiber
-    end
-
-    def get(key)
-      return super if @content.key?(key)
-
-      begin
-        @waiting_for = key
-        Fiber.yield
-      ensure
-        @waiting_for = nil
-      end
-
-      super
-    end
-
-    def set(key, value)
-      super
-      @fiber.resume if @waiting_for == key
-    end
   end
 end

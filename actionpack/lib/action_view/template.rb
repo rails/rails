@@ -126,6 +126,12 @@ module ActionView
       @formats = Array.wrap(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
     end
 
+    # Returns if the underlying handler supports streaming. If so,
+    # a streaming buffer *may* be passed when it start rendering.
+    def supports_streaming?
+      handler.respond_to?(:supports_streaming?) && handler.supports_streaming?
+    end
+
     # Render a template. If the template was not compiled yet, it is done
     # exactly before rendering.
     #

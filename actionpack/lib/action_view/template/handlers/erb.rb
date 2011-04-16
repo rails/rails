@@ -1,23 +1,9 @@
 require 'active_support/core_ext/class/attribute_accessors'
-require 'active_support/core_ext/string/output_safety'
 require 'action_view/template'
 require 'action_view/template/handler'
 require 'erubis'
 
 module ActionView
-  class OutputBuffer < ActiveSupport::SafeBuffer
-    def initialize(*)
-      super
-      encode! if encoding_aware?
-    end
-
-    def <<(value)
-      super(value.to_s)
-    end
-    alias :append= :<<
-    alias :safe_append= :safe_concat
-  end
-
   class Template
     module Handlers
       class Erubis < ::Erubis::Eruby
@@ -71,6 +57,10 @@ module ActionView
 
         def self.call(template)
           new.call(template)
+        end
+
+        def supports_streaming?
+          true
         end
 
         def handles_encoding?
