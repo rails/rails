@@ -95,32 +95,33 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_skipping_javascripts_without_mountable_option
     run_generator
-    assert_no_file "public/javascripts/jquery.js"
-    assert_no_file "public/javascripts/rails.js"
-    assert_no_file "public/javascripts/application.js"
+    assert_no_file "app/assets/javascripts/application.js"
+    assert_no_file "vendor/assets/javascripts/jquery.js"
+    assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
   def test_javascripts_generation
     run_generator [destination_root, "--mountable"]
-    assert_file "public/javascripts/jquery.js"
-    assert_file "public/javascripts/rails.js"
-    assert_file "public/javascripts/application.js"
+    assert_file "app/assets/javascripts/application.js"
+    assert_file "vendor/assets/javascripts/jquery.js"
+    assert_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
   def test_skip_javascripts
     run_generator [destination_root, "--skip-javascript", "--mountable"]
-    assert_no_file "public/javascripts/jquery.js"
-    assert_no_file "public/javascripts/rails.js"
+    assert_no_file "app/assets/javascripts/application.js"
+    assert_no_file "vendor/assets/javascripts/jquery.js"
+    assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
-  def test_ensure_that_javascript_option_is_passed_to_app_generator
-    run_generator [destination_root, "--javascript", "prototype"]
-    assert_file "test/dummy/public/javascripts/prototype.js"
-  end
-
-  def test_ensure_that_skip_javascript_option_is_passed_to_app_generator
-    run_generator [destination_root, "--skip_javascript"]
-    assert_no_file "test/dummy/public/javascripts/jquery.js"
+  def test_config_prototype_javascript_library
+    run_generator [destination_root, "-j", "prototype", "--mountable"]
+    assert_file "app/assets/javascripts/application.js"
+    assert_file "vendor/assets/javascripts/prototype.js"
+    assert_file "vendor/assets/javascripts/effects.js"
+    assert_file "vendor/assets/javascripts/dragdrop.js"
+    assert_file "vendor/assets/javascripts/controls.js"
+    assert_file "vendor/assets/javascripts/prototype_ujs.js", /prototype/
   end
 
   def test_template_from_dir_pwd
@@ -218,3 +219,4 @@ protected
     silence(:stdout){ generator.send(*args, &block) }
   end
 end
+

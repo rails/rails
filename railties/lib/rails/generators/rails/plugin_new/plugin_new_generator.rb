@@ -94,26 +94,35 @@ task :default => :test
     end
 
     def stylesheets
-      empty_directory_with_gitkeep "public/stylesheets" if options[:mountable]
+      if options[:mountable]
+        empty_directory_with_gitkeep "app/stylesheets"
+        copy_file "#{app_templates_dir}/app/assets/stylesheets/application.css",
+                  "app/assets/stylesheets/application.css"
+      end
     end
 
     def javascripts
       return unless options[:mountable]
 
-      empty_directory "#{app_templates_dir}/public/javascripts"
-
-      unless options[:skip_javascript]
-        copy_file "#{app_templates_dir}/public/javascripts/#{options[:javascript]}.js", "public/javascripts/#{options[:javascript]}.js"
-        copy_file "#{app_templates_dir}/public/javascripts/#{options[:javascript]}_ujs.js", "public/javascripts/rails.js"
+      if options[:skip_javascript]
+        empty_directory_with_gitkeep "vendor/assets/javascripts"
+      else
+        copy_file "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
+                  "app/assets/javascripts/application.js"
+        copy_file "#{app_templates_dir}/vendor/assets/javascripts/#{options[:javascript]}.js",
+                  "vendor/assets/javascripts/#{options[:javascript]}.js"
+        copy_file "#{app_templates_dir}/vendor/assets/javascripts/#{options[:javascript]}_ujs.js",
+                  "vendor/assets/javascripts/#{options[:javascript]}_ujs.js"
 
         if options[:javascript] == "prototype"
-          copy_file "#{app_templates_dir}/public/javascripts/controls.js", "public/javascripts/controls.js"
-          copy_file "#{app_templates_dir}/public/javascripts/dragdrop.js", "public/javascripts/dragdrop.js"
-          copy_file "#{app_templates_dir}/public/javascripts/effects.js", "public/javascripts/effects.js"
+          copy_file "#{app_templates_dir}/vendor/assets/javascripts/controls.js",
+                    "vendor/assets/javascripts/controls.js"
+          copy_file "#{app_templates_dir}/vendor/assets/javascripts/dragdrop.js",
+                    "vendor/assets/javascripts/dragdrop.js"
+          copy_file "#{app_templates_dir}/vendor/assets/javascripts/effects.js",
+                    "vendor/assets/javascripts/effects.js"
         end
       end
-
-      copy_file "#{app_templates_dir}/public/javascripts/application.js", "public/javascripts/application.js"
     end
 
     def script(force = false)
