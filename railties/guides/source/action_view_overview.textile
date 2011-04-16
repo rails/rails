@@ -20,7 +20,28 @@ Note: Some features of Action View are tied to Active Record, but that doesn't m
 
 h3. Using Action View with Rails
 
-TODO...
+For each controller there is an associated directory in the <tt>app/views</tt> directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.
+
+Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
+
+<shell>
+$ rails generate scaffold post
+      [...]
+      invoke  scaffold_controller
+      create    app/controllers/posts_controller.rb
+      invoke    erb
+      create      app/views/posts
+      create      app/views/posts/index.html.erb
+      create      app/views/posts/edit.html.erb
+      create      app/views/posts/show.html.erb
+      create      app/views/posts/new.html.erb
+      create      app/views/posts/_form.html.erb
+      [...]
+</shell>
+
+There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
+For example, the index controller action of the <tt>posts_controller.rb</tt> will use the <tt>index.html.erb</tt> view file in the <tt>app/views/posts</tt> directory.
+The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of this three components.
 
 h3. Using Action View outside of Rails
 
