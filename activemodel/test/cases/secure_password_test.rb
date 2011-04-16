@@ -44,6 +44,17 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert @user.authenticate("secret")
   end
 
+  test "ensure default cost" do
+    @user.password = "secret"
+    assert_equal BCrypt::Engine::DEFAULT_COST, @user.password_digest.cost
+  end
+
+  test "increase cost" do
+    @visitor = Visitor.new
+    @visitor.password = "secure"
+    assert_equal 9, @visitor.password_digest.cost
+  end
+
   test "visitor#password_digest should be protected against mass assignment" do
     assert Visitor.active_authorizer.kind_of?(ActiveModel::MassAssignmentSecurity::BlackList)
     assert Visitor.active_authorizer.include?(:password_digest)

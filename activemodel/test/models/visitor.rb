@@ -3,7 +3,7 @@ class Visitor
   include ActiveModel::SecurePassword
   include ActiveModel::MassAssignmentSecurity
 
-  has_secure_password
+  has_secure_password :cost => 9
 
   attr_accessor :password_digest
 end

@@ -1,4 +1,5 @@
 require 'bcrypt'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveModel
   module SecurePassword
@@ -29,8 +30,18 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
-      def has_secure_password
-        attr_reader   :password
+      #
+      #   The cost of the encryption can be increased by passing :cost as an option to has_secure_password:
+      #   Note: while increasing the cost will create a more secure password it will also take longer to encrypt.
+      #
+      #   # Schema: User(name:string, password_digest:string)
+      #   class User < ActiveRecord::Base
+      #     has_secure_password :cost => 11
+      #   end
+      def has_secure_password(options = {})
+        attr_reader    :password
+        cattr_accessor :password_digest_cost
+        self.password_digest_cost = options[:cost] || BCrypt::Engine::DEFAULT_COST
 
         validates_confirmation_of :password
         validates_presence_of     :password_digest
@@ -59,9 +70,10 @@ module ActiveModel
       def password=(unencrypted_password)
         @password = unencrypted_password
         unless unencrypted_password.blank?
-          self.password_digest = BCrypt::Password.create(unencrypted_password)
+          self.password_digest = BCrypt::Password.create(unencrypted_password, :cost => self.class.password_digest_cost)
         end
       end
+
     end
   end
 end
