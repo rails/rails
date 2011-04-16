@@ -1697,5 +1697,6 @@ You can read more about the Rails Internationalization (I18n) API "here":i18n.ht
 
 h3. Changelog
 
+* April 16, 2011: Added 'Using Action View with Rails', 'Templates' and 'Partials' sections. "Sebastian Martinez":http://wyeworks.com
 * September 3, 2009: Continuing work by Trevor Turk, leveraging the Action Pack docs and "What's new in Edge Rails":http://ryandaigle.com/articles/2007/8/3/what-s-new-in-edge-rails-partials-get-layouts
 * April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs
