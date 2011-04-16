@@ -295,11 +295,11 @@ module ActionView
       # +link+ as its optional second parameter and the +html_options+ hash
       # as its optional third parameter:
       #   post_body = "Welcome to my new blog at http://www.myblog.com/. Please e-mail me at me@email.com."
-      #   auto_link(post_body, :urls)     # => Once upon\na time
+      #   auto_link(post_body, :urls)
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\">http://www.myblog.com</a>.
       #         Please e-mail me at me@email.com."
       #
-      #   auto_link(post_body, :all, :target => "_blank")     # => Once upon\na time
+      #   auto_link(post_body, :all, :target => "_blank")
       #   # => "Welcome to my new blog at <a href=\"http://www.myblog.com/\" target=\"_blank\">http://www.myblog.com</a>.
       #         Please e-mail me at <a href=\"mailto:me@email.com\">me@email.com</a>."
       def auto_link(text, *args, &block)#link = :all, html = {}, &block)
