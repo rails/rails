@@ -18,5 +18,5 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency('actionpack',  version)
-  s.add_dependency('mail',        '~> 2.2.15')
+  s.add_dependency('mail',        '~> 2.2.16')
 end
