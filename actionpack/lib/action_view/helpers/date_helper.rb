@@ -466,7 +466,7 @@ module ActionView
       #
       #   # Generates a select field for hours with a custom prompt.  Use :prompt => true for a
       #   # generic prompt.
-      #   select_hour(13, :prompt =>'Choose hour')
+      #   select_hour(13, :prompt => 'Choose hour')
       #
       def select_hour(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_hour
