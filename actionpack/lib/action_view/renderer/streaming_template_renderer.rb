@@ -1,6 +1,53 @@
 require 'fiber'
 
 module ActionView
+  # Consider the following layout:
+  # 
+  #   <%= yield :header %>
+  #   2
+  #   <%= yield %>
+  #   5
+  #   <%= yield :footer %>
+  #
+  # And template:
+  #
+  #     <%= provide :header, "1" %>
+  #     3
+  #     4
+  #     <%= provide :footer, "6" %>
+  # 
+  # It will stream:
+  # 
+  #     "1\n", "2\n", "3\n4\n", "5\n", "6\n"
+  #
+  # Notice that once you <%= yield %>, it will render the whole template
+  # before streaming again. In the future, we can also support streaming
+  # from the template and not only the layout.
+  #
+  # Also, notice we use +provide+ instead of +content_for+, as +provide+
+  # gives the control back to the layout as soon as it is called.
+  # With +content_for+, it would render all the template to find all
+  # +content_for+ calls. For instance, consider this layout:
+  #
+  #   <%= yield :header %>
+  #
+  # With this template:
+  #
+  #   <%= content_for :header, "1" %>
+  #   <%= provide :header, "2" %>
+  #   <%= provide :header, "3" %>
+  #
+  # It will return "12\n" because +content_for+ continues rendering the
+  # template but it is returns back to the layout as soon as it sees the
+  # first +provide+.
+  #
+  # == TODO
+  #
+  # * Add streaming support in the controllers with no-cache settings
+  # * What should happen when an error happens?
+  # * Support streaming from child templates, partials and so on.
+  # * Support on sprockets async JS load?
+  #
   class StreamingTemplateRenderer < TemplateRenderer #:nodoc:
     # A valid Rack::Body (i.e. it responds to each).
     # It is initialized with a block that, when called, starts
