@@ -5,7 +5,7 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :plugins, :asset_path
+      attr_accessor :plugins
 
       def initialize(root=nil)
         super()
@@ -56,9 +56,6 @@ module Rails
           paths.add "db"
           paths.add "db/migrate"
           paths.add "db/seeds",            :with => "db/seeds.rb"
-          paths.add "public"
-          paths.add "public/javascripts"
-          paths.add "public/stylesheets"
           paths.add "vendor",              :load_path => true
           paths.add "vendor/assets",       :glob => "*"
           paths.add "vendor/plugins"
@@ -80,10 +77,6 @@ module Rails
 
       def autoload_paths
         @autoload_paths ||= paths.autoload_paths
-      end
-
-      def compiled_asset_path
-        asset_path % "" if asset_path
       end
     end
   end

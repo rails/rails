@@ -9,7 +9,6 @@ module ActionView
     # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
     # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
     # * <tt>:text</tt> - Renders the text passed in out.
-    # * <tt>:once</tt> - Accepts a string or an array of strings and Rails will ensure they each of them are rendered just once.
     #
     # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
     # as the locals hash.
@@ -20,13 +19,24 @@ module ActionView
           _render_partial(options.merge(:partial => options[:layout]), &block)
         elsif options.key?(:partial)
           _render_partial(options)
-        elsif options.key?(:once)
-          _render_once(options)
         else
           _render_template(options)
         end
       else
         _render_partial(:partial => options, :locals => locals)
+      end
+    end
+
+    # Render but returns a valid Rack body. If fibers are defined, we return
+    # a streaming body that renders the template piece by piece.
+    #
+    # Note that partials are not supported to be rendered with streaming,
+    # so in such cases, we just wrap them in an array.
+    def render_body(options)
+      if options.key?(:partial)
+        [_render_partial(options)]
+      else
+        StreamingTemplateRenderer.new(self).render(options)
       end
     end
 
@@ -76,20 +86,21 @@ module ActionView
     #     Hello David
     #   </html>
     #
-    def _layout_for(*args, &block)
+    def _layout_for(*args)
       name = args.first
-
-      if name.is_a?(Symbol)
-        @_content_for[name].html_safe
-      elsif block
-        capture(*args, &block)
-      else
-        @_content_for[:layout].html_safe
-      end
+      name = :layout unless name.is_a?(Symbol)
+      @_view_flow.get(name).html_safe
     end
 
-    def _render_once(options) #:nodoc:
-      _template_renderer.render_once(options)
+    # Handle layout for calls from partials that supports blocks.
+    def _block_layout_for(*args, &block)
+      name = args.first
+
+      if !name.is_a?(Symbol) && block
+        capture(*args, &block)
+      else
+        _layout_for(*args)
+      end
     end
 
     def _render_template(options) #:nodoc:

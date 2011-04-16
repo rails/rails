@@ -153,7 +153,7 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_accessor :_template
+    attr_accessor :_template, :_view_flow
     attr_internal :request, :controller, :config, :assigns, :lookup_context
 
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
@@ -181,8 +181,8 @@ module ActionView #:nodoc:
       self.helpers = Module.new unless self.class.helpers
 
       @_config = {}
-      @_content_for  = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
       @_virtual_path = nil
+      @_view_flow = OutputFlow.new
       @output_buffer = nil
 
       if @_controller = controller
@@ -193,10 +193,6 @@ module ActionView #:nodoc:
       @_lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
         lookup_context : ActionView::LookupContext.new(lookup_context)
       @_lookup_context.formats = formats if formats
-    end
-
-    def store_content_for(key, value)
-      @_content_for[key] = value
     end
 
     def controller_path

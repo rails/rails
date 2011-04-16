@@ -81,8 +81,7 @@ module Render
   end
 
   class TestOnlyRenderPublicActions < Rack::TestCase
-    describe "Only public methods on actual controllers are callable actions"
-
+    # Only public methods on actual controllers are callable actions
     test "raises an exception when a method of Object is called" do
       assert_raises(AbstractController::ActionNotFound) do
         get "/render/blank_render/clone", {}, "action_dispatch.show_exceptions" => false

@@ -2,25 +2,23 @@ require 'rack/utils'
 
 module ActionDispatch
   class FileHandler
-    def initialize(at, root)
-      @at, @root     = at.chomp('/'), root.chomp('/')
-      @compiled_at   = @at.blank? ? nil : /^#{Regexp.escape(at)}/
+    def initialize(root)
+      @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
       @file_server   = ::Rack::File.new(@root)
     end
 
     def match?(path)
       path = path.dup
-      if !@compiled_at || path.sub!(@compiled_at, '')
-        full_path = path.empty? ? @root : File.join(@root, ::Rack::Utils.unescape(path))
-        paths = "#{full_path}#{ext}"
 
-        matches = Dir[paths]
-        match = matches.detect { |m| File.file?(m) }
-        if match
-          match.sub!(@compiled_root, '')
-          match
-        end
+      full_path = path.empty? ? @root : File.join(@root, ::Rack::Utils.unescape(path))
+      paths = "#{full_path}#{ext}"
+
+      matches = Dir[paths]
+      match = matches.detect { |m| File.file?(m) }
+      if match
+        match.sub!(@compiled_root, '')
+        match
       end
     end
 
@@ -39,9 +37,9 @@ module ActionDispatch
   class Static
     FILE_METHODS = %w(GET HEAD).freeze
 
-    def initialize(app, roots)
+    def initialize(app, path)
       @app = app
-      @file_handlers = create_file_handlers(roots)
+      @file_handler = FileHandler.new(path)
     end
 
     def call(env)
@@ -49,24 +47,13 @@ module ActionDispatch
       method = env['REQUEST_METHOD']
 
       if FILE_METHODS.include?(method)
-        @file_handlers.each do |file_handler|
-          if match = file_handler.match?(path)
-            env["PATH_INFO"] = match
-            return file_handler.call(env)
-          end
+        if match = @file_handler.match?(path)
+          env["PATH_INFO"] = match
+          return @file_handler.call(env)
         end
       end
 
       @app.call(env)
     end
-
-    private
-      def create_file_handlers(roots)
-        roots = { '' => roots } unless roots.is_a?(Hash)
-
-        roots.map do |at, root|
-          FileHandler.new(at, root) if File.exist?(root)
-        end.compact
-      end
   end
 end

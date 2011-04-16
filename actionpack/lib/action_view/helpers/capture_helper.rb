@@ -135,8 +135,19 @@ module ActionView
       # for elements that will be fragment cached.
       def content_for(name, content = nil, &block)
         content = capture(&block) if block_given?
-        @_content_for[name] << content if content
-        @_content_for[name] unless content
+        result = @_view_flow.append(name, content) if content
+        result unless content
+      end
+
+      # The same as +content_for+ but when used with streaming flushes
+      # straight back to the layout. In other words, if you want to
+      # concatenate several times to the same buffer when rendering a given
+      # template, you should use +content_for+, if not, use +provide+ to tell
+      # the layout to stop looking for more contents.
+      def provide(name, content = nil, &block)
+        content = capture(&block) if block_given?
+        result = @_view_flow.append!(name, content) if content
+        result unless content
       end
 
       # content_for? simply checks whether any content has been captured yet using content_for
@@ -158,7 +169,7 @@ module ActionView
       #   </body>
       #   </html>
       def content_for?(name)
-        @_content_for[name].present?
+        @_view_flow.get(name).present?
       end
 
       # Use an alternate output buffer for the duration of the block.
