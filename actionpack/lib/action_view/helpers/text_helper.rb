@@ -19,7 +19,7 @@ module ActionView
     #   simple_format('<a href="http://example.com/">Example</a>')
     #   # => "<p><a href=\"http://example.com/\">Example</a></p>"
     #
-    #   simple_format('<a href="javascript:alert('no!')">Example</a>')
+    #   simple_format('<a href="javascript:alert(\'no!\')">Example</a>')
     #   # => "<p><a>Example</a></p>"
     #
     # If you want to escape all content, you should invoke the +h+ method before
