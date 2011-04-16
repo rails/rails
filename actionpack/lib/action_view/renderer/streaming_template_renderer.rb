@@ -20,7 +20,7 @@ module ActionView
     # object that responds to each. This object is initialized with a block
     # that knows how to render the template.
     def render_template(template, layout_name = nil, locals = {}) #:nodoc:
-      return [super] unless template.supports_streaming?
+      return [super] unless layout_name && template.supports_streaming?
 
       locals ||= {}
       layout   = layout_name && find_layout(layout_name, locals.keys)

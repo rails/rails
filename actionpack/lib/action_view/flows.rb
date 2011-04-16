@@ -13,7 +13,7 @@ module ActionView
     end
 
     def set(key, value)
-      @content[key] = value
+      @content[key] = (ActiveSupport::SafeBuffer.new << value)
     end
 
     def append(key, value)
