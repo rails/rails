@@ -22,8 +22,11 @@ module ActionView
   end
 
   class StreamingFlow < OutputFlow
-    def initialize(flow, fiber)
-      @content = flow.content
+    def initialize(view, fiber)
+      @view    = view
+      @parent  = nil
+      @child   = view.output_buffer
+      @content = view._view_flow.content
       @fiber   = fiber
       @root    = Fiber.current.object_id
     end
@@ -36,11 +39,15 @@ module ActionView
       return super if @content.key?(key)
 
       if inside_fiber?
+        view = @view
+
         begin
           @waiting_for = key
+          view.output_buffer, @parent = @child, view.output_buffer
           Fiber.yield
         ensure
           @waiting_for = nil
+          view.output_buffer, @child = @parent, view.output_buffer
         end
       end
 

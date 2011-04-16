@@ -55,7 +55,7 @@ module ActionView
         # Set the view flow to support streaming. It will be aware
         # when to stop rendering the layout because it needs to search
         # something in the template and vice-versa.
-        view._view_flow = StreamingFlow.new(view._view_flow, fiber)
+        view._view_flow = StreamingFlow.new(view, fiber)
 
         # Yo! Start the fiber!
         fiber.resume
