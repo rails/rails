@@ -1,31 +1,35 @@
 require 'active_support/core_ext/string/output_safety'
 
 module ActionView
-  class OutputFlow
+  class OutputFlow #:nodoc:
     attr_reader :content
 
     def initialize
       @content = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
     end
 
+    # Called by _layout_for to read stored values.
     def get(key)
       @content[key]
     end
 
+    # Called by each renderer object to set the layout contents.
     def set(key, value)
-      @content[key] = (ActiveSupport::SafeBuffer.new << value)
+      @content[key] = value
     end
 
+    # Called by content_for
     def append(key, value)
       @content[key] << value
     end
 
+    # Called by provide
     def append!(key, value)
       @content[key] << value
     end
   end
 
-  class StreamingFlow < OutputFlow
+  class StreamingFlow < OutputFlow #:nodoc:
     def initialize(view, fiber)
       @view    = view
       @parent  = nil
@@ -58,14 +62,9 @@ module ActionView
       super
     end
 
-    # Set the contents for the given key. This is called
+    # Appends the contents for the given key. This is called
     # by provides and resumes back to the fiber if it is
     # the key it is waiting for.
-    def set(key, value)
-      @content[key] = (ActiveSupport::SafeBuffer.new << value)
-    end
-
-    # Append but also resume the fiber if it provided the right key.
     def append!(key, value)
       super
       @fiber.resume if @waiting_for == key

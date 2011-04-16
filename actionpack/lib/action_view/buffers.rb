@@ -1,7 +1,7 @@
 require 'active_support/core_ext/string/output_safety'
 
 module ActionView
-  class OutputBuffer < ActiveSupport::SafeBuffer
+  class OutputBuffer < ActiveSupport::SafeBuffer #:nodoc:
     def initialize(*)
       super
       encode! if encoding_aware?
@@ -14,7 +14,7 @@ module ActionView
     alias :safe_append= :safe_concat
   end
 
-  class StreamingBuffer
+  class StreamingBuffer #:nodoc:
     def initialize(block)
       @block = block
     end
