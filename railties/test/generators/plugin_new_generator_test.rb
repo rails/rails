@@ -145,6 +145,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
+    assert_file "app/assets/javascripts"
+    assert_file "app/assets/stylesheets"
+    assert_file "app/models"
+    assert_file "app/controllers"
+    assert_file "app/views"
+    assert_file "app/helpers"
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/

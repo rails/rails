@@ -9,10 +9,15 @@ module Rails
     end
 
     def app
-      if options[:mountable]
+      if mountable?
         directory "app"
         template "#{app_templates_dir}/app/views/layouts/application.html.erb.tt",
                  "app/views/layouts/#{name}/application.html.erb"
+      elsif full?
+        empty_directory_with_gitkeep "app/models"
+        empty_directory_with_gitkeep "app/controllers"
+        empty_directory_with_gitkeep "app/views"
+        empty_directory_with_gitkeep "app/helpers"
       end
     end
 
@@ -61,8 +66,12 @@ task :default => :test
       end
     end
 
+    PASSTHROUGH_OPTIONS = [
+      :skip_active_record, :skip_javascript, :database, :javascript, :quiet, :pretend, :force, :skip
+    ]
+
     def generate_test_dummy(force = false)
-      opts = (options || {}).slice(:skip_active_record, :skip_javascript, :database, :javascript, :quiet, :pretend, :force, :skip)
+      opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
 
       invoke Rails::Generators::AppGenerator,
@@ -94,19 +103,18 @@ task :default => :test
     end
 
     def stylesheets
-      if options[:mountable]
-        empty_directory_with_gitkeep "app/stylesheets"
+      if mountable?
         copy_file "#{app_templates_dir}/app/assets/stylesheets/application.css",
                   "app/assets/stylesheets/application.css"
+      elsif full?
+        empty_directory_with_gitkeep "app/assets/stylesheets"
       end
     end
 
     def javascripts
-      return unless options[:mountable]
+      return if options.skip_javascript?
 
-      if options[:skip_javascript]
-        empty_directory_with_gitkeep "vendor/assets/javascripts"
-      else
+      if mountable?
         copy_file "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/application.js"
         copy_file "#{app_templates_dir}/vendor/assets/javascripts/#{options[:javascript]}.js",
@@ -122,6 +130,8 @@ task :default => :test
           copy_file "#{app_templates_dir}/vendor/assets/javascripts/effects.js",
                     "vendor/assets/javascripts/effects.js"
         end
+      elsif full?
+        empty_directory_with_gitkeep "app/assets/javascripts"
       end
     end
 
@@ -139,17 +149,17 @@ task :default => :test
 
       alias_method :plugin_path, :app_path
 
-      class_option :dummy_path,     :type => :string, :default => "test/dummy",
-                                    :desc => "Create dummy application at given path"
+      class_option :dummy_path,   :type => :string, :default => "test/dummy",
+                                  :desc => "Create dummy application at given path"
 
-      class_option :full,           :type => :boolean, :default => false,
-                                    :desc => "Generate rails engine with integration tests"
+      class_option :full,         :type => :boolean, :default => false,
+                                  :desc => "Generate rails engine with integration tests"
 
-      class_option :mountable,      :type => :boolean, :default => false,
-                                    :desc => "Generate mountable isolated application"
+      class_option :mountable,    :type => :boolean, :default => false,
+                                  :desc => "Generate mountable isolated application"
 
-      class_option :skip_gemspec,   :type => :boolean, :default => false,
-                                    :desc => "Skip gemspec file"
+      class_option :skip_gemspec, :type => :boolean, :default => false,
+                                  :desc => "Skip gemspec file"
 
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
@@ -209,6 +219,7 @@ task :default => :test
       public_task :apply_rails_template, :bundle_if_dev_or_edge
 
     protected
+
       def app_templates_dir
         "../../app/templates"
       end
