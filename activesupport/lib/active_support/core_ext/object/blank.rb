@@ -57,7 +57,11 @@ class FalseClass
   end
 end
 
-class TrueClass #:nodoc:
+class TrueClass
+  # Instances of TrueClass are never blank
+  # Example:
+  #
+  # true.blank? => false
   def blank?
     false
   end
