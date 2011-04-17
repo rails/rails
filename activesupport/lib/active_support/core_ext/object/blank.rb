@@ -37,7 +37,11 @@ class Object
   end
 end
 
-class NilClass #:nodoc:
+class NilClass
+  # Instances of NilClass are always blank
+  # Example:
+  #
+  # nil.blank? => true
   def blank?
     true
   end
