@@ -8,13 +8,12 @@ class Post < ActiveRecord::Base
   scope :containing_the_letter_a, where("body LIKE '%a%'")
   scope :ranked_by_comments, order("comments_count DESC")
 
-  def self.limit_by(l)
-    limit(l)
-  end
-
-  def self.with_authors_at_address(address)
-    where('authors.author_address_id = ?', address.id).joins('JOIN authors ON authors.id = posts.author_id')
-  end
+  scope :limit_by, lambda {|l| limit(l) }
+  scope :with_authors_at_address, lambda { |address| {
+      :conditions => [ 'authors.author_address_id = ?', address.id ],
+      :joins => 'JOIN authors ON authors.id = posts.author_id'
+    }
+  }
 
   belongs_to :author do
     def greeting
@@ -29,10 +28,9 @@ class Post < ActiveRecord::Base
 
   scope :with_special_comments, :joins => :comments, :conditions => {:comments => {:type => 'SpecialComment'} }
   scope :with_very_special_comments, joins(:comments).where(:comments => {:type => 'VerySpecialComment'})
-
-  def self.with_post(post_id)
-    joins(:comments).where(:comments => { :post_id => post_id })
-  end
+  scope :with_post, lambda {|post_id|
+    { :joins => :comments, :conditions => {:comments => {:post_id => post_id} } }
+  }
 
   has_many   :comments do
     def find_most_recent

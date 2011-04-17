@@ -1,23 +1,5 @@
 *Rails 3.1.0 (unreleased)*
 
-* Passing a proc (or other object that responds to #call) to scope is deprecated. If you need your
-  scope to be lazily evaluated, or takes parameters, please define it as a normal class method
-  instead. For example, change this:
-
-    class Post < ActiveRecord::Base
-      scope :unpublished, lambda { where('published_at > ?', Time.now) }
-    end
-
-  To this:
-
-    class Post < ActiveRecord::Base
-      def self.unpublished
-        where('published_at > ?', Time.now)
-      end
-    end
-
-  [Jon Leighton]
-
 * Default scopes are now evaluated at the latest possible moment, to avoid problems where
   scopes would be created which would implicitly contain the default scope, which would then
   be impossible to get rid of via Model.unscoped.

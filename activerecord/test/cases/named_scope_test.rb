@@ -471,12 +471,6 @@ class NamedScopeTest < ActiveRecord::TestCase
       require "models/without_table"
     end
   end
-
-  def test_scopes_with_callables_are_deprecated
-    assert_deprecated do
-      Post.scope :WE_SO_EXCITED, lambda { |partyingpartyingpartying, yeah| fun!.fun!.fun! }
-    end
-  end
 end
 
 class DynamicScopeMatchTest < ActiveRecord::TestCase
