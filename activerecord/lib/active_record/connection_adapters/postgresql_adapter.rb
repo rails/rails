@@ -366,7 +366,7 @@ module ActiveRecord
         case value
         when String
           return super unless 'bytea' == column.sql_type
-          escape_bytea(value)
+          { :value => value, :format => 1 }
         else
           super
         end
@@ -1093,4 +1093,3 @@ module ActiveRecord
     end
   end
 end
-
