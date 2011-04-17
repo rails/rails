@@ -808,4 +808,11 @@ class TimeExtMarshalingTest < Test::Unit::TestCase
     assert_equal t.zone, unmarshaled.zone
     assert_equal t, unmarshaled
   end
+
+  def test_marshalling_preserves_fractional_seconds
+    t = Time.parse('00:00:00.500')
+    unmarshaled = Marshal.load(Marshal.dump(t))
+    assert_equal t.to_f, unmarshaled.to_f
+    assert_equal t, unmarshaled
+  end
 end
