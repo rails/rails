@@ -22,25 +22,49 @@ class Object
   end
 end
 
-class NilClass #:nodoc:
+class NilClass
+  # Instances of NilClass are not duplicable
+  #
+  # === Example
+  #
+  # nil.duplicable? # => false
+  # nil.dup         # => TypeError: can't dup NilClass
   def duplicable?
     false
   end
 end
 
-class FalseClass #:nodoc:
+class FalseClass
+  # Instances of FalseClass are not duplicable
+  #
+  # === Example
+  #
+  # false.duplicable? # => false
+  # false.dup         # => TypeError: can't dup FalseClass
   def duplicable?
     false
   end
 end
 
-class TrueClass #:nodoc:
+class TrueClass
+  # Instances of TrueClass are not duplicable
+  #
+  # === Example
+  #
+  # true.duplicable? # => false
+  # true.dup         # => TypeError: can't dup TrueClass
   def duplicable?
     false
   end
 end
 
-class Symbol #:nodoc:
+class Symbol
+  # Symbols are not duplicable
+  #
+  # === Example
+  #
+  # :my_symbol.duplicable? # => false
+  # :my_symbol.dup         # => TypeError: can't dup Symbol
   def duplicable?
     false
   end
