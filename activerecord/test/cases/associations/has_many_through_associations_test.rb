@@ -44,7 +44,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associate_existing
-    assert_queries(2) { posts(:thinking); people(:david) }
+    posts(:thinking); people(:david) # Warm cache
 
     assert_queries(1) do
       posts(:thinking).people << people(:david)
