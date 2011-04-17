@@ -85,7 +85,13 @@ class Hash
   alias_method :blank?, :empty?
 end
 
-class String #:nodoc:
+class String
+  # A string is blank if it's empty or contains whitespaces only
+  # For example:
+  #
+  # "".blank?                 => true
+  # "   ".blank?              => true
+  # " something here ".blank? => false
   def blank?
     self !~ /\S/
   end
