@@ -47,7 +47,11 @@ class NilClass
   end
 end
 
-class FalseClass #:nodoc:
+class FalseClass
+  # Instances of FalseClass are always blank
+  # Example:
+  #
+  # false.blank? => true
   def blank?
     true
   end
