@@ -76,7 +76,12 @@ class Array
   alias_method :blank?, :empty?
 end
 
-class Hash #:nodoc:
+class Hash
+  # A hash is blank if it's empty
+  # For example:
+  #
+  # {}.blank?                => true
+  # {:key => 'value'}.blank? => false
   alias_method :blank?, :empty?
 end
 
