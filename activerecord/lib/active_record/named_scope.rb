@@ -51,6 +51,14 @@ module ActiveRecord
       # The above calls to <tt>scope</tt> define class methods Shirt.red and Shirt.dry_clean_only. Shirt.red,
       # in effect, represents the query <tt>Shirt.where(:color => 'red')</tt>.
       #
+      # Note that this is simply 'syntactic sugar' for defining an actual class method:
+      #
+      #   class Shirt < ActiveRecord::Base
+      #     def self.red
+      #       where(:color => 'red')
+      #     end
+      #   end
+      #
       # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by Shirt.red is not an Array; it
       # resembles the association object constructed by a <tt>has_many</tt> declaration. For instance,
       # you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>, <tt>Shirt.red.where(:size => 'small')</tt>.
@@ -77,10 +85,30 @@ module ActiveRecord
       # Named \scopes can also be procedural:
       #
       #   class Shirt < ActiveRecord::Base
-      #     scope :colored, lambda {|color| where(:color => color) }
+      #     scope :colored, lambda { |color| where(:color => color) }
       #   end
       #
       # In this example, <tt>Shirt.colored('puce')</tt> finds all puce shirts.
+      #
+      # On Ruby 1.9 you can use the 'stabby lambda' syntax:
+      #
+      #   scope :colored, ->(color) { where(:color => color) }
+      #
+      # Note that scopes defined with \scope will be evaluated when they are defined, rather than
+      # when they are used. For example, the following would be incorrect:
+      #
+      #   class Post < ActiveRecord::Base
+      #     scope :recent, where('published_at >= ?', Time.now - 1.week)
+      #   end
+      #
+      # The example above would be 'frozen' to the <tt>Time.now</tt> value when the <tt>Post</tt>
+      # class was defined, and so the resultant SQL query would always be the same. The correct
+      # way to do this would be via a lambda, which will re-evaluate the scope each time
+      # it is called:
+      #
+      #   class Post < ActiveRecord::Base
+      #     scope :recent, lambda { where('published_at >= ?', Time.now - 1.week) }
+      #   end
       #
       # Named \scopes can also have extensions, just as with <tt>has_many</tt> declarations:
       #
