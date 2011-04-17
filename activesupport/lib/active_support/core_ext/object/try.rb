@@ -34,7 +34,19 @@ class Object
   end
 end
 
-class NilClass #:nodoc:
+class NilClass
+  # Instances of NilClass return always +nil+
+  # It becomes specially helpful when navigating through associations that may return nil
+  #
+  # === Examples
+  #
+  # nil.try(:name) => nil
+  #
+  # Without try
+  #   @person && @person.children.first && @person.children.first.name
+  #
+  # With try
+  #   @person.try(:children).try(:first).try(:name)
   def try(*args)
     nil
   end
