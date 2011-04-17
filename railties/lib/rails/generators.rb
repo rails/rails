@@ -24,9 +24,11 @@ module Rails
       :rails => {
         :actions => '-a',
         :orm => '-o',
+        :javascript_engine => '-je',
         :resource_controller => '-c',
         :scaffold_controller => '-c',
         :stylesheets => '-y',
+        :stylesheet_engine => '-se',
         :template_engine => '-e',
         :test_framework => '-t'
       },
@@ -43,15 +45,18 @@ module Rails
 
     DEFAULT_OPTIONS = {
       :rails => {
+        :assets => true,
         :force_plural => false,
         :helper => true,
-        :assets => true,
-        :orm => nil,
         :integration_tool => nil,
+        :javascripts => true,
+        :javascript_engine => nil,
+        :orm => nil,
         :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :stylesheets => true,
+        :stylesheet_engine => nil,
         :test_framework => nil,
         :template_engine => :erb
       },

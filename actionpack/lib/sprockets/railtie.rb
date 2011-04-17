@@ -3,6 +3,23 @@ require "sprockets"
 # TODO: Move this to sprockets-rails
 # If so, we can move the require to a Gemfile and remove assets.enabled
 class Sprockets::Railtie < Rails::Railtie
+  def self.using_coffee?
+    require 'coffee-script'
+    defined?(CoffeeScript)
+  rescue LoadError
+    false
+  end
+
+  def self.using_scss?
+    require 'sass'
+    defined?(Sass)
+  rescue LoadError
+    false
+  end
+
+  config.app_generators.javascript_engine :coffee if using_coffee?
+  config.app_generators.stylesheet_engine :scss   if using_scss?
+
   # Configure ActionController to use sprockets.
   initializer "sprockets.set_configs", :after => "action_controller.set_configs" do |app|
     ActiveSupport.on_load(:action_controller) do

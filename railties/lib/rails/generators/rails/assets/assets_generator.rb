@@ -1,36 +1,38 @@
 module Rails
   module Generators
-    # TODO: Add hooks for using other asset pipelines, like Less
     class AssetsGenerator < NamedBase
-      def create_asset_files
-        copy_file "javascript.#{javascript_extension}",
-          File.join('app/assets/javascripts', "#{file_name}.#{javascript_extension}")
+      class_option :javascripts, :type => :boolean, :desc => "Generate javascripts"
+      class_option :stylesheets, :type => :boolean, :desc => "Generate stylesheets"
 
+      class_option :javascript_engine, :desc => "Engine for javascripts"
+      class_option :stylesheet_engine, :desc => "Engine for stylesheets"
+
+      def create_javascript_files
+        return unless options.javascripts?
+        copy_file "javascript.#{javascript_extension}",
+          File.join('app/assets/javascripts', class_path, "#{asset_name}.#{javascript_extension}")
+      end
+
+      def create_stylesheet_files
+        return unless options.stylesheets?
         copy_file "stylesheet.#{stylesheet_extension}",
-          File.join('app/assets/stylesheets', "#{file_name}.#{stylesheet_extension}")
+          File.join('app/assets/stylesheets', class_path, "#{asset_name}.#{stylesheet_extension}")
       end
-      
-    private
+
+      protected
+
+      def asset_name
+        file_name
+      end
+
       def javascript_extension
-        using_coffee? ? "js.coffee" : "js"
+        options.javascript_engine.present? ?
+          "js.#{options.javascript_engine}" : "js"
       end
-    
-      def using_coffee?
-        require 'coffee-script'
-        defined?(CoffeeScript)
-      rescue LoadError
-        false
-      end
-      
+
       def stylesheet_extension
-        using_sass? ? "css.scss" : "css"
-      end
-      
-      def using_sass?
-        require 'sass'
-        defined?(Sass)
-      rescue LoadError
-        false
+        options.stylesheet_engine.present? ?
+          "css.#{options.stylesheet_engine}" : "css"
       end
     end
   end
