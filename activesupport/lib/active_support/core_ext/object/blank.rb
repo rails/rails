@@ -67,7 +67,12 @@ class TrueClass
   end
 end
 
-class Array #:nodoc:
+class Array
+  # An array is blank if it's empty
+  # For example:
+  #
+  # [].blank?      => true
+  # [1,2,3].blank? => false
   alias_method :blank?, :empty?
 end
 
