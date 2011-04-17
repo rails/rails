@@ -893,12 +893,6 @@ h4. Ajax Injection
 
 If you use the "in_place_editor plugin":http://dev.rubyonrails.org/browser/plugins/in_place_editing, or actions that return a string, rather than rendering a view, _(highlight)you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
 
-h4. RJS Injection
-
--- _Don't forget to escape in JavaScript (RJS) templates, too._
-
-The RJS API generates blocks of JavaScript code based on Ruby code, thus allowing you to manipulate a view or parts of a view from the server side. <em class="highlight">If you allow user input in RJS templates, do escape it using +escape_javascript()+ within JavaScript functions, and in HTML parts using +h()+</em>. Otherwise an attacker could execute arbitrary JavaScript.
-
 h4. Command Line Injection
 
 -- _Use user-supplied command line parameters with caution._

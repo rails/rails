@@ -68,10 +68,6 @@ module RenderTestCases
     assert_equal "The secret is in the sauce\n", @view.render(:file => "test/dot.directory/render_file_with_ivar")
   end
 
-  def test_render_update
-    assert_equal 'alert("Hello, World!");', @view.render(:update) { |page| page.alert('Hello, World!') }
-  end
-
   def test_render_partial_from_default
     assert_equal "only partial", @view.render("test/partial_only")
   end
@@ -231,18 +227,9 @@ module RenderTestCases
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 
-  WithViewHandler = lambda do |template, view|
-    %'"#{template.class} #{view.class}"'
-  end
-
   def test_render_inline_with_render_from_to_proc
     ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
     assert_equal '3', @view.render(:inline => "(1 + 2).to_s", :type => :ruby_handler)
-  end
-
-  def test_render_inline_with_template_handler_with_view
-    ActionView::Template.register_template_handler :with_view, WithViewHandler
-    assert_equal 'ActionView::Template ActionView::Base', @view.render(:inline => "Hello, World!", :type => :with_view)
   end
 
   def test_render_inline_with_compilable_custom_type

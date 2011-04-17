@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
 
-begin
-  require "rails/cli"
-rescue LoadError
+if File.exists?(File.join(File.expand_path('../..', __FILE__), '.git'))
   railties_path = File.expand_path('../../railties/lib', __FILE__)
   $:.unshift(railties_path)
-  require "rails/cli"
 end
+require "rails/cli"

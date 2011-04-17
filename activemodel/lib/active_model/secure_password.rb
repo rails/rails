@@ -31,11 +31,10 @@ module ActiveModel
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
       def has_secure_password
         attr_reader   :password
-        attr_accessor :password_confirmation
 
         validates_confirmation_of :password
         validates_presence_of     :password_digest
-        
+
         include InstanceMethodsOnActivation
 
         if respond_to?(:attributes_protected_by_default)
@@ -59,7 +58,9 @@ module ActiveModel
       # Encrypts the password into the password_digest attribute.
       def password=(unencrypted_password)
         @password = unencrypted_password
-        self.password_digest = BCrypt::Password.create(unencrypted_password)
+        unless unencrypted_password.blank?
+          self.password_digest = BCrypt::Password.create(unencrypted_password)
+        end
       end
     end
   end

@@ -270,6 +270,7 @@ module ActiveRecord
     def rolledback!(force_restore_state = false) #:nodoc:
       run_callbacks :rollback
     ensure
+      IdentityMap.remove(self) if IdentityMap.enabled?
       restore_transaction_record_state(force_restore_state)
     end
 

@@ -18,18 +18,12 @@ module ActionController
   #     post = Post.find(params[:id])
   #     post.destroy
   #
-  #     respond_to do |format|
-  #       format.html { redirect_to(post) } # Calls polymorphic_url(post) which in turn calls post_url(post)
-  #       format.js do
-  #         # Calls: new Effect.fade('post_45');
-  #         render(:update) { |page| page[post].visual_effect(:fade) }
-  #       end
-  #     end
+  #     redirect_to(post) # Calls polymorphic_url(post) which in turn calls post_url(post)
   #   end
   #
-  # As the example above shows, you can stop caring to a large extent what the actual id of the post is. You just know
-  # that one is being assigned and that the subsequent calls in redirect_to and the RJS expect that same naming
-  # convention and allows you to write less code if you follow it.
+  # As the example above shows, you can stop caring to a large extent what the actual id of the post is.
+  # You just know that one is being assigned and that the subsequent calls in redirect_to expect that
+  # same naming convention and allows you to write less code if you follow it.
   module RecordIdentifier
     extend self
 

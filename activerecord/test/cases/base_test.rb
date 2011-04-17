@@ -172,7 +172,7 @@ class BasicsTest < ActiveRecord::TestCase
       with_active_record_default_timezone :utc do
         time = Time.local(2000)
         topic = Topic.create('written_on' => time)
-        saved_time = Topic.find(topic.id).written_on
+        saved_time = Topic.find(topic.id).reload.written_on
         assert_equal time, saved_time
         assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "EST"], time.to_a
         assert_equal [0, 0, 5, 1, 1, 2000, 6, 1, false, "UTC"], saved_time.to_a
@@ -186,7 +186,7 @@ class BasicsTest < ActiveRecord::TestCase
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
-          saved_time = Topic.find(topic.id).written_on
+          saved_time = Topic.find(topic.id).reload.written_on
           assert_equal time, saved_time
           assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "CST"], time.to_a
           assert_equal [0, 0, 6, 1, 1, 2000, 6, 1, false, "UTC"], saved_time.to_a
@@ -199,7 +199,7 @@ class BasicsTest < ActiveRecord::TestCase
     with_env_tz 'America/New_York' do
       time = Time.utc(2000)
       topic = Topic.create('written_on' => time)
-      saved_time = Topic.find(topic.id).written_on
+      saved_time = Topic.find(topic.id).reload.written_on
       assert_equal time, saved_time
       assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "UTC"], time.to_a
       assert_equal [0, 0, 19, 31, 12, 1999, 5, 365, false, "EST"], saved_time.to_a
@@ -212,7 +212,7 @@ class BasicsTest < ActiveRecord::TestCase
         Time.use_zone 'Central Time (US & Canada)' do
           time = Time.zone.local(2000)
           topic = Topic.create('written_on' => time)
-          saved_time = Topic.find(topic.id).written_on
+          saved_time = Topic.find(topic.id).reload.written_on
           assert_equal time, saved_time
           assert_equal [0, 0, 0, 1, 1, 2000, 6, 1, false, "CST"], time.to_a
           assert_equal [0, 0, 1, 1, 1, 2000, 6, 1, false, "EST"], saved_time.to_a
@@ -1048,7 +1048,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.new(:content => myobj)
     assert topic.save
     Topic.serialize(:content, Hash)
-    assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
+    assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).reload.content }
   ensure
     Topic.serialize(:content)
   end
@@ -1626,18 +1626,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_equal c1, c2
   end
 
-  def test_default_scope_is_reset
+  def test_current_scope_is_reset
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.table_name = 'posts'
-    UnloadablePost.class_eval do
-      default_scope order('posts.comments_count ASC')
-    end
-    UnloadablePost.scoped_methods # make Thread.current[:UnloadablePost_scoped_methods] not nil
+    UnloadablePost.send(:current_scope=, UnloadablePost.scoped)
 
     UnloadablePost.unloadable
-    assert_not_nil Thread.current[:UnloadablePost_scoped_methods]
+    assert_not_nil Thread.current[:UnloadablePost_current_scope]
     ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil Thread.current[:UnloadablePost_scoped_methods]
+    assert_nil Thread.current[:UnloadablePost_current_scope]
   ensure
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end

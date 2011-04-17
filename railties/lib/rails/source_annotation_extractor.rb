@@ -11,7 +11,7 @@
 #
 # Annotations are looked for in comments and modulus whitespace they have to
 # start with the tag optionally followed by a colon. Everything up to the end
-# of the line (or closing ERb comment tag) is considered to be their text.
+# of the line (or closing ERB comment tag) is considered to be their text.
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
 
@@ -30,7 +30,7 @@ class SourceAnnotationExtractor
 
   # Prints all annotations with tag +tag+ under the root directories +app+, +lib+,
   # and +test+ (recursively). Only filenames with extension +.builder+, +.rb+,
-  # +.rxml+, +.rjs+, +.rhtml+, or +.erb+ are taken into account. The +options+
+  # +.rxml+, +.rhtml+, or +.erb+ are taken into account. The +options+
   # hash is passed to each annotation's +to_s+.
   #
   # This class method is the single entry point for the rake tasks.
@@ -47,7 +47,7 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
   # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, +.rxml+, +.rjs+, +.rhtml+, and +.erb+
+  # those with extension +.builder+, +.rb+, +.rxml+, +.rhtml+, and +.erb+
   # are taken into account.
   def find(dirs=%w(app lib test))
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
@@ -55,7 +55,7 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dir+ (recursively) to arrays
   # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, +.rxml+, +.rjs+, +.rhtml+, and +.erb+
+  # those with extension +.builder+, +.rb+, +.rxml+, +.rhtml+, and +.erb+
   # are taken into account.
   def find_in(dir)
     results = {}

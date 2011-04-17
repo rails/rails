@@ -282,6 +282,17 @@ module ActiveRecord
       end
       alias :create :insert_sql
 
+      def exec_insert(sql, name, binds)
+        binds = binds.dup
+
+        # Pretend to support bind parameters
+        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+      end
+
+      def last_inserted_id(result)
+        @connection.last_id
+      end
+
       def update_sql(sql, name = nil)
         super
         @connection.affected_rows
@@ -528,6 +539,11 @@ module ActiveRecord
       def case_sensitive_equality_operator
         "= BINARY"
       end
+      deprecate :case_sensitive_equality_operator
+
+      def case_sensitive_modifier(node)
+        Arel::Nodes::Bin.new(node)
+      end
 
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
         where_sql
@@ -587,8 +603,26 @@ module ActiveRecord
 
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
-        def select(sql, name = nil)
-          execute(sql, name).each(:as => :hash)
+        def select(sql, name = nil, binds = [])
+          exec_query(sql, name, binds).to_a
+        end
+
+        def exec_query(sql, name = 'SQL', binds = [])
+          @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
+
+          log(sql, name, binds) do
+            begin
+              result = @connection.query(sql)
+            rescue ActiveRecord::StatementInvalid => exception
+              if exception.message.split(":").first =~ /Packets out of order/
+                raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
+              else
+                raise
+              end
+            end
+
+            ActiveRecord::Result.new(result.fields, result.to_a)
+          end
         end
 
         def supports_views?

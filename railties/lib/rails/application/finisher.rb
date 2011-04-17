@@ -53,6 +53,8 @@ module Rails
       end
 
       # Force routes to be loaded just at the end and add it to to_prepare callbacks
+      # This needs to be after the finisher hook to ensure routes added in the hook
+      # are still loaded.
       initializer :set_routes_reloader do |app|
         reloader = lambda { app.routes_reloader.execute_if_updated }
         reloader.call

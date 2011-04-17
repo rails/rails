@@ -478,10 +478,30 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
+  class MySecondObserver
+    def self.delivered_email(mail)
+    end
+  end
+
   test "you can register an observer to the mail object that gets informed on email delivery" do
     ActionMailer::Base.register_observer(MyObserver)
     mail = BaseMailer.welcome
     MyObserver.expects(:delivered_email).with(mail)
+    mail.deliver
+  end
+
+  test "you can register an observer using its stringified name to the mail object that gets informed on email delivery" do
+    ActionMailer::Base.register_observer("BaseTest::MyObserver")
+    mail = BaseMailer.welcome
+    MyObserver.expects(:delivered_email).with(mail)
+    mail.deliver
+  end
+
+  test "you can register multiple observers to the mail object that both get informed on email delivery" do
+    ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
+    mail = BaseMailer.welcome
+    MyObserver.expects(:delivered_email).with(mail)
+    MySecondObserver.expects(:delivered_email).with(mail)
     mail.deliver
   end
 
@@ -490,10 +510,30 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
+  class MySecondInterceptor
+    def self.delivering_email(mail)
+    end
+  end
+
   test "you can register an interceptor to the mail object that gets passed the mail object before delivery" do
     ActionMailer::Base.register_interceptor(MyInterceptor)
     mail = BaseMailer.welcome
     MyInterceptor.expects(:delivering_email).with(mail)
+    mail.deliver
+  end
+
+  test "you can register an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
+    ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
+    mail = BaseMailer.welcome
+    MyInterceptor.expects(:delivering_email).with(mail)
+    mail.deliver
+  end
+
+  test "you can register multiple interceptors to the mail object that both get passed the mail object before delivery" do
+    ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
+    mail = BaseMailer.welcome
+    MyInterceptor.expects(:delivering_email).with(mail)
+    MySecondInterceptor.expects(:delivering_email).with(mail)
     mail.deliver
   end
 

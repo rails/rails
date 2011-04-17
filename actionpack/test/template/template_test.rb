@@ -113,44 +113,6 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def test_template_expire_sets_the_timestamp_to_1970
-    @template = new_template("Hello", :updated_at => Time.utc(2010))
-    assert_equal Time.utc(2010), @template.updated_at
-    @template.expire!
-    assert_equal Time.utc(1970), @template.updated_at
-  end
-
-  def test_template_rerender_renders_a_template_like_self
-    @template = new_template("Hello", :virtual_path => "test/foo_bar")
-    @context.expects(:render).with(:template => "test/foo_bar").returns("template")
-    assert_equal "template", @template.rerender(@context)
-  end
-
-  def test_template_rerender_renders_a_root_template_like_self
-    @template = new_template("Hello", :virtual_path => "foo_bar")
-    @context.expects(:render).with(:template => "foo_bar").returns("template")
-    assert_equal "template", @template.rerender(@context)
-  end
-
-  def test_template_rerender_renders_a_partial_like_self
-    @template = new_template("Hello", :virtual_path => "test/_foo_bar")
-    @context.expects(:render).with(:partial => "test/foo_bar").returns("partial")
-    assert_equal "partial", @template.rerender(@context)
-  end
-
-  def test_template_rerender_renders_a_root_partial_like_self
-    @template = new_template("Hello", :virtual_path => "_foo_bar")
-    @context.expects(:render).with(:partial => "foo_bar").returns("partial")
-    assert_equal "partial", @template.rerender(@context)
-  end
-
-  def test_rerender_raises_an_error_without_virtual_path
-    @template = new_template("Hello", :virtual_path => nil)
-    assert_raise RuntimeError do
-      @template.rerender(@context)
-    end
-  end
-
   if "ruby".encoding_aware?
     def test_resulting_string_is_utf8
       @template = new_template

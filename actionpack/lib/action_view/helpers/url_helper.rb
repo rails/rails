@@ -81,8 +81,11 @@ module ActionView
       #   # => /workshops
       #
       #   <%= url_for(@workshop) %>
-      #   # calls @workshop.to_s
+      #   # calls @workshop.to_param which by default returns the id
       #   # => /workshops/5
+      #
+      #   # to_param can be re-defined in a model to provide different URL names:
+      #   # => /workshops/1-workshop-name
       #
       #   <%= url_for("http://www.example.com") %>
       #   # => http://www.example.com
@@ -183,7 +186,7 @@ module ActionView
       #   link_to "Profiles", :controller => "profiles"
       #   # => <a href="/profiles">Profiles</a>
       #
-      # You can use a block as well if your link target is hard to fit into the name parameter. ERb example:
+      # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
       #   <%= link_to(@profile) do %>
       #     <strong><%= @profile.name %></strong> -- <span>Check it out!</span>

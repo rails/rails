@@ -53,12 +53,12 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "about 2 hours", distance_of_time_in_words(from, to + 89.minutes + 30.seconds)
     assert_equal "about 24 hours", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 29.seconds)
 
-    # 1440..2529
+    # 1440..2519
     assert_equal "1 day", distance_of_time_in_words(from, to + 23.hours + 59.minutes + 30.seconds)
     assert_equal "1 day", distance_of_time_in_words(from, to + 41.hours + 59.minutes + 29.seconds)
 
-    # 2530..43199
-    assert_equal "2 days", distance_of_time_in_words(from, to + 42.hours + 59.minutes + 30.seconds)
+    # 2520..43199
+    assert_equal "2 days", distance_of_time_in_words(from, to + 41.hours + 59.minutes + 30.seconds)
     assert_equal "3 days", distance_of_time_in_words(from, to + 2.days + 12.hours)
     assert_equal "30 days", distance_of_time_in_words(from, to + 29.days + 23.hours + 59.minutes + 29.seconds)
 

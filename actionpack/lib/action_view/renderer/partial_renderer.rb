@@ -1,5 +1,3 @@
-require 'action_view/renderer/abstract_renderer'
-
 module ActionView
   class PartialRenderer < AbstractRenderer #:nodoc:
     PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }
@@ -79,7 +77,7 @@ module ActionView
       locals[as] = object
 
       content = @template.render(view, locals) do |*name|
-        view._layout_for(*name, &block)
+        view._block_layout_for(*name, &block)
       end
 
       content = layout.render(view, locals){ content } if layout

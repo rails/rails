@@ -8,6 +8,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def setup
     @old_logger = ActiveRecord::Base.logger
+    @using_identity_map = ActiveRecord::IdentityMap.enabled?
+    ActiveRecord::IdentityMap.enabled = false
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
@@ -16,6 +18,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     super
     ActiveRecord::LogSubscriber.log_subscribers.pop
     ActiveRecord::Base.logger = @old_logger
+    ActiveRecord::IdentityMap.enabled = @using_identity_map
   end
 
   def set_logger(logger)

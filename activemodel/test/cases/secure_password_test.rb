@@ -9,6 +9,18 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user = User.new
   end
 
+  test "blank password" do
+    user = User.new
+    user.password = ''
+    assert !user.valid?, 'user should be invalid'
+  end
+
+  test "nil password" do
+    user = User.new
+    user.password = nil
+    assert !user.valid?, 'user should be invalid'
+  end
+
   test "password must be present" do
     assert !@user.valid?
     assert_equal 1, @user.errors.size

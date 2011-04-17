@@ -67,13 +67,6 @@ module Rails
         super || @@options.key?(name.to_sym)
       end
 
-      # static_asset_paths is a Hash containing asset_paths
-      # with associated public folders, like:
-      # { "/" => "/app/public", "/my_engine" => "app/engines/my_engine/public" }
-      def static_asset_paths
-        @@static_asset_paths ||= ActiveSupport::OrderedHash.new
-      end
-
     private
 
       def method_missing(name, *args, &blk)

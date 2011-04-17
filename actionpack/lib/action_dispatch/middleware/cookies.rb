@@ -83,7 +83,7 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     class CookieOverflow < StandardError; end
 
-    class CookieJar < Hash #:nodoc:
+    class CookieJar #:nodoc:
 
       # This regular expression is used to split the levels of a domain.
       # The top level domain can be any string without a period or
@@ -115,13 +115,22 @@ module ActionDispatch
         @delete_cookies = {}
         @host = host
         @secure = secure
-
-        super()
+        @closed = false
+        @cookies = {}
       end
+
+      attr_reader :closed
+      alias :closed? :closed
+      def close!; @closed = true end
 
       # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
       def [](name)
-        super(name.to_s)
+        @cookies[name.to_s]
+      end
+
+      def update(other_hash)
+        @cookies.update other_hash
+        self
       end
 
       def handle_options(options) #:nodoc:
@@ -145,6 +154,7 @@ module ActionDispatch
       # Sets the cookie named +name+. The second argument may be the very cookie
       # value, or a hash of options as documented above.
       def []=(key, options)
+        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
           value = options[:value]
@@ -153,7 +163,7 @@ module ActionDispatch
           options = { :value => value }
         end
 
-        value = super(key.to_s, value)
+        value = @cookies[key.to_s] = value
 
         handle_options(options)
 
@@ -170,7 +180,7 @@ module ActionDispatch
 
         handle_options(options)
 
-        value = super(key.to_s)
+        value = @cookies.delete(key.to_s)
         @delete_cookies[key] = options
         value
       end
@@ -225,6 +235,7 @@ module ActionDispatch
       end
 
       def []=(key, options)
+        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
@@ -263,6 +274,7 @@ module ActionDispatch
       end
 
       def []=(key, options)
+        raise ClosedError, :cookies if closed?
         if options.is_a?(Hash)
           options.symbolize_keys!
           options[:value] = @verifier.generate(options[:value])
@@ -305,6 +317,7 @@ module ActionDispatch
     end
 
     def call(env)
+      cookie_jar = nil
       status, headers, body = @app.call(env)
 
       if cookie_jar = env['action_dispatch.cookies']
@@ -315,6 +328,9 @@ module ActionDispatch
       end
 
       [status, headers, body]
+    ensure
+      cookie_jar = ActionDispatch::Request.new(env).cookie_jar unless cookie_jar
+      cookie_jar.close!
     end
   end
 end

@@ -10,7 +10,7 @@ module Rails
   module Generators
     class AppBase < Base
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-      JAVASCRIPTS = %w( prototype jquery )
+      JAVASCRIPTS = %w( jquery prototype )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -36,11 +36,11 @@ module Rails
         class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :javascript,         :type => :string, :aliases => "-j", :default => "prototype",
-                                          :desc => "Preconfigure for selected javascript library (options: #{JAVASCRIPTS.join('/')})"
+        class_option :javascript,         :type => :string, :aliases => "-j", :default => "jquery",
+                                          :desc => "Preconfigure for selected JavaScript library (options: #{JAVASCRIPTS.join('/')})"
 
         class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
-                                          :desc => "Skip javascript files"
+                                          :desc => "Skip JavaScript files"
 
         class_option :dev,                :type => :boolean, :default => false,
                                           :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
@@ -53,6 +53,9 @@ module Rails
 
         class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
                                           :desc => "Show this help message and quit"
+
+        class_option :old_style_hash,     :type => :boolean, :default => false,
+                                          :desc => "Force using old style hash (:foo => 'bar') on Ruby >= 1.9"
       end
 
       def initialize(*args)
@@ -121,30 +124,33 @@ module Rails
             entry += "\n# gem 'mysql2', :git => 'git://github.com/brianmario/mysql2.git'"
           end
         end
-        entry
+        entry + "\n"
       end
 
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE.strip_heredoc
-            gem 'rails', :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'arel',  :git => 'git://github.com/rails/arel.git'
-            gem 'rack',  :git => 'git://github.com/rack/rack.git'
+            gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'rack',      :git => 'git://github.com/rack/rack.git'
+            gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails', :git => 'git://github.com/rails/rails.git'
-            gem 'arel',  :git => 'git://github.com/rails/arel.git'
-            gem 'rack',  :git => 'git://github.com/rack/rack.git'
+            gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            gem 'rack',      :git => 'git://github.com/rack/rack.git'
+            gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails',  :git => 'git://github.com/rails/rails.git'
-            # gem 'arel',   :git => 'git://github.com/rails/arel.git'
-            # gem 'rack',   :git => 'git://github.com/rack/rack.git'
+            # gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            # gem 'arel',      :git => 'git://github.com/rails/arel.git'
+            # gem 'rack',      :git => 'git://github.com/rack/rack.git'
+            # gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
           GEMFILE
         end
       end
@@ -159,6 +165,25 @@ module Rails
         else options[:database]
         end
       end
+      
+      def gem_for_ruby_debugger
+        if RUBY_VERSION < "1.9.2"
+          "gem 'ruby-debug'"
+        else
+          "gem 'ruby-debug19', :require => 'ruby-debug'"
+        end
+      end
+      
+      def gem_for_turn
+        unless RUBY_VERSION < "1.9.2"
+          <<-GEMFILE.strip_heredoc
+            group :test do
+              # Pretty printed test output
+              gem 'turn', :require => false
+            end
+          GEMFILE
+        end
+      end
 
       def bundle_if_dev_or_edge
         bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
@@ -171,9 +196,22 @@ module Rails
 
       def empty_directory_with_gitkeep(destination, config = {})
         empty_directory(destination, config)
+        git_keep(destination)
+      end
+      
+      def git_keep(destination)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
 
+      # Returns Ruby 1.9 style key-value pair if current code is running on
+      # Ruby 1.9.x. Returns the old-style (with hash rocket) otherwise.
+      def key_value(key, value)
+        if options[:old_style_hash] || RUBY_VERSION < '1.9'
+          ":#{key} => #{value}"
+        else
+          "#{key}: #{value}"
+        end
+      end
     end
   end
 end

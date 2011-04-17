@@ -19,13 +19,17 @@ module ActionMailer
       options.stylesheets_dir ||= paths["public/stylesheets"].first
 
       # make sure readers methods get compiled
-      options.asset_path           ||= app.config.asset_path
-      options.asset_host           ||= app.config.asset_host
+      options.asset_path      ||= app.config.asset_path
+      options.asset_host      ||= app.config.asset_host
 
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         include app.routes.mounted_helpers
+
+        register_interceptors(options.delete(:interceptors))
+        register_observers(options.delete(:observers))
+
         options.each { |k,v| send("#{k}=", v) }
       end
     end

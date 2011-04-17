@@ -15,6 +15,7 @@ module ActionView #:nodoc:
     end
 
     def find_all(path, prefixes = [], *args)
+      prefixes = [prefixes] if String === prefixes
       prefixes.each do |prefix|
         each do |resolver|
           templates = resolver.find_all(path, prefix, *args)

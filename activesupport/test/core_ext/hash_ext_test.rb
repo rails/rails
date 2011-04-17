@@ -889,6 +889,15 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal 'application/octet-stream', file.content_type
   end
 
+  def test_tag_with_attrs_and_whitespace
+    xml = <<-XML
+      <blog name="bacon is the best">
+      </blog>
+    XML
+    hash = Hash.from_xml(xml)
+    assert_equal "bacon is the best", hash['blog']['name']
+  end
+
   def test_xsd_like_types_from_xml
     bacon_xml = <<-EOT
     <bacon>

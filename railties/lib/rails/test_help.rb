@@ -14,10 +14,14 @@ if defined?(Test::Unit::Util::BacktraceFilter) && ENV['BACKTRACE'].nil?
 end
 
 if defined?(MiniTest)
-  require 'turn'
+  # Enable turn if it is available
+  begin
+    require 'turn'
 
-  if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
-    MiniTest::Unit.use_natural_language_case_names = true 
+    if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
+      MiniTest::Unit.use_natural_language_case_names = true
+    end
+  rescue LoadError
   end
 end
 
