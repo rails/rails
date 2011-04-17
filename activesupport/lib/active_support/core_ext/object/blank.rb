@@ -39,7 +39,8 @@ end
 
 class NilClass
   # Instances of NilClass are always blank
-  # Example:
+  #
+  # === Example
   #
   # nil.blank? => true
   def blank?
@@ -49,7 +50,8 @@ end
 
 class FalseClass
   # Instances of FalseClass are always blank
-  # Example:
+  #
+  # === Example
   #
   # false.blank? => true
   def blank?
@@ -59,7 +61,8 @@ end
 
 class TrueClass
   # Instances of TrueClass are never blank
-  # Example:
+  #
+  # === Example
   #
   # true.blank? => false
   def blank?
@@ -69,7 +72,8 @@ end
 
 class Array
   # An array is blank if it's empty
-  # For example:
+  #
+  # === Examples
   #
   # [].blank?      => true
   # [1,2,3].blank? => false
@@ -78,7 +82,8 @@ end
 
 class Hash
   # A hash is blank if it's empty
-  # For example:
+  #
+  # === Examples
   #
   # {}.blank?                => true
   # {:key => 'value'}.blank? => false
@@ -87,7 +92,8 @@ end
 
 class String
   # A string is blank if it's empty or contains whitespaces only
-  # For example:
+  #
+  # === Examples
   #
   # "".blank?                 => true
   # "   ".blank?              => true
