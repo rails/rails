@@ -33,22 +33,6 @@ module Rails
         end
       end
 
-      initializer :add_sprockets_route do |app|
-        assets = config.assets
-        if assets.enabled
-          build_asset_environment
-          app.routes.append do
-            mount app.assets => assets.prefix
-          end
-        end
-      end
-
-      initializer :index_sprockets_environment do |app|
-        if config.assets.enabled && config.action_controller.perform_caching
-          app.assets = app.assets.index
-        end
-      end
-
       initializer :build_middleware_stack do
         build_middleware_stack
       end
@@ -69,6 +53,8 @@ module Rails
       end
 
       # Force routes to be loaded just at the end and add it to to_prepare callbacks
+      # This needs to be after the finisher hook to ensure routes added in the hook
+      # are still loaded.
       initializer :set_routes_reloader do |app|
         reloader = lambda { app.routes_reloader.execute_if_updated }
         reloader.call

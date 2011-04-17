@@ -139,15 +139,6 @@ module Rails
 
     alias :build_middleware_stack :app
 
-    def build_asset_environment
-      require 'sprockets'
-      env = Sprockets::Environment.new(root.to_s)
-      env.static_root = File.join(root.join("public"), config.assets.prefix)
-      env.paths.concat config.assets.paths
-      env.logger = Rails.logger
-      @assets = env
-    end
-
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
