@@ -40,7 +40,7 @@ class NilClass
   #
   # === Examples
   #
-  # nil.try(:name) => nil
+  # nil.try(:name) # => nil
   #
   # Without try
   #   @person && @person.children.first && @person.children.first.name
