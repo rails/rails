@@ -520,7 +520,7 @@ I18n.t 'activerecord.errors.messages'
 
 h5. "Lazy" Lookup
 
-Rails 2.3 implements a convenient way to look up the locale inside _views_. When you have the following dictionary:
+Rails implements a convenient way to look up the locale inside _views_. When you have the following dictionary:
 
 <yaml>
 es:
