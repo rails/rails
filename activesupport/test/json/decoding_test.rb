@@ -82,7 +82,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
   end
 
   def test_failed_json_decoding
-    assert_raise(MultiJson::DecodeError) { ActiveSupport::JSON.decode(%({: 1})) }
+    assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%({: 1})) }
   end
 end
 

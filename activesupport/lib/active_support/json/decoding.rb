@@ -34,6 +34,10 @@ module ActiveSupport
         self.backend = old_backend
       end
 
+      def parse_error
+        MultiJson::DecodeError
+      end
+
       private
 
       def convert_dates_from(data)
