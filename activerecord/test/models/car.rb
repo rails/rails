@@ -15,13 +15,9 @@ class Car < ActiveRecord::Base
 end
 
 class CoolCar < Car
-  def self.default_scope
-    order 'name desc'
-  end
+  default_scope :order => 'name desc'
 end
 
 class FastCar < Car
-  def self.default_scope
-    order 'name desc'
-  end
+  default_scope :order => 'name desc'
 end

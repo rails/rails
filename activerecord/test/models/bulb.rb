@@ -1,8 +1,5 @@
 class Bulb < ActiveRecord::Base
-  def self.default_scope
-    where :name => 'defaulty'
-  end
-
+  default_scope where(:name => 'defaulty')
   belongs_to :car
 
   attr_reader :scope_after_initialize

@@ -86,10 +86,7 @@ end
 
 class DeveloperOrderedBySalary < ActiveRecord::Base
   self.table_name = 'developers'
-
-  def self.default_scope
-    order('salary DESC')
-  end
+  default_scope :order => 'salary DESC'
 
   scope :by_name, order('name DESC')
 
@@ -102,74 +99,41 @@ end
 
 class DeveloperCalledDavid < ActiveRecord::Base
   self.table_name = 'developers'
+  default_scope where("name = 'David'")
+end
+
+class ClassMethodDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
 
   def self.default_scope
-    where "name = 'David'"
+    where(:name => 'David')
   end
 end
 
 class DeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
-
-  def self.default_scope
-    where :name => 'Jamis'
-  end
-
+  default_scope where(:name => 'Jamis')
   scope :poor, where('salary < 150000')
-end
-
-class AbstractDeveloperCalledJamis < ActiveRecord::Base
-  self.abstract_class = true
-
-  def self.default_scope
-    where :name => 'Jamis'
-  end
 end
 
 class PoorDeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
-
-  def self.default_scope
-    where :name => 'Jamis', :salary => 50000
-  end
+  default_scope where(:name => 'Jamis', :salary => 50000)
 end
 
 class InheritedPoorDeveloperCalledJamis < DeveloperCalledJamis
   self.table_name = 'developers'
 
-  def self.default_scope
-    super.where :salary => 50000
+  ActiveSupport::Deprecation.silence do
+    default_scope where(:salary => 50000)
   end
 end
 
-ActiveSupport::Deprecation.silence do
-  class DeprecatedDeveloperOrderedBySalary < ActiveRecord::Base
-    self.table_name = 'developers'
-    default_scope :order => 'salary DESC'
+class MultiplePoorDeveloperCalledJamis < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope where(:name => 'Jamis')
 
-    def self.by_name
-      order('name DESC')
-    end
-
-    def self.all_ordered_by_name
-      with_scope(:find => { :order => 'name DESC' }) do
-        find(:all)
-      end
-    end
-  end
-
-  class DeprecatedDeveloperCalledDavid < ActiveRecord::Base
-    self.table_name = 'developers'
-    default_scope :conditions => "name = 'David'"
-  end
-
-  class DeprecatedDeveloperCalledJamis < ActiveRecord::Base
-    self.table_name = 'developers'
-    default_scope :conditions => { :name => 'Jamis' }
-  end
-
-  class DeprecatedPoorDeveloperCalledJamis < ActiveRecord::Base
-    self.table_name = 'developers'
-    default_scope :conditions => { :name => 'Jamis', :salary => 50000 }
+  ActiveSupport::Deprecation.silence do
+    default_scope where(:salary => 50000)
   end
 end

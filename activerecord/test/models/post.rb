@@ -157,10 +157,7 @@ end
 
 class FirstPost < ActiveRecord::Base
   self.table_name = 'posts'
-
-  def self.default_scope
-    where(:id => 1)
-  end
+  default_scope where(:id => 1)
 
   has_many :comments, :foreign_key => :post_id
   has_one  :comment,  :foreign_key => :post_id

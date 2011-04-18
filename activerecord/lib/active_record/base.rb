@@ -1177,13 +1177,11 @@ MSG
           Thread.current[:"#{self}_current_scope"] = scope
         end
 
-        # Implement this method in your model to set a default scope for all operations on
+        # Use this macro in your model to set a default scope for all operations on
         # the model.
         #
         #   class Person < ActiveRecord::Base
-        #     def self.default_scope
-        #       order('last_name, first_name')
-        #     end
+        #     default_scope order('last_name, first_name')
         #   end
         #
         #   Person.all # => SELECT * FROM people ORDER BY last_name, first_name
@@ -1192,39 +1190,48 @@ MSG
         # applied while updating a record.
         #
         #   class Article < ActiveRecord::Base
-        #     def self.default_scope
-        #       where(:published => true)
-        #     end
+        #     default_scope where(:published => true)
         #   end
         #
         #   Article.new.published    # => true
         #   Article.create.published # => true
         #
-        # === Deprecation warning
+        # If you need to do more complex things with a default scope, you can alternatively
+        # define it as a class method:
         #
-        # There is an alternative syntax as follows:
-        #
-        #   class Person < ActiveRecord::Base
-        #     default_scope order('last_name, first_name')
+        #   class Article < ActiveRecord::Base
+        #     def self.default_scope
+        #       # Should return a scope, you can call 'super' here etc.
+        #     end
         #   end
-        #
-        # This is now deprecated and will be removed in Rails 3.2.
         def default_scope(scope = {})
-          ActiveSupport::Deprecation.warn <<-WARN
-Passing a hash or scope to default_scope is deprecated and will be removed in Rails 3.2. You should create a class method for your scope instead. For example, change this:
+          if default_scopes.length != 0
+            ActiveSupport::Deprecation.warn <<-WARN
+Calling 'default_scope' multiple times in a class (including when a superclass calls 'default_scope') is deprecated. The current behavior is that this will merge the default scopes together:
 
-class Post < ActiveRecord::Base
+class Post < ActiveRecord::Base # Rails 3.1
   default_scope where(:published => true)
+  default_scope where(:hidden => false)
+  # The default scope is now: where(:published => true, :hidden => false)
 end
 
-To this:
+In Rails 3.2, the behavior will be changed to overwrite previous scopes:
+
+class Post < ActiveRecord::Base # Rails 3.2
+  default_scope where(:published => true)
+  default_scope where(:hidden => false)
+  # The default scope is now: where(:hidden => false)
+end
+
+If you wish to merge default scopes in special ways, it is recommended to define your default scope as a class method and use the standard techniques for sharing code (inheritance, mixins, etc.):
 
 class Post < ActiveRecord::Base
   def self.default_scope
-    where(:published => true)
+    where(:published => true).where(:hidden => false)
   end
 end
-WARN
+            WARN
+          end
 
           self.default_scopes = default_scopes.dup << scope
         end
