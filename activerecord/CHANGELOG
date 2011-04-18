@@ -1,5 +1,16 @@
 *Rails 3.1.0 (unreleased)*
 
+* default_scope can take a block, lambda, or any other object which responds to `call` for lazy
+  evaluation:
+
+    default_scope { ... }
+    default_scope lambda { ... }
+    default_scope method(:foo)
+
+  This feature was originally implemented by Tim Morgan, but was then removed in favour of
+  defining a 'default_scope' class method, but has now been added back in by Jon Leighton.
+  The relevant lighthouse ticket is #1812.
+
 * Default scopes are now evaluated at the latest possible moment, to avoid problems where
   scopes would be created which would implicitly contain the default scope, which would then
   be impossible to get rid of via Model.unscoped.

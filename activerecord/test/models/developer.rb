@@ -1,3 +1,5 @@
+require 'ostruct'
+
 module DeveloperProjectsAssociationExtension
   def find_most_recent
     find(:first, :order => "id DESC")
@@ -100,6 +102,21 @@ end
 class DeveloperCalledDavid < ActiveRecord::Base
   self.table_name = 'developers'
   default_scope where("name = 'David'")
+end
+
+class LazyLambdaDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope lambda { where(:name => 'David') }
+end
+
+class LazyBlockDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope { where(:name => 'David') }
+end
+
+class CallableDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope OpenStruct.new(:call => where(:name => 'David'))
 end
 
 class ClassMethodDeveloperCalledDavid < ActiveRecord::Base

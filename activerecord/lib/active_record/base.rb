@@ -1196,6 +1196,15 @@ MSG
         #   Article.new.published    # => true
         #   Article.create.published # => true
         #
+        # You can also use <tt>default_scope</tt> with a block, in order to have it lazily evaluated:
+        #
+        #   class Article < ActiveRecord::Base
+        #     default_scope { where(:published_at => Time.now - 1.week) }
+        #   end
+        #
+        # (You can also pass any object which responds to <tt>call</tt> to the <tt>default_scope</tt>
+        # macro, and it will be called when building the default scope.)
+        #
         # If you need to do more complex things with a default scope, you can alternatively
         # define it as a class method:
         #
@@ -1233,6 +1242,7 @@ end
             WARN
           end
 
+          scope = Proc.new if block_given?
           self.default_scopes = default_scopes.dup << scope
         end
 
@@ -1245,6 +1255,8 @@ end
             default_scopes.inject(relation) do |default_scope, scope|
               if scope.is_a?(Hash)
                 default_scope.apply_finder_options(scope)
+              elsif !scope.is_a?(Relation) && scope.respond_to?(:call)
+                default_scope.merge(scope.call)
               else
                 default_scope.merge(scope)
               end
