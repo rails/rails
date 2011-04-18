@@ -6,6 +6,8 @@ module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
+    include ActionController::ImplicitRender
+
     included do
       class_attribute :responder, :mimes_for_respond_to
       self.responder = ActionController::Responder
