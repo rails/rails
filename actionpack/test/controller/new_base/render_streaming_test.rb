@@ -8,9 +8,13 @@ module RenderStreaming
     )]
 
     layout "application"
-    stream :only => :hello_world
+    stream :only => [:hello_world, :skip]
 
     def hello_world
+    end
+
+    def skip
+      render :action => "hello_world", :stream => false
     end
 
     def explicit
@@ -52,11 +56,16 @@ module RenderStreaming
       assert_streaming!
     end
 
+    test "skip rendering with streaming at render level" do
+      get "/render_streaming/basic/skip"
+      assert_body "Hello world, I'm here!"
+    end
+
     def assert_streaming!(cache="no-cache")
       assert_status 200
       assert_equal nil, headers["Content-Length"]
       assert_equal "chunked", headers["Transfer-Encoding"]
       assert_equal cache, headers["Cache-Control"]
     end
-  end if defined?(Fiber)
-end
+  end
+end if defined?(Fiber)
