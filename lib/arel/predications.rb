@@ -163,21 +163,14 @@ module Arel
     private
 
     def grouping_any method_id, others
-      others = others.dup
-      first = send method_id, others.shift
-
-      Nodes::Grouping.new others.inject(first) { |memo,expr|
-        Nodes::Or.new(memo, send(method_id, expr))
+      nodes = others.map {|expr| send(method_id, expr)}
+      Nodes::Grouping.new nodes.inject { |memo,node|
+        Nodes::Or.new(memo, node)
       }
     end
 
     def grouping_all method_id, others
-      others = others.dup
-      first = send method_id, others.shift
-
-      Nodes::Grouping.new others.inject(first) { |memo,expr|
-        Nodes::And.new([memo, send(method_id, expr)])
-      }
+      Nodes::Grouping.new Nodes::And.new(others.map {|expr| send(method_id, expr)})
     end
   end
 end
