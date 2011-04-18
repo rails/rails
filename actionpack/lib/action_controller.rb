@@ -31,6 +31,7 @@ module ActionController
     autoload :Rescue
     autoload :Responder
     autoload :SessionManagement
+    autoload :Streaming
     autoload :Testing
     autoload :UrlFor
   end
