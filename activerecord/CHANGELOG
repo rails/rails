@@ -1,4 +1,4 @@
-*Rails 3.0.7 (unreleased)*
+*Rails 3.0.7 (April 18, 2011)*
 
 * Destroying records via nested attributes works independent of reject_if LH #6006 [Durran Jordan]
 

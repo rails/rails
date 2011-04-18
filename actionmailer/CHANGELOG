@@ -1,4 +1,4 @@
-*Rails 3.0.7 (unreleased)*
+*Rails 3.0.7 (April 18, 2011)*
 
 * remove AM delegating register_observer and register_interceptor to Mail [Josh Kalderimis]
 

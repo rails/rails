@@ -1,4 +1,4 @@
-*Rails 3.0.7 (unreleased)*
+*Rails 3.0.7 (April 18, 2011)*
 
 * Hash.from_xml no longer loses attributes on tags containing only whitespace [André Arko]
 
