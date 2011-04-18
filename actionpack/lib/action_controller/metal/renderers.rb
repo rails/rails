@@ -95,17 +95,17 @@ module ActionController
       json = json.to_json(options) unless json.kind_of?(String)
       json = "#{options[:callback]}(#{json})" unless options[:callback].blank?
       self.content_type ||= Mime::JSON
-      self.response_body  = json
+      json
     end
 
     add :js do |js, options|
       self.content_type ||= Mime::JS
-      self.response_body  = js.respond_to?(:to_js) ? js.to_js(options) : js
+      js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
       self.content_type ||= Mime::XML
-      self.response_body  = xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
+      xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
   end
 end

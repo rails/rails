@@ -105,16 +105,22 @@ module AbstractController
     # Normalize arguments, options and then delegates render_to_body and
     # sticks the result in self.response_body.
     def render(*args, &block)
-      self.response_body = render_to_string(*args, &block)
+      options = _normalize_render(*args, &block)
+      self.response_body = render_to_body(options)
     end
 
     # Raw rendering of a template to a string. Just convert the results of
-    # render_to_body into a String.
+    # render_response into a String.
     # :api: plugin
     def render_to_string(*args, &block)
-      options = _normalize_args(*args, &block)
-      _normalize_options(options)
-      render_to_body(options).tap { self.response_body = nil }
+      options = _normalize_render(*args, &block)
+      if self.response_body = render_to_body(options)
+        string = ""
+        response_body.each { |r| string << r }
+        string
+      end
+    ensure
+      self.response_body = nil
     end
 
     # Raw rendering of a template to a Rack-compatible body.
@@ -151,8 +157,17 @@ module AbstractController
       hash
     end
 
-    # Normalize options by converting render "foo" to render :action => "foo" and
+    # Normalize args and options.
+    # :api: private
+    def _normalize_render(*args, &block)
+      options = _normalize_args(*args, &block)
+      _normalize_options(options)
+      options
+    end
+
+    # Normalize args by converting render "foo" to render :action => "foo" and
     # render "foo/bar" to render :file => "foo/bar".
+    # :api: plugin
     def _normalize_args(action=nil, options={})
       case action
       when NilClass
@@ -169,6 +184,8 @@ module AbstractController
       options
     end
 
+    # Normalize options.
+    # :api: plugin
     def _normalize_options(options)
       if options[:partial] == true
         options[:partial] = action_name
@@ -182,6 +199,8 @@ module AbstractController
       options
     end
 
+    # Process extra options.
+    # :api: plugin
     def _process_options(options)
     end
   end
