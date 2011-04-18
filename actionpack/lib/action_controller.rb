@@ -13,6 +13,7 @@ module ActionController
     autoload :Compatibility
     autoload :ConditionalGet
     autoload :Cookies
+    autoload :DataStreaming
     autoload :Flash
     autoload :ForceSSL
     autoload :Head
@@ -30,7 +31,6 @@ module ActionController
     autoload :Rescue
     autoload :Responder
     autoload :SessionManagement
-    autoload :Streaming
     autoload :Testing
     autoload :UrlFor
   end

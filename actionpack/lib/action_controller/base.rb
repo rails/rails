@@ -199,7 +199,7 @@ module ActionController
       Flash,
       RequestForgeryProtection,
       ForceSSL,
-      Streaming,
+      DataStreaming,
       RecordIdentifier,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
