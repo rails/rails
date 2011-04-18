@@ -105,6 +105,18 @@ module Arel
           as = manager.as('foo')
           assert_kind_of Arel::Nodes::SqlLiteral, as.right
         end
+
+        it 'can make a subselect' do
+          manager = Arel::SelectManager.new Table.engine
+          manager.project Arel.star
+          manager.from Arel.sql('zomg')
+          as = manager.as(Arel.sql('foo'))
+
+          manager = Arel::SelectManager.new Table.engine
+          manager.project Arel.sql('name')
+          manager.from as
+          manager.to_sql.must_be_like "SELECT name FROM (SELECT * FROM zomg ) foo"
+        end
       end
 
       describe 'from' do
