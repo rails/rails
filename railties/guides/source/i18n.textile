@@ -863,7 +863,7 @@ If you find anything missing or wrong in this guide, please file a ticket on our
 
 h3. Contributing to Rails I18n
 
-I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first, and only then cherry-picking the best-of-bread of most widely useful features for inclusion in the core.
+I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first, and only then cherry-picking the best-of-breed of most widely useful features for inclusion in the core.
 
 Thus we encourage everybody to experiment with new ideas and features in plugins or other libraries and make them available to the community. (Don't forget to announce your work on our "mailing list":http://groups.google.com/group/rails-i18n!)
 
