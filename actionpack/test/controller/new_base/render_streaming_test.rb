@@ -8,9 +8,13 @@ module RenderStreaming
     )]
 
     layout "application"
-    stream :only => :hello_world
+    stream :only => [:hello_world, :skip]
 
     def hello_world
+    end
+
+    def skip
+      render :action => "hello_world", :stream => false
     end
 
     def explicit
@@ -50,6 +54,11 @@ module RenderStreaming
       get "/render_streaming/basic/no_layout"
       assert_body "b\r\nHello world\r\n0\r\n\r\n"
       assert_streaming!
+    end
+
+    test "skip rendering with streaming at render level" do
+      get "/render_streaming/basic/skip"
+      assert_body "Hello world, I'm here!"
     end
 
     def assert_streaming!(cache="no-cache")
