@@ -72,6 +72,19 @@ namespace :changelog do
       File.open(fname, 'wb') { |f| f.write contents }
     end
   end
+
+  task :release_summary do
+    FRAMEWORKS.each do |fw|
+      puts "## #{fw}"
+      fname    = File.join fw, 'CHANGELOG'
+      contents = File.readlines fname
+      contents.shift
+      changes = []
+      changes << contents.shift until contents.first =~ /^\*Rails \d+\.\d+\.\d+/
+      puts changes.reject { |change| change.strip.empty? }.join
+      puts
+    end
+  end
 end
 
 namespace :all do
