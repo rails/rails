@@ -58,5 +58,5 @@ module RenderStreaming
       assert_equal "chunked", headers["Transfer-Encoding"]
       assert_equal cache, headers["Cache-Control"]
     end
-  end if defined?(Fiber)
-end
+  end
+end if defined?(Fiber)
