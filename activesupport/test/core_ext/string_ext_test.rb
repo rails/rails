@@ -250,6 +250,11 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
+  
+  def test_string_inquiry
+    assert "production".inquiry.production?
+    assert !"production".inquiry.development?
+  end
 
   def test_truncate
     assert_equal "Hello World!", "Hello World!".truncate(12)
