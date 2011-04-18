@@ -3,7 +3,21 @@
 * Fix various problems with using :primary_key and :foreign_key options in conjunction with
   :through associations. [Jon Leighton]
 
-*Rails 3.0.7 (unreleased)*
+*Rails 3.0.7 (April 18, 2011)*
+
+* Destroying records via nested attributes works independent of reject_if LH #6006 [Durran Jordan]
+
+* Delegate any? and many? to Model.scoped for consistency [Andrew White]
+
+* Quote the ORDER BY clause in batched finds - fixes #6620 [Andrew White]
+
+* Change exists? so records are not instantiated - fixes #6127. This prevents after_find
+  and after_initialize callbacks being triggered when checking for record existence.
+  [Andrew White]
+
+* Fix performance bug with attribute accessors which only occurred on Ruby 1.8.7, and ensure we
+  cache type-casted values when the column returned from the db contains non-standard chars.
+  [Jon Leighton]
 
 * Fix performance bug with attribute accessors which only occurred on Ruby 1.8.7, and ensure we
   cache type-casted values when the column returned from the db contains non-standard chars.
