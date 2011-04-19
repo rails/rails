@@ -117,7 +117,7 @@ module ActiveModel
             RUBY
           else
             value = value.to_s if value
-            sing.send(:define_method, name) { value && value.dup }
+            sing.send(:define_method, name) { value }
           end
         end
       end
