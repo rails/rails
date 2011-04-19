@@ -15,8 +15,6 @@ gem "sprockets", :git => "git://github.com/sstephenson/sprockets.git"
 gem "coffee-script"
 gem "sass", ">= 3.0"
 
-gem "multi_json", :git => 'git://github.com/intridea/multi_json.git'
-
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
 
