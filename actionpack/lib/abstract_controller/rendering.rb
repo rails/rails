@@ -114,13 +114,7 @@ module AbstractController
     # :api: plugin
     def render_to_string(*args, &block)
       options = _normalize_render(*args, &block)
-      if self.response_body = render_to_body(options)
-        string = ""
-        response_body.each { |r| string << r }
-        string
-      end
-    ensure
-      self.response_body = nil
+      render_to_body(options)
     end
 
     # Raw rendering of a template to a Rack-compatible body.

@@ -79,6 +79,7 @@ module ActionDispatch
         @used    = Set.new
         @closed  = false
         @flashes = {}
+        @now     = nil
       end
 
       def []=(k, v) #:nodoc:

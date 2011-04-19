@@ -32,24 +32,35 @@ module ActionDispatch # :nodoc:
   #      puts @response.body
   #    end
   #  end
-  class Response < Rack::Response
-    attr_accessor :request, :blank
+  class Response
+    attr_accessor :request, :header, :status
+    attr_writer :sending_file
 
-    attr_writer :header, :sending_file
     alias_method :headers=, :header=
+    alias_method :headers,  :header
+
+    delegate :[], :[]=, :to => :@header
+    delegate :each, :to => :@body
+
+    # Sets the HTTP response's content MIME type. For example, in the controller
+    # you could write this:
+    #
+    #  response.content_type = "text/plain"
+    #
+    # If a character set has been defined for this response (see charset=) then
+    # the character set information will also be included in the content type
+    # information.
+    attr_accessor :charset, :content_type
+
+    CONTENT_TYPE = "Content-Type"
+
+    cattr_accessor(:default_charset) { "utf-8" }
 
     module Setup
       def initialize(status = 200, header = {}, body = [])
-        @writer = lambda { |x| @body << x }
-        @block = nil
-        @length = 0
+        self.body, self.header, self.status = body, header, status
 
-        @header = header
-        self.body, self.status = body, status
-
-        @cookie = []
         @sending_file = false
-
         @blank = false
 
         if content_type = self["Content-Type"]
@@ -62,6 +73,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    include Rack::Response::Helpers
     include Setup
     include ActionDispatch::Http::Cache::Response
 
@@ -106,11 +118,19 @@ module ActionDispatch # :nodoc:
 
     def body=(body)
       @blank = true if body == EMPTY
-      @body = body.respond_to?(:to_str) ? [body] : body
+      @body = body.respond_to?(:each) ? body : [body]
     end
 
     def body_parts
       @body
+    end
+
+    def set_cookie(key, value)
+      ::Rack::Utils.set_cookie_header!(header, key, value)
+    end
+
+    def delete_cookie(key, value={})
+      ::Rack::Utils.delete_cookie_header!(header, key, value)
     end
 
     def location
@@ -122,46 +142,21 @@ module ActionDispatch # :nodoc:
       headers['Location'] = url
     end
 
-    # Sets the HTTP response's content MIME type. For example, in the controller
-    # you could write this:
-    #
-    #  response.content_type = "text/plain"
-    #
-    # If a character set has been defined for this response (see charset=) then
-    # the character set information will also be included in the content type
-    # information.
-    attr_accessor :charset, :content_type
-
-    CONTENT_TYPE = "Content-Type"
-
-    cattr_accessor(:default_charset) { "utf-8" }
-
     def to_a
       assign_default_content_type_and_charset!
       handle_conditional_get!
-      self["Set-Cookie"] = self["Set-Cookie"].join("\n") if self["Set-Cookie"].respond_to?(:join)
-      super
-    end
 
-    alias prepare! to_a
+      @header["Set-Cookie"] = @header["Set-Cookie"].join("\n") if @header["Set-Cookie"].respond_to?(:join)
 
-    def each(&callback)
-      if @body.respond_to?(:call)
-        @writer = lambda { |x| callback.call(x) }
-        @body.call(self, self)
+      if [204, 304].include?(@status)
+        @header.delete "Content-Type"
+        [@status, @header, []]
       else
-        @body.each { |part| callback.call(part.to_s) }
+        [@status, @header, self]
       end
-
-      @writer = callback
-      @block.call(self) if @block
     end
-
-    def write(str)
-      str = str.to_s
-      @writer.call str
-      str
-    end
+    alias prepare! to_a
+    alias to_ary   to_a # For implicit splat on 1.9.2
 
     # Returns the response cookies, converted to a Hash of (name => value) pairs
     #
@@ -180,18 +175,18 @@ module ActionDispatch # :nodoc:
       cookies
     end
 
-    private
-      def assign_default_content_type_and_charset!
-        return if headers[CONTENT_TYPE].present?
+  private
 
-        @content_type ||= Mime::HTML
-        @charset      ||= self.class.default_charset
+    def assign_default_content_type_and_charset!
+      return if headers[CONTENT_TYPE].present?
 
-        type = @content_type.to_s.dup
-        type << "; charset=#{@charset}" unless @sending_file
+      @content_type ||= Mime::HTML
+      @charset      ||= self.class.default_charset
 
-        headers[CONTENT_TYPE] = type
-      end
+      type = @content_type.to_s.dup
+      type << "; charset=#{@charset}" unless @sending_file
 
+      headers[CONTENT_TYPE] = type
+    end
   end
 end
