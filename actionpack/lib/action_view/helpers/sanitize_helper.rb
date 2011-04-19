@@ -94,7 +94,7 @@ module ActionView
       #   # => Please e-mail me at me@email.com.
       #
       #   strip_links('Blog: <a href="http://www.myblog.com/" class="nav" target=\"_blank\">Visit</a>.')
-      #   # => Blog: Visit
+      #   # => Blog: Visit.
       def strip_links(html)
         self.class.link_sanitizer.sanitize(html)
       end

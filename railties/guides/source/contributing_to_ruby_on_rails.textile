@@ -314,13 +314,19 @@ You should not be the only person who looks at the code before you submit it. Yo
 
 You might also want to check out the "RailsBridge BugMash":http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash as a way to get involved in a group effort to improve Rails. This can help you get started and help check your code when you're writing your first patches.
 
+h4. Create a Lighthouse Ticket
+
+Now create a ticket for your patch. Go to the "new ticket":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/new page at Lighthouse. Fill in a reasonable title and description, as well as tag the ticket with the ‘patch’ tag and whatever other subject area tags make sense. Write down your ticket number, for you will need it in the following step.
+
 h4. Commit Your Changes
 
 When you're happy with the code on your computer, you need to commit the changes to git:
 
 <shell>
-$ git commit -a -m "Here is a commit message"
+$ git commit -a -m "Here is a commit message [#ticket_number state:committed]"
 </shell>
+
+NOTE: By adding '[#ticket_number state:committed]' at the end of your commit message, the ticket will automatically change its status to commited once your patch is pushed to the repository.
 
 h4. Update master
 
@@ -361,13 +367,12 @@ $ git apply --check my_new_patch.diff
 Please make sure the patch does not introduce whitespace errors:
 
 <shell>
-$ git apply --whitespace=error-all mynew_patch.diff
+$ git apply --whitespace=error-all my_new_patch.diff
 </shell>
 
+h4. Attach your Patch to the Lighthouse Ticket
 
-h4. Create a Lighthouse Ticket
-
-Now create a ticket with your patch. Go to the "new ticket":http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/new page at Lighthouse. Fill in a reasonable title and description, remember to attach your patch file, and tag the ticket with the ‘patch’ tag and whatever other subject area tags make sense.
+Now you need to update the ticket by attaching the patch file you just created.
 
 h4. Get Some Feedback
 
@@ -385,6 +390,7 @@ All contributions, either via master or docrails, get credit in "Rails Contribut
 
 h3. Changelog
 
+* April 14, 2001: Modified Contributing to the Rails Code section to add '[#ticket_number state:commited]' on patches commit messages by "Sebastian Martinez":http://wyeworks.com
 * December 28, 2010: Complete revision by "Xavier Noria":credits.html#fxn
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy

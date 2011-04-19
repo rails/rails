@@ -18,8 +18,8 @@ class Object
     !blank?
   end
 
-  # Returns object if it's #present? otherwise returns nil.
-  # object.presence is equivalent to object.present? ? object : nil.
+  # Returns object if it's <tt>present?</tt> otherwise returns +nil+.
+  # <tt>object.presence</tt> is equivalent to <tt>object.present? ? object : nil</tt>.
   #
   # This is handy for any representation of objects where blank is the same
   # as not present at all.  For example, this simplifies a common check for
@@ -37,39 +37,72 @@ class Object
   end
 end
 
-class NilClass #:nodoc:
+class NilClass
+  # +nil+ is blank:
+  #
+  #   nil.blank? # => true
+  #
   def blank?
     true
   end
 end
 
-class FalseClass #:nodoc:
+class FalseClass
+  # +false+ is blank:
+  #
+  #   false.blank? # => true
+  #
   def blank?
     true
   end
 end
 
-class TrueClass #:nodoc:
+class TrueClass
+  # +true+ is not blank:
+  #
+  #   true.blank? # => false
+  #
   def blank?
     false
   end
 end
 
-class Array #:nodoc:
+class Array
+  # An array is blank if it's empty:
+  #
+  #   [].blank?      # => true
+  #   [1,2,3].blank? # => false
+  #
   alias_method :blank?, :empty?
 end
 
-class Hash #:nodoc:
+class Hash
+  # A hash is blank if it's empty:
+  #
+  #   {}.blank?                # => true
+  #   {:key => 'value'}.blank? # => false
+  #
   alias_method :blank?, :empty?
 end
 
-class String #:nodoc:
+class String
+  # A string is blank if it's empty or contains whitespaces only:
+  #
+  #   "".blank?                 # => true
+  #   "   ".blank?              # => true
+  #   " something here ".blank? # => false
+  #
   def blank?
     self !~ /\S/
   end
 end
 
 class Numeric #:nodoc:
+  # No number is blank:
+  #
+  #   1.blank? # => false
+  #   0.blank? # => false
+  #
   def blank?
     false
   end

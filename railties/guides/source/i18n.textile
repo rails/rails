@@ -91,7 +91,7 @@ This means, that in the +:en+ locale, the key _hello_ will map to the _Hello wor
 
 The I18n library will use *English* as a *default locale*, i.e. if you don't set a different locale, +:en+ will be used for looking up translations.
 
-NOTE: The i18n library takes a *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". Many international applications use only the "language" element of a locale such as +:cz+, +:th+ or +:es+ (for Czech, Thai and Spanish).  However, there are also regional differences within different language groups that may be important. For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Nothing stops you from separating regional and other settings in this way: you just have to provide full "English - United Kingdom" locale in a +:en-UK+ dictionary. Various "Rails I18n plugins":http://rails-i18n.org/wiki such as "Globalize2":https://github.com/joshmh/globalize2/tree/master may help you implement it.
+NOTE: The i18n library takes a *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". Many international applications use only the "language" element of a locale such as +:cz+, +:th+ or +:es+ (for Czech, Thai and Spanish). However, there are also regional differences within different language groups that may be important. For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Nothing stops you from separating regional and other settings in this way: you just have to provide full "English - United Kingdom" locale in a +:en-UK+ dictionary. Various "Rails I18n plugins":http://rails-i18n.org/wiki such as "Globalize2":https://github.com/joshmh/globalize2/tree/master may help you implement it.
 
 The *translations load path* (+I18n.load_path+) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.
 
@@ -441,7 +441,7 @@ Do check the "Rails i18n Wiki":http://rails-i18n.org/wiki for list of tools avai
 
 h3. Overview of the I18n API Features
 
-You should have good understanding of using the i18n library now, knowing all necessary aspects of internationalizing a basic Rails application.  In the following chapters, we'll cover it's features in more depth.
+You should have good understanding of using the i18n library now, knowing all necessary aspects of internationalizing a basic Rails application. In the following chapters, we'll cover it's features in more depth.
 
 Covered are features like these:
 
@@ -520,7 +520,7 @@ I18n.t 'activerecord.errors.messages'
 
 h5. "Lazy" Lookup
 
-Rails 2.3 implements a convenient way to look up the locale inside _views_. When you have the following dictionary:
+Rails implements a convenient way to look up the locale inside _views_. When you have the following dictionary:
 
 <yaml>
 es:
@@ -863,7 +863,7 @@ If you find anything missing or wrong in this guide, please file a ticket on our
 
 h3. Contributing to Rails I18n
 
-I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first, and only then cherry-picking the best-of-bread of most widely useful features for inclusion in the core.
+I18n support in Ruby on Rails was introduced in the release 2.2 and is still evolving. The project follows the good Ruby on Rails development tradition of evolving solutions in plugins and real applications first, and only then cherry-picking the best-of-breed of most widely useful features for inclusion in the core.
 
 Thus we encourage everybody to experiment with new ideas and features in plugins or other libraries and make them available to the community. (Don't forget to announce your work on our "mailing list":http://groups.google.com/group/rails-i18n!)
 

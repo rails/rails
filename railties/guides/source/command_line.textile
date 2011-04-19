@@ -8,9 +8,9 @@ Rails comes with every command line tool you'll need to
 * Mess with objects through an interactive shell
 * Profile and benchmark your new creation
 
-NOTE: This tutorial assumes you have basic Rails knowledge from reading the "Getting Started with Rails Guide":getting_started.html.
-
 endprologue.
+
+NOTE: This tutorial assumes you have basic Rails knowledge from reading the "Getting Started with Rails Guide":getting_started.html.
 
 WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
 
@@ -144,10 +144,13 @@ $ rails generate controller Greetings hello
      create    app/helpers/greetings_helper.rb
      invoke    test_unit
      create      test/unit/helpers/greetings_helper_test.rb
+     invoke  assets
+     create    app/assets/javascripts/greetings.js
+     create    app/assets/stylesheets/greetings.css
 
 </shell>
 
-What all did this generate?  It made sure a bunch of directories were in our application, and created a controller file, a functional test file, a helper for the view, and a view file.
+What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a javascript file and a stylesheet file.
 
 Check out the controller and modify it a little (in +app/controllers/greetings_controller.rb+):
 

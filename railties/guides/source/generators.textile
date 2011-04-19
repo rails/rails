@@ -190,7 +190,7 @@ $ rails generate scaffold User name:string
       invoke      test_unit
       create        test/unit/helpers/users_helper_test.rb
       invoke  stylesheets
-      create    app/assets/stylesheets/scaffold.css.scss
+      create    app/assets/stylesheets/scaffold.css
 </shell>
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
@@ -383,7 +383,7 @@ if yes?("Would you like to install Devise?")
 end
 </ruby>
 
-In the above template we specify that the application relies on the +rspec-rails+ and +cucumber-rails+ gem so these two will be added to the +test+ group in the +Gemfile+. Then we pose a question to the user about whether or not they would like to install Devise. If the user replies "y" or "yes" to this question, then the template will add Devise to the +Gemfile+ outside of any group and then runs the +devise:install+ generator. This template then takes the users input and runs the  +devise+ generator, with the user's answer from the last question being passed to this generator.
+In the above template we specify that the application relies on the +rspec-rails+ and +cucumber-rails+ gem so these two will be added to the +test+ group in the +Gemfile+. Then we pose a question to the user about whether or not they would like to install Devise. If the user replies "y" or "yes" to this question, then the template will add Devise to the +Gemfile+ outside of any group and then runs the +devise:install+ generator. This template then takes the users input and runs the +devise+ generator, with the user's answer from the last question being passed to this generator.
 
 Imagine that this template was in a file called +template.rb+. We can use it to modify the outcome of the +rails new+ command by using the +-m+ option and passing in the filename:
 

@@ -555,10 +555,10 @@ module ActionView
       #   current_page?(:controller => 'shop', :action => 'checkout')
       #   # => true
       #
-      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page=>'1')
+      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page => '1')
       #   # => true
       #
-      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page=>'2')
+      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page => '2')
       #   # => false
       #
       #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc')

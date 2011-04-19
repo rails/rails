@@ -546,7 +546,7 @@ Active Record provides two locking mechanisms:
 
 h4. Optimistic Locking
 
-Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data.  It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
+Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data. It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
 
 <strong>Optimistic locking column</strong>
 
@@ -993,7 +993,7 @@ Client.count
 # SELECT count(*) AS count_all FROM clients
 </ruby>
 
-Or on a relation :
+Or on a relation:
 
 <ruby>
 Client.where(:first_name => 'Ryan').count
@@ -1060,7 +1060,7 @@ If you want to find the sum of a field for all records in your table you can cal
 Client.sum("orders_count")
 </ruby>
 
-For options, please see the parent section,  "Calculations":#calculations.
+For options, please see the parent section, "Calculations":#calculations.
 
 h3. Changelog
 

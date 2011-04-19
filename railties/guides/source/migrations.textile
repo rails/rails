@@ -284,7 +284,7 @@ change_table :products do |t|
   t.rename :upccode, :upc_code
 end
 </ruby>
-removes the +description+ and +name+ columns, creates a +part_number+ column and adds an index on it. Finally it renames the +upccode+ column.   This is the same as doing
+removes the +description+ and +name+ columns, creates a +part_number+ column and adds an index on it. Finally it renames the +upccode+ column. This is the same as doing
 
 <ruby>
 remove_column :products, :description
@@ -335,7 +335,7 @@ NOTE: The +references+ helper does not actually create foreign key constraints f
 
 If the helpers provided by Active Record aren't enough you can use the +execute+ function to execute arbitrary SQL.
 
-For more details and examples of individual methods check the API documentation, in particular the documentation for "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html (which provides the methods available in the +up+ and +down+ methods),  "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html (which provides the methods available on the object yielded by +create_table+) and "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html (which provides the methods available on the object yielded by +change_table+).
+For more details and examples of individual methods check the API documentation, in particular the documentation for "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html (which provides the methods available in the +up+ and +down+ methods), "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html (which provides the methods available on the object yielded by +create_table+) and "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html (which provides the methods available on the object yielded by +change_table+).
 
 h4. Writing Your +down+ Method
 

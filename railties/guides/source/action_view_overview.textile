@@ -20,7 +20,28 @@ Note: Some features of Action View are tied to Active Record, but that doesn't m
 
 h3. Using Action View with Rails
 
-TODO...
+For each controller there is an associated directory in the <tt>app/views</tt> directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.
+
+Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
+
+<shell>
+$ rails generate scaffold post
+      [...]
+      invoke  scaffold_controller
+      create    app/controllers/posts_controller.rb
+      invoke    erb
+      create      app/views/posts
+      create      app/views/posts/index.html.erb
+      create      app/views/posts/edit.html.erb
+      create      app/views/posts/show.html.erb
+      create      app/views/posts/new.html.erb
+      create      app/views/posts/_form.html.erb
+      [...]
+</shell>
+
+There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
+For example, the index controller action of the <tt>posts_controller.rb</tt> will use the <tt>index.html.erb</tt> view file in the <tt>app/views/posts</tt> directory.
+The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of this three components.
 
 h3. Using Action View outside of Rails
 
@@ -94,9 +115,213 @@ TODO needs a screenshot? I have one - not sure where to put it.
 
 h3. Templates, Partials and Layouts
 
-TODO...
+As mentioned before, the final HTML output is a composition of three Rails elements: +Templates+, +Partials+ and +Layouts+.
+Find below a brief overview of each one of them.
 
-TODO see http://guides.rubyonrails.org/layouts_and_rendering.html
+h4. Templates
+
+Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> extension then it uses a mixture of ERB (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> extension then a fresh instance of <tt>Builder::XmlMarkup</tt> library is used.
+
+Rails supports multiple template systems and uses a file extension to distinguish amongst them. For example, an HTML file using the ERB template system will have <tt>.html.erb</tt> as a file extension.
+
+h5. ERB
+
+Within an ERB template Ruby code can be included using both +<% %>+ and +<%= %>+ tags. The +<% %>+ are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the +<%= %>+ tags are used when you want output.
+
+Consider the following loop for names:
+
+<erb>
+<b>Names of all the people</b>
+<% @people.each do |person| %>
+  Name: <%= person.name %><br/>
+<% end %>
+</erb>
+
+The loop is setup in regular embedding tags +<% %>+ and the name is written using the output embedding tag +<%= %>+. Note that this is not just a usage suggestion, for Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
+
+<erb>
+<%# WRONG %>
+Hi, Mr. <% puts "Frodo" %>
+</erb>
+
+To suppress leading and trailing whitespaces, you can use +<%-+ +-%>+ interchangeably with +<%+ and +%>+.
+
+h5. Builder
+
+Builder templates are a more programmatic alternative to ERB. They are especially useful for generating XML content. An XmlMarkup object named +xml+ is automatically made available to templates with a <tt>.builder</tt> extension.
+
+Here are some basic examples:
+
+<ruby>
+xml.em("emphasized")
+xml.em { xml.b("emph & bold") }
+xml.a("A Link", "href"=>"http://rubyonrails.org")
+xml.target("name"=>"compile", "option"=>"fast")
+</ruby>
+
+will produce
+
+<html>
+<em>emphasized</em>
+<em><b>emph &amp; bold</b></em>
+<a href="http://rubyonrails.org">A link</a>
+<target option="fast" name="compile" \>
+</html>
+
+Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
+
+<ruby>
+xml.div {
+  xml.h1(@person.name)
+  xml.p(@person.bio)
+}
+</ruby>
+
+would produce something like:
+
+<html>
+<div>
+  <h1>David Heinemeier Hansson</h1>
+  <p>A product of Danish Design during the Winter of '79...</p>
+</div>
+</html>
+
+A full-length RSS example actually used on Basecamp:
+
+<ruby>
+xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
+  xml.channel do
+    xml.title(@feed_title)
+    xml.link(@url)
+    xml.description "Basecamp: Recent items"
+    xml.language "en-us"
+    xml.ttl "40"
+
+    for item in @recent_items
+      xml.item do
+        xml.title(item_title(item))
+        xml.description(item_description(item)) if item_description(item)
+        xml.pubDate(item_pubDate(item))
+        xml.guid(@person.firm.account.url + @recent_items.url(item))
+        xml.link(@person.firm.account.url + @recent_items.url(item))
+        xml.tag!("dc:creator", item.author_name) if item_has_creator?(item)
+      end
+    end
+  end
+end
+</ruby>
+
+h5. Template caching
+
+By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will check the file's modification time and recompile it in development mode.
+
+h4. Partials
+
+Partial templates – usually just called "partials" – are another device for breaking the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
+
+h5. Naming Partials
+
+To render a partial as part of a view, you use the +render+ method within the view:
+
+<ruby>
+<%= render "menu" %>
+</ruby>
+
+This will render a file named +_menu.html.erb+ at that point within the view is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
+
+<ruby>
+<%= render "shared/menu" %>
+</ruby>
+
+That code will pull in the partial from +app/views/shared/_menu.html.erb+.
+
+h5. Using Partials to Simplify Views
+
+One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
+
+<erb>
+<%= render "shared/ad_banner" %>
+
+<h1>Products</h1>
+
+<p>Here are a few of our fine products:</p>
+<% @products.each do |product| %>
+  <%= render :partial => "product", :locals => { :product => product } %>
+<% end %>
+
+<%= render "shared/footer" %>
+</erb>
+
+Here, the +_ad_banner.html.erb+ and +_footer.html.erb+ partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
+
+h5. The :as and :object options
+
+By default <tt>ActionView::Partials::PartialRenderer</tt> has its object in a local variable with the same name as the template. So, given
+
+<erb>
+<%= render :partial => "product" %>
+</erb>
+
+within product we'll get <tt>@product</tt> in the local variable +product+, as if we had written:
+
+<erb>
+<%= render :partial => "product", :locals => { :product  => @product } %>
+</erb>
+
+With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we wanted it to be +item+ instead of product+ we'd do:
+
+<erb>
+<%= render :partial => "product", :as => 'item' %>
+</erb>
+
+The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
+
+For example, instead of:
+
+<erb>
+<%= render :partial => "product", :locals => { :product  => @item } %>
+</erb>
+
+you'd do:
+
+<erb>
+<%= render :partial => "product", :object => @item %>
+</erb>
+
+The <tt>:object</tt> and <tt>:as</tt> options can be used together.
+
+h5. Rendering Collections
+
+The example of partial use describes a familiar pattern where a template needs to iterate over an array and render a sub template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial by the same name as the elements contained within.
+So the three-lined example for rendering all the products can be rewritten with a single line:
+
+<erb>
+<%= render :partial => "product", :collection => @products %>
+</erb>
+
+When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product+ , and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered.
+
+You can use a shorthand syntax for rendering collections. Assuming @products is a collection of +Product+ instances, you can simply write the following to produce the same result:
+
+<erb>
+<%= render @products %>
+</erb>
+
+Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
+
+h5. Spacer Templates
+
+You can also specify a second partial to be rendered between instances of the main partial by using the +:spacer_template+ option:
+
+<erb>
+<%= render @products, :spacer_template => "product_ruler" %>
+</erb>
+
+Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
+
+h4. Layouts
+
+TODO...
 
 h3. Using Templates, Partials and Layouts in "The Rails Way"
 
@@ -262,9 +487,9 @@ Register one or more stylesheet files to be included when symbol is passed to +s
 ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
 
 stylesheet_link_tag :monkey # =>
-  <link href="/stylesheets/head.css"  media="screen" rel="stylesheet" type="text/css" />
-  <link href="/stylesheets/body.css"  media="screen" rel="stylesheet" type="text/css" />
-  <link href="/stylesheets/tail.css"  media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/head.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/body.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="/stylesheets/tail.css" media="screen" rel="stylesheet" type="text/css" />
 </ruby>
 
 h5. auto_discovery_link_tag
@@ -1472,5 +1697,6 @@ You can read more about the Rails Internationalization (I18n) API "here":i18n.ht
 
 h3. Changelog
 
+* April 16, 2011: Added 'Using Action View with Rails', 'Templates' and 'Partials' sections. "Sebastian Martinez":http://wyeworks.com
 * September 3, 2009: Continuing work by Trevor Turk, leveraging the Action Pack docs and "What's new in Edge Rails":http://ryandaigle.com/articles/2007/8/3/what-s-new-in-edge-rails-partials-get-layouts
 * April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs
