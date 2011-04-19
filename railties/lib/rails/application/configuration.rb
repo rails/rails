@@ -33,7 +33,7 @@ module Rails
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled    = false
         @assets.paths      = []
-        @assets.precompile = []
+        @assets.precompile = [ /\w+\.(?!js|css)$/, "application.js", "application.css" ]
         @assets.prefix     = "/assets"
       end
 
