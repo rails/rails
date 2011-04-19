@@ -1,5 +1,5 @@
 require 'uri'
-require 'action_view/helpers/asset_tag_helpers/asset_paths'
+require 'action_view/helpers/asset_paths'
 
 module ActionView
   module Helpers
@@ -38,7 +38,7 @@ module ActionView
         end
       end
 
-      class AssetPaths < ActionView::Helpers::AssetTagHelper::AssetPaths
+      class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
         def rewrite_asset_path(source, dir)
           if source =~ /^\/#{dir}\/(.+)/
             assets.path($1, performing_caching?, dir)

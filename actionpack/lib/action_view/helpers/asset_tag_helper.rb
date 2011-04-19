@@ -446,7 +446,7 @@ module ActionView
       private
 
         def asset_paths
-          @asset_paths ||= AssetPaths.new(config, controller)
+          @asset_paths ||= AssetTagHelper::AssetPaths.new(config, controller)
         end
     end
   end
