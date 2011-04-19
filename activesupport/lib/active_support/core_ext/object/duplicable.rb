@@ -15,74 +15,89 @@
 # That's why we hardcode the following cases and check duplicable? instead of
 # using that rescue idiom.
 class Object
-  # Can you safely .dup this object?
-  # False for nil, false, true, symbols, numbers, class and module objects; true otherwise.
+  # Can you safely dup this object?
+  #
+  # False for +nil+, +false+, +true+, symbols, numbers, class and module objects;
+  # true otherwise.
   def duplicable?
     true
   end
 end
 
 class NilClass
-  # Instances of NilClass are not duplicable
+  # +nil+ is not duplicable:
   #
-  # === Example
+  #   nil.duplicable? # => false
+  #   nil.dup         # => TypeError: can't dup NilClass
   #
-  # nil.duplicable? # => false
-  # nil.dup         # => TypeError: can't dup NilClass
   def duplicable?
     false
   end
 end
 
 class FalseClass
-  # Instances of FalseClass are not duplicable
+  # +false+ is not duplicable:
   #
-  # === Example
+  #   false.duplicable? # => false
+  #   false.dup         # => TypeError: can't dup FalseClass
   #
-  # false.duplicable? # => false
-  # false.dup         # => TypeError: can't dup FalseClass
   def duplicable?
     false
   end
 end
 
 class TrueClass
-  # Instances of TrueClass are not duplicable
+  # +true+ is not duplicable:
   #
-  # === Example
+  #   true.duplicable? # => false
+  #   true.dup         # => TypeError: can't dup TrueClass
   #
-  # true.duplicable? # => false
-  # true.dup         # => TypeError: can't dup TrueClass
   def duplicable?
     false
   end
 end
 
 class Symbol
-  # Symbols are not duplicable
+  # Symbols are not duplicable:
   #
-  # === Example
+  #   :my_symbol.duplicable? # => false
+  #   :my_symbol.dup         # => TypeError: can't dup Symbol
   #
-  # :my_symbol.duplicable? # => false
-  # :my_symbol.dup         # => TypeError: can't dup Symbol
   def duplicable?
     false
   end
 end
 
-class Numeric #:nodoc:
+class Numeric
+  # Numbers are not duplicable:
+  #
+  #  3.duplicable? # => false
+  #  3.dup         # => TypeError: can't dup Fixnum
+  #
   def duplicable?
     false
   end
 end
 
-class Class #:nodoc:
+class Class
+  # Classes are not duplicable:
+  #
+  #  c = Class.new # => #<Class:0x10328fd80>
+  #  c.dup         # => #<Class:0x10328fd80>
+  #
+  # Note +dup+ returned the same class object.
   def duplicable?
     false
   end
 end
 
-class Module #:nodoc:
+class Module
+  # Modules are not duplicable:
+  #
+  #  m = Module.new # => #<Module:0x10328b6e0>
+  #  m.dup          # => #<Module:0x10328b6e0>
+  #
+  # Note +dup+ returned the same module object.
   def duplicable?
     false
   end
