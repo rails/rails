@@ -79,7 +79,7 @@ module ActiveRecord
             #
             # The second, slower, branch is necessary to support instances where the database
             # returns columns with extra stuff in (like 'my_column(omg)').
-            if method_name =~ /^[a-zA-Z_]\w*[!?=]?$/
+            if method_name =~ ActiveModel::AttributeMethods::COMPILABLE_REGEXP
               generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__
                 def _#{method_name}
                   #{access_code}

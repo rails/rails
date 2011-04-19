@@ -56,6 +56,8 @@ module ActiveModel
   module AttributeMethods
     extend ActiveSupport::Concern
 
+    COMPILABLE_REGEXP = /^[a-zA-Z_]\w*[!?=]?$/
+
     included do
       class_attribute :attribute_method_matchers, :instance_writer => false
       self.attribute_method_matchers = []
@@ -106,13 +108,16 @@ module ActiveModel
         if block_given?
           sing.send :define_method, name, &block
         else
-          if name =~ /^[a-zA-Z_]\w*[!?=]?$/
-            sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
-                def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
-            eorb
+          # If we can compile the method name, do it. Otherwise use define_method.
+          # This is an important *optimization*, please don't change it. define_method
+          # has slower dispatch and consumes more memory.
+          if name =~ COMPILABLE_REGEXP
+            sing.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
+            RUBY
           else
             value = value.to_s if value
-            sing.send(:define_method, name) { value }
+            sing.send(:define_method, name) { value && value.dup }
           end
         end
       end
@@ -232,8 +237,19 @@ module ActiveModel
 
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
-          define_method(matcher.method_name(new_name)) do |*args|
-            send(matcher.method_name(old_name), *args)
+          matcher_new = matcher.method_name(new_name).to_s
+          matcher_old = matcher.method_name(old_name).to_s
+
+          if matcher_new =~ COMPILABLE_REGEXP && matcher_old =~ COMPILABLE_REGEXP
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{matcher_new}(*args)
+                send(:#{matcher_old}, *args)
+              end
+            RUBY
+          else
+            define_method(matcher_new) do |*args|
+              send(matcher_old, *args)
+            end
           end
         end
       end
@@ -276,14 +292,25 @@ module ActiveModel
             else
               method_name = matcher.method_name(attr_name)
 
-              generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+              generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
                 if method_defined?('#{method_name}')
                   undef :'#{method_name}'
                 end
-                define_method('#{method_name}') do |*args|
-                  send('#{matcher.method_missing_target}', '#{attr_name}', *args)
-                end
-              STR
+              RUBY
+
+              if method_name.to_s =~ COMPILABLE_REGEXP
+                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+                  def #{method_name}(*args)
+                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
+                  end
+                RUBY
+              else
+                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+                  define_method('#{method_name}') do |*args|
+                    send('#{matcher.method_missing_target}', '#{attr_name}', *args)
+                  end
+                RUBY
+              end
             end
           end
         end
