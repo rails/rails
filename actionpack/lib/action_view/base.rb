@@ -137,6 +137,12 @@ module ActionView #:nodoc:
     cattr_accessor :field_error_proc
     @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
+    # How to complete the streaming when an exception occurs.
+    # This is our best guess: first try to close the attribute, then the tag.
+    # Currently this is private API and may be changed at *any* time.
+    cattr_accessor :streaming_completion_on_exception
+    @@streaming_completion_on_exception = %("><script type="text/javascript">window.location = "/500.html"</script></html>)
+
     class_attribute :helpers
     class_attribute :_routes
 

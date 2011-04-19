@@ -46,11 +46,8 @@ module ActionView
   #
   # == TODO
   #
-  # * Add streaming support in the controllers with no-cache settings
-  # * What should happen when an error happens?
   # * Support streaming from child templates, partials and so on.
-  # * Support on sprockets async JS load?
-  #
+  # * Integrate exceptions with exceptron
   class StreamingTemplateRenderer < TemplateRenderer #:nodoc:
     # A valid Rack::Body (i.e. it responds to each).
     # It is initialized with a block that, when called, starts
@@ -61,7 +58,11 @@ module ActionView
       end
 
       def each(&block)
-        @start.call(block)
+        begin
+          @start.call(block)
+        rescue
+          block.call ActionView::Base.streaming_completion_on_exception
+        end
         self
       end
     end

@@ -4,13 +4,23 @@ module RenderStreaming
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
       "render_streaming/basic/hello_world.html.erb" => "Hello world",
-      "layouts/application.html.erb" => "<%= yield %>, I'm here!"
+      "render_streaming/basic/boom.html.erb" => "<%= nil.invalid! %>",
+      "layouts/application.html.erb" => "<%= yield %>, I'm here!",
+      "layouts/boom.html.erb" => "<body class=\"<%= nil.invalid! %>\"<%= yield %></body>"
     )]
 
     layout "application"
     stream :only => [:hello_world, :skip]
 
     def hello_world
+    end
+
+    def layout_exception
+      render :action => "hello_world", :stream => true, :layout => "boom"
+    end
+
+    def template_exception
+      render :action => "boom", :stream => true
     end
 
     def skip
@@ -59,6 +69,18 @@ module RenderStreaming
     test "skip rendering with streaming at render level" do
       get "/render_streaming/basic/skip"
       assert_body "Hello world, I'm here!"
+    end
+
+    test "rendering with layout exception" do
+      get "/render_streaming/basic/layout_exception"
+      assert_body "d\r\n<body class=\"\r\n4e\r\n\"><script type=\"text/javascript\">window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_streaming!
+    end
+
+    test "rendering with template exception" do
+      get "/render_streaming/basic/template_exception"
+      assert_body "4e\r\n\"><script type=\"text/javascript\">window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_streaming!
     end
 
     def assert_streaming!(cache="no-cache")
