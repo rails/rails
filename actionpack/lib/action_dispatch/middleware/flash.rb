@@ -70,6 +70,10 @@ module ActionDispatch
       def close!(new_flash)
         @flash = new_flash
       end
+      
+      def closed?
+        @flash.closed?
+      end
     end
 
     class FlashHash
@@ -146,7 +150,7 @@ module ActionDispatch
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
       def now
-        @now ||= FlashNow.new(self)
+        @now = (!@now || @now.closed?) ? FlashNow.new(self) : @now
       end
 
       attr_reader :closed
