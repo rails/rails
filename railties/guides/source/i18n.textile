@@ -133,9 +133,9 @@ The _setting part_ is easy. You can set the locale in a +before_filter+ in the +
 
 <ruby>
 before_filter :set_locale
+
 def set_locale
-  # if params[:locale] is nil then I18n.default_locale will be used
-  I18n.locale = params[:locale]
+  I18n.locale = params[:locale] || I18n.default_locale
 end
 </ruby>
 
@@ -158,7 +158,7 @@ You can implement it like this in your +ApplicationController+:
 before_filter :set_locale
 
 def set_locale
-  I18n.locale = extract_locale_from_tld
+  I18n.locale = extract_locale_from_tld || I18n.default_locale
 end
 
 # Get locale from top-level domain or return nil if such locale is not available
@@ -182,7 +182,7 @@ We can also set the locale from the _subdomain_ in a very similar way:
 # in your /etc/hosts file to try this out locally
 def extract_locale_from_subdomain
   parsed_locale = request.subdomains.first
-  I18n.available_locales.include?(parsed_locale.to_sym) ? parsed_locale  : nil
+  I18n.available_locales.include?(parsed_locale.to_sym) ? parsed_locale : nil
 end
 </ruby>
 
