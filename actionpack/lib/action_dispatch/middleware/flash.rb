@@ -43,6 +43,8 @@ module ActionDispatch
     KEY = 'action_dispatch.request.flash_hash'.freeze
 
     class FlashNow #:nodoc:
+      attr_accessor :flash
+
       def initialize(flash)
         @flash = flash
       end
@@ -66,14 +68,6 @@ module ActionDispatch
       def notice=(message)
         self[:notice] = message
       end
-
-      def close!(new_flash)
-        @flash = new_flash
-      end
-      
-      def closed?
-        @flash.closed?
-      end
     end
 
     class FlashHash
@@ -84,6 +78,14 @@ module ActionDispatch
         @closed  = false
         @flashes = {}
         @now     = nil
+      end
+
+      def initialize_copy(other)
+        if other.now_is_loaded?
+          @now = other.now.dup
+          @now.flash = self
+        end
+        super
       end
 
       def []=(k, v) #:nodoc:
@@ -150,16 +152,12 @@ module ActionDispatch
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
       def now
-        @now = (!@now || @now.closed?) ? FlashNow.new(self) : @now
+        @now ||= FlashNow.new(self)
       end
 
       attr_reader :closed
       alias :closed? :closed
-
-      def close!
-        @closed = true
-        @now.close!(self) if @now
-      end
+      def close!; @closed = true; end
 
       # Keeps either the entire current flash or a specific flash entry available for the next action:
       #
@@ -214,7 +212,12 @@ module ActionDispatch
         self[:notice] = message
       end
 
-      private
+      protected
+
+        def now_is_loaded?
+          !!@now
+        end
+
         # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
         #     use()               # marks the entire flash as used
         #     use('msg')          # marks the "msg" entry as used
