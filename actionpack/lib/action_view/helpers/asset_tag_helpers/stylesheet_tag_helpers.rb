@@ -64,7 +64,7 @@ module ActionView
         #   stylesheet_path "http://www.railsapplication.com/css/style.css" # => http://www.railsapplication.com/css/style.css
         def stylesheet_path(source)
           if config.use_sprockets
-            sprockets_stylesheet_path(source)
+            asset_path(source, 'css')
           else
             asset_paths.compute_public_path(source, 'stylesheets', 'css')
           end

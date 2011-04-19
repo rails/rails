@@ -33,38 +33,38 @@ class SprocketsHelperTest < ActionView::TestCase
 
   test "asset path" do
     assert_equal "/assets/logo-9c0a079bdd7701d7e729bd956823d153.png",
-      sprockets_asset_path("logo.png")
+      asset_path("logo.png")
 
     assert_equal "/images/logo",
-      sprockets_asset_path("/images/logo")
+      asset_path("/images/logo")
     assert_equal "/images/logo.gif",
-      sprockets_asset_path("/images/logo.gif")
+      asset_path("/images/logo.gif")
 
     assert_equal "/dir/audio",
-      sprockets_asset_path("/dir/audio")
+      asset_path("/dir/audio")
 
     assert_equal "http://www.example.com/video/play",
-      sprockets_asset_path("http://www.example.com/video/play")
+      asset_path("http://www.example.com/video/play")
     assert_equal "http://www.example.com/video/play.mp4",
-      sprockets_asset_path("http://www.example.com/video/play.mp4")
+      asset_path("http://www.example.com/video/play.mp4")
   end
 
   test "javascript path" do
     assert_equal "/assets/application-d41d8cd98f00b204e9800998ecf8427e.js",
-      sprockets_javascript_path(:application)
+      asset_path(:application, "js")
 
     assert_equal "/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js",
-      sprockets_javascript_path("xmlhr")
+      asset_path("xmlhr", "js")
     assert_equal "/assets/dir/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js",
-      sprockets_javascript_path("dir/xmlhr.js")
+      asset_path("dir/xmlhr.js", "js")
 
     assert_equal "/dir/xmlhr.js",
-      sprockets_javascript_path("/dir/xmlhr")
+      asset_path("/dir/xmlhr", "js")
 
     assert_equal "http://www.railsapplication.com/js/xmlhr",
-      sprockets_javascript_path("http://www.railsapplication.com/js/xmlhr")
+      asset_path("http://www.railsapplication.com/js/xmlhr", "js")
     assert_equal "http://www.railsapplication.com/js/xmlhr.js",
-      sprockets_javascript_path("http://www.railsapplication.com/js/xmlhr.js")
+      asset_path("http://www.railsapplication.com/js/xmlhr.js", "js")
   end
 
   test "javascript include tag" do
@@ -80,20 +80,16 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "stylesheet path" do
-    assert_equal "/assets/application-d41d8cd98f00b204e9800998ecf8427e.css",
-      sprockets_stylesheet_path(:application)
+    assert_equal "/assets/application-d41d8cd98f00b204e9800998ecf8427e.css", asset_path(:application, "css")
 
-    assert_equal "/assets/style-d41d8cd98f00b204e9800998ecf8427e.css",
-      sprockets_stylesheet_path("style")
-    assert_equal "/assets/dir/style-d41d8cd98f00b204e9800998ecf8427e.css",
-      sprockets_stylesheet_path("dir/style.css")
-    assert_equal "/dir/style.css",
-      sprockets_stylesheet_path("/dir/style.css")
+    assert_equal "/assets/style-d41d8cd98f00b204e9800998ecf8427e.css", asset_path("style", "css")
+    assert_equal "/assets/dir/style-d41d8cd98f00b204e9800998ecf8427e.css", asset_path("dir/style.css", "css")
+    assert_equal "/dir/style.css", asset_path("/dir/style.css", "css")
 
     assert_equal "http://www.railsapplication.com/css/style",
-      sprockets_stylesheet_path("http://www.railsapplication.com/css/style")
+      asset_path("http://www.railsapplication.com/css/style", "css")
     assert_equal "http://www.railsapplication.com/css/style.css",
-      sprockets_stylesheet_path("http://www.railsapplication.com/css/style.css")
+      asset_path("http://www.railsapplication.com/css/style.css", "css")
   end
 
   test "stylesheet link tag" do

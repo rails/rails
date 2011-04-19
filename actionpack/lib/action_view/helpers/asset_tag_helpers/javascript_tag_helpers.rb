@@ -87,7 +87,7 @@ module ActionView
         #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
         def javascript_path(source)
           if config.use_sprockets
-            sprockets_javascript_path(source)
+            asset_path(source, 'js')
           else
             asset_paths.compute_public_path(source, 'javascripts', 'js')
           end

@@ -275,7 +275,7 @@ module ActionView
       # plugin authors are encouraged to do so.
       def image_path(source)
         if config.use_sprockets
-          sprockets_asset_path(source)
+          asset_path(source)
         else
           asset_paths.compute_public_path(source, 'images')
         end
@@ -294,7 +294,7 @@ module ActionView
       #   video_path("http://www.railsapplication.com/vid/hd.avi") # => http://www.railsapplication.com/vid/hd.avi
       def video_path(source)
         if config.use_sprockets
-          sprockets_asset_path(source)
+          asset_path(source)
         else
           asset_paths.compute_public_path(source, 'videos')
         end
@@ -313,7 +313,7 @@ module ActionView
       #   audio_path("http://www.railsapplication.com/sounds/horse.wav") # => http://www.railsapplication.com/sounds/horse.wav
       def audio_path(source)
         if config.use_sprockets
-          sprockets_asset_path(source)
+          asset_path(source)
         else
           asset_paths.compute_public_path(source, 'audios')
         end

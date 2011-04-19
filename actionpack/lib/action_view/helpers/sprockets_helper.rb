@@ -3,23 +3,14 @@ require 'uri'
 module ActionView
   module Helpers
     module SprocketsHelper
-      def sprockets_asset_path(source, default_ext = nil)
+      def asset_path(source, default_ext = nil)
         compute_sprockets_path(source, 'assets', default_ext)
       end
-
-      def sprockets_javascript_path(source)
-        sprockets_asset_path(source, 'js')
-      end
-
-      def sprockets_stylesheet_path(source)
-        sprockets_asset_path(source, 'css')
-      end
-      
 
       def sprockets_javascript_include_tag(source, options = {})
         options = {
           'type' => "text/javascript",
-          'src'  => sprockets_javascript_path(source)
+          'src'  => asset_path(source, 'js')
         }.merge(options.stringify_keys)
 
         content_tag 'script', "", options
@@ -30,7 +21,7 @@ module ActionView
           'rel'   => "stylesheet",
           'type'  => "text/css",
           'media' => "screen",
-          'href'  => sprockets_stylesheet_path(source)
+          'href'  => asset_path(source, 'css')
         }.merge(options.stringify_keys)
 
         tag 'link', options
@@ -60,10 +51,15 @@ module ActionView
         end
         
         def add_fingerprint(source, dir)
-          source.replace(assets.path($1, config.perform_caching, dir)) if source =~ /^\/#{dir}\/(.+)/
+          if source =~ /^\/#{dir}\/(.+)/
+            source.replace(assets.path($1, performing_caching?, dir))
+          end
         end
 
         def add_asset_host(source)
+          # When included in Sprockets::Context, there's no controller
+          return unless respond_to?(:controller)
+
           host = compute_asset_host(source)
 
           if controller.respond_to?(:request) && host && URI.parse(host).host
@@ -94,6 +90,16 @@ module ActionView
         def assets
           Rails.application.assets
         end
+        
+        def performing_caching?
+          # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available
+          respond_to?(:config) ? config.perform_caching : Rails.application.config.action_controller.perform_caching
+        end
     end
   end
 end
+
+# FIXME: Temp hack for extending Sprockets::Context so 
+class Sprockets::Context
+  include ActionView::Helpers::SprocketsHelper
+end if defined?(Sprockets)
