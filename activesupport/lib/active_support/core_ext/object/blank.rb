@@ -18,8 +18,8 @@ class Object
     !blank?
   end
 
-  # Returns object if it's #present? otherwise returns nil.
-  # object.presence is equivalent to object.present? ? object : nil.
+  # Returns object if it's <tt>present?</tt> otherwise returns +nil+.
+  # <tt>object.presence</tt> is equivalent to <tt>object.present? ? object : nil</tt>.
   #
   # This is handy for any representation of objects where blank is the same
   # as not present at all.  For example, this simplifies a common check for
@@ -38,72 +38,71 @@ class Object
 end
 
 class NilClass
-  # Instances of NilClass are always blank
+  # +nil+ is blank:
   #
-  # === Example
+  #   nil.blank? # => true
   #
-  # nil.blank? # => true
   def blank?
     true
   end
 end
 
 class FalseClass
-  # Instances of FalseClass are always blank
+  # +false+ is blank:
   #
-  # === Example
+  #   false.blank? # => true
   #
-  # false.blank? # => true
   def blank?
     true
   end
 end
 
 class TrueClass
-  # Instances of TrueClass are never blank
+  # +true+ is not blank:
   #
-  # === Example
+  #   true.blank? # => false
   #
-  # true.blank? # => false
   def blank?
     false
   end
 end
 
 class Array
-  # An array is blank if it's empty
+  # An array is blank if it's empty:
   #
-  # === Examples
+  #   [].blank?      # => true
+  #   [1,2,3].blank? # => false
   #
-  # [].blank?      # => true
-  # [1,2,3].blank? # => false
   alias_method :blank?, :empty?
 end
 
 class Hash
-  # A hash is blank if it's empty
+  # A hash is blank if it's empty:
   #
-  # === Examples
+  #   {}.blank?                # => true
+  #   {:key => 'value'}.blank? # => false
   #
-  # {}.blank?                # => true
-  # {:key => 'value'}.blank? # => false
   alias_method :blank?, :empty?
 end
 
 class String
-  # A string is blank if it's empty or contains whitespaces only
+  # A string is blank if it's empty or contains whitespaces only:
   #
-  # === Examples
+  #   "".blank?                 # => true
+  #   "   ".blank?              # => true
+  #   " something here ".blank? # => false
   #
-  # "".blank?                 # => true
-  # "   ".blank?              # => true
-  # " something here ".blank? # => false
   def blank?
     self !~ /\S/
   end
 end
 
 class Numeric #:nodoc:
+  # No number is blank:
+  #
+  #   1.blank? # => false
+  #   0.blank? # => false
+  #
   def blank?
     false
   end
