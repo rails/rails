@@ -89,10 +89,6 @@ module Rails
       directory "public", "public", :recursive => false
     end
 
-    def images
-      directory "public/images"
-    end
-
     def script
       directory "script" do |content|
         "#{shebang}\n" + content
@@ -217,10 +213,6 @@ module Rails
 
       def create_public_files
         build(:public_directory)
-      end
-
-      def create_public_image_files
-        build(:images)
       end
 
       def create_script_files
