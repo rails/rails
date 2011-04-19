@@ -688,7 +688,7 @@ module ActionMailer #:nodoc:
     # Translates the +subject+ using Rails I18n class under <tt>[:actionmailer, mailer_scope, action_name]</tt> scope.
     # If it does not find a translation for the +subject+ under the specified scope it will default to a
     # humanized version of the <tt>action_name</tt>.
-    def default_i18n_subject
+    def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.gsub('/', '.')
       I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
     end
