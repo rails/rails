@@ -1,6 +1,6 @@
 class Object
-  # An object is +blank+ if it's false, empty, or a whitespace string.
-  # For example, "", "   ", +nil+, [], and {} are +blank+.
+  # An object is blank if it's false, empty, or a whitespace string.
+  # For example, "", "   ", +nil+, [], and {} are blank.
   #
   # This simplifies:
   #
@@ -18,7 +18,7 @@ class Object
     !blank?
   end
 
-  # Returns object if it's <tt>present?</tt> otherwise returns nil.
+  # Returns object if it's #present? otherwise returns nil.
   # object.presence is equivalent to object.present? ? object : nil.
   #
   # This is handy for any representation of objects where blank is the same
@@ -38,7 +38,7 @@ class Object
 end
 
 class NilClass
-  # Instances of +NilClass+ are always +blank+.
+  # Instances of NilClass are always blank
   #
   # === Example
   #
@@ -49,7 +49,7 @@ class NilClass
 end
 
 class FalseClass
-  # Instances of +FalseClass+ are always +blank+.
+  # Instances of FalseClass are always blank
   #
   # === Example
   #
@@ -60,7 +60,7 @@ class FalseClass
 end
 
 class TrueClass
-  # Instances of +TrueClass+ are never +blank+.
+  # Instances of TrueClass are never blank
   #
   # === Example
   #
@@ -71,7 +71,7 @@ class TrueClass
 end
 
 class Array
-  # An array is +blank+ if it's +empty+.
+  # An array is blank if it's empty
   #
   # === Examples
   #
@@ -81,7 +81,7 @@ class Array
 end
 
 class Hash
-  # A hash is +blank+ if it's +empty+.
+  # A hash is blank if it's empty
   #
   # === Examples
   #
@@ -91,7 +91,7 @@ class Hash
 end
 
 class String
-  # A string is +blank+ if it's empty or contains whitespaces only.
+  # A string is blank if it's empty or contains whitespaces only
   #
   # === Examples
   #
