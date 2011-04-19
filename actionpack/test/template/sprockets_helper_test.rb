@@ -1,5 +1,8 @@
 require 'abstract_unit'
 require 'sprockets'
+require 'mocha'
+
+module Rails; end
 
 class SprocketsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::SprocketsHelper
@@ -23,6 +26,11 @@ class SprocketsHelperTest < ActionView::TestCase
     @assets.paths << FIXTURES.join("sprockets/app/javascripts")
     @assets.paths << FIXTURES.join("sprockets/app/stylesheets")
     @assets.paths << FIXTURES.join("sprockets/app/images")
+
+    application = Object.new
+    Rails.stubs(:application).returns(application)
+    application.stubs(:config).returns(config)
+    application.stubs(:assets).returns(@assets)
 
     config.perform_caching = true
   end

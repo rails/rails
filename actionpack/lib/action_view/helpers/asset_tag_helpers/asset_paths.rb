@@ -26,15 +26,18 @@ module ActionView
         # roots. Rewrite the asset path for cache-busting asset ids. Include
         # asset host, if configured, with the correct request protocol.
         def compute_public_path(source, dir, ext = nil, include_host = true)
+          source = source.to_s
           return source if is_uri?(source)
 
           source = rewrite_extension(source, dir, ext) if ext
           source = "/#{dir}/#{source}" unless source[0] == ?/
-          source = rewrite_asset_path(source, config.asset_path)
+          source = rewrite_asset_path(source, dir)
 
-          has_request = controller.respond_to?(:request)
-          source = rewrite_relative_url_root(source, controller.config.relative_url_root) if has_request && include_host
-          source = rewrite_host_and_protocol(source, has_request) if include_host
+          if controller && include_host
+            has_request = controller.respond_to?(:request)
+            source = rewrite_relative_url_root(source, controller.config.relative_url_root) if has_request
+            source = rewrite_host_and_protocol(source, has_request)
+          end
 
           source
         end
@@ -70,6 +73,8 @@ module ActionView
           # Break out the asset path rewrite in case plugins wish to put the asset id
           # someplace other than the query string.
           def rewrite_asset_path(source, path = nil)
+            path = config.asset_path
+
             if path && path.respond_to?(:call)
               return path.call(source)
             elsif path && path.is_a?(String)
