@@ -38,9 +38,13 @@ module ActionController #:nodoc:
     def _process_options(options) #:nodoc:
       super
       if options[:stream]
-        headers["Cache-Control"] ||= "no-cache"
-        headers["Transfer-Encoding"] = "chunked"
-        headers.delete("Content-Length")
+        if env["HTTP_VERSION"] == "HTTP/1.0"
+          options.delete(:stream)
+        else
+          headers["Cache-Control"] ||= "no-cache"
+          headers["Transfer-Encoding"] = "chunked"
+          headers.delete("Content-Length")
+        end
       end
     end
 

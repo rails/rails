@@ -83,6 +83,14 @@ module RenderStreaming
       assert_streaming!
     end
 
+    test "do not stream on HTTP/1.0" do
+      get "/render_streaming/basic/hello_world", nil, "HTTP_VERSION" => "HTTP/1.0"
+      assert_body "Hello world, I'm here!"
+      assert_status 200
+      assert_equal "22", headers["Content-Length"]
+      assert_equal nil, headers["Transfer-Encoding"]
+    end
+
     def assert_streaming!(cache="no-cache")
       assert_status 200
       assert_equal nil, headers["Content-Length"]
