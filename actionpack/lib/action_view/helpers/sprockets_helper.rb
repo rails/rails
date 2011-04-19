@@ -67,8 +67,3 @@ module ActionView
     end
   end
 end
-
-# FIXME: Temp hack for extending Sprockets::Context so 
-class Sprockets::Context
-  include ActionView::Helpers::SprocketsHelper
-end if defined?(Sprockets)

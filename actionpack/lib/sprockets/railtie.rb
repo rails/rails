@@ -32,6 +32,12 @@ module Sprockets
       next unless assets.enabled
 
       app.assets = asset_environment(app)
+
+      # FIXME: Temp hack for extending Sprockets::Context so 
+      ActiveSupport.on_load(:action_view) do
+        ::Sprockets::Context.send :include, ::ActionView::Helpers::SprocketsHelper
+      end
+
       app.routes.append do
         mount app.assets => assets.prefix
       end
