@@ -56,7 +56,7 @@ module ActiveModel
   module AttributeMethods
     extend ActiveSupport::Concern
 
-    COMPILABLE_REGEXP = /^[a-zA-Z_]\w*[!?=]?$/
+    COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
 
     included do
       class_attribute :attribute_method_matchers, :instance_writer => false
