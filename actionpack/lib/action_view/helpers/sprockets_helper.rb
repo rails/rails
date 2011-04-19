@@ -3,8 +3,12 @@ require 'uri'
 module ActionView
   module Helpers
     module SprocketsHelper
+      def sprockets_asset_path(source, default_ext = nil)
+        compute_sprockets_path(source, 'assets', default_ext)
+      end
+
       def sprockets_javascript_path(source)
-        compute_sprockets_path source, 'assets', 'js'
+        sprockets_asset_path(source, 'js')
       end
 
       def sprockets_javascript_include_tag(source, options = {})
@@ -17,9 +21,9 @@ module ActionView
       end
 
       def sprockets_stylesheet_path(source)
-        compute_sprockets_path source, 'assets', 'css'
+        sprockets_asset_path(source, 'css')
       end
-
+      
       def sprockets_stylesheet_link_tag(source, options = {})
         options = {
           'rel'   => "stylesheet",
@@ -31,13 +35,14 @@ module ActionView
         tag 'link', options
       end
 
+
       private
-        def compute_sprockets_path(source, dir, default_ext)
+        def compute_sprockets_path(source, dir, default_ext = nil)
           source = source.to_s
 
           return source if URI.parse(source).host
 
-          # Add /javscripts to relative paths
+          # Add /assets to relative paths
           if source[0] != ?/
             source = "/#{dir}/#{source}"
           end

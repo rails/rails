@@ -22,12 +22,31 @@ class SprocketsHelperTest < ActionView::TestCase
     @assets = Sprockets::Environment.new
     @assets.paths << FIXTURES.join("sprockets/app/javascripts")
     @assets.paths << FIXTURES.join("sprockets/app/stylesheets")
+    @assets.paths << FIXTURES.join("sprockets/app/images")
 
     config.perform_caching = true
   end
 
   def url_for(*args)
     "http://www.example.com"
+  end
+
+  test "asset path" do
+    assert_equal "/assets/logo-9c0a079bdd7701d7e729bd956823d153.png",
+      sprockets_asset_path("logo.png")
+
+    assert_equal "/images/logo",
+      sprockets_asset_path("/images/logo")
+    assert_equal "/images/logo.gif",
+      sprockets_asset_path("/images/logo.gif")
+
+    assert_equal "/dir/audio",
+      sprockets_asset_path("/dir/audio")
+
+    assert_equal "http://www.example.com/video/play",
+      sprockets_asset_path("http://www.example.com/video/play")
+    assert_equal "http://www.example.com/video/play.mp4",
+      sprockets_asset_path("http://www.example.com/video/play.mp4")
   end
 
   test "javascript path" do
