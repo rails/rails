@@ -4,7 +4,7 @@ module ActionDispatch
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env['action_dispatch.request.flash_hash'] ||= (session["flash"] || Flash::FlashHash.new)
+      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new)
     end
   end
 
@@ -40,18 +40,14 @@ module ActionDispatch
   #
   # See docs on the FlashHash class for more details about the flash.
   class Flash
+    KEY = 'action_dispatch.request.flash_hash'.freeze
+
     class FlashNow #:nodoc:
       def initialize(flash)
         @flash = flash
-        @closed = false
       end
 
-      attr_reader :closed
-      alias :closed? :closed
-      def close!; @closed = true end
-
       def []=(k, v)
-        raise ClosedError, :flash if closed?
         @flash[k] = v
         @flash.discard(k)
         v
@@ -70,6 +66,10 @@ module ActionDispatch
       def notice=(message)
         self[:notice] = message
       end
+
+      def close!(new_flash)
+        @flash = new_flash
+      end
     end
 
     class FlashHash
@@ -80,10 +80,6 @@ module ActionDispatch
         @closed  = false
         @flashes = {}
       end
-
-      attr_reader :closed
-      alias :closed? :closed
-      def close!; @closed = true end
 
       def []=(k, v) #:nodoc:
         raise ClosedError, :flash if closed?
@@ -150,6 +146,14 @@ module ActionDispatch
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
       def now
         @now ||= FlashNow.new(self)
+      end
+
+      attr_reader :closed
+      alias :closed? :closed
+
+      def close!
+        @closed = true
+        @now.close!(self) if @now
       end
 
       # Keeps either the entire current flash or a specific flash entry available for the next action:
@@ -231,13 +235,18 @@ module ActionDispatch
       @app.call(env)
     ensure
       session    = env['rack.session'] || {}
-      flash_hash = env['action_dispatch.request.flash_hash']
+      flash_hash = env[KEY]
 
       if flash_hash
-       if !flash_hash.empty? || session.key?('flash')
-        session["flash"] = flash_hash
-       end
-       flash_hash.close!
+        if !flash_hash.empty? || session.key?('flash')
+          session["flash"] = flash_hash
+          new_hash = flash_hash.dup
+        else
+          new_hash = flash_hash
+        end
+
+        env[KEY] = new_hash
+        new_hash.close!
       end
 
       if session.key?('flash') && session['flash'].empty?
