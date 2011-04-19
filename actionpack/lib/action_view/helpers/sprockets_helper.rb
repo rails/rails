@@ -11,6 +11,11 @@ module ActionView
         sprockets_asset_path(source, 'js')
       end
 
+      def sprockets_stylesheet_path(source)
+        sprockets_asset_path(source, 'css')
+      end
+      
+
       def sprockets_javascript_include_tag(source, options = {})
         options = {
           'type' => "text/javascript",
@@ -20,10 +25,6 @@ module ActionView
         content_tag 'script', "", options
       end
 
-      def sprockets_stylesheet_path(source)
-        sprockets_asset_path(source, 'css')
-      end
-      
       def sprockets_stylesheet_link_tag(source, options = {})
         options = {
           'rel'   => "stylesheet",
@@ -40,30 +41,38 @@ module ActionView
         def compute_sprockets_path(source, dir, default_ext = nil)
           source = source.to_s
 
-          return source if URI.parse(source).host
-
-          # Add /assets to relative paths
-          if source[0] != ?/
-            source = "/#{dir}/#{source}"
-          end
-
-          # Add default extension if there isn't one
-          if default_ext && File.extname(source).empty?
-            source = "#{source}.#{default_ext}"
-          end
-
-          # Fingerprint url
-          if source =~ /^\/#{dir}\/(.+)/
-            source = assets.path($1, config.perform_caching, dir)
-          end
-
-          host = compute_asset_host(source)
-
-          if controller.respond_to?(:request) && host && URI.parse(host).host
-            source = "#{controller.request.protocol}#{host}#{source}"
+          unless source_is_a_url?(source)
+            add_asset_directory(source, dir)
+            add_default_extension(source, default_ext)
+            add_fingerprint(source, dir)
+            add_asset_host(source)
           end
 
           source
+        end
+        
+        def add_asset_directory(source, dir)
+          source.replace("/#{dir}/#{source}") if source[0] != ?/
+        end
+        
+        def add_default_extension(source, default_ext)
+          source.replace("#{source}.#{default_ext}") if default_ext && File.extname(source).empty?
+        end
+        
+        def add_fingerprint(source, dir)
+          source.replace(assets.path($1, config.perform_caching, dir)) if source =~ /^\/#{dir}\/(.+)/
+        end
+
+        def add_asset_host(source)
+          host = compute_asset_host(source)
+
+          if controller.respond_to?(:request) && host && URI.parse(host).host
+            source.replace("#{controller.request.protocol}#{host}#{source}")
+          end
+        end
+        
+        def source_is_a_url?(source)
+          URI.parse(source).host.present?
         end
 
         def compute_asset_host(source)
