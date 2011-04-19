@@ -35,7 +35,7 @@ class Object
 end
 
 class NilClass
-  # Instances of +NilClass+ return always +nil+.
+  # Calling +try+ on +nil+ always returns +nil+.
   # It becomes specially helpful when navigating through associations that may return +nil+.
   #
   # === Examples
