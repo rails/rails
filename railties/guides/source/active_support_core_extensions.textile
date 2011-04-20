@@ -1266,6 +1266,15 @@ WARNING: The option +:separator+ can't be a regexp.
 
 NOTE: Defined in +active_support/core_ext/string/filters.rb+.
 
+h4. +inquiry+
+
+The <tt>String#inquiry</tt> method converts a string into a +StringInquirer+ object making equality checks prettier.
+
+<ruby>
+"production".inquiry.production? # => true
+"active".inquiry.inactive?       # => false
+</ruby>
+
 h4. Key-based Interpolation
 
 In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, both formatted and unformatted:
