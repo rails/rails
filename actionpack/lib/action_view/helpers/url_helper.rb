@@ -68,7 +68,7 @@ module ActionView
       #   # => /books/find
       #
       #   <%= url_for(:action => 'login', :controller => 'members', :only_path => false, :protocol => 'https') %>
-      #   # => https://www.railsapplication.com/members/login/
+      #   # => https://www.example.com/members/login/
       #
       #   <%= url_for(:action => 'play', :anchor => 'player') %>
       #   # => /messages/play/#player
