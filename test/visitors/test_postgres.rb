@@ -32,6 +32,17 @@ module Arel
         assert_equal 1, sql.scan(/LIMIT/).length, 'should have one limit'
       end
 
+      it 'should support DISTINCT ON' do
+        core = Arel::Nodes::SelectCore.new
+        core.set_quantifier = Arel::Nodes::DistinctOn.new(Arel.sql('aaron'))
+        assert_match 'DISTINCT ON ( aaron )', @visitor.accept(core)
+      end
+
+      it 'should support DISTINCT' do
+        core = Arel::Nodes::SelectCore.new
+        core.set_quantifier = Arel::Nodes::Distinct.new
+        assert_equal 'SELECT DISTINCT', @visitor.accept(core)
+      end
     end
   end
 end

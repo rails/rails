@@ -101,7 +101,7 @@ module Arel
             sql.must_be_like %{
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
-                FROM (SELECT ) raw_sql_
+                FROM (SELECT) raw_sql_
                 WHERE rownum <= 20
               )
               WHERE raw_rnum_ > 10
@@ -126,7 +126,7 @@ module Arel
             sql.must_be_like %{
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
-                FROM (SELECT ) raw_sql_
+                FROM (SELECT) raw_sql_
               )
               WHERE raw_rnum_ > 10
             }

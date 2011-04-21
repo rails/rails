@@ -54,7 +54,7 @@ module Arel
     def test_join_sources
       manager = Arel::SelectManager.new Table.engine
       manager.join_sources << Arel::Nodes::StringJoin.new('foo')
-      assert_equal "SELECT  FROM 'foo'", manager.to_sql
+      assert_equal "SELECT FROM 'foo'", manager.to_sql
     end
 
     describe 'backwards compatibility' do

@@ -6,25 +6,6 @@ module Arel
         visit o.expr
       end
 
-      def visit_Arel_Nodes_SelectStatement o
-        if !o.orders.empty? && using_distinct_on?(o)
-          subquery        = o.dup
-          subquery.orders = []
-          subquery.limit  = nil
-          subquery.offset = nil
-
-          sql = super(subquery)
-          [
-            "SELECT * FROM (#{sql}) AS id_list",
-            "ORDER BY #{aliased_orders(o.orders).join(', ')}",
-            (visit(o.limit) if o.limit),
-            (visit(o.offset) if o.offset),
-          ].compact.join ' '
-        else
-          super
-        end
-      end
-
       def visit_Arel_Nodes_Matches o
         "#{visit o.left} ILIKE #{visit o.right}"
       end
@@ -33,12 +14,8 @@ module Arel
         "#{visit o.left} NOT ILIKE #{visit o.right}"
       end
 
-      def using_distinct_on?(o)
-        o.cores.any? do |core|
-          core.projections.any? do |projection|
-            /DISTINCT ON/ === projection
-          end
-        end
+      def visit_Arel_Nodes_DistinctOn o
+        "DISTINCT ON ( #{visit o.expr} )"
       end
 
       def aliased_orders orders

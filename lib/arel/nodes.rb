@@ -5,6 +5,10 @@ require 'arel/nodes/select_core'
 require 'arel/nodes/insert_statement'
 require 'arel/nodes/update_statement'
 
+# terminal
+
+require 'arel/nodes/terminal'
+
 # unary
 require 'arel/nodes/unary'
 require 'arel/nodes/unqualified_column'
