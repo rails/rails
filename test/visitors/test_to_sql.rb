@@ -299,6 +299,17 @@ module Arel
           }
         end
       end
+
+      describe 'distinct on' do
+        it 'raises not implemented error' do
+          core = Arel::Nodes::SelectCore.new
+          core.set_quantifier = Arel::Nodes::DistinctOn.new(Arel.sql('aaron'))
+
+          assert_raises(NotImplementedError) do
+            @visitor.accept(core)
+          end
+        end
+      end
     end
   end
 end

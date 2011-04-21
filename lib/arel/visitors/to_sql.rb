@@ -142,6 +142,10 @@ key on UpdateManager using UpdateManager#key=
         'DISTINCT'
       end
 
+      def visit_Arel_Nodes_DistinctOn o
+        raise NotImplementedError, 'DISTINCT ON not implemented for this db'
+      end
+
       def visit_Arel_Nodes_With o
         "WITH #{o.children.map { |x| visit x }.join(', ')}"
       end
