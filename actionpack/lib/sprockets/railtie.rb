@@ -33,9 +33,10 @@ module Sprockets
 
       app.assets = asset_environment(app)
 
-      # FIXME: Temp hack for extending Sprockets::Context so 
       ActiveSupport.on_load(:action_view) do
-        ::Sprockets::Context.send :include, ::ActionView::Helpers::SprocketsHelper
+        app.assets.context.instance_eval do
+          include ::ActionView::Helpers::SprocketsHelper
+        end
       end
 
       app.routes.append do
