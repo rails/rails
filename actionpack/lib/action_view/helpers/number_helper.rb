@@ -342,14 +342,14 @@ module ActionView
 
         storage_units_format = I18n.translate(:'number.human.storage_units.format', :locale => options[:locale], :raise => true)
 
-        if number.to_i < 1024
+        if number.to_i < 1000
           unit = I18n.translate(:'number.human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
           storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit).html_safe
         else
           max_exp  = STORAGE_UNITS.size - 1
-          exponent = (Math.log(number) / Math.log(1024)).to_i # Convert to base 1024
+          exponent = (Math.log(number) / Math.log(1000)).to_i # Convert to base 1000
           exponent = max_exp if exponent > max_exp # we need this to avoid overflow for the highest unit
-          number  /= 1024 ** exponent
+          number  /= 1000 ** exponent
 
           unit_key = STORAGE_UNITS[exponent]
           unit = I18n.translate(:"number.human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
