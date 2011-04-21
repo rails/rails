@@ -23,5 +23,11 @@ module Arel
     }.each do |name|
       const_set(name, Class.new(Unary))
     end
+
+    class Distinct < Unary
+      def initialize expr = nil
+        super
+      end
+    end
   end
 end

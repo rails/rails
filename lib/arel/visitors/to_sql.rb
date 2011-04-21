@@ -125,6 +125,7 @@ key on UpdateManager using UpdateManager#key=
         [
           "SELECT",
           (visit(o.top) if o.top),
+          (visit(o.set_quantifier) if o.set_quantifier),
           "#{o.projections.map { |x| visit x }.join ', '}",
           visit(o.source),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
@@ -135,6 +136,10 @@ key on UpdateManager using UpdateManager#key=
 
       def visit_Arel_Nodes_Bin o
         visit o.expr
+      end
+
+      def visit_Arel_Nodes_Distinct o
+        'DISTINCT'
       end
 
       def visit_Arel_Nodes_With o
