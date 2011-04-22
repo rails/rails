@@ -1,6 +1,9 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
+
+# Make sure we're using pg high enough for PGResult#values
+gem 'pg', '~> 0.11'
 require 'pg'
 
 module ActiveRecord
@@ -460,42 +463,44 @@ module ActiveRecord
       # create a 2D array representing the result set
       def result_as_array(res) #:nodoc:
         # check if we have any binary column and if they need escaping
-        unescape_col = []
-        res.nfields.times do |j|
-          unescape_col << res.ftype(j)
+        ftypes = Array.new(res.nfields) do |i|
+          [i, res.ftype(i)]
         end
 
-        ary = []
-        res.ntuples.times do |i|
-          ary << []
-          res.nfields.times do |j|
-            data = res.getvalue(i,j)
-            case unescape_col[j]
+        rows = res.values
+        return rows unless ftypes.any? { |_, x|
+          x == BYTEA_COLUMN_TYPE_OID || x == MONEY_COLUMN_TYPE_OID
+        }
 
-            # unescape string passed BYTEA field (OID == 17)
-            when BYTEA_COLUMN_TYPE_OID
-              data = unescape_bytea(data) if String === data
+        typehash = ftypes.group_by { |_, type| type }
+        binaries = (typehash[BYTEA_COLUMN_TYPE_OID] || []).map { |x| x.first }
+        monies   = (typehash[MONEY_COLUMN_TYPE_OID] || []).map { |x| x.first }
 
-            # If this is a money type column and there are any currency symbols,
-            # then strip them off. Indeed it would be prettier to do this in
-            # PostgreSQLColumn.string_to_decimal but would break form input
-            # fields that call value_before_type_cast.
-            when MONEY_COLUMN_TYPE_OID
-              # Because money output is formatted according to the locale, there are two
-              # cases to consider (note the decimal separators):
-              #  (1) $12,345,678.12
-              #  (2) $12.345.678,12
-              case data
-              when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                data.gsub!(/[^-\d.]/, '')
-              when /^-?\D+[\d.]+,\d{2}$/  # (2)
-                data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
-              end
+        rows.each do |row|
+          # unescape string passed BYTEA field (OID == 17)
+          binaries.each do |index|
+            data       = row[index]
+            row[index] = unescape_bytea(data)
+          end
+
+          # If this is a money type column and there are any currency symbols,
+          # then strip them off. Indeed it would be prettier to do this in
+          # PostgreSQLColumn.string_to_decimal but would break form input
+          # fields that call value_before_type_cast.
+          monies.each do |index|
+            data = row[index]
+            # Because money output is formatted according to the locale, there are two
+            # cases to consider (note the decimal separators):
+            #  (1) $12,345,678.12
+            #  (2) $12.345.678,12
+            case data
+            when /^-?\D+[\d,]+\.\d{2}$/  # (1)
+              data.gsub!(/[^-\d.]/, '')
+            when /^-?\D+[\d.]+,\d{2}$/  # (2)
+              data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
             end
-            ary[i] << data
           end
         end
-        return ary
       end
 
 
