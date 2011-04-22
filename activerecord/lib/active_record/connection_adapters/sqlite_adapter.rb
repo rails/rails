@@ -263,6 +263,7 @@ module ActiveRecord
         end
       end
 
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
           IndexDefinition.new(

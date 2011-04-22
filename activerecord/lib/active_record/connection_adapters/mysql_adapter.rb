@@ -611,6 +611,7 @@ module ActiveRecord
         super(table_name, options)
       end
 
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)#:nodoc:
         indexes = []
         current_index = nil

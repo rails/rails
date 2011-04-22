@@ -690,7 +690,7 @@ module ActiveRecord
         [schema, table]
       end
 
-      # Returns the list of all indexes for a table.
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
