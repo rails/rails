@@ -28,7 +28,7 @@ module ActiveRecord
       # Returns an array of indexes for the given table.
       # def indexes(table_name, name = nil) end
 
-      # Checks to see if an index exists on a table for a given index definition
+      # Checks to see if an index exists on a table for a given index definition.
       #
       # === Examples
       #  # Check an index exists
