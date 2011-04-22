@@ -66,7 +66,7 @@ module ActiveRecord
         sqlite_version >= '3.6.8'
       end
 
-      # Returns +true+, since this connection adapter supports prepared statement
+      # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
         true
@@ -77,7 +77,7 @@ module ActiveRecord
         true
       end
 
-      # Does SQLite support finding primary key on non-Active Record tables?
+      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
