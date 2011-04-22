@@ -57,7 +57,44 @@ module Sprockets
       env.static_root = File.join(app.root.join("public"), assets.prefix)
       env.paths.concat assets.paths
       env.logger = Rails.logger
+      env.js_compressor = expand_js_compressor(assets.js_compressor)
+      env.css_compressor = expand_css_compressor(assets.css_compressor)
       env
+    end
+
+    def expand_js_compressor(sym)
+      case sym
+      when :closure
+        require 'closure-compiler'
+        Closure::Compiler.new
+      when :uglifier
+        require 'uglifier'
+        Uglifier.new
+      when :yui
+        require 'yui/compressor'
+        YUI::JavaScriptCompressor.new
+      else
+        sym
+      end
+    end
+
+    def expand_css_compressor(sym)
+      case sym
+      when :scss
+        require 'sass'
+        compressor = Object.new
+        def compressor.compress(source)
+          Sass::Engine.new(source,
+            :syntax => :scss, :style => :compressed
+          ).render
+        end
+        compressor
+      when :yui
+        require 'yui/compressor'
+        YUI::JavaScriptCompressor.new(:munge => true)
+      else
+        sym
+      end
     end
   end
 end
