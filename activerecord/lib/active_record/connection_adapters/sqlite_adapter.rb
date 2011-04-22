@@ -72,6 +72,7 @@ module ActiveRecord
         true
       end
 
+      # Does SQLite support migrations?
       def supports_migrations? #:nodoc:
         true
       end

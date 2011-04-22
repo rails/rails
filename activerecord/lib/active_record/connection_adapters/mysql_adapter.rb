@@ -214,6 +214,7 @@ module ActiveRecord
         true
       end
 
+      # Does MySQL support migrations?
       def supports_migrations? #:nodoc:
         true
       end
