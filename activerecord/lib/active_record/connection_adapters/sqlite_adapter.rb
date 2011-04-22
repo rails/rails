@@ -90,6 +90,8 @@ module ActiveRecord
         sqlite_version >= '3.1.6'
       end
 
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         super
         clear_cache!

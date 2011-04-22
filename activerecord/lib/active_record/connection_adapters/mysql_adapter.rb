@@ -310,6 +310,8 @@ module ActiveRecord
         connect
       end
 
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         @connection.close rescue nil
       end

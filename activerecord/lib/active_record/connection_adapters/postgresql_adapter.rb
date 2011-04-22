@@ -276,7 +276,8 @@ module ActiveRecord
         super
       end
 
-      # Close the connection.
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         clear_cache!
         @connection.close rescue nil
