@@ -626,6 +626,7 @@ module ActiveRecord
         indexes
       end
 
+      # Returns an array of +MysqlColumn+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
