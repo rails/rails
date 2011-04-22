@@ -10,7 +10,7 @@ module ActionView
       # relate to the specified Active Record object. Usage example:
       #
       #    <%= div_for(@person, :class => "foo") do %>
-      #       <%=h @person.name %>
+      #       <%= @person.name %>
       #    <% end %>
       #
       # produces:
@@ -25,8 +25,8 @@ module ActionView
       # that relate to the specified Active Record object. For example:
       #
       #    <%= content_tag_for(:tr, @person) do %>
-      #      <td><%=h @person.first_name %></td>
-      #      <td><%=h @person.last_name %></td>
+      #      <td><%= @person.first_name %></td>
+      #      <td><%= @person.last_name %></td>
       #    <% end %>
       #
       # would produce the following HTML (assuming @person is an instance of
