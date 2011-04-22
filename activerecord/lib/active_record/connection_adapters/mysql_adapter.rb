@@ -208,8 +208,8 @@ module ActiveRecord
         true
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
+      # Returns +true+, since this connection adapter supports prepared statement
+      # caching.
       def supports_statement_cache?
         true
       end
