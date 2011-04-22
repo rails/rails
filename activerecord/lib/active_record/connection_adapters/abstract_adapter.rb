@@ -223,7 +223,9 @@ module ActiveRecord
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
           @logger.debug message if @logger
-          raise translate_exception(e, message)
+          exception = translate_exception(e, message)
+          exception.set_backtrace e.backtrace
+          raise exception
         end
 
         def translate_exception(e, message)
