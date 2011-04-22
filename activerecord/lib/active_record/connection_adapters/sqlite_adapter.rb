@@ -58,10 +58,12 @@ module ActiveRecord
         'SQLite'
       end
 
+      # Returns true if SQLite version is '2.0.0' or greater, false otherwise.
       def supports_ddl_transactions?
         sqlite_version >= '2.0.0'
       end
 
+      # Returns true if SQLite version is '3.6.8' or greater, false otherwise.
       def supports_savepoints?
         sqlite_version >= '3.6.8'
       end
@@ -86,6 +88,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true if SQLite version is '3.1.6' or greater, false otherwise.
       def supports_add_column?
         sqlite_version >= '3.1.6'
       end
@@ -103,10 +106,12 @@ module ActiveRecord
         @statements.clear
       end
 
+      # Returns true if SQLite version is '3.2.6' or greater, false otherwise.
       def supports_count_distinct? #:nodoc:
         sqlite_version >= '3.2.6'
       end
 
+      # Returns true if SQLite version is '3.1.0' or greater, false otherwise.
       def supports_autoincrement? #:nodoc:
         sqlite_version >= '3.1.0'
       end
