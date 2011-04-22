@@ -14,6 +14,7 @@ gem "rack-test", :git => "git://github.com/brynary/rack-test.git"
 gem "sprockets", :git => "git://github.com/sstephenson/sprockets.git"
 gem "coffee-script"
 gem "sass", ">= 3.0"
+gem "uglifier"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
