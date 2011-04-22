@@ -557,7 +557,7 @@ match '*a/foo/*b' => 'test#index'
 
 would match +zoo/woo/foo/bar/baz+ with +params[:a]+ equals +"zoo/woo"+, and +params[:b]+ equals +"bar/baz"+.
 
-NOTE: Starting from Rails 3.1, wildcard route will always matching the optional format segment by default. For example if you have this route:
+NOTE: Starting from Rails 3.1, wildcard routes will always match the optional format segment by default. For example if you have this route:
 
 <ruby>
 map '*pages' => 'pages#show'
