@@ -552,10 +552,6 @@ module ActiveRecord
         end
       end
 
-      def exec_insert(sql, name, binds)
-        exec_query(sql, name, binds)
-      end
-
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)
         unless pk
           _, table = extract_schema_and_table(sql.split(" ", 4)[2])
