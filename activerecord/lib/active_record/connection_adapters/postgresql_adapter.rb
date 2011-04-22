@@ -935,7 +935,7 @@ module ActiveRecord
 
         # Return a DISTINCT ON() clause that's distinct on the columns we want but includes
         # all the required columns for the ORDER BY to work properly.
-        sql = "DISTINCT ON (#{columns}) #{columns}, "
+        sql = "DISTINCT #{columns}, "
         sql << order_columns * ', '
       end
 
