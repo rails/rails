@@ -43,7 +43,7 @@ module ActiveModel
         @observer_instances ||= []
       end
 
-      # Instantiate the global Active Record observers.
+      # Instantiate the global observers.
       def instantiate_observers
         observers.each { |o| instantiate_observer(o) }
       end
