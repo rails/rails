@@ -52,7 +52,7 @@ platforms :ruby do
   gem "sqlite3", "~> 1.3.3"
 
   group :db do
-    gem "pg", ">= 0.9.0"
+    gem "pg", ">= 0.11.0"
     gem "mysql", ">= 2.8.1"
     gem "mysql2", :git => "git://github.com/brianmario/mysql2.git"
   end
