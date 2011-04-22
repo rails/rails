@@ -27,7 +27,6 @@ end
 
 # AS
 gem "memcache-client", ">= 1.8.5"
-gem "fssm", "~> 0.2.5"
 
 platforms :mri_18 do
   gem "system_timer"

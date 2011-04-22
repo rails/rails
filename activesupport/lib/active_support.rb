@@ -42,7 +42,6 @@ module ActiveSupport
 
   autoload :DescendantsTracker
   autoload :FileUpdateChecker
-  autoload :FileWatcher
   autoload :LogSubscriber
   autoload :Notifications
 
