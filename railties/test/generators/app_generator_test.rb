@@ -23,7 +23,7 @@ DEFAULT_APP_FILES = %w(
   lib
   lib/tasks
   log
-  public/images
+  app/assets/images
   script/rails
   test/fixtures
   test/functional
