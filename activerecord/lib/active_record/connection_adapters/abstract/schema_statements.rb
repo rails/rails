@@ -17,6 +17,10 @@ module ActiveRecord
 
       # def tables(name = nil) end
 
+      # Checks to see if the table +table_name+ exists on the database.
+      #
+      # === Example
+      #   table_exists?(:developers)
       def table_exists?(table_name)
         tables.include?(table_name.to_s)
       end
