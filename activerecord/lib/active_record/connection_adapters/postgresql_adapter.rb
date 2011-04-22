@@ -929,10 +929,7 @@ module ActiveRecord
         order_columns.delete_if { |c| c.blank? }
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 
-        # Return a DISTINCT ON() clause that's distinct on the columns we want but includes
-        # all the required columns for the ORDER BY to work properly.
-        sql = "DISTINCT #{columns}, "
-        sql << order_columns * ', '
+        "DISTINCT #{columns}, #{order_columns * ', '}"
       end
 
       protected
