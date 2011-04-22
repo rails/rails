@@ -855,6 +855,9 @@ module ActiveRecord
       end
 
       # Renames a table.
+      #
+      # Example:
+      #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
