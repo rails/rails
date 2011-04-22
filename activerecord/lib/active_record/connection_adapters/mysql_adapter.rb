@@ -563,6 +563,10 @@ module ActiveRecord
         end
       end
 
+      # Drops a MySQL database.
+      #
+      # Example:
+      #   drop_database 'sebastian_development'
       def drop_database(name) #:nodoc:
         execute "DROP DATABASE IF EXISTS `#{name}`"
       end

@@ -643,7 +643,7 @@ module ActiveRecord
         execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
       end
 
-      # Drops a PostgreSQL database
+      # Drops a PostgreSQL database.
       #
       # Example:
       #   drop_database 'matt_development'
