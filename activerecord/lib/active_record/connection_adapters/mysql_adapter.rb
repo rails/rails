@@ -332,6 +332,7 @@ module ActiveRecord
         rows
       end
 
+      # Clear prepared statement cache.
       def clear_cache!
         @statements.values.each do |cache|
           cache[:stmt].close

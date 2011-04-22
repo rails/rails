@@ -96,6 +96,7 @@ module ActiveRecord
         @connection.close rescue nil
       end
 
+      # Clear prepared statement cache.
       def clear_cache!
         @statements.clear
       end

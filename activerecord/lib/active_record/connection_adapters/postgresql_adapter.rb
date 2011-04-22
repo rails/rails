@@ -237,6 +237,7 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      # Clear prepared statement cache.
       def clear_cache!
         @statements.each_value do |value|
           @connection.query "DEALLOCATE #{value}"
