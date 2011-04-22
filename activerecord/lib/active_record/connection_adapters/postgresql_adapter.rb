@@ -214,8 +214,8 @@ module ActiveRecord
         ADAPTER_NAME
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
+      # Returns +true+, since this connection adapter supports prepared statement
+      # caching.
       def supports_statement_cache?
         true
       end
@@ -240,6 +240,7 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      # Clears the prepared statements cache.
       def clear_cache!
         @statements.each_value do |value|
           @connection.query "DEALLOCATE #{value}"
@@ -278,7 +279,8 @@ module ActiveRecord
         super
       end
 
-      # Close the connection.
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         clear_cache!
         @connection.close rescue nil
@@ -641,7 +643,7 @@ module ActiveRecord
         execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
       end
 
-      # Drops a PostgreSQL database
+      # Drops a PostgreSQL database.
       #
       # Example:
       #   drop_database 'matt_development'

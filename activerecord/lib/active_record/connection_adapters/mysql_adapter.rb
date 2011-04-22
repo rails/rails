@@ -208,16 +208,18 @@ module ActiveRecord
         true
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
+      # Returns +true+, since this connection adapter supports prepared statement
+      # caching.
       def supports_statement_cache?
         true
       end
 
+      # Returns true.
       def supports_migrations? #:nodoc:
         true
       end
 
+      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
@@ -308,6 +310,8 @@ module ActiveRecord
         connect
       end
 
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         @connection.close rescue nil
       end
@@ -330,6 +334,7 @@ module ActiveRecord
         rows
       end
 
+      # Clears the prepared statements cache.
       def clear_cache!
         @statements.values.each do |cache|
           cache[:stmt].close
@@ -554,6 +559,10 @@ module ActiveRecord
         end
       end
 
+      # Drops a MySQL database.
+      #
+      # Example:
+      #   drop_database 'sebastian_development'
       def drop_database(name) #:nodoc:
         execute "DROP DATABASE IF EXISTS `#{name}`"
       end

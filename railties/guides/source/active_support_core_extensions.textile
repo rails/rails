@@ -1266,6 +1266,15 @@ WARNING: The option +:separator+ can't be a regexp.
 
 NOTE: Defined in +active_support/core_ext/string/filters.rb+.
 
+h4. +inquiry+
+
+The <tt>inquiry</tt> method converts a string into a +StringInquirer+ object making equality checks prettier.
+
+<ruby>
+"production".inquiry.production? # => true
+"active".inquiry.inactive?       # => false
+</ruby>
+
 h4. Key-based Interpolation
 
 In Ruby 1.9 the <tt>%</tt> string operator supports key-based interpolation, both formatted and unformatted:
@@ -1997,6 +2006,11 @@ Similarly, +from+ returns the tail from the element at the passed index on:
 
 The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is built-in). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
 
+<ruby>
+%w(a b c d).third # => c
+%w(a b c d).fifth # => nil
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/array/access.rb+.
 
 h4. Random Access
@@ -2092,7 +2106,7 @@ h5. +to_xml+
 The method +to_xml+ returns a string containing an XML representation of its receiver:
 
 <ruby>
-Contributor.all(:limit => 2, :order => 'rank ASC').to_xml
+Contributor.limit(2).order(:rank).to_xml
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <contributors type="array">
@@ -2167,7 +2181,7 @@ The name of children nodes is by default the name of the root node singularized.
 The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can configure your own builder via the <tt>:builder</tt> option. The method also accepts options like <tt>:dasherize</tt> and friends, they are forwarded to the builder:
 
 <ruby>
-Contributor.all(:limit => 2, :order => 'rank ASC').to_xml(:skip_types => true)
+Contributor.limit(2).order(:rank).to_xml(:skip_types => true)
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <contributors>
@@ -3407,11 +3421,11 @@ h4. +silence+
 Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
 
 <ruby>
-  logger = Logger.new("log/development.log")
-  logger.silence(Logger::INFO) do
-    logger.debug("In space, no one can hear you scream.")
-    logger.info("Scream all you want, small mailman!")
-  end
+logger = Logger.new("log/development.log")
+logger.silence(Logger::INFO) do
+  logger.debug("In space, no one can hear you scream.")
+  logger.info("Scream all you want, small mailman!")
+end
 </ruby>
 
 h4. +datetime_format=+
@@ -3419,17 +3433,17 @@ h4. +datetime_format=+
 Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a +datetime_format+ method then this is ignored.
 
 <ruby>
-  class Logger::FormatWithTime < Logger::Formatter
-    cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
+class Logger::FormatWithTime < Logger::Formatter
+  cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
 
-    def self.call(severity, timestamp, progname, msg)
-      "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
-    end
+  def self.call(severity, timestamp, progname, msg)
+    "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
   end
+end
 
-  logger = Logger.new("log/development.log")
-  logger.formatter = Logger::FormatWithTime
-  logger.info("<- is the current time")
+logger = Logger.new("log/development.log")
+logger.formatter = Logger::FormatWithTime
+logger.info("<- is the current time")
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/logger.rb+.

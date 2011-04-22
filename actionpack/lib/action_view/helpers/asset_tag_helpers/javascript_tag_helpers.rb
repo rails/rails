@@ -77,11 +77,11 @@ module ActionView
         # Used internally by javascript_include_tag to build the script path.
         #
         # ==== Examples
-        #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
-        #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
-        #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
-        #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
-        #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
+        #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
+        #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
+        #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
+        #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
+        #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
         def javascript_path(source)
           if config.use_sprockets
             asset_path(source, 'js')
@@ -123,11 +123,11 @@ module ActionView
         #   # => <script type="text/javascript" src="/javascripts/common.javascript?1284139606"></script>
         #   #    <script type="text/javascript" src="/elsewhere/cools.js?1423139606"></script>
         #
-        #   javascript_include_tag "http://www.railsapplication.com/xmlhr"
-        #   # => <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js?1284139606"></script>
+        #   javascript_include_tag "http://www.example.com/xmlhr"
+        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js?1284139606"></script>
         #
-        #   javascript_include_tag "http://www.railsapplication.com/xmlhr.js"
-        #   # => <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js?1284139606"></script>
+        #   javascript_include_tag "http://www.example.com/xmlhr.js"
+        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js?1284139606"></script>
         #
         #   javascript_include_tag :defaults
         #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>

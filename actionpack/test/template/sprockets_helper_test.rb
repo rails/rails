@@ -69,10 +69,10 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_equal "/dir/xmlhr.js",
       asset_path("/dir/xmlhr", "js")
 
-    assert_equal "http://www.railsapplication.com/js/xmlhr",
-      asset_path("http://www.railsapplication.com/js/xmlhr", "js")
-    assert_equal "http://www.railsapplication.com/js/xmlhr.js",
-      asset_path("http://www.railsapplication.com/js/xmlhr.js", "js")
+    assert_equal "http://www.example.com/js/xmlhr",
+      asset_path("http://www.example.com/js/xmlhr", "js")
+    assert_equal "http://www.example.com/js/xmlhr.js",
+      asset_path("http://www.example.com/js/xmlhr.js", "js")
   end
 
   test "javascript include tag" do
@@ -83,8 +83,8 @@ class SprocketsHelperTest < ActionView::TestCase
       sprockets_javascript_include_tag("xmlhr")
     assert_equal '<script src="/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js" type="text/javascript"></script>',
       sprockets_javascript_include_tag("xmlhr.js")
-    assert_equal '<script src="http://www.railsapplication.com/xmlhr" type="text/javascript"></script>',
-      sprockets_javascript_include_tag("http://www.railsapplication.com/xmlhr")
+    assert_equal '<script src="http://www.example.com/xmlhr" type="text/javascript"></script>',
+      sprockets_javascript_include_tag("http://www.example.com/xmlhr")
   end
 
   test "stylesheet path" do
@@ -94,10 +94,10 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_equal "/assets/dir/style-d41d8cd98f00b204e9800998ecf8427e.css", asset_path("dir/style.css", "css")
     assert_equal "/dir/style.css", asset_path("/dir/style.css", "css")
 
-    assert_equal "http://www.railsapplication.com/css/style",
-      asset_path("http://www.railsapplication.com/css/style", "css")
-    assert_equal "http://www.railsapplication.com/css/style.css",
-      asset_path("http://www.railsapplication.com/css/style.css", "css")
+    assert_equal "http://www.example.com/css/style",
+      asset_path("http://www.example.com/css/style", "css")
+    assert_equal "http://www.example.com/css/style.css",
+      asset_path("http://www.example.com/css/style.css", "css")
   end
 
   test "stylesheet link tag" do
@@ -109,8 +109,8 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("style.css")
 
-    assert_equal '<link href="http://www.railsapplication.com/style.css" media="screen" rel="stylesheet" type="text/css" />',
-      sprockets_stylesheet_link_tag("http://www.railsapplication.com/style.css")
+    assert_equal '<link href="http://www.example.com/style.css" media="screen" rel="stylesheet" type="text/css" />',
+      sprockets_stylesheet_link_tag("http://www.example.com/style.css")
     assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="all" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("style", :media => "all")
     assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="print" rel="stylesheet" type="text/css" />',
