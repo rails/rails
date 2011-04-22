@@ -219,6 +219,7 @@ module ActiveRecord
         true
       end
 
+      # Does MySQL support finding primary key on non-Active Record tables?
       def supports_primary_key? #:nodoc:
         true
       end
