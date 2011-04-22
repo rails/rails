@@ -3421,11 +3421,11 @@ h4. +silence+
 Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
 
 <ruby>
-  logger = Logger.new("log/development.log")
-  logger.silence(Logger::INFO) do
-    logger.debug("In space, no one can hear you scream.")
-    logger.info("Scream all you want, small mailman!")
-  end
+logger = Logger.new("log/development.log")
+logger.silence(Logger::INFO) do
+  logger.debug("In space, no one can hear you scream.")
+  logger.info("Scream all you want, small mailman!")
+end
 </ruby>
 
 h4. +datetime_format=+
@@ -3433,17 +3433,17 @@ h4. +datetime_format=+
 Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a +datetime_format+ method then this is ignored.
 
 <ruby>
-  class Logger::FormatWithTime < Logger::Formatter
-    cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
+class Logger::FormatWithTime < Logger::Formatter
+  cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
 
-    def self.call(severity, timestamp, progname, msg)
-      "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
-    end
+  def self.call(severity, timestamp, progname, msg)
+    "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
   end
+end
 
-  logger = Logger.new("log/development.log")
-  logger.formatter = Logger::FormatWithTime
-  logger.info("<- is the current time")
+logger = Logger.new("log/development.log")
+logger.formatter = Logger::FormatWithTime
+logger.info("<- is the current time")
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/logger.rb+.
