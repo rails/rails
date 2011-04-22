@@ -473,21 +473,20 @@ module ActiveRecord
         }
 
         typehash = ftypes.group_by { |_, type| type }
-        binaries = (typehash[BYTEA_COLUMN_TYPE_OID] || []).map { |x| x.first }
-        monies   = (typehash[MONEY_COLUMN_TYPE_OID] || []).map { |x| x.first }
+        binaries = typehash[BYTEA_COLUMN_TYPE_OID] || []
+        monies   = typehash[MONEY_COLUMN_TYPE_OID] || []
 
         rows.each do |row|
           # unescape string passed BYTEA field (OID == 17)
-          binaries.each do |index|
-            data       = row[index]
-            row[index] = unescape_bytea(data)
+          binaries.each do |index, _|
+            row[index] = unescape_bytea(row[index])
           end
 
           # If this is a money type column and there are any currency symbols,
           # then strip them off. Indeed it would be prettier to do this in
           # PostgreSQLColumn.string_to_decimal but would break form input
           # fields that call value_before_type_cast.
-          monies.each do |index|
+          monies.each do |index, _|
             data = row[index]
             # Because money output is formatted according to the locale, there are two
             # cases to consider (note the decimal separators):
