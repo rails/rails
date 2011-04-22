@@ -2006,6 +2006,11 @@ Similarly, +from+ returns the tail from the element at the passed index on:
 
 The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is built-in). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
 
+<ruby>
+%w(a b c d).third # => c
+%w(a b c d).fifth # => nil
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/array/access.rb+.
 
 h4. Random Access
