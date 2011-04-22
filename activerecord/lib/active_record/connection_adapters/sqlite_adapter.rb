@@ -72,7 +72,7 @@ module ActiveRecord
         true
       end
 
-      # Returns true.
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations? #:nodoc:
         true
       end

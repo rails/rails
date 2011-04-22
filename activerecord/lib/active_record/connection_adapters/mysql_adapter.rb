@@ -208,13 +208,13 @@ module ActiveRecord
         true
       end
 
-      # Returns +true+, since this connection adapter supports prepared statement
+      # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
         true
       end
 
-      # Returns true.
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations? #:nodoc:
         true
       end
@@ -224,6 +224,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true, since this connection adapter supports savepoints.
       def supports_savepoints? #:nodoc:
         true
       end

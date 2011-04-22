@@ -290,7 +290,7 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
-      # Does PostgreSQL support migrations?
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
       end
@@ -316,6 +316,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true, since this connection adapter supports savepoints.
       def supports_savepoints?
         true
       end
