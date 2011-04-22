@@ -11,7 +11,7 @@ module RailtiesTest
     end
 
     def test_serving_sprockets_assets
-      @plugin.write "app/assets/javascripts/engine.js.coffee", "square = (x) -> x * x"
+      @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
 
       boot_rails
       require 'rack/test'
@@ -19,7 +19,7 @@ module RailtiesTest
       extend Rack::Test::Methods
 
       get "/assets/engine.js"
-      assert_match "square = function(x) {", last_response.body
+      assert_match "alert();", last_response.body
     end
 
     def test_copying_migrations

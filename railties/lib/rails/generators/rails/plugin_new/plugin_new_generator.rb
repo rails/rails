@@ -93,7 +93,7 @@ task :default => :test
         remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
-        remove_file "public/images/rails.png"
+        remove_file "app/assets/images/rails.png"
         remove_file "public/index.html"
         remove_file "public/robots.txt"
         remove_file "README"
