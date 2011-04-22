@@ -897,8 +897,9 @@ The macro-style class methods can also receive a block. Consider using this styl
 class User < ActiveRecord::Base
   validates_presence_of :login, :email
 
-  before_create {|user| user.name = user.login.capitalize
-	if user.name.blank?}
+  before_create do |user|
+    user.name = user.login.capitalize if user.name.blank?
+  end
 end
 </ruby>
 
