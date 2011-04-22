@@ -55,6 +55,13 @@ module ActiveRecord
       def exec_query(sql, name = 'SQL', binds = [])
       end
 
+      # Executes insert +sql+ statement in the context of this connection using 
+      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # the executed +sql+ statement.
+      def exec_insert(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
       # Returns the last auto-generated ID from the affected table.
       #
       # +id_value+ will be returned unless the value is nil, in

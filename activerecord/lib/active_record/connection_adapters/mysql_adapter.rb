@@ -427,10 +427,6 @@ module ActiveRecord
         end
       end
 
-      def exec_insert(sql, name, binds)
-        exec_query(sql, name, binds)
-      end
-
       def last_inserted_id(result)
         @connection.insert_id
       end
