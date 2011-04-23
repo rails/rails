@@ -10,10 +10,27 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal expected, sanitized
   end
 
+  def test_only_moderator_scope_attribute_accessible
+    user = SpecialUser.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com" }
+    sanitized = user.sanitize_for_mass_assignment(expected.merge("admin" => true), :moderator)
+    assert_equal expected, sanitized
+
+    sanitized = user.sanitize_for_mass_assignment({ "name" => "John Smith", "email" => "john@smith.com", "admin" => true })
+    assert_equal({}, sanitized)
+  end
+
   def test_attributes_accessible
     user = Person.new
     expected = { "name" => "John Smith", "email" => "john@smith.com" }
-    sanitized = user.sanitize_for_mass_assignment(expected.merge("super_powers" => true))
+    sanitized = user.sanitize_for_mass_assignment(expected.merge("admin" => true))
+    assert_equal expected, sanitized
+  end
+
+  def test_admin_scoped_attributes_accessible
+    user = Person.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com", "admin" => true }
+    sanitized = user.sanitize_for_mass_assignment(expected.merge("super_powers" => true), :admin)
     assert_equal expected, sanitized
   end
 
@@ -26,20 +43,30 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
 
   def test_mass_assignment_protection_inheritance
     assert_blank LoosePerson.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator']), LoosePerson.protected_attributes
+    assert_equal Set.new(['credit_rating', 'administrator']), LoosePerson.protected_attributes
+
+    assert_blank LoosePerson.accessible_attributes
+    assert_equal Set.new(['credit_rating']), LoosePerson.protected_attributes(:admin)
 
     assert_blank LooseDescendant.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number']), LooseDescendant.protected_attributes
+    assert_equal Set.new(['credit_rating', 'administrator', 'phone_number']), LooseDescendant.protected_attributes
 
     assert_blank LooseDescendantSecond.accessible_attributes
-    assert_equal Set.new([ 'credit_rating', 'administrator', 'phone_number', 'name']), LooseDescendantSecond.protected_attributes,
+    assert_equal Set.new(['credit_rating', 'administrator', 'phone_number', 'name']), LooseDescendantSecond.protected_attributes,
       'Running attr_protected twice in one class should merge the protections'
 
     assert_blank TightPerson.protected_attributes - TightPerson.attributes_protected_by_default
-    assert_equal Set.new([ 'name', 'address' ]), TightPerson.accessible_attributes
+    assert_equal Set.new(['name', 'address']), TightPerson.accessible_attributes
+
+    assert_blank TightPerson.protected_attributes(:admin) - TightPerson.attributes_protected_by_default
+    assert_equal Set.new(['name', 'address', 'admin']), TightPerson.accessible_attributes(:admin)
 
     assert_blank TightDescendant.protected_attributes - TightDescendant.attributes_protected_by_default
-    assert_equal Set.new([ 'name', 'address', 'phone_number' ]), TightDescendant.accessible_attributes
+    assert_equal Set.new(['name', 'address', 'phone_number']), TightDescendant.accessible_attributes
+
+    assert_blank TightDescendant.protected_attributes(:admin) - TightDescendant.attributes_protected_by_default
+    assert_equal Set.new(['name', 'address', 'admin', 'super_powers']), TightDescendant.accessible_attributes(:admin)
+
   end
 
   def test_mass_assignment_multiparameter_protector
