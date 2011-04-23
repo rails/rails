@@ -9,8 +9,9 @@ require 'uri'
 module Rails
   module Generators
     class AppBase < Base
+      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 )
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db ) + JDBC_DATABASES
+      DATABASES.concat(JDBC_DATABASES)
       JAVASCRIPTS = %w( jquery prototype )
 
       attr_accessor :rails_template
