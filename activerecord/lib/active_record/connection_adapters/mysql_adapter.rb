@@ -882,6 +882,7 @@ module ActiveRecord
           version[0] >= 5
         end
 
+        # Returns the version of the connected MySQL server.
         def version
           @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
         end
