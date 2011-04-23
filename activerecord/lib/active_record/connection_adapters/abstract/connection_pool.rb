@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      # A cached lookup for table existence
+      # A cached lookup for table existence.
       def table_exists?(name)
         return true if @tables.key? name
 
@@ -135,7 +135,7 @@ module ActiveRecord
         @tables.clear
       end
 
-      # Clear out internal caches for table with +table_name+
+      # Clear out internal caches for table with +table_name+.
       def clear_table_cache!(table_name)
         @columns.delete table_name
         @columns_hash.delete table_name
@@ -193,7 +193,7 @@ module ActiveRecord
         @connections = []
       end
 
-      # Clears the cache which maps classes
+      # Clears the cache which maps classes.
       def clear_reloadable_connections!
         @reserved_connections.each do |name, conn|
           checkin conn
@@ -365,7 +365,7 @@ module ActiveRecord
         @connection_pools.each_value {|pool| pool.release_connection }
       end
 
-      # Clears the cache which maps classes
+      # Clears the cache which maps classes.
       def clear_reloadable_connections!
         @connection_pools.each_value {|pool| pool.clear_reloadable_connections! }
       end
