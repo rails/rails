@@ -158,7 +158,7 @@ module Rails
       end
 
       def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql)
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql jdbcsqlite3)
         case options[:database]
         when "oracle"     then "ruby-oci8"
         when "postgresql" then "pg"
