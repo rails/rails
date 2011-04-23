@@ -131,8 +131,8 @@ class ViewLoadPathsTest < ActionController::TestCase
     assert_equal "Hello overridden world!", @response.body
   end
 
-  def test_override_view_paths_with_custom_resolver
-    resolver_class = Class.new(ActionView::PathResolver) do
+  def test_decorate_view_paths_with_custom_resolver
+    decorator_class = Class.new(ActionView::PathResolver) do
       def initialize(path_set)
         @path_set = path_set
       end
@@ -140,7 +140,7 @@ class ViewLoadPathsTest < ActionController::TestCase
       def find_all(*args)
         @path_set.find_all(*args).collect do |template|
           ::ActionView::Template.new(
-            "Customized body",
+            "Decorated body",
             template.identifier,
             template.handler,
             {
@@ -152,12 +152,12 @@ class ViewLoadPathsTest < ActionController::TestCase
       end
     end
 
-    resolver = resolver_class.new(TestController.view_paths)
-    TestController.view_paths = ActionView::PathSet.new.push(resolver)
+    decorator = decorator_class.new(TestController.view_paths)
+    TestController.view_paths = ActionView::PathSet.new.push(decorator)
 
     get :hello_world
     assert_response :success
-    assert_equal "Customized body", @response.body
+    assert_equal "Decorated body", @response.body
   end
 
   def test_inheritance
