@@ -943,7 +943,7 @@ module ActiveRecord
       end
 
       protected
-        # Returns the version of the connected PostgreSQL version.
+        # Returns the version of the connected PostgreSQL server.
         def postgresql_version
           @postgresql_version ||=
             if @connection.respond_to?(:server_version)
