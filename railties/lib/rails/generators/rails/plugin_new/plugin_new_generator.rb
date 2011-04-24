@@ -135,6 +135,12 @@ task :default => :test
       end
     end
 
+    def images
+      if mountable? || full?
+        empty_directory_with_gitkeep "app/assets/images"
+      end
+    end
+
     def script(force = false)
       directory "script", :force => force do |content|
         "#{shebang}\n" + content
@@ -197,6 +203,10 @@ task :default => :test
 
       def create_javascript_files
         build(:javascripts)
+      end
+
+      def create_images_directory
+        build(:images)
       end
 
       def create_script_files
