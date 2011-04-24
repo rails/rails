@@ -136,7 +136,7 @@ task :default => :test
     end
 
     def images
-      if mountable? || full?
+      if mountable?
         empty_directory_with_gitkeep "app/assets/images"
       end
     end
