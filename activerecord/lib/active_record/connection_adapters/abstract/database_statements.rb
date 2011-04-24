@@ -287,10 +287,6 @@ module ActiveRecord
         execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
       end
 
-      def null_insert_value
-        Arel.sql 'DEFAULT'
-      end
-
       def empty_insert_statement_value
         "VALUES(DEFAULT)"
       end
