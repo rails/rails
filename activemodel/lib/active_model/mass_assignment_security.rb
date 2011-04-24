@@ -34,7 +34,7 @@ module ActiveModel
     #
     #     protected
     #
-    #     def scope
+    #     def account_params
     #       scope = admin ? :admin : :default
     #       sanitize_for_mass_assignment(params[:account], scope)
     #     end
