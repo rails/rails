@@ -6,7 +6,7 @@ source 'http://rubygems.org'
 
 # Asset template engines
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
-gem 'sass', '~> 3.1.0.alpha'
+gem 'sass'
 gem 'coffee-script'
 # gem 'uglifier'
 
