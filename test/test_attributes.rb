@@ -2,6 +2,14 @@ require 'helper'
 
 module Arel
   describe 'Attributes' do
+    it 'responds to lower' do
+      relation  = Table.new(:users)
+      attribute = relation[:foo]
+      node      = attribute.lower
+      assert_equal 'LOWER', node.name
+      assert_equal [attribute], node.expressions
+    end
+
     describe 'for' do
       it 'deals with unknown column types' do
         column = Struct.new(:type).new :crazy

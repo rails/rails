@@ -4,6 +4,12 @@ module Arel
       include Arel::Expressions
       include Arel::Predications
       include Arel::Math
+
+      ###
+      # Create a node for lowering this attribute
+      def lower
+        relation.lower self
+      end
     end
 
     class String    < Attribute; end
