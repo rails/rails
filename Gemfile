@@ -13,7 +13,7 @@ gem "rack-test", :git => "git://github.com/brynary/rack-test.git"
 
 gem "sprockets", :git => "git://github.com/sstephenson/sprockets.git"
 gem "coffee-script"
-gem "sass", ">= 3.0"
+gem "sass"
 gem "uglifier"
 
 gem "rake",  ">= 0.8.7"
