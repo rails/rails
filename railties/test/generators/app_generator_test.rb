@@ -131,6 +131,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql2["']$/
   end
 
+  def test_config_jdbcmysql_database
+    run_generator([destination_root, "-d", "jdbcmysql"])
+    assert_file "config/database.yml", /jdbcmysql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+  end
+
+  def test_config_jdbcsqlite3_database
+    run_generator([destination_root, "-d", "jdbcsqlite3"])
+    assert_file "config/database.yml", /jdbcsqlite3/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
