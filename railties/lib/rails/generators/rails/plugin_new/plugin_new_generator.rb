@@ -13,11 +13,13 @@ module Rails
         directory "app"
         template "#{app_templates_dir}/app/views/layouts/application.html.erb.tt",
                  "app/views/layouts/#{name}/application.html.erb"
+        empty_directory_with_gitkeep "app/assets/images"
       elsif full?
         empty_directory_with_gitkeep "app/models"
         empty_directory_with_gitkeep "app/controllers"
         empty_directory_with_gitkeep "app/views"
         empty_directory_with_gitkeep "app/helpers"
+        empty_directory_with_gitkeep "app/assets/images"
       end
     end
 
@@ -132,12 +134,6 @@ task :default => :test
         end
       elsif full?
         empty_directory_with_gitkeep "app/assets/javascripts"
-      end
-    end
-
-    def images
-      if mountable?
-        empty_directory_with_gitkeep "app/assets/images"
       end
     end
 

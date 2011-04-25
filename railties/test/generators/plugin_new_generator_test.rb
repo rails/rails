@@ -140,7 +140,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     `bundle install`
-    assert_match(/2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
+    assert_match(/1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
   def test_creating_engine_in_full_mode
