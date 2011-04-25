@@ -12,7 +12,7 @@ require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
 require 'models/minivan'
-require 'models/loose_person'
+require 'models/person'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 

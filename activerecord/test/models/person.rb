@@ -48,3 +48,22 @@ class PersonWithDependentNullifyJobs < ActiveRecord::Base
   has_many :references, :foreign_key => :person_id
   has_many :jobs, :source => :job, :through => :references, :dependent => :nullify
 end
+
+
+class LoosePerson < ActiveRecord::Base
+  self.table_name = 'people'
+  self.abstract_class = true
+
+  attr_protected :comments
+  attr_protected :as => :admin
+end
+
+class LooseDescendant < LoosePerson; end
+
+class TightPerson < ActiveRecord::Base
+  self.table_name = 'people'
+  attr_accessible :first_name, :gender
+  attr_accessible :first_name, :gender, :comments, :as => :admin
+end
+
+class TightDescendant < TightPerson; end

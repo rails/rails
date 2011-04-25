@@ -258,6 +258,18 @@ module ApplicationTests
       assert_equal res, last_response.body # value should be unchanged
     end
 
+    test "sets all Active Record models to whitelist all attributes by default" do
+      add_to_config <<-RUBY
+        config.active_record.whitelist_attributes = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList,
+                   ActiveRecord::Base.active_authorizers[:default].class
+      assert_equal [""], ActiveRecord::Base.active_authorizers[:default].to_a
+    end
+
     test "registers interceptors with ActionMailer" do
       add_to_config <<-RUBY
         config.action_mailer.interceptors = MyMailInterceptor

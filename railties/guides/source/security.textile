@@ -418,10 +418,17 @@ To avoid this, Rails provides two class methods in your Active Record class to c
 attr_protected :admin
 </ruby>
 
++attr_protected+ also optionally takes a scope option using :as which allows you to define multiple mass-assignment groupings. If no scope is defined then attributes will be added to the default group.
+
+<ruby>
+attr_protected :last_login, :as => :admin
+</ruby>
+
 A much better way, because it follows the whitelist-principle, is the +attr_accessible+ method. It is the exact opposite of +attr_protected+, because _(highlight)it takes a list of attributes that will be accessible_. All other attributes will be protected. This way you won't forget to protect attributes when adding new ones in the course of development. Here is an example:
 
 <ruby>
 attr_accessible :name
+attr_accessible :name, :is_admin, :as => :admin
 </ruby>
 
 If you want to set a protected attribute, you will to have to assign it individually:
@@ -434,13 +441,31 @@ params[:user] # => {:name => "ow3ned", :admin => true}
 @user.admin # => true
 </ruby>
 
-A more paranoid technique to protect your whole project would be to enforce that all models whitelist their accessible attributes. This can be easily achieved with a very simple initializer:
+When assigning attributes in Active Record using +new+, +attributes=+, or +update_attributes+ the :default scope will be used. To assign attributes using different scopes you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default scope will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
 
 <ruby>
-ActiveRecord::Base.send(:attr_accessible, nil)
+@user = User.new
+
+@user.assign_attributes({ :name => 'Josh', :is_admin => true })
+@user.name # => Josh
+@user.is_admin # => false
+
+@user.assign_attributes({ :name => 'Josh', :is_admin => true }, :as => :admin)
+@user.name # => Josh
+@user.is_admin # => true
+
+@user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
+@user.name # => Josh
+@user.is_admin # => true
 </ruby>
 
-This will create an empty whitelist of attributes available for mass assignment for all models in your app. As such, your models will need to explicitly whitelist accessible parameters by using an +attr_accessible+ declaration. This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to insert this initializer, run your tests, and expose each attribute (via +attr_accessible+) as dictated by your failing tests.
+A more paranoid technique to protect your whole project would be to enforce that all models define their accessible attributes.  This can be easily achieved with a very simple application config option of:
+
+<ruby>
+config.active_record.whitelist_attributes = true
+</ruby>
+
+This will create an empty whitelist of attributes available for mass-assignment for all models in your app. As such, your models will need to explicitly whitelist or blacklist accessible parameters by using an +attr_accessible+ or +attr_protected+ declaration.  This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to use this application config option; run your tests, and expose each attribute (via +attr_accessible+ or +attr_protected+) as dictated by your failing tests.
 
 h3. User Management
 

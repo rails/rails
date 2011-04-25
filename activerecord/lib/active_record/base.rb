@@ -1640,10 +1640,49 @@ end
       #   user.is_admin?  # => true
       def attributes=(new_attributes, guard_protected_attributes = true)
         return unless new_attributes.is_a?(Hash)
+        if guard_protected_attributes
+          assign_attributes(new_attributes)
+        else
+          assign_attributes(new_attributes, :without_protection => true)
+        end
+      end
+
+      # Allows you to set all the attributes for a particular mass-assignment
+      # security scope by passing in a hash of attributes with keys matching
+      # the attribute names (which again matches the column names) and the scope
+      # name using the :as option.
+      #
+      # To bypass mass-assignment security you can use the :without_protection => true
+      # option.
+      #
+      #   class User < ActiveRecord::Base
+      #     attr_accessible :name
+      #     attr_accessible :name, :is_admin, :as => :admin
+      #   end
+      #
+      #   user = User.new
+      #   user.assign_attributes({ :name => 'Josh', :is_admin => true })
+      #   user.name       # => "Josh"
+      #   user.is_admin?  # => false
+      #
+      #   user = User.new
+      #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :as => :admin)
+      #   user.name       # => "Josh"
+      #   user.is_admin?  # => true
+      #
+      #   user = User.new
+      #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
+      #   user.name       # => "Josh"
+      #   user.is_admin?  # => true
+      def assign_attributes(new_attributes, options = {})
         attributes = new_attributes.stringify_keys
+        scope = options[:as] || :default
 
         multi_parameter_attributes = []
-        attributes = sanitize_for_mass_assignment(attributes) if guard_protected_attributes
+
+        unless options[:without_protection]
+          attributes = sanitize_for_mass_assignment(attributes, scope)
+        end
 
         attributes.each do |k, v|
           if k.include?("(")
