@@ -22,6 +22,13 @@ module Arel
         assert_instance_of Nodes::On, on
         assert_equal :one, on.expr
       end
+
+      def test_lower
+        lower = @factory.lower :one
+        assert_instance_of Nodes::NamedFunction, lower
+        assert_equal 'LOWER', lower.name
+        assert_equal [:one], lower.expressions
+      end
     end
   end
 end

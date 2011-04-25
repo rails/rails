@@ -25,5 +25,11 @@ module Arel
     def grouping expr
       Nodes::Grouping.new expr
     end
+
+    ###
+    # Create a LOWER() function
+    def lower column
+      Nodes::NamedFunction.new 'LOWER', [column]
+    end
   end
 end
