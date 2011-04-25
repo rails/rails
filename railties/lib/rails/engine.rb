@@ -286,6 +286,27 @@ module Rails
   #
   # This code will use <tt>my_engine.user_path(@user)</tt> to generate the proper route.
   #
+  # == Isolated engine's helpers
+  #
+  # Sometimes you may want to isolate engine, but use helpers that are defined for it.
+  # If you want to share just a few specific helpers you can add them to application's
+  # helpers in ApplicationController:
+  #
+  # class ApplicationController < ActionController::Base
+  #   helper MyEngine::SharedEngineHelper
+  # end
+  #
+  # If you want to include all of the engine's helpers, you can use #helpers method on egine's
+  # instance:
+  #
+  # class ApplicationController < ActionController::Base
+  #   helper MyEngine::Engine.helpers
+  # end
+  #
+  # It will include all of the helpers from engine's directory. Take into account that this does
+  # not include helpers defined in controllers with helper_method or other similar solutions,
+  # only helpers defined in helpers directory will be included.
+  #
   # == Migrations & seed data
   #
   # Engines can have their own migrations. The default path for migrations is exactly the same
@@ -382,6 +403,24 @@ module Rails
 
     def railties
       @railties ||= self.class::Railties.new(config)
+    end
+
+    def helpers
+      @helpers ||= begin
+        helpers = Module.new
+
+        helpers_paths = if config.respond_to?(:helpers_paths)
+          config.helpers_paths
+        else
+          paths["app/helpers"].existent
+        end
+
+        all = ActionController::Base.send(:all_helpers_from_path, helpers_paths)
+        ActionController::Base.send(:modules_for_helpers, all).each do |mod|
+          helpers.send(:include, mod)
+        end
+        helpers
+      end
     end
 
     def app

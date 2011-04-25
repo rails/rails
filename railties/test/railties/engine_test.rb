@@ -584,6 +584,51 @@ module RailtiesTest
       assert_equal Bukkits::Engine.instance, Rails::Engine.find(engine_path)
     end
 
+    test "gather isolated engine's helpers in Engine#helpers" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      app_file "app/helpers/some_helper.rb", <<-RUBY
+        module SomeHelper
+          def foo
+            'foo'
+          end
+        end
+      RUBY
+
+      @plugin.write "app/helpers/bukkits/engine_helper.rb", <<-RUBY
+        module Bukkits
+          module EngineHelper
+            def bar
+              'bar'
+            end
+          end
+        end
+      RUBY
+
+      @plugin.write "app/helpers/engine_helper.rb", <<-RUBY
+        module EngineHelper
+          def baz
+            'baz'
+          end
+        end
+      RUBY
+
+      add_to_config("config.action_dispatch.show_exceptions = false")
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      methods = Bukkits::Engine.helpers.public_instance_methods.sort
+      expected = ["bar", "baz"]
+      assert_equal expected, methods
+    end
+
   private
     def app
       Rails.application
