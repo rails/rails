@@ -112,17 +112,6 @@ module AbstractController
         default_helper_module! unless anonymous?
       end
 
-      private
-      # Makes all the (instance) methods in the helper module available to templates
-      # rendered through this controller.
-      #
-      # ==== Parameters
-      # * <tt>module</tt> - The module to include into the current helper module
-      #   for the class
-      def add_template_helper(mod)
-        _helpers.module_eval { include mod }
-      end
-
       # Returns a list of modules, normalized from the acceptable kinds of
       # helpers with the following behavior:
       #
@@ -153,6 +142,17 @@ module AbstractController
             raise ArgumentError, "helper must be a String, Symbol, or Module"
           end
         end
+      end
+
+      private
+      # Makes all the (instance) methods in the helper module available to templates
+      # rendered through this controller.
+      #
+      # ==== Parameters
+      # * <tt>module</tt> - The module to include into the current helper module
+      #   for the class
+      def add_template_helper(mod)
+        _helpers.module_eval { include mod }
       end
 
       def default_helper_module!

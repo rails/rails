@@ -415,8 +415,8 @@ module Rails
           paths["app/helpers"].existent
         end
 
-        all = ActionController::Base.send(:all_helpers_from_path, helpers_paths)
-        ActionController::Base.send(:modules_for_helpers, all).each do |mod|
+        all = ActionController::Base.all_helpers_from_path(helpers_paths)
+        ActionController::Base.modules_for_helpers(all).each do |mod|
           helpers.send(:include, mod)
         end
         helpers
