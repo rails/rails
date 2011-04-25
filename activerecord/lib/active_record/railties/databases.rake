@@ -70,7 +70,13 @@ db_namespace = namespace :db do
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
         creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
-        error_class = config['adapter'] =~ /mysql2/ ? Mysql2::Error : Mysql::Error
+        if config['adapter'] =~ /jdbc/
+          #FIXME After Jdbcmysql gives this class
+          require 'active_record/railties/jdbcmysql_error'
+          error_class = ArJdbcMySQL::Error
+        else
+          error_class = config['adapter'] =~ /mysql2/ ? Mysql2::Error : Mysql::Error
+        end
         access_denied_error = 1045
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
