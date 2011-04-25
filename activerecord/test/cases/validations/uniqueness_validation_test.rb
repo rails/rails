@@ -162,6 +162,32 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_validate_case_sensitive_uniqueness_with_special_sql_like_chars
+    Topic.validates_uniqueness_of(:title, :case_sensitive => true)
+
+    t = Topic.new("title" => "I'm unique!")
+    assert t.save, "Should save t as unique"
+
+    t2 = Topic.new("title" => "I'm %")
+    assert t2.save, "Should save t2 as unique"
+
+    t3 = Topic.new("title" => "I'm uniqu_!")
+    assert t3.save, "Should save t3 as unique"
+  end
+
+  def test_validate_case_insensitive_uniqueness_with_special_sql_like_chars
+    Topic.validates_uniqueness_of(:title, :case_sensitive => false)
+
+    t = Topic.new("title" => "I'm unique!")
+    assert t.save, "Should save t as unique"
+
+    t2 = Topic.new("title" => "I'm %")
+    assert t2.save, "Should save t2 as unique"
+
+    t3 = Topic.new("title" => "I'm uniqu_!")
+    assert t3.save, "Should save t3 as unique"
+  end
+
   def test_validate_case_sensitive_uniqueness
     Topic.validates_uniqueness_of(:title, :case_sensitive => true, :allow_nil => true)
 
