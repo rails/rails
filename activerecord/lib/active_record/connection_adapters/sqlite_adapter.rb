@@ -346,10 +346,6 @@ module ActiveRecord
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 
-      def null_insert_value
-        Arel.sql 'NULL'
-      end
-
       def empty_insert_statement_value
         "VALUES(NULL)"
       end
