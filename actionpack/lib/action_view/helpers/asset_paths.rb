@@ -12,13 +12,13 @@ module ActionView
         @controller = controller
       end
 
-      # Add the extension +ext+ if not present. Return full URLs otherwise untouched.
+      # Add the extension +ext+ if not present. Return full or scheme-relative URLs otherwise untouched.
       # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
       # roots. Rewrite the asset path for cache-busting asset ids. Include
       # asset host, if configured, with the correct request protocol.
       def compute_public_path(source, dir, ext = nil, include_host = true)
         source = source.to_s
-        return source if is_uri?(source)
+        return source if is_uri?(source) || is_scheme_relative_uri?(source)
 
         source = rewrite_extension(source, dir, ext) if ext
         source = "/#{dir}/#{source}" unless source[0] == ?/
@@ -34,6 +34,13 @@ module ActionView
 
       def is_uri?(path)
         path =~ %r{^[-a-z]+://|^cid:}
+      end
+
+      # A URI relative to a base URI's scheme?
+      # See http://labs.apache.org/webarch/uri/rfc/rfc3986.html#relative-normal
+      # "//g" => "http://g"
+      def is_scheme_relative_uri?(path)
+        path =~ %r{^//}
       end
 
     private
