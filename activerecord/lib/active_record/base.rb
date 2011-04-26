@@ -1621,11 +1621,11 @@ end
       # Allows you to set all the attributes at once by passing in a hash with keys
       # matching the attribute names (which again matches the column names).
       #
-      # If +guard_protected_attributes+ is true (the default), then sensitive
-      # attributes can be protected from this form of mass-assignment by using
-      # the +attr_protected+ macro. Or you can alternatively specify which
-      # attributes *can* be accessed with the +attr_accessible+ macro. Then all the
-      # attributes not included in that won't be allowed to be mass-assigned.
+      # If any attributes are protected by either +attr_protected+ or
+      # +attr_accessible+ then only settable attributes will be assigned.
+      #
+      # The +guard_protected_attributes+ argument is now deprecated, use
+      # the +assign_attributes+ method if you want to bypass mass-assignment security.
       #
       #   class User < ActiveRecord::Base
       #     attr_protected :is_admin
@@ -1635,11 +1635,16 @@ end
       #   user.attributes = { :username => 'Phusion', :is_admin => true }
       #   user.username   # => "Phusion"
       #   user.is_admin?  # => false
-      #
-      #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
-      #   user.is_admin?  # => true
-      def attributes=(new_attributes, guard_protected_attributes = true)
+      def attributes=(new_attributes, guard_protected_attributes = nil)
+        unless guard_protected_attributes.nil?
+          message = "the use of 'guard_protected_attributes' will be removed from the next major release of rails, " +
+                    "if you want to bypass mass-assignment security then look into using assign_attributes"
+          ActiveSupport::Deprecation.warn(message)
+        end
+
         return unless new_attributes.is_a?(Hash)
+
+        guard_protected_attributes ||= true
         if guard_protected_attributes
           assign_attributes(new_attributes)
         else
