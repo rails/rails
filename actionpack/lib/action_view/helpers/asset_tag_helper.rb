@@ -57,7 +57,7 @@ module ActionView
     # +asset_host+ to a proc like this:
     #
     #   ActionController::Base.asset_host = Proc.new { |source|
-    #     "http://assets#{source.hash % 2 + 1}.example.com"
+    #     "http://assets#{Digest::MD5.hexdigest(source).to_i(16) % 2 + 1}.example.com"
     #   }
     #   image_tag("rails.png")
     #   # => <img alt="Rails" src="http://assets1.example.com/images/rails.png?1230601161" />
