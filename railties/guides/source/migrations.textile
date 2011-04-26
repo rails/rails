@@ -342,10 +342,14 @@ h4. Writing Your +change+ Method
 
 The +change+ method removes the need to write both +up+ and +down+ methods in those cases that Rails know how to revert the changes automatically. Currently, the +change+ method supports only these migration definitions:
 
-* +create_table+
 * +add_column+
-* +rename_column+
 * +add_index+
+* +add_timestamp+
+* +create_table+
+* +remove_timestamps+
+* +rename_column+
+* +rename_index+
+* +rename_table+
 
 If you're going to use other methods, you'll have to write the +up+ and +down+ methods normally.
 
