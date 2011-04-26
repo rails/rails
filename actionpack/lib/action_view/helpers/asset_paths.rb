@@ -18,7 +18,7 @@ module ActionView
       # asset host, if configured, with the correct request protocol.
       def compute_public_path(source, dir, ext = nil, include_host = true)
         source = source.to_s
-        return source if is_uri?(source) || is_scheme_relative_uri?(source)
+        return source if is_uri?(source)
 
         source = rewrite_extension(source, dir, ext) if ext
         source = "/#{dir}/#{source}" unless source[0] == ?/
@@ -33,14 +33,7 @@ module ActionView
       end
 
       def is_uri?(path)
-        path =~ %r{^[-a-z]+://|^cid:}
-      end
-
-      # A URI relative to a base URI's scheme?
-      # See http://labs.apache.org/webarch/uri/rfc/rfc3986.html#relative-normal
-      # "//g" => "http://g"
-      def is_scheme_relative_uri?(path)
-        path =~ %r{^//}
+        path =~ %r{^[-a-z]+://|^cid:|^//}
       end
 
     private
