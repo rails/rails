@@ -95,6 +95,9 @@ module ActiveRecord
             # XML type
             when 'xml'
               :xml
+            # tsvector type
+            when 'tsvector'
+              :tsvector
             # Arrays
             when /^\D+\[\]$/
               :string
@@ -186,6 +189,11 @@ module ActiveRecord
           options = args.extract_options!
           column(args[0], 'xml', options)
         end
+
+        def tsvector(*args)
+          options = args.extract_options!
+          column(args[0], 'tsvector', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -203,7 +211,8 @@ module ActiveRecord
         :date        => { :name => "date" },
         :binary      => { :name => "bytea" },
         :boolean     => { :name => "boolean" },
-        :xml         => { :name => "xml" }
+        :xml         => { :name => "xml" },
+        :tsvector    => { :name => "tsvector" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
