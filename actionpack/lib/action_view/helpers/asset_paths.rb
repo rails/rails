@@ -12,7 +12,7 @@ module ActionView
         @controller = controller
       end
 
-      # Add the extension +ext+ if not present. Return full URLs otherwise untouched.
+      # Add the extension +ext+ if not present. Return full or scheme-relative URLs otherwise untouched.
       # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
       # roots. Rewrite the asset path for cache-busting asset ids. Include
       # asset host, if configured, with the correct request protocol.
@@ -33,7 +33,7 @@ module ActionView
       end
 
       def is_uri?(path)
-        path =~ %r{^[-a-z]+://|^cid:}
+        path =~ %r{^[-a-z]+://|^cid:|^//}
       end
 
     private
