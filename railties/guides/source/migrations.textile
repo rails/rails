@@ -58,6 +58,23 @@ end
 This migration adds a +receive_newsletter+ column to the +users+ table. We want it to default to +false+ for new users, but existing users are considered
 to have already opted in, so we use the User model to set the flag to +true+ for existing users.
 
+Also, you might also found a smart migration file, which was introduced in the latest version of Rails:
+
+<ruby>
+class CreateProducts < ActiveRecord::Migration
+  def change
+    create_table :products do |t|
+      t.string :name
+      t.text :description
+
+      t.timestamps
+    end
+  end
+end
+</ruby>
+
+This smart migration file knows how to migrate your database and reverse it in case you needed. It's more preferrable way to write a constructive (i.e. add column or add table) migration file.
+
 NOTE: Some "caveats":#using-models-in-your-migrations apply to using models in your migrations.
 
 h4. Migrations are Classes
@@ -116,17 +133,13 @@ will create a migration that looks like this
 
 <ruby>
 class CreateProducts < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :products do |t|
       t.string :name
       t.text :description
 
       t.timestamps
     end
-  end
-
-  def self.down
-    drop_table :products
   end
 end
 </ruby>
@@ -146,10 +159,7 @@ This will create an empty but appropriately named migration:
 
 <ruby>
 class AddPartNumberToProducts < ActiveRecord::Migration
-  def self.up
-  end
-
-  def self.down
+  def change
   end
 end
 </ruby>
@@ -164,12 +174,8 @@ will generate
 
 <ruby>
 class AddPartNumberToProducts < ActiveRecord::Migration
-  def self.up
+  def change
     add_column :products, :part_number, :string
-  end
-
-  def self.down
-    remove_column :products, :part_number
   end
 end
 </ruby>
@@ -194,6 +200,8 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration
 end
 </ruby>
 
+NOTE: The generated migration file for destructive migration will be created using the old-style migration with +up+ and +down+ method. This because Rails doesn't know the original data type defined when you added the column.
+
 You are not limited to one magically generated column, for example
 
 <shell>
@@ -204,14 +212,9 @@ generates
 
 <ruby>
 class AddDetailsToProducts < ActiveRecord::Migration
-  def self.up
+  def change
     add_column :products, :part_number, :string
     add_column :products, :price, :decimal
-  end
-
-  def self.down
-    remove_column :products, :price
-    remove_column :products, :part_number
   end
 end
 </ruby>
@@ -337,6 +340,17 @@ If the helpers provided by Active Record aren't enough you can use the +execute+
 
 For more details and examples of individual methods check the API documentation, in particular the documentation for "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html (which provides the methods available in the +up+ and +down+ methods), "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html (which provides the methods available on the object yielded by +create_table+) and "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html (which provides the methods available on the object yielded by +change_table+).
 
+h4. Writing Your +change+ Method
+
+The +change+ method of your migration reduce the need for you having to write both +up+ and +down+ method in some case that Rails knows how to revert it. Rails will revert the changes automatically when you rollback your change. Currently, +change+ method only support these migration definitions:
+
+* +create_table+
+* +add_column+
+* +rename_column+
+* +add_index+
+
+If you're going to use another methods, you'll have to write both +up+ and +down+ method normally.
+
 h4. Writing Your +down+ Method
 
 The +down+ method of your migration should revert the transformations done by the +up+ method. In other words the database schema should be unchanged if you do an +up+ followed by a +down+. For example if you create a table in the +up+ method you should drop it in the +down+ method. It is wise to do things in precisely the reverse order to in the +up+ method. For example
@@ -369,9 +383,8 @@ class ExampleMigration < ActiveRecord::Migration
   end
 end
 </ruby>
-Sometimes your migration will do something which is just plain irreversible, for example it might destroy some data. In cases like those when you can't reverse the migration you can raise +IrreversibleMigration+ from your +down+ method. If someone tries to revert your migration an error message will be
-displayed saying that it can't be done.
 
+Sometimes your migration will do something which is just plain irreversible, for example it might destroy some data. In cases like those when you can't reverse the migration you can raise +IrreversibleMigration+ from your +down+ method. If someone tries to revert your migration an error message will be displayed saying that it can't be done.
 
 h3. Running Migrations
 
@@ -449,7 +462,7 @@ For example, this migration
 
 <ruby>
 class CreateProducts < ActiveRecord::Migration
-  def self.up
+  def change
     suppress_messages do
       create_table :products do |t|
         t.string :name
@@ -464,10 +477,6 @@ class CreateProducts < ActiveRecord::Migration
       sleep 10
       250
     end
-  end
-
-  def self.down
-    drop_table :products
   end
 end
 </ruby>
@@ -499,11 +508,7 @@ class AddPartNumberToProducts < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
 
-  def self.up
-    ...
-  end
-
-  def self.down
+  def change
     ...
   end
 end
@@ -519,13 +524,9 @@ class AddPartNumberToProducts < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
 
-  def self.up
+  def change
     add_column :product, :part_number, :string
     Product.reset_column_information
-    ...
-  end
-
-  def self.down
     ...
   end
 end
@@ -590,5 +591,6 @@ Although Active Record does not provide any tools for working directly with such
 
 h3. Changelog
 
+* April 26, 2011: change generated +up+ and +down+ methods to +change+ method, and describe detail about +change+ method by "Prem Sichanugrist":http://sikachu.com
 * July 15, 2010: minor typos corrected by "Jaime Iniesta":http://jaimeiniesta.com
 * September 14, 2008: initial version by "Frederick Cheung":credits.html#fcheung

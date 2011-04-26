@@ -378,7 +378,7 @@ If you look in the +db/migrate/20100207214725_create_posts.rb+ file (remember, y
 
 <ruby>
 class CreatePosts < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :posts do |t|
       t.string :name
       t.string :title
@@ -387,14 +387,10 @@ class CreatePosts < ActiveRecord::Migration
       t.timestamps
     end
   end
-
-  def self.down
-    drop_table :posts
-  end
 end
 </ruby>
 
-The above migration creates two methods, +up+, called when you run this migration into the database, and +down+ in case you need to reverse the changes made by this migration at a later date. The +up+ command in this case creates a +posts+ table with two string columns and a text column.  It also creates two timestamp fields to track record creation and updating. More information about Rails migrations can be found in the "Rails Database Migrations":migrations.html guide.
+The above migration creates a method name +change+ which will be called when you run this migration. The action defined in that method is also reversible, which means Rails knows how to reverse the change made by this migration, in case you want to reverse it at later date. By default, when you run this migration it will creates a +posts+ table with two string columns and a text column. It also creates two timestamp fields to track record creation and updating. More information about Rails migrations can be found in the "Rails Database Migrations":migrations.html guide.
 
 At this point, you can use a rake command to run the migration:
 
@@ -807,7 +803,7 @@ In addition to the model, Rails has also made a migration to create the correspo
 
 <ruby>
 class CreateComments < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :comments do |t|
       t.string :commenter
       t.text :body
@@ -817,10 +813,6 @@ class CreateComments < ActiveRecord::Migration
     end
 
     add_index :comments, :post_id
-  end
-
-  def self.down
-    drop_table :comments
   end
 end
 </ruby>
@@ -1458,6 +1450,7 @@ Two very common sources of data that are not UTF-8:
 
 h3. Changelog
 
+* April 26, 2011: Changed migration code from +self.up+, +self.down+ pair to +change+ method "Prem Sichanugrist":"http://sikachu.com"
 * April 11, 2011: Changed scaffold_controller generator to create format block for JSON instead of XML "Sebastian Martinez":http://www.wyeworks.com
 * August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
