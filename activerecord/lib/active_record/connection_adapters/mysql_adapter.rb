@@ -625,7 +625,7 @@ module ActiveRecord
         indexes
       end
 
-      def columns(table_name, name = nil)#:nodoc:
+      def columns(table_name)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
         result = execute(sql, 'SCHEMA')

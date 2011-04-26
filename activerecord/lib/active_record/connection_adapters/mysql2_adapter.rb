@@ -423,7 +423,7 @@ module ActiveRecord
         indexes
       end
 
-      def columns(table_name, name = nil)
+      def columns(table_name)
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
         result = execute(sql)
