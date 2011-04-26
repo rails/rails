@@ -10,7 +10,7 @@ class ArrayExtAccessTests < Test::Unit::TestCase
   def test_from
     assert_equal %w( a b c d ), %w( a b c d ).from(0)
     assert_equal %w( c d ), %w( a b c d ).from(2)
-    assert_nil %w( a b c d ).from(10)
+    assert_equal %w(), %w( a b c d ).from(10)
   end
 
   def test_to
