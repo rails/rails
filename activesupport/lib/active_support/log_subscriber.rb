@@ -81,7 +81,7 @@ module ActiveSupport
 
       # Flush all log_subscribers' logger.
       def flush_all!
-        flushable_loggers.each(&:flush)
+        flushable_loggers.each { |log| log.flush }
       end
     end
 

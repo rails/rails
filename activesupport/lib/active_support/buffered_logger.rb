@@ -41,7 +41,7 @@ module ActiveSupport
 
     def initialize(log, level = DEBUG)
       @level         = level
-      @buffer        = {}
+      @buffer        = Hash.new { |h,k| h[k] = [] }
       @auto_flushing = 1
       @guard = Mutex.new
 
@@ -100,13 +100,8 @@ module ActiveSupport
 
     def flush
       @guard.synchronize do
-        unless buffer.empty?
-          old_buffer = buffer
-          all_content = StringIO.new
-          old_buffer.each do |content|
-            all_content << content
-          end
-          @log.write(all_content.string)
+        buffer.each do |content|
+          @log.write(content)
         end
 
         # Important to do this even if buffer was empty or else @buffer will
@@ -127,7 +122,7 @@ module ActiveSupport
       end
 
       def buffer
-        @buffer[Thread.current] ||= []
+        @buffer[Thread.current]
       end
 
       def clear_buffer
