@@ -35,10 +35,10 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     p = LoosePerson.new
     p.assign_attributes(attributes_hash)
 
-    assert_equal nil, p.id
+    assert_equal nil,    p.id
     assert_equal 'Josh', p.first_name
-    assert_equal 'male', p.gender
-    assert_equal nil, p.comments
+    assert_equal 'm',    p.gender
+    assert_equal nil,    p.comments
   end
 
   def test_assign_attributes_skips_mass_assignment_security_protection_when_without_protection_is_used
@@ -47,7 +47,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 
     assert_equal 5, p.id
     assert_equal 'Josh', p.first_name
-    assert_equal 'male', p.gender
+    assert_equal 'm', p.gender
     assert_equal 'rides a sweet bike', p.comments
   end
 
@@ -57,7 +57,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 
     assert_equal nil, p.id
     assert_equal 'Josh', p.first_name
-    assert_equal 'male', p.gender
+    assert_equal 'm', p.gender
     assert_equal nil, p.comments
   end
 
@@ -67,7 +67,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 
     assert_equal nil, p.id
     assert_equal 'Josh', p.first_name
-    assert_equal 'male', p.gender
+    assert_equal 'm', p.gender
     assert_equal 'rides a sweet bike', p.comments
   end
 
@@ -77,7 +77,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 
     assert_equal nil, p.id
     assert_equal 'Josh', p.first_name
-    assert_equal 'male', p.gender
+    assert_equal 'm', p.gender
     assert_equal nil, p.comments
   end
 
@@ -87,7 +87,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 
     assert_equal nil, p.id
     assert_equal 'Josh', p.first_name
-    assert_equal 'male', p.gender
+    assert_equal 'm', p.gender
     assert_equal 'rides a sweet bike', p.comments
   end
 
@@ -107,7 +107,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     {
       :id => 5,
       :first_name => 'Josh',
-      :gender => 'male',
+      :gender   => 'm',
       :comments => 'rides a sweet bike'
     }
   end
