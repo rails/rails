@@ -21,7 +21,7 @@ Before I dive into the details of a migration, here are a few examples of the so
 
 <ruby>
 class CreateProducts < ActiveRecord::Migration
-  def self.up
+  def up
     create_table :products do |t|
       t.string :name
       t.text :description
@@ -30,7 +30,7 @@ class CreateProducts < ActiveRecord::Migration
     end
   end
 
-  def self.down
+  def down
     drop_table :products
   end
 end
@@ -42,14 +42,14 @@ Migrations are not limited to changing the schema. You can also use them to fix 
 
 <ruby>
 class AddReceiveNewsletterToUsers < ActiveRecord::Migration
-  def self.up
+  def up
     change_table :users do |t|
       t.boolean :receive_newsletter, :default => false
     end
     User.update_all ["receive_newsletter = ?", true]
   end
 
-  def self.down
+  def down
     remove_column :users, :receive_newsletter
   end
 end
@@ -190,11 +190,11 @@ generates
 
 <ruby>
 class RemovePartNumberFromProducts < ActiveRecord::Migration
-  def self.up
+  def up
     remove_column :products, :part_number
   end
 
-  def self.down
+  def down
     add_column :products, :part_number, :string
   end
 end
@@ -358,7 +358,7 @@ The +down+ method of your migration should revert the transformations done by th
 <ruby>
 class ExampleMigration < ActiveRecord::Migration
 
-  def self.up
+  def up
     create_table :products do |t|
       t.references :category
     end
@@ -375,7 +375,7 @@ class ExampleMigration < ActiveRecord::Migration
     rename_column :users, :email, :email_address
   end
 
-  def self.down
+  def down
     rename_column :users, :email_address, :email
     remove_column :users, :home_page_url
     execute "ALTER TABLE products DROP FOREIGN KEY fk_products_categories"
