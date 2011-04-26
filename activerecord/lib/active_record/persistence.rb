@@ -138,7 +138,7 @@ module ActiveRecord
     # will fail and false will be returned.
     #
     # When updating model attributes, mass-assignment security protection is respected.
-    # If no +:as+ option is supplied then the :default scope will be used.
+    # If no +:as+ option is supplied then the +:default+ scope will be used.
     # If you want to bypass the protection given by +attr_protected+ and
     # +attr_accessible+ then you can do so using the +:without_protection+ option.
     def update_attributes(attributes, options = {})
