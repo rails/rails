@@ -624,7 +624,7 @@ module RailtiesTest
       boot_rails
       require "#{rails_root}/config/environment"
 
-      methods = Bukkits::Engine.helpers.public_instance_methods.sort
+      methods = Bukkits::Engine.helpers.public_instance_methods.collect(&:to_s).sort
       expected = ["bar", "baz"]
       assert_equal expected, methods
     end
