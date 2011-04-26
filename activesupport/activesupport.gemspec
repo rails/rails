@@ -17,5 +17,5 @@ Gem::Specification.new do |s|
   s.files        = Dir['CHANGELOG', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
-  s.add_dependency('multi_json', '~> 1.0.0.rc3')
+  s.add_dependency('multi_json', '~> 1.0.0')
 end
