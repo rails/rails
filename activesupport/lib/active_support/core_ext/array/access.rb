@@ -6,7 +6,7 @@ class Array
   #   %w( a b c d ).from(10) # => %w()
   #   %w().from(0)           # => %w()
   def from(position)
-    [position, length] || []
+    self[position, length] || []
   end
 
   # Returns the beginning of the array up to +position+.
