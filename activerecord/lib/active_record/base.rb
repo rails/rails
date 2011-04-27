@@ -1502,9 +1502,8 @@ end
         populate_with_current_scope_attributes
         self.attributes = attributes unless attributes.nil?
 
-        result = yield self if block_given?
+        yield self if block_given?
         run_callbacks :initialize
-        result
       end
 
       # Populate +coder+ with attributes about this record that should be
