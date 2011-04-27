@@ -247,7 +247,7 @@ db_namespace = namespace :db do
     when /postgresql/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
-    when 'sqlite3'
+    when /sqlite/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
     else
@@ -372,9 +372,9 @@ db_namespace = namespace :db do
         end
         `pg_dump -i -U "#{abcs[Rails.env]["username"]}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]["database"]}`
         raise "Error dumping database" if $?.exitstatus == 1
-      when "sqlite", "sqlite3"
+      when /sqlite/
         dbfile = abcs[Rails.env]["database"] || abcs[Rails.env]["dbfile"]
-        `#{abcs[Rails.env]["adapter"]} #{dbfile} .schema > db/#{Rails.env}_structure.sql`
+        `sqlite3 #{dbfile} .schema > db/#{Rails.env}_structure.sql`
       when "sqlserver"
         `scptxfr /s #{abcs[Rails.env]["host"]} /d #{abcs[Rails.env]["database"]} /I /f db\\#{Rails.env}_structure.sql /q /A /r`
         `scptxfr /s #{abcs[Rails.env]["host"]} /d #{abcs[Rails.env]["database"]} /I /F db\ /q /A /r`
@@ -418,9 +418,9 @@ db_namespace = namespace :db do
         ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
         ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
         `psql -U "#{abcs["test"]["username"]}" -f #{Rails.root}/db/#{Rails.env}_structure.sql #{abcs["test"]["database"]} #{abcs["test"]["template"]}`
-      when "sqlite", "sqlite3"
+      when /sqlite/
         dbfile = abcs["test"]["database"] || abcs["test"]["dbfile"]
-        `#{abcs["test"]["adapter"]} #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
+        `sqlite3 #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
       when "sqlserver"
         `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{Rails.env}_structure.sql`
       when "oci", "oracle"
@@ -448,7 +448,7 @@ db_namespace = namespace :db do
         ActiveRecord::Base.clear_active_connections!
         drop_database(abcs['test'])
         create_database(abcs['test'])
-      when "sqlite","sqlite3"
+      when /sqlite/
         dbfile = abcs["test"]["database"] || abcs["test"]["dbfile"]
         File.delete(dbfile) if File.exist?(dbfile)
       when "sqlserver"
@@ -528,7 +528,7 @@ def drop_database(config)
   when /mysql/
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
-  when /^sqlite/
+  when /sqlite/
     require 'pathname'
     path = Pathname.new(config['database'])
     file = path.absolute? ? path.to_s : File.join(Rails.root, path)
