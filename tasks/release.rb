@@ -61,6 +61,32 @@ directory "dist"
   end
 end
 
+namespace :changelog do
+  task :release_date do
+    FRAMEWORKS.each do |fw|
+      require 'date'
+      replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
+      fname = File.join fw, 'CHANGELOG'
+
+      contents = File.read(fname).sub(/^([^(]*)\(unreleased\)/, replace)
+      File.open(fname, 'wb') { |f| f.write contents }
+    end
+  end
+
+  task :release_summary do
+    FRAMEWORKS.each do |fw|
+      puts "## #{fw}"
+      fname    = File.join fw, 'CHANGELOG'
+      contents = File.readlines fname
+      contents.shift
+      changes = []
+      changes << contents.shift until contents.first =~ /^\*Rails \d+\.\d+\.\d+/
+      puts changes.reject { |change| change.strip.empty? }.join
+      puts
+    end
+  end
+end
+
 namespace :all do
   task :build   => FRAMEWORKS.map { |f| "#{f}:build"   } + ['rails:build']
   task :install => FRAMEWORKS.map { |f| "#{f}:install" } + ['rails:install']

@@ -68,7 +68,7 @@ module ActionView
       #   # => /books/find
       #
       #   <%= url_for(:action => 'login', :controller => 'members', :only_path => false, :protocol => 'https') %>
-      #   # => https://www.railsapplication.com/members/login/
+      #   # => https://www.example.com/members/login/
       #
       #   <%= url_for(:action => 'play', :anchor => 'player') %>
       #   # => /messages/play/#player
@@ -555,10 +555,10 @@ module ActionView
       #   current_page?(:controller => 'shop', :action => 'checkout')
       #   # => true
       #
-      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page=>'1')
+      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page => '1')
       #   # => true
       #
-      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page=>'2')
+      #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc', :page => '2')
       #   # => false
       #
       #   current_page?(:controller => 'shop', :action => 'checkout', :order => 'desc')

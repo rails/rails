@@ -4,6 +4,7 @@ require "action_dispatch/railtie"
 require "action_view/railtie"
 require "abstract_controller/railties/routes_helpers"
 require "action_controller/railties/paths"
+require "sprockets/railtie"
 
 module ActionController
   class Railtie < Rails::Railtie
@@ -21,7 +22,6 @@ module ActionController
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.use_sprockets        ||= app.config.assets.enabled
       options.assets_dir           ||= paths["public"].first
       options.javascripts_dir      ||= paths["public/javascripts"].first
       options.stylesheets_dir      ||= paths["public/stylesheets"].first

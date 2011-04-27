@@ -56,11 +56,11 @@ module ActiveRecord
       end
 
       substitutes.each_with_index do |tuple, i|
-        tuple[1] = conn.substitute_at(tuple.first, i)
+        tuple[1] = conn.substitute_at(binds[i][0], i)
       end
 
       if values.empty? # empty insert
-        im.values = im.create_values [connection.null_insert_value], []
+        im.values = Arel.sql(connection.empty_insert_statement_value)
       else
         im.insert substitutes
       end

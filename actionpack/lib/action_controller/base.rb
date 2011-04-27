@@ -200,6 +200,7 @@ module ActionController
       RequestForgeryProtection,
       ForceSSL,
       Streaming,
+      DataStreaming,
       RecordIdentifier,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,

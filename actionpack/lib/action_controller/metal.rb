@@ -131,7 +131,7 @@ module ActionController
     attr_internal :headers, :response, :request
     delegate :session, :to => "@_request"
 
-    def initialize(*)
+    def initialize
       @_headers = {"Content-Type" => "text/html"}
       @_status = 200
       @_request = nil

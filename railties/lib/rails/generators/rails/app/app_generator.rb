@@ -89,10 +89,6 @@ module Rails
       directory "public", "public", :recursive => false
     end
 
-    def images
-      directory "public/images"
-    end
-
     def script
       directory "script" do |content|
         "#{shebang}\n" + content
@@ -138,7 +134,7 @@ module Rails
     def vendor_stylesheets
       empty_directory_with_gitkeep "vendor/assets/stylesheets"
     end
-    
+
     def vendor_plugins
       empty_directory_with_gitkeep "vendor/plugins"
     end
@@ -166,7 +162,7 @@ module Rails
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
-        
+
         if !options[:skip_javascript] && !JAVASCRIPTS.include?(options[:javascript])
           raise Error, "Invalid value for --javascript option. Supported for preconfiguration are: #{JAVASCRIPTS.join(", ")}."
         end
@@ -217,10 +213,6 @@ module Rails
 
       def create_public_files
         build(:public_directory)
-      end
-
-      def create_public_image_files
-        build(:images)
       end
 
       def create_script_files

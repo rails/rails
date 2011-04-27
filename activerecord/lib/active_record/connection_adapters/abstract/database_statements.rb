@@ -55,6 +55,13 @@ module ActiveRecord
       def exec_query(sql, name = 'SQL', binds = [])
       end
 
+      # Executes insert +sql+ statement in the context of this connection using 
+      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # the executed +sql+ statement.
+      def exec_insert(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
       # Returns the last auto-generated ID from the affected table.
       #
       # +id_value+ will be returned unless the value is nil, in
@@ -278,10 +285,6 @@ module ActiveRecord
         end
 
         execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
-      end
-
-      def null_insert_value
-        Arel.sql 'DEFAULT'
       end
 
       def empty_insert_statement_value

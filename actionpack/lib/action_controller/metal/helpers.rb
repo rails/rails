@@ -76,35 +76,35 @@ module ActionController
         @helper_proxy ||= ActionView::Base.new.extend(_helpers)
       end
 
+      # Overwrite modules_for_helpers to accept :all as argument, which loads
+      # all helpers in helpers_path.
+      #
+      # ==== Parameters
+      # * <tt>args</tt> - A list of helpers
+      #
+      # ==== Returns
+      # * <tt>array</tt> - A normalized list of modules for the list of helpers provided.
+      def modules_for_helpers(args)
+        args += all_application_helpers if args.delete(:all)
+        super(args)
+      end
+
+      def all_helpers_from_path(path)
+        helpers = []
+        Array.wrap(path).each do |_path|
+          extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
+          helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+        end
+        helpers.sort!
+        helpers.uniq!
+        helpers
+      end
+
       private
-        # Overwrite modules_for_helpers to accept :all as argument, which loads
-        # all helpers in helpers_path.
-        #
-        # ==== Parameters
-        # * <tt>args</tt> - A list of helpers
-        #
-        # ==== Returns
-        # * <tt>array</tt> - A normalized list of modules for the list of helpers provided.
-        def modules_for_helpers(args)
-          args += all_application_helpers if args.delete(:all)
-          super(args)
-        end
-
-        # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
-        def all_application_helpers
-          all_helpers_from_path(helpers_path)
-        end
-
-        def all_helpers_from_path(path)
-          helpers = []
-          Array.wrap(path).each do |_path|
-            extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-            helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
-          end
-          helpers.sort!
-          helpers.uniq!
-          helpers
-        end
+      # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
+      def all_application_helpers
+        all_helpers_from_path(helpers_path)
+      end
     end
   end
 end

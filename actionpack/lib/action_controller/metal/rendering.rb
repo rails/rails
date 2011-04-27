@@ -18,6 +18,17 @@ module ActionController
       response_body
     end
 
+    # Overwrite render_to_string because body can now be set to a rack body.
+    def render_to_string(*)
+      if self.response_body = super
+        string = ""
+        response_body.each { |r| string << r }
+        string
+      end
+    ensure
+      self.response_body = nil
+    end
+
     private
 
     # Normalize arguments by catching blocks and setting them on :update.

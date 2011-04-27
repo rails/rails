@@ -3,6 +3,9 @@ require "cases/helper"
 class PostgresqlArray < ActiveRecord::Base
 end
 
+class PostgresqlTsvector < ActiveRecord::Base
+end
+
 class PostgresqlMoney < ActiveRecord::Base
 end
 
@@ -34,6 +37,9 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection.execute("INSERT INTO postgresql_arrays (commission_by_quarter, nicknames) VALUES ( '{35000,21000,18000,17000}', '{foo,bar,baz}' )")
     @first_array = PostgresqlArray.find(1)
 
+    @connection.execute("INSERT INTO postgresql_tsvectors (text_vector) VALUES (' ''text'' ''vector'' ')")
+    @first_tsvector = PostgresqlTsvector.find(1)
+
     @connection.execute("INSERT INTO postgresql_moneys (wealth) VALUES ('567.89'::money)")
     @connection.execute("INSERT INTO postgresql_moneys (wealth) VALUES ('-567.89'::money)")
     @first_money = PostgresqlMoney.find(1)
@@ -60,6 +66,10 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def test_data_type_of_array_types
     assert_equal :string, @first_array.column_for_attribute(:commission_by_quarter).type
     assert_equal :string, @first_array.column_for_attribute(:nicknames).type
+  end
+
+  def test_data_type_of_tsvector_types
+    assert_equal :tsvector, @first_tsvector.column_for_attribute(:text_vector).type
   end
 
   def test_data_type_of_money_types
@@ -95,9 +105,24 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
    assert_equal '{foo,bar,baz}', @first_array.nicknames
   end
 
+  def test_tsvector_values
+    assert_equal "'text' 'vector'", @first_tsvector.text_vector
+  end
+
   def test_money_values
     assert_equal 567.89, @first_money.wealth
     assert_equal(-567.89, @second_money.wealth)
+  end
+
+  def test_update_tsvector
+    new_text_vector = "'new' 'text' 'vector'"
+    assert @first_tsvector.text_vector = new_text_vector
+    assert @first_tsvector.save
+    assert @first_tsvector.reload
+    assert @first_tsvector.text_vector = new_text_vector
+    assert @first_tsvector.save
+    assert @first_tsvector.reload
+    assert_equal @first_tsvector.text_vector, new_text_vector
   end
 
   def test_number_values

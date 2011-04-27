@@ -13,6 +13,8 @@ gem "rack-test", :git => "git://github.com/brynary/rack-test.git", :require => "
 
 gem "sprockets", :git => "git://github.com/sstephenson/sprockets.git"
 gem "coffee-script"
+gem "sass"
+gem "uglifier"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
@@ -25,7 +27,6 @@ end
 
 # AS
 gem "memcache-client", ">= 1.8.5"
-gem "fssm", "~> 0.2.5"
 
 platforms :mri_18 do
   gem "system_timer"
@@ -51,7 +52,7 @@ platforms :ruby do
   gem "sqlite3", "~> 1.3.3"
 
   group :db do
-    gem "pg", ">= 0.9.0"
+    gem "pg", ">= 0.11.0"
     gem "mysql", ">= 2.8.1"
     gem "mysql2", :git => "git://github.com/brianmario/mysql2.git"
   end
@@ -59,7 +60,7 @@ end
 
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
-
+  gem "json"
   gem "activerecord-jdbcsqlite3-adapter"
 
   # This is needed by now to let tests work on JRuby

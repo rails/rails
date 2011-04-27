@@ -11,19 +11,19 @@ endprologue.
 
 h3. Usage
 
-To apply a template, you need to provide the Rails generator with the location of the template you wish to apply, using -m option :
+To apply a template, you need to provide the Rails generator with the location of the template you wish to apply, using -m option:
 
 <shell>
 $ rails new blog -m ~/template.rb
 </shell>
 
-It's also possible to apply a template using a URL :
+It's also possible to apply a template using a URL:
 
 <shell>
 $ rails new blog -m https://gist.github.com/755496.txt
 </shell>
 
-Alternatively, you can use the rake task +rails:template+ to apply a template to an existing Rails application :
+Alternatively, you can use the rake task +rails:template+ to apply a template to an existing Rails application:
 
 <shell>
 $ rake rails:template LOCATION=~/template.rb
@@ -31,7 +31,7 @@ $ rake rails:template LOCATION=~/template.rb
 
 h3. Template API
 
-Rails templates API is very self explanatory and easy to understand. Here's an example of a typical Rails template :
+Rails templates API is very self explanatory and easy to understand. Here's an example of a typical Rails template:
 
 <ruby>
 # template.rb
@@ -45,20 +45,20 @@ git :add => "."
 git :commit => "-a -m 'Initial commit'"
 </ruby>
 
-The following sections outlines the primary methods provided by the API :
+The following sections outlines the primary methods provided by the API:
 
 h4. gem(name, options = {})
 
 Adds a +gem+ entry for the supplied gem to the generated application’s +Gemfile+.
 
-For example, if your application depends on the gems +bj+ and +nokogiri+ :
+For example, if your application depends on the gems +bj+ and +nokogiri+:
 
 <ruby>
 gem "bj"
 gem "nokogiri"
 </ruby>
 
-Please note that this will NOT install the gems for you. So you may want to run the +rake gems:install+ task too :
+Please note that this will NOT install the gems for you. So you may want to run the +rake gems:install+ task too:
 
 <ruby>
 rake "gems:install"
@@ -80,13 +80,13 @@ h4. plugin(name, options = {})
 
 Installs a plugin to the generated application.
 
-Plugin can be installed from Git :
+Plugin can be installed from Git:
 
 <ruby>
 plugin 'authentication', :git => 'git://github.com/foor/bar.git'
 </ruby>
 
-You can even install plugins as git submodules :
+You can even install plugins as git submodules:
 
 <ruby>
 plugin 'authentication', :git => 'git://github.com/foor/bar.git',
@@ -95,7 +95,7 @@ plugin 'authentication', :git => 'git://github.com/foor/bar.git',
 
 Please note that you need to +git :init+ before you can install a plugin as a submodule.
 
-Or use plain old SVN :
+Or use plain old SVN:
 
 <ruby>
 plugin 'usingsvn', :svn => 'svn://example.com/usingsvn/trunk'
@@ -105,7 +105,7 @@ h4. vendor/lib/file/initializer(filename, data = nil, &block)
 
 Adds an initializer to the generated application’s +config/initializers+ directory.
 
-Lets say you like using +Object#not_nil?+ and +Object#not_blank?+ :
+Lets say you like using +Object#not_nil?+ and +Object#not_blank?+:
 
 <ruby>
 initializer 'bloatlol.rb', <<-CODE
@@ -123,7 +123,7 @@ CODE
 
 Similarly +lib()+ creates a file in the +lib/+ directory and +vendor()+ creates a file in the +vendor/+ directory.
 
-There is even +file()+, which accepts a relative path from +Rails.root+ and creates all the directories/file needed :
+There is even +file()+, which accepts a relative path from +Rails.root+ and creates all the directories/file needed:
 
 <ruby>
 file 'app/components/foo.rb', <<-CODE
@@ -136,7 +136,7 @@ That’ll create +app/components+ directory and put +foo.rb+ in there.
 
 h4. rakefile(filename, data = nil, &block)
 
-Creates a new rake file under +lib/tasks+ with the supplied tasks :
+Creates a new rake file under +lib/tasks+ with the supplied tasks:
 
 <ruby>
 rakefile("bootstrap.rake") do
@@ -154,7 +154,7 @@ The above creates +lib/tasks/bootstrap.rake+ with a +boot:strap+ rake task.
 
 h4. generate(what, args)
 
-Runs the supplied rails generator with given arguments. For example, I love to scaffold some whenever I’m playing with Rails :
+Runs the supplied rails generator with given arguments. For example, I love to scaffold some whenever I’m playing with Rails:
 
 <ruby>
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
@@ -162,7 +162,7 @@ generate(:scaffold, "person", "name:string", "address:text", "age:number")
 
 h4. run(command)
 
-Executes an arbitrary command. Just like the backticks. Let's say you want to remove the +public/index.html+ file :
+Executes an arbitrary command. Just like the backticks. Let's say you want to remove the +public/index.html+ file:
 
 <ruby>
 run "rm public/index.html"
@@ -170,19 +170,19 @@ run "rm public/index.html"
 
 h4. rake(command, options = {})
 
-Runs the supplied rake tasks in the Rails application. Let's say you want to migrate the database :
+Runs the supplied rake tasks in the Rails application. Let's say you want to migrate the database:
 
 <ruby>
 rake "db:migrate"
 </ruby>
 
-You can also run rake tasks with a different Rails environment :
+You can also run rake tasks with a different Rails environment:
 
 <ruby>
 rake "db:migrate", :env => 'production'
 </ruby>
 
-Or even use sudo :
+Or even use sudo:
 
 <ruby>
 rake "gems:install", :sudo => true
@@ -190,7 +190,7 @@ rake "gems:install", :sudo => true
 
 h4. route(routing_code)
 
-This adds a routing entry to the +config/routes.rb+ file. In above steps, we generated a person scaffold and also removed +public/index.html+. Now to make +PeopleController#index+ as the default page for the application :
+This adds a routing entry to the +config/routes.rb+ file. In above steps, we generated a person scaffold and also removed +public/index.html+. Now to make +PeopleController#index+ as the default page for the application:
 
 <ruby>
 route "root :to => 'person#index'"
@@ -208,7 +208,7 @@ end
 
 h4. ask(question)
 
-+ask()+ gives you a chance to get some feedback from the user and use it in your templates. Lets say you want your user to name the new shiny library you’re adding :
++ask()+ gives you a chance to get some feedback from the user and use it in your templates. Lets say you want your user to name the new shiny library you’re adding:
 
 <ruby>
 lib_name = ask("What do you want to call the shiny library ?")
@@ -222,7 +222,7 @@ CODE
 
 h4. yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user’s answer. Lets say you want to freeze rails only if the user want to :
+These methods let you ask questions from templates and decide the flow based on the user’s answer. Lets say you want to freeze rails only if the user want to:
 
 <ruby>
 rake("rails:freeze:gems") if yes?("Freeze rails gems ?")
@@ -231,7 +231,7 @@ no?(question) acts just the opposite.
 
 h4. git(:must => "-a love")
 
-Rails templates let you run any git command :
+Rails templates let you run any git command:
 
 <ruby>
 git :init

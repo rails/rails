@@ -1,6 +1,9 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
+
+# Make sure we're using pg high enough for PGResult#values
+gem 'pg', '~> 0.11'
 require 'pg'
 
 module ActiveRecord
@@ -95,6 +98,9 @@ module ActiveRecord
             # XML type
             when 'xml'
               :xml
+            # tsvector type
+            when 'tsvector'
+              :tsvector
             # Arrays
             when /^\D+\[\]$/
               :string
@@ -186,6 +192,11 @@ module ActiveRecord
           options = args.extract_options!
           column(args[0], 'xml', options)
         end
+
+        def tsvector(*args)
+          options = args.extract_options!
+          column(args[0], 'tsvector', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -203,7 +214,8 @@ module ActiveRecord
         :date        => { :name => "date" },
         :binary      => { :name => "bytea" },
         :boolean     => { :name => "boolean" },
-        :xml         => { :name => "xml" }
+        :xml         => { :name => "xml" },
+        :tsvector    => { :name => "tsvector" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -211,8 +223,8 @@ module ActiveRecord
         ADAPTER_NAME
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
+      # Returns +true+, since this connection adapter supports prepared statement
+      # caching.
       def supports_statement_cache?
         true
       end
@@ -237,6 +249,7 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      # Clears the prepared statements cache.
       def clear_cache!
         @statements.each_value do |value|
           @connection.query "DEALLOCATE #{value}"
@@ -275,7 +288,8 @@ module ActiveRecord
         super
       end
 
-      # Close the connection.
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         clear_cache!
         @connection.close rescue nil
@@ -366,7 +380,7 @@ module ActiveRecord
         case value
         when String
           return super unless 'bytea' == column.sql_type
-          escape_bytea(value)
+          { :value => value, :format => 1 }
         else
           super
         end
@@ -460,42 +474,43 @@ module ActiveRecord
       # create a 2D array representing the result set
       def result_as_array(res) #:nodoc:
         # check if we have any binary column and if they need escaping
-        unescape_col = []
-        res.nfields.times do |j|
-          unescape_col << res.ftype(j)
+        ftypes = Array.new(res.nfields) do |i|
+          [i, res.ftype(i)]
         end
 
-        ary = []
-        res.ntuples.times do |i|
-          ary << []
-          res.nfields.times do |j|
-            data = res.getvalue(i,j)
-            case unescape_col[j]
+        rows = res.values
+        return rows unless ftypes.any? { |_, x|
+          x == BYTEA_COLUMN_TYPE_OID || x == MONEY_COLUMN_TYPE_OID
+        }
 
-            # unescape string passed BYTEA field (OID == 17)
-            when BYTEA_COLUMN_TYPE_OID
-              data = unescape_bytea(data) if String === data
+        typehash = ftypes.group_by { |_, type| type }
+        binaries = typehash[BYTEA_COLUMN_TYPE_OID] || []
+        monies   = typehash[MONEY_COLUMN_TYPE_OID] || []
 
-            # If this is a money type column and there are any currency symbols,
-            # then strip them off. Indeed it would be prettier to do this in
-            # PostgreSQLColumn.string_to_decimal but would break form input
-            # fields that call value_before_type_cast.
-            when MONEY_COLUMN_TYPE_OID
-              # Because money output is formatted according to the locale, there are two
-              # cases to consider (note the decimal separators):
-              #  (1) $12,345,678.12
-              #  (2) $12.345.678,12
-              case data
-              when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                data.gsub!(/[^-\d.]/, '')
-              when /^-?\D+[\d.]+,\d{2}$/  # (2)
-                data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
-              end
+        rows.each do |row|
+          # unescape string passed BYTEA field (OID == 17)
+          binaries.each do |index, _|
+            row[index] = unescape_bytea(row[index])
+          end
+
+          # If this is a money type column and there are any currency symbols,
+          # then strip them off. Indeed it would be prettier to do this in
+          # PostgreSQLColumn.string_to_decimal but would break form input
+          # fields that call value_before_type_cast.
+          monies.each do |index, _|
+            data = row[index]
+            # Because money output is formatted according to the locale, there are two
+            # cases to consider (note the decimal separators):
+            #  (1) $12,345,678.12
+            #  (2) $12.345.678,12
+            case data
+            when /^-?\D+[\d,]+\.\d{2}$/  # (1)
+              data.gsub!(/[^-\d.]/, '')
+            when /^-?\D+[\d.]+,\d{2}$/  # (2)
+              data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
             end
-            ary[i] << data
           end
         end
-        return ary
       end
 
 
@@ -550,10 +565,6 @@ module ActiveRecord
           result.clear
           return ret
         end
-      end
-
-      def exec_insert(sql, name, binds)
-        exec_query(sql, name, binds)
       end
 
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)
@@ -641,7 +652,7 @@ module ActiveRecord
         execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
       end
 
-      # Drops a PostgreSQL database
+      # Drops a PostgreSQL database.
       #
       # Example:
       #   drop_database 'matt_development'
@@ -933,10 +944,7 @@ module ActiveRecord
         order_columns.delete_if { |c| c.blank? }
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 
-        # Return a DISTINCT ON() clause that's distinct on the columns we want but includes
-        # all the required columns for the ORDER BY to work properly.
-        sql = "DISTINCT ON (#{columns}) #{columns}, "
-        sql << order_columns * ', '
+        "DISTINCT #{columns}, #{order_columns * ', '}"
       end
 
       protected
@@ -1093,4 +1101,3 @@ module ActiveRecord
     end
   end
 end
-

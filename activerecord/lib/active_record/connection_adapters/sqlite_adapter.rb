@@ -66,16 +66,18 @@ module ActiveRecord
         sqlite_version >= '3.6.8'
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
+      # Returns true, since this connection adapter supports prepared statement
+      # caching.
       def supports_statement_cache?
         true
       end
 
+      # Returns true.
       def supports_migrations? #:nodoc:
         true
       end
 
+      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
@@ -88,12 +90,15 @@ module ActiveRecord
         sqlite_version >= '3.1.6'
       end
 
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         super
         clear_cache!
         @connection.close rescue nil
       end
 
+      # Clears the prepared statements cache.
       def clear_cache!
         @statements.clear
       end
@@ -171,10 +176,6 @@ module ActiveRecord
 
           ActiveRecord::Result.new(cols, stmt.to_a)
         end
-      end
-
-      def exec_insert(sql, name, binds)
-        exec_query(sql, name, binds)
       end
 
       def last_inserted_id(result)
@@ -343,10 +344,6 @@ module ActiveRecord
           raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
         end
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
-      end
-
-      def null_insert_value
-        Arel.sql 'NULL'
       end
 
       def empty_insert_statement_value

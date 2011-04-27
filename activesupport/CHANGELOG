@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Add String#inquiry as a convenience method for turning a string into a StringInquirer object [DHH]
+
 * Add Object#in? to test if an object is included in another object [Prem Sichanugrist, Brian Morearty, John Reitano]
 
 * LocalCache strategy is now a real middleware class, not an anonymous class

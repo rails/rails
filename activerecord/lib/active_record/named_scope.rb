@@ -82,15 +82,17 @@ module ActiveRecord
       # then <tt>elton.shirts.red.dry_clean_only</tt> will return all of Elton's red, dry clean
       # only shirts.
       #
-      # If you need to pass parameters to a scope, define it as a normal method:
+      # Named \scopes can also be procedural:
       #
       #   class Shirt < ActiveRecord::Base
-      #     def self.colored(color)
-      #       where(:color => color)
-      #     end
+      #     scope :colored, lambda { |color| where(:color => color) }
       #   end
       #
       # In this example, <tt>Shirt.colored('puce')</tt> finds all puce shirts.
+      #
+      # On Ruby 1.9 you can use the 'stabby lambda' syntax:
+      #
+      #   scope :colored, ->(color) { where(:color => color) }
       #
       # Note that scopes defined with \scope will be evaluated when they are defined, rather than
       # when they are used. For example, the following would be incorrect:
@@ -101,13 +103,11 @@ module ActiveRecord
       #
       # The example above would be 'frozen' to the <tt>Time.now</tt> value when the <tt>Post</tt>
       # class was defined, and so the resultant SQL query would always be the same. The correct
-      # way to do this would be via a class method, which will re-evaluate the scope each time
+      # way to do this would be via a lambda, which will re-evaluate the scope each time
       # it is called:
       #
       #   class Post < ActiveRecord::Base
-      #     def self.recent
-      #       where('published_at >= ?', Time.now - 1.week)
-      #     end
+      #     scope :recent, lambda { where('published_at >= ?', Time.now - 1.week) }
       #   end
       #
       # Named \scopes can also have extensions, just as with <tt>has_many</tt> declarations:
@@ -116,18 +116,6 @@ module ActiveRecord
       #     scope :red, where(:color => 'red') do
       #       def dom_id
       #         'red_shirts'
-      #       end
-      #     end
-      #   end
-      #
-      # The above could also be written as a class method like so:
-      #
-      #   class Shirt < ActiveRecord::Base
-      #     def self.red
-      #       where(:color => 'red').extending do
-      #         def dom_id
-      #           'red_shirts'
-      #         end
       #       end
       #     end
       #   end
@@ -167,24 +155,6 @@ module ActiveRecord
         name = name.to_sym
         valid_scope_name?(name)
         extension = Module.new(&Proc.new) if block_given?
-
-        if !scope_options.is_a?(Relation) && scope_options.respond_to?(:call)
-          ActiveSupport::Deprecation.warn <<-WARN
-Passing a proc (or other object that responds to #call) to scope is deprecated. If you need your scope to be lazily evaluated, or takes parameters, please define it as a normal class method instead. For example, change this:
-
-class Post < ActiveRecord::Base
-  scope :unpublished, lambda { where('published_at > ?', Time.now) }
-end
-
-To this:
-
-class Post < ActiveRecord::Base
-  def self.unpublished
-    where('published_at > ?', Time.now)
-  end
-end
-          WARN
-        end
 
         scope_proc = lambda do |*args|
           options = scope_options.respond_to?(:call) ? scope_options.call(*args) : scope_options

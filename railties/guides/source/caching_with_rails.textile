@@ -25,7 +25,7 @@ h4. Page Caching
 
 Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. apache or nginx), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
 
-So, how do you enable this super-fast cache behavior?  Simple, let's say you have a controller called +ProductsController+ and an +index+ action that lists all the products
+So, how do you enable this super-fast cache behavior? Simple, let's say you have a controller called +ProductsController+ and an +index+ action that lists all the products
 
 <ruby>
 class ProductsController < ActionController
@@ -152,7 +152,7 @@ expire_fragment('all_available_products')
 
 h4. Sweepers
 
-Cache sweeping is a mechanism which allows you to get around having a ton of +expire_{page,action,fragment}+ calls in your code.  It does this by moving all the work required to expire cached content into an +ActionController::Caching::Sweeper+ subclass.  This class is an observer and looks for changes to an object via callbacks, and when a change occurs it expires the caches associated with that object in an around or after filter.
+Cache sweeping is a mechanism which allows you to get around having a ton of +expire_{page,action,fragment}+ calls in your code. It does this by moving all the work required to expire cached content into an +ActionController::Caching::Sweeper+ subclass. This class is an observer and looks for changes to an object via callbacks, and when a change occurs it expires the caches associated with that object in an around or after filter.
 
 Continuing with our Product controller example, we could rewrite it with a sweeper like this:
 
@@ -230,9 +230,9 @@ class ProductsController < ActionController
 end
 </ruby>
 
-The second time the same query is run against the database, it's not actually going to hit the database.  The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
+The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
 
-However, it's important to note that query caches are created at the start of an action and destroyed at the end of that action and thus persist only for the duration of the action.  If you'd like to store query results in a more persistent fashion, you can in Rails by using low level caching.
+However, it's important to note that query caches are created at the start of an action and destroyed at the end of that action and thus persist only for the duration of the action. If you'd like to store query results in a more persistent fashion, you can in Rails by using low level caching.
 
 h3. Cache Stores
 
@@ -322,7 +322,7 @@ You can use Hashes and Arrays of values as cache keys.
 
 <ruby>
 # This is a legal cache key
-Rails.cache.read(:site => "mysite", :owners => [owner_1, owner2])
+Rails.cache.read(:site => "mysite", :owners => [owner_1, owner_2])
 </ruby>
 
 The keys you use on +Rails.cache+ will not be the same as those actually used with the storage engine. They may be modified with a namespace or altered to fit technology backend constraints. This means, for instance, that you can't save values with +Rails.cache+ and then try to pull them out with the +memcache-client+ gem. However, you also don't need to worry about exceeding the memcached size limit or violating syntax rules.
@@ -352,7 +352,7 @@ class ProductsController < ApplicationController
     # If the request is fresh (i.e. it's not modified) then you don't need to do
     # anything. The default render checks for this using the parameters
     # used in the previous call to stale? and will automatically send a
-    # :not_modified.  So that's it, you're done.
+    # :not_modified. So that's it, you're done.
 end
 </ruby>
 

@@ -394,7 +394,7 @@ end
 
 Now, if the current user is a special user, they'll get a special layout when viewing a product. You can even use an inline method to determine the layout:
 
-You can also decide the layout by passing a Proc object, the block you give the Proc will be given the +controller+ instance, so you can make decisions based on the current request.  For example:
+You can also decide the layout by passing a Proc object, the block you give the Proc will be given the +controller+ instance, so you can make decisions based on the current request. For example:
 
 <ruby>
 class ProductsController < ApplicationController
@@ -572,7 +572,7 @@ With this code, the browser will make a fresh request for the index page, the co
 
 The only downside to this code, is that it requires a round trip to the browser, the browser requested the show action with +/books/1+ and the controller finds that there are no books, so the controller sends out a 302 redirect response to the browser telling it to go to +/books/+, the browser complies and sends a new request back to the controller asking now for the +index+ action, the controller then gets all the books in the database and renders the index template, sending it back down to the browser which then shows it on your screen.
 
-While in a small app, this added latency might not be a problem, it is something to think about when speed of response is of the essence.  One way to handle this double request (though a contrived example) could be:
+While in a small app, this added latency might not be a problem, it is something to think about when speed of response is of the essence. One way to handle this double request (though a contrived example) could be:
 
 <ruby>
 def index
@@ -860,7 +860,7 @@ Produces
 <video src="/videos/movie.ogg" />
 </erb>
 
-Like an +image_tag+ you can supply a path, either absolute, or relative to the +public/videos+ directory.  Additionally you can specify the +:size => "#{width}x#{height}"+ option just like an +image_tag+.  Video tags can also have any of the HTML options specified at the end (+id+, +class+ et al).
+Like an +image_tag+ you can supply a path, either absolute, or relative to the +public/videos+ directory. Additionally you can specify the +:size => "#{width}x#{height}"+ option just like an +image_tag+. Video tags can also have any of the HTML options specified at the end (+id+, +class+ et al).
 
 The video tag also supports all of the +&lt;video&gt;+ HTML options through the HTML options hash, including:
 
@@ -1133,7 +1133,7 @@ You can also pass in arbitrary local variables to any partial you are rendering 
 
 Would render a partial +_products.html.erb+ once for each instance of +product+ in the +@products+ instance variable passing the instance to the partial as a local variable called +item+ and to each partial, make the local variable +title+ available with the value +Products Page+.
 
-TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by +_counter+. For example, if you're rendering +@products+, within the partial you can refer to +product_counter+ to tell you how many times the partial has been rendered.  This does not work in conjunction with the +:as => :value+ option.
+TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by +_counter+. For example, if you're rendering +@products+, within the partial you can refer to +product_counter+ to tell you how many times the partial has been rendered. This does not work in conjunction with the +:as => :value+ option.
 
 You can also specify a second partial to be rendered between instances of the main partial by using the +:spacer_template+ option:
 

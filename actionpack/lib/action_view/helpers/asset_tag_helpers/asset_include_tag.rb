@@ -8,9 +8,11 @@ module ActionView
     module AssetTagHelper
 
       class AssetIncludeTag
-        attr_reader :config, :asset_paths
+        include TagHelper
 
+        attr_reader :config, :asset_paths
         class_attribute :expansions
+
         def self.inherited(base)
           base.expansions = { }
         end
@@ -55,7 +57,6 @@ module ActionView
             sources.collect { |source| asset_tag(source, options) }.join("\n").html_safe
           end
         end
-
 
         private
 

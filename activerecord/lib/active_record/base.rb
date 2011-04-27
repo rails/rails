@@ -1177,13 +1177,11 @@ MSG
           Thread.current[:"#{self}_current_scope"] = scope
         end
 
-        # Implement this method in your model to set a default scope for all operations on
+        # Use this macro in your model to set a default scope for all operations on
         # the model.
         #
         #   class Person < ActiveRecord::Base
-        #     def self.default_scope
-        #       order('last_name, first_name')
-        #     end
+        #     default_scope order('last_name, first_name')
         #   end
         #
         #   Person.all # => SELECT * FROM people ORDER BY last_name, first_name
@@ -1192,40 +1190,59 @@ MSG
         # applied while updating a record.
         #
         #   class Article < ActiveRecord::Base
-        #     def self.default_scope
-        #       where(:published => true)
-        #     end
+        #     default_scope where(:published => true)
         #   end
         #
         #   Article.new.published    # => true
         #   Article.create.published # => true
         #
-        # === Deprecation warning
+        # You can also use <tt>default_scope</tt> with a block, in order to have it lazily evaluated:
         #
-        # There is an alternative syntax as follows:
-        #
-        #   class Person < ActiveRecord::Base
-        #     default_scope order('last_name, first_name')
+        #   class Article < ActiveRecord::Base
+        #     default_scope { where(:published_at => Time.now - 1.week) }
         #   end
         #
-        # This is now deprecated and will be removed in Rails 3.2.
+        # (You can also pass any object which responds to <tt>call</tt> to the <tt>default_scope</tt>
+        # macro, and it will be called when building the default scope.)
+        #
+        # If you need to do more complex things with a default scope, you can alternatively
+        # define it as a class method:
+        #
+        #   class Article < ActiveRecord::Base
+        #     def self.default_scope
+        #       # Should return a scope, you can call 'super' here etc.
+        #     end
+        #   end
         def default_scope(scope = {})
-          ActiveSupport::Deprecation.warn <<-WARN
-Passing a hash or scope to default_scope is deprecated and will be removed in Rails 3.2. You should create a class method for your scope instead. For example, change this:
+          if default_scopes.length != 0
+            ActiveSupport::Deprecation.warn <<-WARN
+Calling 'default_scope' multiple times in a class (including when a superclass calls 'default_scope') is deprecated. The current behavior is that this will merge the default scopes together:
 
-class Post < ActiveRecord::Base
+class Post < ActiveRecord::Base # Rails 3.1
   default_scope where(:published => true)
+  default_scope where(:hidden => false)
+  # The default scope is now: where(:published => true, :hidden => false)
 end
 
-To this:
+In Rails 3.2, the behavior will be changed to overwrite previous scopes:
+
+class Post < ActiveRecord::Base # Rails 3.2
+  default_scope where(:published => true)
+  default_scope where(:hidden => false)
+  # The default scope is now: where(:hidden => false)
+end
+
+If you wish to merge default scopes in special ways, it is recommended to define your default scope as a class method and use the standard techniques for sharing code (inheritance, mixins, etc.):
 
 class Post < ActiveRecord::Base
   def self.default_scope
-    where(:published => true)
+    where(:published => true).where(:hidden => false)
   end
 end
-WARN
+            WARN
+          end
 
+          scope = Proc.new if block_given?
           self.default_scopes = default_scopes.dup << scope
         end
 
@@ -1238,6 +1255,8 @@ WARN
             default_scopes.inject(relation) do |default_scope, scope|
               if scope.is_a?(Hash)
                 default_scope.apply_finder_options(scope)
+              elsif !scope.is_a?(Relation) && scope.respond_to?(:call)
+                default_scope.merge(scope.call)
               else
                 default_scope.merge(scope)
               end
@@ -1602,11 +1621,11 @@ WARN
       # Allows you to set all the attributes at once by passing in a hash with keys
       # matching the attribute names (which again matches the column names).
       #
-      # If +guard_protected_attributes+ is true (the default), then sensitive
-      # attributes can be protected from this form of mass-assignment by using
-      # the +attr_protected+ macro. Or you can alternatively specify which
-      # attributes *can* be accessed with the +attr_accessible+ macro. Then all the
-      # attributes not included in that won't be allowed to be mass-assigned.
+      # If any attributes are protected by either +attr_protected+ or
+      # +attr_accessible+ then only settable attributes will be assigned.
+      #
+      # The +guard_protected_attributes+ argument is now deprecated, use
+      # the +assign_attributes+ method if you want to bypass mass-assignment security.
       #
       #   class User < ActiveRecord::Base
       #     attr_protected :is_admin
@@ -1616,15 +1635,59 @@ WARN
       #   user.attributes = { :username => 'Phusion', :is_admin => true }
       #   user.username   # => "Phusion"
       #   user.is_admin?  # => false
-      #
-      #   user.send(:attributes=, { :username => 'Phusion', :is_admin => true }, false)
-      #   user.is_admin?  # => true
-      def attributes=(new_attributes, guard_protected_attributes = true)
+      def attributes=(new_attributes, guard_protected_attributes = nil)
+        unless guard_protected_attributes.nil?
+          message = "the use of 'guard_protected_attributes' will be removed from the next major release of rails, " +
+                    "if you want to bypass mass-assignment security then look into using assign_attributes"
+          ActiveSupport::Deprecation.warn(message)
+        end
+
         return unless new_attributes.is_a?(Hash)
+
+        guard_protected_attributes ||= true
+        if guard_protected_attributes
+          assign_attributes(new_attributes)
+        else
+          assign_attributes(new_attributes, :without_protection => true)
+        end
+      end
+
+      # Allows you to set all the attributes for a particular mass-assignment
+      # security scope by passing in a hash of attributes with keys matching
+      # the attribute names (which again matches the column names) and the scope
+      # name using the :as option.
+      #
+      # To bypass mass-assignment security you can use the :without_protection => true
+      # option.
+      #
+      #   class User < ActiveRecord::Base
+      #     attr_accessible :name
+      #     attr_accessible :name, :is_admin, :as => :admin
+      #   end
+      #
+      #   user = User.new
+      #   user.assign_attributes({ :name => 'Josh', :is_admin => true })
+      #   user.name       # => "Josh"
+      #   user.is_admin?  # => false
+      #
+      #   user = User.new
+      #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :as => :admin)
+      #   user.name       # => "Josh"
+      #   user.is_admin?  # => true
+      #
+      #   user = User.new
+      #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
+      #   user.name       # => "Josh"
+      #   user.is_admin?  # => true
+      def assign_attributes(new_attributes, options = {})
         attributes = new_attributes.stringify_keys
+        scope = options[:as] || :default
 
         multi_parameter_attributes = []
-        attributes = sanitize_for_mass_assignment(attributes) if guard_protected_attributes
+
+        unless options[:without_protection]
+          attributes = sanitize_for_mass_assignment(attributes, scope)
+        end
 
         attributes.each do |k, v|
           if k.include?("(")

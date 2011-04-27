@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
+  %w(postgresql_tsvectors postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones).each do |table_name|
     execute "DROP TABLE  IF EXISTS #{quote_table_name table_name}"
   end
@@ -55,6 +55,14 @@ _SQL
     nicknames TEXT[]
   );
 _SQL
+
+  execute <<_SQL
+  CREATE TABLE postgresql_tsvectors (
+    id SERIAL PRIMARY KEY,
+    text_vector tsvector
+  );
+_SQL
+
   execute <<_SQL
   CREATE TABLE postgresql_moneys (
     id SERIAL PRIMARY KEY,

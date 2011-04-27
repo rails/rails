@@ -23,7 +23,7 @@ DEFAULT_APP_FILES = %w(
   lib
   lib/tasks
   log
-  public/images
+  app/assets/images
   script/rails
   test/fixtures
   test/functional
@@ -129,6 +129,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
     assert_file "Gemfile", /^gem\s+["']mysql2["']$/
+  end
+
+  def test_config_jdbcmysql_database
+    run_generator([destination_root, "-d", "jdbcmysql"])
+    assert_file "config/database.yml", /jdbcmysql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+  end
+
+  def test_config_jdbcsqlite3_database
+    run_generator([destination_root, "-d", "jdbcsqlite3"])
+    assert_file "config/database.yml", /jdbcsqlite3/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+  end
+
+  def test_config_jdbcpostgresql_database
+    run_generator([destination_root, "-d", "jdbcpostgresql"])
+    assert_file "config/database.yml", /jdbcpostgresql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
   end
 
   def test_generator_if_skip_active_record_is_given

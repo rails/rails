@@ -33,22 +33,6 @@ class ResponseTest < ActiveSupport::TestCase
     }, headers)
   end
 
-  test "streaming block" do
-    @response.body = Proc.new do |response, output|
-      5.times { |n| output.write(n) }
-    end
-
-    status, headers, body = @response.to_a
-    assert_equal 200, status
-    assert_equal({
-      "Content-Type" => "text/html; charset=utf-8"
-    }, headers)
-
-    parts = []
-    body.each { |part| parts << part.to_s }
-    assert_equal ["0", "1", "2", "3", "4"], parts
-  end
-
   test "content type" do
     [204, 304].each do |c|
       @response.status = c.to_s

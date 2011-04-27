@@ -100,7 +100,7 @@ module ActionView
       #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
       #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,506 €
       #
-      #  number_to_currency(1234567890.50, :negative_format => "(%u%n)")
+      #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
       #  # => ($1,234,567,890.51)
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
       #  # => &pound;1234567890,50
@@ -238,7 +238,7 @@ module ActionView
       #  number_with_precision(111.2345, :precision => 1, :significant => true)     # => 100
       #  number_with_precision(13, :precision => 5, :significant => true)           # => 13.000
       #  number_with_precision(111.234, :locale => :fr)                             # => 111,234
-      #  number_with_precision(13, :precision => 5, :significant => true, strip_insignificant_zeros => true)
+      #  number_with_precision(13, :precision => 5, :significant => true, :strip_insignificant_zeros => true)
       #  # => 13
       #  number_with_precision(389.32314, :precision => 4, :significant => true)    # => 389.3
       #  number_with_precision(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
@@ -318,7 +318,7 @@ module ActionView
       # Non-significant zeros after the fractional separator are stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
       #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
-      #  number_to_human_size(524288000, :precision=>5)              # => "500 MB"
+      #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
         options.symbolize_keys!
 
@@ -407,7 +407,7 @@ module ActionView
       # Unsignificant zeros after the decimal separator are stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
       #  number_to_human(12345012345, :significant_digits => 6)       # => "12.345 Billion"
-      #  number_to_human(500000000, :precision=>5)                    # => "500 Million"
+      #  number_to_human(500000000, :precision => 5)                  # => "500 Million"
       #
       # ==== Custom Unit Quantifiers
       #

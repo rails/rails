@@ -17,8 +17,8 @@ This guide describes how to build a test-driven plugin that will:
 * Add methods to ActiveRecord::Base in the tradition of the 'acts_as' plugins
 * Give you information about where to put generators in your plugin.
 
-For the purpose of this guide pretend for a moment that you are an avid bird watcher.  
-Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle 
+For the purpose of this guide pretend for a moment that you are an avid bird watcher.
+Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle
 goodness.
 
 endprologue.
@@ -27,21 +27,21 @@ h3. Setup
 
 h4. Generating the Plugin Skeleton
 
-Rails currently ships with a generator to generate a plugin within a Rails application.  Help text is available that will explain 
+Rails currently ships with a generator to generate a plugin within a Rails application. Help text is available that will explain
 how this generator works.
 
 <shell>
 $ rails generate plugin --help
 </shell>
 
-This generator places the plugin into the vendor/plugins directory.  
+This generator places the plugin into the vendor/plugins directory.
 
-Vendored plugins are useful for quickly prototyping your plugin but current thinking in the Rails community is shifting towards 
+Vendored plugins are useful for quickly prototyping your plugin but current thinking in the Rails community is shifting towards
 packaging plugins as gems, especially with the inclusion of Bundler as the Rails dependency manager.
 Packaging a plugin as a gem may be overkill for any plugins that will not be shared across projects but doing so from the start makes it easier to share the plugin going forward without adding too much additional overhead during development.
 
 Rails 3.1 will ship with a plugin generator that will default to setting up a plugin
-as a gem.  This tutorial will begin to bridge that gap by demonstrating how to create a gem based plugin using the 
+as a gem. This tutorial will begin to bridge that gap by demonstrating how to create a gem based plugin using the
 "Enginex gem":http://www.github.com/josevalim/enginex.
 
 <shell>
@@ -69,7 +69,7 @@ h3. Extending Core Classes
 
 This section will explain how to add a method to String that will be available anywhere in your rails application.
 
-In this example you will add a method to String named +to_squawk+.  To begin, create a new test file with a few assertions:
+In this example you will add a method to String named +to_squawk+. To begin, create a new test file with a few assertions:
 
 <ruby>
 # yaffle/test/core_ext_test.rb
@@ -83,7 +83,7 @@ class CoreExtTest < Test::Unit::TestCase
 end
 </ruby>
 
-Run +rake+ to run the test.  This test should fail because we haven't implemented the +to_squak+ method:
+Run +rake+ to run the test. This test should fail because we haven't implemented the +to_squak+ method:
 
 <shell>
 	  1) Error:
@@ -133,7 +133,7 @@ $ rails console
 
 h3. Add an "acts_as" Method to Active Record
 
-A common pattern in plugins is to add a method called 'acts_as_something' to models.  In this case, you 
+A common pattern in plugins is to add a method called 'acts_as_something' to models. In this case, you
 want to write a method called 'acts_as_yaffle' that adds a 'squawk' method to your Active Record models.
 
 To begin, set up your files so that you have:
@@ -169,9 +169,9 @@ end
 
 h4. Add a Class Method
 
-This plugin will expect that you've added a method to your model named 'last_squawk'.  However, the 
-plugin users might have already defined a method on their model named 'last_squawk' that they use 
-for something else.  This plugin will allow the name to be changed by adding a class method called 'yaffle_text_field'.
+This plugin will expect that you've added a method to your model named 'last_squawk'. However, the
+plugin users might have already defined a method on their model named 'last_squawk' that they use
+for something else. This plugin will allow the name to be changed by adding a class method called 'yaffle_text_field'.
 
 To start out, write a failing test that shows the behavior you'd like:
 
@@ -210,7 +210,7 @@ When you run +rake+, you should see the following:
 </shell>
 
 This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
-We can easily generate these models in our "dummy" Rails application by running the following commands from the 
+We can easily generate these models in our "dummy" Rails application by running the following commands from the
 test/dummy directory:
 
 <shell>
@@ -220,7 +220,7 @@ $ rails generate model Wickwall last_squak:string last_tweet:string
 </shell>
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
-and migrating the database.  First 
+and migrating the database. First
 
 <shell>
 $ cd test/dummy
@@ -319,7 +319,7 @@ When you run +rake+ you should see the tests all pass:
 
 h4. Add an Instance Method
 
-This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'.  The 'squawk' 
+This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'.  The 'squawk'
 method will simply set the value of one of the fields in the database.
 
 To start out, write a failing test that shows the behavior you'd like:
@@ -352,7 +352,7 @@ class ActsAsYaffleTest < Test::Unit::TestCase
 end
 </ruby>
 
-Run the test to make sure the last two tests fail the an error that contains "NoMethodError: undefined method `squawk'", 
+Run the test to make sure the last two tests fail the an error that contains "NoMethodError: undefined method `squawk'",
 then update 'acts_as_yaffle.rb' to look like this:
 
 <ruby>
@@ -387,18 +387,18 @@ Run +rake+ one final time and you should see:
 	7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
 </shell>
 
-NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can 
-interact with the model, and will not always be the right method to use.  For example, you could also 
+NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can
+interact with the model, and will not always be the right method to use. For example, you could also
 use +send("#{self.class.yaffle_text_field}=", string.to_squawk)+.
 
 h3. Generators
 
-Generators can be included in your gem simply by creating them in a lib/generators directory of your plugin.  More information about
+Generators can be included in your gem simply by creating them in a lib/generators directory of your plugin. More information about
 the creation of generators can be found in the "Generators Guide":generators.html
 
 h3. Publishing your Gem
 
-Gem plugins in progress can be easily be shared from any Git repository.  To share the Yaffle gem with others, simply 
+Gem plugins in progress can be easily be shared from any Git repository. To share the Yaffle gem with others, simply
 commit the code to a Git repository (like Github) and add a line to the Gemfile of the any application:
 
 <ruby>
@@ -412,7 +412,7 @@ For more information about publishing gems to RubyGems, see: "http://blog.thepet
 
 h3. Non-Gem Plugins
 
-Non-gem plugins are useful for functionality that won't be shared with another project.  Keeping your custom functionality in the
+Non-gem plugins are useful for functionality that won't be shared with another project. Keeping your custom functionality in the
 vendor/plugins directory un-clutters the rest of the application.
 
 Move the directory that you created for the gem based plugin into the vendor/plugins directory of a generated Rails application, create a vendor/plugins/yaffle/init.rb file that contains "require 'yaffle'" and everything will still work.
@@ -423,7 +423,7 @@ Move the directory that you created for the gem based plugin into the vendor/plu
 require 'yaffle'
 </ruby>
 
-You can test this by changing to the Rails application that you added the plugin to and starting a rails console.  Once in the 
+You can test this by changing to the Rails application that you added the plugin to and starting a rails console. Once in the
 console we can check to see if the String has an instance method of to_squawk.
 <shell>
 $ cd my_app
@@ -435,7 +435,7 @@ You can also remove the .gemspec, Gemfile and Gemfile.lock files as they will no
 
 h3. RDoc Documentation
 
-Once your plugin is stable and you are ready to deploy do everyone else a favor and document it!  Luckily, writing documentation for your plugin is easy.
+Once your plugin is stable and you are ready to deploy do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
 
 The first step is to update the README file with detailed information about how to use your plugin. A few key things to include are:
 

@@ -18,7 +18,7 @@ require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
-require 'models/loose_person'
+require 'models/person'
 require 'models/edge'
 require 'models/joke'
 require 'rexml/document'
@@ -489,6 +489,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 'value2', weird.send('a$b')
   end
 
+  def test_attributes_guard_protected_attributes_is_deprecated
+    attributes = { "title" => "An amazing title" }
+    topic = Topic.new
+    assert_deprecated { topic.send(:attributes=, attributes, false) }
+  end
+
   def test_multiparameter_attributes_on_date
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
@@ -895,7 +901,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = Geometric.find(g.id)
+      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
@@ -923,7 +929,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = Geometric.find(g.id)
+      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment

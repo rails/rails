@@ -246,6 +246,8 @@ module ActiveRecord
       orders = relation.order_values
       values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
 
+      relation = relation.dup
+
       ids_array = relation.select(values).collect {|row| row[primary_key]}
       ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
     end
@@ -277,8 +279,8 @@ module ActiveRecord
 
       unless record
         record = @klass.new do |r|
-          r.send(:attributes=, protected_attributes_for_create, true) unless protected_attributes_for_create.empty?
-          r.send(:attributes=, unprotected_attributes_for_create, false) unless unprotected_attributes_for_create.empty?
+          r.assign_attributes(protected_attributes_for_create)
+          r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
         end
         yield(record) if block_given?
         record.save if match.instantiator == :create

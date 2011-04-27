@@ -2,6 +2,7 @@ module ActionView
   module CompiledTemplates #:nodoc:
     # holds compiled template code
   end
+
   # = Action View Context
   #
   # Action View contexts are supplied to Action Controller to render template.

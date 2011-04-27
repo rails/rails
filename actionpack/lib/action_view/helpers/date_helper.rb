@@ -51,7 +51,7 @@ module ActionView
       #   distance_of_time_in_words(from_time, from_time + 15.seconds)        # => less than a minute
       #   distance_of_time_in_words(from_time, from_time + 15.seconds, true)  # => less than 20 seconds
       #   distance_of_time_in_words(from_time, 3.years.from_now)              # => about 3 years
-      #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => about 3 days
+      #   distance_of_time_in_words(from_time, from_time + 60.hours)          # => 3 days
       #   distance_of_time_in_words(from_time, from_time + 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, from_time - 45.seconds, true)  # => less than a minute
       #   distance_of_time_in_words(from_time, 76.seconds.from_now)           # => 1 minute
@@ -112,10 +112,12 @@ module ActionView
       #
       # ==== Examples
       #   time_ago_in_words(3.minutes.from_now)       # => 3 minutes
-      #   time_ago_in_words(Time.now - 15.hours)      # => 15 hours
+      #   time_ago_in_words(Time.now - 15.hours)      # => about 15 hours
       #   time_ago_in_words(Time.now)                 # => less than a minute
       #
-      #   from_time = Time.now - 3.days - 14.minutes - 25.seconds     # => 3 days
+      #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
+      #   time_ago_in_words(from_time)      # => 3 days
+      #
       def time_ago_in_words(from_time, include_seconds = false)
         distance_of_time_in_words(from_time, Time.now, include_seconds)
       end
@@ -464,7 +466,7 @@ module ActionView
       #
       #   # Generates a select field for hours with a custom prompt.  Use :prompt => true for a
       #   # generic prompt.
-      #   select_hour(13, :prompt =>'Choose hour')
+      #   select_hour(13, :prompt => 'Choose hour')
       #
       def select_hour(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_hour
