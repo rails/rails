@@ -70,6 +70,10 @@ module ActiveModel
         observer_instances.size
       end
 
+      def subclasses
+        @subclasses ||= []
+      end
+
       protected
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
@@ -89,6 +93,7 @@ module ActiveModel
         # Notify observers when the observed class is subclassed.
         def inherited(subclass)
           super
+          subclasses << subclass
           notify_observers :observed_class_inherited, subclass
         end
     end
