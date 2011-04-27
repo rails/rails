@@ -1996,11 +1996,11 @@ Active Support augments the API of arrays to ease certain ways of accessing them
 [].to(7)          # => []
 </ruby>
 
-Similarly, +from+ returns the tail from the element at the passed index on:
+Similarly, +from+ returns the tail from the element at the passed index to the end. If the index is greater than the length of the array, it returns an empty array.
 
 <ruby>
 %w(a b c d).from(2)  # => %w(c d)
-%w(a b c d).from(10) # => nil
+%w(a b c d).from(10) # => []
 [].from(0)           # => []
 </ruby>
 
