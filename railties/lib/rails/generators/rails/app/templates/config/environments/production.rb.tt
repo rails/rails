@@ -16,7 +16,7 @@
   config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect' for nginx
 
   # Compress both stylesheets and JavaScripts
-  # config.assets.js_compressor  = :uglifier
+  config.assets.js_compressor  = :uglifier
   config.assets.css_compressor = :scss
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
