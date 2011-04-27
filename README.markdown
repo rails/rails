@@ -26,8 +26,8 @@ Generating a query with ARel is simple. For example, in order to produce
 you construct a table relation and convert it to sql:
 
     users = Arel::Table.new(:users)
-    users.project(Arel.sql('*'))
-    users.to_sql
+    query = users.project(Arel.sql('*'))
+    query.to_sql
 
 ### More Sophisticated Queries
 
