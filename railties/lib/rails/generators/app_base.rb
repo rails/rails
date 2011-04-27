@@ -135,14 +135,14 @@ module Rails
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'arel',      :git => 'git://github.com/rails/arel.git'
             gem 'rack',      :git => 'git://github.com/rack/rack.git'
-            gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
+            gem 'sprockets', :git => 'git://github.com/sstephenson/sprockets.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :git => 'git://github.com/rails/rails.git'
             gem 'arel',      :git => 'git://github.com/rails/arel.git'
             gem 'rack',      :git => 'git://github.com/rack/rack.git'
-            gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
+            gem 'sprockets', :git => 'git://github.com/sstephenson/sprockets.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
@@ -152,7 +152,7 @@ module Rails
             # gem 'rails',     :git => 'git://github.com/rails/rails.git'
             # gem 'arel',      :git => 'git://github.com/rails/arel.git'
             # gem 'rack',      :git => 'git://github.com/rack/rack.git'
-            # gem 'sprockets', :git => "git://github.com/sstephenson/sprockets.git"
+            # gem 'sprockets', :git => 'git://github.com/sstephenson/sprockets.git'
           GEMFILE
         end
       end
@@ -170,7 +170,7 @@ module Rails
         else options[:database]
         end
       end
-      
+
       def gem_for_ruby_debugger
         if RUBY_VERSION < "1.9.2"
           "gem 'ruby-debug'"
@@ -178,7 +178,7 @@ module Rails
           "gem 'ruby-debug19', :require => 'ruby-debug'"
         end
       end
-      
+
       def gem_for_turn
         unless RUBY_VERSION < "1.9.2"
           <<-GEMFILE.strip_heredoc
@@ -203,7 +203,7 @@ module Rails
         empty_directory(destination, config)
         git_keep(destination)
       end
-      
+
       def git_keep(destination)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
