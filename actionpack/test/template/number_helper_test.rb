@@ -4,19 +4,19 @@ class NumberHelperTest < ActionView::TestCase
   tests ActionView::Helpers::NumberHelper
 
   def kilobytes(number)
-    number * 1024
+    number * 1000
   end
 
   def megabytes(number)
-    kilobytes(number) * 1024
+    kilobytes(number) * 1000
   end
 
   def gigabytes(number)
-    megabytes(number) * 1024
+    megabytes(number) * 1000
   end
 
   def terabytes(number)
-    gigabytes(number) * 1024
+    gigabytes(number) * 1000
   end
 
   def silence_deprecation_warnings
@@ -153,21 +153,21 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal '3 Bytes',   number_to_human_size(3.14159265)
     assert_equal '123 Bytes', number_to_human_size(123.0)
     assert_equal '123 Bytes', number_to_human_size(123)
-    assert_equal '1.21 KB',    number_to_human_size(1234)
-    assert_equal '12.1 KB',   number_to_human_size(12345)
-    assert_equal '1.18 MB',    number_to_human_size(1234567)
-    assert_equal '1.15 GB',    number_to_human_size(1234567890)
-    assert_equal '1.12 TB',    number_to_human_size(1234567890123)
+    assert_equal '1.23 kB',    number_to_human_size(1234)
+    assert_equal '12.3 kB',   number_to_human_size(12345)
+    assert_equal '1.23 MB',    number_to_human_size(1234567)
+    assert_equal '1.23 GB',    number_to_human_size(1234567890)
+    assert_equal '1.23 TB',    number_to_human_size(1234567890123)
     assert_equal '1030 TB',   number_to_human_size(terabytes(1026))
-    assert_equal '444 KB',    number_to_human_size(kilobytes(444))
-    assert_equal '1020 MB',   number_to_human_size(megabytes(1023))
+    assert_equal '444 kB',    number_to_human_size(kilobytes(444))
+    assert_equal '999 MB',    number_to_human_size(megabytes(999))
     assert_equal '3 TB',      number_to_human_size(terabytes(3))
     assert_equal '1.2 MB',   number_to_human_size(1234567, :precision => 2)
     assert_equal '3 Bytes',   number_to_human_size(3.14159265, :precision => 4)
     assert_equal '123 Bytes', number_to_human_size('123')
-    assert_equal '1 KB',   number_to_human_size(kilobytes(1.0123), :precision => 2)
-    assert_equal '1.01 KB',   number_to_human_size(kilobytes(1.0100), :precision => 4)
-    assert_equal '10 KB',   number_to_human_size(kilobytes(10.000), :precision => 4)
+    assert_equal '1 kB',   number_to_human_size(kilobytes(1.0123), :precision => 2)
+    assert_equal '1.01 kB',   number_to_human_size(kilobytes(1.0100), :precision => 4)
+    assert_equal '10 kB',   number_to_human_size(kilobytes(10.000), :precision => 4)
     assert_equal '1 Byte',   number_to_human_size(1.1)
     assert_equal '10 Bytes', number_to_human_size(10)
   end
@@ -175,22 +175,22 @@ class NumberHelperTest < ActionView::TestCase
   def test_number_to_human_size_with_options_hash
     assert_equal '1.2 MB',   number_to_human_size(1234567, :precision => 2)
     assert_equal '3 Bytes',   number_to_human_size(3.14159265, :precision => 4)
-    assert_equal '1 KB',   number_to_human_size(kilobytes(1.0123), :precision => 2)
-    assert_equal '1.01 KB',   number_to_human_size(kilobytes(1.0100), :precision => 4)
-    assert_equal '10 KB',     number_to_human_size(kilobytes(10.000), :precision => 4)
+    assert_equal '1 kB',   number_to_human_size(kilobytes(1.0123), :precision => 2)
+    assert_equal '1.01 kB',   number_to_human_size(kilobytes(1.0100), :precision => 4)
+    assert_equal '10 kB',     number_to_human_size(kilobytes(10.000), :precision => 4)
     assert_equal '1 TB', number_to_human_size(1234567890123, :precision => 1)
-    assert_equal '500 MB', number_to_human_size(524288000, :precision=>3)
+    assert_equal '524 MB', number_to_human_size(524288000, :precision=>3)
     assert_equal '10 MB', number_to_human_size(9961472, :precision=>0)
-    assert_equal '40 KB', number_to_human_size(41010, :precision => 1)
-    assert_equal '40 KB', number_to_human_size(41100, :precision => 2)
-    assert_equal '1.0 KB',   number_to_human_size(kilobytes(1.0123), :precision => 2, :strip_insignificant_zeros => false)
-    assert_equal '1.012 KB',   number_to_human_size(kilobytes(1.0123), :precision => 3, :significant => false)
-    assert_equal '1 KB',   number_to_human_size(kilobytes(1.0123), :precision => 0, :significant => true) #ignores significant it precision is 0
+    assert_equal '40 kB', number_to_human_size(41010, :precision => 1)
+    assert_equal '41 kB', number_to_human_size(41100, :precision => 2)
+    assert_equal '1.0 kB',   number_to_human_size(kilobytes(1.0123), :precision => 2, :strip_insignificant_zeros => false)
+    assert_equal '1.012 kB',   number_to_human_size(kilobytes(1.0123), :precision => 3, :significant => false)
+    assert_equal '1 kB',   number_to_human_size(kilobytes(1.0123), :precision => 0, :significant => true) #ignores significant it precision is 0
   end
 
   def test_number_to_human_size_with_custom_delimiter_and_separator
-    assert_equal '1,01 KB',     number_to_human_size(kilobytes(1.0123), :precision => 3, :separator => ',')
-    assert_equal '1,01 KB',     number_to_human_size(kilobytes(1.0100), :precision => 4, :separator => ',')
+    assert_equal '1,01 kB',     number_to_human_size(kilobytes(1.0123), :precision => 3, :separator => ',')
+    assert_equal '1,01 kB',     number_to_human_size(kilobytes(1.0100), :precision => 4, :separator => ',')
     assert_equal '1.000,1 TB',  number_to_human_size(terabytes(1000.1), :precision => 5, :delimiter => '.', :separator => ',')
   end
 
