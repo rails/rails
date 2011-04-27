@@ -673,6 +673,19 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_not_nil @ship.reload.pirate
   end
 
+  def test_shoud_not_save_associated_record_if_not_changed
+    # Stub the save method of the @ship.pirate instance to make sure save is not called
+    class << @ship.pirate
+      def save(*args)
+        super
+        raise "Oh noes!"
+      end
+    end
+
+    assert_nothing_raised(RuntimeError) { assert @ship.save }
+    assert_not_nil @ship.reload.pirate
+  end
+
   def test_should_save_changed_child_objects_if_parent_is_saved
     @pirate = @ship.create_pirate(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @parrot = @pirate.parrots.create!(:name => 'Posideons Killer')
