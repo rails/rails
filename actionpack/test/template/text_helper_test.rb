@@ -315,14 +315,25 @@ class TextHelperTest < ActionView::TestCase
     end
   end
 
-  def test_auto_link_should_not_be_html_safe
-    email_raw    = 'santiago@wyeworks.com'
-    link_raw     = 'http://www.rubyonrails.org'
+  def test_auto_link_should_be_html_safe
+    email_raw         = 'santiago@wyeworks.com'
+    link_raw          = 'http://www.rubyonrails.org'
+    malicious_script  = '<script>alert("malicious!")</script>'
 
-    assert !auto_link(nil).html_safe?, 'should not be html safe'
-    assert !auto_link('').html_safe?, 'should not be html safe'
-    assert !auto_link("#{link_raw} #{link_raw} #{link_raw}").html_safe?, 'should not be html safe'
-    assert !auto_link("hello #{email_raw}").html_safe?, 'should not be html safe'
+    assert auto_link(nil).html_safe?, 'should be html safe'
+    assert auto_link('').html_safe?, 'should be html safe'
+    assert auto_link("#{link_raw} #{link_raw} #{link_raw}").html_safe?, 'should be html safe'
+    assert auto_link("hello #{email_raw}").html_safe?, 'should be html safe'
+    assert auto_link("hello #{email_raw} #{malicious_script}").html_safe?, 'should be html safe'
+  end
+  
+  def test_auto_link_should_not_be_html_safe_when_sanitize_option_false
+    email_raw         = 'santiago@wyeworks.com'
+    link_raw          = 'http://www.rubyonrails.org'
+
+    assert !auto_link("hello", :sanitize => false).html_safe?, 'should not be html safe'
+    assert !auto_link("#{link_raw} #{link_raw} #{link_raw}", :sanitize => false).html_safe?, 'should not be html safe'
+    assert !auto_link("hello #{email_raw}", :sanitize => false).html_safe?, 'should not be html safe'
   end
 
   def test_auto_link_email_address
@@ -431,12 +442,14 @@ class TextHelperTest < ActionView::TestCase
 
   def test_auto_link_should_sanitize_input_when_sanitize_option_is_not_false
     link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
-    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw)
+    malicious_script  = '<script>alert("malicious!")</script>'
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link("#{link_raw}#{malicious_script}")
   end
 
   def test_auto_link_should_not_sanitize_input_when_sanitize_option_is_false
     link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
-    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw, :sanitize => false)
+    malicious_script  = '<script>alert("malicious!")</script>'
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a><script>alert("malicious!")</script>}, auto_link("#{link_raw}#{malicious_script}", :sanitize => false)
   end
 
   def test_auto_link_other_protocols
@@ -461,7 +474,7 @@ class TextHelperTest < ActionView::TestCase
     linked5 = %('<a href="#close">close</a> <a href="http://www.example.com"><b>www.example.com</b></a>')
     assert_equal linked1, auto_link(linked1)
     assert_equal linked2, auto_link(linked2)
-    assert_equal linked3, auto_link(linked3)
+    assert_equal linked3, auto_link(linked3, :sanitize => false)
     assert_equal linked4, auto_link(linked4)
     assert_equal linked5, auto_link(linked5)
 
