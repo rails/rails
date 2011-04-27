@@ -117,4 +117,65 @@ class TagHelperTest < ActionView::TestCase
         tag('a', { data => { :a_number => 1, :string => 'hello', :symbol => :foo, :array => [1, 2, 3], :hash => { :key => 'value'} } })
     }
   end
+
+  def test_add_css_class
+    # tolerant of nils
+    assert_equal "", add_css_class(nil, nil)
+    assert_equal "a", add_css_class("a", nil)
+    assert_equal "a", add_css_class(nil, "a")
+    # joined with a space
+    assert_equal "a b", add_css_class("a", "b")
+    # output is sorted
+    assert_equal "a b", add_css_class("b", "a")
+    # symbols work too
+    assert_equal "a b", add_css_class(:b, :a)
+    # several classes can be specified per argument
+    assert_equal "a b c d", add_css_class("b c", "a d")
+    # Any number of arguments are accepted, and the output should be uniq'd
+    assert_equal "a b", add_css_class("a", "b", "b a")
+  end
+
+  def test_merge_tag_attributes!
+    attributes = {}
+
+    merge_tag_attributes!(attributes, :class => "a", :id => "id")
+    assert_equal({:class => "a", :id => "id"}, attributes)
+
+    merge_tag_attributes!(attributes, :class => "b", :id => "id2")
+    assert_equal({:class => "a b", :id => "id2"}, attributes)
+
+    # Style attribute gets merged with semi-colon separators
+    attributes = {:style => "color: red;"} #with a semicolon
+    merge_tag_attributes!(attributes, :style => "font-weight: bold")
+    assert_equal({:style => "color: red; font-weight: bold"}, attributes)
+
+    attributes = {:style => "color: red"} #without a semicolon
+    merge_tag_attributes!(attributes, :style => "font-weight: bold")
+    assert_equal({:style => "color: red; font-weight: bold"}, attributes)
+
+    # Event attributes gets merged with semi-colon separators
+    attributes = {:onclick => "alert('hello');"} #with a semicolon
+    merge_tag_attributes!(attributes, :onclick => "alert('world');")
+    assert_equal({:onclick => "alert('hello'); alert('world')"}, attributes)
+
+    attributes = {:onclick => "alert('hello')"} #without a semicolon
+    merge_tag_attributes!(attributes, :onclick => "alert('world');")
+    assert_equal({:onclick => "alert('hello'); alert('world')"}, attributes)
+
+    # Make sure it handles nil
+    assert_equal({:class=>"a"}, merge_tag_attributes!({:class=>"a"}, nil))
+    assert_equal({:class=>"a"}, merge_tag_attributes!(nil, {:class=>"a"}))
+  end
+
+  def test_merge_tag_attributes
+    attributes = {}
+    # Make sure the returned value is merged
+    assert_equal({:class=>"a"}, merge_tag_attributes(attributes, :class => "a"))
+    # Make sure it handles nil
+    assert_equal({:class=>"a"}, merge_tag_attributes({:class=>"a"}, nil))
+    assert_equal({:class=>"a"}, merge_tag_attributes(nil, {:class=>"a"}))
+    # but the original value is unchanged
+    assert_equal({}, attributes)
+  end
+
 end

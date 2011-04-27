@@ -7,6 +7,7 @@ module ActionView #:nodoc:
     autoload :ActiveModelHelper
     autoload :AssetTagHelper
     autoload :AtomFeedHelper
+    autoload :BodyHelper
     autoload :CacheHelper
     autoload :CaptureHelper
     autoload :CsrfHelper
@@ -36,6 +37,7 @@ module ActionView #:nodoc:
     include ActiveModelHelper
     include AssetTagHelper
     include AtomFeedHelper
+    include BodyHelper
     include CacheHelper
     include CaptureHelper
     include CsrfHelper

@@ -121,6 +121,60 @@ module ActionView
         ActiveSupport::Multibyte.clean(html.to_s).gsub(/[\"><]|&(?!([a-zA-Z]+|(#\d+));)/) { |special| ERB::Util::HTML_ESCAPE[special] }
       end
 
+      # Adds one or more css classes to a string of css classes
+      # This method guards against nil and duplicate classes.
+      #
+      # Strings or symbols may be passed in, but this method always returns a string.
+      #
+      # Examples:
+      # add_css_class(nil,"myclass")
+      # => "myclass"
+      # add_css_class("existing","new")
+      # => "existing new"
+      # add_css_class("another existing","existing","new")
+      # => "another existing new"
+      def add_css_class(*classes)
+        classes.flatten.compact.map{|c| c.to_s.strip.split(/\s+/)}.flatten.uniq.sort.join(" ")
+      end
+
+      # merge with_attrs into the original_attrs.
+      # making sure to merge existing attributes instead of overwriting them.
+      #
+      # original_attrs = {}
+      # merge_tag_attributes!(original_attrs, :id => "special", :class => "foo", :style => "color: red;")
+      # => {:id => "special", :class => "foo", :style => "color: red;"}
+      #
+      # A second call:
+      # merge_tag_attributes!(:id => "more-special", :class => "bar", :style => "background-color: #ccc;")
+      # => {:id => "more-special", :class => "bar foo", :style => "color: red; background-color: #ccc;"}
+      #
+      # The following attributes are merged instead of being overwritten:
+      #   * :class - class attributes are merged with the add_css_class method.
+      #   * :style - style attributes are merged with a semi-colon separator
+      #   * :onanything - Anything starting with `on` is merged like javascript.
+      #
+      # Otherwise, the attribute is overwritten by the value in with_attrs.
+      def merge_tag_attributes!(original_attrs, with_attrs)
+        original_attrs ||= {}
+        return original_attrs unless with_attrs
+        original_attrs.merge!(with_attrs) do |k, v1, v2|
+          case k.to_s
+          when "class"
+            add_css_class(v1, v2)
+          when "style", /^on/
+            [v1, v2].compact.map{|a| a.sub(/;\s*$/,"")}.join("; ")
+          else
+            v2
+          end
+        end
+      end
+
+      # Returns a new hash that has merged original_attrs with with_attrs.
+      # See merge_tag_attributes! for more information.
+      def merge_tag_attributes(original_attrs, with_attrs)
+        merge_tag_attributes!(original_attrs && original_attrs.dup || {}, with_attrs)
+      end
+
       private
 
         def content_tag_string(name, content, options, escape = true)
