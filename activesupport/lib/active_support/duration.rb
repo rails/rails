@@ -50,6 +50,14 @@ module ActiveSupport
       end
     end
 
+    def send(method, *args, &block)
+      __send__(method, *args, &block)
+    end
+
+    def try(method, *args, &block)
+      send(method, *args, &block)
+    end
+
     def self.===(other) #:nodoc:
       other.is_a?(Duration)
     rescue ::NoMethodError
