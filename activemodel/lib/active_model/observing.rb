@@ -1,8 +1,10 @@
 require 'singleton'
+require 'active_model/observer_array'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/enumerable'
 
 module ActiveModel
   module Observing
@@ -30,12 +32,12 @@ module ActiveModel
       # +instantiate_observers+ is called during startup, and before
       # each development request.
       def observers=(*values)
-        @observers = values.flatten
+        observers.replace(values.flatten)
       end
 
       # Gets the current observers.
       def observers
-        @observers ||= []
+        @observers ||= ObserverArray.for(self)
       end
 
       # Gets the current observer instances.
@@ -201,6 +203,23 @@ module ActiveModel
           nil
         end
       end
+
+      def subclasses
+        @subclasses ||= []
+      end
+
+      # List of all observer subclasses, sub-subclasses, etc.
+      # Necessary so we can disable or enable all observers.
+      def all_observers
+        subclasses.each_with_object(subclasses.dup) do |subclass, array|
+          array.concat(subclass.all_observers)
+        end
+      end
+    end
+
+    def self.inherited(subclass)
+      subclasses << subclass
+      super
     end
 
     # Start observing the declared classes and their subclasses.
@@ -214,7 +233,9 @@ module ActiveModel
 
     # Send observed_method(object) if the method exists.
     def update(observed_method, object) #:nodoc:
-      send(observed_method, object) if respond_to?(observed_method)
+      if respond_to?(observed_method) && ObserverArray.observer_enabled?(self, object)
+        send(observed_method, object)
+      end
     end
 
     # Special method sent by the observed class when it is inherited.
