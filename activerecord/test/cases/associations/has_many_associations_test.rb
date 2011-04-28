@@ -82,6 +82,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 4, post.comments.length
   end
 
+  def test_find_or_create_by_with_same_parameters_creates_a_single_record
+    author = Author.first
+    assert_difference "Post.count", +1 do
+      2.times do
+        author.posts.find_or_create_by_body_and_title('one', 'two')
+      end
+    end
+  end
+
   def test_find_or_create_by_with_block
     post = Post.create! :title => 'test_find_or_create_by_with_additional_parameters', :body => 'this is the body'
     comment = post.comments.find_or_create_by_body('other test comment body') { |comment| comment.type = 'test' }

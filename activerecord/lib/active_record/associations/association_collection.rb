@@ -381,7 +381,7 @@ module ActiveRecord
           when /^find_or_create_by_(.*)$/
             rest = $1
             find_args = pull_finder_args_from(DynamicFinderMatch.match(method).attribute_names, *args)
-            return  send("find_by_#{rest}", find_args) ||
+            return  send("find_by_#{rest}", *find_args) ||
                     method_missing("create_by_#{rest}", *args, &block)
           when /^create_by_(.*)$/
             return create($1.split('_and_').zip(args).inject({}) { |h,kv| k,v=kv ; h[k] = v ; h }, &block)
