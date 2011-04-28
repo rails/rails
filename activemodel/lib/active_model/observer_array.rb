@@ -48,7 +48,7 @@ module ActiveModel
       set_enablement(true, observers, &block)
     end
 
-    protected
+    private
 
       def observer_class_for(observer)
         return observer if observer.is_a?(Class)
@@ -61,37 +61,13 @@ module ActiveModel
         end
       end
 
-      def start_transaction
-        disabled_observer_stack.push(disabled_observers.dup)
-        each_subclass_array do |array|
-          array.start_transaction
-        end
-      end
-
-      def disabled_observer_stack
-        @disabled_observer_stack ||= []
-      end
-
-      def end_transaction
-        @disabled_observers = disabled_observer_stack.pop
-        each_subclass_array do |array|
-          array.end_transaction
-        end
-      end
-
       def transaction
-        start_transaction
+        orig_disabled_observers = disabled_observers.dup
 
         begin
           yield
         ensure
-          end_transaction
-        end
-      end
-
-      def each_subclass_array
-        model_class.subclasses.each do |subclass|
-          yield self.class.for(subclass)
+          @disabled_observers = orig_disabled_observers
         end
       end
 
@@ -115,10 +91,6 @@ module ActiveModel
             else
               disabled_observers << klass
             end
-          end
-
-          each_subclass_array do |array|
-            array.set_enablement(enabled, observers)
           end
         end
       end

@@ -118,44 +118,5 @@ class ObserverArrayTest < ActiveModel::TestCase
       ORM.observers.disable Widget
     end
   end
-
-  test "allows #enable at the superclass level to override #disable at the subclass level when called last" do
-    Widget.observers.disable :all
-    ORM.observers.enable :all
-
-    assert_observer_notified Widget, WidgetObserver
-    assert_observer_notified Budget, BudgetObserver
-    assert_observer_notified Widget, AuditTrail
-    assert_observer_notified Budget, AuditTrail
-  end
-
-  test "allows #disable at the superclass level to override #enable at the subclass level when called last" do
-    Budget.observers.enable :audit_trail
-    ORM.observers.disable :audit_trail
-
-    assert_observer_notified     Widget, WidgetObserver
-    assert_observer_notified     Budget, BudgetObserver
-    assert_observer_not_notified Widget, AuditTrail
-    assert_observer_not_notified Budget, AuditTrail
-  end
-
-  test "can use the block form at different levels of the hierarchy" do
-    yielded = false
-    Widget.observers.disable :all
-
-    ORM.observers.enable :all do
-      yielded = true
-      assert_observer_notified Widget, WidgetObserver
-      assert_observer_notified Budget, BudgetObserver
-      assert_observer_notified Widget, AuditTrail
-      assert_observer_notified Budget, AuditTrail
-    end
-
-    assert yielded
-    assert_observer_not_notified Widget, WidgetObserver
-    assert_observer_notified     Budget, BudgetObserver
-    assert_observer_not_notified Widget, AuditTrail
-    assert_observer_notified     Budget, AuditTrail
-  end
 end
 
