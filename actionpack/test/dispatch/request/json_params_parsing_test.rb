@@ -63,3 +63,56 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       end
     end
 end
+
+class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
+  class UsersController < ActionController::Base
+    wrap_parameters :format => :json
+
+    class << self
+      attr_accessor :last_request_parameters, :last_parameters
+    end
+
+    def parse
+      self.class.last_request_parameters = request.request_parameters
+      self.class.last_parameters = params
+      head :ok
+    end
+  end
+
+  def teardown
+    UsersController.last_request_parameters = nil
+  end
+
+  test "parses json params for application json" do
+    assert_parses(
+      {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
+      "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+  end
+
+  test "parses json params for application jsonrequest" do
+    assert_parses(
+      {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
+      "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/jsonrequest' }
+    )
+  end
+
+  private
+    def assert_parses(expected, actual, headers = {})
+      with_test_routing(UsersController) do
+        post "/parse", actual, headers
+        assert_response :ok
+        assert_equal(expected, UsersController.last_request_parameters)
+        assert_equal(expected.merge({"action" => "parse"}), UsersController.last_parameters)
+      end
+    end
+
+    def with_test_routing(controller)
+      with_routing do |set|
+        set.draw do
+          match ':action', :to => controller
+        end
+        yield
+      end
+    end
+end
