@@ -13,10 +13,12 @@ module ActiveModel
       INSTANCES[model_class]
     end
 
-    # returns false if:
+    # Returns false if:
     #   - the ObserverArray for the given model's class has the given observer
     #     in its disabled_observers set.
     #   - or that is the case at any level of the model's superclass chain.
+    #
+    # On other cases it returns true, since observers are enabled by default.
     def self.observer_enabled?(observer, model)
       klass = model.class
       observer_class = observer.class
@@ -40,10 +42,12 @@ module ActiveModel
       super(*args)
     end
 
+    # Disable the given observers.
     def disable(*observers, &block)
       set_enablement(false, observers, &block)
     end
 
+    # Enable the given observers.
     def enable(*observers, &block)
       set_enablement(true, observers, &block)
     end
