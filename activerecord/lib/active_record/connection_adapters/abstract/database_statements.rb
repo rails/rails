@@ -62,6 +62,13 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
+      # Executes delete +sql+ statement in the context of this connection using 
+      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # the executed +sql+ statement.
+      def exec_delete(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
       # Returns the last auto-generated ID from the affected table.
       #
       # +id_value+ will be returned unless the value is nil, in
@@ -82,8 +89,8 @@ module ActiveRecord
       end
 
       # Executes the delete statement and returns the number of rows affected.
-      def delete(sql, name = nil)
-        delete_sql(sql, name)
+      def delete(sql, name = nil, binds = [])
+        exec_delete(sql, name, binds)
       end
 
       # Checks whether there is currently no transaction active. This is done

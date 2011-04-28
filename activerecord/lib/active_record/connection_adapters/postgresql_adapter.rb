@@ -543,27 +543,23 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        return exec_no_cache(sql, name) if binds.empty?
-
         log(sql, name, binds) do
-          unless @statements.key? sql
-            nextkey = "a#{@statements.length + 1}"
-            @connection.prepare nextkey, sql
-            @statements[sql] = nextkey
-          end
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
 
-          key = @statements[sql]
-
-          # Clear the queue
-          @connection.get_last_result
-          @connection.send_query_prepared(key, binds.map { |col, val|
-            type_cast(val, col)
-          })
-          @connection.block
-          result = @connection.get_last_result
           ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
           result.clear
           return ret
+        end
+      end
+
+      def exec_delete(sql, name = 'SQL', binds = [])
+        log(sql, name, binds) do
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
+          affected = result.cmd_tuples
+          result.clear
+          affected
         end
       end
 
@@ -980,13 +976,26 @@ module ActiveRecord
         end
 
       private
-      def exec_no_cache(sql, name)
-        log(sql, name) do
-          result = @connection.async_exec(sql)
-          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
-          result.clear
-          ret
+      def exec_no_cache(sql, binds)
+        @connection.async_exec(sql)
+      end
+
+      def exec_cache(sql, binds)
+        unless @statements.key? sql
+          nextkey = "a#{@statements.length + 1}"
+          @connection.prepare nextkey, sql
+          @statements[sql] = nextkey
         end
+
+        key = @statements[sql]
+
+        # Clear the queue
+        @connection.get_last_result
+        @connection.send_query_prepared(key, binds.map { |col, val|
+          type_cast(val, col)
+        })
+        @connection.block
+        @connection.get_last_result
       end
 
         # The internal PostgreSQL identifier of the money data type.
