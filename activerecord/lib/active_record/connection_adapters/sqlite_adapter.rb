@@ -178,6 +178,11 @@ module ActiveRecord
         end
       end
 
+      def exec_delete(sql, name = 'SQL', binds = [])
+        exec_query(sql, name, binds)
+        @connection.changes
+      end
+
       def last_inserted_id(result)
         @connection.last_insert_row_id
       end
