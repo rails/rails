@@ -38,6 +38,16 @@ class ObserverArrayTest < ActiveModel::TestCase
     assert_observer_notified     Budget, AuditTrail
   end
 
+  test "can enable individual observers using a class constant" do
+    ORM.observers.disable :all
+    ORM.observers.enable AuditTrail
+
+    assert_observer_not_notified Widget, WidgetObserver
+    assert_observer_not_notified Budget, BudgetObserver
+    assert_observer_notified     Widget, AuditTrail
+    assert_observer_notified     Budget, AuditTrail
+  end
+
   test "can disable individual observers using a symbol" do
     ORM.observers.disable :budget_observer
 
@@ -45,6 +55,35 @@ class ObserverArrayTest < ActiveModel::TestCase
     assert_observer_not_notified Budget, BudgetObserver
     assert_observer_notified     Widget, AuditTrail
     assert_observer_notified     Budget, AuditTrail
+  end
+
+  test "can enable individual observers using a symbol" do
+    ORM.observers.disable :all
+    ORM.observers.enable :audit_trail
+
+    assert_observer_not_notified Widget, WidgetObserver
+    assert_observer_not_notified Budget, BudgetObserver
+    assert_observer_notified     Widget, AuditTrail
+    assert_observer_notified     Budget, AuditTrail
+  end
+
+  test "can disable multiple observers at a time" do
+    ORM.observers.disable :widget_observer, :budget_observer
+
+    assert_observer_not_notified Widget, WidgetObserver
+    assert_observer_not_notified Budget, BudgetObserver
+    assert_observer_notified     Widget, AuditTrail
+    assert_observer_notified     Budget, AuditTrail
+  end
+
+  test "can enable multiple observers at a time" do
+    ORM.observers.disable :all
+    ORM.observers.enable :widget_observer, :budget_observer
+
+    assert_observer_notified     Widget, WidgetObserver
+    assert_observer_notified     Budget, BudgetObserver
+    assert_observer_not_notified Widget, AuditTrail
+    assert_observer_not_notified Budget, AuditTrail
   end
 
   test "can disable all observers using :all" do
@@ -56,11 +95,31 @@ class ObserverArrayTest < ActiveModel::TestCase
     assert_observer_not_notified Budget, AuditTrail
   end
 
-  test "can disable observers on individual models without affecting observers on other models" do
+  test "can enable all observers using :all" do
+    ORM.observers.disable :all
+    ORM.observers.enable :all
+
+    assert_observer_notified Widget, WidgetObserver
+    assert_observer_notified Budget, BudgetObserver
+    assert_observer_notified Widget, AuditTrail
+    assert_observer_notified Budget, AuditTrail
+  end
+
+  test "can disable observers on individual models without affecting those observers on other models" do
     Widget.observers.disable :all
 
     assert_observer_not_notified Widget, WidgetObserver
     assert_observer_notified     Budget, BudgetObserver
+    assert_observer_not_notified Widget, AuditTrail
+    assert_observer_notified     Budget, AuditTrail
+  end
+
+  test "can enable observers on individual models without affecting those observers on other models" do
+    ORM.observers.disable :all
+    Budget.observers.enable AuditTrail
+
+    assert_observer_not_notified Widget, WidgetObserver
+    assert_observer_not_notified Budget, BudgetObserver
     assert_observer_not_notified Widget, AuditTrail
     assert_observer_notified     Budget, AuditTrail
   end
@@ -117,6 +176,45 @@ class ObserverArrayTest < ActiveModel::TestCase
     assert_raise ArgumentError do
       ORM.observers.disable Widget
     end
+  end
+
+  test "allows #enable at the superclass level to override #disable at the subclass level when called last" do
+    Widget.observers.disable :all
+    ORM.observers.enable :all
+
+    assert_observer_notified Widget, WidgetObserver
+    assert_observer_notified Budget, BudgetObserver
+    assert_observer_notified Widget, AuditTrail
+    assert_observer_notified Budget, AuditTrail
+  end
+
+  test "allows #disable at the superclass level to override #enable at the subclass level when called last" do
+    Budget.observers.enable :audit_trail
+    ORM.observers.disable :audit_trail
+
+    assert_observer_notified     Widget, WidgetObserver
+    assert_observer_notified     Budget, BudgetObserver
+    assert_observer_not_notified Widget, AuditTrail
+    assert_observer_not_notified Budget, AuditTrail
+  end
+
+  test "can use the block form at different levels of the hierarchy" do
+    yielded = false
+    Widget.observers.disable :all
+
+    ORM.observers.enable :all do
+      yielded = true
+      assert_observer_notified Widget, WidgetObserver
+      assert_observer_notified Budget, BudgetObserver
+      assert_observer_notified Widget, AuditTrail
+      assert_observer_notified Budget, AuditTrail
+    end
+
+    assert yielded
+    assert_observer_not_notified Widget, WidgetObserver
+    assert_observer_notified     Budget, BudgetObserver
+    assert_observer_not_notified Widget, AuditTrail
+    assert_observer_notified     Budget, AuditTrail
   end
 end
 

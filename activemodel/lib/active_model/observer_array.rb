@@ -4,40 +4,14 @@ module ActiveModel
   # Stores the enabled/disabled state of individual observers for
   # a particular model classes.
   class ObserverArray < Array
-    INSTANCES = Hash.new do |hash, model_class|
-      hash[model_class] = new(model_class)
-    end
-
-    def self.for(model_class)
-      return nil unless model_class < ActiveModel::Observing
-      INSTANCES[model_class]
-    end
-
-    # returns false if:
-    #   - the ObserverArray for the given model's class has the given observer
-    #     in its disabled_observers set.
-    #   - or that is the case at any level of the model's superclass chain.
-    def self.observer_enabled?(observer, model)
-      klass = model.class
-      observer_class = observer.class
-
-      loop do
-        break unless array = self.for(klass)
-        return false if array.disabled_observers.include?(observer_class)
-        klass = klass.superclass
-      end
-
-      true # observers are enabled by default
-    end
-
-    def disabled_observers
-      @disabled_observers ||= Set.new
-    end
-
     attr_reader :model_class
     def initialize(model_class, *args)
       @model_class = model_class
       super(*args)
+    end
+
+    def disabled_for?(observer)
+      disabled_observers.include?(observer.class)
     end
 
     def disable(*observers, &block)
@@ -48,7 +22,11 @@ module ActiveModel
       set_enablement(true, observers, &block)
     end
 
-    private
+    protected
+
+      def disabled_observers
+        @disabled_observers ||= Set.new
+      end
 
       def observer_class_for(observer)
         return observer if observer.is_a?(Class)
@@ -61,13 +39,37 @@ module ActiveModel
         end
       end
 
+      def start_transaction
+        disabled_observer_stack.push(disabled_observers.dup)
+        each_subclass_array do |array|
+          array.start_transaction
+        end
+      end
+
+      def disabled_observer_stack
+        @disabled_observer_stack ||= []
+      end
+
+      def end_transaction
+        @disabled_observers = disabled_observer_stack.pop
+        each_subclass_array do |array|
+          array.end_transaction
+        end
+      end
+
       def transaction
-        orig_disabled_observers = disabled_observers.dup
+        start_transaction
 
         begin
           yield
         ensure
-          @disabled_observers = orig_disabled_observers
+          end_transaction
+        end
+      end
+
+      def each_subclass_array
+        model_class.descendants.each do |subclass|
+          yield subclass.observers
         end
       end
 
@@ -78,7 +80,7 @@ module ActiveModel
             yield
           end
         else
-          observers = ActiveModel::Observer.all_observers if observers == [:all]
+          observers = ActiveModel::Observer.descendants if observers == [:all]
           observers.each do |obs|
             klass = observer_class_for(obs)
 
@@ -91,6 +93,10 @@ module ActiveModel
             else
               disabled_observers << klass
             end
+          end
+
+          each_subclass_array do |array|
+            array.set_enablement(enabled, observers)
           end
         end
       end
