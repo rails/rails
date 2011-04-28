@@ -446,7 +446,9 @@ EOM
     end
 
     def reset_session
-      session.destroy if session
+      # session may be a hash, if so, we do not want to call destroy
+      # fixes issue 6440
+      session.destroy if session and session.respond_to?(:destroy)
       self.session = {}
     end
 
