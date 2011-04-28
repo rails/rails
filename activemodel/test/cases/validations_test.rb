@@ -212,6 +212,20 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 'is too short (minimum is 2 characters)', t.errors[key][0]
   end
 
+  def test_validaton_with_if_and_on
+    Topic.validates_presence_of :title, :if => Proc.new{|x| x.author_name = "bad"; true }, :on => :update
+
+    t = Topic.new(:title => "")
+
+    # If block should not fire
+    assert t.valid?
+    assert t.author_name.nil?
+
+    # If block should fire
+    assert t.invalid?(:update)
+    assert t.author_name == "bad"
+  end
+
   def test_invalid_should_be_the_opposite_of_valid
     Topic.validates_presence_of :title
 
