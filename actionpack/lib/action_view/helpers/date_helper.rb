@@ -468,6 +468,9 @@ module ActionView
       #   # generic prompt.
       #   select_hour(13, :prompt => 'Choose hour')
       #
+      #   # Generate a select field for hours in the AM/PM format
+      #   select_hour(my_time, :ampm => true)
+      #
       def select_hour(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_hour
       end
@@ -600,6 +603,18 @@ module ActionView
       POSITION = {
         :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
       }.freeze
+      ampm = ["AM","PM"].map do |s|
+        ["12 #{s}"] + (1..11).map{|x| "#{sprintf('%02d',x)} #{s}"}
+      end.flatten
+
+      AMPM_TRANSLATION = Hash[
+        [[0, "12 AM"], [1, "01 AM"], [2, "02 AM"], [3, "03 AM"],
+         [4, "04 AM"], [5, "05 AM"], [6, "06 AM"], [7, "07 AM"],
+         [8, "08 AM"], [9, "09 AM"], [10, "10 AM"], [11, "11 AM"],
+         [12, "12 PM"], [13, "01 PM"], [14, "02 PM"], [15, "03 PM"],
+         [16, "04 PM"], [17, "05 PM"], [18, "06 PM"], [19, "07 PM"],
+         [20, "08 PM"], [21, "09 PM"], [22, "10 PM"], [23, "11 PM"]]
+      ].freeze
 
       def initialize(datetime, options = {}, html_options = {})
         @options      = options.dup
@@ -691,6 +706,8 @@ module ActionView
       def select_hour
         if @options[:use_hidden] || @options[:discard_hour]
           build_hidden(:hour, hour)
+        elsif @options[:ampm]
+          build_select(:hour, build_ampm_options(hour, :end => 23))
         else
           build_options_and_select(:hour, hour, :end => 23)
         end
@@ -799,6 +816,24 @@ module ActionView
         # Build full select tag from date type and options
         def build_options_and_select(type, selected, options = {})
           build_select(type, build_options(selected, options))
+        end
+
+        def build_ampm_options(selected, options = {})
+          start         = options.delete(:start) || 0
+          stop          = options.delete(:end) || 23
+          step          = options.delete(:step) || 1
+          options.reverse_merge!({:leading_zeros => true})
+          leading_zeros = options.delete(:leading_zeros)
+
+          select_options = []
+          start.step(stop, step) do |i|
+            text = AMPM_TRANSLATION[i]
+            value = leading_zeros ? sprintf("%02d", i) : i
+            tag_options = { :value => value }
+            tag_options[:selected] = "selected" if selected == i
+            select_options << content_tag(:option, text, tag_options)
+          end
+          (select_options.join("\n") + "\n").html_safe
         end
 
         # Build select option html from date value and options
