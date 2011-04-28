@@ -5,10 +5,15 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
+require 'active_support/descendants_tracker'
 
 module ActiveModel
   module Observing
     extend ActiveSupport::Concern
+
+    included do
+      extend ActiveSupport::DescendantsTracker
+    end
 
     module ClassMethods
       # == Active Model Observers Activation
@@ -37,7 +42,7 @@ module ActiveModel
 
       # Gets the current observers.
       def observers
-        @observers ||= ObserverArray.for(self)
+        @observers ||= ObserverArray.new(self)
       end
 
       # Gets the current observer instances.
@@ -70,10 +75,6 @@ module ActiveModel
         observer_instances.size
       end
 
-      def subclasses
-        @subclasses ||= []
-      end
-
       protected
         def instantiate_observer(observer) #:nodoc:
           # string/symbol
@@ -93,7 +94,6 @@ module ActiveModel
         # Notify observers when the observed class is subclassed.
         def inherited(subclass)
           super
-          subclasses << subclass
           notify_observers :observed_class_inherited, subclass
         end
     end
@@ -176,6 +176,7 @@ module ActiveModel
   #
   class Observer
     include Singleton
+    extend ActiveSupport::DescendantsTracker
 
     class << self
       # Attaches the observer to the supplied model classes.
@@ -208,23 +209,6 @@ module ActiveModel
           nil
         end
       end
-
-      def subclasses
-        @subclasses ||= []
-      end
-
-      # List of all observer subclasses, sub-subclasses, etc.
-      # Necessary so we can disable or enable all observers.
-      def all_observers
-        subclasses.each_with_object(subclasses.dup) do |subclass, array|
-          array.concat(subclass.all_observers)
-        end
-      end
-    end
-
-    def self.inherited(subclass)
-      subclasses << subclass
-      super
     end
 
     # Start observing the declared classes and their subclasses.

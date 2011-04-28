@@ -4,15 +4,6 @@ module ActiveModel
   # Stores the enabled/disabled state of individual observers for
   # a particular model classes.
   class ObserverArray < Array
-    INSTANCES = Hash.new do |hash, model_class|
-      hash[model_class] = new(model_class)
-    end
-
-    def self.for(model_class)
-      return nil unless model_class < ActiveModel::Observing
-      INSTANCES[model_class]
-    end
-
     # returns false if:
     #   - the ObserverArray for the given model's class has the given observer
     #     in its disabled_observers set.
@@ -22,7 +13,8 @@ module ActiveModel
       observer_class = observer.class
 
       loop do
-        break unless array = self.for(klass)
+        break unless klass.respond_to?(:observers)
+        array = klass.observers
         return false if array.disabled_observers.include?(observer_class)
         klass = klass.superclass
       end
@@ -90,8 +82,8 @@ module ActiveModel
       end
 
       def each_subclass_array
-        model_class.subclasses.each do |subclass|
-          yield self.class.for(subclass)
+        model_class.descendants.each do |subclass|
+          yield subclass.observers
         end
       end
 
@@ -102,7 +94,7 @@ module ActiveModel
             yield
           end
         else
-          observers = ActiveModel::Observer.all_observers if observers == [:all]
+          observers = ActiveModel::Observer.descendants if observers == [:all]
           observers.each do |obs|
             klass = observer_class_for(obs)
 
