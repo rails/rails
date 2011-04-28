@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency('i18n',             '~> 0.6.0beta1')
   s.add_dependency('rack',             '~> 1.2.1')
   s.add_dependency('rack-test',        '~> 0.5.7')
-  s.add_dependency('rack-mount',       '~> 0.7.1')
+  s.add_dependency('rack-mount',       '~> 0.7.2')
   s.add_dependency('tzinfo',           '~> 0.3.23')
   s.add_dependency('erubis',           '~> 2.7.0')
 end
