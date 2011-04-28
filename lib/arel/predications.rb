@@ -1,5 +1,6 @@
 module Arel
   module Predications
+
     def as other
       Nodes::As.new self, Nodes::SqlLiteral.new(other)
     end
@@ -150,14 +151,6 @@ module Arel
 
     def lteq_all others
       grouping_all :lteq, others
-    end
-
-    def asc
-      Nodes::Ordering.new self, :asc
-    end
-
-    def desc
-      Nodes::Ordering.new self, :desc
     end
 
     private

@@ -3,6 +3,7 @@ module Arel
     class SqlLiteral < String
       include Arel::Expressions
       include Arel::Predications
+      include Arel::OrderPredications
     end
   end
 end
