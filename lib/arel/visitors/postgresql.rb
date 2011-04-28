@@ -17,19 +17,6 @@ module Arel
       def visit_Arel_Nodes_DistinctOn o
         "DISTINCT ON ( #{visit o.expr} )"
       end
-
-      def aliased_orders orders
-        #orders = o.orders.map { |x| visit x }.join(', ').split(',')
-        list = []
-        orders.each_with_index do |o,i|
-          list <<
-            [
-              "id_list.alias_#{i}",
-              (o.index(/desc/i) && 'DESC')
-            ].compact.join(' ')
-        end
-        list
-      end
     end
   end
 end
