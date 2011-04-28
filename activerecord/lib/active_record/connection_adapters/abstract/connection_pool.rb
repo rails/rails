@@ -90,7 +90,7 @@ module ActiveRecord
           h[table_name] = with_connection do |conn|
 
             # Fetch a list of columns
-            conn.columns(table_name, "#{table_name} Columns").tap do |columns|
+            conn.columns(table_name).tap do |columns|
 
               # set primary key information
               columns.each do |column|
