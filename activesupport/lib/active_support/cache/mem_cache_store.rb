@@ -4,7 +4,9 @@ rescue LoadError => e
   $stderr.puts "You don't have memcache-client installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
+
 require 'digest/md5'
+require 'active_support/core_ext/string/encoding'
 
 module ActiveSupport
   module Cache
@@ -157,11 +159,14 @@ module ActiveSupport
         end
 
       private
+
+        # Memcache keys are binaries. So we need to force their encoding to binary
+        # before applying the regular expression to ensure we are escaping all
+        # characters properly.
         def escape_key(key)
-          # Fix for EncodedKeyCacheBehavior failing tests in caching_test.rb.
           key = key.to_s.dup
-          key = key.force_encoding(ESCAPE_KEY_CHARS.encoding) if key.respond_to?(:encoding) && key.encoding != ESCAPE_KEY_CHARS.encoding
-          key = key.gsub(ESCAPE_KEY_CHARS){|match| "%#{match.getbyte(0).to_s(16).upcase}"}
+          key = key.force_encoding("BINARY") if key.encoding_aware?
+          key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
           key
         end
