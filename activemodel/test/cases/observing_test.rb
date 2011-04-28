@@ -43,6 +43,11 @@ class ObservingTest < ActiveModel::TestCase
     assert ObservedModel.observers.include?(:bar), ":bar not in #{ObservedModel.observers.inspect}"
   end
 
+  test "uses an ObserverArray so observers can be disabled" do
+    ObservedModel.observers = [:foo, :bar]
+    assert ObservedModel.observers.is_a?(ActiveModel::ObserverArray)
+  end
+
   test "instantiates observer names passed as strings" do
     ObservedModel.observers << 'foo_observer'
     FooObserver.expects(:instance)

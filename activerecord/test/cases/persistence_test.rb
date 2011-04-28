@@ -492,7 +492,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_update_attributes_as_admin
-    person = TightPerson.create
+    person = TightPerson.create({ "first_name" => 'Joshua' })
     person.update_attributes({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :as => :admin)
     person.reload
 
@@ -501,8 +501,8 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal 'from NZ', person.comments
   end
 
-  def test_update_attributes_as_without_protection
-    person = TightPerson.create
+  def test_update_attributes_without_protection
+    person = TightPerson.create({ "first_name" => 'Joshua' })
     person.update_attributes({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :without_protection => true)
     person.reload
 
@@ -532,23 +532,23 @@ class PersistencesTest < ActiveRecord::TestCase
     Reply.reset_callbacks(:validate)
   end
 
-  def test_update_attributes_as_admin
-    person = TightPerson.create
-    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'male', "comments" => 'from NZ' }, :as => :admin)
+  def test_update_attributes_with_bang_as_admin
+    person = TightPerson.create({ "first_name" => 'Joshua' })
+    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :as => :admin)
     person.reload
 
     assert_equal 'Josh', person.first_name
-    assert_equal 'male', person.gender
+    assert_equal 'm',    person.gender
     assert_equal 'from NZ', person.comments
   end
 
-  def test_update_attributes_as_without_protection
-    person = TightPerson.create
-    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'male', "comments" => 'from NZ' }, :without_protection => true)
+  def test_update_attributestes_with_bang_without_protection
+    person = TightPerson.create({ "first_name" => 'Joshua' })
+    person.update_attributes!({ "first_name" => 'Josh', "gender" => 'm', "comments" => 'from NZ' }, :without_protection => true)
     person.reload
 
     assert_equal 'Josh', person.first_name
-    assert_equal 'male', person.gender
+    assert_equal 'm',    person.gender
     assert_equal 'from NZ', person.comments
   end
 

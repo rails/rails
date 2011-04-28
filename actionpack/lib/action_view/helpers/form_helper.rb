@@ -947,7 +947,8 @@ module ActionView
           label_tag(name_and_id["id"], options, &block)
         else
           content = if text.blank?
-            I18n.t("helpers.label.#{object_name}.#{method_name}", :default => "").presence
+            method_and_value = tag_value.present? ? "#{method_name}.#{tag_value}" : method_name
+            I18n.t("helpers.label.#{object_name}.#{method_and_value}", :default => "").presence
           else
             text.to_s
           end

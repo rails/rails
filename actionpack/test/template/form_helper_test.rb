@@ -24,7 +24,10 @@ class FormHelperTest < ActionView::TestCase
       :helpers => {
         :label => {
           :post => {
-            :body => "Write entire text here"
+            :body => "Write entire text here",
+            :color => {
+              :red => "Rojo"
+            }
           }
         }
       }
@@ -137,6 +140,13 @@ class FormHelperTest < ActionView::TestCase
   def test_label_with_locales_and_options
     old_locale, I18n.locale = I18n.locale, :label
     assert_dom_equal('<label for="post_body" class="post_body">Write entire text here</label>', label(:post, :body, :class => 'post_body'))
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_label_with_locales_and_value
+    old_locale, I18n.locale = I18n.locale, :label
+    assert_dom_equal('<label for="post_color_red">Rojo</label>', label(:post, :color, :value => "red"))
   ensure
     I18n.locale = old_locale
   end

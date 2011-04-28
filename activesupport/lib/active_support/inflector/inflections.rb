@@ -96,7 +96,7 @@ module ActiveSupport
       def clear(scope = :all)
         case scope
           when :all
-            @plurals, @singulars, @uncountables = [], [], []
+            @plurals, @singulars, @uncountables, @humans = [], [], [], []
           else
             instance_variable_set "@#{scope}", []
         end
