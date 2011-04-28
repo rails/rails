@@ -1180,18 +1180,14 @@ MSG
         # Use this macro in your model to set a default scope for all operations on
         # the model.
         #
-        #   class Person < ActiveRecord::Base
-        #     default_scope order('last_name, first_name')
-        #   end
-        #
-        #   Person.all # => SELECT * FROM people ORDER BY last_name, first_name
-        #
-        # The <tt>default_scope</tt> is also applied while creating/building a record. It is not
-        # applied while updating a record.
-        #
         #   class Article < ActiveRecord::Base
         #     default_scope where(:published => true)
         #   end
+        #
+        #   Article.all # => SELECT * FROM articles WHERE published = true
+        #
+        # The <tt>default_scope</tt> is also applied while creating/building a record. It is not
+        # applied while updating a record.
         #
         #   Article.new.published    # => true
         #   Article.create.published # => true
@@ -1205,6 +1201,19 @@ MSG
         # (You can also pass any object which responds to <tt>call</tt> to the <tt>default_scope</tt>
         # macro, and it will be called when building the default scope.)
         #
+        # If you use multiple <tt>default_scope</tt> declarations in your model then they will
+        # be merged together:
+        #
+        #   class Article < ActiveRecord::Base
+        #     default_scope where(:published => true)
+        #     default_scope where(:rating => 'G')
+        #   end
+        #
+        #   Article.all # => SELECT * FROM articles WHERE published = true AND rating = 'G'
+        #
+        # This is also the case with inheritance and module includes where the parent or module
+        # defines a <tt>default_scope</tt> and the child or including class defines a second one.
+        #
         # If you need to do more complex things with a default scope, you can alternatively
         # define it as a class method:
         #
@@ -1214,36 +1223,8 @@ MSG
         #     end
         #   end
         def default_scope(scope = {})
-          if default_scopes.length != 0
-            ActiveSupport::Deprecation.warn <<-WARN
-Calling 'default_scope' multiple times in a class (including when a superclass calls 'default_scope') is deprecated. The current behavior is that this will merge the default scopes together:
-
-class Post < ActiveRecord::Base # Rails 3.1
-  default_scope where(:published => true)
-  default_scope where(:hidden => false)
-  # The default scope is now: where(:published => true, :hidden => false)
-end
-
-In Rails 3.2, the behavior will be changed to overwrite previous scopes:
-
-class Post < ActiveRecord::Base # Rails 3.2
-  default_scope where(:published => true)
-  default_scope where(:hidden => false)
-  # The default scope is now: where(:hidden => false)
-end
-
-If you wish to merge default scopes in special ways, it is recommended to define your default scope as a class method and use the standard techniques for sharing code (inheritance, mixins, etc.):
-
-class Post < ActiveRecord::Base
-  def self.default_scope
-    where(:published => true).where(:hidden => false)
-  end
-end
-            WARN
-          end
-
           scope = Proc.new if block_given?
-          self.default_scopes = default_scopes.dup << scope
+          self.default_scopes = default_scopes + [scope]
         end
 
         def build_default_scope #:nodoc:
