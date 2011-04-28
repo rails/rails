@@ -8,7 +8,7 @@ module ActiveSupport
   # Example:
   #
   #   1.month.ago       # equivalent to Time.now.advance(:months => -1)
-  class Duration < BasicObject
+  class Duration
     attr_accessor :value, :parts
 
     def initialize(value, parts) #:nodoc:
