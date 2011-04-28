@@ -4,32 +4,14 @@ module ActiveModel
   # Stores the enabled/disabled state of individual observers for
   # a particular model classes.
   class ObserverArray < Array
-    # returns false if:
-    #   - the ObserverArray for the given model's class has the given observer
-    #     in its disabled_observers set.
-    #   - or that is the case at any level of the model's superclass chain.
-    def self.observer_enabled?(observer, model)
-      klass = model.class
-      observer_class = observer.class
-
-      loop do
-        break unless klass.respond_to?(:observers)
-        array = klass.observers
-        return false if array.disabled_observers.include?(observer_class)
-        klass = klass.superclass
-      end
-
-      true # observers are enabled by default
-    end
-
-    def disabled_observers
-      @disabled_observers ||= Set.new
-    end
-
     attr_reader :model_class
     def initialize(model_class, *args)
       @model_class = model_class
       super(*args)
+    end
+
+    def disabled_for?(observer)
+      disabled_observers.include?(observer.class)
     end
 
     def disable(*observers, &block)
@@ -41,6 +23,10 @@ module ActiveModel
     end
 
     protected
+
+      def disabled_observers
+        @disabled_observers ||= Set.new
+      end
 
       def observer_class_for(observer)
         return observer if observer.is_a?(Class)

@@ -222,9 +222,9 @@ module ActiveModel
 
     # Send observed_method(object) if the method exists.
     def update(observed_method, object) #:nodoc:
-      if respond_to?(observed_method) && ObserverArray.observer_enabled?(self, object)
-        send(observed_method, object)
-      end
+      return unless respond_to?(observed_method)
+      return if disabled_for?(object)
+      send(observed_method, object)
     end
 
     # Special method sent by the observed class when it is inherited.
@@ -237,6 +237,12 @@ module ActiveModel
     protected
       def add_observer!(klass) #:nodoc:
         klass.add_observer(self)
+      end
+
+      def disabled_for?(object)
+        klass = object.class
+        return false unless klass.respond_to?(:observers)
+        klass.observers.disabled_for?(self)
       end
   end
 end

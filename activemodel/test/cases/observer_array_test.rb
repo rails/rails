@@ -65,6 +65,16 @@ class ObserverArrayTest < ActiveModel::TestCase
     assert_observer_notified     Budget, AuditTrail
   end
 
+  test "can enable observers on individual models without affecting those observers on other models" do
+    ORM.observers.disable :all
+    Budget.observers.enable AuditTrail
+
+    assert_observer_not_notified Widget, WidgetObserver
+    assert_observer_not_notified Budget, BudgetObserver
+    assert_observer_not_notified Widget, AuditTrail
+    assert_observer_notified     Budget, AuditTrail
+  end
+
   test "can disable observers for the duration of a block" do
     yielded = false
     ORM.observers.disable :budget_observer do
