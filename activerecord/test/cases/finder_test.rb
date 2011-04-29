@@ -1045,7 +1045,7 @@ class FinderTest < ActiveRecord::TestCase
                               :order => ' author_addresses_authors.id DESC ', :limit => 3).size
   end
 
-  def test_find_with_nil_inside_set_passed_for_attribute
+  def test_find_with_nil_inside_set_passed_for_one_attribute
     client_of = Company.find(
       :all,
       :conditions => {
@@ -1054,7 +1054,8 @@ class FinderTest < ActiveRecord::TestCase
       :order => 'client_of DESC'
     ).map { |x| x.client_of }
 
-    assert_equal [2, 1, nil], client_of
+    assert client_of.include?(nil)
+    assert_equal [2, 1].sort, client_of.compact.sort
   end
 
   def test_find_with_nil_inside_set_passed_for_attribute
@@ -1064,7 +1065,7 @@ class FinderTest < ActiveRecord::TestCase
       :order => 'client_of DESC'
     ).map { |x| x.client_of }
 
-    assert_equal [nil], client_of
+    assert_equal [], client_of.compact
   end
 
   def test_with_limiting_with_custom_select
