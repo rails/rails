@@ -413,9 +413,19 @@ module ActiveRecord
             stmt = cache[:stmt]
           end
 
-          stmt.execute(*binds.map { |col, val|
-            type_cast(val, col)
-          })
+
+          begin
+            stmt.execute(*binds.map { |col, val| type_cast(val, col) })
+          rescue Mysql::Error => e
+            # Older versions of MySQL leave the prepared statement in a bad
+            # place when an error occurs.  To support older mysql versions, we
+            # need to close the statement and delete the statement from the
+            # cache.
+            stmt.close
+            @statements.delete sql
+            raise e
+          end
+
           if metadata = stmt.result_metadata
             cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
               field.name

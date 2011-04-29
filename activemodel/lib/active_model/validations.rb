@@ -133,7 +133,7 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:if] = Array.wrap(options[:if])
-          options[:if] << "validation_context == :#{options[:on]}"
+          options[:if].unshift("validation_context == :#{options[:on]}")
         end
         args << options
         set_callback(:validate, *args, &block)
