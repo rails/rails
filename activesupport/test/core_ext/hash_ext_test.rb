@@ -865,7 +865,13 @@ class HashToXmlTest < Test::Unit::TestCase
     hash = Hash.from_xml(xml)
     assert_equal "bacon is the best", hash['blog']['name']
   end
-
+  
+  def test_empty_cdata_from_xml
+    xml = "<data><![CDATA[]]></data>"
+    
+    assert_equal "", Hash.from_xml(xml)["data"]
+  end
+  
   def test_xsd_like_types_from_xml
     bacon_xml = <<-EOT
     <bacon>
