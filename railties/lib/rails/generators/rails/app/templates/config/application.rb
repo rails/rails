@@ -40,7 +40,7 @@ module <%= app_const_base %>
     # config.i18n.default_locale = :de
 
     # Please note that JavaScript expansions are *ignored altogether* if the asset
-    # pipeline is enabled (see config.asset.enabled below). Put your defaults in
+    # pipeline is enabled (see config.assets.enabled below). Put your defaults in
     # app/assets/javascripts/application.js in that case.
     #
     # JavaScript files you want as :defaults (application.js is always included).
