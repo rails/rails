@@ -31,7 +31,12 @@
 		} else {
 			method = element.attr('data-method');
 			url = element.attr('href');
-			data = null;
+
+			csrf_token = $('meta[name=csrf-token]').attr('content');
+			csrf_param = $('meta[name=csrf-param]').attr('content');
+
+			data = {};
+			data[csrf_param] = csrf_token;
 		}
 
 		$.ajax({
