@@ -201,13 +201,13 @@ module ActiveRecord
         true
       end
 
-      # Returns +true+, since this connection adapter supports prepared statement
+      # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
         true
       end
 
-      # Returns true.
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations? #:nodoc:
         true
       end
@@ -217,6 +217,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true, since this connection adapter supports savepoints.
       def supports_savepoints? #:nodoc:
         true
       end
@@ -583,6 +584,7 @@ module ActiveRecord
         super(table_name, options)
       end
 
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)#:nodoc:
         indexes = []
         current_index = nil
@@ -601,6 +603,7 @@ module ActiveRecord
         indexes
       end
 
+      # Returns an array of +MysqlColumn+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
@@ -614,6 +617,10 @@ module ActiveRecord
         super(table_name, options.reverse_merge(:options => "ENGINE=InnoDB"))
       end
 
+      # Renames a table.
+      #
+      # Example:
+      #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
       end
@@ -891,6 +898,7 @@ module ActiveRecord
           version[0] >= 5
         end
 
+        # Returns the version of the connected MySQL server.
         def version
           @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
         end

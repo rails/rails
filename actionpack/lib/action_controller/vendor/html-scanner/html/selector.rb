@@ -128,6 +128,8 @@ module HTML
   #   (no parent element).
   # * <tt>:empty</tt> -- Match the element only if it has no child elements,
   #   and no text content.
+  # * <tt>:content(string)</tt> -- Match the element only if it has <tt>string</tt>
+  #   as its text content (ignoring leading and trailing whitespace).
   # * <tt>:only-child</tt> -- Match the element if it is the only child (element)
   #   of its parent element.
   # * <tt>:only-of-type</tt> -- Match the element if it is the only child (element)
