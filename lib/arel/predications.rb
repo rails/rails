@@ -42,17 +42,7 @@ module Arel
           Nodes::Between.new(self, Nodes::And.new([other.begin, other.end]))
         end
       else
-        if other.include?(nil)
-          if other.size > 1
-            set  = Nodes::In.new self, other.compact
-            null = Nodes::Equality.new self, nil
-            Nodes::Or.new set, null
-          else
-            Nodes::Equality.new self, nil
-          end
-        else
-          Nodes::In.new self, other
-        end
+        Nodes::In.new self, other
       end
     end
 
