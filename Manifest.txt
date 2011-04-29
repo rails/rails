@@ -1,4 +1,5 @@
 .autotest
+.gemtest
 History.txt
 MIT-LICENSE.txt
 Manifest.txt
@@ -6,6 +7,7 @@ README.markdown
 Rakefile
 arel.gemspec
 lib/arel.rb
+lib/arel/alias_predication.rb
 lib/arel/attributes.rb
 lib/arel/attributes/attribute.rb
 lib/arel/compatibility/wheres.rb
@@ -56,6 +58,7 @@ lib/arel/update_manager.rb
 lib/arel/visitors.rb
 lib/arel/visitors/depth_first.rb
 lib/arel/visitors/dot.rb
+lib/arel/visitors/ibm_db.rb
 lib/arel/visitors/join_sql.rb
 lib/arel/visitors/mssql.rb
 lib/arel/visitors/mysql.rb
@@ -95,6 +98,7 @@ test/test_table.rb
 test/test_update_manager.rb
 test/visitors/test_depth_first.rb
 test/visitors/test_dot.rb
+test/visitors/test_ibm_db.rb
 test/visitors/test_join_sql.rb
 test/visitors/test_mssql.rb
 test/visitors/test_mysql.rb
