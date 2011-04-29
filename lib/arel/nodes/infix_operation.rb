@@ -4,6 +4,7 @@ module Arel
     class InfixOperation < Binary
       include Arel::Expressions
       include Arel::Predications
+      include Arel::AliasPredication
       include Arel::Math
 
       attr_reader :operator

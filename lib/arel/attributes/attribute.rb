@@ -3,6 +3,7 @@ module Arel
     class Attribute < Struct.new :relation, :name
       include Arel::Expressions
       include Arel::Predications
+      include Arel::AliasPredication
       include Arel::OrderPredications
       include Arel::Math
 
