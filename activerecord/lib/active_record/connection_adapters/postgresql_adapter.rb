@@ -512,8 +512,7 @@ module ActiveRecord
       # Queries the database and returns the results in an Array-like object
       def query(sql, name = nil) #:nodoc:
         log(sql, name) do
-          @connection.async_exec(sql)
-          return result_as_array(res)
+          result_as_array @connection.async_exec(sql)
         end
       end
 
