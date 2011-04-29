@@ -716,10 +716,8 @@ module ActionView
       def select_hour
         if @options[:use_hidden] || @options[:discard_hour]
           build_hidden(:hour, hour)
-        elsif @options[:ampm]
-          build_select(:hour, build_ampm_options(hour, :end => 23))
         else
-          build_options_and_select(:hour, hour, :end => 23)
+          build_options_and_select(:hour, hour, :end => 23, :ampm => @options[:ampm])
         end
       end
 
@@ -828,24 +826,6 @@ module ActionView
           build_select(type, build_options(selected, options))
         end
 
-        def build_ampm_options(selected, options = {})
-          start         = options.delete(:start) || 0
-          stop          = options.delete(:end) || 23
-          step          = options.delete(:step) || 1
-          options.reverse_merge!({:leading_zeros => true})
-          leading_zeros = options.delete(:leading_zeros)
-
-          select_options = []
-          start.step(stop, step) do |i|
-            text = AMPM_TRANSLATION[i]
-            value = leading_zeros ? sprintf("%02d", i) : i
-            tag_options = { :value => value }
-            tag_options[:selected] = "selected" if selected == i
-            select_options << content_tag(:option, text, tag_options)
-          end
-          (select_options.join("\n") + "\n").html_safe
-        end
-
         # Build select option html from date value and options
         #  build_options(15, :start => 1, :end => 31)
         #  => "<option value="1">1</option>
@@ -855,7 +835,7 @@ module ActionView
           start         = options.delete(:start) || 0
           stop          = options.delete(:end) || 59
           step          = options.delete(:step) || 1
-          options.reverse_merge!({:leading_zeros => true})
+          options.reverse_merge!({:leading_zeros => true, :ampm => false})
           leading_zeros = options.delete(:leading_zeros)
 
           select_options = []
@@ -863,7 +843,8 @@ module ActionView
             value = leading_zeros ? sprintf("%02d", i) : i
             tag_options = { :value => value }
             tag_options[:selected] = "selected" if selected == i
-            select_options << content_tag(:option, value, tag_options)
+            text = options[:ampm] ? AMPM_TRANSLATION[i] : value
+            select_options << content_tag(:option, text, tag_options)
           end
           (select_options.join("\n") + "\n").html_safe
         end
