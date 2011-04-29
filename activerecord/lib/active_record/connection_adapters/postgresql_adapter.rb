@@ -245,7 +245,6 @@ module ActiveRecord
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
         @table_alias_length = nil
-        @postgresql_version = nil
         @statements = {}
 
         connect
@@ -267,28 +266,16 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        if @connection.respond_to?(:status)
-          @connection.status == PGconn::CONNECTION_OK
-        else
-          # We're asking the driver, not Active Record, so use @connection.query instead of #query
-          @connection.query 'SELECT 1'
-          true
-        end
-      # postgres-pr raises a NoMethodError when querying if no connection is available.
-      rescue PGError, NoMethodError
+        @connection.status == PGconn::CONNECTION_OK
+      rescue PGError
         false
       end
 
       # Close then reopen the connection.
       def reconnect!
-        if @connection.respond_to?(:reset)
-          clear_cache!
-          @connection.reset
-          configure_connection
-        else
-          disconnect!
-          connect
-        end
+        clear_cache!
+        @connection.reset
+        configure_connection
       end
 
       def reset!
@@ -441,17 +428,17 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      def supports_disable_referential_integrity?() #:nodoc:
+      def supports_disable_referential_integrity? #:nodoc:
         true
       end
 
       def disable_referential_integrity #:nodoc:
-        if supports_disable_referential_integrity?() then
+        if supports_disable_referential_integrity? then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
         end
         yield
       ensure
-        if supports_disable_referential_integrity?() then
+        if supports_disable_referential_integrity? then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
         end
       end
@@ -525,11 +512,7 @@ module ActiveRecord
       # Queries the database and returns the results in an Array-like object
       def query(sql, name = nil) #:nodoc:
         log(sql, name) do
-          if @async
-            res = @connection.async_exec(sql)
-          else
-            res = @connection.exec(sql)
-          end
+          @connection.async_exec(sql)
           return result_as_array(res)
         end
       end
@@ -538,11 +521,7 @@ module ActiveRecord
       # or raising a PGError exception otherwise.
       def execute(sql, name = nil)
         log(sql, name) do
-          if @async
-            @connection.async_exec(sql)
-          else
-            @connection.exec(sql)
-          end
+          @connection.async_exec(sql)
         end
       end
 
@@ -954,22 +933,7 @@ module ActiveRecord
       protected
         # Returns the version of the connected PostgreSQL version.
         def postgresql_version
-          @postgresql_version ||=
-            if @connection.respond_to?(:server_version)
-              @connection.server_version
-            else
-              # Mimic PGconn.server_version behavior
-              begin
-                if query('SELECT version()')[0][0] =~ /PostgreSQL ([0-9.]+)/
-                  major, minor, tiny = $1.split(".")
-                  (major.to_i * 10000) + (minor.to_i * 100) + tiny.to_i
-                else
-                  0
-                end
-              rescue
-                0
-              end
-            end
+          @connection.server_version
         end
 
         def translate_exception(exception, message)
@@ -1015,10 +979,6 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @connection = PGconn.connect(*@connection_parameters)
-          PGconn.translate_results = false if PGconn.respond_to?(:translate_results=)
-
-          # Ignore async_exec and async_query when using postgres-pr.
-          @async = @connection.respond_to?(:async_exec)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
           # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
@@ -1032,11 +992,7 @@ module ActiveRecord
         # This is called by #connect and should not be called manually.
         def configure_connection
           if @config[:encoding]
-            if @connection.respond_to?(:set_client_encoding)
-              @connection.set_client_encoding(@config[:encoding])
-            else
-              execute("SET client_encoding TO '#{@config[:encoding]}'")
-            end
+            @connection.set_client_encoding(@config[:encoding])
           end
           self.client_min_messages = @config[:min_messages] if @config[:min_messages]
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
