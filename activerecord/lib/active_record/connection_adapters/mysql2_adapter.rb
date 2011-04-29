@@ -290,6 +290,14 @@ module ActiveRecord
         execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
       end
 
+      def exec_delete(sql, name, binds)
+        binds = binds.dup
+
+        # Pretend to support bind parameters
+        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+        @connection.affected_rows
+      end
+
       def last_inserted_id(result)
         @connection.last_id
       end
