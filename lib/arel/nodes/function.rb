@@ -6,12 +6,12 @@ module Arel
 
       def initialize expr, aliaz = nil
         @expressions = expr
-        @alias       = aliaz && SqlLiteral.new(aliaz.to_s)
+        @alias       = aliaz && SqlLiteral.new(aliaz)
         @distinct    = false
       end
 
       def as aliaz
-        self.alias = SqlLiteral.new(aliaz.to_s)
+        self.alias = SqlLiteral.new(aliaz)
         self
       end
     end
