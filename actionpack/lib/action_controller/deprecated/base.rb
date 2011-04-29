@@ -126,7 +126,7 @@ module ActionController
       # This was moved to a plugin
       def verify(*args)
         ActiveSupport::Deprecation.warn "verify was removed from Rails and is now available as a plugin. " \
-          "Please install it with `rails plugin install git://github.com/rails/verification.git`.", caller
+          "Please install it with `rails plugin install git://github.com/sikachu/verification.git`.", caller
       end
 
       def exempt_from_layout(*)
