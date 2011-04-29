@@ -899,9 +899,9 @@ class HashToXmlTest < Test::Unit::TestCase
   end
   
   def test_empty_cdata_from_xml
-    xml = "<content><![CDATA[]]></content>"
+    xml = "<data><![CDATA[]]></data>"
     
-    assert_equal "", Hash.from_xml(xml)["content"]
+    assert_equal "", Hash.from_xml(xml)["data"]
   end
   
   def test_xsd_like_types_from_xml
