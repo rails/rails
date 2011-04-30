@@ -2174,7 +2174,7 @@ module ActiveRecord
                   end
 
                   case source_reflection.macro
-                  when :has_many
+                  when :has_many, :has_one
                     if source_reflection.options[:as]
                       first_key   = "#{source_reflection.options[:as]}_id"
                       second_key  = options[:foreign_key] || primary_key
