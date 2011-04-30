@@ -210,10 +210,10 @@ db_namespace = namespace :db do
       puts "\ndatabase: #{config['database']}\n\n"
       puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
       puts "-" * 50
-      file_list.each do |file|
+      file_list.sort_by {|file| file[1]}.each do |file|
         puts "#{file[0].center(8)}  #{file[1].ljust(14)}  #{file[2].humanize}"
       end
-      db_list.each do |version|
+      db_list.sort.each do |version|
         puts "#{'up'.center(8)}  #{version.ljust(14)}  *** NO FILE ***"
       end
       puts
