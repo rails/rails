@@ -14,7 +14,7 @@ endprologue.
 
 h3. Reporting an Issue
 
-Ruby on Rails uses "GitHub Issue Tracking":https://github.com/rails/rails/issues to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to comment on issues or to upload patches.
+Ruby on Rails uses "GitHub Issue Tracking":https://github.com/rails/rails/issues to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to either submit an issue, comment on them or create pull requests.
 
 NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide you'll find out how to get edge Rails for testing.
 
