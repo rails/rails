@@ -1,4 +1,14 @@
 (function() {
+  Ajax.Responders.register({
+    onCreate: function(request) {
+      var token = $$('meta[name=csrf-token]')[0];
+      if (token) {
+        if (!request.options.requestHeaders) request.options.requestHeaders = {};
+        request.options.requestHeaders['X-CSRF-Token'] = token.readAttribute('content');
+      }
+    }
+  });
+
   // Technique from Juriy Zaytsev
   // http://thinkweb2.com/projects/prototype/detecting-event-support-without-browser-sniffing/
   function isEventSupported(eventName) {
@@ -188,21 +198,5 @@
   
   document.on('ajax:complete', 'form', function(event, form) {
     if (form == event.findElement()) enableFormElements(form);
-  });
-
-  Ajax.Responders.register({
-    onCreate: function(request) {
-      var csrf_meta_tag = $$('meta[name=csrf-token]')[0];
-
-      if (csrf_meta_tag) {
-        var header = 'X-CSRF-Token',
-            token = csrf_meta_tag.readAttribute('content');
-
-        if (!request.options.requestHeaders) {
-          request.options.requestHeaders = {};
-        }
-        request.options.requestHeaders[header] = token;
-      }
-    }
   });
 })();
