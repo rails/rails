@@ -2199,7 +2199,7 @@ module ActiveRecord
 
                   [
                     [parent_table[jt_primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra].reject{|x| x.blank? },
-                    aliased_table[first_key].eq(join_table[second_key])
+                    [aliased_table[first_key].eq(join_table[second_key]), as_extra].reject{ |x| x.blank? }
                   ]
                 elsif reflection.options[:as]
                   id_rel = aliased_table["#{reflection.options[:as]}_id"].eq(parent_table[parent.primary_key])
