@@ -301,8 +301,8 @@ db_namespace = namespace :db do
       require 'active_record/fixtures'
 
       ActiveRecord::Base.establish_connection(Rails.env)
-      base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
-      fixtures_dir = ENV['FIXTURES_DIR'] ? File.join(base_dir, ENV['FIXTURES_DIR']) : base_dir
+      base_dir     = File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}]
+      fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
       (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.{yml,csv}"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
         Fixtures.create_fixtures(fixtures_dir, fixture_file)
