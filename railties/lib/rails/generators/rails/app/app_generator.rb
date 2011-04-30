@@ -120,14 +120,8 @@ module Rails
       if options[:skip_javascript]
         empty_directory_with_gitkeep "vendor/assets/javascripts"
       else
-        copy_file "vendor/assets/javascripts/#{options[:javascript]}.js"
-        copy_file "vendor/assets/javascripts/#{options[:javascript]}_ujs.js"
-
-        if options[:javascript] == "prototype"
-          copy_file "vendor/assets/javascripts/controls.js"
-          copy_file "vendor/assets/javascripts/dragdrop.js"
-          copy_file "vendor/assets/javascripts/effects.js"
-        end
+        copy_file "vendor/assets/javascripts/jquery.js"
+        copy_file "vendor/assets/javascripts/jquery_ujs.js"
       end
     end
 
@@ -161,10 +155,6 @@ module Rails
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
-        end
-
-        if !options[:skip_javascript] && !JAVASCRIPTS.include?(options[:javascript])
-          raise Error, "Invalid value for --javascript option. Supported for preconfiguration are: #{JAVASCRIPTS.join(", ")}."
         end
       end
 

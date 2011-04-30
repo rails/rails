@@ -38,9 +38,6 @@ module Rails
         class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :javascript,         :type => :string, :aliases => "-j", :default => "jquery",
-                                          :desc => "Preconfigure for selected JavaScript library (options: #{JAVASCRIPTS.join('/')})"
-
         class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
                                           :desc => "Skip JavaScript files"
 

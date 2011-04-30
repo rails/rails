@@ -46,7 +46,6 @@ task :generate_guides do
 end
 
 task :update_ujs do
-  system "curl https://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/vendor/assets/javascripts/prototype_ujs.js"
   system "curl https://github.com/rails/jquery-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/vendor/assets/javascripts/jquery_ujs.js"
 end
 
