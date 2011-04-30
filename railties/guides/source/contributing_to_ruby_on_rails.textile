@@ -323,10 +323,10 @@ h4. Commit Your Changes
 When you're happy with the code on your computer, you need to commit the changes to git:
 
 <shell>
-$ git commit -a -m "Here is a commit message [#ticket_number state:committed]"
+$ git commit -a -m "Here is a commit message. Closes #issue_number"
 </shell>
 
-NOTE: By adding '[#ticket_number state:committed]' at the end of your commit message, the ticket will automatically change its status to commited once your patch is pushed to the repository.
+NOTE: By adding 'Closes #issue_number' at the end of your commit message, the issue will automatically change its status to closed once your patch is pushed to the repository.
 
 h4. Update master
 
