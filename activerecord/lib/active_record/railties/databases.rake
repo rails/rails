@@ -203,18 +203,18 @@ db_namespace = namespace :db do
         # only files matching "20091231235959_some_name.rb" pattern
         if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
           status = db_list.delete(match_data[1]) ? 'up' : 'down'
-          file_list << [status, match_data[1], match_data[2]]
+          file_list << [status, match_data[1], match_data[2].humanize]
         end
+      end
+      db_list.map! do |version|
+        ['up', version, '********** NO FILE **********']
       end
       # output
       puts "\ndatabase: #{config['database']}\n\n"
       puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
       puts "-" * 50
-      file_list.sort_by {|file| file[1]}.each do |file|
-        puts "#{file[0].center(8)}  #{file[1].ljust(14)}  #{file[2].humanize}"
-      end
-      db_list.sort.each do |version|
-        puts "#{'up'.center(8)}  #{version.ljust(14)}  *** NO FILE ***"
+      (db_list + file_list).sort_by {|migration| migration[1]}.each do |migration|
+        puts "#{migration[0].center(8)}  #{migration[1].ljust(14)}  #{migration[2]}"
       end
       puts
     end
