@@ -236,7 +236,7 @@ You can also help out by examining pull requests that have been submitted to Rub
 $ git checkout -b testing_branch
 </shell>
 
-Then you can use their remote to update your codebase. For example, let's say the github user JohnSmith has forked and pushed to the master branch located at http://github.com/JohnSmith/rails.
+Then you can use their remote branch to update your codebase. For example, let's say the github user JohnSmith has forked and pushed to the master branch located at http://github.com/JohnSmith/rails.
 
 <shell>
 $ git remote add JohnSmith git://github.com/JohnSmith/rails.git
