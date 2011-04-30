@@ -24,10 +24,6 @@ If you've found a problem in Ruby on Rails which is not a security risk do a sea
 
 At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need to at least post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
 
-You shouldn't assign the bug to a particular core developer unless you know for sure which developer will be handling that issue. The core team periodically reviews issues and assigns developers and milestones to them.
-
-You should set tags for your issue. Use the "bug" tag for a bug report, and add the "patch" tag if you are attaching a patch. Try to find some relevant tags from the existing tag list (which will appear as soon as you start typing in the "Choose some tags" textbox), rather than creating new tags.
-
 Then don't get your hopes up. Unless you have a "Code Red, Mission Critical, The World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating a issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with a "I'm having this problem too" comment.
 
 h4. Special Treatment for Security Issues
@@ -320,10 +316,8 @@ h4. Commit Your Changes
 When you're happy with the code on your computer, you need to commit the changes to git:
 
 <shell>
-$ git commit -a -m "Here is a commit message [#ticket_number state:committed]"
+$ git commit -a -m "Here is a commit message on what I changed in this commit"
 </shell>
-
-NOTE: By adding '[#ticket_number state:committed]' at the end of your commit message, the ticket will automatically change its status to commited once your patch is pushed to the repository.
 
 h4. Update master
 
@@ -384,7 +378,7 @@ All contributions, either via master or docrails, get credit in "Rails Contribut
 h3. Changelog
 
 * April 29, 2011: Reflect GitHub Issues and Pull Request workflow by "Dan Pickett":http://www.enlightsolutions.com
-* April 14, 2001: Modified Contributing to the Rails Code section to add '[#ticket_number state:commited]' on patches commit messages by "Sebastian Martinez":http://wyeworks.com
+* April 14, 2011: Modified Contributing to the Rails Code section to add '[#ticket_number state:commited]' on patches commit messages by "Sebastian Martinez":http://wyeworks.com
 * December 28, 2010: Complete revision by "Xavier Noria":credits.html#fxn
 * April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
