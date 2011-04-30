@@ -29,11 +29,18 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
-      def has_secure_password
+			#
+			# Configuration options:
+			# * <tt>:required</tt> - Validates presence of password otherwise allow blank or nil (default is true).
+      def has_secure_password(options={})
+				options.reverse_merge! :required => true
+
         attr_reader   :password
 
         validates_confirmation_of :password
-        validates_presence_of     :password_digest
+				if options[:required]
+        	validates_presence_of   :password_digest
+				end
 
         include InstanceMethodsOnActivation
 
@@ -46,9 +53,9 @@ module ActiveModel
     end
 
     module InstanceMethodsOnActivation
-      # Returns self if the password is correct, otherwise false.
+      # Returns self if a password is set and the password is correct, otherwise false.
       def authenticate(unencrypted_password)
-        if BCrypt::Password.new(password_digest) == unencrypted_password
+        if password_digest && BCrypt::Password.new(password_digest) == unencrypted_password
           self
         else
           false
@@ -58,7 +65,9 @@ module ActiveModel
       # Encrypts the password into the password_digest attribute.
       def password=(unencrypted_password)
         @password = unencrypted_password
-        unless unencrypted_password.blank?
+        if unencrypted_password.blank?
+					self.password_digest = nil
+				else
           self.password_digest = BCrypt::Password.create(unencrypted_password)
         end
       end

@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/user'
+require 'models/user_with_optional_password'
 require 'models/visitor'
 require 'models/administrator'
 
@@ -7,18 +8,26 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   setup do
     @user = User.new
+		@user_no_password = UserWithOptionalPassword.new
   end
 
   test "blank password" do
     user = User.new
     user.password = ''
     assert !user.valid?, 'user should be invalid'
+		user = UserWithOptionalPassword.new
+		user.password = ''
+		assert user.valid?, 'user should be valid'
   end
 
   test "nil password" do
     user = User.new
     user.password = nil
     assert !user.valid?, 'user should be invalid'
+		user = UserWithOptionalPassword.new
+		user.password = nil
+		assert user.valid?, 'user should be valid'
+		assert user.password_digest.nil?, 'password_digest should be nil'
   end
 
   test "password must be present" do
@@ -42,6 +51,10 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     assert !@user.authenticate("wrong")
     assert @user.authenticate("secret")
+
+		@user_no_password.password = ""
+
+		assert !@user_no_password.authenticate("")
   end
 
   test "visitor#password_digest should be protected against mass assignment" do
