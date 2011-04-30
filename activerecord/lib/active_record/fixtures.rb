@@ -509,7 +509,9 @@ class Fixtures
     # FIXME: Apparently JK uses this.
     connection = block_given? ? yield : ActiveRecord::Base.connection
 
-    files_to_read = table_names.reject { |table_name| fixture_is_cached?(connection, table_name) }
+    files_to_read = table_names.reject { |table_name|
+      fixture_is_cached?(connection, table_name)
+    }
 
     unless files_to_read.empty?
       connection.disable_referential_integrity do
@@ -521,7 +523,7 @@ class Fixtures
           fixtures_map[path] = Fixtures.new(
             connection,
             table_name,
-            class_names[table_name.to_sym],
+            class_names[table_name.to_sym] || table_name.classify,
             File.join(fixtures_directory, path))
         end
 
