@@ -217,45 +217,14 @@ module ActionView
   class PartialRenderer < AbstractRenderer #:nodoc:
     PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }
 
-    # TODO Controller should not come from the view
-    def initialize(view, *)
+    def initialize(*)
       super
-      @controller = @view.controller
       @partial_names = PARTIAL_NAMES[@controller.class.name]
     end
 
-    def setup(options, block)
-      partial = options[:partial]
+    def render(context, options, block)
+      setup(context, options, block)
 
-      @options = options
-      @locals  = options[:locals] || {}
-      @block   = block
-
-      if String === partial
-        @object     = options[:object]
-        @path       = partial
-        @collection = collection
-      else
-        @object = partial
-
-        if @collection = collection_from_object || collection
-          paths = @collection_data = @collection.map { |o| partial_path(o) }
-          @path = paths.uniq.size == 1 ? paths.first : nil
-        else
-          @path = partial_path
-        end
-      end
-
-      if @path
-        @variable, @variable_counter = retrieve_variable(@path)
-      else
-        paths.map! { |path| retrieve_variable(path).unshift(path) }
-      end
-
-      self
-    end
-
-    def render
       wrap_formats(@path) do
         identifier = ((@template = find_partial) ? @template.identifier : @path)
 
@@ -302,6 +271,38 @@ module ActionView
     end
 
     private
+
+    def setup(context, options, block)
+      @view   = context
+      partial = options[:partial]
+
+      @options = options
+      @locals  = options[:locals] || {}
+      @block   = block
+
+      if String === partial
+        @object     = options[:object]
+        @path       = partial
+        @collection = collection
+      else
+        @object = partial
+
+        if @collection = collection_from_object || collection
+          paths = @collection_data = @collection.map { |o| partial_path(o) }
+          @path = paths.uniq.size == 1 ? paths.first : nil
+        else
+          @path = partial_path
+        end
+      end
+
+      if @path
+        @variable, @variable_counter = retrieve_variable(@path)
+      else
+        paths.map! { |path| retrieve_variable(path).unshift(path) }
+      end
+
+      self
+    end
 
     def controller_prefixes
       @controller_prefixes ||= @controller && @controller._prefixes

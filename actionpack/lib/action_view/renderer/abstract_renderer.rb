@@ -3,9 +3,9 @@ module ActionView
     delegate :find_template, :template_exists?, :with_fallbacks, :update_details,
       :with_layout_format, :formats, :freeze_formats, :to => :@lookup_context
 
-    def initialize(view, lookup_context)
-      @view = view
+    def initialize(lookup_context, controller)
       @lookup_context = lookup_context
+      @controller = controller
     end
 
     def render
