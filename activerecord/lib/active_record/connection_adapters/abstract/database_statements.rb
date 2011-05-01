@@ -55,17 +55,24 @@ module ActiveRecord
       def exec_query(sql, name = 'SQL', binds = [])
       end
 
-      # Executes insert +sql+ statement in the context of this connection using 
+      # Executes insert +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is the logged along with
       # the executed +sql+ statement.
       def exec_insert(sql, name, binds)
         exec_query(sql, name, binds)
       end
 
-      # Executes delete +sql+ statement in the context of this connection using 
+      # Executes delete +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is the logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name, binds)
+        exec_query(sql, name, binds)
+      end
+
+      # Executes update +sql+ statement in the context of this connection using
+      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # the executed +sql+ statement.
+      def exec_update(sql, name, binds)
         exec_query(sql, name, binds)
       end
 
@@ -84,8 +91,8 @@ module ActiveRecord
       end
 
       # Executes the update statement and returns the number of rows affected.
-      def update(sql, name = nil)
-        update_sql(sql, name)
+      def update(sql, name = nil, binds = [])
+        exec_update(sql, name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.

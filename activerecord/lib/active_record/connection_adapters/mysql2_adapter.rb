@@ -297,6 +297,7 @@ module ActiveRecord
         execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
         @connection.affected_rows
       end
+      alias :exec_update :exec_delete
 
       def last_inserted_id(result)
         @connection.last_id

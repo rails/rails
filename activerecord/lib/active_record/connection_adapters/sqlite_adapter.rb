@@ -182,6 +182,7 @@ module ActiveRecord
         exec_query(sql, name, binds)
         @connection.changes
       end
+      alias :exec_update :exec_delete
 
       def last_inserted_id(result)
         @connection.last_insert_row_id

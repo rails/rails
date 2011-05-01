@@ -548,6 +548,7 @@ module ActiveRecord
           affected
         end
       end
+      alias :exec_update :exec_delete
 
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)
         unless pk

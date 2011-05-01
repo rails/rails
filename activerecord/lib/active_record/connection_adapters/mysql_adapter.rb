@@ -455,6 +455,7 @@ module ActiveRecord
           end
         end
       end
+      alias :exec_update :exec_delete
 
       def begin_db_transaction #:nodoc:
         exec_without_stmt "BEGIN"
