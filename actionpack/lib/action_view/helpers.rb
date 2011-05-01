@@ -19,6 +19,7 @@ module ActionView #:nodoc:
     autoload :NumberHelper
     autoload :OutputSafetyHelper
     autoload :RecordTagHelper
+    autoload :RenderingHelper
     autoload :SanitizeHelper
     autoload :SprocketsHelper
     autoload :TagHelper
@@ -48,6 +49,7 @@ module ActionView #:nodoc:
     include NumberHelper
     include OutputSafetyHelper
     include RecordTagHelper
+    include RenderingHelper
     include SanitizeHelper
     include SprocketsHelper
     include TagHelper

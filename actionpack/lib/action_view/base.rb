@@ -131,7 +131,7 @@ module ActionView #:nodoc:
   #
   # More builder documentation can be found at http://builder.rubyforge.org.
   class Base
-    include Helpers, Rendering, ::ERB::Util, Context
+    include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
@@ -186,11 +186,6 @@ module ActionView #:nodoc:
       assign(assigns_for_first_render)
       self.helpers = Module.new unless self.class.helpers
 
-      # Context vars initialization
-      @view_flow = OutputFlow.new
-      @output_buffer = nil
-      @virtual_path  = nil
-
       @_config = {}
       if @_controller = controller
         @_request = controller.request if controller.respond_to?(:request)
@@ -207,6 +202,8 @@ module ActionView #:nodoc:
         lookup_context.formats = formats if formats
         @view_renderer = ActionView::Renderer.new(lookup_context, controller)
       end
+
+      _prepare_context
     end
 
     # TODO Is this needed anywhere? Maybe deprecate it?
