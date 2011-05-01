@@ -202,15 +202,11 @@ module ActionView #:nodoc:
         lookup_context : ActionView::LookupContext.new(lookup_context)
       @_lookup_context.formats = formats if formats
 
-      @_renderer = ActionView::Renderer.new(@_lookup_context, self)
+      @view_renderer = ActionView::Renderer.new(@_lookup_context, self)
     end
 
     def controller_path
       @controller_path ||= controller && controller.controller_path
-    end
-
-    def controller_prefixes
-      @controller_prefixes ||= controller && controller._prefixes
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

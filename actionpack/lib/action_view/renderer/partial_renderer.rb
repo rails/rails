@@ -217,9 +217,11 @@ module ActionView
   class PartialRenderer < AbstractRenderer #:nodoc:
     PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }
 
+    # TODO Controller should not come from the view
     def initialize(view, *)
       super
-      @partial_names = PARTIAL_NAMES[@view.controller.class.name]
+      @controller = @view.controller
+      @partial_names = PARTIAL_NAMES[@controller.class.name]
     end
 
     def setup(options, block)
@@ -292,7 +294,7 @@ module ActionView
       locals[as] = object
 
       content = @template.render(view, locals) do |*name|
-        view._block_layout_for(*name, &block)
+        view._layout_for(*name, &block)
       end
 
       content = layout.render(view, locals){ content } if layout
@@ -300,6 +302,10 @@ module ActionView
     end
 
     private
+
+    def controller_prefixes
+      @controller_prefixes ||= @controller && @controller._prefixes
+    end
 
     def collection
       if @options.key?(:collection)
@@ -324,7 +330,7 @@ module ActionView
     end
 
     def find_template(path=@path, locals=@locals.keys)
-      prefixes = path.include?(?/) ? [] : @view.controller_prefixes
+      prefixes = path.include?(?/) ? [] : controller_prefixes
       @lookup_context.find_template(path, prefixes, true, locals)
     end
 
@@ -365,7 +371,7 @@ module ActionView
         object = object.to_model if object.respond_to?(:to_model)
 
         object.class.model_name.partial_path.dup.tap do |partial|
-          path = @view.controller_prefixes.first
+          path = controller_prefixes.first
           partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
         end
       end

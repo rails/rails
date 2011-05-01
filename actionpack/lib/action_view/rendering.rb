@@ -4,7 +4,7 @@ module ActionView
   # = Action View Rendering
   module Rendering
     # This is temporary until we remove the renderer dependency from AV.
-    delegate :render, :render_body, :to => :@_renderer
+    delegate :render, :render_body, :to => :@view_renderer
 
     # Returns the contents that are yielded to a layout, given a name or a block.
     #
@@ -52,20 +52,15 @@ module ActionView
     #     Hello David
     #   </html>
     #
-    def _layout_for(*args)
-      name = args.first
-      name = :layout unless name.is_a?(Symbol)
-      @_view_flow.get(name).html_safe
-    end
-
-    # Handle layout for calls from partials that supports blocks.
-    def _block_layout_for(*args, &block)
+    def _layout_for(*args, &block)
       name = args.first
 
-      if !name.is_a?(Symbol) && block
+      if name.is_a?(Symbol)
+        @_view_flow.get(name).html_safe
+      elsif block
         capture(*args, &block)
       else
-        _layout_for(*args)
+        @_view_flow.get(:layout).html_safe
       end
     end
   end

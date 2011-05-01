@@ -6,6 +6,7 @@ module ActionView
     attr_accessor :lookup_context
 
     # TODO: render_context should not be an initialization parameter
+    # TODO: controller should be received on initialization
     def initialize(lookup_context, render_context)
       @render_context = render_context
       @lookup_context = lookup_context
