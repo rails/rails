@@ -129,28 +129,40 @@ end
 
 class DeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
+
   default_scope where(:name => 'Jamis')
   scope :poor, where('salary < 150000')
 end
 
 class PoorDeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
+
   default_scope where(:name => 'Jamis', :salary => 50000)
 end
 
 class InheritedPoorDeveloperCalledJamis < DeveloperCalledJamis
   self.table_name = 'developers'
 
-  ActiveSupport::Deprecation.silence do
-    default_scope where(:salary => 50000)
-  end
+  default_scope where(:salary => 50000)
 end
 
 class MultiplePoorDeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
-  default_scope where(:name => 'Jamis')
 
-  ActiveSupport::Deprecation.silence do
-    default_scope where(:salary => 50000)
-  end
+  default_scope where(:name => 'Jamis')
+  default_scope where(:salary => 50000)
 end
+
+module SalaryDefaultScope
+  extend ActiveSupport::Concern
+
+  included { default_scope where(:salary => 50000) }
+end
+
+class ModuleIncludedPoorDeveloperCalledJamis < DeveloperCalledJamis
+  self.table_name = 'developers'
+
+  include SalaryDefaultScope
+end
+
+

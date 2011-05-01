@@ -355,6 +355,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 50000,   wheres[:salary]
   end
 
+  def test_default_scope_with_module_includes
+    wheres = ModuleIncludedPoorDeveloperCalledJamis.scoped.where_values_hash
+    assert_equal "Jamis", wheres[:name]
+    assert_equal 50000,   wheres[:salary]
+  end
+
   def test_default_scope_with_multiple_calls
     wheres = MultiplePoorDeveloperCalledJamis.scoped.where_values_hash
     assert_equal "Jamis", wheres[:name]
@@ -455,19 +461,5 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
     assert DeveloperCalledJamis.unscoped.poor.include?(developers(:david).becomes(DeveloperCalledJamis))
     assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
-  end
-
-  def test_multiple_default_scope_calls_are_deprecated
-    klass = Class.new(ActiveRecord::Base)
-
-    assert_not_deprecated do
-      klass.send(:default_scope, :foo => :bar)
-    end
-
-    assert_deprecated do
-      klass.send(:default_scope, :foo => :bar)
-    end
-
-    assert_equal 2, klass.default_scopes.length
   end
 end
