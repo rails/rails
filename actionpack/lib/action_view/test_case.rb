@@ -147,9 +147,19 @@ module ActionView
       module Locals
         attr_accessor :locals
 
-        def _render_partial(options)
-          locals[options[:partial]] = options[:locals]
-          super(options)
+        def render(options = {}, local_assigns = {})
+          case options
+          when Hash
+            if block_given?
+              locals[options[:layout]] = options[:locals]
+            elsif options.key?(:partial)
+              locals[options[:partial]] = options[:locals]
+            end
+          else
+            locals[options] = local_assigns
+          end
+
+          super
         end
       end
 

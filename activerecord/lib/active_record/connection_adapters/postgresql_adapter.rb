@@ -122,6 +122,14 @@ module ActiveRecord
         # Extracts the value from a PostgreSQL column default definition.
         def self.extract_value_from_default(default)
           case default
+            # This is a performance optimization for Ruby 1.9.2 in development.
+            # If the value is nil, we return nil straight away without checking
+            # the regular expressions. If we check each regular expression,
+            # Regexp#=== will call NilClass#to_str, which will trigger
+            # method_missing (defined by whiny nil in ActiveSupport) which
+            # makes this method very very slow.
+            when NilClass
+              nil
             # Numeric types
             when /\A\(?(-?\d+(\.\d*)?\)?)\z/
               $1
@@ -237,7 +245,6 @@ module ActiveRecord
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
         @table_alias_length = nil
-        @postgresql_version = nil
         @statements = {}
 
         connect
@@ -259,28 +266,16 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        if @connection.respond_to?(:status)
-          @connection.status == PGconn::CONNECTION_OK
-        else
-          # We're asking the driver, not Active Record, so use @connection.query instead of #query
-          @connection.query 'SELECT 1'
-          true
-        end
-      # postgres-pr raises a NoMethodError when querying if no connection is available.
-      rescue PGError, NoMethodError
+        @connection.status == PGconn::CONNECTION_OK
+      rescue PGError
         false
       end
 
       # Close then reopen the connection.
       def reconnect!
-        if @connection.respond_to?(:reset)
-          clear_cache!
-          @connection.reset
-          configure_connection
-        else
-          disconnect!
-          connect
-        end
+        clear_cache!
+        @connection.reset
+        configure_connection
       end
 
       def reset!
@@ -299,7 +294,7 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
-      # Does PostgreSQL support migrations?
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
       end
@@ -325,6 +320,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true, since this connection adapter supports savepoints.
       def supports_savepoints?
         true
       end
@@ -433,17 +429,17 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      def supports_disable_referential_integrity?() #:nodoc:
+      def supports_disable_referential_integrity? #:nodoc:
         true
       end
 
       def disable_referential_integrity #:nodoc:
-        if supports_disable_referential_integrity?() then
+        if supports_disable_referential_integrity? then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
         end
         yield
       ensure
-        if supports_disable_referential_integrity?() then
+        if supports_disable_referential_integrity? then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
         end
       end
@@ -517,12 +513,7 @@ module ActiveRecord
       # Queries the database and returns the results in an Array-like object
       def query(sql, name = nil) #:nodoc:
         log(sql, name) do
-          if @async
-            res = @connection.async_exec(sql)
-          else
-            res = @connection.exec(sql)
-          end
-          return result_as_array(res)
+          result_as_array @connection.async_exec(sql)
         end
       end
 
@@ -530,11 +521,7 @@ module ActiveRecord
       # or raising a PGError exception otherwise.
       def execute(sql, name = nil)
         log(sql, name) do
-          if @async
-            @connection.async_exec(sql)
-          else
-            @connection.exec(sql)
-          end
+          @connection.async_exec(sql)
         end
       end
 
@@ -543,29 +530,26 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        return exec_no_cache(sql, name) if binds.empty?
-
         log(sql, name, binds) do
-          unless @statements.key? sql
-            nextkey = "a#{@statements.length + 1}"
-            @connection.prepare nextkey, sql
-            @statements[sql] = nextkey
-          end
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
 
-          key = @statements[sql]
-
-          # Clear the queue
-          @connection.get_last_result
-          @connection.send_query_prepared(key, binds.map { |col, val|
-            type_cast(val, col)
-          })
-          @connection.block
-          result = @connection.get_last_result
           ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
           result.clear
           return ret
         end
       end
+
+      def exec_delete(sql, name = 'SQL', binds = [])
+        log(sql, name, binds) do
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
+          affected = result.cmd_tuples
+          result.clear
+          affected
+        end
+      end
+      alias :exec_update :exec_delete
 
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)
         unless pk
@@ -699,7 +683,7 @@ module ActiveRecord
         [schema, table]
       end
 
-      # Returns the list of all indexes for a table.
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
@@ -864,6 +848,9 @@ module ActiveRecord
       end
 
       # Renames a table.
+      #
+      # Example:
+      #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
@@ -948,24 +935,9 @@ module ActiveRecord
       end
 
       protected
-        # Returns the version of the connected PostgreSQL version.
+        # Returns the version of the connected PostgreSQL server.
         def postgresql_version
-          @postgresql_version ||=
-            if @connection.respond_to?(:server_version)
-              @connection.server_version
-            else
-              # Mimic PGconn.server_version behavior
-              begin
-                if query('SELECT version()')[0][0] =~ /PostgreSQL ([0-9.]+)/
-                  major, minor, tiny = $1.split(".")
-                  (major.to_i * 10000) + (minor.to_i * 100) + tiny.to_i
-                else
-                  0
-                end
-              rescue
-                0
-              end
-            end
+          @connection.server_version
         end
 
         def translate_exception(exception, message)
@@ -980,13 +952,26 @@ module ActiveRecord
         end
 
       private
-      def exec_no_cache(sql, name)
-        log(sql, name) do
-          result = @connection.async_exec(sql)
-          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
-          result.clear
-          ret
+      def exec_no_cache(sql, binds)
+        @connection.async_exec(sql)
+      end
+
+      def exec_cache(sql, binds)
+        unless @statements.key? sql
+          nextkey = "a#{@statements.length + 1}"
+          @connection.prepare nextkey, sql
+          @statements[sql] = nextkey
         end
+
+        key = @statements[sql]
+
+        # Clear the queue
+        @connection.get_last_result
+        @connection.send_query_prepared(key, binds.map { |col, val|
+          type_cast(val, col)
+        })
+        @connection.block
+        @connection.get_last_result
       end
 
         # The internal PostgreSQL identifier of the money data type.
@@ -998,10 +983,6 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @connection = PGconn.connect(*@connection_parameters)
-          PGconn.translate_results = false if PGconn.respond_to?(:translate_results=)
-
-          # Ignore async_exec and async_query when using postgres-pr.
-          @async = @connection.respond_to?(:async_exec)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
           # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
@@ -1015,11 +996,7 @@ module ActiveRecord
         # This is called by #connect and should not be called manually.
         def configure_connection
           if @config[:encoding]
-            if @connection.respond_to?(:set_client_encoding)
-              @connection.set_client_encoding(@config[:encoding])
-            else
-              execute("SET client_encoding TO '#{@config[:encoding]}'")
-            end
+            @connection.set_client_encoding(@config[:encoding])
           end
           self.client_min_messages = @config[:min_messages] if @config[:min_messages]
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]

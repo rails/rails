@@ -229,7 +229,7 @@ The corresponding migration might look like this:
 
 <ruby>
 class CreateSuppliers < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :suppliers do |t|
       t.string  :name
       t.timestamps
@@ -240,11 +240,6 @@ class CreateSuppliers < ActiveRecord::Migration
       t.string  :account_number
       t.timestamps
     end
-  end
-
-  def self.down
-    drop_table :accounts
-    drop_table :suppliers
   end
 end
 </ruby>
@@ -314,17 +309,13 @@ If you have an instance of the +Picture+ model, you can get to its parent via +@
 
 <ruby>
 class CreatePictures < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :pictures do |t|
       t.string  :name
       t.integer :imageable_id
       t.string  :imageable_type
       t.timestamps
     end
-  end
-
-  def self.down
-    drop_table :pictures
   end
 end
 </ruby>
@@ -333,16 +324,12 @@ This migration can be simplified by using the +t.references+ form:
 
 <ruby>
 class CreatePictures < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :pictures do |t|
       t.string :name
       t.references :imageable, :polymorphic => true
       t.timestamps
     end
-  end
-
-  def self.down
-    drop_table :pictures
   end
 end
 </ruby>
@@ -413,16 +400,12 @@ This declaration needs to be backed up by the proper foreign key declaration on 
 
 <ruby>
 class CreateOrders < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :orders do |t|
       t.datetime :order_date
       t.string   :order_number
       t.integer  :customer_id
     end
-  end
-
-  def self.down
-    drop_table :orders
   end
 end
 </ruby>
@@ -451,15 +434,11 @@ These need to be backed up by a migration to create the +assemblies_parts+ table
 
 <ruby>
 class CreateAssemblyPartJoinTable < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :assemblies_parts, :id => false do |t|
       t.integer :assembly_id
       t.integer :part_id
     end
-  end
-
-  def self.down
-    drop_table :assemblies_parts
   end
 end
 </ruby>

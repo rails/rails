@@ -39,11 +39,13 @@ module <%= app_const_base %>
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
+    # Please note that JavaScript expansions are *ignored altogether* if the asset
+    # pipeline is enabled (see config.assets.enabled below). Put your defaults in
+    # app/assets/javascripts/application.js in that case.
+    #
     # JavaScript files you want as :defaults (application.js is always included).
 <% if options[:skip_javascript] -%>
-    config.action_view.javascript_expansions[:defaults] = %w()
-<% elsif options[:javascript] == 'prototype' -%>
-    config.action_view.javascript_expansions[:defaults] = %w(prototype effects dragdrop controls rails)
+    # config.action_view.javascript_expansions[:defaults] = %w()
 <% else -%>
     # config.action_view.javascript_expansions[:defaults] = %w(prototype effects dragdrop controls rails)
 <% end -%>

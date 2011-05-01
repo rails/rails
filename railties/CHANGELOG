@@ -1,5 +1,10 @@
 *Rails 3.1.0 (unreleased)*
 
+* Application generation no longer supports the -j option. [fxn]
+
+* Prototype and Scriptaculous are no longer vendored, they are provided from now on
+by the prototype-rails gem. [fxn]
+
 * The scaffold controller will now produce SCSS file if Sass is available [Prem Sichanugrist]
 
 * The controller and resource generators will now automatically produce asset stubs (this can be turned off with --skip-assets). These stubs will use Coffee and Sass, if those libraries are available. [DHH]

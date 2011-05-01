@@ -220,7 +220,7 @@ module ActiveRecord
         stmt.take limit if limit
         stmt.order(*order)
         stmt.key = table[primary_key]
-        @klass.connection.update stmt.to_sql
+        @klass.connection.update stmt.to_sql, 'SQL', bind_values
       end
     end
 
@@ -338,7 +338,9 @@ module ActiveRecord
         where(conditions).delete_all
       else
         statement = arel.compile_delete
-        affected = @klass.connection.delete statement.to_sql
+        affected = @klass.connection.delete(
+          statement.to_sql, 'SQL', bind_values)
+
         reset
         affected
       end

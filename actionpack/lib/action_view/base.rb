@@ -131,7 +131,7 @@ module ActionView #:nodoc:
   #
   # More builder documentation can be found at http://builder.rubyforge.org.
   class Base
-    include Helpers, Rendering, Partials, ::ERB::Util, Context
+    include Helpers, Rendering, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
@@ -159,9 +159,10 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_accessor :_template, :_view_flow
-    attr_internal :request, :controller, :config, :assigns, :lookup_context
+    attr_accessor :view_renderer
+    attr_internal :request, :controller, :config, :assigns
 
+    delegate :lookup_context, :to => :view_renderer
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :params, :session, :cookies, :response, :headers,
@@ -182,31 +183,36 @@ module ActionView #:nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
-    def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
+    def initialize(context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
       assign(assigns_for_first_render)
       self.helpers = Module.new unless self.class.helpers
 
-      @_config = {}
-      @_virtual_path = nil
-      @_view_flow = OutputFlow.new
+      # Context vars initialization
+      @view_flow = OutputFlow.new
       @output_buffer = nil
+      @virtual_path  = nil
 
+      @_config = {}
       if @_controller = controller
         @_request = controller.request if controller.respond_to?(:request)
         @_config  = controller.config.inheritable_copy if controller.respond_to?(:config)
       end
 
-      @_lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
-        lookup_context : ActionView::LookupContext.new(lookup_context)
-      @_lookup_context.formats = formats if formats
+      # Handle all these for backwards compatibility.
+      # TODO Provide a new API for AV::Base and deprecate this one.
+      if context.is_a?(ActionView::Renderer)
+        @view_renderer = context
+      elsif
+        lookup_context = context.is_a?(ActionView::LookupContext) ?
+          context : ActionView::LookupContext.new(context)
+        lookup_context.formats = formats if formats
+        @view_renderer = ActionView::Renderer.new(lookup_context, controller)
+      end
     end
 
+    # TODO Is this needed anywhere? Maybe deprecate it?
     def controller_path
       @controller_path ||= controller && controller.controller_path
-    end
-
-    def controller_prefixes
-      @controller_prefixes ||= controller && controller._prefixes
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

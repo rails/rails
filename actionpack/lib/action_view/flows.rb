@@ -34,7 +34,7 @@ module ActionView
       @view    = view
       @parent  = nil
       @child   = view.output_buffer
-      @content = view._view_flow.content
+      @content = view.view_flow.content
       @fiber   = fiber
       @root    = Fiber.current.object_id
     end

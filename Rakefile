@@ -49,14 +49,24 @@ end
 
 desc "Generate documentation for the Rails framework"
 RDoc::Task.new do |rdoc|
+  RDOC_MAIN = 'RDOC_MAIN.rdoc'
+
+  rdoc.before_running_rdoc do
+    rdoc_main = File.read('README.rdoc')
+    rdoc_main.gsub!(/\b(?=Rails)\b/) { '\\' }
+    File.open(RDOC_MAIN, 'w') do |f|
+      f.write(rdoc_main)
+    end
+
+    rdoc.rdoc_files.include(RDOC_MAIN)
+  end
+
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.title    = "Ruby on Rails Documentation"
 
   rdoc.options << '-f' << 'horo'
   rdoc.options << '-c' << 'utf-8'
-  rdoc.options << '-m' << 'README.rdoc'
-
-  rdoc.rdoc_files.include('README.rdoc')
+  rdoc.options << '-m' << RDOC_MAIN
 
   rdoc.rdoc_files.include('railties/CHANGELOG')
   rdoc.rdoc_files.include('railties/MIT-LICENSE')

@@ -45,6 +45,11 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
+  def test_create_fixtures
+    Fixtures.create_fixtures(FIXTURES_ROOT, "parrots")
+    assert Parrot.find_by_name('Curious George'), 'George is in the database'
+  end
+
   def test_multiple_clean_fixtures
     fixtures_array = nil
     assert_nothing_raised { fixtures_array = create_fixtures(*FIXTURES) }

@@ -99,10 +99,9 @@ module ActionView
         #
         # When passing paths, the ".js" extension is optional.
         #
-        # To include the default JavaScript expansion pass <tt>:defaults</tt> as source.
-        # By default, <tt>:defaults</tt> loads jQuery. If the application was generated
-        # with "-j prototype" the libraries Prototype and Scriptaculous are loaded instead.
-        # In any case, the defaults can be overridden in <tt>config/application.rb</tt>:
+        # If the application is not using the asset pipeline, to include the default JavaScript
+        # expansion pass <tt>:defaults</tt> as source. By default, <tt>:defaults</tt> loads jQuery,
+        # and that can be overridden in <tt>config/application.rb</tt>:
         #
         #   config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
         #

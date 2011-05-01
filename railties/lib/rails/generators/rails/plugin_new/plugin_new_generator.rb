@@ -119,19 +119,10 @@ task :default => :test
       if mountable?
         copy_file "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/application.js"
-        copy_file "#{app_templates_dir}/vendor/assets/javascripts/#{options[:javascript]}.js",
-                  "vendor/assets/javascripts/#{options[:javascript]}.js"
-        copy_file "#{app_templates_dir}/vendor/assets/javascripts/#{options[:javascript]}_ujs.js",
-                  "vendor/assets/javascripts/#{options[:javascript]}_ujs.js"
-
-        if options[:javascript] == "prototype"
-          copy_file "#{app_templates_dir}/vendor/assets/javascripts/controls.js",
-                    "vendor/assets/javascripts/controls.js"
-          copy_file "#{app_templates_dir}/vendor/assets/javascripts/dragdrop.js",
-                    "vendor/assets/javascripts/dragdrop.js"
-          copy_file "#{app_templates_dir}/vendor/assets/javascripts/effects.js",
-                    "vendor/assets/javascripts/effects.js"
-        end
+        copy_file "#{app_templates_dir}/vendor/assets/javascripts/jquery.js",
+                  "vendor/assets/javascripts/jquery.js"
+        copy_file "#{app_templates_dir}/vendor/assets/javascripts/jquery_ujs.js",
+                  "vendor/assets/javascripts/jquery_ujs.js"
       elsif full?
         empty_directory_with_gitkeep "app/assets/javascripts"
       end

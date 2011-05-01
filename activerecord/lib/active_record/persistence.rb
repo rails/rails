@@ -77,7 +77,15 @@ module ActiveRecord
     def destroy
       if persisted?
         IdentityMap.remove(self) if IdentityMap.enabled?
-        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
+        pk         = self.class.primary_key
+        column     = self.class.columns_hash[pk]
+        substitute = connection.substitute_at(column, 0)
+
+        relation = self.class.unscoped.where(
+          self.class.arel_table[pk].eq(substitute))
+
+        relation.bind_values = [[column, id]]
+        relation.delete_all
       end
 
       @destroyed = true

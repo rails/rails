@@ -13,8 +13,12 @@ class FiberedTest < ActiveSupport::TestCase
     @controller_view = TestController.new.view_context
   end
 
+  def render_body(options)
+    @view.view_renderer.render_body(@view, options)
+  end
+
   def buffered_render(options)
-    body = @view.render_body(options)
+    body = render_body(options)
     string = ""
     body.each do |piece|
       string << piece
@@ -24,7 +28,7 @@ class FiberedTest < ActiveSupport::TestCase
 
   def test_streaming_works
     content = []
-    body = @view.render_body(:template => "test/hello_world.erb", :layout => "layouts/yield")
+    body = render_body(:template => "test/hello_world.erb", :layout => "layouts/yield")
 
     body.each do |piece|
       content << piece

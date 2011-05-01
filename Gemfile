@@ -5,7 +5,7 @@ gemspec
 if ENV['AREL']
   gem "arel", :path => ENV['AREL']
 else
-  gem "arel", :git => "git://github.com/rails/arel.git"
+  gem "arel", '~> 2.1.0'
 end
 
 gem "rack", :git => "git://github.com/rack/rack.git"

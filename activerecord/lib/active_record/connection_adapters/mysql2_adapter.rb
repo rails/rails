@@ -132,6 +132,7 @@ module ActiveRecord
         ADAPTER_NAME
       end
 
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
       end
@@ -140,6 +141,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true, since this connection adapter supports savepoints.
       def supports_savepoints?
         true
       end
@@ -290,6 +292,15 @@ module ActiveRecord
         execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
       end
 
+      def exec_delete(sql, name, binds)
+        binds = binds.dup
+
+        # Pretend to support bind parameters
+        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+        @connection.affected_rows
+      end
+      alias :exec_update :exec_delete
+
       def last_inserted_id(result)
         @connection.last_id
       end
@@ -377,6 +388,10 @@ module ActiveRecord
         end
       end
 
+      # Drops a MySQL database.
+      #
+      # Example:
+      #   drop_database('sebastian_development')
       def drop_database(name) #:nodoc:
         execute "DROP DATABASE IF EXISTS `#{name}`"
       end
@@ -407,6 +422,7 @@ module ActiveRecord
         super(table_name, options)
       end
 
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
         indexes = []
         current_index = nil
@@ -424,6 +440,7 @@ module ActiveRecord
         indexes
       end
 
+      # Returns an array of +Mysql2Column+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
@@ -438,6 +455,10 @@ module ActiveRecord
         super(table_name, options.reverse_merge(:options => "ENGINE=InnoDB"))
       end
 
+      # Renames a table.
+      #
+      # Example:
+      #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
       end
@@ -522,6 +543,7 @@ module ActiveRecord
         variables.first['Value'] unless variables.empty?
       end
 
+      # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
         keys = []
         result = execute("describe #{quote_table_name(table)}")

@@ -114,16 +114,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
-  def test_config_prototype_javascript_library
-    run_generator [destination_root, "-j", "prototype", "--mountable"]
-    assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/prototype.js"
-    assert_file "vendor/assets/javascripts/effects.js"
-    assert_file "vendor/assets/javascripts/dragdrop.js"
-    assert_file "vendor/assets/javascripts/controls.js"
-    assert_file "vendor/assets/javascripts/prototype_ujs.js", /prototype/
-  end
-
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))

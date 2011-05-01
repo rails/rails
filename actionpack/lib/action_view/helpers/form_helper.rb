@@ -102,6 +102,11 @@ module ActionView
       include FormTagHelper
       include UrlHelper
 
+      # Converts the given object to an ActiveModel compliant one.
+      def convert_to_model(object)
+        object.respond_to?(:to_model) ? object.to_model : object
+      end
+
       # Creates a form and a scope around a specific model object that is used
       # as a base for questioning about values for the fields.
       #
@@ -1167,7 +1172,7 @@ module ActionView
     class FormBuilder
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
+      self.field_helpers = FormHelper.instance_method_names - %w(form_for convert_to_model)
 
       attr_accessor :object_name, :object, :options
 

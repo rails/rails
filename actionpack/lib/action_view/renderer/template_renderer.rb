@@ -3,7 +3,9 @@ require 'active_support/core_ext/array/wrap'
 
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
-    def render(options)
+    def render(context, options)
+      @view = context
+
       wrap_formats(options[:template] || options[:file]) do
         template = determine_template(options)
         freeze_formats(template.formats, true)
@@ -46,7 +48,7 @@ module ActionView
 
       if layout
         view = @view
-        view._view_flow.set(:layout, content)
+        view.view_flow.set(:layout, content)
         layout.render(view, locals){ |*name| view._layout_for(*name) }
       else
         content

@@ -174,29 +174,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
-    assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
+    assert_file "config/application.rb", /^\s+# config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
     assert_file "app/assets/javascripts/application.js"
     assert_no_file "vendor/assets/javascripts/jquery.js"
     assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
-  end
-
-  def test_config_prototype_javascript_library
-    run_generator [destination_root, "-j", "prototype"]
-    assert_file "config/application.rb", /^\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype effects dragdrop controls rails\)/
-    assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/prototype.js"
-    assert_file "vendor/assets/javascripts/effects.js"
-    assert_file "vendor/assets/javascripts/dragdrop.js"
-    assert_file "vendor/assets/javascripts/controls.js"
-    assert_file "vendor/assets/javascripts/prototype_ujs.js", /prototype/
-  end
-
-  def test_config_jquery_javascript_library
-    run_generator [destination_root, "-j", "jquery"]
-    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype effects dragdrop controls rails\)/
-    assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/jquery.js"
-    assert_file "vendor/assets/javascripts/jquery_ujs.js", /jQuery/
   end
 
   def test_template_from_dir_pwd

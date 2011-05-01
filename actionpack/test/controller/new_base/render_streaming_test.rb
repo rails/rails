@@ -83,6 +83,19 @@ module RenderStreaming
       assert_streaming!
     end
 
+    test "rendering with template exception logs the exception" do
+      io = StringIO.new
+      _old, ActionController::Base.logger = ActionController::Base.logger, Logger.new(io)
+
+      begin
+        get "/render_streaming/basic/template_exception"
+        io.rewind
+        assert_match "(undefined method `invalid!' for nil:NilClass)", io.read
+      ensure
+        ActionController::Base.logger = _old
+      end
+    end
+
     test "do not stream on HTTP/1.0" do
       get "/render_streaming/basic/hello_world", nil, "HTTP_VERSION" => "HTTP/1.0"
       assert_body "Hello world, I'm here!"

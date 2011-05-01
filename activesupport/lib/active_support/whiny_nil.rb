@@ -41,7 +41,7 @@ class NilClass
   end
 
   private
-    def method_missing(method, *args, &block)
+    def method_missing(method, *args)
       if klass = METHOD_CLASS_MAP[method]
         raise_nil_warning_for klass, method, caller
       else

@@ -56,6 +56,7 @@ The methods are:
 * +select+
 * +group+
 * +order+
+* +reorder+
 * +limit+
 * +offset+
 * +joins+
@@ -495,9 +496,9 @@ This will return single order objects for each day, but only for the last month.
 
 h3. Overriding Conditions
 
-You can specify certain conditions to be excepted by using the +except+ method.
+h4. +except+
 
-For example:
+You can specify certain conditions to be excepted by using the +except+ method. For example:
 
 <ruby>
 Post.where('id > 10').limit(20).order('id asc').except(:order)
@@ -509,9 +510,9 @@ The SQL that would be executed:
 SELECT * FROM posts WHERE id > 10 LIMIT 20
 </sql>
 
-You can also override conditions using the +only+ method.
+h4. +only+
 
-For example:
+You can also override conditions using the +only+ method. For example:
 
 <ruby>
 Post.where('id > 10').limit(20).order('id desc').only(:order, :where)
@@ -521,6 +522,32 @@ The SQL that would be executed:
 
 <sql>
 SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
+</sql>
+
+h4. +reorder+
+
+The +reorder+ method overrides the default scope order. For example:
+
+<ruby>
+class Post < ActiveRecord::Base
+  ..
+  ..
+  has_many :comments, :order => 'posted_at DESC'
+end
+
+Post.find(10).comments.reorder('name')
+</ruby>
+
+The SQL that would be executed:
+
+<sql>
+SELECT * FROM posts WHERE id = 10 ORDER BY name
+</sql>
+
+In case the +reorder+ clause is not used, the SQL executed would be:
+
+<sql>
+SELECT * FROM posts WHERE id = 10 ORDER BY posted_at DESC
 </sql>
 
 h3. Readonly Objects
