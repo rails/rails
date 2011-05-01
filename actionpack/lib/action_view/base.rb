@@ -131,7 +131,7 @@ module ActionView #:nodoc:
   #
   # More builder documentation can be found at http://builder.rubyforge.org.
   class Base
-    include Helpers, Rendering, Partials, ::ERB::Util, Context
+    include Helpers, Rendering, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
@@ -162,6 +162,7 @@ module ActionView #:nodoc:
     attr_accessor :_template, :_view_flow
     attr_internal :request, :controller, :config, :assigns, :lookup_context
 
+    # TODO Consider removing those setters once we have the renderer in place.
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :params, :session, :cookies, :response, :headers,
@@ -199,6 +200,8 @@ module ActionView #:nodoc:
       @_lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
         lookup_context : ActionView::LookupContext.new(lookup_context)
       @_lookup_context.formats = formats if formats
+
+      @_renderer = ActionView::Renderer.new(@_lookup_context, self)
     end
 
     def controller_path

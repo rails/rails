@@ -31,10 +31,6 @@ module ActionView
   # template and provides the output buffer.
   module Context
     include CompiledTemplates
-    attr_accessor :output_buffer
-
-    def convert_to_model(object)
-      object.respond_to?(:to_model) ? object.to_model : object
-    end
+    attr_accessor :output_buffer, :view_renderer, :view_flow
   end
 end
