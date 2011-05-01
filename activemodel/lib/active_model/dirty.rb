@@ -93,7 +93,7 @@ module ActiveModel
       attribute_method_affix :prefix => 'reset_', :suffix => '!'
     end
 
-    # Do any attributes have unsaved changes?
+    # Returns true if any attribute have unsaved changes, false otherwise.
     #   person.changed? # => false
     #   person.name = 'bob'
     #   person.changed? # => true

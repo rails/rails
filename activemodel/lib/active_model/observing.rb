@@ -56,6 +56,8 @@ module ActiveModel
       end
 
       # Add a new observer to the pool.
+      # The new observer needs to respond to 'update', otherwise it
+      # raises an +ArgumentError+ exception.
       def add_observer(observer)
         unless observer.respond_to? :update
           raise ArgumentError, "observer needs to respond to `update'"
@@ -144,8 +146,8 @@ module ActiveModel
   # Observers will by default be mapped to the class with which they share a
   # name. So CommentObserver will be tied to observing Comment, ProductManagerObserver
   # to ProductManager, and so on. If you want to name your observer differently than
-  # the class you're interested in observing, you can use the Observer.observe class
-  # method which takes either the concrete class (Product) or a symbol for that
+  # the class you're interested in observing, you can use the <tt>Observer.observe</tt>
+  # class method which takes either the concrete class (Product) or a symbol for that
   # class (:product):
   #
   #   class AuditObserver < ActiveModel::Observer

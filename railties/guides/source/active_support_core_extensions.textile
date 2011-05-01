@@ -449,9 +449,9 @@ The predicate +in?+ tests if an object is included in another object. An +Argume
 Examples of +in?+:
 
 <ruby>
-  1.in?([1,2])        # => true
-  "lo".in?("hello")   # => true
-  25.in?(30..50)      # => false
+1.in?([1,2])        # => true
+"lo".in?("hello")   # => true
+25.in?(30..50)      # => false
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
@@ -541,9 +541,9 @@ The default value can be also specified with a block, which is called in the con
 <ruby>
 class User
   attr_accessor :name, :surname
-  attr_accessor_with_default(:full_name) {
-  [name, surname].compact.join(" ")
-  }
+  attr_accessor_with_default(:full_name) do
+    [name, surname].compact.join(" ")
+  end
 end
 
 u = User.new
@@ -1223,7 +1223,7 @@ NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
 
 h4. +squish+
 
-The method +String#squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
+The method +squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
 
 <ruby>
 " \n  foo\n\r \t bar \n".squish # => "foo bar"
@@ -1996,11 +1996,11 @@ Active Support augments the API of arrays to ease certain ways of accessing them
 [].to(7)          # => []
 </ruby>
 
-Similarly, +from+ returns the tail from the element at the passed index on:
+Similarly, +from+ returns the tail from the element at the passed index to the end. If the index is greater than the length of the array, it returns an empty array.
 
 <ruby>
 %w(a b c d).from(2)  # => %w(c d)
-%w(a b c d).from(10) # => nil
+%w(a b c d).from(10) # => []
 [].from(0)           # => []
 </ruby>
 
