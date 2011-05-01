@@ -111,18 +111,8 @@ module Rails
     end
 
     def vendor
-      vendor_javascripts
       vendor_stylesheets
       vendor_plugins
-    end
-
-    def vendor_javascripts
-      if options[:skip_javascript]
-        empty_directory_with_gitkeep "vendor/assets/javascripts"
-      else
-        copy_file "vendor/assets/javascripts/jquery.js"
-        copy_file "vendor/assets/javascripts/jquery_ujs.js"
-      end
     end
 
     def vendor_stylesheets

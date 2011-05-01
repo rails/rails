@@ -12,7 +12,6 @@ module Rails
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql )
       DATABASES.concat(JDBC_DATABASES)
-      JAVASCRIPTS = %w( jquery prototype )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -37,6 +36,9 @@ module Rails
 
         class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+        class_option :javascript,         :type => :string, :aliases => '-j', :default => 'jquery',
+                                          :desc => 'Preconfigure for selected JavaScript library'
 
         class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
                                           :desc => "Skip JavaScript files"
@@ -176,6 +178,10 @@ module Rails
             end
           GEMFILE
         end
+      end
+
+      def gem_for_javascript
+        "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
       end
 
       def bundle_if_dev_or_edge
