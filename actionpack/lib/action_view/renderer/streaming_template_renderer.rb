@@ -106,7 +106,7 @@ module ActionView
         # Set the view flow to support streaming. It will be aware
         # when to stop rendering the layout because it needs to search
         # something in the template and vice-versa.
-        view._view_flow = StreamingFlow.new(view, fiber)
+        view.view_flow = StreamingFlow.new(view, fiber)
 
         # Yo! Start the fiber!
         fiber.resume
@@ -118,7 +118,7 @@ module ActionView
           content = template.render(view, locals, &yielder)
 
           # Once rendering the template is done, sets its content in the :layout key.
-          view._view_flow.set(:layout, content)
+          view.view_flow.set(:layout, content)
 
           # In case the layout continues yielding, we need to resume
           # the fiber until all yields are handled.

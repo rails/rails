@@ -4,7 +4,7 @@ class CaptureHelperTest < ActionView::TestCase
   def setup
     super
     @av = ActionView::Base.new
-    @_view_flow = ActionView::OutputFlow.new
+    @view_flow = ActionView::OutputFlow.new
   end
 
   def test_capture_captures_the_temporary_output_buffer_in_its_block
@@ -49,14 +49,14 @@ class CaptureHelperTest < ActionView::TestCase
     assert !content_for?(:title)
     provide :title, "hi"
     assert content_for?(:title)
-    assert_equal "hi", @_view_flow.get(:title)
+    assert_equal "hi", @view_flow.get(:title)
     provide :title, "<p>title</p>"
-    assert_equal "hi&lt;p&gt;title&lt;/p&gt;", @_view_flow.get(:title)
+    assert_equal "hi&lt;p&gt;title&lt;/p&gt;", @view_flow.get(:title)
 
-    @_view_flow = ActionView::OutputFlow.new
+    @view_flow = ActionView::OutputFlow.new
     provide :title, "hi"
     provide :title, "<p>title</p>".html_safe
-    assert_equal "hi<p>title</p>", @_view_flow.get(:title)
+    assert_equal "hi<p>title</p>", @view_flow.get(:title)
   end
 
   def test_with_output_buffer_swaps_the_output_buffer_given_no_argument

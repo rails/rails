@@ -131,7 +131,7 @@ module ActionView #:nodoc:
   #
   # More builder documentation can be found at http://builder.rubyforge.org.
   class Base
-    include Helpers, Rendering, ::ERB::Util, Context
+    include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
@@ -159,10 +159,10 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_accessor :_view_flow
-    attr_internal :request, :controller, :config, :assigns, :lookup_context
+    attr_accessor :view_renderer
+    attr_internal :request, :controller, :config, :assigns
 
-    # TODO Consider removing those setters once we have the renderer in place.
+    delegate :lookup_context, :render, :render_body, :to => :view_renderer
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
 
     delegate :request_forgery_protection_token, :params, :session, :cookies, :response, :headers,
@@ -187,22 +187,21 @@ module ActionView #:nodoc:
       assign(assigns_for_first_render)
       self.helpers = Module.new unless self.class.helpers
 
-      @_config = {}
-      @_virtual_path = nil
-      @_view_flow = OutputFlow.new
+      @view_flow = OutputFlow.new
       @output_buffer = nil
       @virtual_path  = nil
 
+      @_config = {}
       if @_controller = controller
         @_request = controller.request if controller.respond_to?(:request)
         @_config  = controller.config.inheritable_copy if controller.respond_to?(:config)
       end
 
-      @_lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
+      _lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
         lookup_context : ActionView::LookupContext.new(lookup_context)
-      @_lookup_context.formats = formats if formats
+      _lookup_context.formats = formats if formats
 
-      @view_renderer = ActionView::Renderer.new(@_lookup_context, self)
+      @view_renderer = ActionView::Renderer.new(_lookup_context, self)
     end
 
     def controller_path

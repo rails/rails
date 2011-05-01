@@ -8,29 +8,69 @@ module ActionView
   # Action View contexts are supplied to Action Controller to render template.
   # The default Action View context is ActionView::Base.
   #
-  # In order to work with ActionController, a Context must implement:
-  #
-  # Context#render_partial[options]
-  #   - responsible for setting options[:_template]
-  #   - Returns String with the rendered partial
-  #   options<Hash>:: see _render_partial in ActionView::Base
-  # Context#render_template[template, layout, options, partial]
-  #   - Returns String with the rendered template
-  #   template<ActionView::Template>:: The template to render
-  #   layout<ActionView::Template>:: The layout to render around the template
-  #   options<Hash>:: See _render_template_with_layout in ActionView::Base
-  #   partial<Boolean>:: Whether or not the template to render is a partial
-  #
-  # An Action View context can also mix in Action View's helpers. In order to
-  # mix in helpers, a context must implement:
-  #
-  # Context#controller
-  # - Returns an instance of AbstractController
-  #
-  # In any case, a context must mix in ActionView::Context, which stores compiled
-  # template and provides the output buffer.
+  # In order to work with ActionController, a Context must just include this module.
   module Context
     include CompiledTemplates
-    attr_accessor :output_buffer, :view_renderer, :view_flow
+    attr_accessor :output_buffer, :view_flow
+
+    # Returns the contents that are yielded to a layout, given a name or a block.
+    #
+    # You can think of a layout as a method that is called with a block. If the user calls
+    # <tt>yield :some_name</tt>, the block, by default, returns <tt>content_for(:some_name)</tt>.
+    # If the user calls simply +yield+, the default block returns <tt>content_for(:layout)</tt>.
+    #
+    # The user can override this default by passing a block to the layout:
+    #
+    #   # The template
+    #   <%= render :layout => "my_layout" do %>
+    #     Content
+    #   <% end %>
+    #
+    #   # The layout
+    #   <html>
+    #     <%= yield %>
+    #   </html>
+    #
+    # In this case, instead of the default block, which would return <tt>content_for(:layout)</tt>,
+    # this method returns the block that was passed in to <tt>render :layout</tt>, and the response
+    # would be
+    #
+    #   <html>
+    #     Content
+    #   </html>
+    #
+    # Finally, the block can take block arguments, which can be passed in by +yield+:
+    #
+    #   # The template
+    #   <%= render :layout => "my_layout" do |customer| %>
+    #     Hello <%= customer.name %>
+    #   <% end %>
+    #
+    #   # The layout
+    #   <html>
+    #     <%= yield Struct.new(:name).new("David") %>
+    #   </html>
+    #
+    # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
+    # and the struct specified would be passed into the block as an argument. The result
+    # would be
+    #
+    #   <html>
+    #     Hello David
+    #   </html>
+    #
+    def _layout_for(*args, &block)
+      name = args.first
+
+      if name.is_a?(Symbol)
+        view_flow.get(name).html_safe
+      elsif block
+        # TODO Import capture into AV::Context or
+        # leave it as implicit dependency?
+        capture(*args, &block)
+      else
+        view_flow.get(:layout).html_safe
+      end
+    end
   end
 end
