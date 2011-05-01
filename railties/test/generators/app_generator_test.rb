@@ -163,21 +163,41 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
-  def test_jquery_and_test_unit_are_added_by_default
+  def test_creation_of_a_test_directory
     run_generator
-    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype effects dragdrop controls rails\)/
-    assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/jquery.js"
-    assert_file "vendor/assets/javascripts/jquery_ujs.js"
-    assert_file "test"
+    assert_file 'test'
+  end
+
+  def test_jquery_is_the_default_javascript_library
+    run_generator
+    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype prototype_ujs\)/
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require jquery}, contents
+      assert_match %r{^//= require jquery_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match /^gem 'jquery-rails'/, contents
+    end
+  end
+
+  def test_other_javascript_libraries
+    run_generator [destination_root, '-j', 'prototype']
+    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype prototype_ujs\)/
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require prototype}, contents
+      assert_match %r{^//= require prototype_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match /^gem 'prototype-rails'/, contents
+    end
   end
 
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
     assert_file "config/application.rb", /^\s+# config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
-    assert_file "app/assets/javascripts/application.js"
-    assert_no_file "vendor/assets/javascripts/jquery.js"
-    assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_no_match %r{^//=\s+require\s}, contents
+    end
   end
 
   def test_template_from_dir_pwd

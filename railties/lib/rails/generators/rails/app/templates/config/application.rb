@@ -47,7 +47,7 @@ module <%= app_const_base %>
 <% if options[:skip_javascript] -%>
     # config.action_view.javascript_expansions[:defaults] = %w()
 <% else -%>
-    # config.action_view.javascript_expansions[:defaults] = %w(prototype effects dragdrop controls rails)
+    # config.action_view.javascript_expansions[:defaults] = %w(prototype prototype_ujs)
 <% end -%>
 
 <% if options[:skip_test_unit] -%>

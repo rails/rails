@@ -1,8 +1,11 @@
 *Rails 3.1.0 (unreleased)*
 
-* jQuery is no longer vendored, it is provided from now on by the jquery-rails gem. [fxn]
+* The -j option of the application generator accepts an arbitrary string. If passed "foo",
+the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest
+requires "foo" and "foo_ujs". As of this writing "prototype-rails" and "jquery-rails"
+exist and provide those files via de asset pipeline. Default is "jquery". [fxn]
 
-* Application generation no longer supports the -j option. [fxn]
+* jQuery is no longer vendored, it is provided from now on by the jquery-rails gem. [fxn]
 
 * Prototype and Scriptaculous are no longer vendored, they are provided from now on
 by the prototype-rails gem. [fxn]

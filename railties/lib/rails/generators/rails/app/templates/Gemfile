@@ -10,8 +10,7 @@ gem 'sass'
 gem 'coffee-script'
 gem 'uglifier'
 
-# Prototype, Scriptaculous, and RJS.
-# gem 'prototype-rails'
+<%= gem_for_javascript %>
 
 # Use unicorn as the web server
 # gem 'unicorn'
