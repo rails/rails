@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* jQuery is no longer vendored, it is provided from now on by the jquery-rails gem. [fxn]
+
 * Application generation no longer supports the -j option. [fxn]
 
 * Prototype and Scriptaculous are no longer vendored, they are provided from now on
