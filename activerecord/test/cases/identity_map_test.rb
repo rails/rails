@@ -137,8 +137,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal(["name"], swistak.changed)
     assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
 
-    s = Subscriber.find('swistak')
-
     assert swistak.name_changed?
     assert_equal("Swistak Sreberkowiec", swistak.name)
   end
@@ -148,8 +146,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     swistak.name = "Swistak Sreberkowiec"
 
     Subscriber.update_all({:name => "Raczkowski Marcin"}, {:name => "Marcin Raczkowski"})
-
-    s = Subscriber.find('swistak')
 
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
     assert_equal("Swistak Sreberkowiec", swistak.name)
@@ -163,8 +159,6 @@ class IdentityMapTest < ActiveRecord::TestCase
 
     Subscriber.update_all({:name => "Swistak Sreberkowiec"}, {:name => "Marcin Raczkowski"})
 
-    s = Subscriber.find('swistak')
-
     assert_equal("Swistak Sreberkowiec", swistak.name)
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
     assert swistak.name_changed?
@@ -175,7 +169,7 @@ class IdentityMapTest < ActiveRecord::TestCase
     pirate.birds.create!(:name => 'Posideons Killer')
     pirate.birds.create!(:name => 'Killer bandita Dionne')
 
-    posideons, killer = pirate.birds
+    posideons, _ = pirate.birds
 
     pirate.reload
 
