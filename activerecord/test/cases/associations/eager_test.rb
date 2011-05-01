@@ -170,10 +170,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal [comment], category.posts[0].comments
     end
   end
-  
+
   def test_associations_loaded_for_all_records
     post = Post.create!(:title => 'foo', :body => "I like cars!")
-    comment = SpecialComment.create!(:body => 'Come on!', :post => post)
+    SpecialComment.create!(:body => 'Come on!', :post => post)
     first_category = Category.create! :name => 'First!', :posts => [post]
     second_category = Category.create! :name => 'Second!', :posts => [post]
 
