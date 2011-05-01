@@ -15,13 +15,19 @@ module ActionView
     # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
     # as the locals hash.
     # def render(options = {}, locals = {}, &block)
-    def render(*args, &block)
-      view_renderer.render(self, *args, &block)
-    end
-
-    # TODO: This is temporary, but the previous render is sticking.
-    def render_body(*args, &block)
-      view_renderer.render_body(self, *args, &block)
+    def render(options = {}, locals = {}, &block)
+      case options
+      when Hash
+        if block_given?
+          view_renderer.render_partial(self, options.merge(:partial => options[:layout]), &block)
+        elsif options.key?(:partial)
+          view_renderer.render_partial(self, options)
+        else
+          view_renderer.render_template(self, options)
+        end
+      else
+        view_renderer.render_partial(self, :partial => options, :locals => locals)
+      end
     end
   end
 end

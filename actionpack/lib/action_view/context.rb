@@ -9,6 +9,8 @@ module ActionView
   # The default Action View context is ActionView::Base.
   #
   # In order to work with ActionController, a Context must just include this module.
+  # The initialization of the variables used by the context (@output_buffer, @view_flow,
+  # and @virtual_path) is responsibility of the object that includes this module.
   module Context
     include CompiledTemplates
     attr_accessor :output_buffer, :view_flow

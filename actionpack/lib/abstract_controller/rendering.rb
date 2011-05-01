@@ -99,7 +99,12 @@ module AbstractController
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      view_context_class.new(lookup_context, view_assigns, self)
+      view_context_class.new(view_renderer, view_assigns, self)
+    end
+
+    # Returns an object that is able to render templates.
+    def view_renderer
+      @view_renderer ||= ActionView::Renderer.new(lookup_context, self)
     end
 
     # Normalize arguments, options and then delegates render_to_body and
@@ -127,7 +132,11 @@ module AbstractController
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
-      view_context.render(options)
+      if options.key?(:partial)
+        view_renderer.render_partial(view_context, options)
+      else
+        view_renderer.render_template(view_context, options)
+      end
     end
 
     # The prefixes used in render "foo" shortcuts.
