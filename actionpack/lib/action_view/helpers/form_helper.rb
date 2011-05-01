@@ -1172,7 +1172,7 @@ module ActionView
     class FormBuilder
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = (FormHelper.instance_method_names - ['form_for'])
+      self.field_helpers = FormHelper.instance_method_names - %w(form_for convert_to_model)
 
       attr_accessor :object_name, :object, :options
 

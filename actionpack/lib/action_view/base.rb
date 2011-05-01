@@ -159,7 +159,7 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_accessor :_template, :_view_flow
+    attr_accessor :_view_flow
     attr_internal :request, :controller, :config, :assigns, :lookup_context
 
     # TODO Consider removing those setters once we have the renderer in place.
@@ -191,6 +191,7 @@ module ActionView #:nodoc:
       @_virtual_path = nil
       @_view_flow = OutputFlow.new
       @output_buffer = nil
+      @virtual_path  = nil
 
       if @_controller = controller
         @_request = controller.request if controller.respond_to?(:request)

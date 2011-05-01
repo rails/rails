@@ -9,7 +9,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   # or request.
   #
   # In those cases, we'll set up a simple mock
-  attr_accessor :controller, :request, :_template
+  attr_accessor :controller, :request
 
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
