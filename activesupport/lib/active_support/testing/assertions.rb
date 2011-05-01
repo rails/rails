@@ -45,17 +45,17 @@ module ActiveSupport
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
-        b = block.send(:binding)
-        exps = Array.wrap(expression)
-        before = exps.map { |e| e.respond_to?(:call) ? e.call : eval(e, b) }
+        exps = Array.wrap(expression).map { |e|
+          e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
+        }
+        before = exps.map { |e| e.call }
 
         yield
 
         exps.each_with_index do |e, i|
           error  = "#{e.inspect} didn't change by #{difference}"
           error  = "#{message}.\n#{error}" if message
-          actual = e.respond_to?(:call) ? e.call : eval(e, b)
-          assert_equal(before[i] + difference, actual, error)
+          assert_equal(before[i] + difference, e.call, error)
         end
       end
 
