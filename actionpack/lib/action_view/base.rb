@@ -139,7 +139,6 @@ module ActionView #:nodoc:
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
-    # Currently this is private API and may be changed at *any* time.
     cattr_accessor :streaming_completion_on_exception
     @@streaming_completion_on_exception = %("><script type="text/javascript">window.location = "/500.html"</script></html>)
 
