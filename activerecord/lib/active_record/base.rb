@@ -475,9 +475,18 @@ module ActiveRecord #:nodoc:
       # The +attributes+ parameter can be either be a Hash or an Array of Hashes.  These Hashes describe the
       # attributes on the objects that are to be created.
       #
+      # +create+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
+      # in the +options+ parameter.
+      #
       # ==== Examples
       #   # Create a single new object
       #   User.create(:first_name => 'Jamie')
+      #
+      #   # Create a single new object using the :admin mass-assignment security scope
+      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
+      #
+      #   # Create a single new object bypassing mass-assignment security
+      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
       #
       #   # Create an Array of new objects
       #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
@@ -491,11 +500,11 @@ module ActiveRecord #:nodoc:
       #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end
-      def create(attributes = nil, &block)
+      def create(attributes = nil, options = {}, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr, &block) }
+          attributes.collect { |attr| create(attr, options, &block) }
         else
-          object = new(attributes)
+          object = new(attributes, options)
           yield(object) if block_given?
           object.save
           object
@@ -1484,7 +1493,20 @@ end
       # attributes but not yet saved (pass a hash with key names matching the associated table column names).
       # In both instances, valid attribute keys are determined by the column names of the associated table --
       # hence you can't have attributes that aren't part of the table columns.
-      def initialize(attributes = nil)
+      #
+      # +initialize+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
+      # in the +options+ parameter.
+      #
+      # ==== Examples
+      #   # Instantiates a single new object
+      #   User.new(:first_name => 'Jamie')
+      #
+      #   # Instantiates a single new object using the :admin mass-assignment security scope
+      #   User.new({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
+      #
+      #   # Instantiates a single new object bypassing mass-assignment security
+      #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
+      def initialize(attributes = nil, options = {})
         @attributes = attributes_from_column_definition
         @association_cache = {}
         @aggregation_cache = {}
@@ -1500,7 +1522,8 @@ end
         set_serialized_attributes
 
         populate_with_current_scope_attributes
-        self.attributes = attributes unless attributes.nil?
+
+        assign_attributes(attributes, options) if attributes
 
         result = yield self if block_given?
         run_callbacks :initialize
