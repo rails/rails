@@ -299,6 +299,8 @@ module ActiveResource
       end
     end
 
+    # Returns true if code is 2xx,
+    # false otherwise.
     def success?
       code.in?(200..299)
     end
@@ -311,6 +313,8 @@ module ActiveResource
       headers[key] = value
     end
 
+    # Returns true if the other is a Response with an equal body, equal message
+    # and equal headers. Otherwise it returns false.
     def ==(other)
       if (other.is_a?(Response))
         other.body == body && other.message == message && other.headers == headers
