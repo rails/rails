@@ -252,7 +252,7 @@ Once you're happy that the pull request contains a good change, comment on the G
 I like the way you've restructured that code in generate_finder_sql, much nicer. The tests look good too.
 </blockquote>
 
-If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the patch. Once three people have approved it, add the "verified" tag. This will bring it to the attention of a core team member who will review the changes looking for the same kinds of things.
+If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously.
 
 h3. Contributing to the Rails Documentation
 
