@@ -1,4 +1,4 @@
-== 2.1.0 (unreleased)
+== 2.1.0 / 2011/04/30
 
 * Enhancements
 
@@ -52,7 +52,25 @@
   * Arel::SelectManager#wheres is deprecated and will be removed in
   3.0.0 with no replacement.
 
-== 2.0.7 (unreleased)
+== 2.0.9  / 2010/02/25
+
+* Bug Fixes
+
+  * Custom LOCK strings are allowed. Fixes LH # 6399
+    https://rails.lighthouseapp.com/projects/8994/tickets/6399-allow-database-specific-locking-clauses-to-be-used
+
+  * Strings passed to StringManager#on will be automatically tagged as SQL
+    literals. Fixes Rails LH #6384
+    https://rails.lighthouseapp.com/projects/8994/tickets/6384-activerecord-303-and-3-0-stable-generate-invalid-sql-for-has_many-through-association-with-conditions
+
+== 2.0.8  / 2010/02/08
+
+* Bug Fixes
+
+  * Added set operation support
+  * Fixed problems with *_any / *_all methods.
+
+== 2.0.7
 
 * Bug Fixes
 
