@@ -576,9 +576,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_counter_cache
-    tagging     = taggings(:welcome_general)
-    post = post = posts(:welcome)
-    comment     = comments(:greetings)
+    tagging = taggings(:welcome_general)
+    post    = posts(:welcome)
+    comment = comments(:greetings)
 
     assert_difference 'post.reload.taggings_count', -1 do
       assert_difference 'comment.reload.taggings_count', +1 do
