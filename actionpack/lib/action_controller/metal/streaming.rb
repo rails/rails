@@ -2,17 +2,16 @@ require 'active_support/core_ext/file/path'
 require 'rack/chunked'
 
 module ActionController #:nodoc:
-  # Allow views to be streamed back to the client as they are rendered.
+  # Allows views to be streamed back to the client as they are rendered.
   #
   # The default way Rails renders views is by first rendering the template
-  # and then the layout. The first chunk of response is sent to the client
-  # just after the whole template is rendered, all queries are made and the
-  # layout is processed.
+  # and then the layout. The response is sent to the client after the whole
+  # template is rendered, all queries are made, and the layout is processed.
   #
   # Streaming inverts the rendering flow by rendering the layout first and
   # streaming each part of the layout as they are processed. This allows the
-  # header of the html (which is usually in the layout) to be streamed back
-  # to client very quickly, allowing javascripts and stylesheets to be loaded
+  # header of the HTML (which is usually in the layout) to be streamed back
+  # to client very quickly, allowing JavaScripts and stylesheets to be loaded
   # earlier than usual.
   #
   # This approach was introduced in Rails 3.1 and is still improving. Several
@@ -20,13 +19,13 @@ module ActionController #:nodoc:
   # Those points are going to be addressed soon.
   #
   # In order to use streaming, you will need to use a Ruby version that
-  # supports Fibers (Fibers are supported since version 1.9.2 of the main
+  # supports fibers (fibers are supported since version 1.9.2 of the main
   # Ruby implementation).
   #
   # == Examples
   #
   # Streaming can be added to a controller easily, all you need to do is
-  # call stream at the controller class:
+  # call +stream+ in the controller class:
   #
   #   class PostsController
   #     stream
@@ -42,19 +41,19 @@ module ActionController #:nodoc:
   #
   #   class PostsController
   #     def index
-  #       @post = Post.scoped
+  #       @posts = Post.scoped
   #       render :stream => true
   #     end
   #   end
   #
   # == When to use streaming
   #
-  # Streaming may be considering an overkill for common actions like
-  # new or edit. The real benefit of streaming is on expensive actions
-  # that, for example, does a lot of queries on the database.
+  # Streaming may be considered to be overkill for lightweight actions like
+  # +new+ or +edit+. The real benefit of streaming is on expensive actions
+  # that, for example, do a lot of queries on the database.
   #
   # In such actions, you want to delay queries execution as much as you can.
-  # For example, imagine the following dashboard action:
+  # For example, imagine the following +dashboard+ action:
   #
   #   def dashboard
   #     @posts = Post.all
@@ -63,10 +62,10 @@ module ActionController #:nodoc:
   #   end
   #
   # Most of the queries here are happening in the controller. In order to benefit
-  # most of streaming, you would want to rewrite it as:
+  # from streaming you would want to rewrite it as:
   #
   #   def dashboard
-  #     # Allow lazily execution of the query
+  #     # Allow lazy execution of the queries
   #     @posts = Post.scoped
   #     @pages = Page.scoped
   #     @articles = Article.scoped
@@ -75,12 +74,15 @@ module ActionController #:nodoc:
   #
   # == Communication between layout and template
   #
-  # When streaming, the layout is rendered first than the template.
-  # This means that, if your application currently rely on variables set
-  # in the template to be used in the layout, they won't work once you
-  # move to streaming. The proper way to communicate between layout and
-  # template, regardless if you use streaming or not, is by using
-  # +content_for+, +provide+ and +yield+.
+  # When streaming, rendering happens top-down instead of inside-out.
+  # Rails starts with the layout, and the template is rendered later,
+  # when its +yield+ is reached.
+  #
+  # This means that, if your application currently relies on instance
+  # variables set in the template to be used in the layout, they won't
+  # work once you move to streaming. The proper way to communicate
+  # between layout and template, regardless of whether you use streaming
+  # or not, is by using +content_for+, +provide+ and +yield+.
   #
   # Take a simple example where the layout expects the template to tell
   # which title to use:
@@ -121,16 +123,16 @@ module ActionController #:nodoc:
   # and you want to use streaming, you would have to render the whole template
   # (and eventually trigger all queries) before streaming the title and all
   # assets, which kills the purpose of streaming. For this reason Rails 3.1
-  # introduces a helper called +provide+ that does the same as +content_for+
+  # introduces a new helper called +provide+ that does the same as +content_for+
   # but tells the layout to stop searching for other entries and continue rendering.
   #
-  # For instance, the template below, using +provide+:
+  # For instance, the template above using +provide+ would be:
   #
   #   <%= provide :title, "Main" %>
   #   Hello
   #   <%= content_for :title, " page" %>
   #
-  # Has as final result:
+  # Giving:
   #
   #   <html>
   #     <head><title>Main</title></head>
@@ -138,26 +140,26 @@ module ActionController #:nodoc:
   #   </html>
   #
   # That said, when streaming, you need to properly check your templates
-  # and chose when to use +provide+ and +content_for+.
+  # and choose when to use +provide+ and +content_for+.
   #
   # == Headers, cookies, session and flash
   #
   # When streaming, the HTTP headers are sent to the client right before
   # it renders the first line. This means that, modifying headers, cookies,
-  # session or flash after the template start rendering will not propagate
+  # session or flash after the template starts rendering will not propagate
   # to the client.
   #
-  # If you try to modify cookies, session or flash, a ClosedError will be
-  # raised, showing those objects are closed for modification.
+  # If you try to modify cookies, session or flash, an +ActionDispatch::ClosedError+
+  # will be raised, showing those objects are closed for modification.
   #
   # == Middlewares
   #
   # Middlewares that need to manipulate the body won't work with streaming.
   # You should disable those middlewares whenever streaming in development
-  # or production. For instance, Rack::Bug won't work when streaming as it
+  # or production. For instance, +Rack::Bug+ won't work when streaming as it
   # needs to inject contents in the HTML body.
   #
-  # Also Rack::Cache won't work with streaming as it does not support
+  # Also +Rack::Cache+ won't work with streaming as it does not support
   # streaming bodies yet. So, whenever streaming, Cache-Control is automatically
   # set to "no-cache".
   #
@@ -193,10 +195,10 @@ module ActionController #:nodoc:
   #
   #   unicorn_rails --config-file unicorn.config.rb
   #
-  # You may also want to configure other parameters like :tcp_nodelay. Please
-  # check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
+  # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
+  # Please check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
   #
-  # If you are using unicorn with nginx, you may need to tweak nginx.
+  # If you are using Unicorn with Nginx, you may need to tweak Nginx.
   # Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger
