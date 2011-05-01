@@ -60,10 +60,10 @@ module ActiveRecord
           through_record
         end
 
-        def build_record(attributes)
+        def build_record(attributes, options = {})
           ensure_not_nested
 
-          record = super(attributes)
+          record = super(attributes, options)
 
           inverse = source_reflection.inverse_of
           if inverse
