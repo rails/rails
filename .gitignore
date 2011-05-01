@@ -22,3 +22,4 @@ railties/doc
 railties/guides/output
 railties/tmp
 .rvmrc
+RDOC_MAIN.rdoc
