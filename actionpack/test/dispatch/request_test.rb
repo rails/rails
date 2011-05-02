@@ -460,6 +460,18 @@ class RequestTest < ActiveSupport::TestCase
       request.expects(:parameters).at_least_once.returns({})
       assert_equal [ Mime::HTML ], request.formats
 
+      request = stub_request 'HTTP_ACCEPT' => 'koz-asked/something-crazy'
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal [ Mime::HTML ], request.formats
+
+      request = stub_request 'HTTP_ACCEPT' => '*/*;q=0.1'
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal [ Mime::HTML ], request.formats
+
+      request = stub_request 'HTTP_ACCEPT' => 'application/jxw'
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal [ Mime::HTML ], request.formats
+
       request = stub_request 'HTTP_ACCEPT' => 'application/xml',
                              'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
       request.expects(:parameters).at_least_once.returns({})
