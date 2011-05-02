@@ -10,6 +10,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def setup
     Task.connection.clear_query_cache
+    ActiveRecord::Base.connection.disable_query_cache!
   end
 
   def test_middleware_delegates
@@ -37,6 +38,31 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
     }
     mw.call({})
+  end
+
+  def test_cache_on_during_body_write
+    streaming = Class.new do
+      def each
+        yield ActiveRecord::Base.connection.query_cache_enabled
+      end
+    end
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      [200, {}, streaming.new]
+    }
+    body = mw.call({}).last
+    body.each { |x| assert x, 'cache should be on' }
+    body.close
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
+  end
+
+  def test_cache_off_after_close
+    mw = ActiveRecord::QueryCache.new lambda { |env| }
+    body = mw.call({}).last
+
+    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache enabled'
+    body.close
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
   end
 
   def test_find_queries
