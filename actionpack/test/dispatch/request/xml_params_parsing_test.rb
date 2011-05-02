@@ -115,3 +115,41 @@ class LegacyXmlParamsParsingTest < XmlParamsParsingTest
       {'HTTP_X_POST_DATA_FORMAT' => 'xml'}
     end
 end
+
+class RootLessXmlParamsParsingTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    wrap_parameters :person, :format => :xml
+
+    class << self
+      attr_accessor :last_request_parameters
+    end
+
+    def parse
+      self.class.last_request_parameters = request.request_parameters
+      head :ok
+    end
+  end
+
+  def teardown
+    TestController.last_request_parameters = nil
+  end
+
+  test "parses hash params" do
+    with_test_routing do
+      xml = "<name>David</name>"
+      post "/parse", xml, {'CONTENT_TYPE' => 'application/xml'}
+      assert_response :ok
+      assert_equal({"name" => "David", "person" => {"name" => "David"}}, TestController.last_request_parameters)
+    end
+  end
+
+  private
+    def with_test_routing
+      with_routing do |set|
+        set.draw do
+          match ':action', :to => ::RootLessXmlParamsParsingTest::TestController
+        end
+        yield
+      end
+    end
+end
