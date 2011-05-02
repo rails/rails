@@ -211,15 +211,7 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today‘s web browsers, however do not support them - only GET and POST. Rails uses a hidden +_method+ field to handle this barrier.
 
-_(highlight)The verify method in a controller can make sure that specific actions may not be used over GET_. Here is an example to verify the use of the transfer action over POST. If the action comes in using any other verb, it redirects to the list action.
-
-<ruby>
-verify :method => :post, :only => [:transfer], :redirect_to => {:action => :list}
-</ruby>
-
-With this precaution, the attack from above will not work, because the browser sends a GET request for images, which will not be accepted by the web application.
-
-But this was only the first step, because _(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
+_(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
 
 <html>
 <a href="http://www.harmless.com/" onclick="
