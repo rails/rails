@@ -452,6 +452,28 @@ class RequestTest < ActiveSupport::TestCase
     assert request.formats.empty?
   end
 
+  test "ignore_accept_header" do
+    ActionDispatch::Request.ignore_accept_header = true
+
+    begin
+      request = stub_request 'HTTP_ACCEPT' => 'application/xml'
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal [ Mime::HTML ], request.formats
+
+      request = stub_request 'HTTP_ACCEPT' => 'application/xml',
+                             'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+      request.expects(:parameters).at_least_once.returns({})
+      assert_equal [ Mime::JS ], request.formats
+
+      request = stub_request 'HTTP_ACCEPT' => 'application/xml',
+                             'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+      request.expects(:parameters).at_least_once.returns({:format => :json})
+      assert_equal [ Mime::JSON ], request.formats
+    ensure
+      ActionDispatch::Request.ignore_accept_header = false
+    end
+  end
+
   test "negotiate_mime" do
     request = stub_request 'HTTP_ACCEPT' => 'text/html',
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"

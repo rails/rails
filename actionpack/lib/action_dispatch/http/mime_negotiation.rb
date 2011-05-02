@@ -1,6 +1,13 @@
 module ActionDispatch
   module Http
     module MimeNegotiation
+      extend ActiveSupport::Concern
+
+      included do
+        mattr_accessor :ignore_accept_header
+        self.ignore_accept_header = false
+      end
+
       # The MIME type of the HTTP request, such as Mime::XML.
       #
       # For backward compatibility, the post \format is extracted from the
@@ -42,16 +49,14 @@ module ActionDispatch
         formats.first
       end
 
-      BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
-
       def formats
-        accept = @env['HTTP_ACCEPT']
-
         @env["action_dispatch.request.formats"] ||=
           if parameters[:format]
             Array(Mime[parameters[:format]])
-          elsif xhr? || (accept && accept !~ BROWSER_LIKE_ACCEPTS)
+          elsif use_accept_header && valid_accept_header
             accepts
+          elsif xhr?
+            [Mime::JS]
           else
             [Mime::HTML]
           end
@@ -86,6 +91,18 @@ module ActionDispatch
         end
 
         order.include?(Mime::ALL) ? formats.first : nil
+      end
+
+      protected
+
+      BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
+
+      def valid_accept_header
+        xhr? || (accept && accept !~ BROWSER_LIKE_ACCEPTS)
+      end
+
+      def use_accept_header
+        !self.class.ignore_accept_header
       end
     end
   end
