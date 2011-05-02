@@ -21,11 +21,20 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert called, 'middleware should delegate'
   end
 
-  def test_middleware
+  def test_middleware_caches
     mw = ActiveRecord::QueryCache.new lambda { |env|
       Task.find 1
       Task.find 1
       assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    }
+    mw.call({})
+  end
+
+  def test_cache_enabled_during_call
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
     }
     mw.call({})
   end
