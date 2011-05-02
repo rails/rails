@@ -80,6 +80,15 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
+  def test_wrap_parameters_false
+    with_default_wrapper_options do
+      UsersController.wrap_parameters false
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :test, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_equal '{"username":"sikachu","title":"Developer"}', @response.body
+    end
+  end
+
   def test_specify_format
     with_default_wrapper_options do
       UsersController.wrap_parameters :format => :xml
@@ -115,10 +124,10 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_matching_model
-    with_default_wrapper_options do
-      User.expects(:respond_to?).with(:column_names).returns(true)
-      User.expects(:column_names).returns(["username"])
+    User.expects(:respond_to?).with(:column_names).returns(true)
+    User.expects(:column_names).returns(["username"])
 
+    with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :test, { 'username' => 'sikachu', 'title' => 'Developer' }
       assert_equal '{"username":"sikachu","title":"Developer","user":{"username":"sikachu"}}', @response.body
@@ -153,11 +162,13 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
         render :json => params.except(:controller, :action)
       end
     end
-
-    class User; end
   end
-  class User; end
-  class Person; end
+
+  class Sample
+    def self.column_names
+      ["username"]
+    end
+  end
 
   tests Admin::UsersController
 
@@ -169,12 +180,16 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_namespace_lookup_when_namespaced_model_available
-    with_default_wrapper_options do
-      Admin::User.expects(:respond_to?).with(:column_names).returns(false)
-
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :test, { 'username' => 'sikachu' }
+  def test_namespace_lookup_from_model
+    Admin.const_set(:User, Class.new(Sample))
+    begin
+      with_default_wrapper_options do
+        @request.env['CONTENT_TYPE'] = 'application/json'
+        post :test, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_equal '{"username":"sikachu","title":"Developer","user":{"username":"sikachu"}}', @response.body
+      end
+    ensure
+      Admin.send :remove_const, :User
     end
   end
 

@@ -1,4 +1,6 @@
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/array/wrap'
 require 'action_dispatch/http/mime_types'
 
 module ActionController
@@ -96,23 +98,25 @@ module ActionController
       # ==== Options
       # * <tt>:format</tt> - The list of formats in which the parameters wrapper
       #   will be enabled.
-      # * <tt>:only</tt> - The list of attribute names which parmeters wrapper
+      # * <tt>:only</tt> - The list of attribute names which parameters wrapper
       #   will wrap into a nested hash.
-      # * <tt>:only</tt> - The list of attribute names which parmeters wrapper
+      # * <tt>:except</tt> - The list of attribute names which parameters wrapper
       #   will exclude from a nested hash.
       def wrap_parameters(name_or_model_or_options, options = {})
-        if !name_or_model_or_options.is_a? Hash
-          if name_or_model_or_options != false
-            options = options.merge(:name_or_model => name_or_model_or_options)
-          else
-            options = opions.merge(:format => [])
-          end
-        else
+        model = nil
+
+        case name_or_model_or_options
+        when Hash
           options = name_or_model_or_options
+        when false
+          options = options.merge(:format => [])
+        when Symbol, String
+          options = options.merge(:name => name_or_model_or_options)
+        else
+          model = name_or_model_or_options
         end
 
-        options[:name_or_model] ||= _default_wrap_model
-        self._wrapper_options = self._wrapper_options.merge(options)
+        _set_wrapper_defaults(_wrapper_options.slice(:format).merge(options), model)
       end
 
       # Sets the default wrapper key or model which will be used to determine
@@ -120,10 +124,12 @@ module ActionController
       # module is inherited.
       def inherited(klass)
         if klass._wrapper_options[:format].present?
-          klass._wrapper_options = klass._wrapper_options.merge(:name_or_model => klass._default_wrap_model)
+          klass._set_wrapper_defaults(klass._wrapper_options)
         end
         super
       end
+
+      protected
 
       # Determine the wrapper model from the controller's name. By convention,
       # this could be done by trying to find the defined model that has the
@@ -141,6 +147,29 @@ module ActionController
         end until model_klass
 
         model_klass
+      end
+
+      def _set_wrapper_defaults(options, model=nil)
+        options = options.dup
+
+        unless options[:only] || options[:except]
+          model ||= _default_wrap_model
+          if model.respond_to?(:column_names)
+            options[:only] = model.column_names
+          end
+        end
+
+        unless options[:name]
+          model ||= _default_wrap_model
+          options[:name] = model ? model.to_s.demodulize.underscore :
+            controller_name.singularize
+        end
+
+        options[:only]   = Array.wrap(options[:only]).collect(&:to_s)   if options[:only]
+        options[:except] = Array.wrap(options[:except]).collect(&:to_s) if options[:except]
+        options[:format] = Array.wrap(options[:format])
+
+        self._wrapper_options = options
       end
     end
 
@@ -164,21 +193,15 @@ module ActionController
     private
       # Returns the wrapper key which will use to stored wrapped parameters.
       def _wrapper_key
-        @_wrapper_key ||= if _wrapper_options[:name_or_model]
-            _wrapper_options[:name_or_model].to_s.demodulize.underscore
-          else
-            self.class.controller_name.singularize
-          end
+        _wrapper_options[:name]
       end
 
       # Returns the list of parameters which will be selected for wrapped.
       def _wrapped_keys
-        @_wrapped_keys ||= if _wrapper_options[:only]
-            Array(_wrapper_options[:only]).collect(&:to_s)
-          elsif _wrapper_options[:except]
-            request.request_parameters.keys - Array(_wrapper_options[:except]).collect(&:to_s) - EXCLUDE_PARAMETERS
-          elsif _wrapper_options[:name_or_model].respond_to?(:column_names)
-            _wrapper_options[:name_or_model].column_names
+        @_wrapped_keys ||= if only = _wrapper_options[:only]
+            only
+          elsif except = _wrapper_options[:except]
+            request.request_parameters.keys - except - EXCLUDE_PARAMETERS
           else
             request.request_parameters.keys - EXCLUDE_PARAMETERS
           end
@@ -186,12 +209,13 @@ module ActionController
 
       # Returns the list of enabled formats.
       def _wrapper_formats
-        Array(_wrapper_options[:format])
+        _wrapper_options[:format]
       end
 
       # Checks if we should perform parameters wrapping.
       def _wrapper_enabled?
-        _wrapper_formats.any?{ |format| format == request.content_mime_type.try(:ref) } && request.request_parameters[_wrapper_key].nil?
+        ref = request.content_mime_type.try(:ref)
+        _wrapper_formats.any? { |format| format == ref } && !request.request_parameters[_wrapper_key]
       end
   end
 end
