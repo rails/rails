@@ -442,5 +442,26 @@ module ApplicationTests
 
       assert_equal [:json], ActionController::Base._wrapper_options[:format]
     end
+
+    test "config.action_dispatch.ignore_accept_header" do
+      make_basic_app do |app|
+        app.config.action_dispatch.ignore_accept_header = true
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          respond_to do |format|
+            format.html { render :text => "HTML" }
+            format.xml { render :text => "XML" }
+          end
+        end
+      end
+
+      get "/", {}, "HTTP_ACCEPT" => "application/xml"
+      assert_equal 'HTML', last_response.body
+
+      get "/", { :format => :xml }, "HTTP_ACCEPT" => "application/xml"
+      assert_equal 'XML', last_response.body
+    end
   end
 end
