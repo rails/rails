@@ -5,7 +5,7 @@ module ActionController
   # Wraps parameters hash into nested hash. This will allow client to submit
   # POST request without having to specify a root element in it.
   #
-  # By default, this functionality won't be enabled by default. You can enable
+  # By default this functionality won't be enabled. You can enable
   # it globally by setting +ActionController::Base.wrap_parameters+:
   #
   #     ActionController::Base.wrap_parameters = [:json]
@@ -78,7 +78,7 @@ module ActionController
       #
       # ==== Examples
       #   wrap_parameters :format => :xml
-      #     # enables the parmeter wrappes for XML format
+      #     # enables the parmeter wrapper for XML format
       #
       #   wrap_parameters :person
       #     # wraps parameters into +params[:person]+ hash
