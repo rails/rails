@@ -4,7 +4,9 @@
 
 * Implicit actions named not_implemented can be rendered [Santiago Pastorino]
 
-* Wildcard route will always matching the optional format segment by default. For example if you have this route:
+* Wildcard route will always matching the optional format segment by default. [Prem Sichanugrist]
+
+  For example if you have this route:
 
     map '*pages' => 'pages#show'
 
