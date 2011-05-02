@@ -49,12 +49,15 @@ module ActiveRecord
       end
 
       def get(klass, primary_key)
-        obj = repository[klass.symbolized_base_class][primary_key]
-        if obj.is_a?(klass)
-          if ActiveRecord::Base.logger
-            ActiveRecord::Base.logger.debug "#{klass} with ID = #{primary_key} loaded from Identity Map"
-          end
-          obj
+        record = repository[klass.symbolized_base_class][primary_key]
+
+        if record.is_a?(klass)
+          ActiveSupport::Notifications.instrument("identity.active_record",
+            :line => "From Identity Map (id: #{primary_key})", 
+            :name => "#{klass} Loaded",
+            :connection_id => object_id)
+
+          record
         else
           nil
         end
