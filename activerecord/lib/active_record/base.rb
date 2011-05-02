@@ -83,7 +83,7 @@ module ActiveRecord #:nodoc:
   #
   # The <tt>authenticate_unsafely</tt> method inserts the parameters directly into the query
   # and is thus susceptible to SQL-injection attacks if the <tt>user_name</tt> and +password+
-  # parameters come directly from an HTTP request. The <tt>authenticate_safely</tt>  and
+  # parameters come directly from an HTTP request. The <tt>authenticate_safely</tt> and
   # <tt>authenticate_safely_simply</tt> both will sanitize the <tt>user_name</tt> and +password+
   # before inserting them in the query, which will ensure that an attacker can't escape the
   # query and fake the login (or worse).
@@ -406,10 +406,10 @@ module ActiveRecord #:nodoc:
     ##
     # :singleton-method:
     # Specifies the format to use when dumping the database schema with Rails'
-    # Rakefile.  If :sql, the schema is dumped as (potentially database-
-    # specific) SQL statements.  If :ruby, the schema is dumped as an
+    # Rakefile. If :sql, the schema is dumped as (potentially database-
+    # specific) SQL statements. If :ruby, the schema is dumped as an
     # ActiveRecord::Schema file which can be loaded into any database that
-    # supports migrations.  Use :ruby if you want to have different database
+    # supports migrations. Use :ruby if you want to have different database
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format , :instance_writer => false
     @@schema_format = :ruby
@@ -443,17 +443,17 @@ module ActiveRecord #:nodoc:
       delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
-      # Executes a custom SQL query against your database and returns all the results.  The results will
+      # Executes a custom SQL query against your database and returns all the results. The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
-      # this method from.  If you call <tt>Product.find_by_sql</tt> then the results will be returned in
+      # this method from. If you call <tt>Product.find_by_sql</tt> then the results will be returned in
       # a Product object with the attributes you specified in the SQL query.
       #
       # If you call a complicated SQL query which spans multiple tables the columns specified by the
       # SELECT will be attributes of the model, whether or not they are columns of the corresponding
       # table.
       #
-      # The +sql+ parameter is a full SQL query as a string.  It will be called as is, there will be
-      # no database agnostic conversions performed.  This should be a last resort because using, for example,
+      # The +sql+ parameter is a full SQL query as a string. It will be called as is, there will be
+      # no database agnostic conversions performed. This should be a last resort because using, for example,
       # MySQL specific terms will lock you to using that particular database engine or require you to
       # change your call if you switch engines.
       #
@@ -472,7 +472,7 @@ module ActiveRecord #:nodoc:
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
-      # The +attributes+ parameter can be either be a Hash or an Array of Hashes.  These Hashes describe the
+      # The +attributes+ parameter can be either be a Hash or an Array of Hashes. These Hashes describe the
       # attributes on the objects that are to be created.
       #
       # ==== Examples
@@ -504,7 +504,7 @@ module ActiveRecord #:nodoc:
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
       # The use of this method should be restricted to complicated SQL queries that can't be executed
-      # using the ActiveRecord::Calculations class methods.  Look into those before using this.
+      # using the ActiveRecord::Calculations class methods. Look into those before using this.
       #
       # ==== Parameters
       #
@@ -581,7 +581,7 @@ module ActiveRecord #:nodoc:
       #   invoice/lineitem.rb   Invoice::Lineitem   lineitems
       #
       # Additionally, the class-level +table_name_prefix+ is prepended and the
-      # +table_name_suffix+ is appended.  So if you have "myapp_" as a prefix,
+      # +table_name_suffix+ is appended. So if you have "myapp_" as a prefix,
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
       #
@@ -615,7 +615,7 @@ module ActiveRecord #:nodoc:
         @inheritance_column ||= "type"
       end
 
-      # Lazy-set the sequence name to the connection's default.  This method
+      # Lazy-set the sequence name to the connection's default. This method
       # is only ever called once since set_sequence_name overrides it.
       def sequence_name #:nodoc:
         reset_sequence_name
@@ -627,7 +627,7 @@ module ActiveRecord #:nodoc:
         default
       end
 
-      # Sets the table name. If the value is nil or false  then the value returned by the given
+      # Sets the table name. If the value is nil or false then the value returned by the given
       # block is used.
       #
       #   class Project < ActiveRecord::Base
@@ -1077,7 +1077,7 @@ module ActiveRecord #:nodoc:
         # <tt>where</tt>, <tt>includes</tt>, and <tt>joins</tt> operations in <tt>Relation</tt>, which are merged.
         #
         # <tt>joins</tt> operations are uniqued so multiple scopes can join in the same table without table aliasing
-        # problems.  If you need to join multiple tables, but still want one of the tables to be uniqued, use the
+        # problems. If you need to join multiple tables, but still want one of the tables to be uniqued, use the
         # array of strings format for your joins.
         #
         #   class Article < ActiveRecord::Base
@@ -1400,7 +1400,7 @@ end
           end.join(', ')
         end
 
-        # Accepts an array of conditions.  The array has each value
+        # Accepts an array of conditions. The array has each value
         # sanitized and interpolated into the SQL statement.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
         def sanitize_sql_array(ary)
@@ -1508,7 +1508,7 @@ end
       end
 
       # Populate +coder+ with attributes about this record that should be
-      # serialized.  The structure of +coder+ defined in this method is
+      # serialized. The structure of +coder+ defined in this method is
       # guaranteed to match the structure of +coder+ passed to the +init_with+
       # method.
       #
@@ -1523,8 +1523,8 @@ end
         coder['attributes'] = attributes
       end
 
-      # Initialize an empty model object from +coder+.  +coder+ must contain
-      # the attributes necessary for initializing an empty model object.  For
+      # Initialize an empty model object from +coder+. +coder+ must contain
+      # the attributes necessary for initializing an empty model object. For
       # example:
       #
       #   class Post < ActiveRecord::Base
