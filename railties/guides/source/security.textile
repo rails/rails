@@ -441,7 +441,7 @@ params[:user] # => {:name => "ow3ned", :admin => true}
 @user.admin # => true
 </ruby>
 
-When assigning attributes in Active Record using +new+, +attributes=+, or +update_attributes+ the :default scope will be used. To assign attributes using different scopes you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default scope will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
+When assigning attributes in Active Record using +attributes=+, or +update_attributes+ the :default scope will be used. To assign attributes using different scopes you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default scope will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
 
 <ruby>
 @user = User.new
@@ -459,7 +459,19 @@ When assigning attributes in Active Record using +new+, +attributes=+, or +updat
 @user.is_admin # => true
 </ruby>
 
-A more paranoid technique to protect your whole project would be to enforce that all models define their accessible attributes.  This can be easily achieved with a very simple application config option of:
+In a similar way, +new+, +create+ and <tt>create!</tt> methods respect mass-assignment security and accepts either +:as+ or +:without_protection+ options. For example:
+
+<ruby>
+@user = User.new({ :name => 'Sebastian', :is_admin => true }, :as => :admin)
+@user.name # => Sebastian
+@user.is_admin # => true
+
+@user = User.create({ :name => 'Sebastian', :is_admin => true }, :without_protection => true)
+@user.name # => Sebastian
+@user.is_admin # => true
+</ruby>
+
+A more paranoid technique to protect your whole project would be to enforce that all models define their accessible attributes. This can be easily achieved with a very simple application config option of:
 
 <ruby>
 config.active_record.whitelist_attributes = true
