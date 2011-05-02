@@ -194,7 +194,6 @@ module ActionController
       Caching,
       MimeResponds,
       ImplicitRender,
-      ParamsWrapper,
 
       Cookies,
       Flash,
@@ -214,6 +213,10 @@ module ActionController
       # Add instrumentations hooks at the bottom, to ensure they instrument
       # all the methods properly.
       Instrumentation,
+
+      # Params wrapper should come before instrumentation so they are
+      # properly showed in logs
+      ParamsWrapper,
 
       # The same with rescue, append it at the end to wrap as much as possible.
       Rescue

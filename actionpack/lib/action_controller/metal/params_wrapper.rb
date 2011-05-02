@@ -178,14 +178,13 @@ module ActionController
     def process_action(*args)
       if _wrapper_enabled?
         wrapped_hash = { _wrapper_key => request.request_parameters.slice(*_wrapped_keys) }
-        wrapped_filtered_hash = { _wrapper_key => request.filtered_parameters.slice(*_wrapped_keys) }
 
         # This will make the wrapped hash accessible from controller and view
         request.parameters.merge! wrapped_hash
         request.request_parameters.merge! wrapped_hash
 
         # This will make the wrapped hash displayed in the log file
-        request.filtered_parameters.merge! wrapped_filtered_hash
+        request.clear_filtered_parameters
       end
       super
     end
@@ -215,7 +214,7 @@ module ActionController
       # Checks if we should perform parameters wrapping.
       def _wrapper_enabled?
         ref = request.content_mime_type.try(:ref)
-        _wrapper_formats.any? { |format| format == ref } && !request.request_parameters[_wrapper_key]
+        _wrapper_formats.include?(ref) && !request.request_parameters[_wrapper_key]
       end
   end
 end
