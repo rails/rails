@@ -1,5 +1,6 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/array/wrap'
 require 'action_dispatch/http/mime_types'
 
@@ -177,38 +178,41 @@ module ActionController
     # by the metal call stack.
     def process_action(*args)
       if _wrapper_enabled?
-        wrapped_hash = { _wrapper_key => request.request_parameters.slice(*_wrapped_keys) }
+        wrapped_hash = _wrap_parameters request.request_parameters
+        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters
 
         # This will make the wrapped hash accessible from controller and view
         request.parameters.merge! wrapped_hash
         request.request_parameters.merge! wrapped_hash
 
         # This will make the wrapped hash displayed in the log file
-        request.clear_filtered_parameters
+        request.filtered_parameters.merge! wrapped_filtered_hash
       end
       super
     end
 
     private
+
       # Returns the wrapper key which will use to stored wrapped parameters.
       def _wrapper_key
         _wrapper_options[:name]
       end
 
-      # Returns the list of parameters which will be selected for wrapped.
-      def _wrapped_keys
-        @_wrapped_keys ||= if only = _wrapper_options[:only]
-            only
-          elsif except = _wrapper_options[:except]
-            request.request_parameters.keys - except - EXCLUDE_PARAMETERS
-          else
-            request.request_parameters.keys - EXCLUDE_PARAMETERS
-          end
-      end
-
       # Returns the list of enabled formats.
       def _wrapper_formats
         _wrapper_options[:format]
+      end
+
+      # Returns the list of parameters which will be selected for wrapped.
+      def _wrap_parameters(parameters)
+        value = if only = _wrapper_options[:only]
+          parameters.slice(*only)
+        else
+          except = _wrapper_options[:except] || []
+          parameters.except(*(except + EXCLUDE_PARAMETERS))
+        end
+
+        { _wrapper_key => value }
       end
 
       # Checks if we should perform parameters wrapping.

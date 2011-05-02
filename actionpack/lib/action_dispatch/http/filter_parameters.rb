@@ -33,11 +33,6 @@ module ActionDispatch
         @filtered_parameters ||= parameter_filter.filter(parameters)
       end
 
-      # Clear any filtered parameters forcing them to be filtered again.
-      def clear_filtered_parameters
-        @filtered_parameters = nil
-      end
-
       # Return a hash of request.env with all sensitive data replaced.
       def filtered_env
         @filtered_env ||= env_filter.filter(@env)
