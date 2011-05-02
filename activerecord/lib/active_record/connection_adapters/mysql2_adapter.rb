@@ -412,7 +412,7 @@ module ActiveRecord
 
       def tables(name = nil)
         tables = []
-        execute("SHOW TABLES", name).each do |field|
+        execute("SHOW TABLES", 'SCHEMA').each do |field|
           tables << field.first
         end
         tables
@@ -426,7 +426,7 @@ module ActiveRecord
       def indexes(table_name, name = nil)
         indexes = []
         current_index = nil
-        result = execute("SHOW KEYS FROM #{quote_table_name(table_name)}", name)
+        result = execute("SHOW KEYS FROM #{quote_table_name(table_name)}", 'SCHEMA')
         result.each(:symbolize_keys => true, :as => :hash) do |row|
           if current_index != row[:Key_name]
             next if row[:Key_name] == PRIMARY # skip the primary key
@@ -444,7 +444,7 @@ module ActiveRecord
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql)
+        result = execute(sql, 'SCHEMA')
         result.each(:symbolize_keys => true, :as => :hash) { |field|
           columns << Mysql2Column.new(field[:Field], field[:Default], field[:Type], field[:Null] == "YES")
         }
@@ -546,7 +546,7 @@ module ActiveRecord
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
         keys = []
-        result = execute("describe #{quote_table_name(table)}")
+        result = execute("DESCRIBE #{quote_table_name(table)}", 'SCHEMA')
         result.each(:symbolize_keys => true, :as => :hash) do |row|
           keys << row[:Field] if row[:Key] == "PRI"
         end
