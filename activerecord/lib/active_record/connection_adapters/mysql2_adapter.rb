@@ -411,11 +411,9 @@ module ActiveRecord
       end
 
       def tables(name = nil)
-        tables = []
-        execute("SHOW TABLES", 'SCHEMA').each do |field|
-          tables << field.first
+        execute("SHOW TABLES", 'SCHEMA').collect do |field|
+          field.first
         end
-        tables
       end
 
       def drop_table(table_name, options = {})
