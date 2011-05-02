@@ -432,5 +432,15 @@ module ApplicationTests
       get "/"
       assert_equal 'true', last_response.body
     end
+
+    test "config.action_controller.wrap_parameters is set in ActionController::Base" do
+      app_file 'config/initializers/wrap_parameters.rb', <<-RUBY
+        ActionController::Base.wrap_parameters :format => [:json]
+      RUBY
+      require "#{app_path}/config/environment"
+      require 'action_controller/base'
+
+      assert_equal [:json], ActionController::Base._wrapper_options[:format]
+    end
   end
 end

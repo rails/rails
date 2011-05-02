@@ -194,6 +194,7 @@ module ActionController
       Caching,
       MimeResponds,
       ImplicitRender,
+      ParamsWrapper,
 
       Cookies,
       Flash,
