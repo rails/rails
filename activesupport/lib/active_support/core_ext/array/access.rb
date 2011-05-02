@@ -19,6 +19,18 @@ class Array
     self[0..position]
   end
 
+ # Returns from +position1+ to +position2+.
+  #
+  #   %w( a b c d ).from_to(0,2)  # => %w( a b c)
+  #   %w( a b c d ).from_to(1,3)  # => %w( b c d )
+  #   %w( a b c d ).from_to(0,3) # => %w( a b c d )
+  
+  def from_to(position1,position2)
+    self[position1..position2]
+  end
+
+
+
   # Equal to <tt>self[1]</tt>.
   def second
     self[1]
