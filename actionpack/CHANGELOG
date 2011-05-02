@@ -1,5 +1,11 @@
 *Rails 3.1.0 (unreleased)*
 
+* auto_link has been removed with no replacement.  If you still use auto_link
+  please install the rails_autolink gem:
+    http://github.com/tenderlove/rails_autolink
+
+  [tenderlove]
+
 * Add `ActionController::ParamsWrapper` to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default [Prem Sichanugrist]
 
   This can be customizabled by setting `ActionController::Base.wrap_parameters` in `config/initializer/wrap_parameters.rb`
