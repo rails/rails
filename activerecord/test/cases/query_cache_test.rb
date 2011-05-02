@@ -12,6 +12,24 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.connection.clear_query_cache
   end
 
+  def test_middleware_delegates
+    called = false
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      called = true
+    }
+    mw.call({})
+    assert called, 'middleware should delegate'
+  end
+
+  def test_middleware
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      Task.find 1
+      Task.find 1
+      assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    }
+    mw.call({})
+  end
+
   def test_find_queries
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) { Task.find(1); Task.find(1) }
   end
