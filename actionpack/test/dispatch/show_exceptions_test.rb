@@ -137,4 +137,11 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
     assert_match(/RuntimeError\n    in FeaturedTilesController/, body)
   end
+
+  test "sets the HTTP charset parameter" do
+    @app = DevelopmentApp
+
+    get "/", {}, {'action_dispatch.show_exceptions' => true}
+    assert_equal "text/html; charset=utf-8", response.headers["Content-Type"]
+  end
 end
