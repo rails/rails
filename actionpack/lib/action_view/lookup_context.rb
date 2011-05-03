@@ -9,6 +9,8 @@ module ActionView
   # generate a key, given to view paths, used in the resolver cache lookup. Since
   # this key is generated just once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
+    attr_accessor :prefixes
+    
     mattr_accessor :fallbacks
     @@fallbacks = FallbackFileSystemResolver.instances
 
