@@ -98,14 +98,32 @@ module ActiveRecord
     end
 
     class Middleware
+      class Body #:nodoc:
+        def initialize(target, original)
+          @target   = target
+          @original = original
+        end
+
+        def each(&block)
+          @target.each(&block)
+        end
+
+        def close
+          @target.close if @target.respond_to?(:close)
+        ensure
+          IdentityMap.enabled = @original
+        end
+      end
+
       def initialize(app)
         @app = app
       end
 
       def call(env)
-        ActiveRecord::IdentityMap.use do
-          @app.call(env)
-        end
+        enabled = IdentityMap.enabled
+        IdentityMap.enabled = true
+        status, headers, body = @app.call(env)
+        [status, headers, Body.new(body, enabled)]
       end
     end
   end

@@ -29,6 +29,32 @@ module ActiveRecord
         }
         mw.call({})
       end
+
+      class Enum < Struct.new(:iter)
+        def each(&b)
+          iter.call(&b)
+        end
+      end
+
+      def test_im_enabled_during_body_each
+        mw = Middleware.new lambda { |env|
+          [200, {}, Enum.new(lambda { |&b|
+            assert IdentityMap.enabled?, 'identity map should be enabled'
+            b.call "hello"
+          })]
+        }
+        body = mw.call({}).last
+        body.each { |x| assert_equal 'hello', x }
+      end
+
+      def test_im_disabled_after_body_close
+        mw = Middleware.new lambda { |env| [200, {}, []] }
+        body = mw.call({}).last
+        assert IdentityMap.enabled?, 'identity map should be enabled'
+        body.close
+        assert !IdentityMap.enabled?, 'identity map should be disabled'
+      end
+
     end
   end
 end
