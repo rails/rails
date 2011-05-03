@@ -132,11 +132,7 @@ module AbstractController
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
-      if options.key?(:partial)
-        view_renderer.render_partial(view_context, options)
-      else
-        view_renderer.render_template(view_context, options)
-      end
+      view_renderer.render(view_context, options)
     end
 
     # The prefixes used in render "foo" shortcuts.

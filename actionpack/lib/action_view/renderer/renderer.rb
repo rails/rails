@@ -10,6 +10,15 @@ module ActionView
       @controller = controller
     end
 
+    # Main render entry point shared by AV and AC.
+    def render(context, options)
+      if options.key?(:partial)
+        render_partial(context, options)
+      else
+        render_template(context, options)
+      end
+    end
+
     # Render but returns a valid Rack body. If fibers are defined, we return
     # a streaming body that renders the template piece by piece.
     #
