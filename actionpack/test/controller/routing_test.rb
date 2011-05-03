@@ -92,6 +92,12 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     @rs.clear!
   end
 
+  def test_draw_with_block_arity_one_raises
+    assert_raise(RuntimeError) do
+      @rs.draw { |map| map.match '/:controller(/:action(/:id))' }
+    end
+  end
+
   def test_default_setup
     @rs.draw { match '/:controller(/:action(/:id))' }
     assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/content"))
