@@ -410,10 +410,25 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil)
-        execute("SHOW TABLES", 'SCHEMA').collect do |field|
+      def tables(name = nil, database = nil) #:nodoc:
+        sql = ["SHOW TABLES", database].compact.join(' IN ')
+        execute(sql, 'SCHEMA').collect do |field|
           field.first
         end
+      end
+
+      def table_exists?(name)
+        return true if super
+
+        name          = name.to_s
+        schema, table = name.split('.', 2)
+
+        unless table # A table was provided without a schema
+          table  = schema
+          schema = nil
+        end
+
+        tables(nil, schema).include? table
       end
 
       def drop_table(table_name, options = {})
