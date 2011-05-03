@@ -116,7 +116,7 @@ module ActionDispatch
       end
 
       def render(status, body)
-        [status, {'Content-Type' => 'text/html', 'Content-Length' => body.bytesize.to_s}, [body]]
+        [status, {'Content-Type' => "text/html; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
       end
 
       def public_path
