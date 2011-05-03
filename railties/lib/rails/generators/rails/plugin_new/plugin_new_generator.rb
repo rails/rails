@@ -119,10 +119,6 @@ task :default => :test
       if mountable?
         copy_file "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/application.js"
-        copy_file "#{app_templates_dir}/vendor/assets/javascripts/jquery.js",
-                  "vendor/assets/javascripts/jquery.js"
-        copy_file "#{app_templates_dir}/vendor/assets/javascripts/jquery_ujs.js",
-                  "vendor/assets/javascripts/jquery_ujs.js"
       elsif full?
         empty_directory_with_gitkeep "app/assets/javascripts"
       end
