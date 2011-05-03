@@ -182,7 +182,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
   
   test "responds to #prefixes" do
-    assert_equal nil, @lookup_context.prefixes
+    assert_equal [], @lookup_context.prefixes
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
   end
