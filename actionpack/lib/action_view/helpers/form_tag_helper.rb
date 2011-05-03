@@ -74,6 +74,8 @@ module ActionView
       # ==== Options
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:include_blank</tt> - If set to true, an empty option will be create
+      # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -99,18 +101,26 @@ module ActionView
       #   # => <select class="form_input" id="access" multiple="multiple" name="access[]"><option>Read</option>
       #   #    <option>Write</option></select>
       #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), :include_blank => true
+      #   # => <select id="people" name="people"><option value=""></option><option value="1">David</option></select>
+      #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), :prompt => "Select something"
+      #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
+      #
       #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>", :disabled => true
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
       #   #    <option>Paris</option><option>Rome</option></select>
       def select_tag(name, option_tags = nil, options = {})
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
-        if blank = options.delete(:include_blank)
-          if blank.kind_of?(String)
-            option_tags = "<option value=\"\">#{blank}</option>".html_safe + option_tags
-          else
-            option_tags = "<option value=\"\"></option>".html_safe + option_tags
-          end
+
+        if options.delete(:include_blank)
+          option_tags = "<option value=\"\"></option>".html_safe + option_tags
         end
+
+        if prompt = options.delete(:prompt)
+          option_tags = "<option value=\"\">#{prompt}</option>".html_safe + option_tags
+        end
+
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
       end
 
