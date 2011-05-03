@@ -23,7 +23,7 @@ class ParamsWrapperTest < ActionController::TestCase
     UsersController.last_parameters = nil
   end
 
-  def test_derivered_name_from_controller
+  def test_derived_name_from_controller
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu' }
@@ -194,7 +194,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
     Admin::UsersController.last_parameters = nil
   end
 
-  def test_derivered_name_from_controller
+  def test_derived_name_from_controller
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu' }
@@ -215,7 +215,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_heirarchy_namespace_lookup_from_model
+  def test_hierarchy_namespace_lookup_from_model
     # Make sure that we cleanup ::Admin::User
     admin_user_constant = ::Admin::User
     ::Admin.send :remove_const, :User
