@@ -40,10 +40,10 @@ module ActionView
 
       class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
         def rewrite_asset_path(source, dir)
-          if source =~ /^\/#{dir}\/(.+)/
-            assets.path($1, performing_caching?, dir)
-          else
+          if source[0] == ?/
             source
+          else
+            assets.path(source, performing_caching?, dir)
           end
         end
 
