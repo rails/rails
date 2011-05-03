@@ -5,6 +5,12 @@ module StaticTests
     assert_equal "Hello, World!", get("/nofile").body
   end
 
+  def test_sets_cache_control
+    response = get("/index.html")
+    assert_html "/index.html", response
+    assert_equal "public, max-age=60", response.headers["Cache-Control"]
+  end
+
   def test_serves_static_index_at_root
     assert_html "/index.html", get("/index.html")
     assert_html "/index.html", get("/index")
@@ -40,7 +46,7 @@ class StaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
-  App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public")
+  App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
 
   def setup
     @app = App
