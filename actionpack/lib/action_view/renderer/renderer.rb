@@ -3,11 +3,10 @@ module ActionView
   # to other objects like TemplateRenderer and PartialRenderer which
   # actually renders the template.
   class Renderer
-    attr_accessor :lookup_context, :controller
+    attr_accessor :lookup_context
 
-    def initialize(lookup_context, controller)
+    def initialize(lookup_context)
       @lookup_context = lookup_context
-      @controller = controller
     end
 
     # Main render entry point shared by AV and AC.
@@ -28,7 +27,7 @@ module ActionView
       if options.key?(:partial)
         [render_partial(context, options)]
       else
-        StreamingTemplateRenderer.new(@lookup_context, @controller).render(context, options)
+        StreamingTemplateRenderer.new(@lookup_context).render(context, options)
       end
     end
 
@@ -45,11 +44,11 @@ module ActionView
     private
 
     def _template_renderer #:nodoc:
-      @_template_renderer ||= TemplateRenderer.new(@lookup_context, @controller)
+      @_template_renderer ||= TemplateRenderer.new(@lookup_context)
     end
 
     def _partial_renderer #:nodoc:
-      @_partial_renderer ||= PartialRenderer.new(@lookup_context, @controller)
+      @_partial_renderer ||= PartialRenderer.new(@lookup_context)
     end
   end
 end
