@@ -8,10 +8,9 @@ else
   gem "arel", '~> 2.1.0'
 end
 
-gem "rack", :git => "git://github.com/rack/rack.git"
 gem "rack-test", :git => "git://github.com/brynary/rack-test.git"
-
 gem "sprockets", :git => "git://github.com/sstephenson/sprockets.git"
+
 gem "coffee-script"
 gem "sass"
 gem "uglifier"

@@ -130,14 +130,10 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
-            gem 'rack',      :git => 'git://github.com/rack/rack.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :git => 'git://github.com/rails/rails.git'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
-            gem 'rack',      :git => 'git://github.com/rack/rack.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
@@ -145,8 +141,6 @@ module Rails
 
             # Bundle edge Rails instead:
             # gem 'rails',     :git => 'git://github.com/rails/rails.git'
-            # gem 'arel',      :git => 'git://github.com/rails/arel.git'
-            # gem 'rack',      :git => 'git://github.com/rack/rack.git'
           GEMFILE
         end
       end
