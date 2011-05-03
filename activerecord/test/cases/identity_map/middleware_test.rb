@@ -12,6 +12,7 @@ module ActiveRecord
       def teardown
         super
         IdentityMap.enabled = @enabled
+        IdentityMap.clear
       end
 
       def test_delegates
@@ -55,6 +56,16 @@ module ActiveRecord
         assert !IdentityMap.enabled?, 'identity map should be disabled'
       end
 
+      def test_im_cleared_after_body_close
+        mw = Middleware.new lambda { |env| [200, {}, []] }
+        body = mw.call({}).last
+
+        IdentityMap.repository['hello'] = 'world'
+        assert !IdentityMap.repository.empty?, 'repo should not be empty'
+
+        body.close
+        assert IdentityMap.repository.empty?, 'repo should be empty'
+      end
     end
   end
 end

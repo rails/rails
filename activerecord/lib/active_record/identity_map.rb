@@ -112,6 +112,7 @@ module ActiveRecord
           @target.close if @target.respond_to?(:close)
         ensure
           IdentityMap.enabled = @original
+          IdentityMap.clear
         end
       end
 
