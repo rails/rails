@@ -27,10 +27,31 @@ module ActiveRecord
       @app = app
     end
 
-    def call(env)
-      ActiveRecord::Base.cache do
-        @app.call(env)
+    class BodyProxy # :nodoc:
+      def initialize(original_cache_value, target)
+        @original_cache_value = original_cache_value
+        @target               = target
       end
+
+      def each(&block)
+        @target.each(&block)
+      end
+
+      def close
+        @target.close if @target.respond_to?(:close)
+      ensure
+        unless @original_cache_value
+          ActiveRecord::Base.connection.disable_query_cache!
+        end
+      end
+    end
+
+    def call(env)
+      old = ActiveRecord::Base.connection.query_cache_enabled
+      ActiveRecord::Base.connection.enable_query_cache!
+
+      status, headers, body = @app.call(env)
+      [status, headers, BodyProxy.new(old, body)]
     end
   end
 end

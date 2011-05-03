@@ -160,7 +160,7 @@ module ActionController #:nodoc:
   # needs to inject contents in the HTML body.
   #
   # Also +Rack::Cache+ won't work with streaming as it does not support
-  # streaming bodies yet. So, whenever streaming, Cache-Control is automatically
+  # streaming bodies yet. Whenever streaming Cache-Control is automatically
   # set to "no-cache".
   #
   # == Errors

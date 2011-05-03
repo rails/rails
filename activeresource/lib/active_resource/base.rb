@@ -1239,9 +1239,10 @@ module ActiveResource
         @attributes[key.to_s] =
           case value
             when Array
-              resource = find_or_create_resource_for_collection(key)
+              resource = nil
               value.map do |attrs|
                 if attrs.is_a?(Hash)
+                  resource ||= find_or_create_resource_for_collection(key)
                   resource.new(attrs)
                 else
                   attrs.duplicable? ? attrs.dup : attrs
@@ -1251,7 +1252,7 @@ module ActiveResource
               resource = find_or_create_resource_for(key)
               resource.new(value)
             else
-              value.dup rescue value
+              value.duplicable? ? value.dup : value
           end
       end
       self
@@ -1367,36 +1368,44 @@ module ActiveResource
       end
 
       # Tries to find a resource in a non empty list of nested modules
-      # Raises a NameError if it was not found in any of the given nested modules
-      def find_resource_in_modules(resource_name, module_names)
+      # if it fails, then the resource is created
+      def find_or_create_resource_in_modules(resource_name, module_names)
         receiver = Object
         namespaces = module_names[0, module_names.size-1].map do |module_name|
           receiver = receiver.const_get(module_name)
         end
         const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
         if namespace = namespaces.reverse.detect { |ns| ns.const_defined?(*const_args) }
-          return namespace.const_get(*const_args)
+          namespace.const_get(*const_args)
         else
-          raise NameError
+          create_resource_for(resource_name)
         end
       end
 
       # Tries to find a resource for a given name; if it fails, then the resource is created
       def find_or_create_resource_for(name)
         resource_name = name.to_s.camelize
-        ancestors = self.class.name.split("::")
-        if ancestors.size > 1
-          find_resource_in_modules(resource_name, ancestors)
-        else
-          self.class.const_get(resource_name)
-        end
-      rescue NameError
+
         const_args = RUBY_VERSION < "1.9" ? [resource_name] : [resource_name, false]
         if self.class.const_defined?(*const_args)
-          resource = self.class.const_get(*const_args)
+          self.class.const_get(*const_args)
         else
-          resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
+          ancestors = self.class.name.split("::")
+          if ancestors.size > 1
+            find_or_create_resource_in_modules(resource_name, ancestors)
+          else
+            if Object.const_defined?(*const_args)
+              Object.const_get(*const_args)
+            else
+              create_resource_for(resource_name)
+            end
+          end
         end
+      end
+
+      # Create and return a class definition for a resource inside the current resource
+      def create_resource_for(resource_name)
+        resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
         resource.prefix = self.class.prefix
         resource.site   = self.class.site
         resource

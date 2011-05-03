@@ -29,6 +29,14 @@ module ActiveRecord
         @query_cache_enabled = old
       end
 
+      def enable_query_cache!
+        @query_cache_enabled = true
+      end
+
+      def disable_query_cache!
+        @query_cache_enabled = false
+      end
+
       # Disable the query cache within the block.
       def uncached
         old, @query_cache_enabled = @query_cache_enabled, false

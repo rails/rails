@@ -14,7 +14,7 @@ module ActionController
 
     attr_internal :view_runtime
 
-    def process_action(action, *args)
+    def process_action(*args)
       raw_payload = {
         :controller => self.class.name,
         :action     => self.action_name,

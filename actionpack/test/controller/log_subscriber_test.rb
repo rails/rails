@@ -4,6 +4,8 @@ require "action_controller/log_subscriber"
 
 module Another
   class LogSubscribersController < ActionController::Base
+    wrap_parameters :person, :only => :name, :format => :json
+
     def show
       render :nothing => true
     end
@@ -93,6 +95,15 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal 'Parameters: {"id"=>"10"}', logs[1]
+  end
+
+  def test_process_action_with_wrapped_parameters
+    @request.env['CONTENT_TYPE'] = 'application/json'
+    post :show, :id => '10', :name => 'jose'
+    wait
+
+    assert_equal 3, logs.size
+    assert_match '"person"=>{"name"=>"jose"}', logs[1]
   end
 
   def test_process_action_with_view_runtime
