@@ -200,9 +200,15 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_select_tag_with_include_blank_with_string
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => "string"
+  def test_select_tag_with_prompt
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "string"
     expected = %(<select id="places" name="places"><option value="">string</option><option>Home</option><option>Work</option><option>Pub</option></select>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_with_prompt_and_include_blank
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "string", :include_blank => true
+    expected = %(<select name="places" id="places"><option value="">string</option><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 
