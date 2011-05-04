@@ -15,7 +15,10 @@ module AbstractController
     # templates, i.e. view paths and details. Check ActionView::LookupContext for more
     # information.
     def lookup_context
-      @lookup_context ||= ActionView::LookupContext.new(self.class._view_paths, details_for_lookup)
+      @lookup_context ||=
+        ActionView::LookupContext.new(self.class._view_paths, details_for_lookup).tap do |ctx|
+          ctx.prefixes = _prefixes
+      end
     end
 
     def details_for_lookup

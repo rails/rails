@@ -219,7 +219,7 @@ module ActionView
 
     def initialize(*)
       super
-      @partial_names = PARTIAL_NAMES[@controller.class.name]
+      @partial_names = PARTIAL_NAMES[@lookup_context.prefixes.first]
     end
 
     def render(context, options, block)
@@ -304,10 +304,6 @@ module ActionView
       self
     end
 
-    def controller_prefixes
-      @controller_prefixes ||= @controller && @controller._prefixes
-    end
-
     def collection
       if @options.key?(:collection)
         collection = @options[:collection]
@@ -331,7 +327,7 @@ module ActionView
     end
 
     def find_template(path=@path, locals=@locals.keys)
-      prefixes = path.include?(?/) ? [] : controller_prefixes
+      prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
       @lookup_context.find_template(path, prefixes, true, locals)
     end
 
@@ -372,7 +368,7 @@ module ActionView
         object = object.to_model if object.respond_to?(:to_model)
 
         object.class.model_name.partial_path.dup.tap do |partial|
-          path = controller_prefixes.first
+          path = @lookup_context.prefixes.first
           partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
         end
       end

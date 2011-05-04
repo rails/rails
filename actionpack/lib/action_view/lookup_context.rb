@@ -9,6 +9,8 @@ module ActionView
   # generate a key, given to view paths, used in the resolver cache lookup. Since
   # this key is generated just once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
+    attr_accessor :prefixes
+    
     mattr_accessor :fallbacks
     @@fallbacks = FallbackFileSystemResolver.instances
 
@@ -62,6 +64,7 @@ module ActionView
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
       @cache = true
+      @prefixes = []
 
       self.view_paths = view_paths
       self.registered_detail_setters.each do |key, setter|

@@ -104,7 +104,7 @@ module AbstractController
 
     # Returns an object that is able to render templates.
     def view_renderer
-      @view_renderer ||= ActionView::Renderer.new(lookup_context, self)
+      @view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
     # Normalize arguments, options and then delegates render_to_body and
