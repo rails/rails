@@ -156,17 +156,17 @@ module Rails
 
       %w(autoload_once eager_load autoload load_path).each do |m|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{m}!
-            @#{m} = true
-          end
-
-          def skip_#{m}!
-            @#{m} = false
-          end
-
-          def #{m}?
-            @#{m}
-          end
+          def #{m}!        # def eager_load!
+            @#{m} = true   #   @eager_load = true
+          end              # end
+                           #
+          def skip_#{m}!   # def skip_eager_load!
+            @#{m} = false  #   @eager_load = false
+          end              # end
+                           #
+          def #{m}?        # def eager_load?
+            @#{m}          #   @eager_load
+          end              # end
         RUBY
       end
 
