@@ -16,9 +16,7 @@ module AbstractController
     # information.
     def lookup_context
       @lookup_context ||=
-        ActionView::LookupContext.new(self.class._view_paths, details_for_lookup).tap do |ctx|
-          ctx.prefixes = _prefixes
-      end
+        ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)
     end
 
     def details_for_lookup

@@ -60,11 +60,11 @@ module ActionView
       end
     end
 
-    def initialize(view_paths, details = {})
+    def initialize(view_paths, details = {}, prefixes = [])
       @details, @details_key = { :handlers => default_handlers }, nil
       @frozen_formats, @skip_default_locale = false, false
       @cache = true
-      @prefixes = []
+      @prefixes = prefixes
 
       self.view_paths = view_paths
       self.registered_detail_setters.each do |key, setter|
