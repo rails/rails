@@ -8,9 +8,9 @@ class ConsoleTest < Test::Unit::TestCase
     boot_rails
   end
 
-  def load_environment
+  def load_environment(sandbox = false)
     require "#{rails_root}/config/environment"
-    Rails.application.load_console
+    Rails.application.load_console(sandbox)
   end
 
   def test_app_method_should_return_integration_session
@@ -71,6 +71,20 @@ class ConsoleTest < Test::Unit::TestCase
     assert_instance_of ActionView::Base, helper
     assert_equal 'Once upon a time in a world...',
       helper.truncate('Once upon a time in a world far far away')
+  end
+
+  def test_with_sandbox
+    require 'rails/all'
+    value = false
+
+    Class.new(Rails::Railtie) do
+      console do |sandbox|
+        value = sandbox
+      end
+    end
+
+    load_environment(true)
+    assert value
   end
 
   def test_active_record_does_not_panic_when_referencing_an_observed_constant

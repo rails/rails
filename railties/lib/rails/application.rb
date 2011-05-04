@@ -112,7 +112,7 @@ module Rails
 
     def load_console(sandbox=false)
       initialize_console(sandbox)
-      railties.all { |r| r.load_console }
+      railties.all { |r| r.load_console(sandbox) }
       super()
       self
     end
@@ -196,7 +196,6 @@ module Rails
 
     def initialize_console(sandbox=false)
       require "rails/console/app"
-      require "rails/console/sandbox" if sandbox
       require "rails/console/helpers"
     end
   end
