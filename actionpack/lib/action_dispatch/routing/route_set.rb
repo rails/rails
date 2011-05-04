@@ -3,6 +3,7 @@ require 'forwardable'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/module/remove_method'
 
 module ActionDispatch
   module Routing
@@ -160,7 +161,7 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_method :#{selector} if method_defined?(:#{selector})
+              remove_possible_method :#{selector}
               def #{selector}(*args)
                 options = args.extract_options!
 
@@ -194,7 +195,7 @@ module ActionDispatch
             hash_access_method = hash_access_name(name, kind)
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_method :#{selector} if method_defined?(:#{selector})
+              remove_possible_method :#{selector}
               def #{selector}(*args)
                 url_for(#{hash_access_method}(*args))
               end
