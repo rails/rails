@@ -9,6 +9,7 @@ module ActionView #:nodoc:
     autoload :AtomFeedHelper
     autoload :CacheHelper
     autoload :CaptureHelper
+    autoload :ControllerHelper
     autoload :CsrfHelper
     autoload :DateHelper
     autoload :DebugHelper
@@ -39,6 +40,7 @@ module ActionView #:nodoc:
     include AtomFeedHelper
     include CacheHelper
     include CaptureHelper
+    include ControllerHelper
     include CsrfHelper
     include DateHelper
     include DebugHelper

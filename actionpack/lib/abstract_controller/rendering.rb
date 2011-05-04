@@ -46,20 +46,9 @@ module AbstractController
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          controller = self
-          Class.new(ActionView::Base) do
-            if controller.respond_to?(:_routes) && controller._routes
-              include controller._routes.url_helpers
-              include controller._routes.mounted_helpers
-            end
-
-            if controller.respond_to?(:_helpers)
-              include controller._helpers
-
-              # TODO: Fix RJS to not require this
-              self.helpers = controller._helpers
-            end
-          end
+          routes  = _routes  if respond_to?(:_routes)
+          helpers = _helpers if respond_to?(:_helpers)
+          ActionView::Base.prepare(routes, helpers)
         end
       end
     end
@@ -120,7 +109,6 @@ module AbstractController
     def _render_template(options) #:nodoc:
       view_renderer.render(view_context, options)
     end
-
 
     private
 
