@@ -65,6 +65,17 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
   end
 
+  def test_cache_clear_after_close
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      Post.find(:first)
+    }
+    body = mw.call({}).last
+
+    assert !ActiveRecord::Base.connection.query_cache.empty?, 'cache not empty'
+    body.close
+    assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
+  end
+
   def test_find_queries
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) { Task.find(1); Task.find(1) }
   end

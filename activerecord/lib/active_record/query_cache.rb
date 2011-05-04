@@ -40,6 +40,7 @@ module ActiveRecord
       def close
         @target.close if @target.respond_to?(:close)
       ensure
+        ActiveRecord::Base.connection.clear_query_cache
         unless @original_cache_value
           ActiveRecord::Base.connection.disable_query_cache!
         end
