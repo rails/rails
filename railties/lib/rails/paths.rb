@@ -31,23 +31,23 @@ module Rails
     # This means we can get a Path object back like below:
     #
     #   path = root["app/controllers"]
-    #   path.eager_load?               #=> true
-    #   path.is_a?(Rails::Paths::Path) #=> true
+    #   path.eager_load?               # => true
+    #   path.is_a?(Rails::Paths::Path) # => true
     #
     # The Path object is simply an array and allows you to easily add extra paths:
     #
-    #   path.is_a?(Array) #=> true
-    #   path.inspect      #=> ["app/controllers"]
+    #   path.is_a?(Array) # => true
+    #   path.inspect      # => ["app/controllers"]
     #
     #   path << "lib/controllers"
-    #   path.inspect      #=> ["app/controllers", "lib/controllers"]
+    #   path.inspect      # => ["app/controllers", "lib/controllers"]
     #
     # Notice that when you add a path using #add, the path object created already
     # contains the path with the same path value given to #add. In some situations,
     # you may not want this behavior, so you can give :with as option.
     #
     #   root.add "config/routes", :with => "config/routes.rb"
-    #   root["config/routes"].inspect #=> ["config/routes.rb"]
+    #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
     # #add also accepts the following options as argument: eager_load, autoload,
     # autoload_once and glob.
@@ -58,8 +58,8 @@ module Rails
     #   root.path = "/rails"
     #   root.add "app/controllers"
     #
-    #   root["app/controllers"].expanded #=> ["/rails/app/controllers"]
-    #   root["app/controllers"].existent #=> ["/rails/app/controllers"]
+    #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
+    #   root["app/controllers"].existent # => ["/rails/app/controllers"]
     #
     # Check the Path documentation for more information.
     class Root < ::Hash
