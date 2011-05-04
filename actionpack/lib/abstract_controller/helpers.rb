@@ -4,8 +4,6 @@ module AbstractController
   module Helpers
     extend ActiveSupport::Concern
 
-    include Rendering
-
     included do
       class_attribute :_helpers
       self._helpers = Module.new

@@ -62,20 +62,6 @@ module AbstractController
           end
         end
       end
-
-      def parent_prefixes
-        @parent_prefixes ||= begin
-          parent_controller = superclass
-          prefixes = []
-
-          until parent_controller.abstract?
-            prefixes << parent_controller.controller_path
-            parent_controller = parent_controller.superclass
-          end
-
-          prefixes
-        end
-      end
     end
 
     attr_writer :view_context_class
@@ -135,13 +121,6 @@ module AbstractController
       view_renderer.render(view_context, options)
     end
 
-    # The prefixes used in render "foo" shortcuts.
-    def _prefixes
-      @_prefixes ||= begin
-        parent_prefixes = self.class.parent_prefixes
-        parent_prefixes.dup.unshift(controller_path)
-      end
-    end
 
     private
 

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/delegation'
 require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
@@ -43,6 +44,7 @@ module ActionView
       include AbstractController::Helpers
       include ActionView::Helpers
 
+      delegate :lookup_context, :to => :controller
       attr_accessor :controller, :output_buffer, :rendered
 
       module ClassMethods

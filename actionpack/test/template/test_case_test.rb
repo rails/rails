@@ -73,6 +73,10 @@ module ActionView
       view.request.flash.expects(:alert).with("this message")
       view.alert("this message")
     end
+
+    test "uses controller lookup context" do
+      assert_equal self.lookup_context, @controller.lookup_context
+    end
   end
 
   class ClassMethodsTest < ActionView::TestCase

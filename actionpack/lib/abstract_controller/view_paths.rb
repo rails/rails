@@ -11,6 +11,30 @@ module AbstractController
     delegate :find_template, :template_exists?, :view_paths, :formats, :formats=,
              :locale, :locale=, :to => :lookup_context
 
+    module ClassMethods
+      def parent_prefixes
+        @parent_prefixes ||= begin
+          parent_controller = superclass
+          prefixes = []
+
+          until parent_controller.abstract?
+            prefixes << parent_controller.controller_path
+            parent_controller = parent_controller.superclass
+          end
+
+          prefixes
+        end
+      end
+    end
+
+    # The prefixes used in render "foo" shortcuts.
+    def _prefixes
+      @_prefixes ||= begin
+        parent_prefixes = self.class.parent_prefixes
+        parent_prefixes.dup.unshift(controller_path)
+      end
+    end
+
     # LookupContext is the object responsible to hold all information required to lookup
     # templates, i.e. view paths and details. Check ActionView::LookupContext for more
     # information.
