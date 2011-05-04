@@ -104,7 +104,7 @@ module ActiveRecord
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt> -
       #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and
-      #   <tt>:text</tt> columns and number of bytes for :binary and :integer columns.
+      #   <tt>:text</tt> columns and number of bytes for <tt>:binary</tt> and <tt>:integer</tt> columns.
       # * <tt>:default</tt> -
       #   The column's default value. Use nil for NULL.
       # * <tt>:null</tt> -
@@ -153,7 +153,7 @@ module ActiveRecord
       # This method returns <tt>self</tt>.
       #
       # == Examples
-      #  # Assuming td is an instance of TableDefinition
+      #  # Assuming +td+ is an instance of TableDefinition
       #  td.column(:granted, :boolean)
       #  # granted BOOLEAN
       #
@@ -204,7 +204,7 @@ module ActiveRecord
       #   end
       #
       # There's a short-hand method for each of the type values declared at the top. And then there's
-      # TableDefinition#timestamps that'll add created_at and +updated_at+ as datetimes.
+      # TableDefinition#timestamps that'll add +created_at+ and +updated_at+ as datetimes.
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
       # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of
@@ -351,7 +351,7 @@ module ActiveRecord
         @base.index_exists?(@table_name, column_name, options)
       end
 
-      # Adds timestamps (created_at and updated_at) columns to the table. See SchemaStatements#add_timestamps
+      # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       # ===== Example
       #  t.timestamps
       def timestamps
@@ -398,7 +398,7 @@ module ActiveRecord
         @base.remove_index(@table_name, options)
       end
 
-      # Removes the timestamp columns (created_at and updated_at) from the table.
+      # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.
       # ===== Example
       #  t.remove_timestamps
       def remove_timestamps
@@ -412,7 +412,7 @@ module ActiveRecord
         @base.rename_column(@table_name, column_name, new_column_name)
       end
 
-      # Adds a reference. Optionally adds a +type+ column.
+      # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
       # <tt>references</tt> and <tt>belongs_to</tt> are acceptable.
       # ===== Examples
       #  t.references(:goat)

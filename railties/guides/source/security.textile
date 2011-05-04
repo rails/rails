@@ -211,15 +211,7 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today‘s web browsers, however do not support them - only GET and POST. Rails uses a hidden +_method+ field to handle this barrier.
 
-_(highlight)The verify method in a controller can make sure that specific actions may not be used over GET_. Here is an example to verify the use of the transfer action over POST. If the action comes in using any other verb, it redirects to the list action.
-
-<ruby>
-verify :method => :post, :only => [:transfer], :redirect_to => {:action => :list}
-</ruby>
-
-With this precaution, the attack from above will not work, because the browser sends a GET request for images, which will not be accepted by the web application.
-
-But this was only the first step, because _(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
+_(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
 
 <html>
 <a href="http://www.harmless.com/" onclick="
@@ -441,7 +433,7 @@ params[:user] # => {:name => "ow3ned", :admin => true}
 @user.admin # => true
 </ruby>
 
-When assigning attributes in Active Record using +new+, +attributes=+, or +update_attributes+ the :default scope will be used. To assign attributes using different scopes you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default scope will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
+When assigning attributes in Active Record using +attributes=+, or +update_attributes+ the :default scope will be used. To assign attributes using different scopes you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default scope will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
 
 <ruby>
 @user = User.new
@@ -459,7 +451,19 @@ When assigning attributes in Active Record using +new+, +attributes=+, or +updat
 @user.is_admin # => true
 </ruby>
 
-A more paranoid technique to protect your whole project would be to enforce that all models define their accessible attributes.  This can be easily achieved with a very simple application config option of:
+In a similar way, +new+, +create+ and <tt>create!</tt> methods respect mass-assignment security and accepts either +:as+ or +:without_protection+ options. For example:
+
+<ruby>
+@user = User.new({ :name => 'Sebastian', :is_admin => true }, :as => :admin)
+@user.name # => Sebastian
+@user.is_admin # => true
+
+@user = User.create({ :name => 'Sebastian', :is_admin => true }, :without_protection => true)
+@user.name # => Sebastian
+@user.is_admin # => true
+</ruby>
+
+A more paranoid technique to protect your whole project would be to enforce that all models define their accessible attributes. This can be easily achieved with a very simple application config option of:
 
 <ruby>
 config.active_record.whitelist_attributes = true

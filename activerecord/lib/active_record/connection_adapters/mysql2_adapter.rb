@@ -5,6 +5,7 @@ require 'mysql2'
 
 module ActiveRecord
   class Base
+    # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql2_connection(config)
       config[:username] = 'root' if config[:username].nil?
 
@@ -213,6 +214,8 @@ module ActiveRecord
         false
       end
 
+      # Disconnects from the database if already connected.
+      # Otherwise, this method does nothing.
       def disconnect!
         unless @connection.nil?
           @connection.close
@@ -368,6 +371,8 @@ module ActiveRecord
         end
       end
 
+      # Drops the database specified on the +name+ attribute
+      # and creates it again using the provided +options+.
       def recreate_database(name, options = {})
         drop_database(name)
         create_database(name, options)
@@ -551,6 +556,7 @@ module ActiveRecord
         end
       end
 
+      # SHOW VARIABLES LIKE 'name'.
       def show_variable(name)
         variables = select_all("SHOW VARIABLES LIKE '#{name}'")
         variables.first['Value'] unless variables.empty?
