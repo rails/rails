@@ -1,5 +1,7 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/aliasing'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveRecord
   # Exception that can be raised to stop migrations from going backwards.
