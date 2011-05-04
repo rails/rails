@@ -8,8 +8,6 @@ else
   gem "arel", '~> 2.1.0'
 end
 
-gem "sprockets", :git => "git://github.com/sstephenson/sprockets.git"
-
 gem "coffee-script"
 gem "sass"
 gem "uglifier"
