@@ -34,10 +34,6 @@ module Rails
           exit
         end
       end
-      
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.logger = Logger.new(STDERR)
-      end
 
       if options[:sandbox]
         puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
