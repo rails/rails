@@ -4,6 +4,7 @@ source 'http://rubygems.org'
 
 <%= database_gemfile_entry -%>
 
+<%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) && JRUBY_VERSION < "1.6" -%>
 # Asset template engines
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
 gem 'sass'
