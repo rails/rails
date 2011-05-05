@@ -133,6 +133,22 @@ class IdentityMapTest < ActiveRecord::TestCase
   # types of inheritance                                                       #
   ##############################################################################
 
+  def test_inherited_without_type_attribute_without_identity_map
+    ActiveRecord::IdentityMap.without do
+      p1 = DestructivePirate.create!(:catchphrase => "I'm not a regular Pirate")
+      p2 = Pirate.find(p1.id)
+      assert_not_same(p1, p2)
+    end
+  end
+  
+  def test_inherited_with_type_attribute_without_identity_map
+    ActiveRecord::IdentityMap.without do
+      c1 = comments(:sub_special_comment)
+      c2 = Comment.find(c1.id)
+      assert_same(c1.class, c2.class)
+    end
+  end
+
   def test_inherited_without_type_attribute
     p1 = DestructivePirate.create!(:catchphrase => "I'm not a regular Pirate")
     p2 = Pirate.find(p1.id)
