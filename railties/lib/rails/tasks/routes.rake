@@ -17,7 +17,7 @@ task :routes => :environment do
   end
 
    # Skip the route if it's internal info route
-  routes.reject! { |r| r[:path] =~ %r{/rails/info/properties|/assets} }
+  routes.reject! { |r| r[:path] =~ %r{/rails/info/properties|^/assets} }
 
   name_width = routes.map{ |r| r[:name].length }.max
   verb_width = routes.map{ |r| r[:verb].length }.max
