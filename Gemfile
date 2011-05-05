@@ -21,10 +21,6 @@ group :doc do
   gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
 end
 
-group :test do
-  gem "ruby-prof"
-end
-
 # AS
 gem "memcache-client", ">= 1.8.5"
 
@@ -47,7 +43,7 @@ platforms :ruby do
   gem 'json'
   gem 'yajl-ruby'
   gem "nokogiri", ">= 1.4.4"
-
+  gem "ruby-prof"
   # AR
   gem "sqlite3", "~> 1.3.3"
 
