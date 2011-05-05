@@ -605,6 +605,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal number_of_clients + 1, companies(:first_firm, :reload).clients.size
   end
 
+  def test_find_or_initialize_updates_collection_size
+    number_of_clients = companies(:first_firm).clients_of_firm.size
+    companies(:first_firm).clients_of_firm.find_or_initialize_by_name("name" => "Another Client")
+    assert_equal number_of_clients + 1, companies(:first_firm).clients_of_firm.size
+  end
+
+  def test_find_or_create_with_hash
+    post = authors(:david).posts.find_or_create_by_title(:title => 'Yet another post', :body => 'somebody')
+    assert_equal post, authors(:david).posts.find_or_create_by_title(:title => 'Yet another post', :body => 'somebody')
+    assert post.persisted?
+  end
+
+  def test_find_or_create_with_one_attribute_followed_by_hash
+    post = authors(:david).posts.find_or_create_by_title('Yet another post', :body => 'somebody')
+    assert_equal post, authors(:david).posts.find_or_create_by_title('Yet another post', :body => 'somebody')
+    assert post.persisted?
+  end
+
+  def test_find_or_create_should_work_with_block
+    post = authors(:david).posts.find_or_create_by_title('Yet another post') {|p| p.body = 'somebody'}
+    assert_equal post, authors(:david).posts.find_or_create_by_title('Yet another post') {|p| p.body = 'somebody'}
+    assert post.persisted?
+  end
+
   def test_deleting
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.delete(companies(:first_firm).clients_of_firm.first)
