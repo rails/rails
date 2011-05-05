@@ -117,15 +117,7 @@ module Rails
       end
 
       def database_gemfile_entry
-        entry = options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
-        if options[:database] == 'mysql'
-          if options.dev? || options.edge?
-            entry += ", :git => 'git://github.com/brianmario/mysql2.git'"
-          else
-            entry += "\n# gem 'mysql2', :git => 'git://github.com/brianmario/mysql2.git'"
-          end
-        end
-        entry + "\n"
+        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'\n"
       end
 
       def rails_gemfile_entry
