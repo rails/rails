@@ -73,6 +73,19 @@ module ApplicationTests
       assert_match 'custom_assets GET /custom/assets(.:format)', Dir.chdir(app_path){ `rake routes` }
     end
 
+    def test_logger_is_flushed_when_exiting_production_rake_tasks
+      add_to_config <<-RUBY
+        rake_tasks do
+          task :log_something => :environment do
+            Rails.logger.error("Sample log message")
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path){ `rake log_something RAILS_ENV=production && cat log/production.log` }
+      assert_match "Sample log message", output
+    end
+
     def test_model_and_migration_generator_with_change_syntax
       Dir.chdir(app_path) do
         `rails generate model user username:string password:string`
