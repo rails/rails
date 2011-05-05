@@ -68,7 +68,7 @@ module ActionController #:nodoc:
   #     respond_with(@project, @task)
   #   end
   #
-  # Giving an array of resources, you ensure that the responder will redirect to
+  # Giving several resources ensures that the responder will redirect to
   # <code>project_task_url</code> instead of <code>task_url</code>.
   #
   # Namespaced and singleton resources require a symbol to be given, as in
@@ -76,6 +76,11 @@ module ActionController #:nodoc:
   # should be invoked as:
   #
   #   respond_with(@project, :manager, @task)
+  #
+  # Note that if you give an array, it will be treated as a collection,
+  # so the following is not equivalent:
+  #
+  #   respond_with [@project, :manager, @task]
   #
   # === Custom options
   #
