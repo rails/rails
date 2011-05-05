@@ -129,6 +129,23 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   ##############################################################################
+  # Tests checking if IM is functioning properly on classes with multiple      #
+  # types of inheritance                                                       #
+  ##############################################################################
+
+  def test_inherited_without_type_attribute
+    p1 = DestructivePirate.create!(:catchphrase => "I'm not a regular Pirate")
+    p2 = Pirate.find(p1.id)
+    assert_not_same(p1, p2)
+  end
+
+  def test_inherited_with_type_attribute
+    c1 = comments(:sub_special_comment)
+    c2 = Comment.find(c1.id)
+    assert_same(c1, c2)
+  end
+
+  ##############################################################################
   # Tests checking dirty attribute behaviour with IM                           #
   ##############################################################################
 
