@@ -34,6 +34,12 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_no_match(/JOIN/i, sql)
   end
 
+  def test_join_conditions_added_to_join_clause
+    sql = Author.joins(:essays).to_sql
+    assert_match(/writer_type.*?=.*?Author/i, sql)
+    assert_no_match(/WHERE/i, sql)
+  end
+
   def test_find_with_implicit_inner_joins_honors_readonly_without_select
     authors = Author.joins(:posts).to_a
     assert !authors.empty?, "expected authors to be non-empty"

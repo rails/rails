@@ -91,11 +91,11 @@ module ActiveRecord
 
             constraint = build_constraint(reflection, table, key, foreign_table, foreign_key)
 
-            relation.from(join(table, constraint))
-
             unless conditions[i].empty?
-              relation.where(sanitize(conditions[i], table))
+              constraint = constraint.and(sanitize(conditions[i], table))
             end
+
+            relation.from(join(table, constraint))
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table = table
