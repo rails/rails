@@ -42,7 +42,10 @@ platforms :ruby do
   gem 'json'
   gem 'yajl-ruby'
   gem "nokogiri", ">= 1.4.4"
-  gem 'ruby-prof'
+
+  group :test do
+    gem 'ruby-prof'
+  end
   # AR
   gem "sqlite3", "~> 1.3.3"
 
