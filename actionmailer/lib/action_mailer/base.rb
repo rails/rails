@@ -349,9 +349,6 @@ module ActionMailer #:nodoc:
     include AbstractController::Translation
     include AbstractController::AssetPaths
 
-    cattr_reader :protected_instance_variables
-    @@protected_instance_variables = []
-
     helper  ActionMailer::MailHelper
     include ActionMailer::OldApi
 

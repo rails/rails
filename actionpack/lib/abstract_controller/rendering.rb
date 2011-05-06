@@ -32,8 +32,12 @@ module AbstractController
 
   module Rendering
     extend ActiveSupport::Concern
-
     include AbstractController::ViewPaths
+
+    included do
+      config_accessor :protected_instance_variables, :instance_reader => false
+      self.protected_instance_variables = []
+    end
 
     # Overwrite process to setup I18n proxy.
     def process(*) #:nodoc:
@@ -53,14 +57,20 @@ module AbstractController
       end
     end
 
-    attr_writer :view_context_class
+    attr_internal_writer :view_context_class
+
+    # Explicitly define protected_instance_variables so it can be
+    # inherited and overwritten by other modules if needed.
+    def protected_instance_variables
+      config.protected_instance_variables
+    end
 
     def view_context_class
-      @view_context_class || self.class.view_context_class
+      @_view_context_class || self.class.view_context_class
     end
 
     def initialize(*)
-      @view_context_class = nil
+      @_view_context_class = nil
       super
     end
 
@@ -79,7 +89,7 @@ module AbstractController
 
     # Returns an object that is able to render templates.
     def view_renderer
-      @view_renderer ||= ActionView::Renderer.new(lookup_context)
+      @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
     # Normalize arguments, options and then delegates render_to_body and
@@ -112,13 +122,19 @@ module AbstractController
 
     private
 
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
+      @_action_name @_response_body @_formats @_prefixes
+      @_view_context_class @_view_renderer @_lookup_context
+    )
+
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
       hash = {}
       variables  = instance_variable_names
-      variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
+      variables -= protected_instance_variables
+      variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
       variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
       hash
     end
