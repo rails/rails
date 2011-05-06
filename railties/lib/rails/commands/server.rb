@@ -55,8 +55,9 @@ module Rails
     end
 
     def start
+      url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
+      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
       puts "=> Call with -d to detach" unless options[:daemonize]
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
