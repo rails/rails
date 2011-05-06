@@ -29,7 +29,7 @@ module ActionView
 
     def initialize(paths, path, prefixes, partial, details, *)
       @path = path
-      prefixes = Array.wrap(prefixes) if String === prefixes
+      prefixes = Array.wrap(prefixes)
       display_paths = paths.compact.map{ |p| p.to_s.inspect }.join(", ")
       template_type = if partial
         "partial"
