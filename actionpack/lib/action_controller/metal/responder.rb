@@ -53,7 +53,7 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  # The same happens for PUT and DELETE requests.
+  # The same happens for PATCH and DELETE requests.
   #
   # === Nested resources
   #
@@ -118,6 +118,7 @@ module ActionController #:nodoc:
 
     ACTIONS_FOR_VERBS = {
       :post => :new,
+      :patch => :edit,
       :put => :edit
     }
 
@@ -133,7 +134,7 @@ module ActionController #:nodoc:
     end
 
     delegate :head, :render, :redirect_to,   :to => :controller
-    delegate :get?, :post?, :put?, :delete?, :to => :request
+    delegate :get?, :post?, :patch?, :put?, :delete?, :to => :request
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)

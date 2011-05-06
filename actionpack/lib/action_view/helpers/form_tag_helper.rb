@@ -23,7 +23,7 @@ module ActionView
       # ==== Options
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
-      #   If "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
+      #   If "patch", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
       #   is added to simulate the verb over post.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
@@ -36,8 +36,8 @@ module ActionView
       #   form_tag('/posts')
       #   # => <form action="/posts" method="post">
       #
-      #   form_tag('/posts/1', :method => :put)
-      #   # => <form action="/posts/1" method="put">
+      #   form_tag('/posts/1', :method => :patch)
+      #   # => <form action="/posts/1" method="patch">
       #
       #   form_tag('/upload', :multipart => true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">

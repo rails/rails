@@ -531,11 +531,12 @@ class LegacyRouteSetTests < Test::Unit::TestCase
       match '/match' => 'books#get', :via => :get
       match '/match' => 'books#post', :via => :post
       match '/match' => 'books#put', :via => :put
+      match '/match' => 'books#patch', :via => :patch
       match '/match' => 'books#delete', :via => :delete
     end
   end
 
-  %w(GET POST PUT DELETE).each do |request_method|
+  %w(GET PATCH POST PUT DELETE).each do |request_method|
     define_method("test_request_method_recognized_with_#{request_method}") do
       setup_request_method_routes_for(request_method)
       params = rs.recognize_path("/match", :method => request_method)
@@ -918,6 +919,7 @@ class RouteSetTest < ActiveSupport::TestCase
       post   "/people"     => "people#create"
       get    "/people/:id" => "people#show",  :as => "person"
       put    "/people/:id" => "people#update"
+      patch  "/people/:id" => "people#update"
       delete "/people/:id" => "people#destroy"
     end
 
@@ -930,6 +932,9 @@ class RouteSetTest < ActiveSupport::TestCase
     params = set.recognize_path("/people/5", :method => :put)
     assert_equal("update", params[:action])
 
+    params = set.recognize_path("/people/5", :method => :patch)
+    assert_equal("update", params[:action])
+
     assert_raise(ActionController::UnknownHttpMethod) {
       set.recognize_path("/people", :method => :bacon)
     }
@@ -939,6 +944,10 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal("5", params[:id])
 
     params = set.recognize_path("/people/5", :method => :put)
+    assert_equal("update", params[:action])
+    assert_equal("5", params[:id])
+
+    params = set.recognize_path("/people/5", :method => :patch)
     assert_equal("update", params[:action])
     assert_equal("5", params[:id])
 
@@ -1596,6 +1605,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'admin/users', :action => 'new'}, @routes.recognize_path('/admin/users/new', :method => :get))
     assert_equal({:controller => 'admin/users', :action => 'show', :id => '1'}, @routes.recognize_path('/admin/users/1', :method => :get))
     assert_equal({:controller => 'admin/users', :action => 'update', :id => '1'}, @routes.recognize_path('/admin/users/1', :method => :put))
+    assert_equal({:controller => 'admin/users', :action => 'update', :id => '1'}, @routes.recognize_path('/admin/users/1', :method => :patch))
     assert_equal({:controller => 'admin/users', :action => 'destroy', :id => '1'}, @routes.recognize_path('/admin/users/1', :method => :delete))
     assert_equal({:controller => 'admin/users', :action => 'edit', :id => '1'}, @routes.recognize_path('/admin/users/1/edit', :method => :get))
 
@@ -1619,6 +1629,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'people', :action => 'show', :id => '1'}, @routes.recognize_path('/people/1', :method => :get))
     assert_equal({:controller => 'people', :action => 'show', :id => '1', :format => 'xml'}, @routes.recognize_path('/people/1.xml', :method => :get))
     assert_equal({:controller => 'people', :action => 'update', :id => '1'}, @routes.recognize_path('/people/1', :method => :put))
+    assert_equal({:controller => 'people', :action => 'update', :id => '1'}, @routes.recognize_path('/people/1', :method => :patch))
     assert_equal({:controller => 'people', :action => 'destroy', :id => '1'}, @routes.recognize_path('/people/1', :method => :delete))
     assert_equal({:controller => 'people', :action => 'edit', :id => '1'}, @routes.recognize_path('/people/1/edit', :method => :get))
     assert_equal({:controller => 'people', :action => 'edit', :id => '1', :format => 'xml'}, @routes.recognize_path('/people/1/edit.xml', :method => :get))
