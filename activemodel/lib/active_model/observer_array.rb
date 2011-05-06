@@ -2,7 +2,7 @@ require 'set'
 
 module ActiveModel
   # Stores the enabled/disabled state of individual observers for
-  # a particular model classes.
+  # a particular model class.
   class ObserverArray < Array
     attr_reader :model_class
     def initialize(model_class, *args)
@@ -10,14 +10,57 @@ module ActiveModel
       super(*args)
     end
 
+    # Returns true if the given observer is disabled for the model class.
     def disabled_for?(observer)
       disabled_observers.include?(observer.class)
     end
 
+    # Disables one or more observers.  This supports multiple forms:
+    #
+    #   ORM.observers.disable :user_observer
+    #     # => disables the UserObserver
+    #
+    #   User.observers.disable AuditTrail
+    #     # => disables the AuditTrail observer for User notifications.
+    #     #    Other models will still notify the AuditTrail observer.
+    #
+    #   ORM.observers.disable :observer_1, :observer_2
+    #     # => disables Observer1 and Observer2 for all models.
+    #
+    #   ORM.observers.disable :all
+    #     # => disables all observers for all models.
+    #
+    #   User.observers.disable :all do
+    #     # all user observers are disabled for
+    #     # just the duration of the block
+    #   end
     def disable(*observers, &block)
       set_enablement(false, observers, &block)
     end
 
+    # Enables one or more observers.  This supports multiple forms:
+    #
+    #   ORM.observers.enable :user_observer
+    #     # => enables the UserObserver
+    #
+    #   User.observers.enable AuditTrail
+    #     # => enables the AuditTrail observer for User notifications.
+    #     #    Other models will not be affected (i.e. they will not
+    #     #    trigger notifications to AuditTrail if previously disabled)
+    #
+    #   ORM.observers.enable :observer_1, :observer_2
+    #     # => enables Observer1 and Observer2 for all models.
+    #
+    #   ORM.observers.enable :all
+    #     # => enables all observers for all models.
+    #
+    #   User.observers.enable :all do
+    #     # all user observers are enabled for
+    #     # just the duration of the block
+    #   end
+    #
+    # Note: all observers are enabled by default.  This method is only
+    # useful when you have previously disabled one or more observers.
     def enable(*observers, &block)
       set_enablement(true, observers, &block)
     end
