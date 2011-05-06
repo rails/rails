@@ -368,6 +368,7 @@ class BasicsTest < ActiveRecord::TestCase
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.update_all("content = 'bulk updated!'", nil, :limit => 1, :order => 'id DESC')
     end
+
   end
 
   def test_null_fields
@@ -396,6 +397,13 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal "hello", test.test_string
       assert_equal 3, test.test_int
     end
+  end
+
+  def test_value_with_question_mark
+    t = Topic.find(1)
+    t.title = "Question Everything?"
+    t.save
+    assert_equal "Question Everything?", t.title
   end
 
   # Oracle, and Sybase do not have a TIME datatype.
