@@ -555,7 +555,7 @@ module ActionDispatch
       #
       # or, for a single case
       #
-      #   resources :posts, :path => "/admin"
+      #   resources :posts, :path => "/admin/posts"
       #
       # In each of these cases, the named routes remain the same as if you did
       # not use scope. In the last case, the following paths map to
@@ -1111,7 +1111,7 @@ module ActionDispatch
         #   resources :posts, :module => "admin"
         #
         #   # resource actions are at /admin/posts.
-        #   resources :posts, :path => "admin"
+        #   resources :posts, :path => "admin/posts"
         def resources(*resources, &block)
           options = resources.extract_options!
 
