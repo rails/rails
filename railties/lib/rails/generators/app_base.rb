@@ -120,6 +120,14 @@ module Rails
         options[:skip_active_record] ? "" : "gem '#{gem_for_database}'\n"
       end
 
+      def include_all_railties?
+        !options[:skip_active_record] && !options[:skip_test_unit]
+      end
+
+      def comment_if(value)
+        options[value] ? '#' : ''
+      end
+
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE.strip_heredoc
