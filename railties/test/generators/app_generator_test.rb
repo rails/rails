@@ -39,6 +39,8 @@ DEFAULT_APP_FILES = %w(
 class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments [destination_root]
+
+  # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
   def default_files

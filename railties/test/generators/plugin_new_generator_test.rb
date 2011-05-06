@@ -22,6 +22,8 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   destination File.join(Rails.root, "tmp/bukkits")
   arguments [destination_root]
+
+  # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
   def default_files
