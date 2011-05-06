@@ -830,6 +830,10 @@ module ActiveRecord #:nodoc:
         @symbolized_base_class ||= base_class.to_s.to_sym
       end
 
+      def symbolized_sti_name
+        @symbolized_sti_name ||= sti_name ? sti_name.to_sym : symbolized_base_class
+      end
+
       # Returns the base AR subclass that this class descends from. If A
       # extends AR::Base, A.base_class will return A. If B descends from A
       # through some arbitrarily deep hierarchy, B.base_class will return A.
