@@ -13,6 +13,7 @@ module ActiveResource
   #
   #    POST    /people/new/register.xml # PeopleController.register
   #    PUT     /people/1/promote.xml    # PeopleController.promote with :id => 1
+  #    PATCH   /people/1/promote.xml    # PeopleController.promote with :id => 1
   #    DELETE  /people/1/deactivate.xml # PeopleController.deactivate with :id => 1
   #    GET     /people/active.xml       # PeopleController.active
   #
@@ -27,6 +28,7 @@ module ActiveResource
   #   # => { :id => 1, :name => 'Ryan' }
   #
   #   Person.find(1).put(:promote, :position => 'Manager') # PUT /people/1/promote.xml
+  #   Person.find(1).patch(:promote, :position => 'Manager') # PATCH /people/1/promote.xml
   #   Person.find(1).delete(:deactivate) # DELETE /people/1/deactivate.xml
   #
   #   Person.get(:active)  # GET /people/active.xml
@@ -59,6 +61,10 @@ module ActiveResource
 
         def post(custom_method_name, options = {}, body = '')
           connection.post(custom_method_collection_url(custom_method_name, options), body, headers)
+        end
+
+        def patch(custom_method_name, options = {}, body = '')
+          connection.patch(custom_method_collection_url(custom_method_name, options), body, headers)
         end
 
         def put(custom_method_name, options = {}, body = '')
@@ -95,6 +101,10 @@ module ActiveResource
         else
           connection.post(custom_method_element_url(method_name, options), request_body, self.class.headers)
         end
+      end
+
+      def patch(method_name, options = {}, body = '')
+        connection.patch(custom_method_element_url(method_name, options), body, self.class.headers)
       end
 
       def put(method_name, options = {}, body = '')
