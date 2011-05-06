@@ -117,8 +117,8 @@ module Rails
       #
       # ==== Switches
       #
-      # All hooks come with switches for user interface. If the user don't want
-      # to use any test framework, he can do:
+      # All hooks come with switches for user interface. If you do not want
+      # to use any test framework, you can do:
       #
       #   rails generate controller Account --skip-test-framework
       #
