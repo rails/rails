@@ -125,10 +125,10 @@ class ShowExceptionsTest < ActionController::IntegrationTest
       'action_dispatch.request.parameters' => {
         'action' => 'show',
         'id' => 'unknown',
-        'controller' => 'featured_tiles'
+        'controller' => 'featured_tile'
       }
     })
     assert_response 500
-    assert_match(/RuntimeError\n    in FeaturedTilesController/, body)
+    assert_match(/RuntimeError\n    in FeaturedTileController/, body)
   end
 end
