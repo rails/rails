@@ -301,7 +301,7 @@ form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(@article, :url => article_path(@article), :html => { :method => "put" })
+form_for(@article, :url => article_path(@article), :html => { :method => "patch" })
 # short-style:
 form_for(@article)
 </ruby>
@@ -329,14 +329,14 @@ form_for [:admin, :management, @article]
 For more information on Rails' routing system and the associated conventions, please see the "routing guide":routing.html.
 
 
-h4. How do forms with PUT or DELETE methods work?
+h4. How do forms with PATCH or DELETE methods work?
 
-The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PUT" and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
+The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PATCH" and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
 
 Rails works around this issue by emulating other methods over POST with a hidden input named +"_method"+, which is set to reflect the desired method:
 
 <ruby>
-form_tag(search_path, :method => "put")
+form_tag(search_path, :method => "patch")
 </ruby>
 
 output:
@@ -344,14 +344,14 @@ output:
 <html>
 <form accept-charset="UTF-8" action="/search" method="post">
   <div style="margin:0;padding:0">
-    <input name="_method" type="hidden" value="put" />
+    <input name="_method" type="hidden" value="patch" />
     <input name="utf8" type="hidden" value="&#x2713;" />
     <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   </div>
   ...
 </html>
 
-When parsing POSTed data, Rails will take into account the special +_method+ parameter and acts as if the HTTP method was the one specified inside it ("PUT" in this example).
+When parsing POSTed data, Rails will take into account the special +_method+ parameter and acts as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
 
 h3. Making Select Boxes with Ease

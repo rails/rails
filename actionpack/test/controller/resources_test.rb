@@ -150,7 +150,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_actions
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -159,6 +159,7 @@ class ResourcesTest < ActionController::TestCase
           put    :b, :on => :collection
           post   :c, :on => :collection
           delete :d, :on => :collection
+          patch  :e, :on => :collection
         end
       end
 
@@ -177,7 +178,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_actions_and_name_prefix
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -187,6 +188,7 @@ class ResourcesTest < ActionController::TestCase
             put    :b, :on => :collection
             post   :c, :on => :collection
             delete :d, :on => :collection
+            patch  :e, :on => :collection
           end
         end
       end
@@ -233,7 +235,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_action_and_name_prefix_and_formatted
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -243,6 +245,7 @@ class ResourcesTest < ActionController::TestCase
             put    :b, :on => :collection
             post   :c, :on => :collection
             delete :d, :on => :collection
+            patch  :e, :on => :collection
           end
         end
       end
@@ -262,7 +265,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_member_action
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method } do
         mark_options = {:action => 'mark', :id => '1'}
         mark_path    = "/messages/1/mark"
@@ -286,7 +289,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_member_when_override_paths_for_default_restful_actions_with
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method }, :path_names => {:new => 'nuevo'} do
         mark_options = {:action => 'mark', :id => '1', :controller => "messages"}
         mark_path    = "/messages/1/mark"
@@ -303,7 +306,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_two_member_actions_with_same_method
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resources :messages do
@@ -556,7 +559,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_with_member_action
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resource :account do
@@ -578,7 +581,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_with_two_member_actions_with_same_method
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resource :account do
@@ -643,11 +646,15 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_should_not_allow_delete_or_put_on_collection_path
+  def test_should_not_allow_delete_or_patch_or_put_on_collection_path
     controller_name = :messages
     with_restful_routing controller_name do
       options = { :controller => controller_name.to_s }
       collection_path = "/#{controller_name}"
+
+      assert_raise(ActionController::RoutingError) do
+        assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :patch)
+      end
 
       assert_raise(ActionController::RoutingError) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
@@ -1165,6 +1172,7 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes(options[:shallow_options].merge(:action => 'show',    :id => '1'), :path => member_path,      :method => :get)
       assert_recognizes(options[:shallow_options].merge(:action => 'edit',    :id => '1'), :path => edit_member_path, :method => :get)
       assert_recognizes(options[:shallow_options].merge(:action => 'update',  :id => '1'), :path => member_path,      :method => :put)
+      assert_recognizes(options[:shallow_options].merge(:action => 'update',  :id => '1'), :path => member_path,      :method => :patch)
       assert_recognizes(options[:shallow_options].merge(:action => 'destroy', :id => '1'), :path => member_path,      :method => :delete)
 
       assert_recognizes(options[:options].merge(:action => 'index',  :format => 'xml'), :path => "#{collection_path}.xml",   :method => :get)
@@ -1173,6 +1181,7 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes(options[:shallow_options].merge(:action => 'show',    :id => '1', :format => 'xml'), :path => "#{member_path}.xml",       :method => :get)
       assert_recognizes(options[:shallow_options].merge(:action => 'edit',    :id => '1', :format => 'xml'), :path => formatted_edit_member_path, :method => :get)
       assert_recognizes(options[:shallow_options].merge(:action => 'update',  :id => '1', :format => 'xml'), :path => "#{member_path}.xml",       :method => :put)
+      assert_recognizes(options[:shallow_options].merge(:action => 'update',  :id => '1', :format => 'xml'), :path => "#{member_path}.xml",       :method => :patch)
       assert_recognizes(options[:shallow_options].merge(:action => 'destroy', :id => '1', :format => 'xml'), :path => "#{member_path}.xml",       :method => :delete)
 
       yield options[:options] if block_given?
@@ -1252,6 +1261,7 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes(options[:options].merge(:action => 'edit'),    :path => edit_path, :method => :get)
       assert_recognizes(options[:options].merge(:action => 'create'),  :path => full_path, :method => :post)
       assert_recognizes(options[:options].merge(:action => 'update'),  :path => full_path, :method => :put)
+      assert_recognizes(options[:options].merge(:action => 'update'),  :path => full_path, :method => :patch)
       assert_recognizes(options[:options].merge(:action => 'destroy'), :path => full_path, :method => :delete)
 
       assert_recognizes(options[:options].merge(:action => 'show',    :format => 'xml'), :path => "#{full_path}.xml",  :method => :get)
@@ -1259,6 +1269,7 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes(options[:options].merge(:action => 'edit',    :format => 'xml'), :path => formatted_edit_path, :method => :get)
       assert_recognizes(options[:options].merge(:action => 'create',  :format => 'xml'), :path => "#{full_path}.xml",  :method => :post)
       assert_recognizes(options[:options].merge(:action => 'update',  :format => 'xml'), :path => "#{full_path}.xml",  :method => :put)
+      assert_recognizes(options[:options].merge(:action => 'update',  :format => 'xml'), :path => "#{full_path}.xml",  :method => :patch)
       assert_recognizes(options[:options].merge(:action => 'destroy', :format => 'xml'), :path => "#{full_path}.xml",  :method => :delete)
 
       yield options[:options] if block_given?
@@ -1310,6 +1321,7 @@ class ResourcesTest < ActionController::TestCase
       assert_whether_allowed(allowed, not_allowed, shallow_options, 'show',     "#{shallow_path}#{format}",       :get)
       assert_whether_allowed(allowed, not_allowed, shallow_options, 'edit',     "#{shallow_path}/edit#{format}",  :get)
       assert_whether_allowed(allowed, not_allowed, shallow_options, 'update',   "#{shallow_path}#{format}",       :put)
+      assert_whether_allowed(allowed, not_allowed, shallow_options, 'update',   "#{shallow_path}#{format}",       :patch)
       assert_whether_allowed(allowed, not_allowed, shallow_options, 'destroy',  "#{shallow_path}#{format}",       :delete)
     end
 
@@ -1322,6 +1334,7 @@ class ResourcesTest < ActionController::TestCase
       assert_whether_allowed(allowed, not_allowed, options, 'show',     "#{path}#{format}",       :get)
       assert_whether_allowed(allowed, not_allowed, options, 'edit',     "#{path}/edit#{format}",  :get)
       assert_whether_allowed(allowed, not_allowed, options, 'update',   "#{path}#{format}",       :put)
+      assert_whether_allowed(allowed, not_allowed, options, 'update',   "#{path}#{format}",       :patch)
       assert_whether_allowed(allowed, not_allowed, options, 'destroy',  "#{path}#{format}",       :delete)
     end
 
