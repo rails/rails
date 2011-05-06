@@ -4,7 +4,7 @@ class Object
   #
   # This simplifies:
   #
-  #   if !address.nil? || !address.empty?
+  #   if !address.nil? && !address.empty?
   #
   # ...to:
   #
