@@ -40,7 +40,11 @@ module ActiveModel
         observers.replace(values.flatten)
       end
 
-      # Gets the current observers.
+      # Gets an array of observers observing this model.
+      # The array also provides +enable+ and +disable+ methods
+      # that allow you to selectively enable and disable observers.
+      # (see <tt>ActiveModel::ObserverArray.enable</tt> and
+      # <tt>ActiveModel::ObserverArray.disable</tt> for more on this)
       def observers
         @observers ||= ObserverArray.new(self)
       end
@@ -222,7 +226,8 @@ module ActiveModel
       self.class.observed_classes
     end
 
-    # Send observed_method(object) if the method exists.
+    # Send observed_method(object) if the method exists and
+    # the observer is enabled for the given object's class.
     def update(observed_method, object) #:nodoc:
       return unless respond_to?(observed_method)
       return if disabled_for?(object)
