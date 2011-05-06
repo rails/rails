@@ -163,7 +163,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-record"]
     assert_file "config/application.rb" do |file|
       assert_match /#\s+require\s+["']active_record\/railtie["']/, file
-      assert_match /config.generators.orm = false/, file
     end
   end
 

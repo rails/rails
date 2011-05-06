@@ -1,14 +1,14 @@
 require File.expand_path('../boot', __FILE__)
 
-<% if !options[:skip_active_record] && !options[:skip_test_unit] -%>
+<% if include_all_railties? -%>
 require 'rails/all'
 <% else -%>
 # Pick the frameworks you want:
-<%= options[:skip_active_record] ? "#" : "" %> require "active_record/railtie"
+<%= comment_if :skip_active_record %> require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
 require "active_resource/railtie"
-<%= options[:skip_test_unit] ? "#" : "" %> require "rails/test_unit/railtie"
+<%= comment_if :skip_test_unit %> require "rails/test_unit/railtie"
 <% end -%>
 
 # If you have a Gemfile, require the gems listed there, including any gems
@@ -59,8 +59,6 @@ module <%= app_const_base %>
 <% unless options[:skip_active_record] -%>
     # Enable IdentityMap for Active Record, to disable set to false or remove the line below.
     config.active_record.identity_map = true
-<% else -%>
-    config.generators.orm = false
 <% end -%>
 
     # Enable the asset pipeline
