@@ -143,8 +143,9 @@ class IdentityMapTest < ActiveRecord::TestCase
   
   def test_inherited_with_type_attribute_without_identity_map
     ActiveRecord::IdentityMap.without do
-      c1 = comments(:sub_special_comment)
-      c2 = Comment.find(c1.id)
+      c = comments(:sub_special_comment)
+      c1 = SubSpecialComment.find(c.id)
+      c2 = Comment.find(c.id)
       assert_same(c1.class, c2.class)
     end
   end
@@ -156,8 +157,9 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_inherited_with_type_attribute
-    c1 = comments(:sub_special_comment)
-    c2 = Comment.find(c1.id)
+    c = comments(:sub_special_comment)
+    c1 = SubSpecialComment.find(c.id)
+    c2 = Comment.find(c.id)
     assert_same(c1, c2)
   end
 
