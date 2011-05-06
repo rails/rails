@@ -37,6 +37,7 @@ module Rails
           )
           logger
         end
+        at_exit { Rails.logger.flush if Rails.logger.respond_to?(:flush) }
       end
 
       # Initialize cache early in the stack so railties can make use of it.
