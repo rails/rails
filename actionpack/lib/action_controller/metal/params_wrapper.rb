@@ -125,7 +125,7 @@ module ActionController
       # module is inherited.
       def inherited(klass)
         if klass._wrapper_options[:format].present?
-          klass._set_wrapper_defaults(klass._wrapper_options)
+          klass._set_wrapper_defaults(klass._wrapper_options.slice(:format))
         end
         super
       end
