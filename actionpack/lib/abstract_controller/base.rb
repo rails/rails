@@ -133,8 +133,8 @@ module AbstractController
     # Returns true if a method for the action is available and
     # can be dispatched, false otherwise.
     #
-    # Notice that action_methods.include?("foo") may return
-    # false and available_action?("foo") return true because
+    # Notice that <tt>action_methods.include?("foo")</tt> may return
+    # false and <tt>available_action?("foo")</tt> returns true because
     # available action consider actions that are also available
     # through other means, for example, implicit render ones.
     def available_action?(action_name)
