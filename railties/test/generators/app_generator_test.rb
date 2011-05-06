@@ -161,9 +161,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
-    assert_file "config/application.rb" do |file|
-      assert_match /#\s+require\s+["']active_record\/railtie["']/, file
-    end
+    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
   def test_creation_of_a_test_directory
