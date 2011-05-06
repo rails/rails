@@ -349,6 +349,8 @@ module ActionMailer #:nodoc:
     include AbstractController::Translation
     include AbstractController::AssetPaths
 
+    self.protected_instance_variables = %w(@_action_has_layout)
+
     helper  ActionMailer::MailHelper
     include ActionMailer::OldApi
 

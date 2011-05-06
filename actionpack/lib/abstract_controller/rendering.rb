@@ -123,7 +123,7 @@ module AbstractController
     private
 
     DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
-      @_action_name @_response_body @_formats @_prefixes
+      @_action_name @_response_body @_formats @_prefixes @_config
       @_view_context_class @_view_renderer @_lookup_context
     )
 
