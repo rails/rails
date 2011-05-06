@@ -37,7 +37,7 @@ module Rails
 
       # GET show
       # GET edit
-      # PUT update
+      # PUT/PATCH update
       # DELETE destroy
       def self.find(klass, params=nil)
         "#{klass}.find(#{params})"
@@ -58,13 +58,13 @@ module Rails
         "#{name}.save"
       end
 
-      # PUT update
+      # PUT/PATCH update
       def update_attributes(params=nil)
         "#{name}.update_attributes(#{params})"
       end
 
       # POST create
-      # PUT update
+      # PUT/PATCH update
       def errors
         "#{name}.errors"
       end

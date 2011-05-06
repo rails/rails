@@ -279,7 +279,7 @@ module ActionController
       #
       # An implementation might choose not to accept a previously used nonce or a previously used digest, in order to
       # protect against a replay attack. Or, an implementation might choose to use one-time nonces or digests for
-      # POST or PUT requests and a time-stamp for GET requests. For more details on the issues involved see Section 4
+      # POST, PUT, or PATCH requests and a time-stamp for GET requests. For more details on the issues involved see Section 4
       # of this document.
       #
       # The nonce is opaque to the client. Composed of Time, and hash of Time with secret
@@ -293,7 +293,7 @@ module ActionController
       end
 
       # Might want a shorter timeout depending on whether the request
-      # is a PUT or POST, and if client is browser or web service.
+      # is a PATCH, PUT, or POST, and if client is browser or web service.
       # Can be much shorter if the Stale directive is implemented. This would
       # allow a user to use new nonce without prompting user again for their
       # username and password.

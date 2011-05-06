@@ -11,10 +11,10 @@ module ActiveResource
   #
   #  This route set creates routes for the following HTTP requests:
   #
-  #    POST    /people/new/register.json # PeopleController.register
-  #    PUT     /people/1/promote.json    # PeopleController.promote with :id => 1
-  #    DELETE  /people/1/deactivate.json # PeopleController.deactivate with :id => 1
-  #    GET     /people/active.json       # PeopleController.active
+  #    POST      /people/new/register.json # PeopleController.register
+  #    PUT/PATCH /people/1/promote.json    # PeopleController.promote with :id => 1
+  #    DELETE    /people/1/deactivate.json # PeopleController.deactivate with :id => 1
+  #    GET       /people/active.json       # PeopleController.active
   #
   # Using this module, Active Resource can use these custom REST methods just like the
   # standard methods.
@@ -63,6 +63,10 @@ module ActiveResource
           connection.post(custom_method_collection_url(custom_method_name, options), body, headers)
         end
 
+        def patch(custom_method_name, options = {}, body = '')
+          connection.patch(custom_method_collection_url(custom_method_name, options), body, headers)
+        end
+
         def put(custom_method_name, options = {}, body = '')
           connection.put(custom_method_collection_url(custom_method_name, options), body, headers)
         end
@@ -96,6 +100,10 @@ module ActiveResource
       else
         connection.post(custom_method_element_url(method_name, options), request_body, self.class.headers)
       end
+    end
+
+    def patch(method_name, options = {}, body = '')
+      connection.patch(custom_method_element_url(method_name, options), body, self.class.headers)
     end
 
     def put(method_name, options = {}, body = '')

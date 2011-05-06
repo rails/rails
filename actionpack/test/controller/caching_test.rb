@@ -180,7 +180,7 @@ class PageCachingTest < ActionController::TestCase
   end
 
   [:ok, :no_content, :found, :not_found].each do |status|
-    [:get, :post, :put, :delete].each do |method|
+    [:get, :post, :patch, :put, :delete].each do |method|
       unless method == :get && status == :ok
         define_method "test_shouldnt_cache_#{method}_with_#{status}_status" do
           send(method, status)
