@@ -117,8 +117,6 @@ You can add a new middleware to the middleware stack using any of the following 
 
 * +config.middleware.insert_after(existing_middleware, new_middleware, args)+ - Adds the new middleware after the specified existing middleware in the middleware stack.
 
-<strong>Example:</strong>
-
 <ruby>
 # config/environment.rb
 
@@ -133,8 +131,6 @@ config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, :page_cach
 h5. Swapping a Middleware
 
 You can swap an existing middleware in the middleware stack using +config.middleware.swap+.
-
-<strong>Example:</strong>
 
 <ruby>
 # config/environment.rb
@@ -172,8 +168,6 @@ TIP: It's possible to use any of the above middlewares in your custom Rack stack
 h4. Customizing Internal Middleware Stack
 
 It's possible to replace the entire middleware stack with a custom stack using +ActionController::Dispatcher.middleware=+.
-
-<strong>Example:</strong>
 
 Put the following in an initializer:
 
