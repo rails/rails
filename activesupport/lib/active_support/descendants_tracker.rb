@@ -1,5 +1,3 @@
-require 'active_support/dependencies'
-
 module ActiveSupport
   # This module provides an internal implementation to track descendants
   # which is faster than iterating through ObjectSpace.
@@ -18,12 +16,16 @@ module ActiveSupport
     end
 
     def self.clear
-      @@direct_descendants.each do |klass, descendants|
-        if ActiveSupport::Dependencies.autoloaded?(klass)
-          @@direct_descendants.delete(klass)
-        else
-          descendants.reject! { |v| ActiveSupport::Dependencies.autoloaded?(v) }
+      if defined? ActiveSupport::Dependencies
+        @@direct_descendants.each do |klass, descendants|
+          if ActiveSupport::Dependencies.autoloaded?(klass)
+            @@direct_descendants.delete(klass)
+          else
+            descendants.reject! { |v| ActiveSupport::Dependencies.autoloaded?(v) }
+          end
         end
+      else
+        @@direct_descendants.clear
       end
     end
 

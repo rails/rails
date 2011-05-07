@@ -1,9 +1,4 @@
-require 'abstract_unit'
-require 'test/unit'
-require 'active_support'
-require 'active_support/core_ext/hash/slice'
-
-class DescendantsTrackerTest < Test::Unit::TestCase
+module DescendantsTrackerTestCases
   class Parent
     extend ActiveSupport::DescendantsTracker
   end
@@ -34,7 +29,7 @@ class DescendantsTrackerTest < Test::Unit::TestCase
     assert_equal [], Child2.direct_descendants
   end
 
-  def test_clear_with_autoloaded_parent_children_and_granchildren
+  def test_clear
     mark_as_autoloaded(*ALL) do
       ActiveSupport::DescendantsTracker.clear
       ALL.each do |k|
@@ -43,35 +38,22 @@ class DescendantsTrackerTest < Test::Unit::TestCase
     end
   end
 
-  def test_clear_with_autoloaded_children_and_granchildren
-    mark_as_autoloaded Child1, Grandchild1, Grandchild2 do
-      ActiveSupport::DescendantsTracker.clear
-      assert_equal [Child2], Parent.descendants
-      assert_equal [], Child2.descendants
-    end
-  end
-
-  def test_clear_with_autoloaded_granchildren
-    mark_as_autoloaded Grandchild1, Grandchild2 do
-      ActiveSupport::DescendantsTracker.clear
-      assert_equal [Child1, Child2], Parent.descendants
-      assert_equal [], Child1.descendants
-      assert_equal [], Child2.descendants
-    end
-  end
-
   protected
 
   def mark_as_autoloaded(*klasses)
-    old_autoloaded = ActiveSupport::Dependencies.autoloaded_constants.dup
-    ActiveSupport::Dependencies.autoloaded_constants = klasses.map(&:name)
+    # If ActiveSupport::Dependencies is not loaded, forget about autoloading.
+    # This allows using AS::DescendantsTracker without AS::Dependencies.
+    if defined? ActiveSupport::Dependencies
+      old_autoloaded = ActiveSupport::Dependencies.autoloaded_constants.dup
+      ActiveSupport::Dependencies.autoloaded_constants = klasses.map(&:name)
+    end
 
     old_descendants = ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").dup
     old_descendants.each { |k, v| old_descendants[k] = v.dup }
 
     yield
   ensure
-    ActiveSupport::Dependencies.autoloaded_constants = old_autoloaded
+    ActiveSupport::Dependencies.autoloaded_constants = old_autoloaded if defined? ActiveSupport::Dependencies
     ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").replace(old_descendants)
   end
 end
