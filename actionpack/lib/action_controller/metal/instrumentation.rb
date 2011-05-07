@@ -19,7 +19,7 @@ module ActionController
         :controller => self.class.name,
         :action     => self.action_name,
         :params     => request.filtered_parameters,
-        :formats    => request.formats.map(&:to_sym),
+        :format     => request.format.ref,
         :method     => request.method,
         :path       => (request.fullpath rescue "unknown")
       }
