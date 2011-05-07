@@ -10,6 +10,10 @@ module Another
       render :nothing => true
     end
 
+    def update
+      render :nothing => true
+    end
+
     def redirector
       redirect_to "http://foo.bar/"
     end
@@ -96,6 +100,14 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal 3, logs.size
     assert_equal 'Parameters: {"id"=>"10"}', logs[1]
   end
+
+  def test_process_action_with_methodoverride_parameter
+    post :update, :id => '10', :_method => "put"
+    wait
+
+    assert_match('"_method"=>"put"', logs[1])
+  end
+
 
   def test_process_action_with_wrapped_parameters
     @request.env['CONTENT_TYPE'] = 'application/json'

@@ -2,7 +2,7 @@ require 'active_support/core_ext/object/blank'
 
 module ActionController
   class LogSubscriber < ActiveSupport::LogSubscriber
-    INTERNAL_PARAMS = %w(controller action format _method only_path)
+    INTERNAL_PARAMS = %w(controller action format only_path)
 
     def start_processing(event)
       payload = event.payload
