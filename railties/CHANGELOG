@@ -1,5 +1,17 @@
 *Rails 3.1.0 (unreleased)*
 
+* Fixed database tasks for jdbc* adapters #jruby
+
+  [Rashmi Yadav]
+
+* Template generation for jdbcpostgresql  #jruby
+
+  [Vishnu Atrai]
+
+* Template generation for jdbcmysql and jdbcsqlite3 #jruby
+
+  [Arun Agrawal]
+
 * The -j option of the application generator accepts an arbitrary string. If passed "foo",
 the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest
 requires "foo" and "foo_ujs". As of this writing "prototype-rails" and "jquery-rails"
