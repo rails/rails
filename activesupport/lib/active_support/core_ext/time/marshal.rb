@@ -37,6 +37,7 @@ if Time.local(2010).zone != Marshal.load(Marshal.dump(Time.local(2010))).zone
         time.instance_eval do
           if zone = defined?(@_zone) && remove_instance_variable('@_zone')
             ary = to_a
+            ary[0] += subsec if ary[0] == sec
             ary[-1] = zone
             utc? ? Time.utc(*ary) : Time.local(*ary)
           else
