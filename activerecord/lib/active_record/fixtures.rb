@@ -444,6 +444,9 @@ class FixturesFileNotFound < StandardError; end
 #
 # Any fixture labeled "DEFAULTS" is safely ignored.
 
+Fixture = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixture', 'ActiveRecord::Fixture')
+Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixtures', 'ActiveRecord::Fixtures')
+
 module ActiveRecord
   class Fixtures
     MAX_ID = 2 ** 30 - 1
