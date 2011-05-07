@@ -58,7 +58,7 @@ module ActiveSupport
         assert @cache.key?(ClassCacheTest.name)
       end
 
-      def test_new_rejects_strings
+      def test_new_rejects_strings_when_called_on_a_new_string
         assert_deprecated do
           @cache.new ClassCacheTest.name
         end
