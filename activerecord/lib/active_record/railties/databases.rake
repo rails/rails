@@ -305,7 +305,7 @@ db_namespace = namespace :db do
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
       (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.{yml,csv}"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
-        Fixtures.create_fixtures(fixtures_dir, fixture_file)
+        ActiveRecord::Fixtures.create_fixtures(fixtures_dir, fixture_file)
       end
     end
 
@@ -316,13 +316,13 @@ db_namespace = namespace :db do
       label, id = ENV['LABEL'], ENV['ID']
       raise 'LABEL or ID required' if label.blank? && id.blank?
 
-      puts %Q(The fixture ID for "#{label}" is #{Fixtures.identify(label)}.) if label
+      puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::Fixtures.identify(label)}.) if label
 
       base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
       Dir["#{base_dir}/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
           data.keys.each do |key|
-            key_id = Fixtures.identify(key)
+            key_id = ActiveRecord::Fixtures.identify(key)
 
             if key == label || key_id == id.to_i
               puts "#{file}: #{key} (#{key_id})"
