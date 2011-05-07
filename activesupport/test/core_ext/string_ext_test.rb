@@ -387,6 +387,18 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert !@other_combination.html_safe?
   end
 
+  test "Escapes special HTML/XML characters" do
+    @other_string = "other".html_safe
+    @combination = @other_string + "<foo>&\"'"
+    @other_combination = @string + "<foo>&\"'"
+
+    assert_equal "other&lt;foo&gt;&amp;&quot;&apos;", @combination
+    assert_equal "hello<foo>&\"'", @other_combination
+
+    assert @combination.html_safe?
+    assert !@other_combination.html_safe?
+  end
+
   test "Concatting safe onto unsafe yields unsafe" do
     @other_string = "other"
 

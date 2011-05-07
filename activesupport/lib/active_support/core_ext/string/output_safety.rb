@@ -3,7 +3,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 
 class ERB
   module Util
-    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
+    XML_ESCAPE = { '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;', "'" => '&apos;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
 
     # A utility method for escaping HTML tag characters.
@@ -20,7 +20,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(/[&"><]/) { |special| HTML_ESCAPE[special] }.html_safe
+        s.gsub(/[&"'><]/) { |special| XML_ESCAPE[special] }.html_safe
       end
     end
 
