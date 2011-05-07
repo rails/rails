@@ -20,6 +20,7 @@ class SanitizerTest < ActionController::TestCase
     assert_equal "This has a  here.", sanitizer.sanitize("This has a <![CDATA[<section>]]> here.")
     assert_equal "This has an unclosed ", sanitizer.sanitize("This has an unclosed <![CDATA[<section>]] here...")
     [nil, '', '   '].each { |blank| assert_equal blank, sanitizer.sanitize(blank) }
+    assert_nothing_raised { sanitizer.sanitize("This is a frozen string with no tags".freeze) }
   end
 
   def test_strip_links
