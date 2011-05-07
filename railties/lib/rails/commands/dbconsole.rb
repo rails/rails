@@ -23,7 +23,7 @@ module Rails
       include_password = false
       options = {}
       OptionParser.new do |opt|
-        opt.banner = "Usage: dbconsole [options] [environment]"
+        opt.banner = "Usage: dbconsole [environment] [options]"
         opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
           include_password = true
         end
