@@ -1,4 +1,5 @@
 require "active_support/notifications"
+require "active_support/dependencies"
 require "active_support/descendants_tracker"
 
 module Rails
@@ -9,7 +10,6 @@ module Rails
       initializer :load_environment_hook do end
 
       initializer :load_active_support do
-        require 'active_support/dependencies'
         require "active_support/all" unless config.active_support.bare
       end
 
