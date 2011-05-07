@@ -15,7 +15,7 @@ module ActiveResource
   #
   #   mock.http_method(path, request_headers = {}, body = nil, status = 200, response_headers = {})
   #
-  # * <tt>http_method</tt> - The HTTP method to listen for.  This can be +get+, +post+, +put+, +delete+ or
+  # * <tt>http_method</tt> - The HTTP method to listen for.  This can be +get+, +post+, +patch+, +put+, +delete+ or
   #   +head+.
   # * <tt>path</tt> - A string, starting with a "/", defining the URI that is expected to be
   #   called.
@@ -39,6 +39,7 @@ module ActiveResource
   #     ActiveResource::HttpMock.respond_to do |mock|
   #       mock.post   "/people.xml",   {}, @matz, 201, "Location" => "/people/1.xml"
   #       mock.get    "/people/1.xml", {}, @matz
+  #       mock.patch  "/people/1.xml", {}, nil, 204
   #       mock.put    "/people/1.xml", {}, nil, 204
   #       mock.delete "/people/1.xml", {}, nil, 200
   #     end
@@ -55,7 +56,7 @@ module ActiveResource
         @responses = responses
       end
 
-      for method in [ :post, :put, :get, :delete, :head ]
+      for method in [ :post, :patch, :put, :get, :delete, :head ]
         # def post(path, request_headers = {}, body = nil, status = 200, response_headers = {})
         #   @responses[Request.new(:post, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
         # end
@@ -121,6 +122,7 @@ module ActiveResource
       #   ActiveResource::HttpMock.respond_to do |mock|
       #     mock.post   "/people.xml",   {}, @matz, 201, "Location" => "/people/1.xml"
       #     mock.get    "/people/1.xml", {}, @matz
+      #     mock.patch  "/people/1.xml", {}, nil, 204
       #     mock.put    "/people/1.xml", {}, nil, 204
       #     mock.delete "/people/1.xml", {}, nil, 200
       #   end
@@ -217,7 +219,7 @@ module ActiveResource
     end
 
     # body?       methods
-    { true  => %w(post put),
+    { true  => %w(post patch put),
       false => %w(get delete head) }.each do |has_body, methods|
       methods.each do |method|
         # def post(path, body, headers)

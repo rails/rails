@@ -484,6 +484,16 @@ module ActionDispatch
           map_method(:post, *args, &block)
         end
 
+        # Define a route that only recognizes HTTP PATCH.
+        # For supported arguments, see <tt>Base#match</tt>.
+        #
+        # Example:
+        #
+        # patch 'bacon', :to => 'food#bacon'
+        def patch(*args, &block)
+          map_method(:patch, *args, &block)
+        end
+
         # Define a route that only recognizes HTTP PUT.
         # For supported arguments, see <tt>Base#match</tt>.
         #
@@ -494,7 +504,7 @@ module ActionDispatch
           map_method(:put, *args, &block)
         end
 
-        # Define a route that only recognizes HTTP PUT.
+        # Define a route that only recognizes HTTP DELETE.
         # For supported arguments, see <tt>Base#match</tt>.
         #
         # Example:
@@ -532,6 +542,7 @@ module ActionDispatch
       #   POST	  /admin/posts
       #   GET	    /admin/posts/1
       #   GET	    /admin/posts/1/edit
+      #   PATCH	  /admin/posts/1
       #   PUT	    /admin/posts/1
       #   DELETE  /admin/posts/1
       #
@@ -566,6 +577,7 @@ module ActionDispatch
       #   POST	  /admin/posts
       #   GET	    /admin/posts/1
       #   GET	    /admin/posts/1/edit
+      #   PATCH	  /admin/posts/1
       #   PUT	    /admin/posts/1
       #   DELETE  /admin/posts/1
       module Scoping
@@ -661,6 +673,7 @@ module ActionDispatch
         #    new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
         #   edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
         #        admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
+        #        admin_post PATCH  /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
         #        admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
         #        admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
         #
@@ -974,7 +987,7 @@ module ActionDispatch
         #
         #   resource :geocoder
         #
-        # creates six different routes in your application, all mapping to
+        # creates seven different routes in your application, all mapping to
         # the GeoCoders controller (note that the controller is named after
         # the plural):
         #
@@ -982,6 +995,7 @@ module ActionDispatch
         #   POST    /geocoder
         #   GET     /geocoder
         #   GET     /geocoder/edit
+        #   PATCH   /geocoder
         #   PUT     /geocoder
         #   DELETE  /geocoder
         #
@@ -1008,6 +1022,7 @@ module ActionDispatch
             member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
+              patch  :update if parent_resource.actions.include?(:update)
               put    :update if parent_resource.actions.include?(:update)
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
@@ -1023,13 +1038,15 @@ module ActionDispatch
         #
         #   resources :photos
         #
-        # creates seven different routes in your application, all mapping to
+        # creates eight different routes in your application, all mapping to
         # the Photos controller:
         #
+        #   GET     /photos
         #   GET     /photos/new
         #   POST    /photos
         #   GET     /photos/:id
         #   GET     /photos/:id/edit
+        #   PATCH   /photos/:id
         #   PUT     /photos/:id
         #   DELETE  /photos/:id
         #
@@ -1041,10 +1058,12 @@ module ActionDispatch
         #
         # This generates the following comments routes:
         #
+        #   GET     /photos/:id/comments
         #   GET     /photos/:id/comments/new
         #   POST    /photos/:id/comments
         #   GET     /photos/:id/comments/:id
         #   GET     /photos/:id/comments/:id/edit
+        #   PATCH   /photos/:id/comments/:id
         #   PUT     /photos/:id/comments/:id
         #   DELETE  /photos/:id/comments/:id
         #
@@ -1102,6 +1121,7 @@ module ActionDispatch
         #     new_post_comment GET    /sekret/posts/:post_id/comments/new(.:format)
         #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
         #     comment          GET    /sekret/comments/:id(.:format)
+        #     comment          PATCH  /sekret/comments/:id(.:format)
         #     comment          PUT    /sekret/comments/:id(.:format)
         #     comment          DELETE /sekret/comments/:id(.:format)
         #
@@ -1134,6 +1154,7 @@ module ActionDispatch
             member do
               get    :edit if parent_resource.actions.include?(:edit)
               get    :show if parent_resource.actions.include?(:show)
+              patch  :update if parent_resource.actions.include?(:update)
               put    :update if parent_resource.actions.include?(:update)
               delete :destroy if parent_resource.actions.include?(:destroy)
             end

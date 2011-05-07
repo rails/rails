@@ -50,7 +50,7 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 h4. Resources on the Web
 
-Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as +GET+, +POST+, +PUT+ and +DELETE+. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
+Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as +GET+, +POST+, +PATCH+, +PUT+ and +DELETE+. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
 
 When your Rails application receives an incoming request for
 
@@ -74,7 +74,7 @@ In Rails, a resourceful route provides a mapping between HTTP verbs and URLs and
 resources :photos
 </ruby>
 
-creates seven different routes in your application, all mapping to the +Photos+ controller:
+creates eight different routes in your application, all mapping to the +Photos+ controller:
 
 |_. HTTP Verb |_.Path            |_.action |_.used for                                   |
 |GET          |/photos           |index    |display a list of all photos                 |
@@ -82,11 +82,12 @@ creates seven different routes in your application, all mapping to the +Photos+ 
 |POST         |/photos           |create   |create a new photo                           |
 |GET          |/photos/:id       |show     |display a specific photo                     |
 |GET          |/photos/:id/edit  |edit     |return an HTML form for editing a photo      |
+|PATCH        |/photos/:id       |update   |update a specific photo                      |
 |PUT          |/photos/:id       |update   |update a specific photo                      |
 |DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
 
-NOTE: Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
+NOTE: The default HTTP Verb for the +update+ action is PATCH; PUT is supported for backwards compatibility. Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
 
 h4. Paths and URLs
 
@@ -131,17 +132,18 @@ This resourceful route
 resource :geocoder
 </ruby>
 
-creates six different routes in your application, all mapping to the +Geocoders+ controller:
+creates seven different routes in your application, all mapping to the +Geocoders+ controller:
 
 |_.HTTP Verb |_.Path         |_.action |_.used for                                    |
 |GET         |/geocoder/new  |new      |return an HTML form for creating the geocoder |
 |POST        |/geocoder      |create   |create the new geocoder                       |
 |GET         |/geocoder      |show     |display the one and only geocoder resource    |
 |GET         |/geocoder/edit |edit     |return an HTML form for editing the geocoder  |
+|PATCH       |/geocoder      |update   |update the one and only geocoder resource     |
 |PUT         |/geocoder      |update   |update the one and only geocoder resource     |
 |DELETE      |/geocoder      |destroy  |delete the geocoder resource                  |
 
-NOTE: Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
+NOTE: The default HTTP Verb for the +update+ action is PATCH; PUT is supported for backwards compatibility. Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
 
 A singular resourceful route generates these helpers:
 
@@ -169,6 +171,7 @@ This will create a number of routes for each of the +posts+ and +comments+ contr
 |POST        |/admin/posts        |create   | admin_posts_path         |
 |GET         |/admin/posts/1      |show     | admin_post_path(id)      |
 |GET         |/admin/posts/1/edit |edit     | edit_admin_post_path(id) |
+|PATCH       |/admin/posts/1      |update   | admin_post_path(id)      |
 |PUT         |/admin/posts/1      |update   | admin_post_path(id)      |
 |DELETE      |/admin/posts/1      |destroy  | admin_post_path(id)      |
 
@@ -208,6 +211,7 @@ In each of these cases, the named routes remain the same as if you did not use +
 |POST        |/admin/posts         |create   | posts_path         |
 |GET         |/admin/posts/1       |show     | post_path(id)      |
 |GET         |/admin/posts/1/edit  |edit     | edit_post_path(id) |
+|PATCH       |/admin/posts/1       |update   | post_path(id)      |
 |PUT         |/admin/posts/1       |update   | post_path(id)      |
 |DELETE      |/admin/posts/1       |destroy  | post_path(id)      |
 
@@ -241,6 +245,7 @@ In addition to the routes for magazines, this declaration will also route ads to
 |POST        |/magazines/1/ads        |create   |create a new ad belonging to a specific magazine                           |
 |GET         |/magazines/1/ads/1      |show     |display a specific ad belonging to a specific magazine                     |
 |GET         |/magazines/1/ads/1/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
+|PATCH       |/magazines/1/ads/1      |update   |update a specific ad belonging to a specific magazine                      |
 |PUT         |/magazines/1/ads/1      |update   |update a specific ad belonging to a specific magazine                      |
 |DELETE      |/magazines/1/ads/1      |destroy  |delete a specific ad belonging to a specific magazine                      |
 
@@ -323,7 +328,7 @@ end
 
 This will recognize +/photos/1/preview+ with GET, and route to the +preview+ action of +PhotosController+. It will also create the +preview_photo_url+ and +preview_photo_path+ helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use +get+, +put+, +post+, or +delete+ here. If you don't have multiple +member+ routes, you can also pass +:on+ to a route, eliminating the block:
+Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use +get+, +patch+, +put+, +post+, or +delete+ here. If you don't have multiple +member+ routes, you can also pass +:on+ to a route, eliminating the block:
 
 <ruby>
 resources :photos do
@@ -634,6 +639,7 @@ will recognize incoming paths beginning with +/photos+ but route to the +Images+
 |POST        |/photos        |create   | photos_path         |
 |GET         |/photos/1      |show     | photo_path(id)      |
 |GET         |/photos/1/edit |edit     | edit_photo_path(id) |
+|PATCH       |/photos/1      |update   | photo_path(id)      |
 |PUT         |/photos/1      |update   | photo_path(id)      |
 |DELETE      |/photos/1      |destroy  | photo_path(id)      |
 
@@ -678,6 +684,7 @@ will recognize incoming paths beginning with +/photos+ and route the requests to
 |POST       |/photos         |create   | images_path         |
 |GET        |/photos/1       |show     | image_path(id)      |
 |GET        |/photos/1/edit  |edit     | edit_image_path(id) |
+|PATCH      |/photos/1       |update   | image_path(id)      |
 |PUT        |/photos/1       |update   | image_path(id)      |
 |DELETE     |/photos/1       |destroy  | image_path(id)      |
 
@@ -782,6 +789,7 @@ Rails now creates routes to the +CategoriesController+.
 |POST       |/kategorien              |create   | categories_path        |
 |GET        |/kategorien/1            |show     | category_path(id)      |
 |GET        |/kategorien/1/bearbeiten |edit     | edit_category_path(id) |
+|PATCH      |/kategorien/1            |update   | category_path(id)      |
 |PUT        |/kategorien/1            |update   | category_path(id)      |
 |DELETE     |/kategorien/1            |destroy  | category_path(id)      |
 
