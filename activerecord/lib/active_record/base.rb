@@ -831,7 +831,7 @@ module ActiveRecord #:nodoc:
       end
 
       def symbolized_sti_name
-        @symbolized_sti_name ||= sti_name ? sti_name.to_sym : symbolized_base_class
+        @symbolized_sti_name ||= sti_name.present? ? sti_name.to_sym : symbolized_base_class
       end
 
       # Returns the base AR subclass that this class descends from. If A
