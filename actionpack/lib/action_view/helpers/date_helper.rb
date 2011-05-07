@@ -218,7 +218,8 @@ module ActionView
 
       # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a
       # specified time-based attribute (identified by +method+) on an object assigned to the template (identified by
-      # +object+). You can include the seconds with <tt>:include_seconds</tt>.
+      # +object+). You can include the seconds with <tt>:include_seconds</tt>. You can get hours in the AM/PM format
+      # with <tt>:ampm</tt> option.
       #
       # This method will also generate 3 input hidden tags, for the actual year, month and day unless the option
       # <tt>:ignore_date</tt> is set to +true+.
@@ -240,6 +241,9 @@ module ActionView
       #   time_select("post", "written_on", :prompt => {:hour => 'Choose hour', :minute => 'Choose minute', :second => 'Choose seconds'})
       #   time_select("post", "written_on", :prompt => {:hour => true}) # generic prompt for hours
       #   time_select("post", "written_on", :prompt => true) # generic prompts for all
+      #
+      #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
+      #   time_select 'game', 'game_time', {:ampm => true}
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -267,6 +271,9 @@ module ActionView
       #   # Generates a datetime select with a default value of 3 days from the current time that, when POSTed, will
       #   # be stored in the trip variable in the departing attribute.
       #   datetime_select("trip", "departing", :default => 3.days.from_now)
+      #
+      #   # Generate a datetime select with hours in the AM/PM format
+      #   datetime_select("post", "written_on", :ampm => true)
       #
       #   # Generates a datetime select that discards the type that, when POSTed, will be stored in the post variable
       #   # as the written_on attribute.
@@ -316,6 +323,9 @@ module ActionView
       #   # Generates a datetime select that discards the type of the field and defaults to the datetime in
       #   # my_date_time (four days after today)
       #   select_datetime(my_date_time, :discard_type => true)
+      #
+      #   # Generate a datetime field with hours in the AM/PM format
+      #   select_datetime(my_date_time, :ampm => true)
       #
       #   # Generates a datetime select that defaults to the datetime in my_date_time (four days after today)
       #   # prefixed with 'payday' rather than 'date'
@@ -398,6 +408,9 @@ module ActionView
       #   # separated by ':' and includes an input for seconds
       #   select_time(my_time, :time_separator => ':', :include_seconds => true)
       #
+      #   # Generate a time select field with hours in the AM/PM format
+      #   select_time(my_time, :ampm => true)
+      #
       #   # Generates a time select with a custom prompt. Use :prompt=>true for generic prompts.
       #   select_time(my_time, :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
       #   select_time(my_time, :prompt => {:hour => true}) # generic prompt for hours
@@ -478,6 +491,9 @@ module ActionView
       #   # Generates a select field for hours with a custom prompt.  Use :prompt => true for a
       #   # generic prompt.
       #   select_hour(13, :prompt => 'Choose hour')
+      #
+      #   # Generate a select field for hours in the AM/PM format
+      #   select_hour(my_time, :ampm => true)
       #
       def select_hour(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_hour
@@ -612,6 +628,15 @@ module ActionView
         :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5, :second => 6
       }.freeze
 
+      AMPM_TRANSLATION = Hash[
+        [[0, "12 AM"], [1, "01 AM"], [2, "02 AM"], [3, "03 AM"],
+         [4, "04 AM"], [5, "05 AM"], [6, "06 AM"], [7, "07 AM"],
+         [8, "08 AM"], [9, "09 AM"], [10, "10 AM"], [11, "11 AM"],
+         [12, "12 PM"], [13, "01 PM"], [14, "02 PM"], [15, "03 PM"],
+         [16, "04 PM"], [17, "05 PM"], [18, "06 PM"], [19, "07 PM"],
+         [20, "08 PM"], [21, "09 PM"], [22, "10 PM"], [23, "11 PM"]]
+      ].freeze
+
       def initialize(datetime, options = {}, html_options = {})
         @options      = options.dup
         @html_options = html_options.dup
@@ -703,7 +728,7 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_hour]
           build_hidden(:hour, hour)
         else
-          build_options_and_select(:hour, hour, :end => 23)
+          build_options_and_select(:hour, hour, :end => 23, :ampm => @options[:ampm])
         end
       end
 
@@ -821,7 +846,7 @@ module ActionView
           start         = options.delete(:start) || 0
           stop          = options.delete(:end) || 59
           step          = options.delete(:step) || 1
-          options.reverse_merge!({:leading_zeros => true})
+          options.reverse_merge!({:leading_zeros => true, :ampm => false})
           leading_zeros = options.delete(:leading_zeros)
 
           select_options = []
@@ -829,7 +854,8 @@ module ActionView
             value = leading_zeros ? sprintf("%02d", i) : i
             tag_options = { :value => value }
             tag_options[:selected] = "selected" if selected == i
-            select_options << content_tag(:option, value, tag_options)
+            text = options[:ampm] ? AMPM_TRANSLATION[i] : value
+            select_options << content_tag(:option, text, tag_options)
           end
           (select_options.join("\n") + "\n").html_safe
         end
