@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Allow AM/PM format in datetime selectors [Aditya Sanghi]
+
 * Only show dump of regular env methods on exception screen (not all the rack crap) [DHH]
 
 * auto_link has been removed with no replacement.  If you still use auto_link
