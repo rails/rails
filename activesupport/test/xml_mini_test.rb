@@ -16,14 +16,6 @@ module XmlMiniTest
       assert_equal "my_key", ActiveSupport::XmlMini.rename_key("my_key", :dasherize => false)
     end
 
-    def test_rename_key_camelizes_with_camelize_false
-      assert_equal "my_key", ActiveSupport::XmlMini.rename_key("my_key", :camelize => false)
-    end
-
-    def test_rename_key_camelizes_with_camelize_nil
-      assert_equal "my_key", ActiveSupport::XmlMini.rename_key("my_key", :camelize => nil)
-    end
-
     def test_rename_key_camelizes_with_camelize_true
       assert_equal "MyKey", ActiveSupport::XmlMini.rename_key("my_key", :camelize => true)
     end
