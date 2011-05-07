@@ -48,7 +48,7 @@ module XmlMiniTest
       assert_equal "__id", ActiveSupport::XmlMini.rename_key("__id")
     end
 
-    def test_rename_key_does_not_dasherize_multiple_leading_underscores
+    def test_rename_key_does_not_dasherize_multiple_trailing_underscores
       assert_equal "id__", ActiveSupport::XmlMini.rename_key("id__")
     end  
   end
