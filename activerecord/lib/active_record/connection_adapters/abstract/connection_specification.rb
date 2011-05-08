@@ -68,7 +68,7 @@ module ActiveRecord
           begin
             #FIXME
             # Need this cause 'activerecord-jdbcmysql-adapter' gem having same file name.
-            if spec[:adapter] =~ /jdbcmysql/
+            if spec[:adapter] =~ /jdbcmysql|jdbcsqlite3/
               require "active_record/connection_adapters/jdbc_#{spec[:adapter]}_adapter"
             else
               require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
