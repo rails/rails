@@ -87,6 +87,16 @@ module XmlMiniTest
       @xml.to_tag(:b, "Howdy", @options)
       assert_xml "<b>Howdy</b>"
     end
+    
+    test "#to_tag should dasherize the space when passed a string with spaces as a key" do
+      @xml.to_tag("New   York", 33, @options)
+      assert_xml "<New---York type=\"integer\">33</New---York>"
+    end
+    
+    test "#to_tag should dasherize the space when passed a symbol with spaces as a key" do
+      @xml.to_tag(:"New   York", 33, @options)
+      assert_xml "<New---York type=\"integer\">33</New---York>"
+    end
     # TODO: test the remaining functions hidden in #to_tag.
   end
 end
