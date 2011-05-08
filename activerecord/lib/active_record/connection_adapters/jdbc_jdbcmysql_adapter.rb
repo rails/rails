@@ -16,6 +16,7 @@ module ActiveRecord::ConnectionAdapters
       execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
     end
     alias :exec_update :exec_insert
+    alias :exec_delete :exec_insert
 
     def last_inserted_id(result)
       result
