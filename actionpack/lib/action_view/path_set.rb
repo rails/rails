@@ -1,3 +1,5 @@
+require "active_support/core_ext/array/wrap"
+
 module ActionView #:nodoc:
   # = Action View PathSet
   class PathSet < Array #:nodoc:
@@ -15,7 +17,7 @@ module ActionView #:nodoc:
     end
 
     def find_all(path, prefixes = [], *args)
-      prefixes = [prefixes] if String === prefixes
+      prefixes = Array.wrap(prefixes)
       prefixes.each do |prefix|
         each do |resolver|
           templates = resolver.find_all(path, prefix, *args)

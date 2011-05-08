@@ -256,4 +256,13 @@ class TestMissingTemplate < ActiveSupport::TestCase
     end
     assert_match %r{Missing partial parent/foo, child/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
+
+  test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
+    e = assert_raise ActionView::MissingTemplate do
+      details = {:handlers=>[], :formats=>[], :locale=>[]}
+      @lookup_context.view_paths.find("foo", "parent", true, details)
+    end
+    assert_match %r{Missing partial parent/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+  end 
+  
 end
