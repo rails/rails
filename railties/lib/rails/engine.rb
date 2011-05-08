@@ -92,17 +92,17 @@ module Rails
   # The available paths in an engine are:
   #
   #   class MyEngine < Rails::Engine
-  #     paths["app"]                 #=> ["app"]
-  #     paths["app/controllers"]     #=> ["app/controllers"]
-  #     paths["app/helpers"]         #=> ["app/helpers"]
-  #     paths["app/models"]          #=> ["app/models"]
-  #     paths["app/views"]           #=> ["app/views"]
-  #     paths["lib"]                 #=> ["lib"]
-  #     paths["lib/tasks"]           #=> ["lib/tasks"]
-  #     paths["config"]              #=> ["config"]
-  #     paths["config/initializers"] #=> ["config/initializers"]
-  #     paths["config/locales"]      #=> ["config/locales"]
-  #     paths["config/routes"]       #=> ["config/routes.rb"]
+  #     paths["app"]                 # => ["app"]
+  #     paths["app/controllers"]     # => ["app/controllers"]
+  #     paths["app/helpers"]         # => ["app/helpers"]
+  #     paths["app/models"]          # => ["app/models"]
+  #     paths["app/views"]           # => ["app/views"]
+  #     paths["lib"]                 # => ["lib"]
+  #     paths["lib/tasks"]           # => ["lib/tasks"]
+  #     paths["config"]              # => ["config"]
+  #     paths["config/initializers"] # => ["config/initializers"]
+  #     paths["config/locales"]      # => ["config/locales"]
+  #     paths["config/routes"]       # => ["config/routes.rb"]
   #   end
   #
   # Your <tt>Application</tt> class adds a couple more paths to this set. And as in your
@@ -234,14 +234,14 @@ module Rails
   # use the prefix "my_engine". In an isolated engine, the prefix will be omitted in url helpers and
   # form fields for convenience.
   #
-  #   polymorphic_url(MyEngine::Article.new) #=> "articles_path"
+  #   polymorphic_url(MyEngine::Article.new) # => "articles_path"
   #
   #   form_for(MyEngine::Article.new) do
-  #     text_field :title #=> <input type="text" name="article[title]" id="article_title" />
+  #     text_field :title # => <input type="text" name="article[title]" id="article_title" />
   #   end
   #
-  # Additionally isolated engine will set its name according to namespace, so
-  # MyEngine::Engine.engine_name #=> "my_engine". It will also set MyEngine.table_name_prefix
+  # Additionally an isolated engine will set its name according to namespace, so
+  # MyEngine::Engine.engine_name will be "my_engine". It will also set MyEngine.table_name_prefix
   # to "my_engine_", changing MyEngine::Article model to use my_engine_article table.
   #
   # == Using Engine's routes outside Engine
@@ -250,7 +250,7 @@ module Rails
   # <tt>url_helpers</tt> inside +Application+. When you mount an engine in an application's routes, a special helper is
   # created to allow you to do that. Consider such a scenario:
   #
-  #   # APP/config/routes.rb
+  #   # config/routes.rb
   #   MyApplication::Application.routes.draw do
   #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
   #     match "/foo" => "foo#index"

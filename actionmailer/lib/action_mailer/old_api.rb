@@ -8,7 +8,7 @@ module ActionMailer
 
     included do
       extend ActionMailer::AdvAttrAccessor
-      self.protected_instance_variables.concat %w(@parts @mail_was_called)
+      self.protected_instance_variables.concat %w(@parts @mail_was_called @headers)
 
       # Specify the BCC addresses for the message
       adv_attr_accessor :bcc

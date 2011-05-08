@@ -10,6 +10,70 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def setup
     Task.connection.clear_query_cache
+    ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  def test_middleware_delegates
+    called = false
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      called = true
+    }
+    mw.call({})
+    assert called, 'middleware should delegate'
+  end
+
+  def test_middleware_caches
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      Task.find 1
+      Task.find 1
+      assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    }
+    mw.call({})
+  end
+
+  def test_cache_enabled_during_call
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
+    }
+    mw.call({})
+  end
+
+  def test_cache_on_during_body_write
+    streaming = Class.new do
+      def each
+        yield ActiveRecord::Base.connection.query_cache_enabled
+      end
+    end
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      [200, {}, streaming.new]
+    }
+    body = mw.call({}).last
+    body.each { |x| assert x, 'cache should be on' }
+    body.close
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
+  end
+
+  def test_cache_off_after_close
+    mw = ActiveRecord::QueryCache.new lambda { |env| }
+    body = mw.call({}).last
+
+    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache enabled'
+    body.close
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
+  end
+
+  def test_cache_clear_after_close
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      Post.find(:first)
+    }
+    body = mw.call({}).last
+
+    assert !ActiveRecord::Base.connection.query_cache.empty?, 'cache not empty'
+    body.close
+    assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
   end
 
   def test_find_queries

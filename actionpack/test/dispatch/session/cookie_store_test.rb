@@ -50,6 +50,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get_session_id
     end
 
+    def renew_session_id
+      request.session_options[:renew] = true
+      head :ok
+    end
+
     def rescue_action(e) raise end
   end
 
@@ -99,6 +104,17 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get '/set_session_value'
       assert_response :success
       assert_equal nil, headers['Set-Cookie']
+    end
+  end
+
+  def test_properly_renew_cookies
+    with_test_route_set do
+      get '/set_session_value'
+      get '/persistent_session_id'
+      session_id = response.body
+      get '/renew_session_id'
+      get '/persistent_session_id'
+      assert_not_equal response.body, session_id
     end
   end
 

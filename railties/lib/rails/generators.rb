@@ -52,13 +52,13 @@ module Rails
         :integration_tool => nil,
         :javascripts => true,
         :javascript_engine => nil,
-        :orm => nil,
+        :orm => false,
         :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :stylesheets => true,
         :stylesheet_engine => nil,
-        :test_framework => nil,
+        :test_framework => false,
         :template_engine => :erb
       },
 

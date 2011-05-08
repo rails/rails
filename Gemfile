@@ -10,7 +10,6 @@ end
 
 gem "rack", :git => "git://github.com/rack/rack.git"
 gem "rack-test", :git => "git://github.com/brynary/rack-test.git", :require => "rack/test"
-
 gem "sprockets", :git => "git://github.com/sstephenson/sprockets.git"
 gem "coffee-script"
 gem "sass"
@@ -31,7 +30,6 @@ gem "memcache-client", ">= 1.8.5"
 platforms :mri_18 do
   gem "system_timer"
   gem "ruby-debug", ">= 0.10.3"
-  gem 'ruby-prof'
   gem "json"
 end
 
@@ -48,6 +46,9 @@ platforms :ruby do
   gem 'yajl-ruby'
   gem "nokogiri", ">= 1.4.4"
 
+  group :test do
+    gem 'ruby-prof'
+  end
   # AR
   gem "sqlite3", "~> 1.3.3"
 

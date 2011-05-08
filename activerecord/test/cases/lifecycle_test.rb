@@ -107,6 +107,23 @@ class ValidatedCommentObserver < ActiveRecord::Observer
   end
 end
 
+
+class AroundTopic < Topic
+end
+
+class AroundTopicObserver < ActiveRecord::Observer
+  observe :around_topic
+  def topic_ids
+    @topic_ids ||= []
+  end
+
+  def around_save(topic)
+    topic_ids << topic.id
+    yield(topic)
+    topic_ids << topic.id
+  end
+end
+
 class LifecycleTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :minimalistics
 
@@ -204,6 +221,14 @@ class LifecycleTest < ActiveRecord::TestCase
     SalaryChecker.instance # activate
     developer = SpecialDeveloper.create! :name => 'Roger', :salary => 100000
     assert_equal developer, SalaryChecker.instance.last_saved
+  end
+
+  test "around filter from observer should accept block" do
+    observer = AroundTopicObserver.instance
+    topic = AroundTopic.new
+    topic.save
+    assert_nil observer.topic_ids.first
+    assert_not_nil observer.topic_ids.last
   end
 
   def test_observer_is_called_once

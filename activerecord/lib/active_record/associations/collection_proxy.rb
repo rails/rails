@@ -64,9 +64,12 @@ module ActiveRecord
 
       def method_missing(method, *args, &block)
         match = DynamicFinderMatch.match(method)
-        if match && match.creator?
-          attributes = match.attribute_names
-          return send(:"find_by_#{attributes.join('_and_')}", *args) || create(Hash[attributes.zip(args)])
+        if match && match.instantiator?
+          record = send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
+            @association.send :set_owner_attributes, r
+            @association.send :add_to_target, r
+            yield(r) if block_given?
+          end
         end
 
         if target.respond_to?(method) || (!@association.klass.respond_to?(method) && Class.respond_to?(method))

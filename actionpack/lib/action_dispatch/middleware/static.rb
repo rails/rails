@@ -2,10 +2,10 @@ require 'rack/utils'
 
 module ActionDispatch
   class FileHandler
-    def initialize(root)
+    def initialize(root, cache_control)
       @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
-      @file_server   = ::Rack::File.new(@root)
+      @file_server   = ::Rack::File.new(@root, cache_control)
     end
 
     def match?(path)
@@ -35,18 +35,15 @@ module ActionDispatch
   end
 
   class Static
-    FILE_METHODS = %w(GET HEAD).freeze
-
-    def initialize(app, path)
+    def initialize(app, path, cache_control=nil)
       @app = app
-      @file_handler = FileHandler.new(path)
+      @file_handler = FileHandler.new(path, cache_control)
     end
 
     def call(env)
-      path   = env['PATH_INFO'].chomp('/')
-      method = env['REQUEST_METHOD']
-
-      if FILE_METHODS.include?(method)
+      case env['REQUEST_METHOD']
+      when 'GET', 'HEAD'
+        path = env['PATH_INFO'].chomp('/')
         if match = @file_handler.match?(path)
           env["PATH_INFO"] = match
           return @file_handler.call(env)

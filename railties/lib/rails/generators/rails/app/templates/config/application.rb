@@ -1,14 +1,14 @@
 require File.expand_path('../boot', __FILE__)
 
-<% unless options[:skip_active_record] -%>
+<% if include_all_railties? -%>
 require 'rails/all'
 <% else -%>
 # Pick the frameworks you want:
-# require "active_record/railtie"
+<%= comment_if :skip_active_record %> require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
 require "active_resource/railtie"
-require "rails/test_unit/railtie"
+<%= comment_if :skip_test_unit %> require "rails/test_unit/railtie"
 <% end -%>
 
 # If you have a Gemfile, require the gems listed there, including any gems
@@ -47,11 +47,7 @@ module <%= app_const_base %>
 <% if options[:skip_javascript] -%>
     # config.action_view.javascript_expansions[:defaults] = %w()
 <% else -%>
-    # config.action_view.javascript_expansions[:defaults] = %w(prototype effects dragdrop controls rails)
-<% end -%>
-
-<% if options[:skip_test_unit] -%>
-    config.generators.test_framework = false
+    # config.action_view.javascript_expansions[:defaults] = %w(prototype prototype_ujs)
 <% end -%>
 
     # Configure the default encoding used in templates for Ruby 1.9.

@@ -33,7 +33,7 @@ module HTML
       result = super
       # strip any comments, and if they have a newline at the end (ie. line with
       # only a comment) strip that too
-      result.gsub!(/<!--(.*?)-->[\n]?/m, "") if result
+      result = result.gsub(/<!--(.*?)-->[\n]?/m, "") if (result && result =~ /<!--(.*?)-->[\n]?/m)
       # Recurse - handle all dirty nested tags
       result == text ? result : sanitize(result, options)
     end

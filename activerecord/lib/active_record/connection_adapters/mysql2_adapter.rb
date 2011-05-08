@@ -5,6 +5,7 @@ require 'mysql2'
 
 module ActiveRecord
   class Base
+    # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql2_connection(config)
       config[:username] = 'root' if config[:username].nil?
 
@@ -213,6 +214,8 @@ module ActiveRecord
         false
       end
 
+      # Disconnects from the database if already connected.
+      # Otherwise, this method does nothing.
       def disconnect!
         unless @connection.nil?
           @connection.close
@@ -368,6 +371,8 @@ module ActiveRecord
         end
       end
 
+      # Drops the database specified on the +name+ attribute
+      # and creates it again using the provided +options+.
       def recreate_database(name, options = {})
         drop_database(name)
         create_database(name, options)
@@ -410,12 +415,25 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil)
-        tables = []
-        execute("SHOW TABLES", name).each do |field|
-          tables << field.first
+      def tables(name = nil, database = nil) #:nodoc:
+        sql = ["SHOW TABLES", database].compact.join(' IN ')
+        execute(sql, 'SCHEMA').collect do |field|
+          field.first
         end
-        tables
+      end
+
+      def table_exists?(name)
+        return true if super
+
+        name          = name.to_s
+        schema, table = name.split('.', 2)
+
+        unless table # A table was provided without a schema
+          table  = schema
+          schema = nil
+        end
+
+        tables(nil, schema).include? table
       end
 
       def drop_table(table_name, options = {})
@@ -426,7 +444,7 @@ module ActiveRecord
       def indexes(table_name, name = nil)
         indexes = []
         current_index = nil
-        result = execute("SHOW KEYS FROM #{quote_table_name(table_name)}", name)
+        result = execute("SHOW KEYS FROM #{quote_table_name(table_name)}", 'SCHEMA')
         result.each(:symbolize_keys => true, :as => :hash) do |row|
           if current_index != row[:Key_name]
             next if row[:Key_name] == PRIMARY # skip the primary key
@@ -444,7 +462,7 @@ module ActiveRecord
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
         columns = []
-        result = execute(sql)
+        result = execute(sql, 'SCHEMA')
         result.each(:symbolize_keys => true, :as => :hash) { |field|
           columns << Mysql2Column.new(field[:Field], field[:Default], field[:Type], field[:Null] == "YES")
         }
@@ -538,6 +556,7 @@ module ActiveRecord
         end
       end
 
+      # SHOW VARIABLES LIKE 'name'.
       def show_variable(name)
         variables = select_all("SHOW VARIABLES LIKE '#{name}'")
         variables.first['Value'] unless variables.empty?
@@ -546,7 +565,7 @@ module ActiveRecord
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
         keys = []
-        result = execute("describe #{quote_table_name(table)}")
+        result = execute("DESCRIBE #{quote_table_name(table)}", 'SCHEMA')
         result.each(:symbolize_keys => true, :as => :hash) do |row|
           keys << row[:Field] if row[:Key] == "PRI"
         end

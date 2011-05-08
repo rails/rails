@@ -82,21 +82,15 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     assert_equal 19512, file.size
   end
 
-  # Pending fix in Rack 1.2.2
-  # http://rack.lighthouseapp.com/projects/22435-rack/tickets/79-multipart-handling-incorrectly-assuming-file-upload
   test "parses mixed files" do
-    if Rack.release <= '1.2.1'
-      $stderr.puts 'multipart/mixed parsing pending fix in Rack 1.2.2'
-    else
-      params = parse_multipart('mixed_files')
-      assert_equal %w(files foo), params.keys.sort
-      assert_equal 'bar', params['foo']
+    params = parse_multipart('mixed_files')
+    assert_equal %w(files foo), params.keys.sort
+    assert_equal 'bar', params['foo']
 
-      # Rack doesn't handle multipart/mixed for us.
-      files = params['files']
-      files.force_encoding('ASCII-8BIT') if files.respond_to?(:force_encoding)
-      assert_equal 19756, files.size
-    end
+    # Rack doesn't handle multipart/mixed for us.
+    files = params['files']
+    files.force_encoding('ASCII-8BIT') if files.respond_to?(:force_encoding)
+    assert_equal 19756, files.size
   end
 
   test "does not create tempfile if no file has been selected" do

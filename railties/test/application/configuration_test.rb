@@ -12,7 +12,6 @@ end
 
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
-
 module ApplicationTests
   class ConfigurationTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
@@ -431,6 +430,62 @@ module ApplicationTests
 
       get "/"
       assert_equal 'true', last_response.body
+    end
+
+    test "config.action_controller.wrap_parameters is set in ActionController::Base" do
+      app_file 'config/initializers/wrap_parameters.rb', <<-RUBY
+        ActionController::Base.wrap_parameters :format => [:json]
+      RUBY
+
+      app_file 'app/models/post.rb', <<-RUBY
+      class Post
+        def self.column_names
+          %w(title)
+        end
+      end
+      RUBY
+
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render :text => params[:post].inspect
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.append do
+          resources :posts
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "rack/test"
+      extend Rack::Test::Methods
+
+      post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
+      assert_equal '{"title"=>"foo"}', last_response.body
+    end
+
+    test "config.action_dispatch.ignore_accept_header" do
+      make_basic_app do |app|
+        app.config.action_dispatch.ignore_accept_header = true
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          respond_to do |format|
+            format.html { render :text => "HTML" }
+            format.xml { render :text => "XML" }
+          end
+        end
+      end
+
+      get "/", {}, "HTTP_ACCEPT" => "application/xml"
+      assert_equal 'HTML', last_response.body
+
+      get "/", { :format => :xml }, "HTTP_ACCEPT" => "application/xml"
+      assert_equal 'XML', last_response.body
     end
   end
 end

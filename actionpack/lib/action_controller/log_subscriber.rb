@@ -7,8 +7,10 @@ module ActionController
     def start_processing(event)
       payload = event.payload
       params  = payload[:params].except(*INTERNAL_PARAMS)
+      format  = payload[:format]
+      format  = format.to_s.upcase if format.is_a?(Symbol)
 
-      info "  Processing by #{payload[:controller]}##{payload[:action]} as #{payload[:formats].first.to_s.upcase}"
+      info "  Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
       info "  Parameters: #{params.inspect}" unless params.empty?
     end
 

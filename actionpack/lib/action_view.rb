@@ -35,7 +35,6 @@ module ActionView
     autoload :Helpers
     autoload :LookupContext
     autoload :PathSet
-    autoload :Rendering
     autoload :Template
     autoload :TestCase
 

@@ -1,10 +1,13 @@
 require "cases/helper"
 require "models/developer"
+require "models/post"
 require "active_support/log_subscriber/test_helper"
 
 class LogSubscriberTest < ActiveRecord::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::BufferedLogger::Severity
+
+  fixtures :posts
 
   def setup
     @old_logger = ActiveRecord::Base.logger
@@ -90,5 +93,14 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_initializes_runtime
     Thread.new { assert_equal 0, ActiveRecord::LogSubscriber.runtime }.join
+  end
+
+  def test_log
+    ActiveRecord::IdentityMap.use do
+      Post.find 1
+      Post.find 1
+    end
+    wait
+    assert_match(/From Identity Map/, @logger.logged(:debug).last)
   end
 end

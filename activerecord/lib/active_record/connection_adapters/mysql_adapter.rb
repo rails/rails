@@ -517,6 +517,8 @@ module ActiveRecord
         end.join("")
       end
 
+      # Drops the database specified on the +name+ attribute
+      # and creates it again using the provided +options+.
       def recreate_database(name, options = {}) #:nodoc:
         drop_database(name)
         create_database(name, options)
@@ -560,9 +562,8 @@ module ActiveRecord
       end
 
       def tables(name = nil, database = nil) #:nodoc:
-        tables = []
         result = execute(["SHOW TABLES", database].compact.join(' IN '), 'SCHEMA')
-        result.each { |field| tables << field[0] }
+        tables = result.collect { |field| field[0] }
         result.free
         tables
       end
@@ -607,9 +608,8 @@ module ActiveRecord
       # Returns an array of +MysqlColumn+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil)#:nodoc:
         sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
-        columns = []
         result = execute(sql, 'SCHEMA')
-        result.each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
+        columns = result.collect { |field| MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
         result.free
         columns
       end

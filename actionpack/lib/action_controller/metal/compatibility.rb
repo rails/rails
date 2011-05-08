@@ -18,13 +18,10 @@ module ActionController
         delegate :default_charset=, :to => "ActionDispatch::Response"
       end
 
-      # TODO: Update protected instance variables list
-      config_accessor :protected_instance_variables
-      self.protected_instance_variables = %w(@assigns @performed_redirect @performed_render
-                                             @variables_added @request_origin @url
-                                             @parent_controller @action_name
-                                             @before_filter_chain_aborted @_headers @_params
-                                             @_response)
+      self.protected_instance_variables = %w(
+        @_status @_headers @_params @_env @_response @_request
+        @_view_runtime @_stream @_url_options @_action_has_layout
+      )
 
       def rescue_action(env)
         raise env["action_dispatch.rescue.exception"]

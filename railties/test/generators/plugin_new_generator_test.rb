@@ -22,6 +22,8 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   destination File.join(Rails.root, "tmp/bukkits")
   arguments [destination_root]
+
+  # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
   def default_files
@@ -103,8 +105,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_javascripts_generation
     run_generator [destination_root, "--mountable"]
     assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/jquery.js"
-    assert_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
   def test_skip_javascripts

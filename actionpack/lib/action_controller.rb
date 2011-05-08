@@ -23,6 +23,7 @@ module ActionController
     autoload :ImplicitRender
     autoload :Instrumentation
     autoload :MimeResponds
+    autoload :ParamsWrapper
     autoload :RackDelegation
     autoload :Redirecting
     autoload :Renderers

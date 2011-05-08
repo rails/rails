@@ -1,5 +1,8 @@
 require 'abstract_unit'
 
+# This is testing the decoupling of view renderer and view context
+# by allowing the controller to be used as view context. This is
+# similar to the way sinatra renders templates.
 module RenderContext
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
@@ -7,15 +10,11 @@ module RenderContext
       "layouts/basic.html.erb" => "?<%= yield %>?"
     )]
 
-    # Include ViewContext
+    # 1) Include ActionView::Context to bring the required dependencies
     include ActionView::Context
 
-    # And initialize the required variables
-    before_filter do
-      @output_buffer = nil
-      @virtual_path  = nil
-      @view_flow     = ActionView::OutputFlow.new
-    end
+    # 2) Call _prepare_context that will do the required initialization
+    before_filter :_prepare_context
 
     def hello_world
       @value = "Hello"
@@ -29,6 +28,7 @@ module RenderContext
 
     protected
 
+    # 3) Set view_context to self
     def view_context
       self
     end

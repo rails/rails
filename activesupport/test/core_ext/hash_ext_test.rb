@@ -897,7 +897,13 @@ class HashToXmlTest < Test::Unit::TestCase
     hash = Hash.from_xml(xml)
     assert_equal "bacon is the best", hash['blog']['name']
   end
-
+  
+  def test_empty_cdata_from_xml
+    xml = "<data><![CDATA[]]></data>"
+    
+    assert_equal "", Hash.from_xml(xml)["data"]
+  end
+  
   def test_xsd_like_types_from_xml
     bacon_xml = <<-EOT
     <bacon>
@@ -940,7 +946,7 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
-
+  
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia[:new_key]

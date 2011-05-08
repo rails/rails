@@ -438,6 +438,8 @@ ActiveRecord::Schema.define do
     t.references :number1_fan
     t.integer    :lock_version, :null => false, :default => 0
     t.string     :comments
+    t.references :best_friend
+    t.references :best_friend_of
     t.timestamps
   end
 

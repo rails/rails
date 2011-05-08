@@ -21,7 +21,6 @@ module ActionView
         return source if is_uri?(source)
 
         source = rewrite_extension(source, dir, ext) if ext
-        source = "/#{dir}/#{source}" unless source[0] == ?/
         source = rewrite_asset_path(source, dir)
 
         if controller && include_host

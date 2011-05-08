@@ -12,7 +12,6 @@ module Rails
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql )
       DATABASES.concat(JDBC_DATABASES)
-      JAVASCRIPTS = %w( jquery prototype )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -37,6 +36,9 @@ module Rails
 
         class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+
+        class_option :javascript,         :type => :string, :aliases => '-j', :default => 'jquery',
+                                          :desc => 'Preconfigure for selected JavaScript library'
 
         class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
                                           :desc => "Skip JavaScript files"
@@ -115,31 +117,25 @@ module Rails
       end
 
       def database_gemfile_entry
-        entry = options[:skip_active_record] ? "" : "gem '#{gem_for_database}'"
-        if options[:database] == 'mysql'
-          if options.dev? || options.edge?
-            entry += ", :git => 'git://github.com/brianmario/mysql2.git'"
-          else
-            entry += "\n# gem 'mysql2', :git => 'git://github.com/brianmario/mysql2.git'"
-          end
-        end
-        entry + "\n"
+        options[:skip_active_record] ? "" : "gem '#{gem_for_database}'\n"
+      end
+
+      def include_all_railties?
+        !options[:skip_active_record] && !options[:skip_test_unit]
+      end
+
+      def comment_if(value)
+        options[value] ? '#' : ''
       end
 
       def rails_gemfile_entry
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
-            gem 'rack',      :git => 'git://github.com/rack/rack.git'
-            gem 'sprockets', :git => 'git://github.com/sstephenson/sprockets.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :git => 'git://github.com/rails/rails.git'
-            gem 'arel',      :git => 'git://github.com/rails/arel.git'
-            gem 'rack',      :git => 'git://github.com/rack/rack.git'
-            gem 'sprockets', :git => 'git://github.com/sstephenson/sprockets.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
@@ -147,9 +143,6 @@ module Rails
 
             # Bundle edge Rails instead:
             # gem 'rails',     :git => 'git://github.com/rails/rails.git'
-            # gem 'arel',      :git => 'git://github.com/rails/arel.git'
-            # gem 'rack',      :git => 'git://github.com/rack/rack.git'
-            # gem 'sprockets', :git => 'git://github.com/sstephenson/sprockets.git'
           GEMFILE
         end
       end
@@ -167,7 +160,7 @@ module Rails
         else options[:database]
         end
       end
-      
+
       def gem_for_ruby_debugger
         if RUBY_VERSION < "1.9.2"
           "gem 'ruby-debug'"
@@ -175,7 +168,7 @@ module Rails
           "gem 'ruby-debug19', :require => 'ruby-debug'"
         end
       end
-      
+
       def gem_for_turn
         unless RUBY_VERSION < "1.9.2"
           <<-GEMFILE.strip_heredoc
@@ -185,6 +178,10 @@ module Rails
             end
           GEMFILE
         end
+      end
+
+      def gem_for_javascript
+        "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
       end
 
       def bundle_if_dev_or_edge
@@ -200,7 +197,7 @@ module Rails
         empty_directory(destination, config)
         git_keep(destination)
       end
-      
+
       def git_keep(destination)
         create_file("#{destination}/.gitkeep") unless options[:skip_git]
       end
