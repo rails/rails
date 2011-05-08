@@ -66,7 +66,14 @@ module ActiveRecord
           unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
 
           begin
-            require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
+            #FIXME
+            # Need this cause 'activerecord-jdbcmysql-adapter' gem having same file name.
+            if spec[:adapter] =~ /jdbcmysql/
+              require "active_record/connection_adapters/jdbc_#{spec[:adapter]}_adapter"
+            else
+              require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
+            end
+
           rescue LoadError => e
             raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{e})"
           end
