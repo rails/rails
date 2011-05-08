@@ -139,7 +139,10 @@ module ActiveSupport
     protected
 
     def _dasherize(key)
-      key.gsub(/(?!^[_]*)_(?![_]*$)/, '-')
+      left  = key.strip.rpartition(/^_*/)
+      right = left.pop.partition(/_*$/)
+      right.first.tr!('_ ', '--')
+      left.concat(right).join
     end
 
 	  # TODO: Add support for other encodings
