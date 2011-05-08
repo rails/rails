@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'rails/version'
+require 'active_support/concern'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
 require 'action_view/helpers/number_helper'
@@ -7,6 +8,19 @@ require 'action_view/helpers/number_helper'
 module ActiveSupport
   module Testing
     module Performance
+      extend ActiveSupport::Concern
+      
+      included do
+        superclass_delegating_accessor :profile_options
+        self.profile_options = {}
+
+        if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
+          include ForMiniTest
+        else
+          include ForClassicTestUnit
+        end
+      end
+      
       # each implementation should define metrics and freeze the defaults
       DEFAULTS =
         if ARGV.include?('--benchmark')  # HAX for rake test
@@ -16,11 +30,6 @@ module ActiveSupport
           { :runs => 1,
             :output => 'tmp/performance' }
         end
-
-      def self.included(base)
-        base.superclass_delegating_accessor :profile_options
-        base.profile_options = {}
-      end
       
       def full_profile_options
         DEFAULTS.merge(profile_options)
@@ -30,43 +39,77 @@ module ActiveSupport
         "#{self.class.name}##{method_name}"
       end
       
-      def run(result)
-        return if method_name =~ /^default_test$/
+      module ForMiniTest
+        def run(runner)
+          @runner = runner
 
-        yield(self.class::STARTED, name)
-        @_result = result
-
-        run_warmup
-        if full_profile_options && metrics = full_profile_options[:metrics]
-          metrics.each do |metric_name|
-            if klass = Metrics[metric_name.to_sym]
-              run_profile(klass.new)
-              result.add_run
-            else
-              puts '%20s: unsupported' % metric_name
+          run_warmup
+          if full_profile_options && metrics = full_profile_options[:metrics]
+            metrics.each do |metric_name|
+              if klass = Metrics[metric_name.to_sym]
+                run_profile(klass.new)
+              end
             end
           end
         end
 
-        yield(self.class::FINISHED, name)
+        def run_test(metric, mode)
+          result = '.'
+          begin
+            run_callbacks :setup
+            setup
+            metric.send(mode) { __send__ method_name }
+          rescue Exception => e
+            result = @runner.puke(self.class, method_name, e)
+          ensure
+            begin
+              teardown
+              run_callbacks :teardown, :enumerator => :reverse_each
+            rescue Exception => e
+              result = @runner.puke(self.class, method_name, e)
+            end
+          end
+          result
+        end
       end
 
-      def run_test(metric, mode)
-        run_callbacks :setup
-        setup
-        metric.send(mode) { __send__ @method_name }
-      rescue ::Test::Unit::AssertionFailedError => e
-        add_failure(e.message, e.backtrace)
-      rescue StandardError, ScriptError => e
-        add_error(e)
-      ensure
-        begin
-          teardown
-          run_callbacks :teardown, :enumerator => :reverse_each
+      module ForClassicTestUnit
+        def run(result)
+          return if method_name =~ /^default_test$/
+
+          yield(self.class::STARTED, name)
+          @_result = result
+
+          run_warmup
+          if full_profile_options && metrics = full_profile_options[:metrics]
+            metrics.each do |metric_name|
+              if klass = Metrics[metric_name.to_sym]
+                run_profile(klass.new)
+                result.add_run
+              end
+            end
+          end
+
+          yield(self.class::FINISHED, name)
+        end
+
+        def run_test(metric, mode)
+          run_callbacks :setup
+          setup
+          metric.send(mode) { __send__ @method_name }
         rescue ::Test::Unit::AssertionFailedError => e
-          add_failure(e.message, e.backtrace)
+        add_failure(e.message, e.backtrace)
         rescue StandardError, ScriptError => e
           add_error(e)
+        ensure
+          begin
+            teardown
+            run_callbacks :teardown, :enumerator => :reverse_each
+          rescue ::Test::Unit::AssertionFailedError => e
+            add_failure(e.message, e.backtrace)
+          rescue StandardError, ScriptError => e
+            add_error(e)
+          end
         end
       end
 

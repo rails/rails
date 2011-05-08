@@ -147,7 +147,7 @@ reset_session
 
 If you use the popular RestfulAuthentication plugin for user management, add reset_session to the SessionsController#create action. Note that this removes any value from the session, _(highlight)you have to transfer them to the new session_.
 
-Another countermeasure is to _(highlight)save user-specific properties in the session_, verify them every time a request comes in, and deny access, if the information does not match. Such properties could be the remote IP address or the user agent (the web browser name), though the latter is less user-specific. When saving the IP address, you have to bear in mind that there are Internet service providers or large organizations that put their users behind proxies. _(highlight)These might change over the course of a session_, so these users  will not be able to use your application, or only in a limited way.
+Another countermeasure is to _(highlight)save user-specific properties in the session_, verify them every time a request comes in, and deny access, if the information does not match. Such properties could be the remote IP address or the user agent (the web browser name), though the latter is less user-specific. When saving the IP address, you have to bear in mind that there are Internet service providers or large organizations that put their users behind proxies. _(highlight)These might change over the course of a session_, so these users will not be able to use your application, or only in a limited way.
 
 h4. Session Expiry
 
@@ -211,15 +211,7 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today‘s web browsers, however do not support them - only GET and POST. Rails uses a hidden +_method+ field to handle this barrier.
 
-_(highlight)The verify method in a controller can make sure that specific actions may not be used over GET_. Here is an example to verify the use of the transfer action over POST. If the action comes in using any other verb, it redirects to the list action.
-
-<ruby>
-verify :method => :post, :only => [:transfer], :redirect_to => {:action => :list}
-</ruby>
-
-With this precaution, the attack from above will not work, because the browser sends a GET request for images, which will not be accepted by the web application.
-
-But this was only the first step, because _(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
+_(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
 
 <html>
 <a href="http://www.harmless.com/" onclick="
@@ -238,7 +230,7 @@ Or the attacker places the code into the onmouseover event handler of an image:
 <img src="http://www.harmless.com/img" width="400" height="400" onmouseover="..." />
 </html>
 
-There are many other possibilities, including Ajax to attack the victim in the background. The  _(highlight)solution to this is including a security token in non-GET requests_ which check on the server-side. In Rails 2 or higher, this is a one-liner in the application controller:
+There are many other possibilities, including Ajax to attack the victim in the background. The _(highlight)solution to this is including a security token in non-GET requests_ which check on the server-side. In Rails 2 or higher, this is a one-liner in the application controller:
 
 <ruby>
 protect_from_forgery :secret => "123456789012345678901234567890..."
@@ -394,7 +386,7 @@ params[:user] # => {:name => “ow3ned”, :admin => true}
 
 So if you create a new user using mass-assignment, it may be too easy to become an administrator.
 
-Note that this vulnerability is not restricted to database columns.  Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method.  In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3.  The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+).  For example:
+Note that this vulnerability is not restricted to database columns.  Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
 
 <ruby>
   class Person < ActiveRecord::Base
@@ -418,10 +410,17 @@ To avoid this, Rails provides two class methods in your Active Record class to c
 attr_protected :admin
 </ruby>
 
++attr_protected+ also optionally takes a scope option using :as which allows you to define multiple mass-assignment groupings. If no scope is defined then attributes will be added to the default group.
+
+<ruby>
+attr_protected :last_login, :as => :admin
+</ruby>
+
 A much better way, because it follows the whitelist-principle, is the +attr_accessible+ method. It is the exact opposite of +attr_protected+, because _(highlight)it takes a list of attributes that will be accessible_. All other attributes will be protected. This way you won't forget to protect attributes when adding new ones in the course of development. Here is an example:
 
 <ruby>
 attr_accessible :name
+attr_accessible :name, :is_admin, :as => :admin
 </ruby>
 
 If you want to set a protected attribute, you will to have to assign it individually:
@@ -434,13 +433,43 @@ params[:user] # => {:name => "ow3ned", :admin => true}
 @user.admin # => true
 </ruby>
 
-A more paranoid technique to protect your whole project would be to enforce that all models whitelist their accessible attributes.  This can be easily achieved with a very simple initializer:
+When assigning attributes in Active Record using +attributes=+, or +update_attributes+ the :default scope will be used. To assign attributes using different scopes you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default scope will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
 
 <ruby>
-ActiveRecord::Base.send(:attr_accessible, nil)
+@user = User.new
+
+@user.assign_attributes({ :name => 'Josh', :is_admin => true })
+@user.name # => Josh
+@user.is_admin # => false
+
+@user.assign_attributes({ :name => 'Josh', :is_admin => true }, :as => :admin)
+@user.name # => Josh
+@user.is_admin # => true
+
+@user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
+@user.name # => Josh
+@user.is_admin # => true
 </ruby>
 
-This will create an empty whitelist of attributes available for mass assignment for all models in your app.  As such, your models will need to explicitly whitelist accessible parameters by using an +attr_accessible+ declaration.  This technique is best applied at the start of a new project.  However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to insert this initializer, run your tests, and expose each attribute (via +attr_accessible+) as dictated by your failing tests.
+In a similar way, +new+, +create+ and <tt>create!</tt> methods respect mass-assignment security and accepts either +:as+ or +:without_protection+ options. For example:
+
+<ruby>
+@user = User.new({ :name => 'Sebastian', :is_admin => true }, :as => :admin)
+@user.name # => Sebastian
+@user.is_admin # => true
+
+@user = User.create({ :name => 'Sebastian', :is_admin => true }, :without_protection => true)
+@user.name # => Sebastian
+@user.is_admin # => true
+</ruby>
+
+A more paranoid technique to protect your whole project would be to enforce that all models define their accessible attributes. This can be easily achieved with a very simple application config option of:
+
+<ruby>
+config.active_record.whitelist_attributes = true
+</ruby>
+
+This will create an empty whitelist of attributes available for mass-assignment for all models in your app. As such, your models will need to explicitly whitelist or blacklist accessible parameters by using an +attr_accessible+ or +attr_protected+ declaration.  This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to use this application config option; run your tests, and expose each attribute (via +attr_accessible+ or +attr_protected+) as dictated by your failing tests.
 
 h3. User Management
 

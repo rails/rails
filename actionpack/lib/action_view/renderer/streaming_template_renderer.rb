@@ -4,53 +4,11 @@
 require 'fiber' if defined?(Fiber)
 
 module ActionView
-  # Consider the following layout:
-  # 
-  #   <%= yield :header %>
-  #   2
-  #   <%= yield %>
-  #   5
-  #   <%= yield :footer %>
-  #
-  # And template:
-  #
-  #     <%= provide :header, "1" %>
-  #     3
-  #     4
-  #     <%= provide :footer, "6" %>
-  # 
-  # It will stream:
-  # 
-  #     "1\n", "2\n", "3\n4\n", "5\n", "6\n"
-  #
-  # Notice that once you <%= yield %>, it will render the whole template
-  # before streaming again. In the future, we can also support streaming
-  # from the template and not only the layout.
-  #
-  # Also, notice we use +provide+ instead of +content_for+, as +provide+
-  # gives the control back to the layout as soon as it is called.
-  # With +content_for+, it would render all the template to find all
-  # +content_for+ calls. For instance, consider this layout:
-  #
-  #   <%= yield :header %>
-  #
-  # With this template:
-  #
-  #   <%= content_for :header, "1" %>
-  #   <%= provide :header, "2" %>
-  #   <%= provide :header, "3" %>
-  #
-  # It will return "12\n" because +content_for+ continues rendering the
-  # template but it is returns back to the layout as soon as it sees the
-  # first +provide+.
-  #
   # == TODO
   #
-  # * Add streaming support in the controllers with no-cache settings
-  # * What should happen when an error happens?
   # * Support streaming from child templates, partials and so on.
-  # * Support on sprockets async JS load?
-  #
+  # * Integrate exceptions with exceptron
+  # * Rack::Cache needs to support streaming bodies
   class StreamingTemplateRenderer < TemplateRenderer #:nodoc:
     # A valid Rack::Body (i.e. it responds to each).
     # It is initialized with a block that, when called, starts
@@ -61,8 +19,27 @@ module ActionView
       end
 
       def each(&block)
-        @start.call(block)
+        begin
+          @start.call(block)
+        rescue Exception => exception
+          log_error(exception)
+          block.call ActionView::Base.streaming_completion_on_exception
+        end
         self
+      end
+
+      private
+
+      # This is the same logging logic as in ShowExceptions middleware.
+      # TODO Once "exceptron" is in, refactor this piece to simply re-use exceptron.
+      def log_error(exception) #:nodoc:
+        logger = ActionController::Base.logger
+        return unless logger
+
+        message = "\n#{exception.class} (#{exception.message}):\n"
+        message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+        message << "  " << exception.backtrace.join("\n  ")
+        logger.fatal("#{message}\n\n")
       end
     end
 
@@ -105,7 +82,7 @@ module ActionView
         # Set the view flow to support streaming. It will be aware
         # when to stop rendering the layout because it needs to search
         # something in the template and vice-versa.
-        view._view_flow = StreamingFlow.new(view, fiber)
+        view.view_flow = StreamingFlow.new(view, fiber)
 
         # Yo! Start the fiber!
         fiber.resume
@@ -117,7 +94,7 @@ module ActionView
           content = template.render(view, locals, &yielder)
 
           # Once rendering the template is done, sets its content in the :layout key.
-          view._view_flow.set(:layout, content)
+          view.view_flow.set(:layout, content)
 
           # In case the layout continues yielding, we need to resume
           # the fiber until all yields are handled.

@@ -1,6 +1,9 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
+
+# Make sure we're using pg high enough for PGResult#values
+gem 'pg', '~> 0.11'
 require 'pg'
 
 module ActiveRecord
@@ -95,6 +98,9 @@ module ActiveRecord
             # XML type
             when 'xml'
               :xml
+            # tsvector type
+            when 'tsvector'
+              :tsvector
             # Arrays
             when /^\D+\[\]$/
               :string
@@ -116,6 +122,14 @@ module ActiveRecord
         # Extracts the value from a PostgreSQL column default definition.
         def self.extract_value_from_default(default)
           case default
+            # This is a performance optimization for Ruby 1.9.2 in development.
+            # If the value is nil, we return nil straight away without checking
+            # the regular expressions. If we check each regular expression,
+            # Regexp#=== will call NilClass#to_str, which will trigger
+            # method_missing (defined by whiny nil in ActiveSupport) which
+            # makes this method very very slow.
+            when NilClass
+              nil
             # Numeric types
             when /\A\(?(-?\d+(\.\d*)?\)?)\z/
               $1
@@ -186,6 +200,11 @@ module ActiveRecord
           options = args.extract_options!
           column(args[0], 'xml', options)
         end
+
+        def tsvector(*args)
+          options = args.extract_options!
+          column(args[0], 'tsvector', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -203,7 +222,8 @@ module ActiveRecord
         :date        => { :name => "date" },
         :binary      => { :name => "bytea" },
         :boolean     => { :name => "boolean" },
-        :xml         => { :name => "xml" }
+        :xml         => { :name => "xml" },
+        :tsvector    => { :name => "tsvector" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -211,8 +231,8 @@ module ActiveRecord
         ADAPTER_NAME
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
+      # Returns +true+, since this connection adapter supports prepared statement
+      # caching.
       def supports_statement_cache?
         true
       end
@@ -225,7 +245,6 @@ module ActiveRecord
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
         @table_alias_length = nil
-        @postgresql_version = nil
         @statements = {}
 
         connect
@@ -237,6 +256,7 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      # Clears the prepared statements cache.
       def clear_cache!
         @statements.each_value do |value|
           @connection.query "DEALLOCATE #{value}"
@@ -246,28 +266,16 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        if @connection.respond_to?(:status)
-          @connection.status == PGconn::CONNECTION_OK
-        else
-          # We're asking the driver, not Active Record, so use @connection.query instead of #query
-          @connection.query 'SELECT 1'
-          true
-        end
-      # postgres-pr raises a NoMethodError when querying if no connection is available.
-      rescue PGError, NoMethodError
+        @connection.status == PGconn::CONNECTION_OK
+      rescue PGError
         false
       end
 
       # Close then reopen the connection.
       def reconnect!
-        if @connection.respond_to?(:reset)
-          clear_cache!
-          @connection.reset
-          configure_connection
-        else
-          disconnect!
-          connect
-        end
+        clear_cache!
+        @connection.reset
+        configure_connection
       end
 
       def reset!
@@ -275,7 +283,8 @@ module ActiveRecord
         super
       end
 
-      # Close the connection.
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         clear_cache!
         @connection.close rescue nil
@@ -285,7 +294,7 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
-      # Does PostgreSQL support migrations?
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
       end
@@ -311,6 +320,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true, since this connection adapter supports savepoints.
       def supports_savepoints?
         true
       end
@@ -366,7 +376,7 @@ module ActiveRecord
         case value
         when String
           return super unless 'bytea' == column.sql_type
-          escape_bytea(value)
+          { :value => value, :format => 1 }
         else
           super
         end
@@ -419,17 +429,17 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      def supports_disable_referential_integrity?() #:nodoc:
+      def supports_disable_referential_integrity? #:nodoc:
         true
       end
 
       def disable_referential_integrity #:nodoc:
-        if supports_disable_referential_integrity?() then
+        if supports_disable_referential_integrity? then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
         end
         yield
       ensure
-        if supports_disable_referential_integrity?() then
+        if supports_disable_referential_integrity? then
           execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
         end
       end
@@ -460,54 +470,50 @@ module ActiveRecord
       # create a 2D array representing the result set
       def result_as_array(res) #:nodoc:
         # check if we have any binary column and if they need escaping
-        unescape_col = []
-        res.nfields.times do |j|
-          unescape_col << res.ftype(j)
+        ftypes = Array.new(res.nfields) do |i|
+          [i, res.ftype(i)]
         end
 
-        ary = []
-        res.ntuples.times do |i|
-          ary << []
-          res.nfields.times do |j|
-            data = res.getvalue(i,j)
-            case unescape_col[j]
+        rows = res.values
+        return rows unless ftypes.any? { |_, x|
+          x == BYTEA_COLUMN_TYPE_OID || x == MONEY_COLUMN_TYPE_OID
+        }
 
-            # unescape string passed BYTEA field (OID == 17)
-            when BYTEA_COLUMN_TYPE_OID
-              data = unescape_bytea(data) if String === data
+        typehash = ftypes.group_by { |_, type| type }
+        binaries = typehash[BYTEA_COLUMN_TYPE_OID] || []
+        monies   = typehash[MONEY_COLUMN_TYPE_OID] || []
 
-            # If this is a money type column and there are any currency symbols,
-            # then strip them off. Indeed it would be prettier to do this in
-            # PostgreSQLColumn.string_to_decimal but would break form input
-            # fields that call value_before_type_cast.
-            when MONEY_COLUMN_TYPE_OID
-              # Because money output is formatted according to the locale, there are two
-              # cases to consider (note the decimal separators):
-              #  (1) $12,345,678.12
-              #  (2) $12.345.678,12
-              case data
-              when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                data.gsub!(/[^-\d.]/, '')
-              when /^-?\D+[\d.]+,\d{2}$/  # (2)
-                data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
-              end
+        rows.each do |row|
+          # unescape string passed BYTEA field (OID == 17)
+          binaries.each do |index, _|
+            row[index] = unescape_bytea(row[index])
+          end
+
+          # If this is a money type column and there are any currency symbols,
+          # then strip them off. Indeed it would be prettier to do this in
+          # PostgreSQLColumn.string_to_decimal but would break form input
+          # fields that call value_before_type_cast.
+          monies.each do |index, _|
+            data = row[index]
+            # Because money output is formatted according to the locale, there are two
+            # cases to consider (note the decimal separators):
+            #  (1) $12,345,678.12
+            #  (2) $12.345.678,12
+            case data
+            when /^-?\D+[\d,]+\.\d{2}$/  # (1)
+              data.gsub!(/[^-\d.]/, '')
+            when /^-?\D+[\d.]+,\d{2}$/  # (2)
+              data.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
             end
-            ary[i] << data
           end
         end
-        return ary
       end
 
 
       # Queries the database and returns the results in an Array-like object
       def query(sql, name = nil) #:nodoc:
         log(sql, name) do
-          if @async
-            res = @connection.async_exec(sql)
-          else
-            res = @connection.exec(sql)
-          end
-          return result_as_array(res)
+          result_as_array @connection.async_exec(sql)
         end
       end
 
@@ -515,11 +521,7 @@ module ActiveRecord
       # or raising a PGError exception otherwise.
       def execute(sql, name = nil)
         log(sql, name) do
-          if @async
-            @connection.async_exec(sql)
-          else
-            @connection.exec(sql)
-          end
+          @connection.async_exec(sql)
         end
       end
 
@@ -528,33 +530,26 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        return exec_no_cache(sql, name) if binds.empty?
-
         log(sql, name, binds) do
-          unless @statements.key? sql
-            nextkey = "a#{@statements.length + 1}"
-            @connection.prepare nextkey, sql
-            @statements[sql] = nextkey
-          end
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
 
-          key = @statements[sql]
-
-          # Clear the queue
-          @connection.get_last_result
-          @connection.send_query_prepared(key, binds.map { |col, val|
-            type_cast(val, col)
-          })
-          @connection.block
-          result = @connection.get_last_result
           ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
           result.clear
           return ret
         end
       end
 
-      def exec_insert(sql, name, binds)
-        exec_query(sql, name, binds)
+      def exec_delete(sql, name = 'SQL', binds = [])
+        log(sql, name, binds) do
+          result = binds.empty? ? exec_no_cache(sql, binds) :
+                                  exec_cache(sql, binds)
+          affected = result.cmd_tuples
+          result.clear
+          affected
+        end
       end
+      alias :exec_update :exec_delete
 
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)
         unless pk
@@ -641,7 +636,7 @@ module ActiveRecord
         execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
       end
 
-      # Drops a PostgreSQL database
+      # Drops a PostgreSQL database.
       #
       # Example:
       #   drop_database 'matt_development'
@@ -688,7 +683,7 @@ module ActiveRecord
         [schema, table]
       end
 
-      # Returns the list of all indexes for a table.
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
@@ -853,6 +848,9 @@ module ActiveRecord
       end
 
       # Renames a table.
+      #
+      # Example:
+      #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
@@ -933,31 +931,13 @@ module ActiveRecord
         order_columns.delete_if { |c| c.blank? }
         order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
 
-        # Return a DISTINCT ON() clause that's distinct on the columns we want but includes
-        # all the required columns for the ORDER BY to work properly.
-        sql = "DISTINCT ON (#{columns}) #{columns}, "
-        sql << order_columns * ', '
+        "DISTINCT #{columns}, #{order_columns * ', '}"
       end
 
       protected
-        # Returns the version of the connected PostgreSQL version.
+        # Returns the version of the connected PostgreSQL server.
         def postgresql_version
-          @postgresql_version ||=
-            if @connection.respond_to?(:server_version)
-              @connection.server_version
-            else
-              # Mimic PGconn.server_version behavior
-              begin
-                if query('SELECT version()')[0][0] =~ /PostgreSQL ([0-9.]+)/
-                  major, minor, tiny = $1.split(".")
-                  (major.to_i * 10000) + (minor.to_i * 100) + tiny.to_i
-                else
-                  0
-                end
-              rescue
-                0
-              end
-            end
+          @connection.server_version
         end
 
         def translate_exception(exception, message)
@@ -972,13 +952,26 @@ module ActiveRecord
         end
 
       private
-      def exec_no_cache(sql, name)
-        log(sql, name) do
-          result = @connection.async_exec(sql)
-          ret = ActiveRecord::Result.new(result.fields, result_as_array(result))
-          result.clear
-          ret
+      def exec_no_cache(sql, binds)
+        @connection.async_exec(sql)
+      end
+
+      def exec_cache(sql, binds)
+        unless @statements.key? sql
+          nextkey = "a#{@statements.length + 1}"
+          @connection.prepare nextkey, sql
+          @statements[sql] = nextkey
         end
+
+        key = @statements[sql]
+
+        # Clear the queue
+        @connection.get_last_result
+        @connection.send_query_prepared(key, binds.map { |col, val|
+          type_cast(val, col)
+        })
+        @connection.block
+        @connection.get_last_result
       end
 
         # The internal PostgreSQL identifier of the money data type.
@@ -990,10 +983,6 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @connection = PGconn.connect(*@connection_parameters)
-          PGconn.translate_results = false if PGconn.respond_to?(:translate_results=)
-
-          # Ignore async_exec and async_query when using postgres-pr.
-          @async = @connection.respond_to?(:async_exec)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
           # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
@@ -1007,11 +996,7 @@ module ActiveRecord
         # This is called by #connect and should not be called manually.
         def configure_connection
           if @config[:encoding]
-            if @connection.respond_to?(:set_client_encoding)
-              @connection.set_client_encoding(@config[:encoding])
-            else
-              execute("SET client_encoding TO '#{@config[:encoding]}'")
-            end
+            @connection.set_client_encoding(@config[:encoding])
           end
           self.client_min_messages = @config[:min_messages] if @config[:min_messages]
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
@@ -1093,4 +1078,3 @@ module ActiveRecord
     end
   end
 end
-

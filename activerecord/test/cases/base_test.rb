@@ -18,7 +18,7 @@ require 'models/comment'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
 require 'models/parrot'
-require 'models/loose_person'
+require 'models/person'
 require 'models/edge'
 require 'models/joke'
 require 'rexml/document'
@@ -489,6 +489,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 'value2', weird.send('a$b')
   end
 
+  def test_attributes_guard_protected_attributes_is_deprecated
+    attributes = { "title" => "An amazing title" }
+    topic = Topic.new
+    assert_deprecated { topic.send(:attributes=, attributes, false) }
+  end
+
   def test_multiparameter_attributes_on_date
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
@@ -569,6 +575,29 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
   end
 
+  def test_multiparameter_attributes_on_time_with_no_date
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      attributes = {
+        "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+    end
+    assert_equal("written_on", ex.errors[0].attribute)
+  end
+
+  def test_multiparameter_attributes_on_time_with_invalid_time_params
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      attributes = {
+        "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
+        "written_on(4i)" => "2004", "written_on(5i)" => "36", "written_on(6i)" => "64",
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+    end
+    assert_equal("written_on", ex.errors[0].attribute)
+  end
+
   def test_multiparameter_attributes_on_time_with_old_date
     attributes = {
       "written_on(1i)" => "1850", "written_on(2i)" => "6", "written_on(3i)" => "24",
@@ -578,6 +607,82 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # testing against to_s(:db) representation because either a Time or a DateTime might be returned, depending on platform
     assert_equal "1850-06-24 16:24:00", topic.written_on.to_s(:db)
+  end
+
+  def test_multiparameter_attributes_on_time_will_raise_on_big_time_if_missing_date_parts
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      attributes = {
+        "written_on(4i)" => "16", "written_on(5i)" => "24"
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+    end
+    assert_equal("written_on", ex.errors[0].attribute)
+  end
+
+  def test_multiparameter_attributes_on_time_with_raise_on_small_time_if_missing_date_parts
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      attributes = {
+        "written_on(4i)" => "16", "written_on(5i)" => "12", "written_on(6i)" => "02"
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+    end
+    assert_equal("written_on", ex.errors[0].attribute)
+  end
+
+  def test_multiparameter_attributes_on_time_will_ignore_hour_if_missing
+    attributes = {
+      "written_on(1i)" => "2004", "written_on(2i)" => "12", "written_on(3i)" => "12",
+      "written_on(5i)" => "12", "written_on(6i)" => "02"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal Time.local(2004, 12, 12, 0, 12, 2), topic.written_on
+  end
+
+  def test_multiparameter_attributes_on_time_will_ignore_hour_if_blank
+    attributes = {
+      "written_on(1i)" => "", "written_on(2i)" => "", "written_on(3i)" => "",
+      "written_on(4i)" => "", "written_on(5i)" => "12", "written_on(6i)" => "02"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal 1, topic.written_on.year
+    assert_equal 1, topic.written_on.month
+    assert_equal 1, topic.written_on.day
+    assert_equal 0, topic.written_on.hour
+    assert_equal 12, topic.written_on.min
+    assert_equal 2, topic.written_on.sec
+  end
+
+  def test_multiparameter_attributes_on_time_will_ignore_date_if_empty
+    attributes = {
+      "written_on(1i)" => "", "written_on(2i)" => "", "written_on(3i)" => "",
+      "written_on(4i)" => "16", "written_on(5i)" => "24"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal 1, topic.written_on.year
+    assert_equal 1, topic.written_on.month
+    assert_equal 1, topic.written_on.day
+    assert_equal 16, topic.written_on.hour
+    assert_equal 24, topic.written_on.min
+    assert_equal 0, topic.written_on.sec
+  end
+  def test_multiparameter_attributes_on_time_with_seconds_will_ignore_date_if_empty
+    attributes = {
+      "written_on(1i)" => "", "written_on(2i)" => "", "written_on(3i)" => "",
+      "written_on(4i)" => "16", "written_on(5i)" => "12", "written_on(6i)" => "02"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal 1, topic.written_on.year
+    assert_equal 1, topic.written_on.month
+    assert_equal 1, topic.written_on.day
+    assert_equal 16, topic.written_on.hour
+    assert_equal 12, topic.written_on.min
+    assert_equal 02, topic.written_on.sec
   end
 
   def test_multiparameter_attributes_on_time_with_utc
@@ -684,6 +789,42 @@ class BasicsTest < ActiveRecord::TestCase
     attributes = { "address(1)" => address.street, "address(2)" => address.city, "address(3)" => address.country }
     customer.attributes = attributes
     assert_equal address, customer.address
+  end
+
+  def test_multiparameter_assignment_of_aggregation_out_of_order
+    customer = Customer.new
+    address = Address.new("The Street", "The City", "The Country")
+    attributes = { "address(3)" => address.country, "address(2)" => address.city, "address(1)" => address.street }
+    customer.attributes = attributes
+    assert_equal address, customer.address
+  end
+
+  def test_multiparameter_assignment_of_aggregation_with_missing_values
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      customer = Customer.new
+      address = Address.new("The Street", "The City", "The Country")
+      attributes = { "address(2)" => address.city, "address(3)" => address.country }
+      customer.attributes = attributes
+    end
+    assert_equal("address", ex.errors[0].attribute)
+  end
+
+  def test_multiparameter_assignment_of_aggregation_with_blank_values
+    customer = Customer.new
+    address = Address.new("The Street", "The City", "The Country")
+    attributes = { "address(1)" => "", "address(2)" => address.city, "address(3)" => address.country }
+    customer.attributes = attributes
+    assert_equal Address.new(nil, "The City", "The Country"), customer.address
+  end
+
+  def test_multiparameter_assignment_of_aggregation_with_large_index
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      customer = Customer.new
+      address = Address.new("The Street", "The City", "The Country")
+      attributes = { "address(1)" => "The Street", "address(2)" => address.city, "address(3000)" => address.country }
+      customer.attributes = attributes
+    end
+    assert_equal("address", ex.errors[0].attribute)
   end
 
   def test_attributes_on_dummy_time
@@ -895,7 +1036,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = Geometric.find(g.id)
+      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment
@@ -923,7 +1064,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert g.save
 
       # Reload and check that we have all the geometric attributes.
-      h = Geometric.find(g.id)
+      h = ActiveRecord::IdentityMap.without { Geometric.find(g.id) }
 
       assert_equal '(5,6.1)', h.a_point
       assert_equal '[(2,3),(5.5,7)]', h.a_line_segment

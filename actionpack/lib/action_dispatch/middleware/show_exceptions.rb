@@ -50,7 +50,7 @@ module ActionDispatch
         # Only this middleware cares about RoutingError. So, let's just raise
         # it here.
         if headers['X-Cascade'] == 'pass'
-           raise ActionController::RoutingError, "No route matches #{env['PATH_INFO'].inspect}"
+           raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
         end
       rescue Exception => exception
         raise exception if env['action_dispatch.show_exceptions'] == false
@@ -116,7 +116,7 @@ module ActionDispatch
       end
 
       def render(status, body)
-        [status, {'Content-Type' => 'text/html', 'Content-Length' => body.bytesize.to_s}, [body]]
+        [status, {'Content-Type' => "text/html; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
       end
 
       def public_path

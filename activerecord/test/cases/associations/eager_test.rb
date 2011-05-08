@@ -171,6 +171,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_associations_loaded_for_all_records
+    post = Post.create!(:title => 'foo', :body => "I like cars!")
+    SpecialComment.create!(:body => 'Come on!', :post => post)
+    first_category = Category.create! :name => 'First!', :posts => [post]
+    second_category = Category.create! :name => 'Second!', :posts => [post]
+
+    categories = Category.where(:id => [first_category.id, second_category.id]).includes(:posts => :special_comments)
+    assert_equal categories.map { |category| category.posts.first.special_comments.loaded? }, [true, true]
+  end
+
   def test_finding_with_includes_on_has_many_association_with_same_include_includes_only_once
     author_id = authors(:david).id
     author = assert_queries(3) { Author.find(author_id, :include => {:posts_with_comments => :comments}) } # find the author, then find the posts, then find the comments

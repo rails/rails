@@ -1,10 +1,38 @@
 *Rails 3.1.0 (unreleased)*
 
+* Allow AM/PM format in datetime selectors [Aditya Sanghi]
+
+* Only show dump of regular env methods on exception screen (not all the rack crap) [DHH]
+
+* auto_link has been removed with no replacement.  If you still use auto_link
+  please install the rails_autolink gem:
+    http://github.com/tenderlove/rails_autolink
+
+  [tenderlove]
+
+* Added streaming support, you can enable it with: [José Valim]
+
+    class PostsController < ActionController::Base
+      stream :only => :index
+    end
+  
+  Please read the docs at `ActionController::Streaming` for more information.
+
+* Added `ActionDispatch::Request.ignore_accept_header` to ignore accept headers and only consider the format given as parameter [José Valim]
+
+* Created `ActionView::Renderer` and specified an API for `ActionView::Context`, check those objects for more information [José Valim]
+
+* Added `ActionController::ParamsWrapper` to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default [Prem Sichanugrist]
+
+  This can be customized by setting `ActionController::Base.wrap_parameters` in `config/initializer/wrap_parameters.rb`
+
 * RJS has been extracted out to a gem. [fxn]
 
-* Implicit actions named not_implemented can be rendered [Santiago Pastorino]
+* Implicit actions named not_implemented can be rendered. [Santiago Pastorino]
 
-* Wildcard route will always matching the optional format segment by default. For example if you have this route:
+* Wildcard route will always match the optional format segment by default. [Prem Sichanugrist]
+
+  For example if you have this route:
 
     map '*pages' => 'pages#show'
 
@@ -87,8 +115,6 @@ tested.
     # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
 
   Keys are dasherized. Values are JSON-encoded, except for strings and symbols. [Stephen Celis]
-
-* Added render :once. You can pass either a string or an array of strings and Rails will ensure they each of them are rendered just once. [José Valim]
 
 * Deprecate old template handler API. The new API simply requires a template handler to respond to call. [José Valim]
 

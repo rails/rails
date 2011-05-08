@@ -292,15 +292,15 @@ module AbstractController
       end
     end
 
-    attr_writer :action_has_layout
+    attr_internal_writer :action_has_layout
 
     def initialize(*)
-      @action_has_layout = true
+      @_action_has_layout = true
       super
     end
 
     def action_has_layout?
-      @action_has_layout
+      @_action_has_layout
     end
 
   private

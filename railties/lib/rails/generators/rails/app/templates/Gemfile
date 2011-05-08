@@ -4,10 +4,14 @@ source 'http://rubygems.org'
 
 <%= database_gemfile_entry -%>
 
+<%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) && JRUBY_VERSION < "1.6" -%>
 # Asset template engines
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
-gem 'sass', '~> 3.1.0.alpha'
+gem 'sass'
 gem 'coffee-script'
+gem 'uglifier'
+
+<%= gem_for_javascript %>
 
 # Use unicorn as the web server
 # gem 'unicorn'

@@ -1,145 +1,263 @@
 require 'active_support/core_ext/file/path'
+require 'rack/chunked'
 
 module ActionController #:nodoc:
-  # Methods for sending arbitrary data and for streaming files to the browser,
-  # instead of rendering.
+  # Allows views to be streamed back to the client as they are rendered.
+  #
+  # The default way Rails renders views is by first rendering the template
+  # and then the layout. The response is sent to the client after the whole
+  # template is rendered, all queries are made, and the layout is processed.
+  #
+  # Streaming inverts the rendering flow by rendering the layout first and
+  # streaming each part of the layout as they are processed. This allows the
+  # header of the HTML (which is usually in the layout) to be streamed back
+  # to client very quickly, allowing JavaScripts and stylesheets to be loaded
+  # earlier than usual.
+  #
+  # This approach was introduced in Rails 3.1 and is still improving. Several
+  # Rack middlewares may not work and you need to be careful when streaming.
+  # Those points are going to be addressed soon.
+  #
+  # In order to use streaming, you will need to use a Ruby version that
+  # supports fibers (fibers are supported since version 1.9.2 of the main
+  # Ruby implementation).
+  #
+  # == Examples
+  #
+  # Streaming can be added to a controller easily, all you need to do is
+  # call +stream+ in the controller class:
+  #
+  #   class PostsController
+  #     stream
+  #   end
+  #
+  # The +stream+ method accepts the same options as +before_filter+ and friends:
+  #
+  #   class PostsController
+  #     stream :only => :index
+  #   end
+  #
+  # You can also selectively turn on streaming for specific actions:
+  #
+  #   class PostsController
+  #     def index
+  #       @posts = Post.scoped
+  #       render :stream => true
+  #     end
+  #   end
+  #
+  # == When to use streaming
+  #
+  # Streaming may be considered to be overkill for lightweight actions like
+  # +new+ or +edit+. The real benefit of streaming is on expensive actions
+  # that, for example, do a lot of queries on the database.
+  #
+  # In such actions, you want to delay queries execution as much as you can.
+  # For example, imagine the following +dashboard+ action:
+  #
+  #   def dashboard
+  #     @posts = Post.all
+  #     @pages = Page.all
+  #     @articles = Article.all
+  #   end
+  #
+  # Most of the queries here are happening in the controller. In order to benefit
+  # from streaming you would want to rewrite it as:
+  #
+  #   def dashboard
+  #     # Allow lazy execution of the queries
+  #     @posts = Post.scoped
+  #     @pages = Page.scoped
+  #     @articles = Article.scoped
+  #     render :stream => true
+  #   end
+  #
+  # == Communication between layout and template
+  #
+  # When streaming, rendering happens top-down instead of inside-out.
+  # Rails starts with the layout, and the template is rendered later,
+  # when its +yield+ is reached.
+  #
+  # This means that, if your application currently relies on instance
+  # variables set in the template to be used in the layout, they won't
+  # work once you move to streaming. The proper way to communicate
+  # between layout and template, regardless of whether you use streaming
+  # or not, is by using +content_for+, +provide+ and +yield+.
+  #
+  # Take a simple example where the layout expects the template to tell
+  # which title to use:
+  #
+  #   <html>
+  #     <head><title><%= yield :title %></title></head>
+  #     <body><%= yield %></body>
+  #   </html>
+  #
+  # You would use +content_for+ in your template to specify the title:
+  #
+  #   <%= content_for :title, "Main" %>
+  #   Hello
+  #
+  # And the final result would be:
+  #
+  #   <html>
+  #     <head><title>Main</title></head>
+  #     <body>Hello</body>
+  #   </html>
+  #
+  # However, if +content_for+ is called several times, the final result
+  # would have all calls concatenated. For instance, if we have the following
+  # template:
+  #
+  #   <%= content_for :title, "Main" %>
+  #   Hello
+  #   <%= content_for :title, " page" %>
+  #
+  # The final result would be:
+  #
+  #   <html>
+  #     <head><title>Main page</title></head>
+  #     <body>Hello</body>
+  #   </html>
+  #
+  # This means that, if you have <code>yield :title</code> in your layout
+  # and you want to use streaming, you would have to render the whole template
+  # (and eventually trigger all queries) before streaming the title and all
+  # assets, which kills the purpose of streaming. For this reason Rails 3.1
+  # introduces a new helper called +provide+ that does the same as +content_for+
+  # but tells the layout to stop searching for other entries and continue rendering.
+  #
+  # For instance, the template above using +provide+ would be:
+  #
+  #   <%= provide :title, "Main" %>
+  #   Hello
+  #   <%= content_for :title, " page" %>
+  #
+  # Giving:
+  #
+  #   <html>
+  #     <head><title>Main</title></head>
+  #     <body>Hello</body>
+  #   </html>
+  #
+  # That said, when streaming, you need to properly check your templates
+  # and choose when to use +provide+ and +content_for+.
+  #
+  # == Headers, cookies, session and flash
+  #
+  # When streaming, the HTTP headers are sent to the client right before
+  # it renders the first line. This means that, modifying headers, cookies,
+  # session or flash after the template starts rendering will not propagate
+  # to the client.
+  #
+  # If you try to modify cookies, session or flash, an +ActionDispatch::ClosedError+
+  # will be raised, showing those objects are closed for modification.
+  #
+  # == Middlewares
+  #
+  # Middlewares that need to manipulate the body won't work with streaming.
+  # You should disable those middlewares whenever streaming in development
+  # or production. For instance, +Rack::Bug+ won't work when streaming as it
+  # needs to inject contents in the HTML body.
+  #
+  # Also +Rack::Cache+ won't work with streaming as it does not support
+  # streaming bodies yet. Whenever streaming Cache-Control is automatically
+  # set to "no-cache".
+  #
+  # == Errors
+  #
+  # When it comes to streaming, exceptions get a bit more complicated. This
+  # happens because part of the template was already rendered and streamed to
+  # the client, making it impossible to render a whole exception page.
+  #
+  # Currently, when an exception happens in development or production, Rails
+  # will automatically stream to the client:
+  #
+  #   "><script type="text/javascript">window.location = "/500.html"</script></html>
+  #
+  # The first two characters (">) are required in case the exception happens
+  # while rendering attributes for a given tag. You can check the real cause
+  # for the exception in your logger.
+  #
+  # == Web server support
+  #
+  # Not all web servers support streaming out-of-the-box. You need to check
+  # the instructions for each of them.
+  #
+  # ==== Unicorn
+  #
+  # Unicorn supports streaming but it needs to be configured. For this, you
+  # need to create a config file as follow:
+  #
+  #   # unicorn.config.rb
+  #   listen 3000, :tcp_nopush => false
+  #
+  # And use it on initialization:
+  #
+  #   unicorn_rails --config-file unicorn.config.rb
+  #
+  # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
+  # Please check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
+  #
+  # If you are using Unicorn with Nginx, you may need to tweak Nginx.
+  # Streaming should work out of the box on Rainbows.
+  #
+  # ==== Passenger
+  #
+  # To be described.
+  # 
   module Streaming
     extend ActiveSupport::Concern
 
-    include ActionController::Rendering
+    include AbstractController::Rendering
+    attr_internal :stream
 
-    DEFAULT_SEND_FILE_OPTIONS = {
-      :type         => 'application/octet-stream'.freeze,
-      :disposition  => 'attachment'.freeze,
-    }.freeze
+    module ClassMethods
+      # Render streaming templates. It accepts :only, :except, :if and :unless as options
+      # to specify when to stream, as in ActionController filters.
+      def stream(options={})
+        if defined?(Fiber)
+          before_filter :_stream_filter, options
+        else
+          raise "You cannot use streaming if Fiber is not available."
+        end
+      end
+    end
 
     protected
-      # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
-      # via the Rack::Sendfile middleware. The header to use is set via
-      # config.action_dispatch.x_sendfile_header, and defaults to "X-Sendfile".
-      # Your server can also configure this for you by setting the X-Sendfile-Type header.
-      #
-      # Be careful to sanitize the path parameter if it is coming from a web
-      # page. <tt>send_file(params[:path])</tt> allows a malicious user to
-      # download any file on your server.
-      #
-      # Options:
-      # * <tt>:filename</tt> - suggests a filename for the browser to use.
-      #   Defaults to <tt>File.basename(path)</tt>.
-      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'. You can specify
-      #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
-      #   Valid values are 'inline' and 'attachment' (default).
-      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
-      # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser guess the filename from
-      #   the URL, which is necessary for i18n filenames on certain browsers
-      #   (setting <tt>:filename</tt> overrides this option).
-      #
-      # The default Content-Type and Content-Disposition headers are
-      # set to download arbitrary binary files in as many browsers as
-      # possible.  IE versions 4, 5, 5.5, and 6 are all known to have
-      # a variety of quirks (especially when downloading over SSL).
-      #
-      # Simple download:
-      #
-      #   send_file '/path/to.zip'
-      #
-      # Show a JPEG in the browser:
-      #
-      #   send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
-      #
-      # Show a 404 page in the browser:
-      #
-      #   send_file '/path/to/404.html', :type => 'text/html; charset=utf-8', :status => 404
-      #
-      # Read about the other Content-* HTTP headers if you'd like to
-      # provide the user with more information (such as Content-Description) in
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11.
-      #
-      # Also be aware that the document may be cached by proxies and browsers.
-      # The Pragma and Cache-Control headers declare how the file may be cached
-      # by intermediaries.  They default to require clients to validate with
-      # the server before releasing cached responses.  See
-      # http://www.mnot.net/cache_docs/ for an overview of web caching and
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
-      # for the Cache-Control header spec.
-      def send_file(path, options = {}) #:doc:
-        raise MissingFile, "Cannot read file #{path}" unless File.file?(path) and File.readable?(path)
 
-        options[:filename] ||= File.basename(path) unless options[:url_based_filename]
-        send_file_headers! options
+    # Mark following render calls as streaming.
+    def _stream_filter #:nodoc:
+      self.stream = true
+    end
 
-        self.status = options[:status] || 200
-        self.content_type = options[:content_type] if options.key?(:content_type)
-        self.response_body = File.open(path, "rb")
-      end
+    # Consider the stream option when normalazing options.
+    def _normalize_options(options) #:nodoc:
+      super
+      options[:stream] = self.stream unless options.key?(:stream)
+    end
 
-      # Sends the given binary data to the browser. This method is similar to
-      # <tt>render :text => data</tt>, but also allows you to specify whether
-      # the browser should display the response as a file attachment (i.e. in a
-      # download dialog) or as inline data. You may also set the content type,
-      # the apparent file name, and other things.
-      #
-      # Options:
-      # * <tt>:filename</tt> - suggests a filename for the browser to use.
-      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'. You can specify
-      #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
-      #   Valid values are 'inline' and 'attachment' (default).
-      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
-      #
-      # Generic data download:
-      #
-      #   send_data buffer
-      #
-      # Download a dynamically-generated tarball:
-      #
-      #   send_data generate_tgz('dir'), :filename => 'dir.tgz'
-      #
-      # Display an image Active Record in the browser:
-      #
-      #   send_data image.data, :type => image.content_type, :disposition => 'inline'
-      #
-      # See +send_file+ for more information on HTTP Content-* headers and caching.
-      def send_data(data, options = {}) #:doc:
-        send_file_headers! options.dup
-        render options.slice(:status, :content_type).merge(:text => data)
-      end
-
-    private
-      def send_file_headers!(options)
-        options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
-        [:type, :disposition].each do |arg|
-          raise ArgumentError, ":#{arg} option required" if options[arg].nil?
-        end
-
-        disposition = options[:disposition]
-        disposition += %(; filename="#{options[:filename]}") if options[:filename]
-
-        content_type = options[:type]
-
-        if content_type.is_a?(Symbol)
-          extension = Mime[content_type]
-          raise ArgumentError, "Unknown MIME type #{options[:type]}" unless extension
-          self.content_type = extension
+    # Set proper cache control and transfer encoding when streaming
+    def _process_options(options) #:nodoc:
+      super
+      if options[:stream]
+        if env["HTTP_VERSION"] == "HTTP/1.0"
+          options.delete(:stream)
         else
-          self.content_type = content_type
+          headers["Cache-Control"] ||= "no-cache"
+          headers["Transfer-Encoding"] = "chunked"
+          headers.delete("Content-Length")
         end
-
-        headers.merge!(
-          'Content-Disposition'       => disposition,
-          'Content-Transfer-Encoding' => 'binary'
-        )
-
-        response.sending_file = true
-
-        # Fix a problem with IE 6.0 on opening downloaded files:
-        # If Cache-Control: no-cache is set (which Rails does by default),
-        # IE removes the file it just downloaded from its cache immediately
-        # after it displays the "open/save" dialog, which means that if you
-        # hit "open" the file isn't there anymore when the application that
-        # is called for handling the download is run, so let's workaround that
-        response.cache_control[:public] ||= false
       end
+    end
+
+    # Call render_to_body if we are streaming instead of usual +render+.
+    def _render_template(options) #:nodoc:
+      if options.delete(:stream)
+        Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
+      else
+        super
+      end
+    end
   end
 end
+      

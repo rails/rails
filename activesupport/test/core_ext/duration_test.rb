@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/inflector'
 require 'active_support/time'
 require 'active_support/json'
 

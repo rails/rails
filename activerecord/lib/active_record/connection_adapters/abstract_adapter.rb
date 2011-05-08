@@ -46,34 +46,34 @@ module ActiveRecord
         @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
-      # Returns the human-readable name of the adapter.  Use mixed case - one
+      # Returns the human-readable name of the adapter. Use mixed case - one
       # can always use downcase if needed.
       def adapter_name
         'Abstract'
       end
 
-      # Does this adapter support migrations?  Backend specific, as the
+      # Does this adapter support migrations? Backend specific, as the
       # abstract adapter always returns +false+.
       def supports_migrations?
         false
       end
 
       # Can this adapter determine the primary key for tables not attached
-      # to an Active Record class, such as join tables?  Backend specific, as
+      # to an Active Record class, such as join tables? Backend specific, as
       # the abstract adapter always returns +false+.
       def supports_primary_key?
         false
       end
 
-      # Does this adapter support using DISTINCT within COUNT?  This is +true+
+      # Does this adapter support using DISTINCT within COUNT? This is +true+
       # for all adapters except sqlite.
       def supports_count_distinct?
         true
       end
 
-      # Does this adapter support DDL rollbacks in transactions?  That is, would
-      # CREATE TABLE or ALTER TABLE get rolled back by a transaction?  PostgreSQL,
-      # SQL Server, and others support this.  MySQL and others do not.
+      # Does this adapter support DDL rollbacks in transactions? That is, would
+      # CREATE TABLE or ALTER TABLE get rolled back by a transaction? PostgreSQL,
+      # SQL Server, and others support this. MySQL and others do not.
       def supports_ddl_transactions?
         false
       end
@@ -89,7 +89,7 @@ module ActiveRecord
       end
 
       # Should primary key values be selected from their corresponding
-      # sequence before the insert statement?  If true, next_sequence_value
+      # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
       # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
@@ -149,7 +149,7 @@ module ActiveRecord
 
       ###
       # Clear any caching the database adapter may be doing, for example
-      # clearing the prepared statement cache.  This is database specific.
+      # clearing the prepared statement cache. This is database specific.
       def clear_cache!
         # this should be overridden by concrete adapters
       end
@@ -223,7 +223,9 @@ module ActiveRecord
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
           @logger.debug message if @logger
-          raise translate_exception(e, message)
+          exception = translate_exception(e, message)
+          exception.set_backtrace e.backtrace
+          raise exception
         end
 
         def translate_exception(e, message)

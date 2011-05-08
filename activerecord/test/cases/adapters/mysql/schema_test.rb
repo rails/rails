@@ -31,6 +31,6 @@ module ActiveRecord
       def test_table_exists_wrong_schema
         assert(!@connection.table_exists?("#{@db_name}.zomg"), "table should not exist")
       end
-    end if current_adapter?(:MysqlAdapter)
+    end
   end
 end

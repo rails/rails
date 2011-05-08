@@ -3,8 +3,65 @@ require 'models/company'
 require 'models/subscriber'
 require 'models/keyboard'
 require 'models/task'
+require 'models/person'
+
+
+module MassAssignmentTestHelpers
+  def setup
+    # another AR test modifies the columns which causes issues with create calls
+    TightPerson.reset_column_information
+    LoosePerson.reset_column_information
+  end
+
+  def attributes_hash
+    {
+      :id => 5,
+      :first_name => 'Josh',
+      :gender   => 'm',
+      :comments => 'rides a sweet bike'
+    }
+  end
+
+  def assert_default_attributes(person, create = false)
+    unless create
+      assert_nil person.id
+    else
+      assert !!person.id
+    end
+    assert_equal 'Josh', person.first_name
+    assert_equal 'm',    person.gender
+    assert_nil person.comments
+  end
+
+  def assert_admin_attributes(person, create = false)
+    unless create
+      assert_nil person.id
+    else
+      assert !!person.id
+    end
+    assert_equal 'Josh', person.first_name
+    assert_equal 'm',    person.gender
+    assert_equal 'rides a sweet bike', person.comments
+  end
+
+  def assert_all_attributes(person)
+    assert_equal 5, person.id
+    assert_equal 'Josh', person.first_name
+    assert_equal 'm',    person.gender
+    assert_equal 'rides a sweet bike', person.comments
+  end
+end
+
+module MassAssignmentRelationTestHelpers
+  def setup
+    super
+    @person = LoosePerson.create(attributes_hash)
+  end
+end
+
 
 class MassAssignmentSecurityTest < ActiveRecord::TestCase
+  include MassAssignmentTestHelpers
 
   def test_customized_primary_key_remains_protected
     subscriber = Subscriber.new(:nick => 'webster123', :name => 'nice try')
@@ -30,6 +87,120 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     end
   end
 
+  def test_assign_attributes_uses_default_scope_when_no_scope_is_provided
+    p = LoosePerson.new
+    p.assign_attributes(attributes_hash)
+
+    assert_default_attributes(p)
+  end
+
+  def test_assign_attributes_skips_mass_assignment_security_protection_when_without_protection_is_used
+    p = LoosePerson.new
+    p.assign_attributes(attributes_hash, :without_protection => true)
+
+    assert_all_attributes(p)
+  end
+
+  def test_assign_attributes_with_default_scope_and_attr_protected_attributes
+    p = LoosePerson.new
+    p.assign_attributes(attributes_hash, :as => :default)
+
+    assert_default_attributes(p)
+  end
+
+  def test_assign_attributes_with_admin_scope_and_attr_protected_attributes
+    p = LoosePerson.new
+    p.assign_attributes(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p)
+  end
+
+  def test_assign_attributes_with_default_scope_and_attr_accessible_attributes
+    p = TightPerson.new
+    p.assign_attributes(attributes_hash, :as => :default)
+
+    assert_default_attributes(p)
+  end
+
+  def test_assign_attributes_with_admin_scope_and_attr_accessible_attributes
+    p = TightPerson.new
+    p.assign_attributes(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p)
+  end
+
+  def test_new_with_attr_accessible_attributes
+    p = TightPerson.new(attributes_hash)
+
+    assert_default_attributes(p)
+  end
+
+  def test_new_with_attr_protected_attributes
+    p = LoosePerson.new(attributes_hash)
+
+    assert_default_attributes(p)
+  end
+
+  def test_create_with_attr_accessible_attributes
+    p = TightPerson.create(attributes_hash)
+
+    assert_default_attributes(p, true)
+  end
+
+  def test_create_with_attr_protected_attributes
+    p = LoosePerson.create(attributes_hash)
+
+    assert_default_attributes(p, true)
+  end
+
+  def test_new_with_admin_scope_with_attr_accessible_attributes
+    p = TightPerson.new(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p)
+  end
+
+  def test_new_with_admin_scope_with_attr_protected_attributes
+    p = LoosePerson.new(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p)
+  end
+
+  def test_create_with_admin_scope_with_attr_accessible_attributes
+    p = TightPerson.create(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p, true)
+  end
+
+  def test_create_with_admin_scope_with_attr_protected_attributes
+    p = LoosePerson.create(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p, true)
+  end
+
+  def test_new_with_without_protection_with_attr_accessible_attributes
+    p = TightPerson.new(attributes_hash, :without_protection => true)
+
+    assert_all_attributes(p)
+  end
+
+  def test_new_with_without_protection_with_attr_protected_attributes
+    p = LoosePerson.new(attributes_hash, :without_protection => true)
+
+    assert_all_attributes(p)
+  end
+
+  def test_create_with_without_protection_with_attr_accessible_attributes
+    p = TightPerson.create(attributes_hash, :without_protection => true)
+
+    assert_all_attributes(p)
+  end
+
+  def test_create_with_without_protection_with_attr_protected_attributes
+    p = LoosePerson.create(attributes_hash, :without_protection => true)
+
+    assert_all_attributes(p)
+  end
+
   def test_protection_against_class_attribute_writers
     [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names,
      :default_timezone, :schema_format, :lock_optimistically, :record_timestamps].each do |method|
@@ -38,6 +209,270 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
       assert_respond_to  Task.new, method
       assert !Task.new.respond_to?("#{method}=")
     end
+  end
+
+end
+
+
+class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
+  include MassAssignmentTestHelpers
+  include MassAssignmentRelationTestHelpers
+
+  # build
+
+  def test_has_one_build_with_attr_protected_attributes
+    best_friend = @person.build_best_friend(attributes_hash)
+    assert_default_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_attr_accessible_attributes
+    best_friend = @person.build_best_friend(attributes_hash)
+    assert_default_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.build_best_friend(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.build_best_friend(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend)
+  end
+
+  def test_has_one_build_without_protection
+    best_friend = @person.build_best_friend(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+  # create
+
+  def test_has_one_create_with_attr_protected_attributes
+    best_friend = @person.create_best_friend(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.create_best_friend(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_without_protection
+    best_friend = @person.create_best_friend(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+  # create!
+
+  def test_has_one_create_with_bang_with_attr_protected_attributes
+    best_friend = @person.create_best_friend!(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend!(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_without_protection
+    best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+end
+
+
+class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
+  include MassAssignmentTestHelpers
+  include MassAssignmentRelationTestHelpers
+
+  # build
+
+  def test_has_one_build_with_attr_protected_attributes
+    best_friend = @person.build_best_friend_of(attributes_hash)
+    assert_default_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_attr_accessible_attributes
+    best_friend = @person.build_best_friend_of(attributes_hash)
+    assert_default_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.build_best_friend_of(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.build_best_friend_of(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend)
+  end
+
+  def test_has_one_build_without_protection
+    best_friend = @person.build_best_friend_of(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+  # create
+
+  def test_has_one_create_with_attr_protected_attributes
+    best_friend = @person.create_best_friend_of(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend_of(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.create_best_friend_of(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend_of(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_without_protection
+    best_friend = @person.create_best_friend_of(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+  # create!
+
+  def test_has_one_create_with_bang_with_attr_protected_attributes
+    best_friend = @person.create_best_friend!(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend!(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_without_protection
+    best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+end
+
+
+class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
+  include MassAssignmentTestHelpers
+  include MassAssignmentRelationTestHelpers
+
+  # build
+
+  def test_has_one_build_with_attr_protected_attributes
+    best_friend = @person.best_friends.build(attributes_hash)
+    assert_default_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_attr_accessible_attributes
+    best_friend = @person.best_friends.build(attributes_hash)
+    assert_default_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.best_friends.build(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend)
+  end
+
+  def test_has_one_build_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.best_friends.build(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend)
+  end
+
+  def test_has_one_build_without_protection
+    best_friend = @person.best_friends.build(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+  # create
+
+  def test_has_one_create_with_attr_protected_attributes
+    best_friend = @person.best_friends.create(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_attr_accessible_attributes
+    best_friend = @person.best_friends.create(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.best_friends.create(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.best_friends.create(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_without_protection
+    best_friend = @person.best_friends.create(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+  # create!
+
+  def test_has_one_create_with_bang_with_attr_protected_attributes
+    best_friend = @person.best_friends.create!(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_attr_accessible_attributes
+    best_friend = @person.best_friends.create!(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_admin_scope_with_attr_protected_attributes
+    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_with_admin_scope_with_attr_accessible_attributes
+    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_one_create_with_bang_without_protection
+    best_friend = @person.best_friends.create!(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
   end
 
 end

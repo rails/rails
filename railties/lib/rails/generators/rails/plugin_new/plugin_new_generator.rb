@@ -13,11 +13,13 @@ module Rails
         directory "app"
         template "#{app_templates_dir}/app/views/layouts/application.html.erb.tt",
                  "app/views/layouts/#{name}/application.html.erb"
+        empty_directory_with_gitkeep "app/assets/images"
       elsif full?
         empty_directory_with_gitkeep "app/models"
         empty_directory_with_gitkeep "app/controllers"
         empty_directory_with_gitkeep "app/views"
         empty_directory_with_gitkeep "app/helpers"
+        empty_directory_with_gitkeep "app/assets/images"
       end
     end
 
@@ -93,7 +95,7 @@ task :default => :test
         remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
-        remove_file "public/images/rails.png"
+        remove_file "app/assets/images/rails.png"
         remove_file "public/index.html"
         remove_file "public/robots.txt"
         remove_file "README"
@@ -117,19 +119,6 @@ task :default => :test
       if mountable?
         copy_file "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/application.js"
-        copy_file "#{app_templates_dir}/vendor/assets/javascripts/#{options[:javascript]}.js",
-                  "vendor/assets/javascripts/#{options[:javascript]}.js"
-        copy_file "#{app_templates_dir}/vendor/assets/javascripts/#{options[:javascript]}_ujs.js",
-                  "vendor/assets/javascripts/#{options[:javascript]}_ujs.js"
-
-        if options[:javascript] == "prototype"
-          copy_file "#{app_templates_dir}/vendor/assets/javascripts/controls.js",
-                    "vendor/assets/javascripts/controls.js"
-          copy_file "#{app_templates_dir}/vendor/assets/javascripts/dragdrop.js",
-                    "vendor/assets/javascripts/dragdrop.js"
-          copy_file "#{app_templates_dir}/vendor/assets/javascripts/effects.js",
-                    "vendor/assets/javascripts/effects.js"
-        end
       elsif full?
         empty_directory_with_gitkeep "app/assets/javascripts"
       end
@@ -197,6 +186,10 @@ task :default => :test
 
       def create_javascript_files
         build(:javascripts)
+      end
+
+      def create_images_directory
+        build(:images)
       end
 
       def create_script_files

@@ -32,8 +32,12 @@ module AbstractController
 
   module Rendering
     extend ActiveSupport::Concern
-
     include AbstractController::ViewPaths
+
+    included do
+      config_accessor :protected_instance_variables, :instance_reader => false
+      self.protected_instance_variables = []
+    end
 
     # Overwrite process to setup I18n proxy.
     def process(*) #:nodoc:
@@ -46,46 +50,27 @@ module AbstractController
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          controller = self
-          Class.new(ActionView::Base) do
-            if controller.respond_to?(:_routes) && controller._routes
-              include controller._routes.url_helpers
-              include controller._routes.mounted_helpers
-            end
-
-            if controller.respond_to?(:_helpers)
-              include controller._helpers
-
-              # TODO: Fix RJS to not require this
-              self.helpers = controller._helpers
-            end
-          end
-        end
-      end
-
-      def parent_prefixes
-        @parent_prefixes ||= begin
-          parent_controller = superclass
-          prefixes = []
-
-          until parent_controller.abstract?
-            prefixes << parent_controller.controller_path
-            parent_controller = parent_controller.superclass
-          end
-
-          prefixes
+          routes  = _routes  if respond_to?(:_routes)
+          helpers = _helpers if respond_to?(:_helpers)
+          ActionView::Base.prepare(routes, helpers)
         end
       end
     end
 
-    attr_writer :view_context_class
+    attr_internal_writer :view_context_class
+
+    # Explicitly define protected_instance_variables so it can be
+    # inherited and overwritten by other modules if needed.
+    def protected_instance_variables
+      config.protected_instance_variables
+    end
 
     def view_context_class
-      @view_context_class || self.class.view_context_class
+      @_view_context_class || self.class.view_context_class
     end
 
     def initialize(*)
-      @view_context_class = nil
+      @_view_context_class = nil
       super
     end
 
@@ -99,22 +84,27 @@ module AbstractController
     #
     # Override this method in a module to change the default behavior.
     def view_context
-      view_context_class.new(lookup_context, view_assigns, self)
+      view_context_class.new(view_renderer, view_assigns, self)
+    end
+
+    # Returns an object that is able to render templates.
+    def view_renderer
+      @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
     # Normalize arguments, options and then delegates render_to_body and
     # sticks the result in self.response_body.
     def render(*args, &block)
-      self.response_body = render_to_string(*args, &block)
+      options = _normalize_render(*args, &block)
+      self.response_body = render_to_body(options)
     end
 
     # Raw rendering of a template to a string. Just convert the results of
-    # render_to_body into a String.
+    # render_response into a String.
     # :api: plugin
     def render_to_string(*args, &block)
-      options = _normalize_args(*args, &block)
-      _normalize_options(options)
-      render_to_body(options).tap { self.response_body = nil }
+      options = _normalize_render(*args, &block)
+      render_to_body(options)
     end
 
     # Raw rendering of a template to a Rack-compatible body.
@@ -127,18 +117,15 @@ module AbstractController
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
-      view_context.render(options)
-    end
-
-    # The prefixes used in render "foo" shortcuts.
-    def _prefixes
-      @_prefixes ||= begin
-        parent_prefixes = self.class.parent_prefixes
-        parent_prefixes.dup.unshift(controller_path)
-      end
+      view_renderer.render(view_context, options)
     end
 
     private
+
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
+      @_action_name @_response_body @_formats @_prefixes @_config
+      @_view_context_class @_view_renderer @_lookup_context
+    )
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
@@ -146,13 +133,23 @@ module AbstractController
     def view_assigns
       hash = {}
       variables  = instance_variable_names
-      variables -= protected_instance_variables if respond_to?(:protected_instance_variables)
+      variables -= protected_instance_variables
+      variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
       variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
       hash
     end
 
-    # Normalize options by converting render "foo" to render :action => "foo" and
+    # Normalize args and options.
+    # :api: private
+    def _normalize_render(*args, &block)
+      options = _normalize_args(*args, &block)
+      _normalize_options(options)
+      options
+    end
+
+    # Normalize args by converting render "foo" to render :action => "foo" and
     # render "foo/bar" to render :file => "foo/bar".
+    # :api: plugin
     def _normalize_args(action=nil, options={})
       case action
       when NilClass
@@ -169,6 +166,8 @@ module AbstractController
       options
     end
 
+    # Normalize options.
+    # :api: plugin
     def _normalize_options(options)
       if options[:partial] == true
         options[:partial] = action_name
@@ -182,6 +181,8 @@ module AbstractController
       options
     end
 
+    # Process extra options.
+    # :api: plugin
     def _process_options(options)
     end
   end

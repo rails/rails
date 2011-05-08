@@ -9,7 +9,9 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def setup
     super
     @old_logger = ActionController::Base.logger
-    @view = ActionView::Base.new(ActionController::Base.view_paths, {})
+    @controller = Object.new
+    @controller.stubs(:_prefixes).returns(%w(test))
+    @view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
     Rails.stubs(:root).returns(File.expand_path(FIXTURE_LOAD_PATH))
     ActionView::LogSubscriber.attach_to :action_view
   end
@@ -57,7 +59,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_partial_with_implicit_path
-    @view.stubs(:controller_prefixes).returns(%w(test))
     @view.render(Customer.new("david"), :greeting => "hi")
     wait
 
@@ -74,7 +75,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_with_implicit_path
-    @view.stubs(:controller_prefixes).returns(%w(test))
     @view.render([ Customer.new("david"), Customer.new("mary") ], :greeting => "hi")
     wait
 
@@ -83,7 +83,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_collection_template_without_path
-    @view.stubs(:controller_prefixes).returns(%w(test))
     @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], :greeting => "hi")
     wait
 

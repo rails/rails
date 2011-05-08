@@ -442,24 +442,16 @@ require_library_or_gem('mysql')
 
 NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
 
-h4. +in?+ and +either?+
+h4. +in?+
 
-The predicate +in?+ tests if an object is included in another object, and the predicate +either?+ tests if an object is included in a list of objects which will be passed as arguments.
+The predicate +in?+ tests if an object is included in another object. An +ArgumentError+ exception will be raised if the argument passed does not respond to +include?+.
 
 Examples of +in?+:
 
 <ruby>
-  1.in?([1,2])        # => true
-  "lo".in?("hello")   # => true
-  25.in?(30..50)      # => false
-</ruby>
-
-Examples of +either?+:
-
-<ruby>
-  1.either?(1,2,3)                      # => true
-  5.either?(1,2,3)                      # => false
-  [1,2,3].either?([1,2,3], 2, [3,4,5])  # => true
+1.in?([1,2])        # => true
+"lo".in?("hello")   # => true
+25.in?(30..50)      # => false
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
@@ -549,9 +541,9 @@ The default value can be also specified with a block, which is called in the con
 <ruby>
 class User
   attr_accessor :name, :surname
-  attr_accessor_with_default(:full_name) {
-  [name, surname].compact.join(" ")
-  }
+  attr_accessor_with_default(:full_name) do
+    [name, surname].compact.join(" ")
+  end
 end
 
 u = User.new
@@ -1231,7 +1223,7 @@ NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
 
 h4. +squish+
 
-The method +String#squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
+The method +squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
 
 <ruby>
 " \n  foo\n\r \t bar \n".squish # => "foo bar"
@@ -1273,6 +1265,15 @@ In the above example "dear" gets cut first, but then +:separator+ prevents it.
 WARNING: The option +:separator+ can't be a regexp.
 
 NOTE: Defined in +active_support/core_ext/string/filters.rb+.
+
+h4. +inquiry+
+
+The <tt>inquiry</tt> method converts a string into a +StringInquirer+ object making equality checks prettier.
+
+<ruby>
+"production".inquiry.production? # => true
+"active".inquiry.inactive?       # => false
+</ruby>
 
 h4. Key-based Interpolation
 
@@ -1995,15 +1996,20 @@ Active Support augments the API of arrays to ease certain ways of accessing them
 [].to(7)          # => []
 </ruby>
 
-Similarly, +from+ returns the tail from the element at the passed index on:
+Similarly, +from+ returns the tail from the element at the passed index to the end. If the index is greater than the length of the array, it returns an empty array.
 
 <ruby>
 %w(a b c d).from(2)  # => %w(c d)
-%w(a b c d).from(10) # => nil
+%w(a b c d).from(10) # => []
 [].from(0)           # => []
 </ruby>
 
 The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding element (+first+ is built-in). Thanks to social wisdom and positive constructiveness all around, +forty_two+ is also available.
+
+<ruby>
+%w(a b c d).third # => c
+%w(a b c d).fifth # => nil
+</ruby>
 
 NOTE: Defined in +active_support/core_ext/array/access.rb+.
 
@@ -2100,7 +2106,7 @@ h5. +to_xml+
 The method +to_xml+ returns a string containing an XML representation of its receiver:
 
 <ruby>
-Contributor.all(:limit => 2, :order => 'rank ASC').to_xml
+Contributor.limit(2).order(:rank).to_xml
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <contributors type="array">
@@ -2175,7 +2181,7 @@ The name of children nodes is by default the name of the root node singularized.
 The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can configure your own builder via the <tt>:builder</tt> option. The method also accepts options like <tt>:dasherize</tt> and friends, they are forwarded to the builder:
 
 <ruby>
-Contributor.all(:limit => 2, :order => 'rank ASC').to_xml(:skip_types => true)
+Contributor.limit(2).order(:rank).to_xml(:skip_types => true)
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <contributors>
@@ -3415,11 +3421,11 @@ h4. +silence+
 Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
 
 <ruby>
-  logger = Logger.new("log/development.log")
-  logger.silence(Logger::INFO) do
-    logger.debug("In space, no one can hear you scream.")
-    logger.info("Scream all you want, small mailman!")
-  end
+logger = Logger.new("log/development.log")
+logger.silence(Logger::INFO) do
+  logger.debug("In space, no one can hear you scream.")
+  logger.info("Scream all you want, small mailman!")
+end
 </ruby>
 
 h4. +datetime_format=+
@@ -3427,17 +3433,17 @@ h4. +datetime_format=+
 Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a +datetime_format+ method then this is ignored.
 
 <ruby>
-  class Logger::FormatWithTime < Logger::Formatter
-    cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
+class Logger::FormatWithTime < Logger::Formatter
+  cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
 
-    def self.call(severity, timestamp, progname, msg)
-      "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
-    end
+  def self.call(severity, timestamp, progname, msg)
+    "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
   end
+end
 
-  logger = Logger.new("log/development.log")
-  logger.formatter = Logger::FormatWithTime
-  logger.info("<- is the current time")
+logger = Logger.new("log/development.log")
+logger.formatter = Logger::FormatWithTime
+logger.info("<- is the current time")
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/logger.rb+.

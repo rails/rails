@@ -22,6 +22,8 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   destination File.join(Rails.root, "tmp/bukkits")
   arguments [destination_root]
+
+  # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
   def default_files
@@ -103,8 +105,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_javascripts_generation
     run_generator [destination_root, "--mountable"]
     assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/jquery.js"
-    assert_file "vendor/assets/javascripts/jquery_ujs.js"
   end
 
   def test_skip_javascripts
@@ -112,16 +112,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/javascripts/application.js"
     assert_no_file "vendor/assets/javascripts/jquery.js"
     assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
-  end
-
-  def test_config_prototype_javascript_library
-    run_generator [destination_root, "-j", "prototype", "--mountable"]
-    assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/prototype.js"
-    assert_file "vendor/assets/javascripts/effects.js"
-    assert_file "vendor/assets/javascripts/dragdrop.js"
-    assert_file "vendor/assets/javascripts/controls.js"
-    assert_file "vendor/assets/javascripts/prototype_ujs.js", /prototype/
   end
 
   def test_template_from_dir_pwd
@@ -140,13 +130,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     `bundle install`
-    assert_match(/2 tests, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
+    assert_match(/1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
     assert_file "app/assets/javascripts"
     assert_file "app/assets/stylesheets"
+    assert_file "app/assets/images"
     assert_file "app/models"
     assert_file "app/controllers"
     assert_file "app/views"
@@ -162,6 +153,9 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
   def test_create_mountable_application_with_mountable_option
     run_generator [destination_root, "--mountable"]
+    assert_file "app/assets/javascripts"
+    assert_file "app/assets/stylesheets"
+    assert_file "app/assets/images"
     assert_file "config/routes.rb", /Bukkits::Engine.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /isolate_namespace Bukkits/
     assert_file "test/dummy/config/routes.rb", /mount Bukkits::Engine => "\/bukkits"/

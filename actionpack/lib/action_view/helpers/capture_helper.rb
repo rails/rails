@@ -135,7 +135,7 @@ module ActionView
       # for elements that will be fragment cached.
       def content_for(name, content = nil, &block)
         content = capture(&block) if block_given?
-        result = @_view_flow.append(name, content) if content
+        result = @view_flow.append(name, content) if content
         result unless content
       end
 
@@ -146,7 +146,7 @@ module ActionView
       # the layout to stop looking for more contents.
       def provide(name, content = nil, &block)
         content = capture(&block) if block_given?
-        result = @_view_flow.append!(name, content) if content
+        result = @view_flow.append!(name, content) if content
         result unless content
       end
 
@@ -169,7 +169,7 @@ module ActionView
       #   </body>
       #   </html>
       def content_for?(name)
-        @_view_flow.get(name).present?
+        @view_flow.get(name).present?
       end
 
       # Use an alternate output buffer for the duration of the block.

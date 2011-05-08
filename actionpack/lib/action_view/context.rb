@@ -2,38 +2,35 @@ module ActionView
   module CompiledTemplates #:nodoc:
     # holds compiled template code
   end
+
   # = Action View Context
   #
   # Action View contexts are supplied to Action Controller to render template.
   # The default Action View context is ActionView::Base.
   #
-  # In order to work with ActionController, a Context must implement:
-  #
-  # Context#render_partial[options]
-  #   - responsible for setting options[:_template]
-  #   - Returns String with the rendered partial
-  #   options<Hash>:: see _render_partial in ActionView::Base
-  # Context#render_template[template, layout, options, partial]
-  #   - Returns String with the rendered template
-  #   template<ActionView::Template>:: The template to render
-  #   layout<ActionView::Template>:: The layout to render around the template
-  #   options<Hash>:: See _render_template_with_layout in ActionView::Base
-  #   partial<Boolean>:: Whether or not the template to render is a partial
-  #
-  # An Action View context can also mix in Action View's helpers. In order to
-  # mix in helpers, a context must implement:
-  #
-  # Context#controller
-  # - Returns an instance of AbstractController
-  #
-  # In any case, a context must mix in ActionView::Context, which stores compiled
-  # template and provides the output buffer.
+  # In order to work with ActionController, a Context must just include this module.
+  # The initialization of the variables used by the context (@output_buffer, @view_flow,
+  # and @virtual_path) is responsibility of the object that includes this module
+  # (although you can call _prepare_context defined below).
   module Context
     include CompiledTemplates
-    attr_accessor :output_buffer
+    attr_accessor :output_buffer, :view_flow
 
-    def convert_to_model(object)
-      object.respond_to?(:to_model) ? object.to_model : object
+    # Prepares the context by setting the appropriate instance variables.
+    # :api: plugin
+    def _prepare_context
+      @view_flow     = OutputFlow.new
+      @output_buffer = nil
+      @virtual_path  = nil
+    end
+
+    # Encapsulates the interaction with the view flow so it
+    # returns the correct buffer on yield. This is usually
+    # overwriten by helpers to add more behavior.
+    # :api: plugin
+    def _layout_for(name=nil)
+      name ||= :layout
+      view_flow.get(name).html_safe
     end
   end
 end

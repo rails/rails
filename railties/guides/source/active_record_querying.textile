@@ -56,6 +56,7 @@ The methods are:
 * +select+
 * +group+
 * +order+
+* +reorder+
 * +limit+
 * +offset+
 * +joins+
@@ -418,7 +419,7 @@ SELECT viewable_by, locked FROM clients
 Be careful because this also means you're initializing a model object with only the fields that you've selected. If you attempt to access a field that is not in the initialized record you'll receive:
 
 <shell>
-ActiveRecord::MissingAttributeError: missing attribute: <attribute>
+ActiveModel::MissingAttributeError: missing attribute: <attribute>
 </shell>
 
 Where +&lt;attribute&gt;+ is the attribute you asked for. The +id+ method will not raise the +ActiveRecord::MissingAttributeError+, so just be careful when working with associations because they need the +id+ method to function properly.
@@ -495,9 +496,9 @@ This will return single order objects for each day, but only for the last month.
 
 h3. Overriding Conditions
 
-You can specify certain conditions to be excepted by using the +except+ method.
+h4. +except+
 
-For example:
+You can specify certain conditions to be excepted by using the +except+ method. For example:
 
 <ruby>
 Post.where('id > 10').limit(20).order('id asc').except(:order)
@@ -509,9 +510,9 @@ The SQL that would be executed:
 SELECT * FROM posts WHERE id > 10 LIMIT 20
 </sql>
 
-You can also override conditions using the +only+ method.
+h4. +only+
 
-For example:
+You can also override conditions using the +only+ method. For example:
 
 <ruby>
 Post.where('id > 10').limit(20).order('id desc').only(:order, :where)
@@ -521,6 +522,32 @@ The SQL that would be executed:
 
 <sql>
 SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
+</sql>
+
+h4. +reorder+
+
+The +reorder+ method overrides the default scope order. For example:
+
+<ruby>
+class Post < ActiveRecord::Base
+  ..
+  ..
+  has_many :comments, :order => 'posted_at DESC'
+end
+
+Post.find(10).comments.reorder('name')
+</ruby>
+
+The SQL that would be executed:
+
+<sql>
+SELECT * FROM posts WHERE id = 10 ORDER BY name
+</sql>
+
+In case the +reorder+ clause is not used, the SQL executed would be:
+
+<sql>
+SELECT * FROM posts WHERE id = 10 ORDER BY posted_at DESC
 </sql>
 
 h3. Readonly Objects
@@ -546,7 +573,7 @@ Active Record provides two locking mechanisms:
 
 h4. Optimistic Locking
 
-Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data.  It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
+Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data. It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
 
 <strong>Optimistic locking column</strong>
 
@@ -993,7 +1020,7 @@ Client.count
 # SELECT count(*) AS count_all FROM clients
 </ruby>
 
-Or on a relation :
+Or on a relation:
 
 <ruby>
 Client.where(:first_name => 'Ryan').count
@@ -1060,7 +1087,7 @@ If you want to find the sum of a field for all records in your table you can cal
 Client.sum("orders_count")
 </ruby>
 
-For options, please see the parent section,  "Calculations":#calculations.
+For options, please see the parent section, "Calculations":#calculations.
 
 h3. Changelog
 

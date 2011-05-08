@@ -17,16 +17,16 @@ module ActiveRecord
         replace(record)
       end
 
-      def create(attributes = {})
-        new_record(:create, attributes)
+      def create(attributes = {}, options = {})
+        new_record(:create, attributes, options)
       end
 
-      def create!(attributes = {})
-        build(attributes).tap { |record| record.save! }
+      def create!(attributes = {}, options = {})
+        build(attributes, options).tap { |record| record.save! }
       end
 
-      def build(attributes = {})
-        new_record(:build, attributes)
+      def build(attributes = {}, options = {})
+        new_record(:build, attributes, options)
       end
 
       private
@@ -44,9 +44,9 @@ module ActiveRecord
           replace(record)
         end
 
-        def new_record(method, attributes)
+        def new_record(method, attributes, options)
           attributes = scoped.scope_for_create.merge(attributes || {})
-          record = reflection.send("#{method}_association", attributes)
+          record = reflection.send("#{method}_association", attributes, options)
           set_new_record(record)
           record
         end

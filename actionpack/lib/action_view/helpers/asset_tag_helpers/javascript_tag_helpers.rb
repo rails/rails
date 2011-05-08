@@ -1,6 +1,5 @@
 require 'active_support/concern'
 require 'active_support/core_ext/file'
-require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/asset_tag_helpers/asset_include_tag'
 
 module ActionView
@@ -8,8 +7,6 @@ module ActionView
     module AssetTagHelper
 
       class JavascriptIncludeTag < AssetIncludeTag
-        include TagHelper
-
         def asset_name
           'javascript'
         end
@@ -80,14 +77,14 @@ module ActionView
         # Used internally by javascript_include_tag to build the script path.
         #
         # ==== Examples
-        #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
-        #   javascript_path "dir/xmlhr.js" # => /javascripts/dir/xmlhr.js
-        #   javascript_path "/dir/xmlhr" # => /dir/xmlhr.js
-        #   javascript_path "http://www.railsapplication.com/js/xmlhr" # => http://www.railsapplication.com/js/xmlhr
-        #   javascript_path "http://www.railsapplication.com/js/xmlhr.js" # => http://www.railsapplication.com/js/xmlhr.js
+        #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
+        #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
+        #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
+        #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
+        #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
         def javascript_path(source)
           if config.use_sprockets
-            sprockets_javascript_path(source)
+            asset_path(source, 'js')
           else
             asset_paths.compute_public_path(source, 'javascripts', 'js')
           end
@@ -102,10 +99,9 @@ module ActionView
         #
         # When passing paths, the ".js" extension is optional.
         #
-        # To include the default JavaScript expansion pass <tt>:defaults</tt> as source.
-        # By default, <tt>:defaults</tt> loads jQuery. If the application was generated
-        # with "-j prototype" the libraries Prototype and Scriptaculous are loaded instead.
-        # In any case, the defaults can be overridden in <tt>config/application.rb</tt>:
+        # If the application is not using the asset pipeline, to include the default JavaScript
+        # expansion pass <tt>:defaults</tt> as source. By default, <tt>:defaults</tt> loads jQuery,
+        # and that can be overridden in <tt>config/application.rb</tt>:
         #
         #   config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
         #
@@ -126,11 +122,11 @@ module ActionView
         #   # => <script type="text/javascript" src="/javascripts/common.javascript?1284139606"></script>
         #   #    <script type="text/javascript" src="/elsewhere/cools.js?1423139606"></script>
         #
-        #   javascript_include_tag "http://www.railsapplication.com/xmlhr"
-        #   # => <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js?1284139606"></script>
+        #   javascript_include_tag "http://www.example.com/xmlhr"
+        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js?1284139606"></script>
         #
-        #   javascript_include_tag "http://www.railsapplication.com/xmlhr.js"
-        #   # => <script type="text/javascript" src="http://www.railsapplication.com/xmlhr.js?1284139606"></script>
+        #   javascript_include_tag "http://www.example.com/xmlhr.js"
+        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js?1284139606"></script>
         #
         #   javascript_include_tag :defaults
         #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>

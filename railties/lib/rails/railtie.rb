@@ -173,8 +173,8 @@ module Rails
     def eager_load!
     end
 
-    def load_console
-      self.class.console.each(&:call)
+    def load_console(sandbox=false)
+      self.class.console.each { |block| block.call(sandbox) }
     end
 
     def load_tasks

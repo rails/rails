@@ -31,7 +31,7 @@ module ActiveModel
           options = args.last
           if options.is_a?(Hash) && options[:on]
             options[:if] = Array.wrap(options[:if])
-            options[:if] << "self.validation_context == :#{options[:on]}"
+            options[:if].unshift("self.validation_context == :#{options[:on]}")
           end
           set_callback(:validation, :before, *args, &block)
         end
@@ -41,7 +41,7 @@ module ActiveModel
           options[:prepend] = true
           options[:if] = Array.wrap(options[:if])
           options[:if] << "!halted"
-          options[:if] << "self.validation_context == :#{options[:on]}" if options[:on]
+          options[:if].unshift("self.validation_context == :#{options[:on]}") if options[:on]
           set_callback(:validation, :after, *(args << options), &block)
         end
       end

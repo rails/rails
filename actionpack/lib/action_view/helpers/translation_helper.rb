@@ -5,7 +5,7 @@ module I18n
   class ExceptionHandler
     include Module.new {
       def call(exception, locale, key, options)
-        exception.is_a?(MissingTranslationData) ? super.html_safe : super
+        exception.is_a?(MissingTranslation) ? super.html_safe : super
       end
     }
   end
@@ -17,8 +17,8 @@ module ActionView
     module TranslationHelper
       # Delegates to I18n#translate but also performs three additional functions.
       #
-      # First, it'll pass the :rescue_format => :html option to I18n so that any caught
-      # MissingTranslationData exceptions will be turned into inline spans that
+      # First, it'll pass the :rescue_format => :html option to I18n so that any
+      # thrown MissingTranslation messages will be turned into inline spans that
       #
       #   * have a "translation-missing" class set,
       #   * contain the missing key as a title attribute and
@@ -63,8 +63,8 @@ module ActionView
       private
         def scope_key_by_partial(key)
           if key.to_s.first == "."
-            if (path = @_template && @_template.virtual_path)
-              path.gsub(%r{/_?}, ".") + key.to_s
+            if @virtual_path
+              @virtual_path.gsub(%r{/_?}, ".") + key.to_s
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end

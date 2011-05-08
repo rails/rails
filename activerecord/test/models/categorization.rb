@@ -12,10 +12,7 @@ end
 
 class SpecialCategorization < ActiveRecord::Base
   self.table_name = 'categorizations'
-
-  def self.default_scope
-    where(:special => true)
-  end
+  default_scope where(:special => true)
 
   belongs_to :author
   belongs_to :category

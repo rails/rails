@@ -368,7 +368,7 @@ class UsersController < ApplicationController
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => @users}
-      format.json  { render :json => @users}
+      format.json { render :json => @users}
     end
   end
 end
@@ -487,45 +487,6 @@ end
 </ruby>
 
 Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method +filter+ which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same +filter+ method, which will get run in the same way. The method must +yield+ to execute the action. Alternatively, it can have both a +before+ and an +after+ method that are run before and after the action.
-
-h3. Verification
-
-Verifications make sure certain criteria are met in order for a controller or action to run. They can specify that a certain key (or several keys in the form of an array) is present in the +params+, +session+ or +flash+ hashes or that a certain HTTP method was used or that the request was made using +XMLHttpRequest+ (Ajax). The default action taken when these criteria are not met is to render a 400 Bad Request response, but you can customize this by specifying a redirect URL or rendering something else and you can also add flash messages and HTTP headers to the response.
-
-Here's an example of using verification to make sure the user supplies a username and a password in order to log in:
-
-<ruby>
-class LoginsController < ApplicationController
-  verify :params => [:username, :password],
-         :render => {:action => "new"},
-         :add_flash => {
-           :error => "Username and password required to log in"
-         }
-
-  def create
-    @user = User.authenticate(params[:username], params[:password])
-    if @user
-      flash[:notice] = "You're logged in"
-      redirect_to root_url
-    else
-      render :action => "new"
-    end
-  end
-end
-</ruby>
-
-Now the +create+ action won't run unless the "username" and "password" parameters are present, and if they're not, an error message will be added to the flash and the +new+ action will be rendered. But there's something rather important missing from the verification above: It will be used for *every* action in LoginsController, which is not what we want. You can limit which actions it will be used for with the +:only+ and +:except+ options just like a filter:
-
-<ruby>
-class LoginsController < ApplicationController
-  verify :params => [:username, :password],
-         :render => {:action => "new"},
-         :add_flash => {
-           :error => "Username and password required to log in"
-         },
-         :only => :create # Run only for the "create" action
-end
-</ruby>
 
 h3. Request Forgery Protection
 

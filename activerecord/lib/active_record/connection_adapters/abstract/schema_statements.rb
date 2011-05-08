@@ -17,6 +17,10 @@ module ActiveRecord
 
       # def tables(name = nil) end
 
+      # Checks to see if the table +table_name+ exists on the database.
+      #
+      # === Example
+      #   table_exists?(:developers)
       def table_exists?(table_name)
         tables.include?(table_name.to_s)
       end
@@ -24,7 +28,7 @@ module ActiveRecord
       # Returns an array of indexes for the given table.
       # def indexes(table_name, name = nil) end
 
-      # Checks to see if an index exists on a table for a given index definition
+      # Checks to see if an index exists on a table for a given index definition.
       #
       # === Examples
       #  # Check an index exists

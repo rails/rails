@@ -1,6 +1,5 @@
 require 'active_support/concern'
 require 'active_support/core_ext/file'
-require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/asset_tag_helpers/asset_include_tag'
 
 module ActionView
@@ -8,8 +7,6 @@ module ActionView
     module AssetTagHelper
 
       class StylesheetIncludeTag < AssetIncludeTag
-        include TagHelper
-
         def asset_name
           'stylesheet'
         end
@@ -57,14 +54,14 @@ module ActionView
         # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
         #
         # ==== Examples
-        #   stylesheet_path "style" # => /stylesheets/style.css
-        #   stylesheet_path "dir/style.css" # => /stylesheets/dir/style.css
-        #   stylesheet_path "/dir/style.css" # => /dir/style.css
-        #   stylesheet_path "http://www.railsapplication.com/css/style" # => http://www.railsapplication.com/css/style
-        #   stylesheet_path "http://www.railsapplication.com/css/style.css" # => http://www.railsapplication.com/css/style.css
+        #   stylesheet_path "style"                                  # => /stylesheets/style.css
+        #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
+        #   stylesheet_path "/dir/style.css"                         # => /dir/style.css
+        #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
+        #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
         def stylesheet_path(source)
           if config.use_sprockets
-            sprockets_stylesheet_path(source)
+            asset_path(source, 'css')
           else
             asset_paths.compute_public_path(source, 'stylesheets', 'css')
           end
@@ -82,8 +79,8 @@ module ActionView
         #   stylesheet_link_tag "style.css" # =>
         #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" />
         #
-        #   stylesheet_link_tag "http://www.railsapplication.com/style.css" # =>
-        #     <link href="http://www.railsapplication.com/style.css" media="screen" rel="stylesheet" type="text/css" />
+        #   stylesheet_link_tag "http://www.example.com/style.css" # =>
+        #     <link href="http://www.example.com/style.css" media="screen" rel="stylesheet" type="text/css" />
         #
         #   stylesheet_link_tag "style", :media => "all" # =>
         #     <link href="/stylesheets/style.css" media="all" rel="stylesheet" type="text/css" />

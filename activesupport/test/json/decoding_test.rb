@@ -56,12 +56,9 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
   }
 
-  # load the default JSON backend
-  ActiveSupport::JSON.backend = 'Yaml'
-
-  backends = %w(Yaml)
-  backends << "JSONGem" if defined?(::JSON)
-  backends << "Yajl" if defined?(::Yajl)
+  backends = [:ok_json]
+  backends << :json_gem if defined?(::JSON)
+  backends << :yajl if defined?(::Yajl)
 
   backends.each do |backend|
     TESTS.each do |json, expected|

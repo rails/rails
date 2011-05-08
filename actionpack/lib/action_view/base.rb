@@ -131,11 +131,16 @@ module ActionView #:nodoc:
   #
   # More builder documentation can be found at http://builder.rubyforge.org.
   class Base
-    include Helpers, Rendering, Partials, ::ERB::Util, Context
+    include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
     @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
+
+    # How to complete the streaming when an exception occurs.
+    # This is our best guess: first try to close the attribute, then the tag.
+    cattr_accessor :streaming_completion_on_exception
+    @@streaming_completion_on_exception = %("><script type="text/javascript">window.location = "/500.html"</script></html>)
 
     class_attribute :helpers
     class_attribute :_routes
@@ -151,56 +156,61 @@ module ActionView #:nodoc:
       def cache_template_loading=(value)
         ActionView::Resolver.caching = value
       end
+
+      def process_view_paths(value)
+        value.is_a?(PathSet) ?
+          value.dup : ActionView::PathSet.new(Array.wrap(value))
+      end
+
+      def xss_safe? #:nodoc:
+        true
+      end
+
+      # This method receives routes and helpers from the controller
+      # and return a subclass ready to be used as view context.
+      def prepare(routes, helpers) #:nodoc:
+        Class.new(self) do
+          if routes
+            include routes.url_helpers
+            include routes.mounted_helpers
+          end
+
+          if helpers
+            include helpers
+            self.helpers = helpers
+          end
+        end
+      end
     end
 
-    attr_accessor :_template, :_view_flow
-    attr_internal :request, :controller, :config, :assigns, :lookup_context
+    attr_accessor :view_renderer
+    attr_internal :config, :assigns
 
+    delegate :lookup_context, :to => :view_renderer
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
-
-    delegate :request_forgery_protection_token, :params, :session, :cookies, :response, :headers,
-             :flash, :action_name, :controller_name, :to => :controller
-
-    delegate :logger, :to => :controller, :allow_nil => true
-
-    def self.xss_safe? #:nodoc:
-      true
-    end
-
-    def self.process_view_paths(value)
-      value.is_a?(PathSet) ?
-        value.dup : ActionView::PathSet.new(Array.wrap(value))
-    end
 
     def assign(new_assigns) # :nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
-    def initialize(lookup_context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
-      assign(assigns_for_first_render)
-      self.helpers = Module.new unless self.class.helpers
-
+    def initialize(context = nil, assigns = {}, controller = nil, formats = nil) #:nodoc:
       @_config = {}
-      @_virtual_path = nil
-      @_view_flow = OutputFlow.new
-      @output_buffer = nil
 
-      if @_controller = controller
-        @_request = controller.request if controller.respond_to?(:request)
-        @_config  = controller.config.inheritable_copy if controller.respond_to?(:config)
+      # Handle all these for backwards compatibility.
+      # TODO Provide a new API for AV::Base and deprecate this one.
+      if context.is_a?(ActionView::Renderer)
+        @view_renderer = context
+      elsif
+        lookup_context = context.is_a?(ActionView::LookupContext) ?
+          context : ActionView::LookupContext.new(context)
+        lookup_context.formats  = formats if formats
+        lookup_context.prefixes = controller._prefixes if controller
+        @view_renderer = ActionView::Renderer.new(lookup_context)
       end
 
-      @_lookup_context = lookup_context.is_a?(ActionView::LookupContext) ?
-        lookup_context : ActionView::LookupContext.new(lookup_context)
-      @_lookup_context.formats = formats if formats
-    end
-
-    def controller_path
-      @controller_path ||= controller && controller.controller_path
-    end
-
-    def controller_prefixes
-      @controller_prefixes ||= controller && controller._prefixes
+      assign(assigns)
+      assign_controller(controller)
+      _prepare_context
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

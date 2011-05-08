@@ -23,17 +23,17 @@ if "ruby".encoding_aware?
   end
 end
 
-silence_warnings do
-  # These external dependencies have warnings :/
-  require 'mail'
-end
-
 lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
 require 'test/unit'
 require 'action_mailer'
 require 'action_mailer/test_case'
+
+silence_warnings do
+  # These external dependencies have warnings :/
+  require 'mail'
+end
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true

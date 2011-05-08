@@ -3,6 +3,7 @@ require 'forwardable'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/module/remove_method'
 
 module ActionDispatch
   module Routing
@@ -160,7 +161,7 @@ module ActionDispatch
 
             # We use module_eval to avoid leaks
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_method :#{selector} if method_defined?(:#{selector})
+              remove_possible_method :#{selector}
               def #{selector}(*args)
                 options = args.extract_options!
 
@@ -194,7 +195,7 @@ module ActionDispatch
             hash_access_method = hash_access_name(name, kind)
 
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_method :#{selector} if method_defined?(:#{selector})
+              remove_possible_method :#{selector}
               def #{selector}(*args)
                 url_for(#{hash_access_method}(*args))
               end
@@ -240,6 +241,11 @@ module ActionDispatch
       end
 
       def eval_block(block)
+        if block.arity == 1
+          raise "You are using the old router DSL which has been removed in Rails 3.1. " <<
+            "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/ " <<
+            "or add the rails_legacy_mapper gem to your Gemfile"
+        end
         mapper = Mapper.new(self)
         if default_scope
           mapper.with_default_scope(default_scope, &block)
@@ -275,8 +281,7 @@ module ActionDispatch
       module MountedHelpers
       end
 
-      def mounted_helpers(name = :main_app)
-        define_mounted_helper(name) if name
+      def mounted_helpers
         MountedHelpers
       end
 

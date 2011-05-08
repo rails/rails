@@ -279,14 +279,14 @@ This command shows you where you are in the code by printing 10 lines centered a
 [1, 10] in /PathToProject/posts_controller.rb
    1  class PostsController < ApplicationController
    2    # GET /posts
-   3    # GET /posts.xml
+   3    # GET /posts.json
    4    def index
    5      debugger
 => 6      @posts = Post.all
    7
    8      respond_to do |format|
    9        format.html # index.html.erb
-   10        format.xml  { render :xml => @posts }
+   10        format.json { render :json => @posts }
 </shell>
 
 If you repeat the +list+ command, this time using just +l+, the next ten lines of the file will be printed out.
@@ -298,7 +298,7 @@ If you repeat the +list+ command, this time using just +l+, the next ten lines o
    12    end
    13
    14    # GET /posts/1
-   15    # GET /posts/1.xml
+   15    # GET /posts/1.json
    16    def show
    17      @post = Post.find(params[:id])
    18
@@ -307,6 +307,41 @@ If you repeat the +list+ command, this time using just +l+, the next ten lines o
 </shell>
 
 And so on until the end of the current file. When the end of file is reached, the +list+ command will start again from the beginning of the file and continue again up to the end, treating the file as a circular buffer.
+
+On the other hand, to see the previous ten lines you should type +list-+ (or +l-+)
+
+<shell>
+(rdb:7) l-
+[1, 10] in /PathToProject/posts_controller.rb
+   1  class PostsController < ApplicationController
+   2    # GET /posts
+   3    # GET /posts.json
+   4    def index
+   5      debugger
+   6      @posts = Post.all
+   7
+   8      respond_to do |format|
+   9        format.html # index.html.erb
+   10        format.json { render :json => @posts }
+</shell>
+
+This way you can move inside the file, being able to see the code above and over the line you added the +debugger+.
+Finally, to see where you are in the code again you can type +list=+
+
+<shell>
+(rdb:7) list=
+[1, 10] in /PathToProject/posts_controller.rb
+   1  class PostsController < ApplicationController
+   2    # GET /posts
+   3    # GET /posts.json
+   4    def index
+   5      debugger
+=> 6      @posts = Post.all
+   7
+   8      respond_to do |format|
+   9        format.html # index.html.erb
+   10        format.json { render :json => @posts }
+</shell>
 
 h4. The Context
 

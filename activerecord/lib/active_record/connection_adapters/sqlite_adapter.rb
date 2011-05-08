@@ -58,24 +58,28 @@ module ActiveRecord
         'SQLite'
       end
 
+      # Returns true if SQLite version is '2.0.0' or greater, false otherwise.
       def supports_ddl_transactions?
         sqlite_version >= '2.0.0'
       end
 
+      # Returns true if SQLite version is '3.6.8' or greater, false otherwise.
       def supports_savepoints?
         sqlite_version >= '3.6.8'
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
+      # Returns true, since this connection adapter supports prepared statement
+      # caching.
       def supports_statement_cache?
         true
       end
 
+      # Returns true, since this connection adapter supports migrations.
       def supports_migrations? #:nodoc:
         true
       end
 
+      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
@@ -84,24 +88,30 @@ module ActiveRecord
         true
       end
 
+      # Returns true if SQLite version is '3.1.6' or greater, false otherwise.
       def supports_add_column?
         sqlite_version >= '3.1.6'
       end
 
+      # Disconnects from the database if already connected. Otherwise, this
+      # method does nothing.
       def disconnect!
         super
         clear_cache!
         @connection.close rescue nil
       end
 
+      # Clears the prepared statements cache.
       def clear_cache!
         @statements.clear
       end
 
+      # Returns true if SQLite version is '3.2.6' or greater, false otherwise.
       def supports_count_distinct? #:nodoc:
         sqlite_version >= '3.2.6'
       end
 
+      # Returns true if SQLite version is '3.1.0' or greater, false otherwise.
       def supports_autoincrement? #:nodoc:
         sqlite_version >= '3.1.0'
       end
@@ -173,9 +183,11 @@ module ActiveRecord
         end
       end
 
-      def exec_insert(sql, name, binds)
+      def exec_delete(sql, name = 'SQL', binds = [])
         exec_query(sql, name, binds)
+        @connection.changes
       end
+      alias :exec_update :exec_delete
 
       def last_inserted_id(result)
         @connection.last_insert_row_id
@@ -243,6 +255,7 @@ module ActiveRecord
         end
       end
 
+      # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil) #:nodoc:
         table_structure(table_name).map do |field|
           case field["dflt_value"]
@@ -258,6 +271,7 @@ module ActiveRecord
         end
       end
 
+      # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
           IndexDefinition.new(
@@ -281,6 +295,10 @@ module ActiveRecord
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
+      # Renames a table.
+      #
+      # Example:
+      #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
         exec_query "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
@@ -343,10 +361,6 @@ module ActiveRecord
           raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
         end
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
-      end
-
-      def null_insert_value
-        Arel.sql 'NULL'
       end
 
       def empty_insert_statement_value

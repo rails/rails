@@ -1,4 +1,6 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/module/remove_method'
 require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
@@ -43,6 +45,7 @@ module ActionView
       include AbstractController::Helpers
       include ActionView::Helpers
 
+      delegate :lookup_context, :to => :controller
       attr_accessor :controller, :output_buffer, :rendered
 
       module ClassMethods
@@ -127,7 +130,7 @@ module ActionView
 
       def say_no_to_protect_against_forgery!
         _helpers.module_eval do
-          remove_method :protect_against_forgery? if method_defined?(:protect_against_forgery?)
+          remove_possible_method :protect_against_forgery?
           def protect_against_forgery?
             false
           end
@@ -147,9 +150,19 @@ module ActionView
       module Locals
         attr_accessor :locals
 
-        def _render_partial(options)
-          locals[options[:partial]] = options[:locals]
-          super(options)
+        def render(options = {}, local_assigns = {})
+          case options
+          when Hash
+            if block_given?
+              locals[options[:layout]] = options[:locals]
+            elsif options.key?(:partial)
+              locals[options[:partial]] = options[:locals]
+            end
+          else
+            locals[options] = local_assigns
+          end
+
+          super
         end
       end
 

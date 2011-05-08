@@ -112,7 +112,7 @@ module Rails
 
     def load_console(sandbox=false)
       initialize_console(sandbox)
-      railties.all { |r| r.load_console }
+      railties.all { |r| r.load_console(sandbox) }
       super()
       self
     end
@@ -152,7 +152,7 @@ module Rails
         end
 
         if config.serve_static_assets
-          middleware.use ::ActionDispatch::Static, paths["public"].first
+          middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
         middleware.use ::Rack::Lock unless config.allow_concurrency
@@ -196,7 +196,6 @@ module Rails
 
     def initialize_console(sandbox=false)
       require "rails/console/app"
-      require "rails/console/sandbox" if sandbox
       require "rails/console/helpers"
     end
   end

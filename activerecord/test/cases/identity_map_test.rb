@@ -1,4 +1,5 @@
 require "cases/helper"
+
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -128,6 +129,41 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   ##############################################################################
+  # Tests checking if IM is functioning properly on classes with multiple      #
+  # types of inheritance                                                       #
+  ##############################################################################
+
+  def test_inherited_without_type_attribute_without_identity_map
+    ActiveRecord::IdentityMap.without do
+      p1 = DestructivePirate.create!(:catchphrase => "I'm not a regular Pirate")
+      p2 = Pirate.find(p1.id)
+      assert_not_same(p1, p2)
+    end
+  end
+  
+  def test_inherited_with_type_attribute_without_identity_map
+    ActiveRecord::IdentityMap.without do
+      c = comments(:sub_special_comment)
+      c1 = SubSpecialComment.find(c.id)
+      c2 = Comment.find(c.id)
+      assert_same(c1.class, c2.class)
+    end
+  end
+
+  def test_inherited_without_type_attribute
+    p1 = DestructivePirate.create!(:catchphrase => "I'm not a regular Pirate")
+    p2 = Pirate.find(p1.id)
+    assert_not_same(p1, p2)
+  end
+
+  def test_inherited_with_type_attribute
+    c = comments(:sub_special_comment)
+    c1 = SubSpecialComment.find(c.id)
+    c2 = Comment.find(c.id)
+    assert_same(c1, c2)
+  end
+
+  ##############################################################################
   # Tests checking dirty attribute behaviour with IM                           #
   ##############################################################################
 
@@ -136,8 +172,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     swistak.name = "Swistak Sreberkowiec"
     assert_equal(["name"], swistak.changed)
     assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
-
-    s = Subscriber.find('swistak')
 
     assert swistak.name_changed?
     assert_equal("Swistak Sreberkowiec", swistak.name)
@@ -148,8 +182,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     swistak.name = "Swistak Sreberkowiec"
 
     Subscriber.update_all({:name => "Raczkowski Marcin"}, {:name => "Marcin Raczkowski"})
-
-    s = Subscriber.find('swistak')
 
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
     assert_equal("Swistak Sreberkowiec", swistak.name)
@@ -163,8 +195,6 @@ class IdentityMapTest < ActiveRecord::TestCase
 
     Subscriber.update_all({:name => "Swistak Sreberkowiec"}, {:name => "Marcin Raczkowski"})
 
-    s = Subscriber.find('swistak')
-
     assert_equal("Swistak Sreberkowiec", swistak.name)
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
     assert swistak.name_changed?
@@ -175,7 +205,7 @@ class IdentityMapTest < ActiveRecord::TestCase
     pirate.birds.create!(:name => 'Posideons Killer')
     pirate.birds.create!(:name => 'Killer bandita Dionne')
 
-    posideons, killer = pirate.birds
+    posideons, _ = pirate.birds
 
     pirate.reload
 
@@ -386,15 +416,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     assert_equal post_id, post
     assert_same post_id, post
     assert_not_nil post.title
-  end
-
-  def test_log
-    log = StringIO.new
-    ActiveRecord::Base.logger = Logger.new(log)
-    ActiveRecord::Base.logger.level = Logger::DEBUG
-    Post.find 1
-    Post.find 1
-    assert_match(/Post with ID = 1 loaded from Identity Map/, log.string)
   end
 
 # Currently AR is not allowing changing primary key (see Persistence#update)

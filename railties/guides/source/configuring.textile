@@ -229,6 +229,8 @@ h4. Configuring Active Record
 
 * +config.active_record.lock_optimistically+ controls whether ActiveRecord will use optimistic locking. By default this is +true+.
 
+* +config.active_record.whitelist_attributes+ will create an empty whitelist of attributes available for mass-assignment security for all models in your app.
+
 The MySQL adapter adds one additional configuration option:
 
 * +ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether ActiveRecord will consider all +tinyint(1)+ columns in a MySQL database to be booleans. By default this is +true+.

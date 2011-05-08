@@ -1,23 +1,20 @@
 require 'uri'
+require 'action_view/helpers/asset_paths'
 
 module ActionView
   module Helpers
     module SprocketsHelper
-      def sprockets_javascript_path(source)
-        compute_sprockets_path source, 'assets', 'js'
+      def asset_path(source, default_ext = nil)
+        sprockets_asset_paths.compute_public_path(source, 'assets', default_ext, true)
       end
 
       def sprockets_javascript_include_tag(source, options = {})
         options = {
           'type' => "text/javascript",
-          'src'  => sprockets_javascript_path(source)
+          'src'  => asset_path(source, 'js')
         }.merge(options.stringify_keys)
 
         content_tag 'script', "", options
-      end
-
-      def sprockets_stylesheet_path(source)
-        compute_sprockets_path source, 'assets', 'css'
       end
 
       def sprockets_stylesheet_link_tag(source, options = {})
@@ -25,61 +22,48 @@ module ActionView
           'rel'   => "stylesheet",
           'type'  => "text/css",
           'media' => "screen",
-          'href'  => sprockets_stylesheet_path(source)
+          'href'  => asset_path(source, 'css')
         }.merge(options.stringify_keys)
 
         tag 'link', options
       end
 
       private
-        def compute_sprockets_path(source, dir, default_ext)
-          source = source.to_s
 
-          return source if URI.parse(source).host
+      def sprockets_asset_paths
+        @sprockets_asset_paths ||= begin
+          config     = self.config if respond_to?(:config)
+          controller = self.controller if respond_to?(:controller)
+          SprocketsHelper::AssetPaths.new(config, controller)
+        end
+      end
 
-          # Add /javscripts to relative paths
-          if source[0] != ?/
-            source = "/#{dir}/#{source}"
+      class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
+        def rewrite_asset_path(source, dir)
+          if source[0] == ?/
+            source
+          else
+            assets.path(source, performing_caching?, dir)
           end
-
-          # Add default extension if there isn't one
-          if default_ext && File.extname(source).empty?
-            source = "#{source}.#{default_ext}"
-          end
-
-          # Fingerprint url
-          if source =~ /^\/#{dir}\/(.+)/
-            source = assets.path($1, config.perform_caching, dir)
-          end
-
-          host = compute_asset_host(source)
-
-          if controller.respond_to?(:request) && host && URI.parse(host).host
-            source = "#{controller.request.protocol}#{host}#{source}"
-          end
-
-          source
         end
 
-        def compute_asset_host(source)
-          if host = config.asset_host
-            if host.is_a?(Proc) || host.respond_to?(:call)
-              case host.is_a?(Proc) ? host.arity : host.method(:call).arity
-              when 2
-                request = controller.respond_to?(:request) && controller.request
-                host.call(source, request)
-              else
-                host.call(source)
-              end
-            else
-              (host =~ /%d/) ? host % (source.hash % 4) : host
-            end
+        def rewrite_extension(source, dir, ext)
+          if ext && File.extname(source).empty?
+            "#{source}.#{ext}"
+          else
+            source
           end
         end
 
         def assets
           Rails.application.assets
         end
+
+        # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available
+        def performing_caching?
+          @config ?  @config.perform_caching : Rails.application.config.action_controller.perform_caching
+        end
+      end
     end
   end
 end

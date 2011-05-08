@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* attr_accessible and friends now accepts :as as option to specify a role [Josh Kalderimis]
+
 * Add support for proc or lambda as an option for InclusionValidator,
   ExclusionValidator, and FormatValidator [Prem Sichanugrist]
 
@@ -12,6 +14,8 @@
 * Added ActiveModel::SecurePassword to encapsulate dead-simple password usage with BCrypt encryption and salting [DHH]
 
 * ActiveModel::AttributeMethods allows attributes to be defined on demand [Alexander Uvarov]
+
+* Add support for selectively enabling/disabling observers [Myron Marston]
 
 
 *Rails 3.0.2 (unreleased)*

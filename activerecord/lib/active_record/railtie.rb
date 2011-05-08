@@ -26,10 +26,12 @@ module ActiveRecord
       load "active_record/railties/databases.rake"
     end
 
-    # When loading console, force ActiveRecord to be loaded to avoid cross
-    # references when loading a constant for the first time.
-    console do
-      ActiveRecord::Base
+    # When loading console, force ActiveRecord::Base to be loaded
+    # to avoid cross references when loading a constant for the
+    # first time. Also, make it output to STDERR.
+    console do |sandbox|
+      require "active_record/railties/console_sandbox" if sandbox
+      ActiveRecord::Base.logger = Logger.new(STDERR)
     end
 
     initializer "active_record.initialize_timezone" do
@@ -50,6 +52,9 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
+        if app.config.active_record.delete(:whitelist_attributes)
+          attr_accessible(nil)
+        end
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end

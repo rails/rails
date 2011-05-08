@@ -130,27 +130,39 @@ module AbstractController
       self.class.action_methods
     end
 
-    # Returns true if the name can be considered an action. This can
-    # be overridden in subclasses to modify the semantics of what
-    # can be considered an action.
+    # Returns true if a method for the action is available and
+    # can be dispatched, false otherwise.
     #
-    # For instance, this is overriden by ActionController to add
-    # the implicit rendering feature.
-    #
-    # ==== Parameters
-    # * <tt>name</tt> - The name of an action to be tested
-    #
-    # ==== Returns
-    # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
-    def action_method?(name)
-      self.class.action_methods.include?(name)
+    # Notice that <tt>action_methods.include?("foo")</tt> may return
+    # false and <tt>available_action?("foo")</tt> returns true because
+    # available action consider actions that are also available
+    # through other means, for example, implicit render ones.
+    def available_action?(action_name)
+      method_for_action(action_name).present?
     end
 
     private
 
+      # Returns true if the name can be considered an action because
+      # it has a method defined in the controller.
+      #
+      # ==== Parameters
+      # * <tt>name</tt> - The name of an action to be tested
+      #
+      # ==== Returns
+      # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
+      #
+      # :api: private
+      def action_method?(name)
+        self.class.action_methods.include?(name)
+      end
+
       # Call the action. Override this in a subclass to modify the
       # behavior around processing an action. This, and not #process,
       # is the intended way to override action dispatching.
+      #
+      # Notice that the first argument is the method to be dispatched
+      # which is *not* necessarily the same as the action name.
       def process_action(method_name, *args)
         send_action(method_name, *args)
       end

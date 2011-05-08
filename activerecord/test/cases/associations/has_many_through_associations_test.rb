@@ -44,7 +44,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associate_existing
-    assert_queries(2) { posts(:thinking); people(:david) }
+    posts(:thinking); people(:david) # Warm cache
 
     assert_queries(1) do
       posts(:thinking).people << people(:david)
@@ -760,7 +760,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_primary_key_option_on_source
     post     = posts(:welcome)
     category = categories(:general)
-    categorization = Categorization.create!(:post_id => post.id, :named_category_name => category.name)
+    Categorization.create!(:post_id => post.id, :named_category_name => category.name)
 
     assert_equal [category], post.named_categories
     assert_equal [category.name], post.named_category_ids # checks when target loaded

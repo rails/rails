@@ -121,7 +121,7 @@ module ActiveSupport
         # Lock a file for a block so only one process can modify it at a time.
         def lock_file(file_name, &block) # :nodoc:
           if File.exist?(file_name)
-            File.open(file_name, 'r') do |f|
+            File.open(file_name, 'r+') do |f|
               begin
                 f.flock File::LOCK_EX
                 yield

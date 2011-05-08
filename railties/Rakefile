@@ -45,11 +45,6 @@ task :generate_guides do
   ruby "guides/rails_guides.rb"
 end
 
-task :update_ujs do
-  system "curl https://github.com/rails/prototype-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/prototype_ujs.js"
-  system "curl https://github.com/rails/jquery-ujs/raw/master/src/rails.js > lib/rails/generators/rails/app/templates/public/javascripts/jquery_ujs.js"
-end
-
 # Validate guides -------------------------------------------------------------------------
 desc 'Validate guides, use ONLY=foo to process just "foo.html"'
 task :validate_guides do

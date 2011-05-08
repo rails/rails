@@ -69,6 +69,7 @@ module TestGenerationPrefix
 
     # force draw
     RailsApplication.routes
+    RailsApplication.routes.define_mounted_helper(:main_app)
 
     class ::InsideEngineGeneratingController < ActionController::Base
       include BlogEngine.routes.url_helpers

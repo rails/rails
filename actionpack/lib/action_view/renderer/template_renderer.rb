@@ -3,7 +3,9 @@ require 'active_support/core_ext/array/wrap'
 
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
-    def render(options)
+    def render(context, options)
+      @view = context
+
       wrap_formats(options[:template] || options[:file]) do
         template = determine_template(options)
         freeze_formats(template.formats, true)
@@ -18,7 +20,7 @@ module ActionView
       if options.key?(:text)
         Template::Text.new(options[:text], formats.try(:first))
       elsif options.key?(:file)
-        with_fallbacks { find_template(options[:file], options[:prefixes], false, keys) }
+        with_fallbacks { find_template(options[:file], nil, false, keys) }
       elsif options.key?(:inline)
         handler = Template.handler_for_extension(options[:type] || "erb")
         Template.new(options[:inline], "inline template", handler, :locals => keys)
@@ -46,7 +48,7 @@ module ActionView
 
       if layout
         view = @view
-        view._view_flow.set(:layout, content)
+        view.view_flow.set(:layout, content)
         layout.render(view, locals){ |*name| view._layout_for(*name) }
       else
         content

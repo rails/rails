@@ -200,18 +200,23 @@ module ActionController
       RequestForgeryProtection,
       ForceSSL,
       Streaming,
+      DataStreaming,
       RecordIdentifier,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
 
+      # Before callbacks should also be executed the earliest as possible, so
+      # also include them at the bottom.
+      AbstractController::Callbacks,
+
       # Add instrumentations hooks at the bottom, to ensure they instrument
       # all the methods properly.
       Instrumentation,
 
-      # Before callbacks should also be executed the earliest as possible, so
-      # also include them at the bottom.
-      AbstractController::Callbacks,
+      # Params wrapper should come before instrumentation so they are
+      # properly showed in logs
+      ParamsWrapper,
 
       # The same with rescue, append it at the end to wrap as much as possible.
       Rescue

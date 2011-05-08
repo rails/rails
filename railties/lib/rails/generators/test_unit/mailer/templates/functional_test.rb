@@ -13,10 +13,9 @@ class <%= class_name %>Test < ActionMailer::TestCase
 
 <% end -%>
 <% if actions.blank? -%>
-  # replace this with your real tests
-  test "the truth" do
-    assert true
-  end
+  # test "the truth" do
+  #   assert true
+  # end
 <% end -%>
 end
 <% end -%>

@@ -42,7 +42,7 @@ You are ready to add some AJAX love to your Rails app!
 
 h4. The Quintessential AJAX Rails Helper: link_to_remote
 
-Let's start with what is probably the most often used helper: +link_to_remote+.  It has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
+Let's start with what is probably the most often used helper: +link_to_remote+. It has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
 
 The signature of +link_to_remote+ function is the same as that of the standard +link_to+ helper:
 
@@ -72,7 +72,7 @@ link_to_remote "Add to cart",
 
 If the server returns 200, the output of the above example is equivalent to our first, simple one. However, in case of error, the element with the DOM id +error+ is updated rather than the +cart+ element.
 
-** *position* By default (i.e. when not specifying this option, like in the examples before) the repsonse is injected into the element with the specified DOM id, replacing the original content of the element  (if there was any). You might want to alter this behavior by keeping the original content - the only question is where to place the new content? This can specified by the +position+ parameter, with four possibilities:
+** *position* By default (i.e. when not specifying this option, like in the examples before) the repsonse is injected into the element with the specified DOM id, replacing the original content of the element (if there was any). You might want to alter this behavior by keeping the original content - the only question is where to place the new content? This can specified by the +position+ parameter, with four possibilities:
 *** +:before+ Inserts the response text just before the target element. More precisely, it creates a text node from the response and inserts it as the left sibling of the target element.
 *** +:after+ Similar behavior to +:before+, but in this case the response is inserted after the target element.
 *** +:top+ Inserts the text into the target element, before it's original content. If the target element was empty, this is equivalent with not specifying +:position+ at all.

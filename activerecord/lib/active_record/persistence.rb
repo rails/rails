@@ -77,7 +77,15 @@ module ActiveRecord
     def destroy
       if persisted?
         IdentityMap.remove(self) if IdentityMap.enabled?
-        self.class.unscoped.where(self.class.arel_table[self.class.primary_key].eq(id)).delete_all
+        pk         = self.class.primary_key
+        column     = self.class.columns_hash[pk]
+        substitute = connection.substitute_at(column, 0)
+
+        relation = self.class.unscoped.where(
+          self.class.arel_table[pk].eq(substitute))
+
+        relation.bind_values = [[column, id]]
+        relation.delete_all
       end
 
       @destroyed = true
@@ -136,22 +144,27 @@ module ActiveRecord
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
-    def update_attributes(attributes)
+    #
+    # When updating model attributes, mass-assignment security protection is respected.
+    # If no +:as+ option is supplied then the +:default+ scope will be used.
+    # If you want to bypass the protection given by +attr_protected+ and
+    # +attr_accessible+ then you can do so using the +:without_protection+ option.
+    def update_attributes(attributes, options = {})
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        self.attributes = attributes
+        self.assign_attributes(attributes, options)
         save
       end
     end
 
     # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
     # of +save+, so an exception is raised if the record is invalid.
-    def update_attributes!(attributes)
+    def update_attributes!(attributes, options = {})
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
       with_transaction_returning_status do
-        self.attributes = attributes
+        self.assign_attributes(attributes, options)
         save!
       end
     end

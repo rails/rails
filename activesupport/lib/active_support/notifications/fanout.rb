@@ -1,7 +1,7 @@
 module ActiveSupport
   module Notifications
-    # This is a default queue implementation that ships with Notifications. It
-    # just pushes events to all registered log subscribers.
+    # This is a default queue implementation that ships with Notifications.
+    # It just pushes events to all registered log subscribers.
     class Fanout
       def initialize
         @subscribers = []
@@ -33,7 +33,7 @@ module ActiveSupport
         listeners_for(name).any?
       end
 
-      # This is a sync queue, so there is not waiting.
+      # This is a sync queue, so there is no waiting.
       def wait
       end
 

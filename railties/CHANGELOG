@@ -1,5 +1,27 @@
 *Rails 3.1.0 (unreleased)*
 
+* Fixed database tasks for jdbc* adapters #jruby
+
+  [Rashmi Yadav]
+
+* Template generation for jdbcpostgresql  #jruby
+
+  [Vishnu Atrai]
+
+* Template generation for jdbcmysql and jdbcsqlite3 #jruby
+
+  [Arun Agrawal]
+
+* The -j option of the application generator accepts an arbitrary string. If passed "foo",
+the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest
+requires "foo" and "foo_ujs". As of this writing "prototype-rails" and "jquery-rails"
+exist and provide those files via the asset pipeline. Default is "jquery". [fxn]
+
+* jQuery is no longer vendored, it is provided from now on by the jquery-rails gem. [fxn]
+
+* Prototype and Scriptaculous are no longer vendored, they are provided from now on
+by the prototype-rails gem. [fxn]
+
 * The scaffold controller will now produce SCSS file if Sass is available [Prem Sichanugrist]
 
 * The controller and resource generators will now automatically produce asset stubs (this can be turned off with --skip-assets). These stubs will use Coffee and Sass, if those libraries are available. [DHH]

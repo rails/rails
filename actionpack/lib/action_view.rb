@@ -34,13 +34,12 @@ module ActionView
     autoload :Context
     autoload :Helpers
     autoload :LookupContext
-    autoload :Partials
     autoload :PathSet
-    autoload :Rendering
     autoload :Template
     autoload :TestCase
 
     autoload_under "renderer" do
+      autoload :Renderer
       autoload :AbstractRenderer
       autoload :PartialRenderer
       autoload :TemplateRenderer

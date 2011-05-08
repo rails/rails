@@ -321,7 +321,7 @@ resources :photos do
 end
 </ruby>
 
-This will recognize +/photos/1/preview+ with GET, and route to the +preview+ action of  +PhotosController+. It will also create the +preview_photo_url+ and +preview_photo_path+ helpers.
+This will recognize +/photos/1/preview+ with GET, and route to the +preview+ action of +PhotosController+. It will also create the +preview_photo_url+ and +preview_photo_path+ helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use +get+, +put+, +post+, or +delete+ here. If you don't have multiple +member+ routes, you can also pass +:on+ to a route, eliminating the block:
 
@@ -391,7 +391,7 @@ NOTE: You can't use +namespace+ or +:module+ with a +:controller+ path segment. 
 match ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
 </ruby>
 
-TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id => /[^\/]<plus>/+ allows anything except a slash.
+TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id+ => /[^\/]+/ allows anything except a slash.
 
 h4. Static Segments
 
@@ -421,7 +421,7 @@ You do not need to explicitly use the +:controller+ and +:action+ symbols within
 match 'photos/:id' => 'photos#show'
 </ruby>
 
-With this route, Rails will match an incoming path of +/photos/12+ to the +show+ action of  +PhotosController+.
+With this route, Rails will match an incoming path of +/photos/12+ to the +show+ action of +PhotosController+.
 
 You can also define other defaults in a route by supplying a hash for the +:defaults+ option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
@@ -557,7 +557,7 @@ match '*a/foo/*b' => 'test#index'
 
 would match +zoo/woo/foo/bar/baz+ with +params[:a]+ equals +"zoo/woo"+, and +params[:b]+ equals +"bar/baz"+.
 
-NOTE: Starting from Rails 3.1, wildcard route will always matching the optional format segment by default. For example if you have this route:
+NOTE: Starting from Rails 3.1, wildcard routes will always match the optional format segment by default. For example if you have this route:
 
 <ruby>
 map '*pages' => 'pages#show'
@@ -660,7 +660,7 @@ end
 
 NOTE: Of course, you can use the more advanced constraints available in non-resourceful routes in this context.
 
-TIP: By default the +:id+ parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an +:id+ add a constraint which overrides this - for example +:id => /[^\/]+/+ allows anything except a slash.
+TIP: By default the +:id+ parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an +:id+ add a constraint which overrides this - for example +:id+ => /[^\/]+/ allows anything except a slash.
 
 h4. Overriding the Named Helpers
 

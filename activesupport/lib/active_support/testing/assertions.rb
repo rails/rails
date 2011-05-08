@@ -29,22 +29,33 @@ module ActiveSupport
       #     post :create, :article => {...}
       #   end
       #
+      # A lambda or a list of lambdas can be passed in and evaluated:
+      #
+      #   assert_difference lambda { Article.count }, 2 do
+      #     post :create, :article => {...}
+      #   end
+      #
+      #   assert_difference [->{ Article.count }, ->{ Post.count }], 2 do
+      #     post :create, :article => {...}
+      #   end
+      #
       # A error message can be specified.
       #
       #   assert_difference 'Article.count', -1, "An Article should be destroyed" do
       #     post :delete, :id => ...
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
-        b = block.send(:binding)
-        exps = Array.wrap(expression)
-        before = exps.map { |e| eval(e, b) }
+        exps = Array.wrap(expression).map { |e|
+          e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
+        }
+        before = exps.map { |e| e.call }
 
         yield
 
         exps.each_with_index do |e, i|
-          error = "#{e.inspect} didn't change by #{difference}"
-          error = "#{message}.\n#{error}" if message
-          assert_equal(before[i] + difference, eval(e, b), error)
+          error  = "#{e.inspect} didn't change by #{difference}"
+          error  = "#{message}.\n#{error}" if message
+          assert_equal(before[i] + difference, e.call, error)
         end
       end
 

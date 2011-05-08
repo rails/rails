@@ -56,11 +56,11 @@ module ActiveRecord
       end
 
       substitutes.each_with_index do |tuple, i|
-        tuple[1] = conn.substitute_at(tuple.first, i)
+        tuple[1] = conn.substitute_at(binds[i][0], i)
       end
 
       if values.empty? # empty insert
-        im.values = im.create_values [connection.null_insert_value], []
+        im.values = Arel.sql(connection.empty_insert_statement_value)
       else
         im.insert substitutes
       end
@@ -220,7 +220,7 @@ module ActiveRecord
         stmt.take limit if limit
         stmt.order(*order)
         stmt.key = table[primary_key]
-        @klass.connection.update stmt.to_sql
+        @klass.connection.update stmt.to_sql, 'SQL', bind_values
       end
     end
 
@@ -338,7 +338,9 @@ module ActiveRecord
         where(conditions).delete_all
       else
         statement = arel.compile_delete
-        affected = @klass.connection.delete statement.to_sql
+        affected = @klass.connection.delete(
+          statement.to_sql, 'SQL', bind_values)
+
         reset
         affected
       end
