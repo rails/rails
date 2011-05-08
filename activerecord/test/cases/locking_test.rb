@@ -5,6 +5,7 @@ require 'models/job'
 require 'models/reader'
 require 'models/legacy_thing'
 require 'models/reference'
+require 'models/string_key_object'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -18,7 +19,40 @@ class ReadonlyFirstNamePerson < Person
 end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
-  fixtures :people, :legacy_things, :references
+  fixtures :people, :legacy_things, :references, :string_key_objects
+
+  def test_non_integer_lock_existing
+    s1 = StringKeyObject.find("record1")
+    s2 = StringKeyObject.find("record1")
+    assert_equal 0, s1.lock_version
+    assert_equal 0, s2.lock_version
+
+    s1.name = 'updated record'
+    s1.save!
+    assert_equal 1, s1.lock_version
+    assert_equal 0, s2.lock_version
+
+    s2.name = 'doubly updated record'
+    assert_raise(ActiveRecord::StaleObjectError) { s2.save! }
+  end
+
+  def test_non_integer_lock_destroy
+    s1 = StringKeyObject.find("record1")
+    s2 = StringKeyObject.find("record1")
+    assert_equal 0, s1.lock_version
+    assert_equal 0, s2.lock_version
+
+    s1.name = 'updated record'
+    s1.save!
+    assert_equal 1, s1.lock_version
+    assert_equal 0, s2.lock_version
+    assert_raise(ActiveRecord::StaleObjectError) { s2.destroy }
+
+    assert s1.destroy
+    assert s1.frozen?
+    assert s1.destroyed?
+    assert_raises(ActiveRecord::RecordNotFound) { StringKeyObject.find("record1") }
+  end
 
   def test_lock_existing
     p1 = Person.find(1)
