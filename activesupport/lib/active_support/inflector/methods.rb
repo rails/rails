@@ -135,6 +135,8 @@ module ActiveSupport
     #   ordinalize(2)     # => "2nd"
     #   ordinalize(1002)  # => "1002nd"
     #   ordinalize(1003)  # => "1003rd"
+    #   ordinalize(-11)   # => "-11th"
+    #   ordinalize(-1021) # => "-1021st"
     def ordinalize(number)
       if (11..13).include?(number.to_i.abs % 100)
         "#{number}th"
