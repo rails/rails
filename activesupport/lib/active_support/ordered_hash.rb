@@ -43,6 +43,10 @@ module ActiveSupport
       end
     end
 
+    def nested_under_indifferent_access
+      self
+    end
+
     # Hash is ordered in Ruby 1.9!
     if RUBY_VERSION < '1.9'
 
