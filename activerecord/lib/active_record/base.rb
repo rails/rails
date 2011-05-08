@@ -482,7 +482,7 @@ module ActiveRecord #:nodoc:
       #   # Create a single new object
       #   User.create(:first_name => 'Jamie')
       #
-      #   # Create a single new object using the :admin mass-assignment security scope
+      #   # Create a single new object using the :admin mass-assignment security role
       #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
       #
       #   # Create a single new object bypassing mass-assignment security
@@ -1486,7 +1486,7 @@ MSG
       #   # Instantiates a single new object
       #   User.new(:first_name => 'Jamie')
       #
-      #   # Instantiates a single new object using the :admin mass-assignment security scope
+      #   # Instantiates a single new object using the :admin mass-assignment security role
       #   User.new({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
       #
       #   # Instantiates a single new object bypassing mass-assignment security
@@ -1661,8 +1661,8 @@ MSG
       end
 
       # Allows you to set all the attributes for a particular mass-assignment
-      # security scope by passing in a hash of attributes with keys matching
-      # the attribute names (which again matches the column names) and the scope
+      # security role by passing in a hash of attributes with keys matching
+      # the attribute names (which again matches the column names) and the role
       # name using the :as option.
       #
       # To bypass mass-assignment security you can use the :without_protection => true
@@ -1689,12 +1689,12 @@ MSG
       #   user.is_admin?  # => true
       def assign_attributes(new_attributes, options = {})
         attributes = new_attributes.stringify_keys
-        scope = options[:as] || :default
+        role = options[:as] || :default
 
         multi_parameter_attributes = []
 
         unless options[:without_protection]
-          attributes = sanitize_for_mass_assignment(attributes, scope)
+          attributes = sanitize_for_mass_assignment(attributes, role)
         end
 
         attributes.each do |k, v|
