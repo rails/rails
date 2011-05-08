@@ -224,6 +224,7 @@ module ActionDispatch
         self.valid_conditions.push(:controller, :action)
 
         @append = []
+        @prepend = []
         @disable_clear_and_finalize = false
         clear!
       end
@@ -232,12 +233,15 @@ module ActionDispatch
         clear! unless @disable_clear_and_finalize
         eval_block(block)
         finalize! unless @disable_clear_and_finalize
-
         nil
       end
 
       def append(&block)
         @append << block
+      end
+
+      def prepend(&block)
+        @prepend << block
       end
 
       def eval_block(block)
@@ -262,8 +266,6 @@ module ActionDispatch
       end
 
       def clear!
-        # Clear the controller cache so we may discover new ones
-        @controller_constraints = nil
         @finalized = false
         routes.clear
         named_routes.clear
@@ -271,6 +273,7 @@ module ActionDispatch
           :parameters_key => PARAMETERS_KEY,
           :request_class  => request_class
         )
+        @prepend.each { |blk| eval_block(blk) }
       end
 
       def install_helpers(destinations = [ActionController::Base, ActionView::Base], regenerate_code = false)
