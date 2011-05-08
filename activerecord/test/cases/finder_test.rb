@@ -683,6 +683,27 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.find_last_by_title_and_author_name(topic.title, "Anonymous")
   end
 
+  def test_find_last_with_limit_gives_same_result_when_loaded_and_unloaded
+    scope = Topic.limit(2)
+    unloaded_last = scope.last
+    loaded_last = scope.all.last
+    assert_equal loaded_last, unloaded_last
+  end
+
+  def test_find_last_with_limit_and_offset_gives_same_result_when_loaded_and_unloaded
+    scope = Topic.offset(2).limit(2)
+    unloaded_last = scope.last
+    loaded_last = scope.all.last
+    assert_equal loaded_last, unloaded_last
+  end
+
+  def test_find_last_with_offset_gives_same_result_when_loaded_and_unloaded
+    scope = Topic.offset(3)
+    unloaded_last = scope.last
+    loaded_last = scope.all.last
+    assert_equal loaded_last, unloaded_last
+  end
+
   def test_find_all_by_one_attribute
     topics = Topic.find_all_by_content("Have a nice day")
     assert_equal 2, topics.size
