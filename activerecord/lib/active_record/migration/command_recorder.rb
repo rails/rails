@@ -91,6 +91,14 @@ module ActiveRecord
         [:remove_timestamps, args]
       end
 
+      def invert_remove_password(args)
+        [:add_password, args]
+      end
+
+      def invert_add_password(args)
+        [:remove_password, args]
+      end
+
       # Forwards any missing method call to the \target.
       def method_missing(method, *args, &block)
         @delegate.send(method, *args, &block)

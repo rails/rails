@@ -412,6 +412,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table table_name rescue nil
     end
 
+    def test_create_table_with_password_should_create_password_digest_column
+      table_name = :testings
+
+      Person.connection.create_table table_name do |t|
+        t.password
+      end
+      created_columns = Person.connection.columns(table_name)
+
+      password_digest_column = created_columns.detect {|c| c.name == 'password_digest' }
+
+      assert password_digest_column.null
+    ensure
+      Person.connection.drop_table table_name rescue nil
+    end
+
     def test_create_table_without_a_block
       table_name = :testings
       Person.connection.create_table table_name
@@ -1607,6 +1622,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_password_creates_encrypted_password
+      with_new_table do |t|
+        t.expects(:column).with(:password_digest, :string)
+        t.password
+      end
+    end
+
     def test_integer_creates_integer_column
       with_new_table do |t|
         t.expects(:column).with(:foo, 'integer', {})
@@ -1785,6 +1807,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       with_change_table do |t|
         @connection.expects(:remove_timestamps).with(:delete_me)
         t.remove_timestamps
+      end
+    end
+
+    def test_password_creates_password_digest
+      with_change_table do |t|
+        @connection.expects(:add_password).with(:delete_me)
+        t.password
+      end
+    end
+
+    def test_remove_password_removes_password_digest
+      with_change_table do |t|
+        @connection.expects(:remove_password).with(:delete_me)
+        t.remove_password
       end
     end
 

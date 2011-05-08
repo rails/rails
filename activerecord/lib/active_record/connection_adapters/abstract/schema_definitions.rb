@@ -257,6 +257,10 @@ module ActiveRecord
         column(:updated_at, :datetime, options)
       end
 
+      def password
+        column(:password_digest, :string)
+      end
+
       def references(*args)
         options = args.extract_options!
         polymorphic = options.delete(:polymorphic)
@@ -356,6 +360,20 @@ module ActiveRecord
       #  t.timestamps
       def timestamps
         @base.add_timestamps(@table_name)
+      end
+
+      # Adds password (+password_digest+) column to the table. See SchemaStatements#add_password
+      # ===== Example
+      #  t.password
+      def password
+        @base.add_password(@table_name)
+      end
+
+      # Removes password (+password_digest+) column from table. See SchemaStatements#remove_password
+      # ===== Example
+      #  t.remove_password
+      def remove_password
+        @base.remove_password(@table_name)
       end
 
       # Changes the column's definition according to the new options.
@@ -479,4 +497,3 @@ module ActiveRecord
 
   end
 end
-

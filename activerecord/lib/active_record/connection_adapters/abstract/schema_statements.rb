@@ -519,6 +519,20 @@ module ActiveRecord
         remove_column table_name, :created_at
       end
 
+      # Adds password digest column, suitable for using with ActiveModel's has_secure_password
+      # ===== Examples
+      #  add_password(:users)
+      def add_password(table_name)
+        add_column table_name, :password_digest, :string
+      end
+
+      # Removes password digest column
+      # ===== Examples
+      #  remove_password(:users)
+      def remove_password(table_name)
+        remove_column table_name, :password_digest
+      end
+
       protected
         # Overridden by the mysql adapter for supporting index lengths
         def quoted_columns_for_index(column_names, options = {})

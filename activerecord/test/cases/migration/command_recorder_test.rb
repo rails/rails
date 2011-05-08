@@ -103,6 +103,18 @@ module ActiveRecord
         add = @recorder.inverse.first
         assert_equal [:add_timestamps, [:table]], add
       end
+
+      def test_invert_add_password
+        @recorder.record :add_password, [:table]
+        remove = @recorder.inverse.first
+        assert_equal [:remove_password, [:table]], remove
+      end
+
+      def test_invert_remove_password
+        @recorder.record :remove_password, [:table]
+        remove = @recorder.inverse.first
+        assert_equal [:add_password, [:table]], remove
+      end
     end
   end
 end
