@@ -611,8 +611,8 @@ module ActionView
         end
 
         def extra_tags_for_form(html_options)
-          snowman_tag = tag(:input, :type => "hidden",
-                            :name => "utf8", :value => "&#x2713;".html_safe)
+          utf8_enforcer = tag(:input, :type => "hidden",
+                              :name => "utf8", :value => "&#x2713;".html_safe)
 
           authenticity_token = html_options.delete("authenticity_token")
           method = html_options.delete("method").to_s
@@ -629,7 +629,7 @@ module ActionView
               tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
           end
 
-          tags = snowman_tag << method_tag
+          tags = utf8_enforcer << method_tag
           content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
         end
 
