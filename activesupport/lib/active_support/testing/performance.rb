@@ -51,6 +51,8 @@ module ActiveSupport
               end
             end
           end
+          
+          return
         end
 
         def run_test(metric, mode)
