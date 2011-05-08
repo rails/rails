@@ -462,4 +462,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert DeveloperCalledJamis.unscoped.poor.include?(developers(:david).becomes(DeveloperCalledJamis))
     assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
   end
+
+  def test_default_scope_order_ignored_by_aggregations
+    assert_equal DeveloperOrderedBySalary.all.count, DeveloperOrderedBySalary.count
+  end
 end
