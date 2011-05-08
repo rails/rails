@@ -140,8 +140,8 @@ module ActiveSupport
       end
 
       def convert_value(value)
-        if value.class == Hash
-          self.class.new_from_hash_copying_default(value)
+        if value.is_a? Hash
+          value.nested_under_indifferent_access
         elsif value.is_a?(Array)
           value.dup.replace(value.map { |e| convert_value(e) })
         else
