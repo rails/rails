@@ -15,6 +15,7 @@ module ActiveRecord::ConnectionAdapters
       # Pretend to support bind parameters
       execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
     end
+    alias :exec_update :exec_insert
 
     def last_inserted_id(result)
       result
