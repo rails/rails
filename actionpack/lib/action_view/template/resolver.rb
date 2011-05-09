@@ -111,7 +111,8 @@ module ActionView
     end
   end
 
-  class PathResolver < Resolver
+  # An abstract class that implements a Resolver with path semantics.
+  class PathResolver < Resolver #:nodoc:
     EXTENSIONS = [:locale, :formats, :handlers]
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{.:handlers,}"
 
@@ -124,12 +125,11 @@ module ActionView
 
     def find_templates(name, prefix, partial, details)
       path = Path.build(name, prefix, partial)
-      extensions = Hash[EXTENSIONS.map { |ext| [ext, details[ext]] }.flatten(0)]
-      query(path, extensions, details[:formats])
+      query(path, details, details[:formats])
     end
 
-    def query(path, exts, formats)
-      query = build_query(path, exts)
+    def query(path, details, formats)
+      query = build_query(path, details)
       templates = []
       sanitizer = Hash.new { |h,k| h[k] = Dir["#{File.dirname(k)}/*"] }
 
@@ -137,7 +137,7 @@ module ActionView
         next if File.directory?(p) || !sanitizer[p].include?(p)
 
         handler, format = extract_handler_and_format(p, formats)
-        contents = File.open(p, "rb") {|io| io.read }
+        contents = File.open(p, "rb") { |io| io.read }
 
         templates << Template.new(contents, File.expand_path(p), handler,
           :virtual_path => path.virtual, :format => format, :updated_at => mtime(p))
@@ -147,17 +147,14 @@ module ActionView
     end
 
     # Helper for building query glob string based on resolver's pattern.
-    def build_query(path, exts)
+    def build_query(path, details)
       query = @pattern.dup
       query.gsub!(/\:prefix(\/)?/, path.prefix.empty? ? "" : "#{path.prefix}\\1") # prefix can be empty...
       query.gsub!(/\:action/, path.partial? ? "_#{path.name}" : path.name)
 
-      exts.each { |ext, variants|
+      details.each do |ext, variants|
         query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
-      }
-
-      query.gsub!('.{html,', '.{html,text.html,')
-      query.gsub!('.{text,', '.{text,text.plain,')
+      end
 
       File.expand_path(query, @path)
     end
@@ -234,9 +231,25 @@ module ActionView
     alias :== :eql?
   end
 
+  # An Optimized resolver for Rails' most common case.
+  class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
+    def build_query(path, details)
+      exts = EXTENSIONS.map { |ext| details[ext] }
+      query = File.join(@path, path)
+
+      exts.each do |ext|
+        query << "{"
+        ext.compact.each { |e| query << ".#{e}," }
+        query << "}"
+      end
+
+      query
+    end
+  end
+
   # The same as FileSystemResolver but does not allow templates to store
   # a virtual path since it is invalid for such resolvers.
-  class FallbackFileSystemResolver < FileSystemResolver
+  class FallbackFileSystemResolver < FileSystemResolver #:nodoc:
     def self.instances
       [new(""), new("/")]
     end
