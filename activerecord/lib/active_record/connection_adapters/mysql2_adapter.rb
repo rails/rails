@@ -184,6 +184,10 @@ module ActiveRecord
         QUOTED_FALSE
       end
 
+      def substitute_at(column, index)
+        Arel.sql "\0"
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity(&block) #:nodoc:
@@ -292,14 +296,14 @@ module ActiveRecord
         binds = binds.dup
 
         # Pretend to support bind parameters
-        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
       end
 
       def exec_delete(sql, name, binds)
         binds = binds.dup
 
         # Pretend to support bind parameters
-        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
         @connection.affected_rows
       end
       alias :exec_update :exec_delete
@@ -646,7 +650,8 @@ module ActiveRecord
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
         def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds).to_a
+          binds = binds.dup
+          exec_query(sql.gsub("\0") { quote(*binds.shift.reverse) }, name).to_a
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
