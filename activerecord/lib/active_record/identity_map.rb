@@ -15,7 +15,6 @@ module ActiveRecord
   # IdentityMap is disabled by default.
   #
   module IdentityMap
-    extend ActiveSupport::Concern
 
     class << self
       def enabled=(flag)
@@ -53,7 +52,7 @@ module ActiveRecord
 
         if record.is_a?(klass)
           ActiveSupport::Notifications.instrument("identity.active_record",
-            :line => "From Identity Map (id: #{primary_key})", 
+            :line => "From Identity Map (id: #{primary_key})",
             :name => "#{klass} Loaded",
             :connection_id => object_id)
 
