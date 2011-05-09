@@ -21,7 +21,8 @@ module ActiveSupport
     #
     # *Note*: This module is based on the SecureRandom library from Ruby 1.9,
     # revision 18786, August 23 2008. It's 100% interface-compatible with Ruby 1.9's
-    # SecureRandom library.
+    # SecureRandom library, with the exception of the two added methods:
+    # random_from_set and random_unambiguous_code, which Ruby lacks
     #
     # == Example
     #
@@ -47,6 +48,16 @@ module ActiveSupport
     #  p SecureRandom.random_bytes(10) # => "\323U\030TO\234\357\020\a\337"
     #  ...
     #
+    #  # random choices from set
+    #  p SecureRandom.random_from_set(3,['a','b','z',4,2]) # => ['z',4,'b']
+    #  p SecureRandom.random_form_set(8,[3,6,1,7,3])       # => [ 3,6,1,3,7,3,6,3 ]
+    #  ...
+    #
+    #  # random unambigous code
+    #  p SecureRandom.random_unambiguous_code(8) # => "KRA2GZYA"
+    #  p SecureRandom.random_unambiguous_code(4) # => "EV3Z"
+    #  ...
+ 
     module SecureRandom
 
       # Generates a random binary string.
@@ -200,6 +211,47 @@ module ActiveSupport
         len = format_message.call(format_message_ignore_inserts + format_message_from_system, 0, code, 0, msg, 1024, nil, nil, nil, nil, nil, nil, nil, nil)
         msg[0, len].tr("\r", '').chomp
       end
+    end
+  end
+  module SecureRandom
+    # Choose n random values from set.
+    #
+    # The argument n specifies the length of the returned array
+    #
+    # Set must be of a type that supports the 
+    # index access and the appends operators [] and << 
+    # such as a String or Array
+    #
+    # Returns an object of the same type as set
+    #
+    # If secure random number generator is not available,
+    # NotImplementedError is raised.
+    def self.random_from_set( n, set )
+      ret = set.class.new
+      SecureRandom.random_bytes( n ).each_byte do |b|
+        ret << set[  b >= set.length ? b % set.length : b ]
+      end
+      ret
+    end
+    # Return a code of n length 
+    # without using letters & numbers that could
+    # be easily confused with one another
+    #
+    # The argument n specifies the length of the returned string
+    #
+    # The chars argument defaults to the an ASCII alphabet subset;
+    # with lowercase characters, 
+    # the numbers 0, 1, 8 and the letters B, I, O, S, U
+    # eliminated
+    #
+    # Ideal for generating unique access codes
+    # or temporary passwords which might have
+    # to be written down or passed on verbally
+    #
+    # If secure random number generator is not available,
+    # NotImplementedError is raised.
+    def self.random_unambiguous_code( n, chars='234679ACDEFGHJKLMNPQRTVWXYZ')
+      self.random_from_set(n,chars)
     end
   end
 end
