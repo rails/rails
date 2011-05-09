@@ -872,14 +872,14 @@ module ActionView
 
         def ensure_stylesheet_sources!(sources)
           sources.each do |source|
-            asset_file_path!(path_to_stylesheet(source))
+            asset_file_path!(compute_public_path(source, 'stylesheets', 'css', false))
           end
           return sources
         end
 
         def ensure_javascript_sources!(sources)
           sources.each do |source|
-            asset_file_path!(path_to_javascript(source))
+            asset_file_path!(compute_public_path(source, 'javascripts', 'js', false))
           end
           return sources
         end

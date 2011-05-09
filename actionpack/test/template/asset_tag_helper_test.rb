@@ -688,7 +688,7 @@ class AssetTagHelperTest < ActionView::TestCase
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'combined.js'))
   end
 
-  def test_caching_javascript_include_tag_with_relative_url_root
+  def def test_caching_javascript_include_tag_when_caching_is_on_with_relative_url_root
     ENV["RAILS_ASSET_ID"] = ""
     @controller.config.relative_url_root = "/collaboration/hieraki"
     config.perform_caching = true
@@ -710,6 +710,19 @@ class AssetTagHelperTest < ActionView::TestCase
   ensure
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
     FileUtils.rm_f(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'money.js'))
+  end
+
+  def test_caching_javascript_include_tag_when_caching_off_with_relative_url_root
+    ENV["RAILS_ASSET_ID"] = ""
+    config.perform_caching = false
+    @controller.config.relative_url_root = "/collaboration/hieraki"
+
+    assert_dom_equal(
+      %(<script src="/collaboration/hieraki/javascripts/prototype.js" type="text/javascript"></script>\n<script src="/collaboration/hieraki/javascripts/effects.js" type="text/javascript"></script>\n<script src="/collaboration/hieraki/javascripts/dragdrop.js" type="text/javascript"></script>\n<script src="/collaboration/hieraki/javascripts/controls.js" type="text/javascript"></script>\n<script src="/collaboration/hieraki/javascripts/bank.js" type="text/javascript"></script>\n<script src="/collaboration/hieraki/javascripts/robber.js" type="text/javascript"></script>\n<script src="/collaboration/hieraki/javascripts/version.1.0.js" type="text/javascript"></script>\n<script src="/collaboration/hieraki/javascripts/application.js" type="text/javascript"></script>),
+      javascript_include_tag(:all, :cache => true)
+    )
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'all.js'))
   end
 
   def test_caching_javascript_include_tag_when_caching_off
@@ -955,6 +968,19 @@ class AssetTagHelperTest < ActionView::TestCase
     )
 
     assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  end
+
+  def test_caching_stylesheet_include_tag_when_caching_off_with_relative_url_root
+    ENV["RAILS_ASSET_ID"] = ""
+    config.perform_caching = false
+    @controller.config.relative_url_root = "/collaboration/hieraki"
+
+    assert_dom_equal(
+      %(<link href="/collaboration/hieraki/stylesheets/bank.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/collaboration/hieraki/stylesheets/robber.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/collaboration/hieraki/stylesheets/version.1.0.css" media="screen" rel="stylesheet" type="text/css" />),
+      stylesheet_link_tag(:all, :cache => true)
+    )
+
+    assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
   end
 end
 
