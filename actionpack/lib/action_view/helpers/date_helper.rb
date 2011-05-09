@@ -186,7 +186,7 @@ module ActionView
       #   # lacking a year field.
       #   date_select("user", "birthday", :order => [:month, :day])
       #
-      #   # Generates a date select that when POSTed is stored in the user variable, in the birthday attribute
+      #   # Generates a date select that when POSTed is stored in the post variable, in the written_on attribute
       #   # which is initially set to the date 3 days from the current date
       #   date_select("post", "written_on", :default => 3.days.from_now)
       #
