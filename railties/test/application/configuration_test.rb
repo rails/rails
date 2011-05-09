@@ -250,6 +250,21 @@ module ApplicationTests
       assert last_response.body =~ /_xsrf_token_here/
     end
 
+    test "utf8 enforcer param can be changed" do
+      make_basic_app do
+        app.config.action_view.utf8_enforcer_param = "_unicode"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :inline => "<%= form_tag('/') %>"
+        end
+      end
+
+      get "/"
+      assert last_response.body =~ /_unicode/
+    end
+
     test "config.action_controller.perform_caching = true" do
       make_basic_app do |app|
         app.config.action_controller.perform_caching = true
