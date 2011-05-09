@@ -10,17 +10,16 @@ module ActionView
       attr_reader :name, :prefix, :partial, :virtual
       alias_method :partial?, :partial
 
-      def initialize(name, prefix, partial)
-        @name, @prefix, @partial = name, prefix, partial
-        rebuild(@name, @prefix, @partial)
+      def self.build(name, prefix, partial)
+        virtual = ""
+        virtual << "#{prefix}/" unless prefix.empty?
+        virtual << (partial ? "_#{name}" : name)
+        new name, prefix, partial, virtual
       end
 
-      def rebuild(name, prefix, partial)
-        @virtual = ""
-        @virtual << "#{prefix}/" unless prefix.empty?
-        @virtual << (partial ? "_#{name}" : name)
-
-        self.replace(@virtual)
+      def initialize(name, prefix, partial, virtual)
+        @name, @prefix, @partial = name, prefix, partial
+        super(virtual)
       end
     end
 
@@ -60,7 +59,7 @@ module ActionView
 
     # Helpers that builds a path. Useful for building virtual paths.
     def build_path(name, prefix, partial)
-      Path.new(name, prefix, partial)
+      Path.build(name, prefix, partial)
     end
 
     # Handles templates caching. If a key is given and caching is on
@@ -124,7 +123,7 @@ module ActionView
     private
 
     def find_templates(name, prefix, partial, details)
-      path = build_path(name, prefix, partial)
+      path = Path.build(name, prefix, partial)
       extensions = Hash[EXTENSIONS.map { |ext| [ext, details[ext]] }.flatten(0)]
       query(path, extensions, details[:formats])
     end
@@ -147,7 +146,7 @@ module ActionView
       templates
     end
 
-    # Helper for building query glob string based on resolver's pattern. 
+    # Helper for building query glob string based on resolver's pattern.
     def build_query(path, exts)
       query = @pattern.dup
       query.gsub!(/\:prefix(\/)?/, path.prefix.empty? ? "" : "#{path.prefix}\\1") # prefix can be empty...
