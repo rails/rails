@@ -16,6 +16,12 @@ class HashExtTest < Test::Unit::TestCase
   class SubclassingHash < Hash
   end
 
+  class NonIndifferentHash < Hash
+    def nested_under_indifferent_access
+      self
+    end
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
@@ -109,9 +115,12 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @strings, @mixed.with_indifferent_access.dup.stringify_keys!
   end
 
-  def test_hash_subclass
-    flash = { "foo" => SubclassingHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
-    assert_kind_of SubclassingHash, flash["foo"]
+  def test_nested_under_indifferent_access
+    foo = { "foo" => SubclassingHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of ActiveSupport::HashWithIndifferentAccess, foo["foo"]
+
+    foo = { "foo" => NonIndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of NonIndifferentHash, foo["foo"]
   end
 
   def test_indifferent_assorted

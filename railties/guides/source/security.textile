@@ -372,7 +372,7 @@ def signup
 end
 </ruby>
 
-Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the new() method, or assign attributes=(attributes) a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
+Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the +new+ method, or +assign_attributes=+ a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
 
 <pre>
 "name":http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
@@ -386,7 +386,7 @@ params[:user] # => {:name => “ow3ned”, :admin => true}
 
 So if you create a new user using mass-assignment, it may be too easy to become an administrator.
 
-Note that this vulnerability is not restricted to database columns.  Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
+Note that this vulnerability is not restricted to database columns.  Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3+. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
 
 <ruby>
   class Person < ActiveRecord::Base
@@ -410,7 +410,7 @@ To avoid this, Rails provides two class methods in your Active Record class to c
 attr_protected :admin
 </ruby>
 
-+attr_protected+ also optionally takes a scope option using :as which allows you to define multiple mass-assignment groupings. If no scope is defined then attributes will be added to the default group.
++attr_protected+ also optionally takes a role option using :as which allows you to define multiple mass-assignment groupings. If no role is defined then attributes will be added to the :default role.
 
 <ruby>
 attr_protected :last_login, :as => :admin
@@ -433,7 +433,7 @@ params[:user] # => {:name => "ow3ned", :admin => true}
 @user.admin # => true
 </ruby>
 
-When assigning attributes in Active Record using +attributes=+, or +update_attributes+ the :default scope will be used. To assign attributes using different scopes you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default scope will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
+When assigning attributes in Active Record using +attributes=+ the :default role will be used. To assign attributes using different roles you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default role will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
 
 <ruby>
 @user = User.new
@@ -451,7 +451,7 @@ When assigning attributes in Active Record using +attributes=+, or +update_attri
 @user.is_admin # => true
 </ruby>
 
-In a similar way, +new+, +create+ and <tt>create!</tt> methods respect mass-assignment security and accepts either +:as+ or +:without_protection+ options. For example:
+In a similar way, +new+, +create+, <tt>create!</tt>, +update_attributes+, and +update_attributes!+ methods all respect mass-assignment security and accept either +:as+ or +:without_protection+ options. For example:
 
 <ruby>
 @user = User.new({ :name => 'Sebastian', :is_admin => true }, :as => :admin)

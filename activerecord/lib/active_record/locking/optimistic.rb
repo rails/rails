@@ -94,7 +94,7 @@ module ActiveRecord
             relation = self.class.unscoped
 
             stmt = relation.where(
-              relation.table[self.class.primary_key].eq(quoted_id).and(
+              relation.table[self.class.primary_key].eq(id).and(
                 relation.table[lock_col].eq(quote_value(previous_lock_value))
               )
             ).arel.compile_update(arel_attributes_values(false, false, attribute_names))

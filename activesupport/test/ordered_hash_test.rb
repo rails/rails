@@ -243,6 +243,11 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal @other_ordered_hash.keys, @ordered_hash.keys
   end
 
+  def test_nested_under_indifferent_access
+    flash = {:a => ActiveSupport::OrderedHash[:b, 1, :c, 2]}.with_indifferent_access
+    assert_kind_of ActiveSupport::OrderedHash, flash[:a]
+  end
+
   def test_each_after_yaml_serialization
     values = []
     @deserialized_ordered_hash = YAML.load(YAML.dump(@ordered_hash))

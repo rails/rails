@@ -39,7 +39,7 @@ module Sprockets
         end
       end
 
-      app.routes.append do
+      app.routes.prepend do
         mount app.assets => assets.prefix
       end
 

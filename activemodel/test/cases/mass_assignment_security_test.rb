@@ -10,7 +10,7 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal expected, sanitized
   end
 
-  def test_only_moderator_scope_attribute_accessible
+  def test_only_moderator_role_attribute_accessible
     user = SpecialUser.new
     expected = { "name" => "John Smith", "email" => "john@smith.com" }
     sanitized = user.sanitize_for_mass_assignment(expected.merge("admin" => true), :moderator)
@@ -27,7 +27,7 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal expected, sanitized
   end
 
-  def test_admin_scoped_attributes_accessible
+  def test_attributes_accessible_with_admin_role
     user = Person.new
     expected = { "name" => "John Smith", "email" => "john@smith.com", "admin" => true }
     sanitized = user.sanitize_for_mass_assignment(expected.merge("super_powers" => true), :admin)

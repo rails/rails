@@ -15,11 +15,10 @@ module RailtiesTest
 
       boot_rails
       require 'rack/test'
-      require 'coffee_script'
       extend Rack::Test::Methods
 
       get "/assets/engine.js"
-      assert_match "alert();", last_response.body
+      assert_match "alert()", last_response.body
     end
 
     def test_copying_migrations
