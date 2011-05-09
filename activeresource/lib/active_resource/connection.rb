@@ -15,6 +15,7 @@ module ActiveResource
     HTTP_FORMAT_HEADER_NAMES = {  :get => 'Accept',
       :put => 'Content-Type',
       :post => 'Content-Type',
+      :patch => 'Content-Type',
       :delete => 'Accept',
       :head => 'Accept'
     }
@@ -84,6 +85,12 @@ module ActiveResource
     # Used to delete resources.
     def delete(path, headers = {})
       with_auth { request(:delete, path, build_request_headers(headers, :delete, self.site.merge(path))) }
+    end
+
+    # Executes a PATCH request (see HTTP protocol documentation if unfamiliar).
+    # Used to update resources.
+    def patch(path, body = '', headers = {})
+      with_auth { request(:patch, path, body.to_s, build_request_headers(headers, :patch, self.site.merge(path))) }
     end
 
     # Executes a PUT request (see HTTP protocol documentation if unfamiliar).
