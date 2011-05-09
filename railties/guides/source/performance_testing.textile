@@ -339,8 +339,8 @@ In this example, the test would run 5 times and measure wall time and memory. Th
 Metrics and formats have different defaults depending on the interpreter in use.
 
 |_.Interpreter|_.Mode|_.Default metrics|_.Default formats|
-|/2.MRI/REE |Benchmarking|+:[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
-|Profiling   |+:[:process_time, :memory, :objects]+|+[:flat, :graph_html, :call_tree]+|
+|/2.MRI/REE |Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
+|Profiling   |+[:process_time, :memory, :objects]+|+[:flat, :graph_html, :call_tree]+|
 |/2.Rubinius|Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
 |Profiling   |+[:wall_time]+|+[:flat, :graph]+|
 |/2.JRuby   |Benchmarking|+[:wall_time, :user_time, :memory, :gc_runs, :gc_time]+|N/A|
