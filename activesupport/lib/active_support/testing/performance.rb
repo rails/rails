@@ -142,12 +142,16 @@ module ActiveSupport
         delegate :run_test, :full_profile_options, :full_test_name, :to => :@harness
 
         def initialize(harness, metric)
-          @harness, @metric = harness, metric
+          @harness, @metric, @supported = harness, metric, false
         end
 
         def report
-          rate = @total / full_profile_options[:runs]
-          '%20s: %s' % [@metric.name, @metric.format(rate)]
+          if @supported
+            rate = @total / full_profile_options[:runs]
+            '%20s: %s' % [@metric.name, @metric.format(rate)]
+          else
+            '%20s: unsupported' % @metric.name
+          end
         end
 
         protected
@@ -158,19 +162,6 @@ module ActiveSupport
       
       # overridden by each implementation
       class Profiler < Performer
-        def initialize(*args)
-          super
-          @supported = false
-        end
-        
-        def report
-          if @supported
-            super
-          else
-            '%20s: unsupported' % @metric.name
-          end
-        end
-        
         def time_with_block
           before = Time.now
           yield
@@ -181,8 +172,15 @@ module ActiveSupport
         def record; end
       end
 
-      class Benchmarker < Performer
+      class Benchmarker < Performer     
+        def initialize(*args)
+          super
+          @supported = @metric.respond_to?('measure')
+        end
+           
         def run
+          return unless @supported
+          
           full_profile_options[:runs].to_i.times { run_test(@metric, :benchmark) }
           @total = @metric.total
         end
@@ -257,6 +255,8 @@ module ActiveSupport
           end
 
           def benchmark
+            @unsureturn if measure.nil?
+            
             with_gc_stats do
               before = measure
               yield

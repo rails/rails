@@ -124,30 +124,18 @@ module ActiveSupport
 
         class Memory < DigitalInformationUnit
           Mode = RubyProf::MEMORY if RubyProf.const_defined?(:MEMORY)
-          
-          # overridden by each implementation
-          def measure; end
         end
 
         class Objects < Amount
           Mode = RubyProf::ALLOCATIONS if RubyProf.const_defined?(:ALLOCATIONS)
-          
-          # overridden by each implementation
-          def measure; end
         end
 
         class GcRuns < Amount
           Mode = RubyProf::GC_RUNS if RubyProf.const_defined?(:GC_RUNS)
-          
-          # overridden by each implementation
-          def measure; end
         end
 
         class GcTime < Time
           Mode = RubyProf::GC_TIME if RubyProf.const_defined?(:GC_TIME)
-
-          # overridden by each implementation
-          def measure; end
         end
       end
     end
