@@ -81,22 +81,25 @@ module RequestForgeryProtectionTests
     @token      = "cf50faa3fe97702ca1ae"
 
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token)
-    ActionController::Base.request_forgery_protection_token = :authenticity_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
+  def teardown
+    ActionController::Base.request_forgery_protection_token = nil
+  end
 
   def test_should_render_form_with_token_tag
     assert_not_blocked do
       get :index
     end
-    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
+    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_button_to_with_token_tag
     assert_not_blocked do
       get :show_button
     end
-    assert_select 'form>div>input[name=?][value=?]', 'authenticity_token', @token
+    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_allow_get
@@ -128,15 +131,15 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_allow_post_with_token
-    assert_not_blocked { post :index, :authenticity_token => @token }
+    assert_not_blocked { post :index, :custom_authenticity_token => @token }
   end
 
   def test_should_allow_put_with_token
-    assert_not_blocked { put :index, :authenticity_token => @token }
+    assert_not_blocked { put :index, :custom_authenticity_token => @token }
   end
 
   def test_should_allow_delete_with_token
-    assert_not_blocked { delete :index, :authenticity_token => @token }
+    assert_not_blocked { delete :index, :custom_authenticity_token => @token }
   end
 
   def test_should_allow_post_with_token_in_header
@@ -172,10 +175,18 @@ end
 class RequestForgeryProtectionControllerTest < ActionController::TestCase
   include RequestForgeryProtectionTests
 
+  setup do
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  teardown do
+    ActionController::Base.request_forgery_protection_token = nil
+  end
+
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
     ActiveSupport::SecureRandom.stubs(:base64).returns(@token + '<=?')
     get :meta
-    assert_select 'meta[name=?][content=?]', 'csrf-param', 'authenticity_token'
+    assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
     assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
   end
 end
