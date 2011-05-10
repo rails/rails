@@ -33,6 +33,7 @@ module ActiveModel
         protected
 
           def compute_type
+            return if value.nil?
             type = ActiveSupport::XmlMini::TYPE_NAMES[value.class.name]
             type ||= :string if value.respond_to?(:to_str)
             type ||= :yaml
