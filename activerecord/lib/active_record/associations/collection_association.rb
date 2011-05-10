@@ -423,7 +423,7 @@ module ActiveRecord
         end
 
         def build_record(attributes, options)
-          reflection.build_association(scoped.scope_for_create.merge(attributes), options)
+          reflection.build_association(scoped.scope_for_create.merge(attributes || {}), options)
         end
 
         def delete_or_destroy(records, method)
