@@ -37,9 +37,9 @@ module ActiveRecord
   # the comment object intact. However, once we enable Identity Map, the post loaded
   # by Post.destroy is exactly the same object as the object @post. As the object @post
   # still has the comment object in @post.comments, once Identity Map is enabled, the
-  # comment object will be acciddently removed.
+  # comment object will be accidently removed.
   #
-  # This incosistency is meant to be fixed in future Rails releases.
+  # This inconsistency is meant to be fixed in future Rails releases.
   #
   module IdentityMap
 
