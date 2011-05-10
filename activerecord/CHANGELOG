@@ -290,6 +290,84 @@ IrreversibleMigration exception will be raised when going down.
   [Aaron Patterson]
 
 
+*Rails 3.0.7 (April 18, 2011)*
+
+* Destroying records via nested attributes works independent of reject_if LH #6006 [Durran Jordan]
+
+* Delegate any? and many? to Model.scoped for consistency [Andrew White]
+
+* Quote the ORDER BY clause in batched finds - fixes #6620 [Andrew White]
+
+* Change exists? so records are not instantiated - fixes #6127. This prevents after_find
+  and after_initialize callbacks being triggered when checking for record existence.
+  [Andrew White]
+
+* Fix performance bug with attribute accessors which only occurred on Ruby 1.8.7, and ensure we
+  cache type-casted values when the column returned from the db contains non-standard chars.
+  [Jon Leighton]
+
+* Fix a performance regression introduced here 86acbf1cc050c8fa8c74a10c735e467fb6fd7df8
+  related to read_attribute method [Stian Grytøyr]
+
+
+*Rails 3.0.6 (April 5, 2011)*
+
+* Un-deprecate reorder method [Sebastian Martinez]
+
+* Extensions are applied when calling +except+ or +only+ on relations.
+  Thanks to Iain Hecker.
+
+* Schemas set in set_table_name are respected by the mysql adapter. LH #5322
+
+* Fixed a bug when empty? was called on a grouped Relation that wasn't loaded.
+  LH #5829
+
+* Reapply extensions when using except and only. Thanks Iain Hecker.
+
+* Binary data is escaped when being inserted to SQLite3 Databases. Thanks
+  Naruse!
+
+
+*Rails 3.0.5 (February 26, 2011)*
+
+* Model.where(:column => 1).where(:column => 2) will always produce an AND
+query.
+
+  [Aaron Patterson]
+
+* Deprecated support for interpolated association conditions in the form of :conditions => 'foo = #{bar}'.
+
+  Instead, you should use a proc, like so:
+
+  Before:
+
+    has_many :things, :conditions => 'foo = #{bar}'
+
+  After:
+
+    has_many :things, :conditions => proc { "foo = #{bar}" }
+
+  Inside the proc, 'self' is the object which is the owner of the association, unless you are
+  eager loading the association, in which case 'self' is the class which the association is within.
+
+  You can have any "normal" conditions inside the proc, so the following will work too:
+
+    has_many :things, :conditions => proc { ["foo = ?", bar] }
+
+  Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call
+  'record' to get the record being inserted or deleted. This is now passed as an argument to
+  the proc.
+
+  [Jon Leighton]
+
+
+*Rails 3.0.4 (February 8, 2011)*
+
+* Added deprecation warning for has_and_belongs_to_many associations where the join table has
+  additional attributes other than the keys. Access to these attributes is removed in 3.1.
+  Please use has_many :through instead. [Jon Leighton]
+
+
 *Rails 3.0.3 (November 16, 2010)*
 
 * Support find by class like this: Post.where(:name => Post)
@@ -326,9 +404,11 @@ IrreversibleMigration exception will be raised when going down.
 
   [Aaron Patterson]
 
+
 *Rails 3.0.1 (October 15, 2010)*
 
 * Introduce a fix for CVE-2010-3993
+
 
 *Rails 3.0.0 (August 29, 2010)*
 
