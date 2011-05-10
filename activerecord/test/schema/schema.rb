@@ -89,6 +89,7 @@ ActiveRecord::Schema.define do
   create_table :bulbs, :force => true do |t|
     t.integer :car_id
     t.string  :name
+    t.boolean :frickinawesome
   end
 
   create_table "CamelCase", :force => true do |t|

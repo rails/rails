@@ -79,8 +79,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'defaulty', bulb.name
   end
 
-  def test_create_from_association_set_owner_attributes_by_passing_protection
-    Bulb.attr_protected :car_id
+  def test_association_keys_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 
     bulb = car.bulbs.new
@@ -100,8 +99,28 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create :car_id => car.id + 1
     assert_equal car.id, bulb.car_id
-  ensure
-    Bulb.attr_protected :id
+  end
+
+  def test_association_conditions_bypass_attribute_protection
+    car = Car.create(:name => 'honda')
+
+    bulb = car.frickinawesome_bulbs.new
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.frickinawesome_bulbs.new(:frickinawesome => false)
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.frickinawesome_bulbs.build
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.frickinawesome_bulbs.build(:frickinawesome => false)
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.frickinawesome_bulbs.create
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.frickinawesome_bulbs.create(:frickinawesome => false)
+    assert_equal true, bulb.frickinawesome?
   end
 
   # When creating objects on the association, we must not do it within a scope (even though it
