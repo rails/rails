@@ -135,8 +135,12 @@ module ActionView
       # for elements that will be fragment cached.
       def content_for(name, content = nil, &block)
         content = capture(&block) if block_given?
-        result = @view_flow.append(name, content) if content
-        result unless content
+        if content
+          @view_flow.append(name, content)
+          nil
+        else
+          @view_flow.get(name)
+        end
       end
 
       # The same as +content_for+ but when used with streaming flushes

@@ -38,7 +38,15 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
   end
 
-  def test_content_for
+  def test_capture_used_for_read
+    content_for :foo, "foo"
+    assert_equal "foo", content_for(:foo)
+
+    content_for(:bar){ "bar" }
+    assert_equal "bar", content_for(:bar)
+  end
+
+  def test_content_for_question_mark
     assert ! content_for?(:title)
     content_for :title, 'title'
     assert content_for?(:title)
@@ -49,14 +57,14 @@ class CaptureHelperTest < ActionView::TestCase
     assert !content_for?(:title)
     provide :title, "hi"
     assert content_for?(:title)
-    assert_equal "hi", @view_flow.get(:title)
+    assert_equal "hi", content_for(:title)
     provide :title, "<p>title</p>"
-    assert_equal "hi&lt;p&gt;title&lt;/p&gt;", @view_flow.get(:title)
+    assert_equal "hi&lt;p&gt;title&lt;/p&gt;", content_for(:title)
 
     @view_flow = ActionView::OutputFlow.new
     provide :title, "hi"
     provide :title, "<p>title</p>".html_safe
-    assert_equal "hi<p>title</p>", @view_flow.get(:title)
+    assert_equal "hi<p>title</p>", content_for(:title)
   end
 
   def test_with_output_buffer_swaps_the_output_buffer_given_no_argument
