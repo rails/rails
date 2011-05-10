@@ -14,7 +14,7 @@ module ActiveSupport
         else
           { :min_percent => 0.01,
             :metrics => [:process_time, :memory, :objects],
-            :formats => [:flat, :graph_html, :call_tree] }
+            :formats => [:flat, :graph_html, :call_tree, :call_stack] }
         end).freeze
       
       protected

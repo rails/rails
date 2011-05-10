@@ -340,7 +340,7 @@ Metrics and formats have different defaults depending on the interpreter in use.
 
 |_.Interpreter|_.Mode|_.Default metrics|_.Default formats|
 |/2.MRI/REE |Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
-|Profiling   |+[:process_time, :memory, :objects]+|+[:flat, :graph_html, :call_tree]+|
+|Profiling   |+[:process_time, :memory, :objects]+|+[:flat, :graph_html, :call_tree, :call_stack]+|
 |/2.Rubinius|Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
 |Profiling   |+[:wall_time]+|+[:flat, :graph]+|
 |/2.JRuby   |Benchmarking|+[:wall_time, :user_time, :memory, :gc_runs, :gc_time]+|N/A|
