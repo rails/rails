@@ -133,7 +133,58 @@ tested.
 * Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. [Yehuda Katz, Carl Lerche]
 
 
-*Rails 3.0.2 (unreleased)*
+*Rails 3.0.7 (April 18, 2011)*
+
+*No changes.
+
+
+*Rails 3.0.6 (April 5, 2011)
+
+* Fixed XSS vulnerability in `auto_link`.  `auto_link` no longer marks input as
+  html safe.  Please make sure that calls to auto_link() are wrapped in a
+  sanitize(), or a raw() depending on the type of input passed to auto_link().
+  For example:
+
+    <%= sanitize(auto_link(some_user_input)) %>
+
+  Thanks to Torben Schulz for reporting this.  The fix can be found here:
+  61ee3449674c591747db95f9b3472c5c3bd9e84d
+
+* Fixes the output of `rake routes` to be correctly match to the behavior of the application, as the regular expression used to match the path is greedy and won't capture the format part by default [Prem Sichanugrist]
+
+* Fixes an issue with number_to_human when converting values which are less than 1 but greater than -1 [Josh Kalderimis]
+
+* Sensitive query string parameters (specified in config.filter_parameters) will now be filtered out from the request paths in the log file. [Prem Sichanugrist, fxn]
+
+* URL parameters which return nil for to_param are now removed from the query string [Andrew White]
+
+* Don't allow i18n to change the minor version, version now set to ~> 0.5.0 [Santiago Pastorino]
+
+* Make TranslationHelper#translate use the :rescue_format option in I18n 0.5.0 [Sven Fuchs]
+
+* Fix regression: javascript_include_tag shouldn't raise if you register an expansion key with nil or [] value [Santiago Pastorino]
+
+* Fix Action caching bug where an action that has a non-cacheable response always renders a nil response body. It now correctly renders the response body. [Cheah Chu Yeow]
+
+
+*Rails 3.0.5 (February 26, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.4 (February 8, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.3 (November 16, 2010)*
+
+* When ActiveRecord::Base objects are sent to predicate methods, the id of the object should be sent to ARel, not the ActiveRecord::Base object.
+
+* :constraints routing should only do sanity checks against regular expressions.  String arguments are OK.
+
+
+*Rails 3.0.2 (November 15, 2010)*
 
 * The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
 
