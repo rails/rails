@@ -478,7 +478,7 @@ module ActiveRecord
               connection,
               table_name,
               class_names[table_name.to_sym] || table_name.classify,
-              File.join(fixtures_directory, path))
+              ::File.join(fixtures_directory, path))
           end
 
           all_loaded_fixtures.update(fixtures_map)
@@ -656,9 +656,9 @@ module ActiveRecord
       end
 
       def read_fixture_files
-        if File.file?(yaml_file_path)
+        if ::File.file?(yaml_file_path)
           read_yaml_fixture_files
-        elsif File.file?(csv_file_path)
+        elsif ::File.file?(csv_file_path)
           read_csv_fixture_files
         else
           raise FixturesFileNotFound, "Could not find #{yaml_file_path} or #{csv_file_path}"
@@ -713,7 +713,7 @@ module ActiveRecord
       end
 
       def yaml_fixtures_key(path)
-        File.basename(@fixture_path).split(".").first
+        ::File.basename(@fixture_path).split(".").first
       end
 
       def parse_yaml_string(fixture_content)
