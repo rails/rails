@@ -13,6 +13,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
+require 'active_support/core_ext/module/deprecation'
 
 if defined? ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -752,6 +753,7 @@ module ActiveRecord
           fixtures["#{@class_name.to_s.underscore}_#{i+=1}"] = ActiveRecord::Fixture.new(data, model_class)
         end
       end
+      deprecate :read_csv_fixture_files
 
       def yaml_file_path
         "#{@fixture_path}.yml"
