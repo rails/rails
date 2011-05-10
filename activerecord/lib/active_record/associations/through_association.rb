@@ -14,7 +14,9 @@ module ActiveRecord
         def target_scope
           scope = super
           chain[1..-1].each do |reflection|
-            scope = scope.merge(reflection.klass.scoped)
+            # Discard the create with value, as we don't want that the affect the objects we
+            # create on the association
+            scope = scope.merge(reflection.klass.scoped.create_with(nil))
           end
           scope
         end

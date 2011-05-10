@@ -99,7 +99,6 @@ module ActiveRecord
         else
           add_to_target(build_record(attributes, options)) do |record|
             yield(record) if block_given?
-            set_owner_attributes(record)
           end
         end
       end
@@ -423,7 +422,10 @@ module ActiveRecord
         end
 
         def build_record(attributes, options)
-          reflection.build_association(scoped.scope_for_create.merge(attributes || {}), options)
+          record = reflection.build_association
+          record.assign_attributes(scoped.scope_for_create, :without_protection => true)
+          record.assign_attributes(attributes || {}, options)
+          record
         end
 
         def delete_or_destroy(records, method)

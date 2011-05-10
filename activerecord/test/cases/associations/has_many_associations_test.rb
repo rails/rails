@@ -86,10 +86,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb = car.bulbs.new
     assert_equal car.id, bulb.car_id
 
+    bulb = car.bulbs.new :car_id => car.id + 1
+    assert_equal car.id, bulb.car_id
+
     bulb = car.bulbs.build
     assert_equal car.id, bulb.car_id
 
+    bulb = car.bulbs.build :car_id => car.id + 1
+    assert_equal car.id, bulb.car_id
+
     bulb = car.bulbs.create
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.bulbs.create :car_id => car.id + 1
     assert_equal car.id, bulb.car_id
   ensure
     Bulb.attr_protected :id
