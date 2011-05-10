@@ -48,6 +48,24 @@ module ActiveRecord
         end
       end
 
+      # A valid YAML file is not necessarily a value Fixture file. Make sure
+      # an exception is raised if the format is not valid Fixture format.
+      def test_wrong_fixture_format_string
+        tmp_yaml ['empty', 'yml'], 'qwerty' do |t|
+          assert_raises(ActiveRecord::Fixture::FormatError) do
+            File.open(t.path) { |fh| fh.to_a }
+          end
+        end
+      end
+
+      def test_wrong_fixture_format_nested
+        tmp_yaml ['empty', 'yml'], 'one: two' do |t|
+          assert_raises(ActiveRecord::Fixture::FormatError) do
+            File.open(t.path) { |fh| fh.to_a }
+          end
+        end
+      end
+
       private
       def tmp_yaml(name, contents)
         t = Tempfile.new name
