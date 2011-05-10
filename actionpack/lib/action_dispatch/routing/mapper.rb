@@ -712,6 +712,7 @@ module ActionDispatch
         #     constraints(:post_id => /\d+\.\d+) do
         #       resources :comments
         #     end
+        #   end
         #
         # === Restricting based on IP
         #
