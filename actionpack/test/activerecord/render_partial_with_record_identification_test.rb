@@ -36,7 +36,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
   end
 
   def render_with_record_collection
-    @developers = Developer.find(:all)
+    @developers = Developer.all
     render :partial => @developers
   end
 
