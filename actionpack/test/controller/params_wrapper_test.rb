@@ -170,28 +170,36 @@ end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase
   module Admin
-    class UsersController < ActionController::Base
-      class << self
-        attr_accessor :last_parameters
-      end
+    module Users
+      class UsersController < ActionController::Base;
+        class << self
+          attr_accessor :last_parameters
+        end
 
-      def parse
-        self.class.last_parameters = request.params.except(:controller, :action)
-        head :ok
+        def parse
+          self.class.last_parameters = request.params.except(:controller, :action)
+          head :ok
+        end
       end
     end
   end
 
-  class Sample
+  class SampleOne
     def self.column_names
       ["username"]
     end
   end
 
-  tests Admin::UsersController
+  class SampleTwo
+    def self.column_names
+      ["title"]
+    end
+  end
+
+  tests Admin::Users::UsersController
 
   def teardown
-    Admin::UsersController.last_parameters = nil
+    Admin::Users::UsersController.last_parameters = nil
   end
 
   def test_derived_name_from_controller
@@ -203,7 +211,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
   end
 
   def test_namespace_lookup_from_model
-    Admin.const_set(:User, Class.new(Sample))
+    Admin.const_set(:User, Class.new(SampleOne))
     begin
       with_default_wrapper_options do
         @request.env['CONTENT_TYPE'] = 'application/json'
@@ -216,20 +224,15 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
   end
 
   def test_hierarchy_namespace_lookup_from_model
-    # Make sure that we cleanup ::Admin::User
-    admin_user_constant = ::Admin::User
-    ::Admin.send :remove_const, :User
-
-    Object.const_set(:User, Class.new(Sample))
+    Object.const_set(:User, Class.new(SampleTwo))
     begin
       with_default_wrapper_options do
         @request.env['CONTENT_TYPE'] = 'application/json'
         post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
-        assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu' }})
+        assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'title' => 'Developer' }})
       end
     ensure
       Object.send :remove_const, :User
-      ::Admin.const_set(:User, admin_user_constant)
     end
   end
 
@@ -241,6 +244,6 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
     end
 
     def assert_parameters(expected)
-      assert_equal expected, Admin::UsersController.last_parameters
+      assert_equal expected, Admin::Users::UsersController.last_parameters
     end
 end

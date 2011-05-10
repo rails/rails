@@ -136,15 +136,23 @@ module ActionController
       # this could be done by trying to find the defined model that has the
       # same singularize name as the controller. For example, +UsersController+
       # will try to find if the +User+ model exists.
-      def _default_wrap_model
+      #
+      # This method also does namespace lookup. Foo::Bar::UsersController will
+      # try to find Foo::Bar::User, Foo::User and finally User.
+      def _default_wrap_model #:nodoc:
         model_name = self.name.sub(/Controller$/, '').singularize
 
         begin
           model_klass = model_name.constantize
-        rescue NameError => e
-          unscoped_model_name = model_name.split("::", 2).last
-          break if unscoped_model_name == model_name
-          model_name = unscoped_model_name
+        rescue NameError, ArgumentError => e
+          if e.message =~ /is not missing constant|uninitialized constant #{model_name}/ 
+            namespaces = model_name.split("::")
+            namespaces.delete_at(-2)
+            break if namespaces.last == model_name
+            model_name = namespaces.join("::")
+          else
+            raise
+          end
         end until model_klass
 
         model_klass
