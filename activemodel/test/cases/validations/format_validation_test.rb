@@ -27,7 +27,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validate_format_with_allow_blank
-    Topic.validates_format_of(:title, :with => /^Validation\smacros \w+!$/, :allow_blank=>true)
+    Topic.validates_format_of(:title, :with => /^Validation\smacros \w+!$/, :allow_blank => true)
     assert Topic.new("title" => "Shouldn't be valid").invalid?
     assert Topic.new("title" => "").valid?
     assert Topic.new("title" => nil).valid?

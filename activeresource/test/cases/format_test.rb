@@ -86,7 +86,7 @@ class FormatTest < Test::Unit::TestCase
 
   def test_serialization_of_nested_resource
     address  = { :street => '12345 Street' }
-    person  = { :name=> 'Rus', :address => address}
+    person  = { :name => 'Rus', :address => address}
 
     [:json, :xml].each do |format|
       encoded_person = ActiveResource::Formats[format].encode(person)
