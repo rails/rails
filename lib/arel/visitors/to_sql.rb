@@ -8,14 +8,13 @@ module Arel
         @engine         = engine
         @connection     = nil
         @pool           = nil
-        @last_column    = nil
         @quoted_tables  = {}
         @quoted_columns = {}
       end
 
       def accept object
-        @last_column = nil
-        @pool        = @engine.connection_pool
+        Thread.current[:arel_visitors_to_sql_last_column] = nil
+        @pool = @engine.connection_pool
         @pool.with_connection do |conn|
           @connection = conn
           super
@@ -356,7 +355,7 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Attributes_Attribute o
-        @last_column = column_for o
+        Thread.current[:arel_visitors_to_sql_last_column] = column_for o
         join_name = o.relation.table_alias || o.relation.name
         "#{quote_table_name join_name}.#{quote_column_name o.name}"
       end
@@ -374,7 +373,7 @@ key on UpdateManager using UpdateManager#key=
       alias :visit_Bignum                :literal
       alias :visit_Fixnum                :literal
 
-      def quoted o; quote(o, @last_column) end
+      def quoted o; quote(o, Thread.current[:arel_visitors_to_sql_last_column]) end
 
       alias :visit_ActiveSupport_Multibyte_Chars :quoted
       alias :visit_ActiveSupport_StringInquirer  :quoted

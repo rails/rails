@@ -1,5 +1,9 @@
 require 'helper'
 
+class Arel::Visitors::ToSql
+  def last_column; Thread.current[:arel_visitors_to_sql_last_column] || @last_column; end
+end
+
 module Arel
   module Visitors
     describe 'the to_sql visitor' do
@@ -7,6 +11,19 @@ module Arel
         @visitor = ToSql.new Table.engine
         @table = Table.new(:users)
         @attr = @table[:id]
+      end
+
+      it "should be thread safe around usage of last_column" do
+        visit_integer_column = Thread.new do
+          Thread.stop
+          @visitor.send(:visit_Arel_Attributes_Attribute, @attr)
+        end
+
+        @visitor.accept(@table[:name])
+        assert_equal(:string, @visitor.last_column.type)
+        visit_integer_column.run
+        visit_integer_column.join
+        assert_equal(:string, @visitor.last_column.type)
       end
 
       it 'should not quote sql literals' do
