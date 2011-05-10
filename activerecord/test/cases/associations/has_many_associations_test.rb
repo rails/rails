@@ -79,6 +79,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'defaulty', bulb.name
   end
 
+  def test_create_from_association_set_owner_attributes_by_passing_protection
+    Bulb.attr_protected :car_id
+    car = Car.create(:name => 'honda')
+
+    bulb = car.bulbs.new
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.bulbs.build
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.bulbs.create
+    assert_equal car.id, bulb.car_id
+  ensure
+    Bulb.attr_protected :id
+  end
 
   # When creating objects on the association, we must not do it within a scope (even though it
   # would be convenient), because this would cause that scope to be applied to any callbacks etc.
