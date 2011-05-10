@@ -41,6 +41,23 @@ module ActiveRecord
           assert_equal [], devs - fh.to_a.map(&:first)
         end
       end
+
+      def test_empty_file
+        tmp_yaml ['empty', 'yml'], '' do |t|
+          assert_equal [], File.open(t.path) { |fh| fh.to_a }
+        end
+      end
+
+      private
+      def tmp_yaml(name, contents)
+        t = Tempfile.new name
+        t.binmode
+        t.write contents
+        t.close
+        yield t
+      ensure
+        t.close true
+      end
     end
   end
 end

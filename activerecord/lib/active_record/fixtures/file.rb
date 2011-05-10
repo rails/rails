@@ -32,7 +32,9 @@ module ActiveRecord
       private
       def rows
         return @rows if @rows
-        @rows = YAML.load(render(IO.read(@file))).to_a
+
+        data = YAML.load(render(IO.read(@file)))
+        @rows = data ? data.to_a : []
       end
 
       def render(content)
