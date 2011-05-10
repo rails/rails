@@ -458,55 +458,47 @@ Writing performance test cases could be an overkill when you are looking for one
 
 h4. +benchmarker+
 
-+benchmarker+ is a wrapper around Ruby's "Benchmark":http://ruby-doc.org/core/classes/Benchmark.html standard library.
-
 Usage:
 
 <shell>
-$ rails benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ...
+Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
+    -r, --runs N                     Number of runs.
+                                     Default: 4
+    -o, --output PATH                Directory to use when writing the results.
+                                     Default: tmp/performance
+    -m, --metrics a,b,c              Metrics to use.
+                                     Default: wall_time,memory,objects,gc_runs,gc_time
 </shell>
 
-Examples:
+Example:
 
 <shell>
-$ rails benchmarker 10 'Item.all' 'CouchItem.all'
-</shell>
-
-If the +[times]+ argument is omitted, supplied methods are run just once:
-
-<shell>
-$ rails benchmarker 'Item.first' 'Item.last'
+$ rails benchmarker 'Item.all' 'CouchItem.all' --runs 3 --metrics wall_time,memory
 </shell>
 
 h4. +profiler+
 
-+profiler+ is a wrapper around the "ruby-prof":http://ruby-prof.rubyforge.org gem.
-
 Usage:
 
 <shell>
-$ rails profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]
+Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
+    -r, --runs N                     Number of runs.
+                                     Default: 1
+    -o, --output PATH                Directory to use when writing the results.
+                                     Default: tmp/performance
+        --metrics a,b,c              Metrics to use.
+                                     Default: process_time,memory,objects
+    -m, --formats x,y,z              Formats to output to.
+                                     Default: flat,graph_html,call_tree
 </shell>
 
-Examples:
+Example:
 
 <shell>
-$ rails profiler 'Item.all'
+$ rails profiler 'Item.all' 'CouchItem.all' --runs 2 --metrics process_time --formats flat
 </shell>
 
-This will profile +Item.all+ in +RubyProf::WALL_TIME+ measure mode. By default, it prints flat output to the shell.
-
-<shell>
-$ rails profiler 'Item.all' 10 graph
-</shell>
-
-This will profile +10.times { Item.all }+ with +RubyProf::WALL_TIME+ measure mode and print graph output to the shell.
-
-If you want to store the output in a file:
-
-<shell>
-$ rails profiler 'Item.all' 10 graph 2> graph.txt
-</shell>
+NOTE: Metrics and formats vary from interpreter to interpreter. Pass +--help+ to each tool to see the defaults for your interpreter.
 
 h3. Helper Methods
 
