@@ -84,19 +84,19 @@ module ActiveSupport
           end
         end
 
-        class Memory < DigitalInformationUnit          
+        class Memory < DigitalInformationUnit
           def measure
             loopback.get("system.memory.counter.bytes").last
           end
         end
 
-        class Objects < Amount          
+        class Objects < Amount
           def measure
             loopback.get("system.memory.counter.objects").last
           end
         end
 
-        class GcRuns < Amount          
+        class GcRuns < Amount
           def measure
             loopback.get("system.gc.full.count").last + loopback.get("system.gc.young.count").last
           end
