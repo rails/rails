@@ -25,7 +25,7 @@ ARGV.clone.options do |opts|
     opts.separator "-------------------------------------------------------------"
     opts.separator "#!/usr/bin/env #{File.expand_path($0)} runner"
     opts.separator ""
-    opts.separator "Product.find(:all).each { |p| p.price *= 2 ; p.save! }"
+    opts.separator "Product.all.each { |p| p.price *= 2 ; p.save! }"
     opts.separator "-------------------------------------------------------------"
   end
 
