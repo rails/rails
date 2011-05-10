@@ -175,7 +175,9 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_empty_csv_fixtures
-    assert_not_nil ActiveRecord::Fixtures.new( Account.connection, "accounts", 'Account', FIXTURES_ROOT + "/naked/csv/accounts")
+    assert_deprecated do
+      assert_not_nil ActiveRecord::Fixtures.new( Account.connection, "accounts", 'Account', FIXTURES_ROOT + "/naked/csv/accounts")
+    end
   end
 
   def test_omap_fixtures
