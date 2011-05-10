@@ -1688,6 +1688,8 @@ MSG
       #   user.name       # => "Josh"
       #   user.is_admin?  # => true
       def assign_attributes(new_attributes, options = {})
+        return unless new_attributes
+
         attributes = new_attributes.stringify_keys
         role = options[:as] || :default
 
