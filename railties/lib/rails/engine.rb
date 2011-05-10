@@ -523,6 +523,7 @@ module Rails
 
     initializer :append_assets_path do |app|
       app.config.assets.paths.unshift *paths["vendor/assets"].existent
+      app.config.assets.paths.unshift *paths["lib/assets"].existent
       app.config.assets.paths.unshift *paths["app/assets"].existent
     end
 
