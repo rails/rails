@@ -28,7 +28,6 @@ module ActiveSupport
             :output => 'tmp/performance',
             :benchmark => true }
         else
-          puts "not"
           { :runs => 1,
             :output => 'tmp/performance',
             :benchmark => false }
