@@ -19,7 +19,7 @@ advantage of the new ClassCache.
 
 * Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! [Andrew White]
 
-*Rails 3.0.2 (unreleased)*
+*Rails 3.0.2 (November 15, 2010)*
 
 * Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! [Andrew White]
 

@@ -6,15 +6,7 @@ module ActiveRecord
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
       def select_all(sql, name = nil, binds = [])
-        if supports_statement_cache?
-          select(sql, name, binds)
-        else
-          return select(sql, name) if binds.empty?
-          binds = binds.dup
-          select sql.gsub('?') {
-            quote(*binds.shift.reverse)
-          }, name
-        end
+        select(sql, name, binds)
       end
 
       # Returns a record hash with the column names as keys and column values

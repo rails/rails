@@ -50,6 +50,7 @@ module ActionView
       autoload :Resolver
       autoload :PathResolver
       autoload :FileSystemResolver
+      autoload :OptimizedFileSystemResolver
       autoload :FallbackFileSystemResolver
     end
 

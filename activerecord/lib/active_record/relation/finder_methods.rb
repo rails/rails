@@ -375,7 +375,12 @@ module ActiveRecord
       if loaded?
         @records.last
       else
-        @last ||= reverse_order.limit(1).to_a[0]
+        @last ||=
+          if offset_value || limit_value
+            to_a.last
+          else
+            reverse_order.limit(1).to_a[0]
+          end
       end
     end
 

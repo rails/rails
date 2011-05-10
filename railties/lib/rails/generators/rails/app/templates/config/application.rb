@@ -56,11 +56,6 @@ module <%= app_const_base %>
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
 
-<% unless options[:skip_active_record] -%>
-    # Enable IdentityMap for Active Record, to disable set to false or remove the line below.
-    config.active_record.identity_map = true
-<% end -%>
-
     # Enable the asset pipeline
     config.assets.enabled = true
   end

@@ -543,6 +543,12 @@ ActiveRecord::Schema.define do
     t.string :sponsorable_type
   end
 
+  create_table :string_key_objects, :id => false, :primary_key => :id, :force => true do |t|
+    t.string     :id
+    t.string     :name
+    t.integer    :lock_version, :null => false, :default => 0
+  end
+
   create_table :students, :force => true do |t|
     t.string :name
   end

@@ -358,6 +358,13 @@ class RequestTest < ActiveSupport::TestCase
     assert request.head?
   end
 
+  test "post masquerading as put" do
+    request = stub_request 'REQUEST_METHOD' => 'PUT', "rack.methodoverride.original_method" => "POST"
+    assert_equal "POST", request.method
+    assert_equal "PUT",  request.request_method
+    assert request.put?
+  end
+
   test "xml format" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => 'xml' })

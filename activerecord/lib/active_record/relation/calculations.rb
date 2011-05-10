@@ -197,7 +197,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = except(:order)
+      relation = reorder(nil)
 
       if operation == "count" && (relation.limit_value || relation.offset_value)
         # Shortcut when limit is zero.
