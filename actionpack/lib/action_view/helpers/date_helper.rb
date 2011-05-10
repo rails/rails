@@ -210,7 +210,8 @@ module ActionView
       # +object+). You can include the seconds with <tt>:include_seconds</tt>.
       #
       # This method will also generate 3 input hidden tags, for the actual year, month and day unless the option
-      # <tt>:ignore_date</tt> is set to +true+.
+      # <tt>:ignore_date</tt> is set to +true+. If you set the <tt>:ignore_date</tt> to +true+, you must have a
+      # +date_select+ on the same method within the form otherwise an exception will be raised.
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
