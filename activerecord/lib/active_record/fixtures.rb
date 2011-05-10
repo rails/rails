@@ -14,6 +14,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/module/deprecation'
+require 'active_record/fixtures/file'
 
 if defined? ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
