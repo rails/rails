@@ -23,12 +23,14 @@ module ActiveSupport
       
       # each implementation should define metrics and freeze the defaults
       DEFAULTS =
-        if ARGV.include?('--benchmark')  # HAX for rake test
+        if ARGV.include?('--benchmark') # HAX for rake test
           { :runs => 4,
-            :output => 'tmp/performance' }
+            :output => 'tmp/performance',
+            :benchmark => true }
         else
           { :runs => 1,
-            :output => 'tmp/performance' }
+            :output => 'tmp/performance',
+            :benchmark => false }
         end
       
       def full_profile_options
@@ -130,7 +132,7 @@ module ActiveSupport
         end
         
         def run_profile(metric)
-          klass = ARGV.include?('--benchmark') ? Benchmarker : Profiler
+          klass = full_profile_options[:benchmark] ? Benchmarker : Profiler
           performer = klass.new(self, metric)
 
           performer.run
