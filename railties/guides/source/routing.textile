@@ -87,7 +87,7 @@ creates eight different routes in your application, all mapping to the +Photos+ 
 |DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
 
 
-NOTE: The default HTTP Verb for the +update+ action is PATCH; PUT is supported for backwards compatibility. Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
+NOTE: The proper HTTP Verb for the +update+ action is PATCH; PUT is supported for backwards compatibility. Rails routes are matched in the order they are specified, so if you have a +resources :photos+ above a +get 'photos/poll'+ the +show+ action's route for the +resources+ line will be matched before the +get+ line. To fix this, move the +get+ line *above* the +resources+ line so that it is matched first.
 
 h4. Paths and URLs
 
@@ -143,7 +143,7 @@ creates seven different routes in your application, all mapping to the +Geocoder
 |PUT         |/geocoder      |update   |update the one and only geocoder resource     |
 |DELETE      |/geocoder      |destroy  |delete the geocoder resource                  |
 
-NOTE: The default HTTP Verb for the +update+ action is PATCH; PUT is supported for backwards compatibility. Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
+NOTE: The proper HTTP Verb for the +update+ action is PATCH; PUT is supported for backwards compatibility. Because you might want to use the same controller for a singular route (+/account+) and a plural route (+/accounts/45+), singular resources map to plural controllers.
 
 A singular resourceful route generates these helpers:
 

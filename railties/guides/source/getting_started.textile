@@ -729,7 +729,7 @@ After finding the requested post, Rails uses the +edit.html.erb+ view to display
 <%= link_to 'Back', posts_path %>
 </erb>
 
-Again, as with the +new+ action, the +edit+ action is using the +form+ partial, this time however, the form will do a PATCH action to the PostsController and the submit button will display "Update Post"
+Again, as with the +new+ action, the +edit+ action is using the +form+ partial, this time however, the form will do a PUT action to the PostsController and the submit button will display "Update Post"
 
 Submitting the form created by this view will invoke the +update+ action within the controller:
 

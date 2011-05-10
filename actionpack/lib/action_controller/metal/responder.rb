@@ -53,7 +53,7 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  # The same happens for PATCH and DELETE requests.
+  # The same happens for PATCH/PUT and DELETE requests.
   #
   # === Nested resources
   #

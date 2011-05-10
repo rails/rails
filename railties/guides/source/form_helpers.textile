@@ -301,7 +301,7 @@ form_for(@article)
 
 ## Editing an existing article
 # long-style:
-form_for(@article, :url => article_path(@article), :html => { :method => "patch" })
+form_for(@article, :url => article_path(@article), :html => { :method => "put" })
 # short-style:
 form_for(@article)
 </ruby>
@@ -312,7 +312,10 @@ Rails will also automatically set the +class+ and +id+ of the form appropriately
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, +:url+, and +:method+ explicitly.
 
-NOTE: Rails now uses the +PATCH+ method instead of +PUT+ for update forms.
+NOTE: Rails can use the +PATCH+ method instead of +PUT+ for update forms if you set the following option in your +config/application.rb+:
+<ruby>
+config.action_view.default_method_for_update = :update
+</ruby>
 
 h5. Dealing with Namespaces
 
@@ -331,7 +334,7 @@ form_for [:admin, :management, @article]
 For more information on Rails' routing system and the associated conventions, please see the "routing guide":routing.html.
 
 
-h4. How do forms with PATCH or DELETE methods work?
+h4. How do forms with PATCH, PUT, or DELETE methods work?
 
 The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PATCH" and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
 

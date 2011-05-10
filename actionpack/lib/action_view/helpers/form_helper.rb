@@ -190,7 +190,7 @@ module ActionView
       #
       # is equivalent to something like:
       #
-      #   <%= form_for @post, :as => :post, :url => post_path(@post), :method => :patch, :html => { :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => post_path(@post), :method => :put, :html => { :class => "edit_post", :id => "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -273,7 +273,7 @@ module ActionView
       #
       #   <form action='http://www.example.com' method='post' data-remote='true'>
       #     <div style='margin:0;padding:0;display:inline'>
-      #       <input name='_method' type='hidden' value='patch' />
+      #       <input name='_method' type='hidden' value='put' />
       #     </div>
       #     ...
       #   </form>
@@ -381,7 +381,7 @@ module ActionView
         object = convert_to_model(object)
 
         as = options[:as]
-        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
+        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, ActionView::Base.default_method_for_update] : [:new, :post]
         options[:html].reverse_merge!(
           :class  => as ? "#{as}_#{action}" : dom_class(object, action),
           :id     => as ? "#{as}_#{action}" : dom_id(object, action),
@@ -1383,7 +1383,9 @@ module ActionView
   ActiveSupport.on_load(:action_view) do
     class ActionView::Base
       cattr_accessor :default_form_builder
+      cattr_accessor :default_method_for_update
       @@default_form_builder = ::ActionView::Helpers::FormBuilder
+      @@default_method_for_update = :put
     end
   end
 end
