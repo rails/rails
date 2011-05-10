@@ -424,7 +424,7 @@ module ActiveRecord
         def build_record(attributes, options)
           record = reflection.build_association
           record.assign_attributes(scoped.scope_for_create, :without_protection => true)
-          record.assign_attributes(attributes || {}, options)
+          record.assign_attributes(attributes, options)
           record
         end
 
