@@ -51,7 +51,9 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     categories = Category.joins(:categorizations).includes([{:posts=>:comments}, :authors])
 
     assert_nothing_raised do
-      assert_equal 3, categories.count
+      assert_equal 4, categories.count
+      assert_equal 4, categories.all.count
+      assert_equal 3, categories.count(:distinct => true)
       assert_equal 3, categories.all.uniq.size # Must uniq since instantiating with inner joins will get dupes
     end
   end
