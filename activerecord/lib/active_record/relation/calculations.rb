@@ -146,7 +146,7 @@ module ActiveRecord
       if options.except(:distinct).present?
         apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
       else
-        if eager_loading? || includes_values.present?
+        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
           construct_relation_for_association_calculations.calculate(operation, column_name, options)
         else
           perform_calculation(operation, column_name, options)
@@ -161,20 +161,19 @@ module ActiveRecord
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase
 
-      distinct = nil
+      distinct = options[:distinct]
 
       if operation == "count"
         column_name ||= (select_for_count || :all)
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
-          column_name = primary_key if column_name == :all
         end
+
+        column_name = primary_key if column_name == :all && distinct
 
         distinct = nil if column_name =~ /\s*DISTINCT\s+/i
       end
-
-      distinct = options[:distinct] || distinct
 
       if @group_values.any?
         execute_grouped_calculation(operation, column_name, distinct)
