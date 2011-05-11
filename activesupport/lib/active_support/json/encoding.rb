@@ -2,6 +2,7 @@ require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/deprecation'
 require 'active_support/json/variable'
+require 'active_support/ordered_hash'
 
 require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
