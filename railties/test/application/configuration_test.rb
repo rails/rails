@@ -225,8 +225,6 @@ module ApplicationTests
       make_basic_app
 
       class ::OmgController < ActionController::Base
-        protect_from_forgery
-
         def index
           render :inline => "<%= csrf_meta_tags %>"
         end
@@ -234,6 +232,21 @@ module ApplicationTests
 
       get "/"
       assert last_response.body =~ /csrf\-param/
+    end
+
+    test "request forgery token param can be changed" do
+      make_basic_app do
+        app.config.action_controller.request_forgery_protection_token = '_xsrf_token_here'
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render :inline => "<%= csrf_meta_tags %>"
+        end
+      end
+
+      get "/"
+      assert last_response.body =~ /_xsrf_token_here/
     end
 
     test "config.action_controller.perform_caching = true" do
