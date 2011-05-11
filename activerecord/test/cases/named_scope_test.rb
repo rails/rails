@@ -462,7 +462,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     [:destroy_all, :reset, :delete_all].each do |method|
       before = post.comments.containing_the_letter_e
       post.association(:comments).send(method)
-      assert before.object_id != post.comments.containing_the_letter_e.object_id, "AssociationCollection##{method} should reset the named scopes cache"
+      assert before.object_id != post.comments.containing_the_letter_e.object_id, "CollectionAssociation##{method} should reset the named scopes cache"
     end
   end
 
