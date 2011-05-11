@@ -13,7 +13,7 @@ module Arel
       end
 
       def accept object
-        Thread.current[:arel_visitors_to_sql_last_column] = nil
+        self.last_column = nil
         @pool = @engine.connection_pool
         @pool.with_connection do |conn|
           @connection = conn
@@ -22,6 +22,14 @@ module Arel
       end
 
       private
+      def last_column= col
+        Thread.current[:arel_visitors_to_sql_last_column] = col
+      end
+
+      def last_column
+        Thread.current[:arel_visitors_to_sql_last_column]
+      end
+
       def visit_Arel_Nodes_DeleteStatement o
         [
           "DELETE FROM #{visit o.relation}",
@@ -355,7 +363,7 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Attributes_Attribute o
-        Thread.current[:arel_visitors_to_sql_last_column] = column_for o
+        self.last_column = column_for o
         join_name = o.relation.table_alias || o.relation.name
         "#{quote_table_name join_name}.#{quote_column_name o.name}"
       end
@@ -373,7 +381,7 @@ key on UpdateManager using UpdateManager#key=
       alias :visit_Bignum                :literal
       alias :visit_Fixnum                :literal
 
-      def quoted o; quote(o, Thread.current[:arel_visitors_to_sql_last_column]) end
+      def quoted o; quote(o, last_column) end
 
       alias :visit_ActiveSupport_Multibyte_Chars :quoted
       alias :visit_ActiveSupport_StringInquirer  :quoted
