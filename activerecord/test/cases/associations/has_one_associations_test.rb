@@ -95,6 +95,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil Account.find(old_account_id).firm_id
   end
 
+  def test_natural_assignment_to_nil_after_destroy
+    firm = companies(:rails_core)
+    old_account_id = firm.account.id
+    firm.account.destroy
+    firm.account = nil
+    assert_nil companies(:rails_core).account
+    assert_raise(ActiveRecord::RecordNotFound) { Account.find(old_account_id) }
+  end
+
   def test_association_change_calls_delete
     companies(:first_firm).deletable_account = Account.new(:credit_limit => 5)
     assert_equal [], Account.destroyed_account_ids[companies(:first_firm).id]
