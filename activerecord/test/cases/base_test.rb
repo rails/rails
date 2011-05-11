@@ -45,6 +45,10 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+class ProtectedTitlePost < Post
+  attr_protected :title
+end
+
 class Weird < ActiveRecord::Base; end
 
 class Boolean < ActiveRecord::Base; end
@@ -491,8 +495,9 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_attributes_guard_protected_attributes_is_deprecated
     attributes = { "title" => "An amazing title" }
-    topic = Topic.new
-    assert_deprecated { topic.send(:attributes=, attributes, false) }
+    post = ProtectedTitlePost.new
+    assert_deprecated { post.send(:attributes=, attributes, false) }
+    assert_equal "An amazing title", post.title
   end
 
   def test_multiparameter_attributes_on_date
