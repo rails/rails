@@ -30,7 +30,6 @@ module ApplicationTests
         "Rack::Sendfile",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
-        "ActiveRecord::IdentityMap::Middleware",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
@@ -121,6 +120,7 @@ module ApplicationTests
     end
 
     test "identity map is inserted" do
+      add_to_config "config.active_record.identity_map = true"
       boot!
       assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end
