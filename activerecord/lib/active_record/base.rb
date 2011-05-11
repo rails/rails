@@ -1652,11 +1652,10 @@ MSG
 
         return unless new_attributes.is_a?(Hash)
 
-        guard_protected_attributes ||= true
-        if guard_protected_attributes
-          assign_attributes(new_attributes)
-        else
+        if guard_protected_attributes == false
           assign_attributes(new_attributes, :without_protection => true)
+        else
+          assign_attributes(new_attributes)
         end
       end
 
