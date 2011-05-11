@@ -111,7 +111,6 @@ In order to understand what a generator template means, let's create the file +l
 
 <ruby>
 # Add initialization content here
-
 </ruby>
 
 And now let's change the generator to copy this template when invoked:
@@ -286,8 +285,8 @@ end
 Now, when the helper generator is invoked and TestUnit is configured as the test framework, it will try to invoke both +Rails::TestUnitGenerator+ and +TestUnit::MyHelperGenerator+. Since none of those are defined, we can tell our generator to invoke +TestUnit::Generators::HelperGenerator+ instead, which is defined since it's a Rails generator. To do that, we just need to add:
 
 <ruby>
-  # Search for :helper instead of :my_helper
-  hook_for :test_framework, :as => :helper
+# Search for :helper instead of :my_helper
+hook_for :test_framework, :as => :helper
 </ruby>
 
 And now you can re-run scaffold for another resource and see it generating tests as well!
@@ -412,7 +411,7 @@ h4. +plugin+
 +plugin+ will install a plugin into the current application.
 
 <ruby>
-  plugin("dynamic-form", :git => "git://github.com/rails/dynamic-form.git")
+plugin("dynamic-form", :git => "git://github.com/rails/dynamic-form.git")
 </ruby>
 
 Available options are:
@@ -441,13 +440,13 @@ Available options are:
 Any additional options passed to this method are put on the end of the line:
 
 <ruby>
-  gem("devise", :git => "git://github.com/plataformatec/devise", :branch => "master")
+gem("devise", :git => "git://github.com/plataformatec/devise", :branch => "master")
 </ruby>
 
 The above code will put the following line into +Gemfile+:
 
 <ruby>
-  gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
+gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
 </ruby>
 
 
@@ -456,7 +455,7 @@ h4. +add_source+
 Adds a specified source to +Gemfile+:
 
 <ruby>
-  add_source "http://gems.github.com"
+add_source "http://gems.github.com"
 </ruby>
 
 h4. +application+
@@ -464,7 +463,7 @@ h4. +application+
 Adds a line to +config/application.rb+ directly after the application class definition.
 
 <ruby>
-  application "config.asset_host = 'http://example.com'"
+application "config.asset_host = 'http://example.com'"
 </ruby>
 
 This method can also take a block:
@@ -490,10 +489,10 @@ h4. +git+
 Runs the specified git command:
 
 <ruby>
-  git :init
-  git :add => "."
-  git :commit => "-m First commit!"
-  git :add => "onefile.rb", :rm => "badfile.cxx"
+git :init
+git :add => "."
+git :commit => "-m First commit!"
+git :add => "onefile.rb", :rm => "badfile.cxx"
 </ruby>
 
 The values of the hash here being the arguments or options passed to the specific git command. As per the final example shown here, multiple git commands can be specified at a time, but the order of their running is not guaranteed to be the same as the order that they were specified in.
@@ -503,15 +502,15 @@ h4. +vendor+
 Places a file into +vendor+ which contains the specified code.
 
 <ruby>
-  vendor("sekrit.rb", '#top secret stuff')
+vendor("sekrit.rb", '#top secret stuff')
 </ruby>
 
 This method also takes a block:
 
 <ruby>
-  vendor("seeds.rb") do
-    "puts 'in ur app, seeding ur database'"
-  end
+vendor("seeds.rb") do
+  "puts 'in ur app, seeding ur database'"
+end
 </ruby>
 
 h4. +lib+
@@ -519,7 +518,7 @@ h4. +lib+
 Places a file into +lib+ which contains the specified code.
 
 <ruby>
-  lib("special.rb", 'p Rails.root')
+lib("special.rb", 'p Rails.root')
 </ruby>
 
 This method also takes a block:
@@ -535,7 +534,7 @@ h4. +rakefile+
 Creates a Rake file in the +lib/tasks+ directory of the application.
 
 <ruby>
-  rakefile("test.rake", 'hello there')
+rakefile("test.rake", 'hello there')
 </ruby>
 
 This method also takes a block:
@@ -555,7 +554,7 @@ h4. +initializer+
 Creates an initializer in the +config/initializers+ directory of the application:
 
 <ruby>
-  initializer("begin.rb", "puts 'this is the beginning'")
+initializer("begin.rb", "puts 'this is the beginning'")
 </ruby>
 
 This method also takes a block:
@@ -571,7 +570,7 @@ h4. +generate+
 Runs the specified generator where the first argument is the generator name and the remaining arguments are passed directly to the generator.
 
 <ruby>
-  generate("scaffold", "forums title:string description:text")
+generate("scaffold", "forums title:string description:text")
 </ruby>
 
 
@@ -580,7 +579,7 @@ h4. +rake+
 Runs the specified Rake task.
 
 <ruby>
-  rake("db:migrate")
+rake("db:migrate")
 </ruby>
 
 Available options are:
@@ -593,7 +592,7 @@ h4. +capify!+
 Runs the +capify+ command from Capistrano at the root of the application which generates Capistrano configuration.
 
 <ruby>
-  capify!
+capify!
 </ruby>
 
 h4. +route+
@@ -601,7 +600,7 @@ h4. +route+
 Adds text to the +config/routes.rb+ file:
 
 <ruby>
-  route("resources :people")
+route("resources :people")
 </ruby>
 
 h4. +readme+
@@ -609,7 +608,7 @@ h4. +readme+
 Output the contents of a file in the template's +source_path+, usually a README.
 
 <ruby>
-  readme("README")
+readme("README")
 </ruby>
 
 h3. Changelog
