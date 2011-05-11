@@ -75,8 +75,7 @@ module ActionController #:nodoc:
           path = page_cache_path(path, extension)
 
           instrument_page_cache :write_page, path do
-            FileUtils.makedirs(File.dirname(path))
-            File.open(path, "wb+") { |f| f.write(content) }
+            with_locked_file(path) { |f| f.write(content) }
           end
         end
 
@@ -103,6 +102,21 @@ module ActionController #:nodoc:
               name << (extension || self.page_cache_extension)
             end
             return name
+          end
+
+          def with_locked_file(path)
+            lock_filename = "#{path}.lock"
+            FileUtils.makedirs(File.dirname(lock_filename))
+            begin
+              File.open(lock_filename, "w+") do |lf|
+                lf.flock File::LOCK_EX
+                ActionController::Caching::Pages::FileMutexes.with_mutex_for_path(path) do
+                  File.open(path, "wb+") {|f| yield f }
+                end
+              end
+            ensure
+              FileUtils.rm lock_filename
+            end
           end
 
           def page_cache_path(path, extension = nil)
@@ -154,6 +168,20 @@ module ActionController #:nodoc:
         self.class.cache_page(content || response.body, path, extension)
       end
 
+      module FileMutexes
+        extend self
+        attr_accessor :global_mutex, :file_mutexes
+        self.global_mutex = Mutex.new
+        self.file_mutexes = {}
+
+        def with_mutex_for_path(path)
+          mutex = global_mutex.synchronize do
+            file_mutexes[path] ||= Mutex.new
+          end
+
+          mutex.synchronize { yield }
+        end
+      end
     end
   end
 end
