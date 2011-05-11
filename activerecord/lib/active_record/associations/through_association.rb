@@ -14,9 +14,10 @@ module ActiveRecord
         def target_scope
           scope = super
           chain[1..-1].each do |reflection|
-            # Discard the create with value, as we don't want that the affect the objects we
-            # create on the association
-            scope = scope.merge(reflection.klass.scoped.create_with(nil))
+            scope = scope.merge(
+              reflection.klass.scoped.with_default_scope.
+                except(:select, :create_with)
+            )
           end
           scope
         end
