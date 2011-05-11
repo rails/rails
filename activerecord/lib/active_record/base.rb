@@ -895,7 +895,7 @@ module ActiveRecord #:nodoc:
       # not use the default_scope:
       #
       #   Post.unscoped {
-      #     limit(10) # Fires "SELECT * FROM posts LIMIT 10"
+      #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
       #   }
       #
       # It is recommended to use block form of unscoped because chaining unscoped with <tt>scope</tt>
