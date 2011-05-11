@@ -83,6 +83,8 @@ module ActiveRecord
       cattr_accessor :data_column_name
       self.data_column_name = 'data'
 
+      attr_accessible :session_id, :data, :marshaled_data
+
       before_save :marshal_data!
       before_save :raise_on_session_data_overflow!
 

@@ -166,7 +166,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      expects = [ActiveRecord::IdentityMap::Middleware, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
+      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
       middleware = Rails.application.config.middleware.map { |m| m.klass }
       assert_equal expects, middleware & expects
     end
