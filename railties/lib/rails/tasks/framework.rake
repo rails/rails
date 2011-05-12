@@ -1,6 +1,6 @@
 namespace :rails do
-  desc "Update both configs and public/javascripts from Rails (or use just update:javascripts or update:configs)"
-  task :update => [ "update:configs", "update:javascripts", "update:scripts", "update:application_controller" ]
+  desc "Update configs and some other initially generated files (or use just update:configs, update:scripts, or update:application_controller)"
+  task :update => [ "update:configs", "update:scripts", "update:application_controller" ]
 
   desc "Applies the template supplied by LOCATION=/path/to/template"
   task :template do
@@ -56,11 +56,6 @@ namespace :rails do
     task :configs do
       invoke_from_app_generator :create_boot_file
       invoke_from_app_generator :create_config_files
-    end
-
-    # desc "Update Prototype javascripts from your current rails install"
-    task :javascripts do
-      invoke_from_app_generator :create_javascript_files
     end
 
     # desc "Adds new scripts to the application script/ directory"
