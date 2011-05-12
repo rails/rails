@@ -1,3 +1,9 @@
+# Includes #url_for into the host class (e.g. an abstract controller or mailer). The class
+# has to provide a RouteSet by implementing the #_routes methods. Otherwise, an exception
+# will be raised.
+#
+# Note that this module is completely decoupled from HTTP - the only requirement is a valid 
+# #_routes implementation.
 module AbstractController
   module UrlFor
     extend ActiveSupport::Concern

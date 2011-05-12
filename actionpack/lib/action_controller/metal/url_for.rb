@@ -1,3 +1,9 @@
+# Includes #url_for into the host class. The class has to provide a RouteSet by implementing 
+# the #_routes methods. Otherwise, an exception will be raised.
+#
+# In addition to AbstractController::UrlFor, this module accesses the HTTP layer to define 
+# url options like the +host+. In order to do so, this module requires the host class
+# to implement #env, which needs to be a Rack-compatible environment hash.
 module ActionController
   module UrlFor
     extend ActiveSupport::Concern
