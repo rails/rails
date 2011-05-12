@@ -43,10 +43,6 @@ class AwesomeComment < Comment
   def body=(the_body)
     self.send('write_attribute', 'body', Awesomeness.awesomeify(the_body))
   end
-  
-  def self.awesomeify(str)
-    "Awesome " + str
-  end
 end
 
 class SuperAwesomeComment < Comment
@@ -65,6 +61,6 @@ class Awesomeness
   end
   
   def to_s
-    self.class.awesomeify text
+    self.class.awesomeify @text
   end
 end
