@@ -730,7 +730,7 @@ module NestedAttributesOnACollectionAssociationTests
       assert_difference 'Man.count' do
         assert_difference 'Interest.count', 2 do
           man = Man.create!(:name => 'John',
-                            :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
+                            :interests_attributes => [{:topic => 'Cars'}, {:topic => 'Sports'}])
           assert_equal 2, man.interests.count
         end
       end
@@ -746,7 +746,7 @@ module NestedAttributesOnACollectionAssociationTests
       Interest.validates_presence_of(:man)
       assert_no_difference ['Man.count', 'Interest.count'] do
         man = Man.create(:name => 'John',
-                         :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
+                         :interests_attributes => [{:topic => 'Cars'}, {:topic => 'Sports'}])
         assert !man.errors[:"interests.man"].empty?
       end
     end
@@ -868,7 +868,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
     attributes = {:pets_attributes => { "1"=> { :id => @pet1.id,
                                                 :name => "Foo2",
                                                 :current_user => "John",
-                                                :_destroy=>true }}}
+                                                :_destroy => true }}}
     @owner.update_attributes(attributes)
     assert_equal 'John', Pet.after_destroy_output
   end

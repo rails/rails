@@ -498,14 +498,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
     assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
-      firm.plain_clients.create! :name=>"Whoever"
+      firm.plain_clients.create! :name => "Whoever"
     end
   end
 
   def test_regular_create_on_has_many_when_parent_is_new_raises
     assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
-      firm.plain_clients.create :name=>"Whoever"
+      firm.plain_clients.create :name => "Whoever"
     end
   end
 

@@ -181,7 +181,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     eye = Eye.create(:iris_attributes => {:color => 'honey'})
     eye.update_attributes(:iris_attributes => {:color => 'green'})
     assert_equal [true, false], eye.after_update_callbacks_stack
-  end
+ end
 
   def test_callbacks_firing_order_on_save
     eye = Eye.create(:iris_attributes => {:color => 'honey'})
@@ -219,7 +219,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
 
   def test_save_succeeds_for_invalid_belongs_to_with_validate_false
     # Oracle saves empty string as NULL therefore :message changed to one space
-    assert log = AuditLog.create(:developer_id => 0, :message=> " ")
+    assert log = AuditLog.create(:developer_id => 0, :message => " ")
 
     log.unvalidated_developer = Developer.new
     assert !log.unvalidated_developer.valid?

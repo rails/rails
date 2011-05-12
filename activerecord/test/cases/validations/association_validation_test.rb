@@ -62,7 +62,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_associated_with_custom_message_using_quotes
-    Reply.validates_associated :topic, :message=> "This string contains 'single' and \"double\" quotes"
+    Reply.validates_associated :topic, :message => "This string contains 'single' and \"double\" quotes"
     Topic.validates_presence_of :content
     r = Reply.create("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")

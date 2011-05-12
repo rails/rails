@@ -351,7 +351,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     # 1 query for the new record, 1 for the join table record
     # No need to update the actual collection yet!
     assert_queries(2) do
-      posts(:thinking).people.create(:first_name=>"Jeb")
+      posts(:thinking).people.create(:first_name => "Jeb")
     end
 
     # *Now* we actually need the collection so it's loaded

@@ -14,7 +14,7 @@ class XmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_default_root_with_namespace
-    @xml = Contact.new.to_xml :namespace=>"http://xml.rubyonrails.org/contact"
+    @xml = Contact.new.to_xml :namespace => "http://xml.rubyonrails.org/contact"
     assert_match %r{^<contact xmlns="http://xml.rubyonrails.org/contact">},  @xml
     assert_match %r{</contact>$}, @xml
   end
@@ -163,7 +163,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_passing_hash_shouldnt_reuse_builder
-    options = {:include=>:posts}
+    options = {:include => :posts}
     david = authors(:david)
     first_xml_size = david.to_xml(options).size
     second_xml_size = david.to_xml(options).size
@@ -171,14 +171,14 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_include_uses_association_name
-    xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0
+    xml = authors(:david).to_xml :include => :hello_posts, :indent => 0
     assert_match %r{<hello-posts type="array">}, xml
     assert_match %r{<hello-post type="Post">}, xml
     assert_match %r{<hello-post type="StiPost">}, xml
   end
 
   def test_included_associations_should_skip_types
-    xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0, :skip_types => true
+    xml = authors(:david).to_xml :include => :hello_posts, :indent => 0, :skip_types => true
     assert_match %r{<hello-posts>}, xml
     assert_match %r{<hello-post>}, xml
     assert_match %r{<hello-post>}, xml
@@ -190,7 +190,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_not_call_methods_on_associations_that_dont_respond
-    xml = authors(:david).to_xml :include=>:hello_posts, :methods => :label, :indent => 2
+    xml = authors(:david).to_xml :include => :hello_posts, :methods => :label, :indent => 2
     assert !authors(:david).hello_posts.first.respond_to?(:label)
     assert_match %r{^  <label>.*</label>}, xml
     assert_no_match %r{^      <label>}, xml
@@ -231,14 +231,14 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_should_include_empty_has_many_as_empty_array
     authors(:david).posts.delete_all
-    xml = authors(:david).to_xml :include=>:posts, :indent => 2
+    xml = authors(:david).to_xml :include => :posts, :indent => 2
 
     assert_equal [], Hash.from_xml(xml)['author']['posts']
     assert_match %r{^  <posts type="array"/>}, xml
   end
 
   def test_should_has_many_array_elements_should_include_type_when_different_from_guessed_value
-    xml = authors(:david).to_xml :include=>:posts_with_comments, :indent => 2
+    xml = authors(:david).to_xml :include => :posts_with_comments, :indent => 2
 
     assert Hash.from_xml(xml)
     assert_match %r{^  <posts-with-comments type="array">}, xml
