@@ -407,7 +407,7 @@ module ActiveRecord
                 # FIXME: this call to attributes causes many NoMethodErrors
                 attributes = f.attributes
                 (attributes.keys - keys).each do |k|
-                  t.send("#{k}=", attributes[k])
+                  t.send('write_attribute', k, attributes[k])
                 end
               end
             else
