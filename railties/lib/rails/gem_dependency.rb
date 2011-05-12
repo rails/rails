@@ -38,7 +38,7 @@ module Rails
       result = self.new(name, :version => version)
       spec_filename = File.join(directory_name, '.specification')
       if load_spec
-        raise "Missing specification file in #{File.dirname(spec_filename)}. Perhaps you need to do a 'rake gems:refresh_specs'?" unless File.exists?(spec_filename)
+        raise "Missing specification file in #{File.dirname(spec_filename)}. Perhaps you need to do a 'rake gems:refresh_specs'\?" unless File.exists?(spec_filename)
         spec = YAML::load_file(spec_filename)
         result.specification = spec
       end
@@ -276,7 +276,7 @@ module Rails
     def ==(other)
       self.name == other.name && self.requirement == other.requirement
     end
-    alias_method :"eql?", :"=="
+    alias_method :eql?, :"=="
 
     private
 
