@@ -41,8 +41,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :audit_logs, :force => true do |t|
-    t.column :message, :string, :null=>false
-    t.column :developer_id, :integer, :null=>false
+    t.column :message, :string, :null => false
+    t.column :developer_id, :integer, :null => false
   end
 
   create_table :authors, :force => true do |t|

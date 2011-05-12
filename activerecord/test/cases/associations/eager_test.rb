@@ -96,25 +96,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    posts = Post.find(:all, :include=>:comments)
+    posts = Post.find(:all, :include => :comments)
     assert_equal 11, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
-    posts = Post.find(:all, :include=>:comments)
+    posts = Post.find(:all, :include => :comments)
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(5)
-    posts = Post.find(:all, :include=>:categories)
+    posts = Post.find(:all, :include => :categories)
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
-    posts = Post.find(:all, :include=>:categories)
+    posts = Post.find(:all, :include => :categories)
     assert_equal 11, posts.size
   end
 
@@ -662,21 +662,21 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_invalid_association_reference
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.find(6, :include=> :monkeys )
+      Post.find(6, :include => :monkeys )
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.find(6, :include=>[ :monkeys ])
+      Post.find(6, :include => [ :monkeys ])
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.find(6, :include=>[ 'monkeys' ])
+      Post.find(6, :include => [ 'monkeys' ])
     }
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
-      Post.find(6, :include=>[ :monkeys, :elephants ])
+      Post.find(6, :include => [ :monkeys, :elephants ])
     }
   end
 
   def find_all_ordered(className, include=nil)
-    className.find(:all, :order=>"#{className.table_name}.#{className.primary_key}", :include=>include)
+    className.find(:all, :order => "#{className.table_name}.#{className.primary_key}", :include => include)
   end
 
   def test_limited_eager_with_order

@@ -106,7 +106,7 @@ class Post < ActiveRecord::Base
   has_many :readers_with_person, :include => :person, :class_name => "Reader"
   has_many :people, :through => :readers
   has_many :single_people, :through => :readers
-  has_many :people_with_callbacks, :source=>:person, :through => :readers,
+  has_many :people_with_callbacks, :source => :person, :through => :readers,
               :before_add    => lambda {|owner, reader| log(:added,   :before, reader.first_name) },
               :after_add     => lambda {|owner, reader| log(:added,   :after,  reader.first_name) },
               :before_remove => lambda {|owner, reader| log(:removed, :before, reader.first_name) },
