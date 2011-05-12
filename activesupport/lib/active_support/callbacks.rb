@@ -129,8 +129,12 @@ module ActiveSupport
         @@_callback_sequence += 1
       end
 
+      ISOMORPHIC_OPTIONS = [:if, :unless, :per_key]
+
       def matches?(_kind, _filter, _options = {})
-        @kind == _kind && @filter == _filter && @options[:on] == _options[:on]
+        @kind == _kind && @filter == _filter && 
+          @options.reject { |k,v| ISOMORPHIC_OPTIONS.include?(k) } == 
+          _options.reject { |k,v| ISOMORPHIC_OPTIONS.include?(k) } 
       end
 
       def _update_filter(filter_options, new_options)
