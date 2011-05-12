@@ -274,7 +274,8 @@ module Rails
     end
 
     def ==(other)
-      self.name == other.name && self.requirement == other.requirement
+      Gem::Dependency === other.class &&
+        self.name == other.name && self.requirement == other.requirement
     end
     alias_method :eql?, :"=="
 
