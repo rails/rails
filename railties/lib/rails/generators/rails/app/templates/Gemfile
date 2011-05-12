@@ -9,7 +9,7 @@ source 'http://rubygems.org'
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
 gem 'sass'
 gem 'coffee-script'
-gem 'uglifier'
+gem 'uglifier', :git => 'git://github.com/lautis/uglifier.git'
 
 <%= gem_for_javascript %>
 
