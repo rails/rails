@@ -66,7 +66,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
-    silence_stderr { `rails new test` }
+    quietly { system 'rails new test' }
     assert_equal false, $?.success?
   end
 
