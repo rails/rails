@@ -87,19 +87,6 @@ module SharedGeneratorTests
     assert_match(/It works!/, silence(:stdout){ generator.invoke_all })
   end
 
-  def test_dev_option
-    generator([destination_root], :dev => true).expects(:run).with("#{@bundle_command} install")
-    silence(:stdout){ generator.invoke_all }
-    rails_path = File.expand_path('../../..', Rails.root)
-    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
-  end
-
-  def test_edge_option
-    generator([destination_root], :edge => true).expects(:run).with("#{@bundle_command} install")
-    silence(:stdout){ generator.invoke_all }
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$}
-  end
-
   def test_template_raises_an_error_with_invalid_path
     content = capture(:stderr){ run_generator([destination_root, "-m", "non/existant/path"]) }
     assert_match(/The template \[.*\] could not be loaded/, content)
