@@ -6,8 +6,8 @@ module Rails
       remove_hook_for :resource_controller
       remove_class_option :actions
 
-      class_option :stylesheets, :type => :boolean, :desc => "Generate stylesheets"
-      class_option :stylesheet_engine, :desc => "Engine for stylesheets"
+      class_option :stylesheets, :type => :boolean, :desc => "Generate Stylesheets"
+      class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
 
       hook_for :scaffold_controller, :required => true
 
