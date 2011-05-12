@@ -18,7 +18,7 @@ module ActiveRecord
       end
 
       def create(attributes = {}, options = {})
-        new_record(:create, attributes, options)
+        build(attributes, options).tap { |record| record.save }
       end
 
       def create!(attributes = {}, options = {})
@@ -26,7 +26,14 @@ module ActiveRecord
       end
 
       def build(attributes = {}, options = {})
-        new_record(:build, attributes, options)
+        record = reflection.build_association
+        record.assign_attributes(
+          scoped.scope_for_create.except(klass.primary_key),
+          :without_protection => true
+        )
+        record.assign_attributes(attributes, options)
+        set_new_record(record)
+        record
       end
 
       private
@@ -42,13 +49,6 @@ module ActiveRecord
 
         def set_new_record(record)
           replace(record)
-        end
-
-        def new_record(method, attributes, options)
-          attributes = scoped.scope_for_create.merge(attributes || {})
-          record = reflection.send("#{method}_association", attributes, options)
-          set_new_record(record)
-          record
         end
     end
   end
