@@ -184,9 +184,20 @@ module Rails
         "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
       end
 
-      def bundle_if_dev_or_edge
-        bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
-        run "#{bundle_command} install" if dev_or_edge?
+      def bundle_command(command)
+        # We use backticks and #print here instead of vanilla #system because it
+        # is easier to silence stdout in the existing test suite this way. The
+        # end-user gets the bundler commands called anyway.
+        #
+        # Thanks to James Tucker for the Gem tricks involved in this call.
+        print `"#{Gem.ruby}" -rubygems "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
+      end
+
+      def run_bundle
+        unless options[:skip_gemfile]
+          command = dev_or_edge? ? 'install' : 'check'
+          bundle_command(command)
+        end
       end
 
       def dev_or_edge?

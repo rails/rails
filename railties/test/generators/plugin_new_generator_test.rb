@@ -119,17 +119,17 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
-  def test_ensure_that_tests_works
+  def test_ensure_that_tests_work
     run_generator
     FileUtils.cd destination_root
-    `bundle install`
+    `bundle install` # use backticks to silence stdout
     assert_match(/1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
   def test_ensure_that_tests_works_in_full_mode
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
-    `bundle install`
+    `bundle install` # use backticks to silence stdout
     assert_match(/1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
