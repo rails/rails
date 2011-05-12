@@ -2,7 +2,7 @@
 
 * CSV Fixtures are deprecated and support will be removed in Rails 3.2.0
 
-* AR#new, AR#create and AR#update_attributes all accept a second hash as option that allows you
+* AR#new, AR#create, AR#create!, AR#update_attributes and AR#update_attributes! all accept a second hash as option that allows you
   to specify which role to consider when assigning attributes. This is built on top of ActiveModel's
   new mass assignment capabilities:
 
@@ -14,7 +14,9 @@
     Post.new(params[:post], :as => :admin)
 
   assign_attributes() with similar API was also added and attributes=(params, guard) was deprecated.
-  
+
+  Please note that this changes the method signatures for AR#new, AR#create, AR#create!, AR#update_attributes and AR#update_attributes!. If you have overwritten these methods you should update them accordingly.
+
   [Josh Kalderimis]
 
 * default_scope can take a block, lambda, or any other object which responds to `call` for lazy
@@ -611,12 +613,12 @@ query.
 
 * Add Support for updating deeply nested models from a single form. #1202 [Eloy Duran]
 
-	class Book < ActiveRecord::Base
-	  has_one :author
-	  has_many :pages
+  class Book < ActiveRecord::Base
+    has_one :author
+    has_many :pages
 
-	  accepts_nested_attributes_for :author, :pages
-	end
+    accepts_nested_attributes_for :author, :pages
+  end
 
 * Make after_save callbacks fire only if the record was successfully saved.  #1735 [Michael Lovitt]
 
@@ -1036,7 +1038,7 @@ so newlines etc are escaped #10385 [Norbert Crombach]
   "foo.bar" => "`foo`.`bar`"
 
 * Complete the assimilation of Sexy Migrations from ErrFree [Chris Wanstrath, PJ Hyett]
-	http://errtheblog.com/post/2381
+  http://errtheblog.com/post/2381
 
 * Qualified column names work in hash conditions, like :conditions => { 'comments.created_at' => ... }.  #9733 [Jack Danger Canty]
 
@@ -1152,7 +1154,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Improve performance and functionality of the postgresql adapter.  Closes #8049 [roderickvd]
 
-	For more information see: http://dev.rubyonrails.org/ticket/8049
+  For more information see: http://dev.rubyonrails.org/ticket/8049
 
 * Don't clobber includes passed to has_many.count [Jack Danger Canty]
 
@@ -1662,8 +1664,8 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 * Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
     assert (Topic.exists?(:author_name => "David"))
- 	  assert (Topic.exists?(:author_name => "Mary", :approved => true))
- 	  assert (Topic.exists?(["parent_id = ?", 1]))
+     assert (Topic.exists?(:author_name => "Mary", :approved => true))
+     assert (Topic.exists?(["parent_id = ?", 1]))
 
 * Schema dumper quotes date :default values. [Dave Thomas]
 
@@ -2119,8 +2121,8 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 * Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
     assert (Topic.exists?(:author_name => "David"))
- 	  assert (Topic.exists?(:author_name => "Mary", :approved => true))
- 	  assert (Topic.exists?(["parent_id = ?", 1]))
+     assert (Topic.exists?(:author_name => "Mary", :approved => true))
+     assert (Topic.exists?(["parent_id = ?", 1]))
 
 * Schema dumper quotes date :default values. [Dave Thomas]
 
