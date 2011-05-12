@@ -185,6 +185,8 @@ module Rails
       end
 
       def bundle_command(command)
+        say_status :run, "bundle #{command}"
+
         # We use backticks and #print here instead of vanilla #system because it
         # is easier to silence stdout in the existing test suite this way. The
         # end-user gets the bundler commands called anyway.
