@@ -187,7 +187,7 @@ module SharedCustomGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    capture(:stdout) { generator.invoke_all }
+    silence(:stdout) { generator.invoke_all }
 
     default_files.each{ |path| assert_no_file(path) }
   end
