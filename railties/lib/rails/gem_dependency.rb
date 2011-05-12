@@ -117,18 +117,6 @@ module Rails
       @spec = s
     end
 
-    if method_defined?(:requirement)
-      def requirement
-        req = super
-        req unless req == Gem::Requirement.default
-      end
-    else
-      def requirement
-        req = version_requirements
-        req unless req == Gem::Requirement.default
-      end
-    end
-
     def built?
       return false unless frozen?
 
