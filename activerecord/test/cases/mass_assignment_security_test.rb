@@ -181,6 +181,18 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     assert_admin_attributes(p, true)
   end
 
+  def test_create_with_bang_with_admin_role_with_attr_accessible_attributes
+    p = TightPerson.create!(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p, true)
+  end
+
+  def test_create_with_bang_with_admin_role_with_attr_protected_attributes
+    p = LoosePerson.create!(attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p, true)
+  end
+
   def test_new_with_without_protection_with_attr_accessible_attributes
     p = TightPerson.new(attributes_hash, :without_protection => true)
 
@@ -201,6 +213,18 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 
   def test_create_with_without_protection_with_attr_protected_attributes
     p = LoosePerson.create(attributes_hash, :without_protection => true)
+
+    assert_all_attributes(p)
+  end
+
+  def test_create_with_bang_with_without_protection_with_attr_accessible_attributes
+    p = TightPerson.create!(attributes_hash, :without_protection => true)
+
+    assert_all_attributes(p)
+  end
+
+  def test_create_with_bang_with_without_protection_with_attr_protected_attributes
+    p = LoosePerson.create!(attributes_hash, :without_protection => true)
 
     assert_all_attributes(p)
   end
