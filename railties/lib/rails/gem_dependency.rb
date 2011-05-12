@@ -72,7 +72,13 @@ module Rails
         @load_paths_added = @loaded = @frozen = true
         return
       end
-      gem self
+
+      begin
+        self.to_spec.activate           # >= 1.8 happy way
+      rescue
+        gem self.name, self.requirement # <  1.8 unhappy way
+      end
+
       @spec = Gem.loaded_specs[name]
       @frozen = @spec.loaded_from.include?(self.class.unpacked_path) if @spec
       @load_paths_added = true
