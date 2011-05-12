@@ -3,7 +3,19 @@
 #
 # In addition to AbstractController::UrlFor, this module accesses the HTTP layer to define 
 # url options like the +host+. In order to do so, this module requires the host class
-# to implement #env, which needs to be a Rack-compatible environment hash.
+# to implement #env and #request, which need to be a Rack-compatible.
+#
+# Example:
+#
+#   class RootUrl
+#     include ActionController::UrlFor
+#     include Rails.application.routes.url_helpers
+#     delegate :env, :request, :to => :controller
+#
+#     def initialize(controller)
+#       @controller = controller
+#       @url        = root_path # named route from the application.
+#     end
 module ActionController
   module UrlFor
     extend ActiveSupport::Concern
