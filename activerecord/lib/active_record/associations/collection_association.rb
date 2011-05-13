@@ -379,7 +379,7 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              find(:all)
+              scoped.all
             end
 
           records = options[:uniq] ? uniq(records) : records
