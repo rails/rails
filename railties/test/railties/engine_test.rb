@@ -93,6 +93,34 @@ module RailtiesTest
       assert_equal "HELLO WORLD", last_response.body
     end
 
+    test "pass the value of the segment" do
+      controller "foo", <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            render :text => params[:username]
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          root :to => "foo#index"
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount(Bukkits::Engine => "/:username")
+        end
+      RUBY
+
+      boot_rails
+
+      get("/arunagw")
+      assert_equal "arunagw", last_response.body
+
+    end
+
     test "it provides routes as default endpoint" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
