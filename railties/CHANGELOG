@@ -30,7 +30,7 @@ by the prototype-rails gem. [fxn]
 
 * jQuery is the new default JavaScript library. [fxn]
 
-* Changed scaffold and app generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
+* Changed scaffold, application, and mailer generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
 
   So instead of creating something like:
 
