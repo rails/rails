@@ -5,6 +5,8 @@ require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
 require 'open-uri'
 require 'uri'
+require 'bundler'
+require 'bundler/cli'
 
 module Rails
   module Generators
@@ -186,13 +188,7 @@ module Rails
 
       def bundle_command(command)
         say_status :run, "bundle #{command}"
-
-        # We use backticks and #print here instead of vanilla #system because it
-        # is easier to silence stdout in the existing test suite this way. The
-        # end-user gets the bundler commands called anyway.
-        #
-        # Thanks to James Tucker for the Gem tricks involved in this call.
-        print `"#{Gem.ruby}" -rubygems "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
+        Bundler::CLI.new.send(command)
       end
 
       def run_bundle
