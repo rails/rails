@@ -96,7 +96,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
                                                                :destination_root => app_moved_root, :shell => @shell
     generator.send(:app_const)
-    silence(:stdout){ generator.send(:create_config_files) }
+    quietly { generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
     assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
   end
@@ -111,7 +111,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true }, :destination_root => app_root, :shell => @shell
     generator.send(:app_const)
-    silence(:stdout){ generator.send(:create_config_files) }
+    quietly { generator.send(:create_config_files) }
     assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
   end
 
@@ -258,7 +258,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 protected
 
   def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
+    silence(:stdout) { generator.send(*args, &block) }
   end
 
 end
@@ -284,6 +284,6 @@ protected
   end
 
   def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
+    silence(:stdout) { generator.send(*args, &block) }
   end
 end

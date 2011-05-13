@@ -28,7 +28,7 @@ module SharedGeneratorTests
 
   def test_generation_runs_bundle_check
     generator([destination_root]).expects(:bundle_command).with('check').once
-    silence(:stdout) { generator.invoke_all }
+    quietly { generator.invoke_all }
   end
 
   def test_plugin_new_generate_pretend
@@ -88,7 +88,7 @@ module SharedGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, silence(:stdout){ generator.invoke_all })
+    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
   end
 
   def test_template_raises_an_error_with_invalid_path
@@ -103,7 +103,7 @@ module SharedGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, silence(:stdout){ generator.invoke_all })
+    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
   end
 
   def test_template_is_executed_when_supplied_an_https_path
@@ -112,25 +112,25 @@ module SharedGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, silence(:stdout){ generator.invoke_all })
+    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
   end
 
   def test_dev_option
     generator([destination_root], :dev => true).expects(:bundle_command).with('install').once
-    silence(:stdout) { generator.invoke_all }
+    quietly { generator.invoke_all }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
-    silence(:stdout) { generator.invoke_all }
+    quietly { generator.invoke_all }
     assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$}
   end
 
   def test_skip_gemfile
     generator([destination_root], :skip_gemfile => true).expects(:bundle_command).never
-    silence(:stdout) { generator.invoke_all }
+    quietly { generator.invoke_all }
     assert_no_file 'Gemfile'
   end
 end
@@ -187,7 +187,7 @@ module SharedCustomGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    silence(:stdout) { generator.invoke_all }
+    quietly { generator.invoke_all }
 
     default_files.each{ |path| assert_no_file(path) }
   end
