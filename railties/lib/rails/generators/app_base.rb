@@ -5,8 +5,6 @@ require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
 require 'open-uri'
 require 'uri'
-require 'bundler'
-require 'bundler/cli'
 
 module Rails
   module Generators
@@ -187,6 +185,9 @@ module Rails
       end
 
       def bundle_command(command)
+        require 'bundler'
+        require 'bundler/cli'
+
         say_status :run, "bundle #{command}"
         Bundler::CLI.new.send(command)
       end
