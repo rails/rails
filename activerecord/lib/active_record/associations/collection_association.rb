@@ -336,15 +336,7 @@ module ActiveRecord
 
       def load_target
         if find_target?
-          targets = []
-
-          begin
-            targets = find_target
-          rescue ActiveRecord::RecordNotFound
-            reset
-          end
-
-          @target = merge_target_lists(targets, target)
+          @target = merge_target_lists(find_target, target)
         end
 
         loaded!
