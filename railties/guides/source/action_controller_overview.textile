@@ -134,7 +134,7 @@ And assume that you're sending the data to +CompaniesController+, it would then 
 { :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" }}
 </ruby>
 
-You can customize the name of the key or specific parameters you want to wrap by consulting the "API documentation":http://edgeapi.rubyonrails.org/classes/ActionController/ParamsWrapper.html"
+You can customize the name of the key or specific parameters you want to wrap by consulting the "API documentation":http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html"
 
 h4. Routing Parameters
 
