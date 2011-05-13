@@ -43,6 +43,16 @@ module ActiveRecord
       # :stopdoc:
       class << self
         attr_accessor :money_precision
+        def string_to_time(string)
+          return string unless String === string
+
+          case string
+          when 'infinity'  then 1.0 / 0.0
+          when '-infinity' then -1.0 / 0.0
+          else
+            super
+          end
+        end
       end
       # :startdoc:
 
@@ -327,6 +337,9 @@ module ActiveRecord
 
         if value.kind_of?(String) && column.type == :binary
           "'#{escape_bytea(value)}'"
+        elsif Float === value && column.type == :datetime
+          return super unless value.infinite?
+          "'#{value.to_s.downcase}'"
         elsif value.kind_of?(String) && column.sql_type == 'xml'
           "xml '#{quote_string(value)}'"
         elsif value.kind_of?(Numeric) && column.sql_type == 'money'
