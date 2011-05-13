@@ -21,7 +21,6 @@ module Rails
 
       # TODO: Remove once this is fully in place
       def method_missing(meth, *args, &block)
-        STDERR.puts "Calling #{meth} with #{args.inspect} with #{block}"
         @generator.send(meth, *args, &block)
       end
   end
