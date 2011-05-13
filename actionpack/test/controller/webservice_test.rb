@@ -215,7 +215,7 @@ class WebServiceTest < ActionController::IntegrationTest
   def test_typecast_as_yaml
     with_test_route_set do
       with_params_parsers Mime::YAML => :yaml do
-        yaml = <<-YAML
+        yaml = (<<-YAML).strip
           ---
           data:
             a: 15
