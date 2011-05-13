@@ -209,7 +209,7 @@ task :default => :test
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :bundle_if_dev_or_edge
+      public_task :apply_rails_template, :run_bundle
 
     protected
 

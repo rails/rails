@@ -66,8 +66,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
-    # TODO: Suppress the output of this (it's because of a Thor::Error)
-    `rails new test`
+    quietly { system 'rails new test' }
     assert_equal false, $?.success?
   end
 
@@ -97,7 +96,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
                                                                :destination_root => app_moved_root, :shell => @shell
     generator.send(:app_const)
-    silence(:stdout){ generator.send(:create_config_files) }
+    quietly { generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
     assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
   end
@@ -112,7 +111,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true }, :destination_root => app_root, :shell => @shell
     generator.send(:app_const)
-    silence(:stdout){ generator.send(:create_config_files) }
+    quietly { generator.send(:create_config_files) }
     assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
   end
 
@@ -259,7 +258,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 protected
 
   def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
+    silence(:stdout) { generator.send(*args, &block) }
   end
 
 end
@@ -285,6 +284,6 @@ protected
   end
 
   def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
+    silence(:stdout) { generator.send(*args, &block) }
   end
 end
