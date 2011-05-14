@@ -9,6 +9,11 @@ module ActiveRecord
 
       attr_internal :db_runtime
 
+      def process_action(action, *args)
+        ActiveRecord::LogSubscriber.reset_runtime
+        super
+      end
+
       def cleanup_view_runtime
         if ActiveRecord::Base.connected?
           db_rt_before_render = ActiveRecord::LogSubscriber.reset_runtime
