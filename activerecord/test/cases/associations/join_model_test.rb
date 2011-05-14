@@ -13,6 +13,8 @@ require 'models/vertex'
 require 'models/edge'
 require 'models/book'
 require 'models/citation'
+require 'models/aircraft'
+require 'models/engine'
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false unless supports_savepoints?
@@ -702,6 +704,15 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_comment = sub_sti_post.comments.create(:body => 'test')
 
     assert_equal [9, 10, new_comment.id], authors(:david).sti_post_comments.map(&:id).sort
+  end
+
+  def test_has_many_with_pluralize_table_names_false
+    engine = Engine.create(:car_id => 1)
+    Aircraft.pluralize_table_names = false
+    aircraft = Aircraft.create!(:name => "Airbus 380", :id => 1)
+    assert_equal aircraft.engines, [engine]
+  ensure
+    ActiveRecord::Base.pluralize_table_names = true
   end
 
   private

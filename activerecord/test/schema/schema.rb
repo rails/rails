@@ -40,6 +40,10 @@ ActiveRecord::Schema.define do
     t.references :account
   end
 
+  create_table :aircraft, :force => true do |t|
+    t.string :name
+  end
+
   create_table :audit_logs, :force => true do |t|
     t.column :message, :string, :null=>false
     t.column :developer_id, :integer, :null=>false
