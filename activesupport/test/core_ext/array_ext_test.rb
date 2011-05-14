@@ -118,6 +118,7 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
 
   def test_in_groups_of_with_padding
     groups = []
+    
     ('a'..'g').to_a.in_groups_of(3) do |group|
       groups << group
     end
@@ -143,6 +144,55 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
     end
 
     assert_equal [%w(a b c), %w(d e f), ['g']], groups
+  end
+  
+  def test_with_index_in_groups_of_with_perfect_fit
+    groups = {}
+    
+    ('a'..'i').to_a.with_index_in_groups_of(3) do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => %w(g h i)}
+
+    assert_equal indexed, groups
+    assert_equal [[%w(a b c), 0], [%w(d e f), 1], [%w(g h i), 2]], ('a'..'i').to_a.with_index_in_groups_of(3)
+  end
+  
+  def test_with_index_in_groups_of_with_padding
+    groups = {}
+    
+    ('a'..'g').to_a.with_index_in_groups_of(3) do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => ['g', nil, nil]}
+
+    assert_equal indexed, groups
+  end
+  
+  def test_with_index_in_groups_of_pads_with_specified_values
+    groups = {}
+
+    ('a'..'g').to_a.with_index_in_groups_of(3, 'foo') do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => ['g', 'foo', 'foo']}
+
+    assert_equal indexed, groups
+  end
+  
+  def test_with_index_in_groups_of_without_padding
+    groups = {}
+
+    ('a'..'g').to_a.with_index_in_groups_of(3, false) do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => ['g']}
+
+    assert_equal indexed, groups
   end
 
   def test_in_groups_returned_array_size

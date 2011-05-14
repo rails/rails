@@ -35,7 +35,47 @@ class Array
       groups
     end
   end
+  
+  # Splits or iterates over the array with an index (which start from 0) 
+  # in groups of size +number+, padding any remaining slots 
+  # with +fill_with+ unless it is +false+. If no block is given returns
+  # an array of [group, index] arrays.
+  #
+  #   %w(1 2 3 4 5 6 7).with_index_in_groups_of(3) {|group, index| p "#{group} : #{index}"}
+  #   ["1", "2", "3"] : 0
+  #   ["4", "5", "6"] : 1
+  #   ["7", nil, nil] : 2
+  #
+  #   %w(1 2 3).with_index_in_groups_of(2, '&nbsp;') {|group, index| p "#{group} : #{index}"}
+  #   ["1", "2"] : 0
+  #   ["3", "&nbsp;"] : 1
+  #
+  #   %w(1 2 3).with_index_in_groups_of(2, false) {|group, index| p "#{group} : #{index}"}
+  #   ["1", "2"] : 0
+  #   ["3"] : 1
+  #
+  #   %w(1 2 3).with_index_in_groups_of(2) #=> [ [["1", "2"], 0], [["3", nil, nil], 1] ]
+  def with_index_in_groups_of(number, fill_with = nil)
+    if fill_with == false
+      collection = self
+    else
+      # size % number gives how many extra we have;
+      # subtracting from number gives how many to add;
+      # modulo number ensures we don't add group of just fill.
+      padding = (number - size % number) % number
+      collection = dup.concat([fill_with] * padding)
+    end
 
+    groups = []
+    collection.each_slice(number) { |group| groups << group }
+    
+    if block_given?
+      groups.each_with_index { |slice, index| yield(slice, index) }
+    else
+      groups.each_with_index.to_a
+    end
+  end
+  
   # Splits or iterates over the array in +number+ of groups, padding any
   # remaining slots with +fill_with+ unless it is +false+.
   #
