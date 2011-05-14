@@ -1445,4 +1445,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_equal target.object_id, ary.object_id
   end
+
+  def test_merging_with_custom_attribute_writer
+    bulb = Bulb.new(:color => "red")
+    assert_equal "RED!", bulb.color
+
+    car = Car.create!
+    car.bulbs << bulb
+
+    assert_equal "RED!", car.bulbs.to_a.first.color
+  end
 end

@@ -405,17 +405,14 @@ module ActiveRecord
             mem_record = memory.delete(record)
 
             if mem_record
-              # FIXME: this call to record.attributes causes many NoMethodErrors
-              attributes = record.attributes
-
               # Only try to assign attributes which exist on mem_record
-              shared = mem_record.attribute_names & attributes.keys
+              shared = mem_record.attribute_names & record.attribute_names
 
               # Don't try to assign the primary key, or attributes which have changed on mem_record
               excluded = ["id"] + mem_record.changes.keys
 
               (shared - excluded).each do |key|
-                mem_record.send("#{key}=", attributes[key])
+                mem_record[key] = record[key]
               end
 
               mem_record
