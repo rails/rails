@@ -1,6 +1,6 @@
 *Rails 3.1.0 (unreleased)*
 
-* Application and plugin generation run bundle check unless --skip-gemfile. [fxn]
+* Application and plugin generation run bundle install unless --skip-gemfile or --skip-bundle. [fxn]
 
 * Fixed database tasks for jdbc* adapters #jruby
 

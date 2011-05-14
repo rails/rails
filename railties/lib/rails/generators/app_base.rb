@@ -28,6 +28,9 @@ module Rails
         class_option :skip_gemfile,       :type => :boolean, :default => false,
                                           :desc => "Don't create a Gemfile"
 
+        class_option :skip_bundle,        :type => :boolean, :default => false,
+                                          :desc => "Don't run bundle install"
+
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
 
@@ -190,13 +193,12 @@ module Rails
 
         say_status :run, "bundle #{command}"
         Bundler::CLI.new.send(command)
+      rescue
+        say_status :failure, "bundler raised an exception, are you online?", :red
       end
 
       def run_bundle
-        unless options[:skip_gemfile]
-          command = dev_or_edge? ? 'install' : 'check'
-          bundle_command(command)
-        end
+        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
       end
 
       def dev_or_edge?
