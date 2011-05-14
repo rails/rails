@@ -604,6 +604,13 @@ module ActionView
         number_field_tag(name, value, options.stringify_keys.update("type" => "range"))
       end
 
+      # Creates the hidden UTF8 enforcer tag. Override this method in a helper
+      # to customize the tag. If you just need to change the field name, set the
+      # +config.action_view.utf8_enforcer_param+ configuration option instead.
+      def utf8_enforcer_tag
+        tag(:input, :type => "hidden", :name => utf8_enforcer_param, :value => "&#x2713;".html_safe)
+      end
+
       private
         def html_options_for_form(url_for_options, options, *parameters_for_url)
           options.stringify_keys.tap do |html_options|
@@ -618,9 +625,6 @@ module ActionView
         end
 
         def extra_tags_for_form(html_options)
-          utf8_enforcer_tag = tag(:input, :type => "hidden",
-                              :name => utf8_enforcer_param, :value => "&#x2713;".html_safe)
-
           authenticity_token = html_options.delete("authenticity_token")
           method = html_options.delete("method").to_s
 
