@@ -13,6 +13,13 @@ module ActiveRecord
       ActiveRecord::IdentityMap.clear
     end
 
+    # Backport skip to Ruby 1.8.  test/unit doesn't support it, so just
+    # make it a noop.
+    unless instance_methods.map(&:to_s).include?("skip")
+      def skip(message)
+      end
+    end
+
     def assert_date_from_db(expected, actual, message = nil)
       # SybaseAdapter doesn't have a separate column type just for dates,
       # so the time is in the string and incorrectly formatted

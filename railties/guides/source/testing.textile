@@ -38,7 +38,7 @@ When you do end up destroying your testing database (and it will happen, trust m
 
 h4. Rails Sets up for Testing from the Word Go
 
-Rails creates a +test+ folder for you as soon as you create a Rails project using +rails _application_name_+. If you list the contents of this folder then you shall see:
+Rails creates a +test+ folder for you as soon as you create a Rails project using +rails new+ _application_name_. If you list the contents of this folder then you shall see:
 
 <shell>
 $ ls -F test/

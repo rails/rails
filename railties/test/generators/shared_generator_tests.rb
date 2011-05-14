@@ -26,8 +26,8 @@ module SharedGeneratorTests
     default_files.each { |path| assert_file path }
   end
 
-  def test_generation_runs_bundle_check
-    generator([destination_root]).expects(:bundle_command).with('check').once
+  def test_generation_runs_bundle_install
+    generator([destination_root]).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
   end
 
@@ -132,6 +132,15 @@ module SharedGeneratorTests
     generator([destination_root], :skip_gemfile => true).expects(:bundle_command).never
     quietly { generator.invoke_all }
     assert_no_file 'Gemfile'
+  end
+
+  def test_skip_bundle
+    generator([destination_root], :skip_bundle => true).expects(:bundle_command).never
+    quietly { generator.invoke_all }
+
+    # skip_bundle is only about running bundle install, ensure the Gemfile is still
+    # generated.
+    assert_file 'Gemfile'
   end
 end
 

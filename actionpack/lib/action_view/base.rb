@@ -85,11 +85,11 @@ module ActionView #:nodoc:
   #
   # Here are some basic examples:
   #
-  #   xml.em("emphasized")                              # => <em>emphasized</em>
-  #   xml.em { xml.b("emph & bold") }                   # => <em><b>emph &amp; bold</b></em>
-  #   xml.a("A Link", "href"=>"http://onestepback.org") # => <a href="http://onestepback.org">A Link</a>
-  #   xml.target("name"=>"compile", "option"=>"fast")   # => <target option="fast" name="compile"\>
-  #                                                     # NOTE: order of attributes is not specified.
+  #   xml.em("emphasized")                                 # => <em>emphasized</em>
+  #   xml.em { xml.b("emph & bold") }                      # => <em><b>emph &amp; bold</b></em>
+  #   xml.a("A Link", "href" => "http://onestepback.org")  # => <a href="http://onestepback.org">A Link</a>
+  #   xml.target("name" => "compile", "option" => "fast")  # => <target option="fast" name="compile"\>
+  #                                                        # NOTE: order of attributes is not specified.
   #
   # Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
   #

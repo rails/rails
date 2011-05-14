@@ -336,15 +336,7 @@ module ActiveRecord
 
       def load_target
         if find_target?
-          targets = []
-
-          begin
-            targets = find_target
-          rescue ActiveRecord::RecordNotFound
-            reset
-          end
-
-          @target = merge_target_lists(targets, target)
+          @target = merge_target_lists(find_target, target)
         end
 
         loaded!
@@ -387,7 +379,7 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              find(:all)
+              scoped.all
             end
 
           records = options[:uniq] ? uniq(records) : records

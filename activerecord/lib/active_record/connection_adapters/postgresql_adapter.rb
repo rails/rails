@@ -39,6 +39,16 @@ module ActiveRecord
       # :stopdoc:
       class << self
         attr_accessor :money_precision
+        def string_to_time(string)
+          return string unless String === string
+
+          case string
+          when 'infinity'  then 1.0 / 0.0
+          when '-infinity' then -1.0 / 0.0
+          else
+            super
+          end
+        end
       end
       # :startdoc:
 
@@ -349,6 +359,9 @@ module ActiveRecord
         return super unless column
 
         case value
+        when Float
+          return super unless value.infinite? && column.type == :datetime
+          "'#{value.to_s.downcase}'"
         when Numeric
           return super unless column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.

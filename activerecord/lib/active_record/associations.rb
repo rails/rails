@@ -1379,7 +1379,7 @@ module ActiveRecord
       # [:touch]
       #   If true, the associated object will be touched (the updated_at/on attributes set to now)
       #   when this record is either saved or destroyed. If you specify a symbol, that attribute
-      #   will be updated with the current time instead of the updated_at/on attribute.
+      #   will be updated with the current time in addition to the updated_at/on attribute.
       # [:inverse_of]
       #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated
       #   object that is the inverse of this <tt>belongs_to</tt> association.  Does not work in

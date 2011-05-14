@@ -28,6 +28,9 @@ module Rails
         class_option :skip_gemfile,       :type => :boolean, :default => false,
                                           :desc => "Don't create a Gemfile"
 
+        class_option :skip_bundle,        :type => :boolean, :default => false,
+                                          :desc => "Don't run bundle install"
+
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
 
@@ -185,25 +188,17 @@ module Rails
       end
 
       def bundle_command(command)
-        say_status :run, "bundle #{command}"
+        require 'bundler'
+        require 'bundler/cli'
 
-        # We use backticks and #print here instead of vanilla #system because it
-        # is easier to silence stdout in the existing test suite this way. The
-        # end-user gets the bundler commands called anyway.
-        #
-        # Thanks to James Tucker for the Gem tricks involved in this call.
-        print `"#{Gem.ruby}" -rubygems "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
+        say_status :run, "bundle #{command}"
+        Bundler::CLI.new.send(command)
+      rescue
+        say_status :failure, "bundler raised an exception, are you offline?", :red
       end
 
       def run_bundle
-        unless options[:skip_gemfile]
-          command = dev_or_edge? ? 'install' : 'check'
-          bundle_command(command)
-        end
-      end
-
-      def dev_or_edge?
-        options.dev? || options.edge?
+        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
       end
 
       def empty_directory_with_gitkeep(destination, config = {})
