@@ -387,25 +387,44 @@ module ActiveRecord
           records
         end
 
-        def merge_target_lists(loaded, existing)
-          return loaded if existing.empty?
-          return existing if loaded.empty?
+        # We have some records loaded from the database (persisted) and some that are
+        # in-memory (memory). The same record may be represented in the persisted array
+        # and in the memory array.
+        #
+        # So the task of this method is to merge them according to the following rules:
+        #
+        #   * The final array must not have duplicates
+        #   * The order of the persisted array is to be preserved
+        #   * Any changes made to attributes on objects in the memory array are to be preserved
+        #   * Otherwise, attributes should have the value found in the database
+        def merge_target_lists(persisted, memory)
+          return persisted if memory.empty?
+          return memory    if persisted.empty?
 
-          loaded.map do |f|
-            i = existing.index(f)
-            if i
-              existing.delete_at(i).tap do |t|
-                keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
-                # FIXME: this call to attributes causes many NoMethodErrors
-                attributes = f.attributes
-                (attributes.keys - keys).each do |k|
-                  t.send("#{k}=", attributes[k])
-                end
+          persisted.map! do |record|
+            mem_record = memory.delete(record)
+
+            if mem_record
+              # FIXME: this call to record.attributes causes many NoMethodErrors
+              attributes = record.attributes
+
+              # Only try to assign attributes which exist on mem_record
+              shared = mem_record.attribute_names & attributes.keys
+
+              # Don't try to assign the primary key, or attributes which have changed on mem_record
+              excluded = ["id"] + mem_record.changes.keys
+
+              (shared - excluded).each do |key|
+                mem_record.send("#{key}=", attributes[key])
               end
+
+              mem_record
             else
-              f
+              record
             end
-          end + existing
+          end
+
+          persisted + memory
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
