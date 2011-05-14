@@ -1216,35 +1216,30 @@ module ActionView
         RUBY_EVAL
       end
 
-      def fields_for(record_or_name_or_array, *args, &block)
-        if options.has_key?(:index)
-          index = "[#{options[:index]}]"
-        elsif defined?(@auto_index)
-          self.object_name = @object_name.to_s.sub(/\[\]$/,"")
-          index = "[#{@auto_index}]"
-        else
-          index = ""
-        end
+      def fields_for(record_name, record_object = nil, fields_options = {}, &block)
+        fields_options, record_object = record_object, nil if record_object.is_a?(Hash)
+        fields_options[:builder] ||= options[:builder]
+        fields_options[:parent_builder] = self
 
-        args << {} unless args.last.is_a?(Hash)
-        args.last[:builder] ||= options[:builder]
-        args.last[:parent_builder] = self
-
-        case record_or_name_or_array
+        case record_name
         when String, Symbol
-          if nested_attributes_association?(record_or_name_or_array)
-            return fields_for_with_nested_attributes(record_or_name_or_array, args, block)
-          else
-            name = record_or_name_or_array
+          if nested_attributes_association?(record_name)
+            return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
         else
-          object = record_or_name_or_array.is_a?(Array) ? record_or_name_or_array.last : record_or_name_or_array
-          name   = ActiveModel::Naming.param_key(object)
-          args.unshift(object)
+          record_object = record_name.is_a?(Array) ? record_name.last : record_name
+          record_name   = ActiveModel::Naming.param_key(record_object)
         end
-        name = "#{object_name}#{index}[#{name}]"
 
-        @template.fields_for(name, *args, &block)
+        index = if options.has_key?(:index)
+          "[#{options[:index]}]"
+        elsif defined?(@auto_index)
+          self.object_name = @object_name.to_s.sub(/\[\]$/,"")
+          "[#{@auto_index}]"
+        end
+        record_name = "#{object_name}#{index}[#{record_name}]"
+
+        @template.fields_for(record_name, record_object, fields_options, &block)
       end
 
       def label(method, text = nil, options = {}, &block)
@@ -1333,10 +1328,8 @@ module ActionView
           @object.respond_to?("#{association_name}_attributes=")
         end
 
-        def fields_for_with_nested_attributes(association_name, args, block)
+        def fields_for_with_nested_attributes(association_name, association, options, block)
           name = "#{object_name}[#{association_name}_attributes]"
-          options = args.extract_options!
-          association = args.shift
           association = convert_to_model(association)
 
           if association.respond_to?(:persisted?)
