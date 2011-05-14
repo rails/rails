@@ -11,6 +11,10 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     def show
       render :inline => "<%= Project.all %>"
     end
+
+    def zero
+      render :inline => "Zero DB runtime"
+    end
   end
 
   include ActiveSupport::LogSubscriber::TestHelper
@@ -37,6 +41,15 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 2, @logger.logged(:info).size
-    assert_match(/\(Views: [\d.]+ms | ActiveRecord: [\d.]+ms\)/, @logger.logged(:info)[1])
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms\)/, @logger.logged(:info)[1])
+  end
+
+  def test_runtime_reset_before_requests
+    ActiveRecord::LogSubscriber.runtime += 12345
+    get :zero
+    wait
+
+    assert_equal 2, @logger.logged(:info).size
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: 0.0ms\)/, @logger.logged(:info)[1])
   end
 end
