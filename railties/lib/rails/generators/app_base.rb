@@ -194,7 +194,7 @@ module Rails
         say_status :run, "bundle #{command}"
         Bundler::CLI.new.send(command)
       rescue
-        say_status :failure, "bundler raised an exception, are you online?", :red
+        say_status :failure, "bundler raised an exception, are you offline?", :red
       end
 
       def run_bundle
