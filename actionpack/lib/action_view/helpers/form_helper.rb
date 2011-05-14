@@ -243,7 +243,7 @@ module ActionView
       #
       # === Setting the method
       #
-      # You can force the form to use the full array of HTTP verbs by setting 
+      # You can force the form to use the full array of HTTP verbs by setting
       #
       #    :method => (:get|:post|:put|:delete)
       #
@@ -898,10 +898,7 @@ module ActionView
 
       private
 
-        def instantiate_builder(record, *args, &block)
-          options = args.extract_options!
-          record_object = args.shift
-
+        def instantiate_builder(record, record_object, options, &block)
           case record
           when String, Symbol
             object = record_object
