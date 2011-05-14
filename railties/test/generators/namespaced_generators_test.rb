@@ -163,7 +163,11 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
       assert_match /module TestApp/, mailer
       assert_match /class Notifier < ActionMailer::Base/, mailer
-      assert_match /default :from => "from@example.com"/, mailer
+      if RUBY_VERSION < "1.9"
+        assert_match /default :from => "from@example.com"/, mailer
+      else
+        assert_match /default from: "from@example.com"/, mailer
+      end
     end
   end
 
