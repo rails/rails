@@ -1445,4 +1445,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_equal target.object_id, ary.object_id
   end
+  
+    
+  def test_load_target_respects_overridden_assignment
+    post = Post.last
+    post.comments << AwesomeComment.new(:body => "Test Comment")
+    assert_equal post.comments[-1].body, Awesomeness.awesomeify("Test Comment")
+  end
+
+  def test_load_target_respects_composed_of
+    post = Post.last
+    post.comments << SuperAwesomeComment.new(:body => Awesomeness.new("Test Comment"))
+    assert post.comments[-1].body.is_a?(Awesomeness), "a class should not lose it's composed of relationship when added in a has_many relationship"
+  end
+  
 end

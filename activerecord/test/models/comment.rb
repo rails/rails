@@ -38,3 +38,29 @@ class VerySpecialComment < Comment
     'a very special comment...'
   end
 end
+
+class AwesomeComment < Comment
+  def body=(the_body)
+    self.send('write_attribute', 'body', Awesomeness.awesomeify(the_body))
+  end
+end
+
+class SuperAwesomeComment < Comment
+  composed_of :body, :class_name => 'Awesomeness', :mapping => [%w(body text)]
+end
+
+class Awesomeness
+  def self.awesomeify(str)
+    "Awesome " + str
+  end
+  
+  attr_reader :text
+  
+  def initialize(awesome_text)
+    @text = awesome_text
+  end
+  
+  def to_s
+    self.class.awesomeify @text
+  end
+end
