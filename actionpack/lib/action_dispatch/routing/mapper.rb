@@ -352,7 +352,7 @@ module ActionDispatch
         #
         # [:constraints]
         #   Constrains parameters with a hash of regular expressions or an
-        #   object that responds to <tt>#matches?</tt>
+        #   object that responds to <tt>matches?</tt>
         #
         #     match 'path/:id', :constraints => { :id => /[A-Z]\d{5}/ }
         #
@@ -373,7 +373,7 @@ module ActionDispatch
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
         # [:anchor]
-        #   Boolean to anchor a <tt>#match</tt> pattern. Default is true. When set to
+        #   Boolean to anchor a <tt>match</tt> pattern. Default is true. When set to
         #   false, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
