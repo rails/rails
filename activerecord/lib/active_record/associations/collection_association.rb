@@ -405,14 +405,8 @@ module ActiveRecord
             mem_record = memory.delete(record)
 
             if mem_record
-              # Only try to assign attributes which exist on mem_record
-              shared = mem_record.attribute_names & record.attribute_names
-
-              # Don't try to assign the primary key, or attributes which have changed on mem_record
-              excluded = ["id"] + mem_record.changes.keys
-
-              (shared - excluded).each do |key|
-                mem_record[key] = record[key]
+              (record.attribute_names - mem_record.changes.keys).each do |name|
+                mem_record[name] = record[name]
               end
 
               mem_record
