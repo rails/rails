@@ -82,22 +82,22 @@ module ActionView
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name")
       #   # <select id="people" name="people"><option value="1">David</option></select>
       #
-      #   select_tag "people", "<option>David</option>"
+      #   select_tag "people", "<option>David</option>".html_safe
       #   # => <select id="people" name="people"><option>David</option></select>
       #
-      #   select_tag "count", "<option>1</option><option>2</option><option>3</option><option>4</option>"
+      #   select_tag "count", "<option>1</option><option>2</option><option>3</option><option>4</option>".html_safe
       #   # => <select id="count" name="count"><option>1</option><option>2</option>
       #   #    <option>3</option><option>4</option></select>
       #
-      #   select_tag "colors", "<option>Red</option><option>Green</option><option>Blue</option>", :multiple => true
+      #   select_tag "colors", "<option>Red</option><option>Green</option><option>Blue</option>".html_safe, :multiple => true
       #   # => <select id="colors" multiple="multiple" name="colors[]"><option>Red</option>
       #   #    <option>Green</option><option>Blue</option></select>
       #
-      #   select_tag "locations", "<option>Home</option><option selected="selected">Work</option><option>Out</option>"
+      #   select_tag "locations", "<option>Home</option><option selected="selected">Work</option><option>Out</option>".html_safe
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
-      #   select_tag "access", "<option>Read</option><option>Write</option>", :multiple => true, :class => 'form_input'
+      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, :multiple => true, :class => 'form_input'
       #   # => <select class="form_input" id="access" multiple="multiple" name="access[]"><option>Read</option>
       #   #    <option>Write</option></select>
       #
@@ -107,7 +107,7 @@ module ActionView
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), :prompt => "Select something"
       #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
       #
-      #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>", :disabled => true
+      #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>".html_safe, :disabled => true
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
       #   #    <option>Paris</option><option>Rome</option></select>
       def select_tag(name, option_tags = nil, options = {})

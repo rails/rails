@@ -30,7 +30,7 @@ module Rails
   # generator.
   #
   # This allows you to override entire operations, like the creation of the
-  # Gemfile, README, or javascript files, without needing to know exactly
+  # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
   class AppBuilder
     def rakefile

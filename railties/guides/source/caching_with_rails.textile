@@ -98,7 +98,7 @@ You can also use +:if+ (or +:unless+) to pass a Proc that specifies when the act
 
 You can modify the default action cache path by passing a +:cache_path+ option. This will be passed directly to +ActionCachePath.path_for+. This is handy for actions with multiple possible routes that should be cached differently. If a block is given, it is called with the current controller instance.
 
-Finally, if you are using memcached, you can also pass +:expires_in+. In fact, all parameters not used by +caches_action+ are sent to the underlying cache store.
+Finally, if you are using memcached or Ehcache, you can also pass +:expires_in+. In fact, all parameters not used by +caches_action+ are sent to the underlying cache store.
 
 INFO: Action caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
 
@@ -303,6 +303,35 @@ The +write+ and +fetch+ methods on this cache accept two additional options that
 <ruby>
 ActionController::Base.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
 </ruby>
+
+h4. ActiveSupport::Cache::EhcacheStore
+
+If you are using JRuby you can use Terracotta's Ehcache as the cache store for your application. Ehcache is an open source Java cache that also offers an enterprise version with increased scalability, management, and commercial support. You must first install the jruby-ehcache-rails3 gem (version 1.1.0 or later) to use this cache store.
+
+<ruby>
+ActionController::Base.cache_store = :ehcache_store
+</ruby>
+
+When initializing the cache, you may use the +:ehcache_config+ option to specify the Ehcache config file to use (where the default is "ehcache.xml" in your Rails config directory), and the :cache_name option to provide a custom name for your cache (the default is rails_cache).
+
+In addition to the standard +:expires_in+ option, the +write+ method on this cache can also accept the additional  +:unless_exist+ option, which will cause the cache store to use Ehcache's +putIfAbsent+ method instead of +put+, and therefore will not overwrite an existing entry. Additionally, the +write+ method supports all of the properties exposed by the "Ehcache Element class":http://ehcache.org/apidocs/net/sf/ehcache/Element.html , including:
+
+|_. Property |_. Argument Type |_. Description |
+| elementEvictionData | ElementEvictionData | Sets this element's eviction data instance. |
+| eternal | boolean | Sets whether the element is eternal. |
+| timeToIdle, tti | int | Sets time to idle |
+| timeToLive, ttl, expires_in | int | Sets time to Live |
+| version | long | Sets the version attribute of the ElementAttributes object. |
+
+These options are passed to the +write+ method as Hash options using either camelCase or underscore notation, as in the following examples:
+
+<ruby>
+Rails.cache.write('key', 'value', :time_to_idle => 60.seconds, :timeToLive => 600.seconds)
+caches_action :index, :expires_in => 60.seconds, :unless_exist => true
+</ruby>
+
+For more information about Ehcache, see "http://ehcache.org/":http://ehcache.org/ .
+For more information about Ehcache for JRuby and Rails, see "http://ehcache.org/documentation/jruby.html":http://ehcache.org/documentation/jruby.html
 
 h4. Custom Cache Stores
 

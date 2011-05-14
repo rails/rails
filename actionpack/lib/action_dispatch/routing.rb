@@ -49,8 +49,8 @@ module ActionDispatch
   # You may wish to organize groups of controllers under a namespace. Most
   # commonly, you might group a number of administrative controllers under
   # an +admin+ namespace. You would place these controllers under the
-  # app/controllers/admin directory, and you can group them together in your
-  # router:
+  # <tt>app/controllers/admin</tt> directory, and you can group them together
+  # in your router:
   #
   #   namespace "admin" do
   #     resources :posts, :comments
@@ -152,7 +152,7 @@ module ActionDispatch
   #     }
   #   end
   #
-  # Using the multiline match modifier will raise an ArgumentError.
+  # Using the multiline match modifier will raise an +ArgumentError+.
   # Encoding regular expression modifiers are silently ignored. The
   # match will always use the default encoding or ASCII.
   #

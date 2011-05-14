@@ -7,7 +7,7 @@ class Object
   # provided. Each method called on the block variable must take an options
   # hash as its final argument.
   #
-  # Without with_options, this code contains duplication:
+  # Without <tt>with_options></tt>, this code contains duplication:
   #
   #   class Account < ActiveRecord::Base
   #     has_many :customers, :dependent => :destroy
@@ -16,7 +16,7 @@ class Object
   #     has_many :expenses,  :dependent => :destroy
   #   end
   #
-  # Using with_options, we can remove the duplication:
+  # Using <tt>with_options</tt>, we can remove the duplication:
   #
   #   class Account < ActiveRecord::Base
   #     with_options :dependent => :destroy do |assoc|
@@ -29,10 +29,13 @@ class Object
   #
   # It can also be used with an explicit receiver:
   #
-  #   map.with_options :controller => "people" do |people|
-  #     people.connect "/people",     :action => "index"
-  #     people.connect "/people/:id", :action => "show"
+  #   I18n.with_options :locale => user.locale, :scope => "newsletter" do |i18n|
+  #     subject i18n.t :subject
+  #     body    i18n.t :body, :user_name => user.name
   #   end
+  #
+  # <tt>with_options</tt> can also be nested since the call is forwarded to its receiver.
+  # Each nesting level will merge inherited defaults in addition to their own.
   #
   def with_options(options)
     yield ActiveSupport::OptionMerger.new(self, options)
