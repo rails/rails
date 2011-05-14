@@ -26,6 +26,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
+  def test_attributes_hash
+    attributes = Category.new({:name => "Test categoty"}).attributes
+    assert_equal "Test categoty", attributes['name']
+    assert_equal "Test categoty", attributes[:name]
+  end
+
   def test_attribute_present
     t = Topic.new
     t.title = "hello there!"
