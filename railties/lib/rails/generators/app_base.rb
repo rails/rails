@@ -201,10 +201,6 @@ module Rails
         bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
       end
 
-      def dev_or_edge?
-        options.dev? || options.edge?
-      end
-
       def empty_directory_with_gitkeep(destination, config = {})
         empty_directory(destination, config)
         git_keep(destination)
