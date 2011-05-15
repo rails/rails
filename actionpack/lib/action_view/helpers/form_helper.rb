@@ -584,8 +584,8 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
-      def fields_for(record, record_object = nil, options = {}, &block)
-        builder = instantiate_builder(record, record_object, options, &block)
+      def fields_for(record_name, record_object = nil, options = {}, &block)
+        builder = instantiate_builder(record_name, record_object, options, &block)
         output = capture(builder, &block)
         output.concat builder.hidden_field(:id) if output && options[:hidden_field_id] && !builder.emitted_hidden_id?
         output
@@ -898,13 +898,13 @@ module ActionView
 
       private
 
-        def instantiate_builder(record, record_object, options, &block)
-          case record
+        def instantiate_builder(record_name, record_object, options, &block)
+          case record_name
           when String, Symbol
             object = record_object
-            object_name = record
+            object_name = record_name
           else
-            object = record
+            object = record_name
             object_name = ActiveModel::Naming.param_key(object)
           end
 
