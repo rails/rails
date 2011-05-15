@@ -841,14 +841,14 @@ module ActionView
         # Build select option html from date value and options.
         #  build_options(15, :start => 1, :end => 31)
         #  => "<option value="1">1</option>
-        #      <option value=\"2\">2</option>
-        #      <option value=\"3\">3</option>..."
+        #      <option value="2">2</option>
+        #      <option value="3">3</option>..."
         #
         # If <tt>:step</tt> options is passed
         #  build_options(15, :start => 1, :end => 31, :step => 2)
         #  => "<option value="1">1</option>
-        #      <option value=\"3\">3</option>
-        #      <option value=\"5\">5</option>..."
+        #      <option value="3">3</option>
+        #      <option value="5">5</option>..."
         def build_options(selected, options = {})
           start         = options.delete(:start) || 0
           stop          = options.delete(:end) || 59
