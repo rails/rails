@@ -767,6 +767,14 @@ module ActiveRecord #:nodoc:
         super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
       end
 
+      def attribute_names
+        @attribute_names ||= if !abstract_class? && table_exists?
+            column_names
+          else
+            []
+          end
+      end
+
       # Set the lookup ancestors for ActiveModel.
       def lookup_ancestors #:nodoc:
         klass = self
