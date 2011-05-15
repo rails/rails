@@ -9,37 +9,38 @@ endprologue.
 
 h3. Locations for Initialization Code
 
-Rails offers (at least) four good spots to place initialization code:
+Rails offers four standard spots to place initialization code:
 
-* application.rb
-* Environment-specific Configuration Files
+* +config/application.rb+
+* Environment-specific configuration files
 * Initializers
-* After-Initializers
+* After-initializers
 
 h3. Running Code Before Rails
 
-To run some code before Rails itself is loaded, simply put it above the call to
-+require 'rails/all'+ in your +application.rb+.
+In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call to +require 'rails/all'+ in your +config/application.rb+.
 
 h3. Configuring Rails Components
 
-In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The +application.rb+ and environment-specific configuration files (such as +config/environments/production.rb+) allow you to specify the various settings that you want to pass down to all of the components. For example, the default Rails 3.0 +application.rb+ file includes this setting:
+In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file +config/application.rb+ and environment-specific configuration files (such as +config/environments/production.rb+) allow you to specify the various settings that you want to pass down to all of the components.
+
+For example, the default +config/application.rb+ file includes this setting:
 
 <ruby>
-  config.filter_parameters += [:password]
+config.filter_parameters += [:password]
 </ruby>
 
-This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same +config+ object:
+This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same +config+ object in +config/application.rb+:
 
 <ruby>
-  config.active_record.timestamped_migrations = false
+config.active_record.observers = [:hotel_observer, :review_observer]
 </ruby>
 
 Rails will use that particular setting to configure Active Record.
 
 h4. Rails General Configuration
 
-* +config.after_initialize+ takes a block which will be ran _after_ Rails has finished initializing. Useful for configuring values set up by other initializers:
+* +config.after_initialize+ takes a block which will be ran _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, plugins, engines, and all the application's initializers in +config/initializers+. Useful for configuring values set up by other initializers:
 
 <ruby>
 config.after_initialize do
@@ -47,25 +48,25 @@ config.after_initialize do
 end
 </ruby>
 
-* +config.allow_concurrency+ should be set to +true+ to allow concurrent (threadsafe) action processing. Set to +false+ by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Can also be enabled with +threadsafe!+.
+* +config.allow_concurrency+ should be true to allow concurrent (threadsafe) action processing. False by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Can also be enabled with +threadsafe!+.
 
-* +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself. Shorter version of +config.action_controller.asset_host+.
+* +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints builtin in browsers using different domain aliases. Shorter version of +config.action_controller.asset_host+.
 
-* +config.asset_path+ takes a block which configures where assets can be found. Shorter version of +config.action_controller.asset_path+.
+* +config.asset_path+ can take a callable, a string, or be +nil+. Default is +nil+. If set, this configuration parameter let's you decorate asset paths. For example, the normal path for +blog.js+ would be +/javascripts/blog.js+, let that absolute path be +path+. If +config.asset_path+ is a callable, Rails calls it when generating asset paths passing +path+ as argument. If +config.asset_path+ is a string, it is expected to be a +sprintf+ format string with a +%s+ where +path+ will get inserted. In either case, Rails outputs the decorated path. *This option is ignored if the asset pipeline is enabled, which is by default*. Shorter version of +config.action_controller.asset_path+.
 
 <ruby>
-  config.asset_path = proc { |asset_path| "assets/#{asset_path}" }
+config.asset_path = proc { |path| "/blog/public#{path}" }
 </ruby>
 
-* +config.autoload_once_paths+ accepts an array of paths from which Rails will automatically load from only once. All elements of this array must also be in +autoload_paths+.
+* +config.autoload_once_paths+ accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if +config.cache_classes+ is false, which is the case in development mode by default. Otherwise, all autoloading happens only once. All elements of this array must also be in +autoload_paths+. Default is an empty array.
 
-* +config.autoload_paths+ accepts an array of additional paths to prepend to the load path. By default, all app, lib, vendor and mock paths are included in this list.
+* +config.autoload_paths+ accepts an array of paths from which Rails will autoload constants. By default that's the abolute paths of +app/mailers+, +app/assets+, +app/controllers+, +app/models+, and +app/helpers+. Please use <tt>+=</tt> to extend the default list.
 
-* +config.cache_classes+ controls whether or not application classes should be reloaded on each request. Defaults to _true_ in development, _false_ in test and production. Can also be enabled with +threadsafe!+.
+* +config.cache_classes+ controls whether or not application classes and modules should be reloaded on each request. Defaults to true in development mode, and false in test and production modes. Can also be enabled with +threadsafe!+.
 
-* +config.action_view.cache_template_loading+ controls whether or not templates should be reloaded on each request. Defaults to whatever is set for config.cache_classes.
+* +config.action_view.cache_template_loading+ controls whether or not templates should be reloaded on each request. Defaults to whatever is set for +config.cache_classes+.
 
-* +config.cache_store+ configures which cache store to use for Rails caching. Options include +:memory_store+, +:file_store+, +:mem_cache_store+ or the name of your own custom class. Defaults to +:file_store+.
+* +config.cache_store+ configures which cache store to use for Rails caching. Options include one of the symbols +:memory_store+, +:file_store+, +:mem_cache_store+, or an object that implements the cache API. Defaults to +:file_store+ if the directory +tmp/cache+ exists, and to +:memory_store+ otherwise.
 
 * +config.colorize_logging+ specifies whether or not to use ANSI color codes when logging information. Defaults to _true_.
 
