@@ -1450,7 +1450,7 @@ Two very common sources of data that are not UTF-8:
 
 h3. Changelog
 
-* April 26, 2011: Changed migration code from +up+, +down+ pair to +change+ method "Prem Sichanugrist":"http://sikachu.com"
+* April 26, 2011: Changed migration code from +up+, +down+ pair to +change+ method "Prem Sichanugrist":http://sikachu.com
 * April 11, 2011: Changed scaffold_controller generator to create format block for JSON instead of XML "Sebastian Martinez":http://www.wyeworks.com
 * August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
