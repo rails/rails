@@ -2,12 +2,20 @@ require 'active_support/core_ext/module/attr_internal'
 
 module ActiveRecord
   module Railties
-    module ControllerRuntime
+    module ControllerRuntime #:nodoc:
       extend ActiveSupport::Concern
 
     protected
 
       attr_internal :db_runtime
+
+      def process_action(action, *args)
+        # We also need to reset the runtime before each action
+        # because of queries in middleware or in cases we are streaming
+        # and it won't be cleaned up by the method below.
+        ActiveRecord::LogSubscriber.reset_runtime
+        super
+      end
 
       def cleanup_view_runtime
         if ActiveRecord::Base.connected?

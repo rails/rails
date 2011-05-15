@@ -90,6 +90,7 @@ ActiveRecord::Schema.define do
     t.integer :car_id
     t.string  :name
     t.boolean :frickinawesome
+    t.string :color
   end
 
   create_table "CamelCase", :force => true do |t|

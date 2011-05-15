@@ -11,4 +11,8 @@ class Bulb < ActiveRecord::Base
     @scope_after_initialize = self.class.scoped
   end
 
+  def color=(color)
+    self[:color] = color.upcase + "!"
+  end
+
 end
