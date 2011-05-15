@@ -133,6 +133,7 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_matching_model
+    User.expects(:respond_to?).with(:abstract_class?).returns(false)
     User.expects(:respond_to?).with(:column_names).returns(true)
     User.expects(:column_names).returns(["username"])
 
@@ -145,6 +146,7 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_derived_wrapped_keys_from_specified_model
     with_default_wrapper_options do
+      Person.expects(:respond_to?).with(:abstract_class?).returns(false)
       Person.expects(:respond_to?).with(:column_names).returns(true)
       Person.expects(:column_names).returns(["username"])
 
@@ -153,6 +155,17 @@ class ParamsWrapperTest < ActionController::TestCase
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
+    end
+  end
+
+  def test_not_wrapping_abstract_model
+    User.expects(:respond_to?).with(:abstract_class?).returns(true)
+    User.expects(:abstract_class?).returns(true)
+
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu', 'title' => 'Developer' }})
     end
   end
 
