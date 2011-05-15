@@ -245,8 +245,7 @@ module TestHelpers
     def use_frameworks(arr)
       to_remove =  [:actionmailer,
                     :activemodel,
-                    :activerecord,
-                    :activeresource] - arr
+                    :activerecord] - arr
       if to_remove.include? :activerecord
         remove_from_config "config.active_record.whitelist_attributes = true"
         remove_from_config "config.active_record.dependent_restrict_raises = false"

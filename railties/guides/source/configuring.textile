@@ -439,12 +439,6 @@ config.action_mailer.observers = ["MailObserver"]
 config.action_mailer.interceptors = ["MailInterceptor"]
 </ruby>
 
-h4. Configuring Active Resource
-
-There is a single configuration setting available on +config.active_resource+:
-
-* +config.active_resource.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Active Resource. Set to +nil+ to disable logging.
-
 h4. Configuring Active Support
 
 There are a few configuration options available in Active Support:
@@ -619,8 +613,6 @@ The error occurred while evaluating nil.each
 *+action_mailer.set_configs+* Sets up Action Mailer by using the settings in +config.action_mailer+ by +send+'ing the method names as setters to +ActionMailer::Base+ and passing the values through.
 
 *+action_mailer.compile_config_methods+* Initializes methods for the config settings specified so that they are quicker to access.
-
-*+active_resource.set_configs+* Sets up Active Resource by using the settings in +config.active_resource+ by +send+'ing the method names as setters to +ActiveResource::Base+ and passing the values through.
 
 *+set_load_path+* This initializer runs before +bootstrap_hook+. Adds the +vendor+, +lib+, all directories of +app+ and any paths specified by +config.load_paths+ to +$LOAD_PATH+.
 
