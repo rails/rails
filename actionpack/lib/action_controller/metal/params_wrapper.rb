@@ -163,7 +163,7 @@ module ActionController
 
         unless options[:only] || options[:except]
           model ||= _default_wrap_model
-          if model.respond_to?(:column_names)
+          if !(model.respond_to?(:abstract_class?) && model.abstract_class?) && model.respond_to?(:column_names)
             options[:only] = model.column_names
           end
         end
