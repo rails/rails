@@ -145,7 +145,7 @@ module ActionController
         begin
           model_klass = model_name.constantize
         rescue NameError, ArgumentError => e
-          if e.message =~ /is not missing constant|uninitialized constant #{model_name}/ 
+          if e.message =~ /is not missing constant|uninitialized constant #{model_name}/
             namespaces = model_name.split("::")
             namespaces.delete_at(-2)
             break if namespaces.last == model_name
@@ -163,8 +163,8 @@ module ActionController
 
         unless options[:only] || options[:except]
           model ||= _default_wrap_model
-          if !(model.respond_to?(:abstract_class?) && model.abstract_class?) && model.respond_to?(:column_names)
-            options[:only] = model.column_names
+          if model.respond_to?(:attribute_names) && model.attribute_names.present?
+            options[:only] = model.attribute_names
           end
         end
 
