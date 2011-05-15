@@ -1725,6 +1725,20 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_and_fields_for_with_non_nested_association_and_without_object
+    form_for(@post) do |f|
+      concat f.fields_for(:category) { |c|
+        concat c.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', 'put') do
+      "<input name='post[category][name]' type='text' size='30' id='post_category_name' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
