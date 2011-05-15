@@ -81,7 +81,7 @@ module ActiveRecord
         }
         pool.checkins = []
 
-        cleared_threads = pool.clear_stale_cached_connections!
+        cleared_threads = pool.send(:clear_stale_cached_connections!)
         assert((cleared_threads - threads.map { |x| x.object_id }).empty?,
                "threads should have been removed")
         assert_equal pool.checkins.length, threads.length
@@ -134,6 +134,33 @@ module ActiveRecord
         assert_raises(ConnectionNotEstablished) do
           pool.with_connection
         end
+      end
+
+      def test_fetch_and_release_connection_threadsafe
+        spec = ActiveRecord::Base.connection_pool.spec
+        test_spec = ActiveRecord::Base::ConnectionSpecification.new(spec.config.merge(:pool => 50), spec.adapter_method)
+        pool = ConnectionPool.new test_spec
+        threads = []
+        50.times do
+          threads << Thread.start do
+            10.times do
+              1000.times do
+                begin
+                  connection = pool.connection
+                  assert_equal 0, connection.open_transactions
+                  connection.transaction do
+                    sleep(rand * 0.01)
+                    assert_equal 1, connection.open_transactions
+                  end
+                  assert_equal 0, connection.open_transactions
+                ensure
+                  pool.verify_active_connections!
+                end
+              end
+            end
+          end
+        end
+        threads.each(&:join)
       end
     end
   end
