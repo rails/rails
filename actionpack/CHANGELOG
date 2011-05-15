@@ -17,7 +17,7 @@
     class PostsController < ActionController::Base
       stream :only => :index
     end
-  
+
   Please read the docs at `ActionController::Streaming` for more information.
 
 * Added `ActionDispatch::Request.ignore_accept_header` to ignore accept headers and only consider the format given as parameter [José Valim]
