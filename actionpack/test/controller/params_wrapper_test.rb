@@ -31,7 +31,7 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_derived_name_from_controller_given_an_anonymous_controller
+  def test_allow_anonymous_controller
     with_default_wrapper_options do
       # This should not raise an error.
       Class.new(UsersController)
