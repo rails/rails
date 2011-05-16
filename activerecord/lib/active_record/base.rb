@@ -767,6 +767,9 @@ module ActiveRecord #:nodoc:
         super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
       end
 
+      # Returns an array of column names as strings if it's not
+      # an abstract class and table exists.
+      # Otherwise it returns an empty array.
       def attribute_names
         @attribute_names ||= if !abstract_class? && table_exists?
             column_names
