@@ -877,8 +877,9 @@ module ActiveRecord #:nodoc:
         store_full_sti_class ? name : name.demodulize
       end
 
-      def arel_table
-        Arel::Table.new(table_name, arel_engine)
+      def arel_table(opts = {})
+        opts[:engine] ||= arel_engine
+        Arel::Table.new(table_name, opts)
       end
 
       def arel_engine
