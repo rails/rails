@@ -11,6 +11,7 @@ require 'arel/visitors/where_sql'
 require 'arel/visitors/order_clauses'
 require 'arel/visitors/dot'
 require 'arel/visitors/ibm_db'
+require 'arel/visitors/informix'
 
 module Arel
   module Visitors
@@ -24,6 +25,7 @@ module Arel
       'sqlite'          => Arel::Visitors::SQLite,
       'sqlite3'         => Arel::Visitors::SQLite,
       'ibm_db'          => Arel::Visitors::IBM_DB,
+      'informix'        => Arel::Visitors::Informix,
     }
 
     ENGINE_VISITORS = Hash.new do |hash, engine|
