@@ -59,10 +59,19 @@ module ActiveResource
         @class_name ||= derive_class_name
       end
 
+      # Returns the foreign_key for the macro.
+      def foreign_key
+        @foreign_key ||= self.options[:foreign_key] || "#{self.name.to_s.downcase}_id"
+      end
+
       private
-        def derive_class_name
-          return (options[:class_name] ? options[:class_name].to_s : name.to_s).classify
-        end
+      def derive_class_name
+        return (options[:class_name] ? options[:class_name].to_s : name.to_s).classify
+      end
+
+      def derive_foreign_key
+        return options[:foreign_key] ? options[:foreign_key].to_s : "#{name.to_s.downcase}_id"
+      end
     end
   end
 end
