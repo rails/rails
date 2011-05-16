@@ -29,6 +29,14 @@ module Arel
         sql.must_be_like "SELECT SKIP 10"
       end
 
+      it 'uses SKIP before LIMIT' do
+        stmt = Nodes::SelectStatement.new
+        stmt.limit = Nodes::Limit.new(1)
+        stmt.offset = Nodes::Offset.new(1)
+        sql = @visitor.accept(stmt)
+        sql.must_be_like "SELECT SKIP 1 LIMIT 1"
+      end
+
     end
   end
 end
