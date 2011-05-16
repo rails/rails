@@ -9,10 +9,6 @@ module ActiveModel
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
-      def initialize(options)
-        super(options.reverse_merge(:only_integer => false, :allow_nil => false))
-      end
-
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|

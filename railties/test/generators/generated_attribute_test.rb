@@ -4,8 +4,12 @@ require 'rails/generators/generated_attribute'
 class GeneratedAttributeTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
+  def test_field_type_returns_number_field
+    assert_field_type :integer, :number_field
+  end
+
   def test_field_type_returns_text_field
-    %w(integer float decimal string).each do |attribute_type|
+    %w(float decimal string).each do |attribute_type|
       assert_field_type attribute_type, :text_field
     end
   end

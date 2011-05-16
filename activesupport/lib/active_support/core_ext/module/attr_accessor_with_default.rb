@@ -19,6 +19,7 @@ class Module
   #   attr_accessor_with_default(:element_name) { name.underscore }
   #
   def attr_accessor_with_default(sym, default = Proc.new)
+    ActiveSupport::Deprecation.warn "attr_accessor_with_default is deprecated. Use Ruby instead!"
     define_method(sym, block_given? ? default : Proc.new { default })
     module_eval(<<-EVAL, __FILE__, __LINE__ + 1)
       def #{sym}=(value)                          # def age=(value)
