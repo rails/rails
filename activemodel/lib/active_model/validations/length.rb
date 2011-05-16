@@ -16,7 +16,7 @@ module ActiveModel
           options[:maximum] -= 1 if range.exclude_end?
         end
 
-        super(options.reverse_merge(:tokenizer => DEFAULT_TOKENIZER))
+        super
       end
 
       def check_validity!
@@ -36,7 +36,7 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        value = options[:tokenizer].call(value) if value.kind_of?(String)
+        value = (options[:tokenizer] || DEFAULT_TOKENIZER).call(value) if value.kind_of?(String)
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
