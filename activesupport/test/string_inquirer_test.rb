@@ -12,4 +12,8 @@ class StringInquirerTest < Test::Unit::TestCase
   def test_missing_question_mark
     assert_raise(NoMethodError) { ActiveSupport::StringInquirer.new("production").production }
   end
+
+  def test_regexp_match
+    assert ActiveSupport::StringInquirer.new("test1").test?
+  end
 end
