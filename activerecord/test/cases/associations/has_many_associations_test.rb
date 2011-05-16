@@ -11,6 +11,7 @@ require 'models/comment'
 require 'models/person'
 require 'models/reader'
 require 'models/tagging'
+require 'models/tag'
 require 'models/invoice'
 require 'models/line_item'
 require 'models/car'
@@ -1467,5 +1468,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.build({ :bulb_type => :custom }, :as => :admin)
     assert_equal CustomBulb, bulb.class
+  end
+
+  def test_abstract_class_with_polymorphic_has_many
+    post = SubStiPost.create! :title => "fooo", :body => "baa"
+    tagging = Tagging.create! :taggable => post
+    assert_equal [tagging], post.taggings
   end
 end
