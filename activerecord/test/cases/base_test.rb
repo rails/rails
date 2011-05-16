@@ -1790,4 +1790,17 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal expected.attributes, actual.attributes
   end
+
+  def test_attribute_names
+    assert_equal ["id", "type", "ruby_type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id"],
+                 Company.attribute_names
+  end
+
+  def test_attribute_names_on_table_not_exists
+    assert_equal [], NonExistentTable.attribute_names
+  end
+
+  def test_attribtue_names_on_abstract_class
+    assert_equal [], AbstractCompany.attribute_names
+  end
 end

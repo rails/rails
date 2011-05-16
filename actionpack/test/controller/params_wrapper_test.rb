@@ -133,9 +133,8 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_matching_model
-    User.expects(:respond_to?).with(:abstract_class?).returns(false)
-    User.expects(:respond_to?).with(:column_names).returns(true)
-    User.expects(:column_names).returns(["username"])
+    User.expects(:respond_to?).with(:attribute_names).returns(true)
+    User.expects(:attribute_names).twice.returns(["username"])
 
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
@@ -146,9 +145,8 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_derived_wrapped_keys_from_specified_model
     with_default_wrapper_options do
-      Person.expects(:respond_to?).with(:abstract_class?).returns(false)
-      Person.expects(:respond_to?).with(:column_names).returns(true)
-      Person.expects(:column_names).returns(["username"])
+      Person.expects(:respond_to?).with(:attribute_names).returns(true)
+      Person.expects(:attribute_names).twice.returns(["username"])
 
       UsersController.wrap_parameters Person
 
@@ -159,8 +157,8 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_not_wrapping_abstract_model
-    User.expects(:respond_to?).with(:abstract_class?).returns(true)
-    User.expects(:abstract_class?).returns(true)
+    User.expects(:respond_to?).with(:attribute_names).returns(true)
+    User.expects(:attribute_names).returns([])
 
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
@@ -198,13 +196,13 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
   end
 
   class SampleOne
-    def self.column_names
+    def self.attribute_names
       ["username"]
     end
   end
 
   class SampleTwo
-    def self.column_names
+    def self.attribute_names
       ["title"]
     end
   end

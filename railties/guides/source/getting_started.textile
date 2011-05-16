@@ -1450,14 +1450,14 @@ Two very common sources of data that are not UTF-8:
 
 h3. Changelog
 
-* April 26, 2011: Changed migration code from +up+, +down+ pair to +change+ method "Prem Sichanugrist":"http://sikachu.com"
-* April 11, 2011: Changed scaffold_controller generator to create format block for JSON instead of XML "Sebastian Martinez":http://www.wyeworks.com
+* April 26, 2011: Change migration code from +up+, +down+ pair to +change+ method by "Prem Sichanugrist":http://sikachu.com
+* April 11, 2011: Change scaffold_controller generator to create format block for JSON instead of XML by "Sebastian Martinez":http://www.wyeworks.com
 * August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
 * May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
-* April 25, 2010: Couple of more minor fixups "Mikel Lindsaar":credits.html#raasdnil
-* April 1, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
+* April 25, 2010: Couple of more minor fixups by "Mikel Lindsaar":credits.html#raasdnil
+* April 1, 2010: Fixed document to validate XHTML 1.0 Strict by "Jaime Iniesta":http://jaimeiniesta.com
 * February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits.html#raasdnil
 * January 24, 2010: Re-write for Rails 3.0 by "Mikel Lindsaar":credits.html#raasdnil
 * July 18, 2009: Minor cleanup in anticipation of Rails 2.3.3 by "Mike Gunderloy":credits.html#mgunderloy
