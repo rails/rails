@@ -73,6 +73,7 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
+    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
     alias safe_concat concat
 
     def concat(value)
@@ -102,6 +103,18 @@ module ActiveSupport #:nodoc:
 
     def to_yaml(*args)
       to_str.to_yaml(*args)
+    end
+
+    for unsafe_method in UNSAFE_STRING_METHODS
+      class_eval <<-EOT, __FILE__, __LINE__
+        def #{unsafe_method}(*args)
+          super.to_str
+        end
+
+        def #{unsafe_method}!(*args)
+          raise TypeError, "Cannot modify SafeBuffer in place"
+        end
+      EOT
     end
   end
 end
