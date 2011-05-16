@@ -1,12 +1,8 @@
 module Arel
   module Visitors
     class Informix < Arel::Visitors::ToSql
-      @skip = nil
-        @first = nil 
       private
       def visit_Arel_Nodes_SelectStatement o
-#        @skip = o.offset if o.offset 
-#        @first = o.limit if o.limit
         [
           "SELECT",
           (visit(o.offset) if o.offset),
@@ -17,8 +13,6 @@ module Arel
         ].compact.join ' '
       end
       def visit_Arel_Nodes_SelectCore o
-        # s,f = @skip,@first
-        # @skip, @first = nil,nil
         [
           "#{o.projections.map { |x| visit x }.join ', '}",
           ("FROM #{visit o.froms}" if o.froms),
@@ -27,7 +21,6 @@ module Arel
           (visit(o.having) if o.having),
         ].compact.join ' '
       end
-      #(visit(o.offset) if o.offset) 
       def visit_Arel_Nodes_Offset o
         "SKIP #{visit o.expr}"
       end
