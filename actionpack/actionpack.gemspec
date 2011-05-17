@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rack',             '~> 1.3.0.beta')
   s.add_dependency('rack-test',        '~> 0.6.0')
   s.add_dependency('rack-mount',       '~> 0.8.0')
-  s.add_dependency('sprockets',        '~> 2.0.0.beta.2')
+  s.add_dependency('sprockets',        '~> 2.0.0.beta.3')
   s.add_dependency('tzinfo',           '~> 0.3.27')
   s.add_dependency('erubis',           '~> 2.7.0')
 end
