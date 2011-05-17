@@ -26,17 +26,17 @@ module ActiveRecord
       end
 
       def build(attributes = {}, options = {})
-        record = reflection.build_association
-        record.assign_attributes(
-          scoped.scope_for_create.except(klass.primary_key),
-          :without_protection => true
-        )
-        record.assign_attributes(attributes, options)
+        record = reflection.build_association(attributes, options)
+        record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
         set_new_record(record)
         record
       end
 
       private
+
+        def create_scope
+          scoped.scope_for_create.stringify_keys.except(klass.primary_key)
+        end
 
         def find_target
           scoped.first.tap { |record| set_inverse_instance(record) }
