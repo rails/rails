@@ -2,7 +2,10 @@
 #
 # Get the bindings:
 #   gem install ruby-frontbase
-
+#
+# Configure Using Gemfile
+# gem 'ruby-frontbase'
+#
 development:
   adapter: frontbase
   host: localhost
