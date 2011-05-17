@@ -165,8 +165,12 @@ module ActionView #:nodoc:
 
     # Specify whether RJS responses should be wrapped in a try/catch block
     # that alert()s the caught exception (and then re-raises it).
-    cattr_accessor :debug_rjs
+    cattr_reader :debug_rjs
     @@debug_rjs = false
+    def self.debug_rjs=(new_value)
+      ActiveSupport::Deprecation.warn("config.action_view.debug_rjs will be removed in 3.1, from 3.1 onwards you will need to install prototype-rails to continue to use RJS templates ")
+      @@debug_rjs = new_value
+    end
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc

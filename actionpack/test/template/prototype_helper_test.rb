@@ -435,11 +435,15 @@ return value.reverse();
   end
 
   def test_debug_rjs
-    ActionView::Base.debug_rjs = true
+    assert_deprecated /prototype-rails/ do
+      ActionView::Base.debug_rjs = true
+    end
     @generator['welcome'].replace_html 'Welcome'
     assert_equal "try {\n$(\"welcome\").update(\"Welcome\");\n} catch (e) { alert('RJS error:\\n\\n' + e.toString()); alert('$(\\\"welcome\\\").update(\\\"Welcome\\\");'); throw e }", @generator.to_s
   ensure
-    ActionView::Base.debug_rjs = false
+    assert_deprecated /prototype-rails/ do
+      ActionView::Base.debug_rjs = false
+    end
   end
 
   def test_literal
