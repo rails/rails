@@ -19,6 +19,7 @@ module Arel
           @visitor.send(:visit_Arel_Attributes_Attribute, @attr)
         end
 
+        sleep 0.2
         @visitor.accept(@table[:name])
         assert_equal(:string, @visitor.last_column.type)
         visit_integer_column.run
