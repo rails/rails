@@ -133,6 +133,12 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_arel_table_with_options
+    table = Topic.arel_table :as => "an_alias"
+    assert_equal "an_alias", table.table_alias
+    assert_equal ActiveRecord::Base, table.engine
+  end
+
   def test_use_table_engine_for_quoting_where
     relation = Topic.where(Topic.arel_table[:id].eq(1))
     engine = relation.table.engine
