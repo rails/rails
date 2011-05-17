@@ -140,6 +140,9 @@ module ActionController
       # This method also does namespace lookup. Foo::Bar::UsersController will
       # try to find Foo::Bar::User, Foo::User and finally User.
       def _default_wrap_model #:nodoc:
+        # Return nil if the class is unnamed (i.e., anonymous)
+        return nil if self.name.nil?
+
         model_name = self.name.sub(/Controller$/, '').singularize
 
         begin
@@ -168,7 +171,7 @@ module ActionController
           end
         end
 
-        unless options[:name]
+        unless options[:name] || self.name.nil?
           model ||= _default_wrap_model
           options[:name] = model ? model.to_s.demodulize.underscore :
             controller_name.singularize
