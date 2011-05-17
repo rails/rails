@@ -1,6 +1,9 @@
 # SQLite version 3.x
 #   gem 'activerecord-jdbcsqlite3-adapter'
-
+#
+# Configure Using Gemfile
+# gem 'activerecord-jdbcsqlite3-adapter'
+#
 development:
   adapter: jdbcsqlite3
   database: db/development.sqlite3
