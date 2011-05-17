@@ -498,9 +498,9 @@ module ActiveResource
         connection.format = format if site
       end
 
-      # Returns the current format, default is ActiveResource::Formats::XmlFormat.
+      # Returns the current format, default is ActiveResource::Formats::JsonFormat.
       def format
-        self._format || ActiveResource::Formats::XmlFormat
+        self._format || ActiveResource::Formats::JsonFormat
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.
@@ -1232,9 +1232,16 @@ module ActiveResource
     #   your_supplier = Supplier.new
     #   your_supplier.load(my_attrs)
     #   your_supplier.save
-    def load(attributes)
+    def load(attributes, remove_root = false)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       @prefix_options, attributes = split_options(attributes)
+
+      if attributes.keys.size == 1
+        remove_root = self.class.element_name == attributes.keys.first.to_s
+      end
+
+      attributes = Formats.remove_root(attributes) if remove_root
+
       attributes.each do |key, value|
         @attributes[key.to_s] =
           case value
@@ -1285,7 +1292,7 @@ module ActiveResource
     # resource's attributes, the full body of the request will still be sent
     # in the save request to the remote service.
     def update_attributes(attributes)
-      load(attributes) && save
+      load(attributes, false) && save
     end
 
     # For checking <tt>respond_to?</tt> without searching the attributes (which is faster).
@@ -1339,7 +1346,7 @@ module ActiveResource
 
       def load_attributes_from_response(response)
         if !response['Content-Length'].blank? && response['Content-Length'] != "0" && !response.body.nil? && response.body.strip.size > 0
-          load(self.class.format.decode(response.body))
+          load(self.class.format.decode(response.body), true)
           @persisted = true
         end
       end
