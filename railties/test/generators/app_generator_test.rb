@@ -160,7 +160,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_another_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
-    assert_file "Gemfile", /^gem\s+["']mysql2["']$/
+    # Ensure that the mysql2 gem is listed with a compatible version of the
+    # mysql2 gem
+    assert_file "Gemfile", /^gem\s+["']mysql2["'],\s*'~> 0.2.6'$/
   end
 
   def test_config_database_is_not_added_if_skip_active_record_is_given

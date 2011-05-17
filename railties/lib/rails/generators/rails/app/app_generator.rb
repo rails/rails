@@ -405,6 +405,13 @@ module Rails
         end
       end
 
+      def version_constraint_for_database_gem
+        case options[:database]
+        when "mysql"      then "~> 0.2.6"
+        else nil
+        end
+      end
+
       def mysql_socket
         @mysql_socket ||= [
           "/tmp/mysql.sock",                        # default

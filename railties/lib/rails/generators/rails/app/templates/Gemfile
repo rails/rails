@@ -12,7 +12,7 @@ gem 'rails', '<%= Rails::VERSION::STRING %>'
 <%- end -%>
 
 <% unless options[:skip_active_record] -%>
-gem '<%= gem_for_database %>'
+gem '<%= gem_for_database %>'<%= ", '#{version_constraint_for_database_gem}'" if version_constraint_for_database_gem %>
 <% end -%>
 
 # Use unicorn as the web server
