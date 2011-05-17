@@ -4,4 +4,4 @@
 # Examples:
 #
 #   cities = City.create([{ <%= key_value :name, "'Chicago'" %> }, { <%= key_value :name, "'Copenhagen'" %> }])
-#   Mayor.create(<%= key_value :name, "'Daley'" %>, <%= key_value :city, "cities.first" %>)
+#   Mayor.create(<%= key_value :name, "'Emanuel'" %>, <%= key_value :city, "cities.first" %>)
