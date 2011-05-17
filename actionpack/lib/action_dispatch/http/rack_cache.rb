@@ -14,11 +14,15 @@ module ActionDispatch
     end
 
     def read(key)
-      @store.read(key) || []
+      if data = @store.read(key)
+        Marshal.load(data)
+      else
+        []
+      end
     end
 
     def write(key, value)
-      @store.write(key, value)
+      @store.write(key, Marshal.dump(value))
     end
 
     ::Rack::Cache::MetaStore::RAILS = self
