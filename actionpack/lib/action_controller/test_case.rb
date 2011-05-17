@@ -2,6 +2,7 @@ require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/anonymous'
 
 module ActionController
   module TemplateAssertions
@@ -413,9 +414,9 @@ module ActionController
         @request.env['REQUEST_METHOD'] = http_method
 
         parameters ||= {}
-        controller_class_name = @controller.class.name ?
-          @controller.class.name.underscore.sub(/_controller$/, '') :
-          "anonymous_controller"
+        controller_class_name = @controller.class.anonymous? ?
+          "anonymous_controller" :
+          @controller.class.name.underscore.sub(/_controller$/, '')
 
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
