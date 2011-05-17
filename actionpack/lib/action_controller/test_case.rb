@@ -413,7 +413,11 @@ module ActionController
         @request.env['REQUEST_METHOD'] = http_method
 
         parameters ||= {}
-        @request.assign_parameters(@routes, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
+        controller_class_name = @controller.class.name ?
+          @controller.class.name.underscore.sub(/_controller$/, '') :
+          "anonymous_controller"
+
+        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
         @request.session = ActionController::TestSession.new(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
