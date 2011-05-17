@@ -95,6 +95,11 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/database.yml", /postgres/
   end
 
+  def test_generation_runs_bundle_install_with_full_and_mountable
+    result = run_generator [destination_root, "--mountable", "--full"]
+    assert_equal 1, result.scan("Your bundle is complete").size
+  end
+
   def test_skipping_javascripts_without_mountable_option
     run_generator
     assert_no_file "app/assets/javascripts/application.js"
