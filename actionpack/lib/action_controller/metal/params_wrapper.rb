@@ -140,6 +140,8 @@ module ActionController
       # This method also does namespace lookup. Foo::Bar::UsersController will
       # try to find Foo::Bar::User, Foo::User and finally User.
       def _default_wrap_model #:nodoc:
+        return nil if self.name.nil?
+
         model_name = self.name.sub(/Controller$/, '').singularize
 
         begin
@@ -168,7 +170,7 @@ module ActionController
           end
         end
 
-        unless options[:name]
+        unless options[:name] || self.name.nil?
           model ||= _default_wrap_model
           options[:name] = model ? model.to_s.demodulize.underscore :
             controller_name.singularize
@@ -226,7 +228,7 @@ module ActionController
       # Checks if we should perform parameters wrapping.
       def _wrapper_enabled?
         ref = request.content_mime_type.try(:ref)
-        _wrapper_formats.include?(ref) && !request.request_parameters[_wrapper_key]
+        _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
       end
   end
 end
