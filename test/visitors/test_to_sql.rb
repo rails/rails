@@ -1,7 +1,7 @@
 require 'helper'
 
 class Arel::Visitors::ToSql
-  def last_column; Thread.current[:arel_visitors_to_sql_last_column] || @last_column; end
+  def last_column; Thread.current[:arel_visitors_to_sql_last_column]; end
 end
 
 module Arel
