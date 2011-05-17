@@ -14,7 +14,7 @@ class ConnectionTest < Test::Unit::TestCase
     @david = david.to_json
     @header = { 'key' => 'value' }.freeze
 
-    @default_request_headers = { 'Content-Type' => 'application/xml' }
+    @default_request_headers = { 'Content-Type' => 'application/json' }
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get    "/people/2.json", @header, @david
       mock.get    "/people.json", {}, @people

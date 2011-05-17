@@ -48,7 +48,7 @@ class AuthorizationTest < Test::Unit::TestCase
   end
 
   def test_authorization_header
-    authorization_header = @authenticated_conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @authenticated_conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     assert_equal @basic_authorization_request_header['Authorization'], authorization_header['Authorization']
     authorization = authorization_header["Authorization"].to_s.split
 
@@ -58,7 +58,7 @@ class AuthorizationTest < Test::Unit::TestCase
 
   def test_authorization_header_with_username_but_no_password
     @conn = ActiveResource::Connection.new("http://david:@localhost")
-    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
@@ -67,7 +67,7 @@ class AuthorizationTest < Test::Unit::TestCase
 
   def test_authorization_header_with_password_but_no_username
     @conn = ActiveResource::Connection.new("http://:test123@localhost")
-    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
@@ -76,7 +76,7 @@ class AuthorizationTest < Test::Unit::TestCase
 
   def test_authorization_header_with_decoded_credentials_from_url
     @conn = ActiveResource::Connection.new("http://my%40email.com:%31%32%33@localhost")
-    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
@@ -87,7 +87,7 @@ class AuthorizationTest < Test::Unit::TestCase
     @authenticated_conn = ActiveResource::Connection.new("http://@localhost")
     @authenticated_conn.user = 'david'
     @authenticated_conn.password = 'test123'
-    authorization_header = @authenticated_conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @authenticated_conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     assert_equal @basic_authorization_request_header['Authorization'], authorization_header['Authorization']
     authorization = authorization_header["Authorization"].to_s.split
 
@@ -98,7 +98,7 @@ class AuthorizationTest < Test::Unit::TestCase
   def test_authorization_header_explicitly_setting_username_but_no_password
     @conn = ActiveResource::Connection.new("http://@localhost")
     @conn.user = "david"
-    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
@@ -108,7 +108,7 @@ class AuthorizationTest < Test::Unit::TestCase
   def test_authorization_header_explicitly_setting_password_but_no_username
     @conn = ActiveResource::Connection.new("http://@localhost")
     @conn.password = "test123"
-    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     authorization = authorization_header["Authorization"].to_s.split
 
     assert_equal "Basic", authorization[0]
@@ -117,7 +117,7 @@ class AuthorizationTest < Test::Unit::TestCase
 
   def test_authorization_header_if_credentials_supplied_and_auth_type_is_basic
     @authenticated_conn.auth_type = :basic
-    authorization_header = @authenticated_conn.__send__(:authorization_header, :get, URI.parse('/people/2.xml'))
+    authorization_header = @authenticated_conn.__send__(:authorization_header, :get, URI.parse('/people/2.json'))
     assert_equal @basic_authorization_request_header['Authorization'], authorization_header['Authorization']
     authorization = authorization_header["Authorization"].to_s.split
 

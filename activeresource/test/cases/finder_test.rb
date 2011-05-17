@@ -108,9 +108,9 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_all_by_from_with_options
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, @people_david }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.json", {}, @people_david }
 
-    people = Person.find(:all, :from => "/companies/1/people.xml")
+    people = Person.find(:all, :from => "/companies/1/people.json")
     assert_equal 1, people.size
     assert_equal "David", people.first.name
   end
