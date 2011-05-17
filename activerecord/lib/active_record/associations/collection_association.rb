@@ -423,9 +423,13 @@ module ActiveRecord
           raise NotImplementedError
         end
 
+        def create_scope
+          scoped.scope_for_create.stringify_keys
+        end
+
         def build_record(attributes, options)
-          record = reflection.build_association
-          record.assign_attributes(scoped.scope_for_create, :without_protection => true)
+          record = reflection.build_association(attributes, options)
+          record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
           record.assign_attributes(attributes, options)
           record
         end

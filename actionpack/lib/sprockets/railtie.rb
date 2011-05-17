@@ -99,7 +99,7 @@ module Sprockets
         compressor
       when :yui
         require 'yui/compressor'
-        YUI::JavaScriptCompressor.new(:munge => true)
+        YUI::CssCompressor.new
       else
         sym
       end

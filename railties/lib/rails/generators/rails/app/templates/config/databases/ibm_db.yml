@@ -28,6 +28,9 @@
 #   On Windows:
 #       Issue the command: gem install ibm_db
 #
+# Configure Using Gemfile
+# gem 'ibm_db'
+#
 # For more details on the installation and the connection parameters below,
 # please refer to the latest documents at http://rubyforge.org/docman/?group_id=2361
 

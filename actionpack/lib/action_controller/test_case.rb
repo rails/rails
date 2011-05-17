@@ -2,6 +2,7 @@ require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/module/anonymous'
 
 module ActionController
   module TemplateAssertions
@@ -413,7 +414,11 @@ module ActionController
         @request.env['REQUEST_METHOD'] = http_method
 
         parameters ||= {}
-        @request.assign_parameters(@routes, @controller.class.name.underscore.sub(/_controller$/, ''), action.to_s, parameters)
+        controller_class_name = @controller.class.anonymous? ?
+          "anonymous_controller" :
+          @controller.class.name.underscore.sub(/_controller$/, '')
+
+        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
         @request.session = ActionController::TestSession.new(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
