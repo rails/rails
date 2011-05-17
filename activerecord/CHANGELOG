@@ -1,5 +1,15 @@
 *Rails 3.1.0 (unreleased)*
 
+* Add block setting of attributes to singular associations:
+
+    class User < ActiveRecord::Base
+      has_one :account
+    end
+
+    user.build_account{ |a| a.credit_limit => 100.0 }
+
+  The block is called after the instance has been initialized. [Andrew White]
+
 * Add ActiveRecord::Base.attribute_names to return a list of attribute names. This will return an empty array if the model is abstract or table does not exists. [Prem Sichanugrist]
 
 * CSV Fixtures are deprecated and support will be removed in Rails 3.2.0

@@ -426,4 +426,25 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     bulb = car.build_bulb({ :bulb_type => :custom }, :as => :admin)
     assert_equal CustomBulb, bulb.class
   end
+
+  def test_build_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_bulb{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
+  end
+
+  def test_create_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.create_bulb{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
+  end
+
+  def test_create_bang_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.create_bulb!{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
+  end
 end

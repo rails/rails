@@ -17,17 +17,18 @@ module ActiveRecord
         replace(record)
       end
 
-      def create(attributes = {}, options = {})
-        build(attributes, options).tap { |record| record.save }
+      def create(attributes = {}, options = {}, &block)
+        build(attributes, options, &block).tap { |record| record.save }
       end
 
-      def create!(attributes = {}, options = {})
-        build(attributes, options).tap { |record| record.save! }
+      def create!(attributes = {}, options = {}, &block)
+        build(attributes, options, &block).tap { |record| record.save! }
       end
 
-      def build(attributes = {}, options = {})
+      def build(attributes = {}, options = {}, &block)
         record = reflection.build_association(attributes, options)
         record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
+        yield(record) if block_given?
         set_new_record(record)
         record
       end
