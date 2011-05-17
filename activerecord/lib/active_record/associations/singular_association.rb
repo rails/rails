@@ -25,7 +25,7 @@ module ActiveRecord
         build(attributes, options, &block).tap { |record| record.save! }
       end
 
-      def build(attributes = {}, options = {}, &block)
+      def build(attributes = {}, options = {})
         record = reflection.build_association(attributes, options)
         record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
         yield(record) if block_given?
