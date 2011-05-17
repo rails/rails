@@ -477,7 +477,7 @@ module ApplicationTests
       extend Rack::Test::Methods
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '{"title"=>"foo"}', last_response.body
+      assert_equal '{"title"=>"foo", "name"=>"bar"}', last_response.body
     end
 
     test "config.action_dispatch.ignore_accept_header" do
