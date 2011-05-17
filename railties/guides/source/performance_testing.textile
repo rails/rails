@@ -4,7 +4,7 @@ This guide covers the various ways of performance testing a Ruby on Rails applic
 
 * Understand the various types of benchmarking and profiling metrics
 * Generate performance and benchmarking tests
-* Use a GC-patched Ruby binary to measure memory usage and object allocation
+* Install and use a GC-patched Ruby binary to measure memory usage and object allocation
 * Understand the benchmarking information provided by Rails inside the log files
 * Learn about various tools facilitating benchmarking and profiling
 
@@ -23,7 +23,7 @@ require 'test_helper'
 require 'rails/performance_test_help'
 
 # Profiling results for each test method are written to tmp/performance.
-class BrowsingTest < ActionController::PerformanceTest
+class BrowsingTest < ActionDispatch::PerformanceTest
   def test_homepage
     get '/'
   end
@@ -34,10 +34,10 @@ This example is a simple performance test case for profiling a GET request to th
 
 h4. Generating Performance Tests
 
-Rails provides a generator called +test_unit:performance+ for creating new performance tests:
+Rails provides a generator called +performance_test+ for creating new performance tests:
 
 <shell>
-$ rails generate test_unit:performance homepage
+$ rails generate performance_test homepage
 </shell>
 
 This generates +homepage_test.rb+ in the +test/performance+ directory:
@@ -46,7 +46,7 @@ This generates +homepage_test.rb+ in the +test/performance+ directory:
 require 'test_helper'
 require 'rails/performance_test_help'
 
-class HomepageTest < ActionController::PerformanceTest
+class HomepageTest < ActionDispatch::PerformanceTest
   # Replace this with your real tests.
   def test_homepage
     get '/'
@@ -105,7 +105,7 @@ Here's the performance test for +HomeController#dashboard+ and +PostsController#
 require 'test_helper'
 require 'rails/performance_test_help'
 
-class PostPerformanceTest < ActionController::PerformanceTest
+class PostPerformanceTest < ActionDispatch::PerformanceTest
   def setup
     # Application requires logged-in user
     login_as(:lifo)
@@ -133,7 +133,7 @@ Performance test for +Post+ model:
 require 'test_helper'
 require 'rails/performance_test_help'
 
-class PostModelTest < ActionController::PerformanceTest
+class PostModelTest < ActionDispatch::PerformanceTest
   def test_creation
     Post.create :body => 'still fooling you', :cost => '100'
   end
@@ -151,7 +151,7 @@ Performance tests can be run in two modes: Benchmarking and Profiling.
 
 h5. Benchmarking
 
-Benchmarking helps find out how fast each performance test runs. Each test case is run +4 times+ in benchmarking mode.
+Benchmarking makes it easy to quickly gather a few metrics about each test tun. By default, each test case is run +4 times+ in benchmarking mode.
 
 To run performance tests in benchmarking mode:
 
@@ -161,7 +161,7 @@ $ rake test:benchmark
 
 h5. Profiling
 
-Profiling helps you see the details of a performance test and provide an in-depth picture of the slow and memory hungry parts. Each test case is run +1 time+ in profiling mode.
+Profiling allows you to make an in-depth analysis of each of your tests by using an external profiler. Depending on your Ruby interpreter, this profiler can be native (Rubinius, JRuby) or not (MRI, which uses RubyProf). By default, each test case is run +1 time+ in profiling mode.
 
 To run performance tests in profiling mode:
 
@@ -171,43 +171,59 @@ $ rake test:profile
 
 h4. Metrics
 
-Benchmarking and profiling run performance tests in various modes described below.
+Benchmarking and profiling run performance tests and give you multiple metrics. The availability of each metric is determined by the interpreter being used—none of them support all metrics—and by the mode in use. A brief description of each metric and their availability across interpreters/modes is given below.
 
 h5. Wall Time
 
 Wall time measures the real world time elapsed during the test run. It is affected by any other processes concurrently running on the system.
 
-Mode: Benchmarking
-
 h5. Process Time
 
 Process time measures the time taken by the process. It is unaffected by any other processes running concurrently on the same system. Hence, process time is likely to be constant for any given performance test, irrespective of the machine load.
 
-Mode: Profiling
+h5. CPU Time
+
+Similar to process time, but leverages the more accurate CPU clock counter available on the Pentium and PowerPC platforms.
+
+h5. User Time
+
+User time measures the amount of time the CPU spent in user-mode, i.e. within the process. This is not affected by other processes and by the time it possibly spends blocked.
 
 h5. Memory
 
 Memory measures the amount of memory used for the performance test case.
 
-Mode: Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
-
 h5. Objects
 
 Objects measures the number of objects allocated for the performance test case.
-
-Mode: Benchmarking, Profiling "Requires GC Patched Ruby":#installing-gc-patched-ruby
 
 h5. GC Runs
 
 GC Runs measures the number of times GC was invoked for the performance test case.
 
-Mode: Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
-
 h5. GC Time
 
 GC Time measures the amount of time spent in GC for the performance test case.
 
-Mode: Benchmarking "Requires GC Patched Ruby":#installing-gc-patched-ruby
+h5. Metric Availability
+
+h6. Benchmarking
+
+|_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
+|_.MRI        | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
+|_.REE        | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
+|_.Rubinius   | yes       | no           | no       | no        | yes    | yes     | yes     | yes     |
+|_.JRuby      | yes       | no           | no       | yes       | yes    | yes     | yes     | yes     |
+
+h6. Profiling
+
+|_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
+|_.MRI        | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
+|_.REE        | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
+|_.Rubinius   | yes       | no           | no       | no        | no     | no      | no      | no      |
+|_.JRuby      | yes       | no           | no       | no        | no     | no      | no      | no      |
+
+NOTE: To profile under JRuby you'll need to run +export JRUBY_OPTS="-Xlaunch.inproc=false --profile.api"+ *before* the performance tests.
 
 h4. Understanding the Output
 
@@ -215,7 +231,7 @@ Performance tests generate different outputs inside +tmp/performance+ directory 
 
 h5(#output-benchmarking). Benchmarking
 
-In benchmarking mode, performance tests generate two types of outputs:
+In benchmarking mode, performance tests generate two types of outputs.
 
 h6(#output-command-line). Command Line
 
@@ -225,7 +241,7 @@ This is the primary form of output in benchmarking mode. Example:
 BrowsingTest#test_homepage (31 ms warmup)
            wall_time: 6 ms
               memory: 437.27 KB
-             objects: 5514
+             objects: 5,514
              gc_runs: 0
              gc_time: 19 ms
 </shell>
@@ -260,7 +276,7 @@ measurement,created_at,app,rails,ruby,platform
 
 h5(#output-profiling). Profiling
 
-In profiling mode, you can choose from four types of output.
+In profiling mode, performance tests can generate multiple types of outputs. The command line output is always presented but support for the others is dependant on the interpreter in use. A brief description of each type and their availability across interpreters is given below.
 
 h6. Command Line
 
@@ -270,26 +286,67 @@ This is a very basic form of output in profiling mode:
 BrowsingTest#test_homepage (58 ms warmup)
         process_time: 63 ms
               memory: 832.13 KB
-             objects: 7882
+             objects: 7,882
 </shell>
 
 h6. Flat
 
-Flat output shows the total amount of time spent in each method. "Check ruby prof documentation for a better explanation":http://ruby-prof.rubyforge.org/files/examples/flat_txt.html.
+Flat output shows the metric—time, memory, etc—measure in each method. "Check Ruby-Prof documentation for a better explanation":http://ruby-prof.rubyforge.org/files/examples/flat_txt.html.
 
 h6. Graph
 
-Graph output shows how long each method takes to run, which methods call it and which methods it calls. "Check ruby prof documentation for a better explanation":http://ruby-prof.rubyforge.org/files/examples/graph_txt.html.
+Graph output shows the metric measure in each method, which methods call it and which methods it calls. "Check Ruby-Prof documentation for a better explanation":http://ruby-prof.rubyforge.org/files/examples/graph_txt.html.
 
 h6. Tree
 
 Tree output is profiling information in calltree format for use by "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html and similar tools.
 
+h6. Output Availability
+
+|_.         |_.Flat|_.Graph|_.Tree|
+|_.MRI      | yes  | yes   | yes  |
+|_.REE      | yes  | yes   | yes  |
+|_.Rubinius | yes  | yes   | no   |
+|_.JRuby    | yes  | yes   | no   |
+
 h4. Tuning Test Runs
 
-By default, each performance test is run +4 times+ in benchmarking mode and +1 time+ in profiling. However, test runs can easily be configured.
+Test runs can be tuned by setting the +profile_options+ class variable on your test class.
 
-WARNING: Performance test configurability is not yet enabled in Rails. But it will be soon.
+<ruby>
+require 'test_helper'
+require 'rails/performance_test_help'
+
+# Profiling results for each test method are written to tmp/performance.
+class BrowsingTest < ActionDispatch::PerformanceTest
+  self.profile_options = { :runs => 5,
+                           :metrics => [:wall_time, :memory] }
+
+  def test_homepage
+    get '/'
+  end
+end
+</ruby>
+
+In this example, the test would run 5 times and measure wall time and memory. There are a few configurable options:
+
+|_.Option   |_.Description|_.Default|_.Mode|
+|+:runs+    |Number of runs.|Benchmarking: 4, Profiling: 1|Both|
+|+:output+  |Directory to use when writing the results.|+tmp/performance+|Both|
+|+:metrics+ |Metrics to use.|See below.|Both|
+|+:formats+ |Formats to output to.|See below.|Profiling|
+
+Metrics and formats have different defaults depending on the interpreter in use.
+
+|_.Interpreter|_.Mode|_.Default metrics|_.Default formats|
+|/2.MRI/REE |Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
+|Profiling   |+[:process_time, :memory, :objects]+|+[:flat, :graph_html, :call_tree, :call_stack]+|
+|/2.Rubinius|Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
+|Profiling   |+[:wall_time]+|+[:flat, :graph]+|
+|/2.JRuby   |Benchmarking|+[:wall_time, :user_time, :memory, :gc_runs, :gc_time]+|N/A|
+|Profiling   |+[:wall_time]+|+[:flat, :graph]+|
+
+As you've probably noticed by now, metrics and formats are specified using a symbol array with each name "underscored.":http://api.rubyonrails.org/classes/String.html#method-i-underscore
 
 h4. Performance Test Environment
 
@@ -303,41 +360,71 @@ Rails.logger.level = ActiveSupport::BufferedLogger::INFO
 
 As +ActionController::Base.perform_caching+ is set to +true+, performance tests will behave much as they do in the +production+ environment.
 
-h4. Installing GC-Patched Ruby
+h4. Installing GC-Patched MRI
 
-To get the best from Rails performance tests, you need to build a special Ruby binary with some super powers - "GC patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch for measuring GC Runs/Time and memory/object allocation.
+To get the best from Rails' performance tests under MRI, you'll need to build a special Ruby binary with some super powers.
 
-The process is fairly straightforward. If you've never compiled a Ruby binary before, follow these steps to build a ruby binary inside your home directory:
+The recommended patches for each MRI version are:
 
-h5. Installation
+|_.Version|_.Patch|
+|1.8.6|ruby186gc|
+|1.8.7|ruby187gc|
+|1.9.2 and above|gcdata|
 
-Compile Ruby and apply this "GC Patch":http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch.
+All of these can be found on "RVM's _patches_ directory":https://github.com/wayneeseguin/rvm/tree/master/patches/ruby under each specific interpreter version.
 
-h5. Download and Extract
+Concerning the installation itself, you can either do this easily by using "RVM":http://rvm.beginrescueend.com or you can build everything from source, which is a little bit harder.
+
+h5. Install Using RVM
+
+The process of installing a patched Ruby interpreter is very easy if you let RVM do the hard work. All of the following RVM commands will provide you with a patched Ruby interpreter:
+
+<shell>
+$ rvm install 1.9.2-p180 --patch gcdata
+$ rvm install 1.8.7 --patch ruby187gc
+$ rvm install 1.9.2-p180 --patch ~/Downloads/downloaded_gcdata_patch.patch
+</shell>
+
+You can even keep your regular interpreter by assigning a name to the patched one:
+
+<shell>
+$ rvm install 1.9.2-p180 --patch gcdata --name gcdata
+$ rvm use 1.9.2-p180 # your regular ruby
+$ rvm use 1.9.2-p180-gcdata # your patched ruby
+</shell>
+
+And it's done! You have installed a patched Ruby interpreter.
+
+h5. Install From Source
+
+This process is a bit more complicated, but straightforward nonetheless. If you've never compiled a Ruby binary before, follow these steps to build a Ruby binary inside your home directory.
+
+h6. Download and Extract
 
 <shell>
 $ mkdir rubygc
-$ wget <download the latest stable ruby from ftp://ftp.ruby-lang.org/pub/ruby>
+$ wget <the version you want from ftp://ftp.ruby-lang.org/pub/ruby>
 $ tar -xzvf <ruby-version.tar.gz>
 $ cd <ruby-version>
 </shell>
 
-h5. Apply the Patch
+h6. Apply the Patch
 
 <shell>
-$ curl http://rubyforge.org/tracker/download.php/1814/7062/17676/3291/ruby186gc.patch | patch -p0
+$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
+$ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187gc.patch | patch -p0 # if you're on 1.8.7!
 </shell>
 
-h5. Configure and Install
+h6. Configure and Install
 
-The following will install ruby in your home directory's +/rubygc+ directory. Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home directory.
+The following will install Ruby in your home directory's +/rubygc+ directory. Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home directory.
 
 <shell>
 $ ./configure --prefix=/<homedir>/rubygc
 $ make && make install
 </shell>
 
-h5. Prepare Aliases
+h6. Prepare Aliases
 
 For convenience, add the following lines in your +~/.profile+:
 
@@ -349,26 +436,21 @@ alias gcirb='~/rubygc/bin/irb'
 alias gcrails='~/rubygc/bin/rails'
 </shell>
 
-h5. Install Rubygems and Dependency Gems
+Don't forget to use your aliases from now on.
 
-Download "Rubygems":http://rubyforge.org/projects/rubygems and install it from source. Rubygem's README file should have necessary installation instructions.
+h6. Install Rubygems (1.8 only!)
 
-Additionally, install the following gems:
+Download "Rubygems":http://rubyforge.org/projects/rubygems and install it from source. Rubygem's README file should have necessary installation instructions. Please note that this step isn't necessary if you've installed Ruby 1.9 and above.
 
-* +rake+
-* +rails+
-* +ruby-prof+
-* +rack+
-* +mysql+
+h4. Using Ruby-Prof on MRI and REE
 
-If installing +mysql+ fails, you can try to install it manually:
+Add Ruby-Prof to your applications' Gemfile if you want to benchmark/profile under MRI or REE:
 
-<shell>
-$ gcruby extconf.rb --with-mysql-config
-$ make && make install
-</shell>
+<ruby>
+gem 'ruby-prof', :path => 'git://github.com/wycats/ruby-prof.git'
+</ruby>
 
-And you're ready to go. Don't forget to use +gcruby+ and +gcrake+ aliases when running the performance tests.
+Now run +bundle install+ and you're ready to go.
 
 h3. Command Line Tools
 
@@ -376,55 +458,47 @@ Writing performance test cases could be an overkill when you are looking for one
 
 h4. +benchmarker+
 
-+benchmarker+ is a wrapper around Ruby's "Benchmark":http://ruby-doc.org/core/classes/Benchmark.html standard library.
-
 Usage:
 
 <shell>
-$ rails benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ...
+Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
+    -r, --runs N                     Number of runs.
+                                     Default: 4
+    -o, --output PATH                Directory to use when writing the results.
+                                     Default: tmp/performance
+    -m, --metrics a,b,c              Metrics to use.
+                                     Default: wall_time,memory,objects,gc_runs,gc_time
 </shell>
 
-Examples:
+Example:
 
 <shell>
-$ rails benchmarker 10 'Item.all' 'CouchItem.all'
-</shell>
-
-If the +[times]+ argument is omitted, supplied methods are run just once:
-
-<shell>
-$ rails benchmarker 'Item.first' 'Item.last'
+$ rails benchmarker 'Item.all' 'CouchItem.all' --runs 3 --metrics wall_time,memory
 </shell>
 
 h4. +profiler+
 
-+profiler+ is a wrapper around the "ruby-prof":http://ruby-prof.rubyforge.org gem.
-
 Usage:
 
 <shell>
-$ rails profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]
+Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
+    -r, --runs N                     Number of runs.
+                                     Default: 1
+    -o, --output PATH                Directory to use when writing the results.
+                                     Default: tmp/performance
+        --metrics a,b,c              Metrics to use.
+                                     Default: process_time,memory,objects
+    -m, --formats x,y,z              Formats to output to.
+                                     Default: flat,graph_html,call_tree
 </shell>
 
-Examples:
+Example:
 
 <shell>
-$ rails profiler 'Item.all'
+$ rails profiler 'Item.all' 'CouchItem.all' --runs 2 --metrics process_time --formats flat
 </shell>
 
-This will profile +Item.all+ in +RubyProf::WALL_TIME+ measure mode. By default, it prints flat output to the shell.
-
-<shell>
-$ rails profiler 'Item.all' 10 graph
-</shell>
-
-This will profile +10.times { Item.all }+ with +RubyProf::WALL_TIME+ measure mode and print graph output to the shell.
-
-If you want to store the output in a file:
-
-<shell>
-$ rails profiler 'Item.all' 10 graph 2> graph.txt
-</shell>
+NOTE: Metrics and formats vary from interpreter to interpreter. Pass +--help+ to each tool to see the defaults for your interpreter.
 
 h3. Helper Methods
 
@@ -517,12 +591,13 @@ h4. Tutorials and Documentation
 
 h3. Commercial Products
 
-Rails has been lucky to have two startups dedicated to Rails specific performance tools:
+Rails has been lucky to have a few companies dedicated to Rails-specific performance tools. A couple of those are:
 
 * "New Relic":http://www.newrelic.com
 * "Scout":http://scoutapp.com
 
 h3. Changelog
 
+* March 30, 2011: Documented the recent improvements (multiple interpreters, options, etc) and necessary adjustments. Other minor improvements. "Gonçalo Silva":http://goncalossilva.com.
 * January 9, 2009: Complete rewrite by "Pratik":credits.html#lifo
 * September 6, 2008: Initial version by Matthew Bergman

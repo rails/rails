@@ -1,48 +1,32 @@
-require 'active_support/core_ext/object/inclusion'
+require 'optparse'
+require 'rails/test_help'
+require 'rails/performance_test_help'
+require 'active_support/testing/performance'
 
-if ARGV.first.in?([nil, "-h", "--help"])
-  $stderr.puts "Usage: rails profiler 'Person.expensive_method(10)' [times] [flat|graph|graph_html]"
-  exit(1)
-end
-
-# Define a method to profile.
-if ARGV[1] and ARGV[1].to_i > 1
-  eval "def profile_me() #{ARGV[1]}.times { #{ARGV[0]} } end"
-else
-  eval "def profile_me() #{ARGV[0]} end"
-end
-
-# Use the ruby-prof extension if available.  Fall back to stdlib profiler.
-begin
-  begin
-    require "ruby-prof"
-    $stderr.puts 'Using the ruby-prof extension.'
-    RubyProf.measure_mode = RubyProf::WALL_TIME
-    RubyProf.start
-    profile_me
-    results = RubyProf.stop
-    if ARGV[2]
-      printer_class = RubyProf.const_get((ARGV[2] + "_printer").classify)
-    else
-      printer_class = RubyProf::FlatPrinter
-    end
-    printer = printer_class.new(results)
-    printer.print($stderr)
-  rescue LoadError
-    require "prof"
-    $stderr.puts 'Using the old ruby-prof extension.'
-    Prof.clock_mode = Prof::GETTIMEOFDAY
-    Prof.start
-    profile_me
-    results = Prof.stop
-    require 'rubyprof_ext'
-    Prof.print_profile(results, $stderr)
+def options
+  options = {}
+  defaults = ActiveSupport::Testing::Performance::DEFAULTS
+  
+  OptionParser.new do |opt|
+    opt.banner = "Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]"
+    opt.on('-r', '--runs N', Numeric, 'Number of runs.', "Default: #{defaults[:runs]}") { |r| options[:runs] = r }
+    opt.on('-o', '--output PATH', String, 'Directory to use when writing the results.', "Default: #{defaults[:output]}") { |o| options[:output] = o }
+    opt.on('-m', '--metrics a,b,c', Array, 'Metrics to use.', "Default: #{defaults[:metrics].join(",")}") { |m| options[:metrics] = m.map(&:to_sym) }
+    opt.on('-f', '--formats x,y,z', Array, 'Formats to output to.', "Default: #{defaults[:formats].join(",")}") { |m| options[:formats] = m.map(&:to_sym) }
+    opt.parse!(ARGV)
   end
-rescue LoadError
-  require 'profiler'
-  $stderr.puts 'Using the standard Ruby profiler.'
-  Profiler__.start_profile
-  profile_me
-  Profiler__.stop_profile
-  Profiler__.print_profile($stderr)
+  
+  options
+end
+
+class ProfilerTest < ActionDispatch::PerformanceTest
+  self.profile_options = options
+  
+  ARGV.each do |expression|
+    eval <<-RUBY
+      def test_#{expression.parameterize('_')}
+        #{expression}
+      end
+    RUBY
+  end
 end
