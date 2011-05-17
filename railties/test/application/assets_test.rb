@@ -11,6 +11,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def app
+      @app ||= Rails.application
+    end
+
     test "assets routes have higher priority" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
 
@@ -22,6 +26,33 @@ module ApplicationTests
 
       get "/assets/demo.js"
       assert_match "alert()", last_response.body
+    end
+
+    test "does not stream session cookies back" do
+      puts "PENDING SPROCKETS AND RACK RELEASE"
+      # app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
+      #
+      # app_file "config/routes.rb", <<-RUBY
+      #   AppTemplate::Application.routes.draw do
+      #     match '/omg', :to => "omg#index"
+      #   end
+      # RUBY
+      #
+      # require "#{app_path}/config/environment"
+      #
+      # class ::OmgController < ActionController::Base
+      #   def index
+      #     flash[:cool_story] = true
+      #     render :text => "ok"
+      #   end
+      # end
+      #
+      # get "/omg"
+      # assert_equal 'ok', last_response.body
+      #
+      # get "/assets/demo.js"
+      # assert_match "alert()", last_response.body
+      # assert_equal nil, last_response.headers["Set-Cookie"]
     end
   end
 end
