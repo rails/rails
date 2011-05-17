@@ -10,6 +10,10 @@ module ActiveSupport
       true
     end
 
+    def with_indifferent_access
+      self
+    end
+
     def initialize(constructor = {})
       if constructor.is_a?(Hash)
         super()
@@ -58,8 +62,12 @@ module ActiveSupport
     #   hash_1.update(hash_2) # => {"key"=>"New Value!"}
     #
     def update(other_hash)
-      other_hash.each_pair { |key, value| regular_writer(convert_key(key), convert_value(value)) }
-      self
+      if other_hash.is_a? HashWithIndifferentAccess
+        super(other_hash)
+      else
+        other_hash.each_pair { |key, value| regular_writer(convert_key(key), convert_value(value)) }
+        self
+      end
     end
 
     alias_method :merge!, :update
