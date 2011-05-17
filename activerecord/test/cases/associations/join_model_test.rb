@@ -15,6 +15,7 @@ require 'models/book'
 require 'models/citation'
 require 'models/aircraft'
 require 'models/engine'
+require 'models/car'
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false unless supports_savepoints?
