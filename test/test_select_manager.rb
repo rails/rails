@@ -216,7 +216,7 @@ module Arel
         table   = Table.new :users, :engine => Table.engine, :as => 'foo'
         mgr = table.from table
         mgr.skip 10
-        mgr.to_sql.must_be_like %{ SELECT FROM "users" foo OFFSET 10 }
+        mgr.to_sql.must_be_like %{ SELECT FROM "users" "foo" OFFSET 10 }
       end
     end
 

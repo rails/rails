@@ -416,7 +416,8 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def quote_table_name name
-        @quoted_tables[name] ||= Arel::Nodes::SqlLiteral === name ? name : @connection.quote_table_name(name)
+        return name if Arel::Nodes::SqlLiteral === name
+        @quoted_tables[name] ||= @connection.quote_table_name(name)
       end
 
       def quote_column_name name
