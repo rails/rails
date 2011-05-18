@@ -216,6 +216,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match /gem 'tuarn'/, contents unless RUBY_VERSION < '1.9.2'
     end
   end
+  
+  def test_turn_gem_is_included_in_gemfile
+    run_generator [destination_root]
+    assert_file "Gemfile" do |contents|
+      assert_match /gem 'turn'/, contents unless RUBY_VERSION < '1.9.2'
+    end
+  end
 
   def test_inclusion_of_ruby_debug
     run_generator
