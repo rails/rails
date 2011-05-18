@@ -165,7 +165,7 @@ module Rails
       end
 
       def gem_for_ruby_debugger
-        if RUBY_VERSION < "1.9.2"
+        if RUBY_VERSION < "1.9"
           "gem 'ruby-debug'"
         else
           "gem 'ruby-debug19', :require => 'ruby-debug'"
