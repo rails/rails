@@ -165,7 +165,7 @@ module Rails
       end
 
       def gem_for_ruby_debugger
-        if RUBY_VERSION < "1.9.2"
+        if RUBY_VERSION < "1.9"
           "gem 'ruby-debug'"
         else
           "gem 'ruby-debug19', :require => 'ruby-debug'"
@@ -173,7 +173,7 @@ module Rails
       end
 
       def gem_for_turn
-        unless RUBY_VERSION < "1.9.2"
+        unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
           <<-GEMFILE.strip_heredoc
             group :test do
               # Pretty printed test output

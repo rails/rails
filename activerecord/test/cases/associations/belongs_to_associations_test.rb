@@ -626,4 +626,25 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal "Bob", firm.name
   end
+
+  def test_build_with_block
+    client = Client.create(:name => 'Client Company')
+
+    firm = client.build_firm{ |f| f.name = 'Agency Company' }
+    assert_equal 'Agency Company', firm.name
+  end
+
+  def test_create_with_block
+    client = Client.create(:name => 'Client Company')
+
+    firm = client.create_firm{ |f| f.name = 'Agency Company' }
+    assert_equal 'Agency Company', firm.name
+  end
+
+  def test_create_bang_with_block
+    client = Client.create(:name => 'Client Company')
+
+    firm = client.create_firm!{ |f| f.name = 'Agency Company' }
+    assert_equal 'Agency Company', firm.name
+  end
 end

@@ -278,7 +278,7 @@ module Rails
             say args.first.to_s unless options.quiet?
           else
             args << (self.behavior == :invoke ? :green : :red)
-            say_status *args
+            say_status(*args)
           end
         end
 

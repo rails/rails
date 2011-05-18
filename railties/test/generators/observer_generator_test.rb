@@ -22,6 +22,6 @@ class ObserverGeneratorTest < Rails::Generators::TestCase
 
   def test_logs_if_the_test_framework_cannot_be_found
     content = run_generator ["account", "--test-framework=rspec"]
-    assert_match /rspec \[not found\]/, content
+    assert_match(/rspec \[not found\]/, content)
   end
 end

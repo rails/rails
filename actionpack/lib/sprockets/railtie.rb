@@ -34,15 +34,7 @@ module Sprockets
       app.assets = asset_environment(app)
 
       ActiveSupport.on_load(:action_view) do
-        if app.assets.respond_to?(:context_class)
-          context = app.assets.context_class
-
-        # TODO: Remove this condition when Sprockets 2.0.beta.3 is released
-        else
-          context = app.assets.context
-        end
-
-        context.instance_eval do
+        app.assets.context_class.instance_eval do
           include ::ActionView::Helpers::SprocketsHelper
         end
       end

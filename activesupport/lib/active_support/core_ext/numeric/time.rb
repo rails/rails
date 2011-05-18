@@ -1,4 +1,6 @@
 require 'active_support/duration'
+require 'active_support/core_ext/time/calculations'
+require 'active_support/core_ext/time/acts_like'
 
 class Numeric
   # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.

@@ -14,39 +14,39 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match /class UsersController < ApplicationController/, content
+      assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match /@users = User\.all/, m
+        assert_match(/@users = User\.all/, m)
       end
 
       assert_instance_method :show, content do |m|
-        assert_match /@user = User\.find\(params\[:id\]\)/, m
+        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
       end
 
       assert_instance_method :new, content do |m|
-        assert_match /@user = User\.new/, m
+        assert_match(/@user = User\.new/, m)
       end
 
       assert_instance_method :edit, content do |m|
-        assert_match /@user = User\.find\(params\[:id\]\)/, m
+        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
       end
 
       assert_instance_method :create, content do |m|
-        assert_match /@user = User\.new\(params\[:user\]\)/, m
-        assert_match /@user\.save/, m
-        assert_match /@user\.errors/, m
+        assert_match(/@user = User\.new\(params\[:user\]\)/, m)
+        assert_match(/@user\.save/, m)
+        assert_match(/@user\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
-        assert_match /@user = User\.find\(params\[:id\]\)/, m
-        assert_match /@user\.update_attributes\(params\[:user\]\)/, m
-        assert_match /@user\.errors/, m
+        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
+        assert_match(/@user\.update_attributes\(params\[:user\]\)/, m)
+        assert_match(/@user\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
-        assert_match /@user = User\.find\(params\[:id\]\)/, m
-        assert_match /@user\.destroy/, m
+        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
+        assert_match(/@user\.destroy/, m)
       end
     end
   end
@@ -73,8 +73,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "test/functional/users_controller_test.rb" do |content|
-      assert_match /class UsersControllerTest < ActionController::TestCase/, content
-      assert_match /test "should get index"/, content
+      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
+      assert_match(/test "should get index"/, content)
     end
   end
 
@@ -93,10 +93,10 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["User", "--orm=unknown"]
 
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match /class UsersController < ApplicationController/, content
+      assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match /@users = User\.all/, m
+        assert_match(/@users = User\.all/, m)
       end
     end
   end
@@ -112,11 +112,11 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["User", "--orm=unknown"]
 
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match /class UsersController < ApplicationController/, content
+      assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match /@users = User\.find\(:all\)/, m
-        assert_no_match /@users = User\.all/, m
+        assert_match(/@users = User\.find\(:all\)/, m)
+        assert_no_match(/@users = User\.all/, m)
       end
     end
   ensure
@@ -127,9 +127,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/controllers/users_controller.rb" do |content|
       if RUBY_VERSION < "1.9"
-        assert_match /\{ render :action => "new" \}/, content
+        assert_match(/\{ render :action => "new" \}/, content)
       else
-        assert_match /\{ render action: "new" \}/, content
+        assert_match(/\{ render action: "new" \}/, content)
       end
     end
   end
@@ -137,7 +137,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_force_old_style_hash
     run_generator ["User", "--old-style-hash"]
     assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match /\{ render :action => "new" \}/, content
+      assert_match(/\{ render :action => "new" \}/, content)
     end
   end
 end
