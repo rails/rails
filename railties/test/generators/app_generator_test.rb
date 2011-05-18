@@ -155,7 +155,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
     assert_file "test/test_helper.rb" do |helper_content|
-      assert_no_match /fixtures :all/, helper_content
+      assert_no_match(/fixtures :all/, helper_content)
     end
     assert_file "test/performance/browsing_test.rb"
   end
@@ -178,7 +178,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require jquery_ujs}, contents
     end
     assert_file 'Gemfile' do |contents|
-      assert_match /^gem 'jquery-rails'/, contents
+      assert_match(/^gem 'jquery-rails'/, contents)
     end
   end
 
@@ -190,7 +190,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require prototype_ujs}, contents
     end
     assert_file 'Gemfile' do |contents|
-      assert_match /^gem 'prototype-rails'/, contents
+      assert_match(/^gem 'prototype-rails'/, contents)
     end
   end
 
@@ -205,35 +205,35 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_turn_gem_in_gemfile
     run_generator
     assert_file "Gemfile" do |contents|
-      assert_match /gem 'turn'/, contents unless RUBY_VERSION < '1.9.2'
-      assert_no_match /gem 'turn'/, contents if RUBY_VERSION < '1.9.2'
+      assert_match(/gem 'turn'/, contents) unless RUBY_VERSION < '1.9.2'
+      assert_no_match(/gem 'turn'/, contents) if RUBY_VERSION < '1.9.2'
     end
   end
 
   def test_turn_gem_is_not_included_in_gemfile_if_skipping_test_unit
     run_generator [destination_root, "--skip-test-unit"]
     assert_file "Gemfile" do |contents|
-      assert_no_match /gem 'turn'/, contents unless RUBY_VERSION < '1.9.2'
+      assert_no_match(/gem 'turn'/, contents) unless RUBY_VERSION < '1.9.2'
     end
   end
 
   def test_inclusion_of_ruby_debug
     run_generator
     assert_file "Gemfile" do |contents|
-      assert_match /gem 'ruby-debug'/, contents if RUBY_VERSION < '1.9'
+      assert_match(/gem 'ruby-debug'/, contents) if RUBY_VERSION < '1.9'
     end
   end
 
   def test_inclusion_of_ruby_debug19_if_ruby19
     run_generator
     assert_file "Gemfile" do |contents|
-      assert_match /gem 'ruby-debug19', :require => 'ruby-debug'/, contents unless RUBY_VERSION < '1.9'
+      assert_match(/gem 'ruby-debug19', :require => 'ruby-debug'/, contents) unless RUBY_VERSION < '1.9'
     end
   end
 
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
-    assert_match /It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"])
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
   def test_usage_read_from_file
@@ -243,7 +243,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_default_usage
     File.expects(:exist?).returns(false)
-    assert_match /Create rails files for app generator/, Rails::Generators::AppGenerator.desc
+    assert_match(/Create rails files for app generator/, Rails::Generators::AppGenerator.desc)
   end
 
   def test_default_namespace
@@ -270,9 +270,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root]
     assert_file "config/initializers/session_store.rb" do |file|
       if RUBY_VERSION < "1.9"
-        assert_match /config.session_store :cookie_store, :key => '_.+_session'/, file
+        assert_match(/config.session_store :cookie_store, :key => '_.+_session'/, file)
       else
-        assert_match /config.session_store :cookie_store, key: '_.+_session'/, file
+        assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
       end
     end
   end
@@ -280,7 +280,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_force_old_style_hash
     run_generator [destination_root, "--old-style-hash"]
     assert_file "config/initializers/session_store.rb" do |file|
-      assert_match /config.session_store :cookie_store, :key => '_.+_session'/, file
+      assert_match(/config.session_store :cookie_store, :key => '_.+_session'/, file)
     end
   end
 

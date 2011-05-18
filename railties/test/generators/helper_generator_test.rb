@@ -20,17 +20,17 @@ class HelperGeneratorTest < Rails::Generators::TestCase
 
   def test_logs_if_the_test_framework_cannot_be_found
     content = run_generator ["admin", "--test-framework=rspec"]
-    assert_match /rspec \[not found\]/, content
+    assert_match(/rspec \[not found\]/, content)
   end
 
   def test_check_class_collision
     content = capture(:stderr){ run_generator ["object"] }
-    assert_match /The name 'ObjectHelper' is either already used in your application or reserved/, content
+    assert_match(/The name 'ObjectHelper' is either already used in your application or reserved/, content)
   end
 
   def test_check_class_collision_on_tests
     content = capture(:stderr){ run_generator ["another_object"] }
-    assert_match /The name 'AnotherObjectHelperTest' is either already used in your application or reserved/, content
+    assert_match(/The name 'AnotherObjectHelperTest' is either already used in your application or reserved/, content)
   end
 
   def test_namespaced_and_not_namespaced_helpers
