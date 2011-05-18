@@ -701,11 +701,11 @@ module ActiveRecord
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
            SELECT distinct i.relname, d.indisunique, d.indkey, t.oid
-             FROM pg_class t, pg_class i, pg_index d
+           FROM pg_class t
+           INNER JOIN pg_index d ON t.oid = d.indrelid
+           INNER JOIN pg_class i ON d.indexrelid = i.oid
            WHERE i.relkind = 'i'
-             AND d.indexrelid = i.oid
              AND d.indisprimary = 'f'
-             AND t.oid = d.indrelid
              AND t.relname = '#{table_name}'
              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (#{schemas}) )
           ORDER BY i.relname
