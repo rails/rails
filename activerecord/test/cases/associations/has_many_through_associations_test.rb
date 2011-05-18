@@ -495,4 +495,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       assert_equal post.tags, post.deprecated_interpolated_tags_2
     end
   end
+
+  def test_create_should_not_raise_exception_when_join_record_has_errors
+    repair_validations(Categorization) do
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      assert_nothing_raised do
+        Category.create(:name => 'Fishing', :authors => [Author.first])
+      end
+    end
+  end
 end
