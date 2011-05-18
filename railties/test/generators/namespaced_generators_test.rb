@@ -161,12 +161,12 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
   def test_mailer_skeleton_is_created
     run_generator
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
-      assert_match /module TestApp/, mailer
-      assert_match /class Notifier < ActionMailer::Base/, mailer
+      assert_match(/module TestApp/, mailer)
+      assert_match(/class Notifier < ActionMailer::Base/, mailer)
       if RUBY_VERSION < "1.9"
-        assert_match /default :from => "from@example.com"/, mailer
+        assert_match(/default :from => "from@example.com"/, mailer)
       else
-        assert_match /default from: "from@example.com"/, mailer
+        assert_match(/default from: "from@example.com"/, mailer)
       end
     end
   end
@@ -174,31 +174,31 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
   def test_mailer_with_i18n_helper
     run_generator
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
-      assert_match /en\.notifier\.foo\.subject/, mailer
-      assert_match /en\.notifier\.bar\.subject/, mailer
+      assert_match(/en\.notifier\.foo\.subject/, mailer)
+      assert_match(/en\.notifier\.bar\.subject/, mailer)
     end
   end
 
   def test_invokes_default_test_framework
     run_generator
     assert_file "test/functional/test_app/notifier_test.rb" do |test|
-      assert_match /module TestApp/, test
-      assert_match /class NotifierTest < ActionMailer::TestCase/, test
-      assert_match /test "foo"/, test
-      assert_match /test "bar"/, test
+      assert_match(/module TestApp/, test)
+      assert_match(/class NotifierTest < ActionMailer::TestCase/, test)
+      assert_match(/test "foo"/, test)
+      assert_match(/test "bar"/, test)
     end
   end
 
   def test_invokes_default_template_engine
     run_generator
     assert_file "app/views/test_app/notifier/foo.text.erb" do |view|
-      assert_match %r(app/views/test_app/notifier/foo\.text\.erb), view
-      assert_match /<%= @greeting %>/, view
+      assert_match(%r(app/views/test_app/notifier/foo\.text\.erb), view)
+      assert_match(/<%= @greeting %>/, view)
     end
 
     assert_file "app/views/test_app/notifier/bar.text.erb" do |view|
-      assert_match %r(app/views/test_app/notifier/bar\.text\.erb), view
-      assert_match /<%= @greeting %>/, view
+      assert_match(%r(app/views/test_app/notifier/bar\.text\.erb), view)
+      assert_match(/<%= @greeting %>/, view)
     end
   end
 

@@ -13,6 +13,7 @@ module Rails
                                     :desc => "Force using old style hash (:foo => 'bar') on Ruby >= 1.9"
 
       def initialize(args, *options) #:nodoc:
+        @inside_template = nil
         # Unfreeze name in case it's given as a frozen string
         args[0] = args[0].dup if args[0].is_a?(String) && args[0].frozen?
         super

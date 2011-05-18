@@ -32,7 +32,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_check_class_collision
     content = capture(:stderr){ run_generator ["object"] }
-    assert_match /The name 'Object' is either already used in your application or reserved/, content
+    assert_match(/The name 'Object' is either already used in your application or reserved/, content)
   end
 
   def test_invokes_default_test_framework
@@ -44,7 +44,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_logs_if_the_test_framework_cannot_be_found
     content = nil
     silence(:stderr) { content = run_generator ["plugin_fu", "--test-framework=rspec"] }
-    assert_match /rspec \[not found\]/, content
+    assert_match(/rspec \[not found\]/, content)
   end
 
   def test_creates_tasks_if_required
@@ -66,6 +66,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_deprecation
     output = capture(:stderr) { run_generator }
-    assert_match /Plugin generator is deprecated, please use 'rails plugin new' command to generate plugin structure./, output
+    assert_match(/Plugin generator is deprecated, please use 'rails plugin new' command to generate plugin structure./, output)
   end
 end
