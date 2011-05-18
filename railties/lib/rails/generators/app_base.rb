@@ -173,7 +173,7 @@ module Rails
       end
 
       def gem_for_turn
-        unless RUBY_VERSION < "1.9.2"
+        unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
           <<-GEMFILE.strip_heredoc
             group :test do
               # Pretty printed test output

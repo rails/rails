@@ -210,6 +210,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_turn_gem_is_not_included_in_gemfile_if_skipping_test_unit
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_file "Gemfile" do |contents|
+      assert_no_match /gem 'tuarn'/, contents unless RUBY_VERSION < '1.9.2'
+    end
+  end
+
   def test_inclusion_of_ruby_debug
     run_generator
     assert_file "Gemfile" do |contents|
