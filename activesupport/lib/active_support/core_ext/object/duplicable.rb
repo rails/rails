@@ -1,3 +1,4 @@
+#--
 # Most objects are cloneable, but not all. For example you can't dup +nil+:
 #
 #   nil.dup # => TypeError: can't dup NilClass
@@ -14,6 +15,7 @@
 #
 # That's why we hardcode the following cases and check duplicable? instead of
 # using that rescue idiom.
+#++
 class Object
   # Can you safely dup this object?
   #
