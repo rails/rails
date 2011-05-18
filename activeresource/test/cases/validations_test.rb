@@ -8,9 +8,9 @@ require 'active_support/core_ext/hash/conversions'
 class ValidationsTest < ActiveModel::TestCase
   VALID_PROJECT_HASH = { :name => "My Project", :description => "A project" }
   def setup
-    @my_proj = VALID_PROJECT_HASH.to_xml(:root => "person")
+    @my_proj = { "person" => VALID_PROJECT_HASH }.to_json
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.post "/projects.xml", {}, @my_proj, 201, 'Location' => '/projects/5.xml'
+      mock.post "/projects.json", {}, @my_proj, 201, 'Location' => '/projects/5.json'
     end
   end
 

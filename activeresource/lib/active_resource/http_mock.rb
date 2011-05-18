@@ -20,10 +20,10 @@ module ActiveResource
   # * <tt>path</tt> - A string, starting with a "/", defining the URI that is expected to be
   #   called.
   # * <tt>request_headers</tt> - Headers that are expected along with the request.  This argument uses a
-  #   hash format, such as <tt>{ "Content-Type" => "application/xml" }</tt>.  This mock will only trigger
+  #   hash format, such as <tt>{ "Content-Type" => "application/json" }</tt>.  This mock will only trigger
   #   if your tests sends a request with identical headers.
   # * <tt>body</tt> - The data to be returned.  This should be a string of Active Resource parseable content,
-  #   such as XML.
+  #   such as Json.
   # * <tt>status</tt> - The HTTP response code, as an integer, to return with the response.
   # * <tt>response_headers</tt> - Headers to be returned with the response.  Uses the same hash format as
   #   <tt>request_headers</tt> listed above.
@@ -35,12 +35,12 @@ module ActiveResource
   #
   # ==== Example
   #   def setup
-  #     @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+  #     @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
   #     ActiveResource::HttpMock.respond_to do |mock|
-  #       mock.post   "/people.xml",   {}, @matz, 201, "Location" => "/people/1.xml"
-  #       mock.get    "/people/1.xml", {}, @matz
-  #       mock.put    "/people/1.xml", {}, nil, 204
-  #       mock.delete "/people/1.xml", {}, nil, 200
+  #       mock.post   "/people.json",   {}, @matz, 201, "Location" => "/people/1.json"
+  #       mock.get    "/people/1.json", {}, @matz
+  #       mock.put    "/people/1.json", {}, nil, 204
+  #       mock.delete "/people/1.json", {}, nil, 200
   #     end
   #   end
   #
@@ -85,9 +85,9 @@ module ActiveResource
       #
       # ==== Example
       #   def setup
-      #     @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+      #     @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
       #     ActiveResource::HttpMock.respond_to do |mock|
-      #       mock.get "/people/1.xml", {}, @matz
+      #       mock.get "/people/1.json", {}, @matz
       #     end
       #   end
       #
@@ -95,7 +95,7 @@ module ActiveResource
       #     person = Person.find(1)  # Call the remote service
       #
       #     # This request object has the same HTTP method and path as declared by the mock
-      #     expected_request = ActiveResource::Request.new(:get, "/people/1.xml")
+      #     expected_request = ActiveResource::Request.new(:get, "/people/1.json")
       #
       #     # Assert that the mock received, and responded to, the expected request from the model
       #     assert ActiveResource::HttpMock.requests.include?(expected_request)
@@ -117,12 +117,12 @@ module ActiveResource
       #
       # === Example
       #
-      #   @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+      #   @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
       #   ActiveResource::HttpMock.respond_to do |mock|
-      #     mock.post   "/people.xml",   {}, @matz, 201, "Location" => "/people/1.xml"
-      #     mock.get    "/people/1.xml", {}, @matz
-      #     mock.put    "/people/1.xml", {}, nil, 204
-      #     mock.delete "/people/1.xml", {}, nil, 200
+      #     mock.post   "/people.json",   {}, @matz, 201, "Location" => "/people/1.json"
+      #     mock.get    "/people/1.json", {}, @matz
+      #     mock.put    "/people/1.json", {}, nil, 204
+      #     mock.delete "/people/1.json", {}, nil, 200
       #   end
       #
       # Alternatively, accepts a hash of <tt>{Request => Response}</tt> pairs allowing you to generate
@@ -135,11 +135,11 @@ module ActiveResource
       #
       # Request.new(:#{method}, path, nil, request_headers)
       #
-      #   @matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+      #   @matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
       #
-      #   create_matz      = ActiveResource::Request.new(:post, '/people.xml', @matz, {})
-      #   created_response = ActiveResource::Response.new("", 201, {"Location" => "/people/1.xml"})
-      #   get_matz         = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+      #   create_matz      = ActiveResource::Request.new(:post, '/people.json', @matz, {})
+      #   created_response = ActiveResource::Response.new("", 201, {"Location" => "/people/1.json"})
+      #   get_matz         = ActiveResource::Request.new(:get, '/people/1.json', nil)
       #   ok_response      = ActiveResource::Response.new("", 200, {})
       #
       #   pairs = {create_matz => created_response, get_matz => ok_response}
@@ -154,12 +154,12 @@ module ActiveResource
       # === Example
       #
       #   ActiveResource::HttpMock.respond_to do |mock|
-      #     mock.send(:get, "/people/1", {}, "XML1")
+      #     mock.send(:get, "/people/1", {}, "JSON1")
       #   end
       #   ActiveResource::HttpMock.responses.length #=> 1
       #
       #   ActiveResource::HttpMock.respond_to(false) do |mock|
-      #     mock.send(:get, "/people/2", {}, "XML2")
+      #     mock.send(:get, "/people/2", {}, "JSON2")
       #   end
       #   ActiveResource::HttpMock.responses.length #=> 2
       #
@@ -169,11 +169,11 @@ module ActiveResource
       # === Example
       #
       #   ActiveResource::HttpMock.respond_to do |mock|
-      #     mock.send(:get, "/people/1", {}, "XML1")
+      #     mock.send(:get, "/people/1", {}, "JSON1")
       #   end
       #   ActiveResource::HttpMock.responses.length #=> 1
       #
-      #   get_matz         = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+      #   get_matz         = ActiveResource::Request.new(:get, '/people/1.json', nil)
       #   ok_response      = ActiveResource::Response.new("", 200, {})
       #
       #   pairs = {get_matz => ok_response}
