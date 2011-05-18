@@ -31,4 +31,5 @@ class RenderJSTest < ActionController::TestCase
     xhr :get, :show_partial, :format => 'js'
     assert_equal 'partial js', @response.body
   end
+
 end

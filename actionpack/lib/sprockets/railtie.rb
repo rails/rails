@@ -16,6 +16,10 @@ module Sprockets
 
     config.app_generators.javascript_engine :coffee if using_coffee?
     config.app_generators.stylesheet_engine :scss   if using_scss?
+    
+    if using_coffee?
+      require 'sprockets/handlers/coffee_script'
+    end
 
     # Configure ActionController to use sprockets.
     initializer "sprockets.set_configs", :after => "action_controller.set_configs" do |app|
