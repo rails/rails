@@ -7,7 +7,7 @@ class <%= class_name %>ControllerTest < ActionController::TestCase
   #   assert true
   # end
 <% else -%>
-<% for action in actions -%>
+<% actions.each do |action| -%>
   test "should get <%= action %>" do
     get :<%= action %>
     assert_response :success
