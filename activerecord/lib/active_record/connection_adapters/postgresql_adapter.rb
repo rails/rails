@@ -821,7 +821,7 @@ module ActiveRecord
         result = exec_query(<<-end_sql, 'SCHEMA').rows.first
           SELECT attr.attname, seq.relname
           FROM pg_class seq
-          INNER JOIN pg_depend dep on seq.oid = dep.objid
+          INNER JOIN pg_depend dep ON seq.oid = dep.objid
           INNER JOIN pg_attribute attr ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
           INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
           WHERE seq.relkind  = 'S'
