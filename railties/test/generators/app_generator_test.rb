@@ -202,6 +202,35 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_turn_gem_in_gemfile
+    run_generator
+    assert_file "Gemfile" do |contents|
+      assert_match /gem 'turn'/, contents unless RUBY_VERSION < '1.9.2'
+      assert_no_match /gem 'turn'/, contents if RUBY_VERSION < '1.9.2'
+    end
+  end
+
+  def test_turn_gem_is_not_included_in_gemfile_if_skipping_test_unit
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_file "Gemfile" do |contents|
+      assert_no_match /gem 'tuarn'/, contents unless RUBY_VERSION < '1.9.2'
+    end
+  end
+
+  def test_inclusion_of_ruby_debug
+    run_generator
+    assert_file "Gemfile" do |contents|
+      assert_match /gem 'ruby-debug'/, contents if RUBY_VERSION < '1.9'
+    end
+  end
+
+  def test_inclusion_of_ruby_debug19_if_ruby19
+    run_generator
+    assert_file "Gemfile" do |contents|
+      assert_match /gem 'ruby-debug19', :require => 'ruby-debug'/, contents unless RUBY_VERSION < '1.9'
+    end
+  end
+
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match /It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"])
