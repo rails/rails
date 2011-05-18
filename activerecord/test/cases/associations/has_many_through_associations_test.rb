@@ -766,4 +766,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [category.name], post.named_category_ids # checks when target loaded
     assert_equal [category.name], post.reload.named_category_ids # checks when target no loaded
   end
+
+  def test_create_should_not_raise_exception_when_join_record_has_errors
+    repair_validations(Categorization) do
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      assert_nothing_raised do
+        Category.create(:name => 'Fishing', :authors => [Author.first])
+      end
+    end
+  end
 end
