@@ -202,6 +202,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_turn_gem_in_gemfile
+    run_generator
+    assert_file "Gemfile" do |contents|
+      assert_match /gem 'turn'/, contents unless RUBY_VERSION < '1.9.2'
+      assert_no_match /gem 'turn'/, contents if RUBY_VERSION < '1.9.2'
+    end
+  end
+
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match /It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"])
