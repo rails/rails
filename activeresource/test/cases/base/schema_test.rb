@@ -118,7 +118,7 @@ class SchemaTest < ActiveModel::TestCase
 
   test "with two instances, default schema should match the attributes of the individual instances - even if they differ" do
     matz = Person.find(1)
-    rick = Person.find(5)
+    rick = Person.find(6)
 
     m_attrs = matz.attributes.keys.sort
     r_attrs = rick.attributes.keys.sort
@@ -376,7 +376,7 @@ class SchemaTest < ActiveModel::TestCase
 
   test "with two instances, known attributes should match the attributes of the individual instances - even if they differ" do
     matz = Person.find(1)
-    rick = Person.find(5)
+    rick = Person.find(6)
 
     m_attrs = matz.attributes.keys.sort
     r_attrs = rick.attributes.keys.sort
