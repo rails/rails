@@ -4,7 +4,7 @@ require "action_controller/log_subscriber"
 
 module Another
   class LogSubscribersController < ActionController::Base
-    wrap_parameters :person, :only => :name, :format => :json
+    wrap_parameters :person, :include => :name, :format => :json
 
     def show
       render :nothing => true
@@ -34,11 +34,11 @@ module Another
       cache_page("Super soaker", "/index.html")
       render :nothing => true
     end
-    
+
     def with_exception
       raise Exception
     end
-    
+
   end
 end
 
