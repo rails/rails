@@ -973,7 +973,7 @@ module ActionView
           options.delete("size")
         end
         options["type"]  ||= field_type
-        options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
+        options["value"] = options.fetch("value"){ value(object) } unless field_type == "file"
         options["value"] &&= ERB::Util.html_escape(options["value"])
         add_default_name_and_id(options)
         tag("input", options)
