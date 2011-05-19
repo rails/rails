@@ -11,7 +11,7 @@ module ActiveSupport
     end
 
     def with_indifferent_access
-      self
+      dup
     end
 
     def initialize(constructor = {})

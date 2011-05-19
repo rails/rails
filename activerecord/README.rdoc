@@ -84,7 +84,7 @@ A short rundown of some of the major features:
 
    class CommentObserver < ActiveRecord::Observer
      def after_create(comment) # is called just after Comment#save
-       CommentMailer.new_comment_email("david@loudthinking.com", comment)
+       CommentMailer.new_comment_email("david@loudthinking.com", comment).deliver
      end
    end
 

@@ -33,7 +33,7 @@ A short rundown of some of the major features:
 * Actions grouped in controller as methods instead of separate command objects
   and can therefore share helper methods
 
-    CustomersController < ActionController::Base
+    class CustomersController < ActionController::Base
       def show
         @customer = find_customer
       end

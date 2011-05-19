@@ -971,9 +971,10 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_nil hash_wia.default
   end
 
-  def test_should_return_self_for_with_indifferent_access
+  def test_should_return_dup_for_with_indifferent_access
     hash_wia = HashWithIndifferentAccess.new
     assert_equal hash_wia, hash_wia.with_indifferent_access
+    assert_not_same hash_wia, hash_wia.with_indifferent_access
   end
 
   def test_should_copy_the_default_value_when_converting_to_hash_with_indifferent_access
