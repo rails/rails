@@ -71,9 +71,7 @@ module ActiveModel
 
       # Notify list of observers of a change.
       def notify_observers(*arg)
-        for observer in observer_instances
-          observer.update(*arg)
-        end
+        observer_instances.each { |observer| observer.update(*arg) }
       end
 
       # Total number of observers.
