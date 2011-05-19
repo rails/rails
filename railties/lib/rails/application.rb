@@ -195,6 +195,7 @@ module Rails
     end
 
     def initialize_console(sandbox=false)
+      require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
     end
