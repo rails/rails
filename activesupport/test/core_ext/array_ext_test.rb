@@ -118,6 +118,7 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
 
   def test_in_groups_of_with_padding
     groups = []
+    
     ('a'..'g').to_a.in_groups_of(3) do |group|
       groups << group
     end
@@ -143,6 +144,55 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
     end
 
     assert_equal [%w(a b c), %w(d e f), ['g']], groups
+  end
+  
+  def test_with_index_in_groups_of_with_perfect_fit
+    groups = {}
+    
+    ('a'..'i').to_a.with_index_in_groups_of(3) do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => %w(g h i)}
+
+    assert_equal indexed, groups
+    assert_equal [[%w(a b c), 0], [%w(d e f), 1], [%w(g h i), 2]], ('a'..'i').to_a.with_index_in_groups_of(3)
+  end
+  
+  def test_with_index_in_groups_of_with_padding
+    groups = {}
+    
+    ('a'..'g').to_a.with_index_in_groups_of(3) do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => ['g', nil, nil]}
+
+    assert_equal indexed, groups
+  end
+  
+  def test_with_index_in_groups_of_pads_with_specified_values
+    groups = {}
+
+    ('a'..'g').to_a.with_index_in_groups_of(3, 'foo') do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => ['g', 'foo', 'foo']}
+
+    assert_equal indexed, groups
+  end
+  
+  def test_with_index_in_groups_of_without_padding
+    groups = {}
+
+    ('a'..'g').to_a.with_index_in_groups_of(3, false) do |group, index|
+      groups[index] = group
+    end
+    
+    indexed = {0 => %w(a b c), 1 => %w(d e f), 2 => ['g']}
+
+    assert_equal indexed, groups
   end
 
   def test_in_groups_returned_array_size
@@ -185,6 +235,48 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
   def test_in_groups_without_padding
     assert_equal [[1, 2, 3], [4, 5], [6, 7]],
       (1..7).to_a.in_groups(3, false)
+  end
+  
+  def test_with_index_in_groups_returned_array_size
+    array = (1..7).to_a
+
+    1.upto(array.size + 1) do |number|
+      assert_equal number, array.with_index_in_groups(number).size
+    end
+  end
+
+  def test_with_index_in_groups_with_empty_array
+    assert_equal [[[], 0], [[],1], [[],2]], [].with_index_in_groups(3)
+  end
+
+  def test_with_index_in_groups_with_block
+    array = (1..9).to_a
+    groups = []
+
+    array.with_index_in_groups(3) do |group, index|
+      groups << [group, index]
+    end
+
+    assert_equal array.with_index_in_groups(3), groups
+  end
+
+  def test_with_index_in_groups_with_perfect_fit
+    assert_equal [[[1, 2, 3], 0], [[4, 5, 6], 1], [[7, 8, 9], 2]],
+      (1..9).to_a.with_index_in_groups(3)
+  end
+
+  def test_with_index_in_groups_with_padding
+    array = (1..7).to_a
+
+    assert_equal [[[1, 2, 3], 0], [[4, 5, nil], 1], [[6, 7, nil], 2]],
+      array.with_index_in_groups(3)
+    assert_equal [[[1, 2, 3], 0], [[4, 5, 'foo'], 1], [[6, 7, 'foo'], 2]],
+      array.with_index_in_groups(3, 'foo')
+  end
+
+  def test_with_index_in_groups_without_padding
+    assert_equal [[[1, 2, 3], 0], [[4, 5], 1], [[6, 7], 2]],
+      (1..7).to_a.with_index_in_groups(3, false)
   end
 end
 
