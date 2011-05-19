@@ -1708,6 +1708,20 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = original_logger
   end
 
+  def test_silence_sets_log_level_thread_safe
+    threads = []
+    default_level = ActiveRecord::Base.logger.level
+    10.times do
+      10.times do
+        threads << Thread.start do
+          ActiveRecord::Base.silence { sleep(rand * 0.01) }
+          assert_equal default_level, ActiveRecord::Base.logger.level
+        end
+      end
+      threads.each(&:join)
+    end
+  end
+
   def test_silence_sets_log_level_back_to_level_before_yield
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new

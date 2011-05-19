@@ -71,7 +71,7 @@ module ActiveRecord
         @spec = spec
 
         # The cache of reserved connections mapped to threads
-        @reserved_connections = {}
+        @reserved_connections = ThreadsafeHashCache.new
 
         # The mutex used to synchronize pool access
         @connection_mutex = Monitor.new
@@ -186,7 +186,7 @@ module ActiveRecord
         @reserved_connections.each do |name,conn|
           checkin conn
         end
-        @reserved_connections = {}
+        @reserved_connections = ThreadsafeHashCache.new
         @connections.each do |conn|
           conn.disconnect!
         end
@@ -198,7 +198,7 @@ module ActiveRecord
         @reserved_connections.each do |name, conn|
           checkin conn
         end
-        @reserved_connections = {}
+        @reserved_connections = ThreadsafeHashCache.new
         @connections.each do |conn|
           conn.disconnect! if conn.requires_reloading?
         end
@@ -213,18 +213,6 @@ module ActiveRecord
         clear_stale_cached_connections!
         @connections.each do |connection|
           connection.verify!
-        end
-      end
-
-      # Return any checked-out connections back to the pool by threads that
-      # are no longer alive.
-      def clear_stale_cached_connections!
-        keys = @reserved_connections.keys - Thread.list.find_all { |t|
-          t.alive?
-        }.map { |thread| thread.object_id }
-        keys.each do |key|
-          checkin @reserved_connections[key]
-          @reserved_connections.delete(key)
         end
       end
 
@@ -288,6 +276,18 @@ module ActiveRecord
         :connected?, :disconnect!, :with => :@connection_mutex
 
       private
+      # Return any checked-out connections back to the pool by threads that
+      # are no longer alive.
+      def clear_stale_cached_connections!
+        keys = @reserved_connections.keys - Thread.list.find_all { |t|
+          t.alive?
+        }.map { |thread| thread.object_id }
+        keys.each do |key|
+          checkin @reserved_connections[key]
+          @reserved_connections.delete(key)
+        end
+      end
+
       def new_connection
         ActiveRecord::Base.send(spec.adapter_method, spec.config)
       end
@@ -451,6 +451,49 @@ module ActiveRecord
       rescue
         ActiveRecord::Base.clear_active_connections! unless testing
         raise
+      end
+    end
+
+    # ThreadsafeHashCache is a fast read thread-safe cache. It is used to
+    # cache ConnectionPool reserved connections.
+    # It makes ConnectionPool#connection and ConnectionPool#release_connection
+    # 10% faster than wrapping ConnectionPool#connection and
+    # ConnectionPool#release_connection methods in mutex synchronize
+    # block.
+    class ThreadsafeHashCache
+      # read method should be fast
+      delegate :[], :key?, :to => :@read_store
+
+      def initialize
+        @read_store, @write_store = {}, {}
+        @mutex = Mutex.new
+      end
+
+      def keys
+        @mutex.synchronize { @read_store.keys.dup }
+      end
+
+      def each(&block)
+        @mutex.synchronize { @read_store.each(&block) }
+      end
+
+      # thread-safe write
+      def []=(key, value)
+        atomic_send('[]=', key, value)
+      end
+
+      # thread-safe delete
+      def delete(key)
+        atomic_send('delete', key)
+      end
+
+      private
+      def atomic_send(method_name, *args, &block)
+        @mutex.synchronize do
+          @write_store.send(method_name, *args, &block)
+          @read_store, @write_store = @write_store, @read_store
+          @write_store.send(method_name, *args, &block)
+        end
       end
     end
   end
