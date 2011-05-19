@@ -458,12 +458,12 @@ module ActiveRecord
     #   end
     #
     # Some extensions can only be made to work with knowledge of the association's internals.
-    # Extensions can access relevant state using the following methods (where 'items' is the
+    # Extensions can access relevant state using the following methods (where +items+ is the
     # name of the association):
     #
-    # * +record.association(:items).owner+ - Returns the object the association is part of.
-    # * +record.association(:items).reflection+ - Returns the reflection object that describes the association.
-    # * +record.association(:items).target+ - Returns the associated object for +belongs_to+ and +has_one+, or
+    # * <tt>record.association(:items).owner</tt> - Returns the object the association is part of.
+    # * <tt>record.association(:items).reflection</tt> - Returns the reflection object that describes the association.
+    # * <tt>record.association(:items).target</tt> - Returns the associated object for +belongs_to+ and +has_one+, or
     #   the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
     #
     # === Association Join Models
