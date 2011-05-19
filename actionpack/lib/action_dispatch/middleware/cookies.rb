@@ -167,8 +167,8 @@ module ActionDispatch
 
         handle_options(options)
 
-        @set_cookies[key] = options
-        @delete_cookies.delete(key)
+        @set_cookies[key.to_s] = options
+        @delete_cookies.delete(key.to_s)
         value
       end
 
@@ -181,7 +181,7 @@ module ActionDispatch
         handle_options(options)
 
         value = @cookies.delete(key.to_s)
-        @delete_cookies[key] = options
+        @delete_cookies[key.to_s] = options
         value
       end
 
