@@ -19,6 +19,7 @@ module ApplicationTests
       boot!
 
       assert_equal [
+        "Rack::ContentLength",
         "ActionDispatch::Static",
         "Rack::Lock",
         "ActiveSupport::Cache::Strategy::LocalCache",
@@ -48,7 +49,7 @@ module ApplicationTests
 
       boot!
 
-      assert_equal "Rack::Cache", middleware.first
+      assert_equal "Rack::Cache", middleware.second
     end
 
     test "Rack::SSL is present when force_ssl is set" do
@@ -103,7 +104,7 @@ module ApplicationTests
     end
 
     test "insert middleware after" do
-      add_to_config "config.middleware.insert_after ActionDispatch::Static, Rack::Config"
+      add_to_config "config.middleware.insert_after Rack::ContentLength, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.second
     end
@@ -111,12 +112,12 @@ module ApplicationTests
     test "RAILS_CACHE does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store"
       boot!
-      assert_equal "Rack::Runtime", middleware.third
+      assert_equal "Rack::Runtime", middleware.fourth
     end
 
     test "RAILS_CACHE does respond to middleware" do
       boot!
-      assert_equal "Rack::Runtime", middleware.fourth
+      assert_equal "Rack::Runtime", middleware.fifth
     end
 
     test "identity map is inserted" do
@@ -126,7 +127,7 @@ module ApplicationTests
     end
 
     test "insert middleware before" do
-      add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
+      add_to_config "config.middleware.insert_before Rack::ContentLength, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
     end
