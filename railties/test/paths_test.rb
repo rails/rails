@@ -22,18 +22,18 @@ class PathsTest < ActiveSupport::TestCase
     root = Rails::Paths::Root.new(nil)
     root.add "app"
     root.path = "/root"
-    assert_equal ["app"], root["app"]
-    assert_equal ["/root/app"], root["app"].to_a
+    assert_equal %w(app), root["app"]
+    assert_equal %w(/root/app), root["app"].to_a
   end
 
   test "creating a root level path" do
     @root.add "app"
-    assert_equal ["/foo/bar/app"], @root["app"].to_a
+    assert_equal %w(/foo/bar/app), @root["app"].to_a
   end
 
   test "creating a root level path with options" do
     @root.add "app", :with => "/foo/bar"
-    assert_equal ["/foo/bar"], @root["app"].to_a
+    assert_equal %w(/foo/bar), @root["app"].to_a
   end
 
   test "raises exception if root path never set" do
@@ -47,48 +47,48 @@ class PathsTest < ActiveSupport::TestCase
   test "creating a child level path" do
     @root.add "app"
     @root.add "app/models"
-    assert_equal ["/foo/bar/app/models"], @root["app/models"].to_a
+    assert_equal %w(/foo/bar/app/models), @root["app/models"].to_a
   end
 
   test "creating a child level path with option" do
     @root.add "app"
     @root.add "app/models", :with => "/foo/bar/baz"
-    assert_equal ["/foo/bar/baz"], @root["app/models"].to_a
+    assert_equal %w(/foo/bar/baz), @root["app/models"].to_a
   end
 
   test "child level paths are relative from the root" do
     @root.add "app"
     @root.add "app/models", :with => "baz"
-    assert_equal ["/foo/bar/baz"], @root["app/models"].to_a
+    assert_equal %w(/foo/bar/baz), @root["app/models"].to_a
   end
 
   test "adding multiple physical paths as an array" do
-    @root.add "app", :with => ["/app", "/app2"]
-    assert_equal ["/app", "/app2"], @root["app"].to_a
+    @root.add "app", :with => %w(/app /app2)
+    assert_equal %w(/app /app2), @root["app"].to_a
   end
 
   test "adding multiple physical paths using #push" do
     @root.add "app"
     @root["app"].push "app2"
-    assert_equal ["/foo/bar/app", "/foo/bar/app2"], @root["app"].to_a
+    assert_equal %w(/foo/bar/app /foo/bar/app2), @root["app"].to_a
   end
 
   test "adding multiple physical paths using <<" do
     @root.add "app"
     @root["app"] << "app2"
-    assert_equal ["/foo/bar/app", "/foo/bar/app2"], @root["app"].to_a
+    assert_equal %w(/foo/bar/app /foo/bar/app2), @root["app"].to_a
   end
 
   test "adding multiple physical paths using concat" do
     @root.add "app"
-    @root["app"].concat ["app2", "/app3"]
-    assert_equal ["/foo/bar/app", "/foo/bar/app2", "/app3"], @root["app"].to_a
+    @root["app"].concat %w(app2 /app3)
+    assert_equal %w(/foo/bar/app /foo/bar/app2 /app3), @root["app"].to_a
   end
 
   test "adding multiple physical paths using #unshift" do
     @root.add "app"
     @root["app"].unshift "app2"
-    assert_equal ["/foo/bar/app2", "/foo/bar/app"], @root["app"].to_a
+    assert_equal %w(/foo/bar/app2 /foo/bar/app), @root["app"].to_a
   end
 
   test "the root can only have one physical path" do
@@ -206,26 +206,26 @@ class PathsTest < ActiveSupport::TestCase
     @root["app"] = "app"
     @root["app"].load_path!
     @root["app/models"] = "app/models"
-    assert_equal ["/foo/bar/app"], @root.load_paths
+    assert_equal %w(/foo/bar/app), @root.load_paths
   end
 
   test "a path can be added to the load path on creation" do
     @root.add "app", :with => "/app", :load_path => true
     assert @root["app"].load_path?
-    assert_equal ["/app"], @root.load_paths
+    assert_equal %w(/app), @root.load_paths
   end
 
   test "a path can be marked as autoload path" do
     @root["app"] = "app"
     @root["app"].autoload!
     @root["app/models"] = "app/models"
-    assert_equal ["/foo/bar/app"], @root.autoload_paths
+    assert_equal %w(/foo/bar/app), @root.autoload_paths
   end
 
   test "a path can be marked as autoload on creation" do
     @root.add "app", :with => "/app", :autoload => true
     assert @root["app"].autoload?
-    assert_equal ["/app"], @root.autoload_paths
+    assert_equal %w(/app), @root.autoload_paths
   end
 
   # Deprecated API tests
@@ -233,7 +233,7 @@ class PathsTest < ActiveSupport::TestCase
   test "reading a root level path with assignment" do
     @root.add "app"
     assert_deprecated do
-      assert_equal ["/foo/bar/app"], @root.app.to_a
+      assert_equal %w(/foo/bar/app), @root.app.to_a
     end
   end
 
@@ -241,21 +241,21 @@ class PathsTest < ActiveSupport::TestCase
     assert_deprecated do
       @root.app = "/foo/bar"
     end
-    assert_equal ["/foo/bar"], @root["app"].to_a
+    assert_equal %w(/foo/bar), @root["app"].to_a
   end
 
   test "creating a root level path without assignment" do
     assert_deprecated do
       @root.app "/foo/bar"
     end
-    assert_equal ["/foo/bar"], @root["app"].to_a
+    assert_equal %w(/foo/bar), @root["app"].to_a
   end
 
   test "reading a nested level path with assignment" do
     @root.add "app"
     @root.add "app/model"
     assert_deprecated do
-      assert_equal ["/foo/bar/app/model"], @root.app.model.to_a
+      assert_equal %w(/foo/bar/app/model), @root.app.model.to_a
     end
   end
 
@@ -264,7 +264,7 @@ class PathsTest < ActiveSupport::TestCase
     assert_deprecated do
       @root.app.model = "/foo/bar"
     end
-    assert_equal ["/foo/bar"], @root["app/model"].to_a
+    assert_equal %w(/foo/bar), @root["app/model"].to_a
   end
 
   test "creating a nested level path without assignment" do
@@ -272,7 +272,7 @@ class PathsTest < ActiveSupport::TestCase
     assert_deprecated do
       @root.app.model "/foo/bar"
     end
-    assert_equal ["/foo/bar"], @root["app/model"].to_a
+    assert_equal %w(/foo/bar), @root["app/model"].to_a
   end
 
   test "trying to access a path that does not exist raises NoMethodError" do
