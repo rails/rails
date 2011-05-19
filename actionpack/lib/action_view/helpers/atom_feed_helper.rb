@@ -34,7 +34,7 @@ module ActionView
       #       feed.title("My great blog!")
       #       feed.updated(@posts.first.created_at)
       #
-      #       for post in @posts
+      #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
       #           entry.content(post.body, :type => 'html')
@@ -66,7 +66,7 @@ module ActionView
       #       feed.updated((@posts.first.created_at))
       #       feed.tag!(openSearch:totalResults, 10)
       #
-      #       for post in @posts
+      #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
       #           entry.content(post.body, :type => 'html')
