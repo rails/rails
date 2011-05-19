@@ -173,7 +173,7 @@ module ActiveRecord
 
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
-      relation = relation.except(:select).select("1").limit(1)
+      relation = relation.except(:select).select("1 AS _one").limit(1)
 
       case id
       when Array, Hash
