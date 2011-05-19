@@ -37,11 +37,11 @@ module ActionController
   #     {"name" => "Konata", "user" => {"name" => "Konata"}}
   #
   # You can also specify the key in which the parameters should be wrapped to,
-  # and also the list of attributes it should wrap by using either +:only+ or
-  # +:except+ options like this:
+  # and also the list of attributes it should wrap by using either +:include+ or
+  # +:exclude+ options like this:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters :person, :only => [:username, :password]
+  #       wrap_parameters :person, :include => [:username, :password]
   #     end
   #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
@@ -53,7 +53,7 @@ module ActionController
   #       wrap_parameters Person
   #     end
   #
-  # You still could pass +:only+ and +:except+ to set the list of attributes
+  # You still could pass +:include+ and +:exclude+ to set the list of attributes
   # you want to wrap.
   #
   # By default, if you don't specify the key in which the parameters would be
@@ -73,7 +73,7 @@ module ActionController
 
     included do
       class_attribute :_wrapper_options
-      self._wrapper_options = {:format => []}
+      self._wrapper_options = { :format => [] }
     end
 
     module ClassMethods
@@ -91,7 +91,7 @@ module ActionController
       #     # wraps parameters by determine the wrapper key from Person class
       #     (+person+, in this case) and the list of attribute names
       #
-      #   wrap_parameters :only => [:username, :title]
+      #   wrap_parameters :include => [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.
       #
       #   wrap_parameters false
@@ -100,9 +100,9 @@ module ActionController
       # ==== Options
       # * <tt>:format</tt> - The list of formats in which the parameters wrapper
       #   will be enabled.
-      # * <tt>:only</tt> - The list of attribute names which parameters wrapper
+      # * <tt>:include</tt> - The list of attribute names which parameters wrapper
       #   will wrap into a nested hash.
-      # * <tt>:except</tt> - The list of attribute names which parameters wrapper
+      # * <tt>:exclude</tt> - The list of attribute names which parameters wrapper
       #   will exclude from a nested hash.
       def wrap_parameters(name_or_model_or_options, options = {})
         model = nil
@@ -164,10 +164,10 @@ module ActionController
       def _set_wrapper_defaults(options, model=nil)
         options = options.dup
 
-        unless options[:only] || options[:except]
+        unless options[:include] || options[:exclude]
           model ||= _default_wrap_model
           if model.respond_to?(:attribute_names) && model.attribute_names.present?
-            options[:only] = model.attribute_names
+            options[:include] = model.attribute_names
           end
         end
 
@@ -177,9 +177,9 @@ module ActionController
             controller_name.singularize
         end
 
-        options[:only]   = Array.wrap(options[:only]).collect(&:to_s)   if options[:only]
-        options[:except] = Array.wrap(options[:except]).collect(&:to_s) if options[:except]
-        options[:format] = Array.wrap(options[:format])
+        options[:include] = Array.wrap(options[:include]).collect(&:to_s) if options[:include]
+        options[:exclude] = Array.wrap(options[:exclude]).collect(&:to_s) if options[:exclude]
+        options[:format]  = Array.wrap(options[:format])
 
         self._wrapper_options = options
       end
@@ -216,11 +216,11 @@ module ActionController
 
       # Returns the list of parameters which will be selected for wrapped.
       def _wrap_parameters(parameters)
-        value = if only = _wrapper_options[:only]
-          parameters.slice(*only)
+        value = if include_only = _wrapper_options[:include]
+          parameters.slice(*include_only)
         else
-          except = _wrapper_options[:except] || []
-          parameters.except(*(except + EXCLUDE_PARAMETERS))
+          exclude = _wrapper_options[:exclude] || []
+          parameters.except(*(exclude + EXCLUDE_PARAMETERS))
         end
 
         { _wrapper_key => value }
