@@ -65,9 +65,9 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_specify_only_option
+  def test_specify_include_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :only => :username
+      UsersController.wrap_parameters :include => :username
 
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
@@ -75,9 +75,9 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_specify_except_option
+  def test_specify_exclude_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :except => :title
+      UsersController.wrap_parameters :exclude => :title
 
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
@@ -85,9 +85,9 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_specify_both_wrapper_name_and_only_option
+  def test_specify_both_wrapper_name_and_include_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :person, :only => :username
+      UsersController.wrap_parameters :person, :include => :username
 
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
