@@ -198,6 +198,18 @@ class FormHelperTest < ActionView::TestCase
       '<input id="person_name" name="person[name]" size="30" type="password" />', password_field("person", "name")
     )
   end
+  
+  def test_text_field_with_overridden_active_record_attribute
+    @post.class_eval do
+      define_method :title_before_type_cast do
+        nil
+      end
+    end
+    @post.title = 'my-title'
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" size="30" type="text" value="my-title" />', text_field("post", "title")
+    )
+  end
 
   def test_text_field_with_escapes
     @post.title = "<b>Hello World</b>"
