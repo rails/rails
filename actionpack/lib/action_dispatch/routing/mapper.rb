@@ -1090,11 +1090,11 @@ module ActionDispatch
         # [:shallow_path]
         #   Prefixes nested shallow routes with the specified path.
         #
-        #   scope :shallow_path => "sekret" do
-        #     resources :posts do
-        #       resources :comments, :shallow => true
+        #     scope :shallow_path => "sekret" do
+        #       resources :posts do
+        #         resources :comments, :shallow => true
+        #       end
         #     end
-        #   end
         #
         #   The +comments+ resource here will have the following routes generated for it:
         #
