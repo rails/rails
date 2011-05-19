@@ -14,7 +14,7 @@ module ActiveRecord
     #   Account.transaction do
     #     # select * from accounts where name = 'shugo' limit 1 for update
     #     shugo = Account.where("name = 'shugo'").lock(true).first
-    #     yuko = Account.where("name = 'shugo'").lock(true).first
+    #     yuko = Account.where("name = 'yuko'").lock(true).first
     #     shugo.balance -= 100
     #     shugo.save!
     #     yuko.balance += 100
