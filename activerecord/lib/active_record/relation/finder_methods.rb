@@ -226,7 +226,7 @@ module ActiveRecord
     end
 
     def apply_join_dependency(relation, join_dependency)
-      for association in join_dependency.join_associations
+      join_dependency.join_associations.each do |association|
         relation = association.join_relation(relation)
       end
 
