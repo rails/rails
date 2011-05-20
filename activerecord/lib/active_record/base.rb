@@ -2018,7 +2018,7 @@ MSG
       def extract_callstack_for_multiparameter_attributes(pairs)
         attributes = { }
 
-        for pair in pairs
+        pairs.each do |pair|
           multiparameter_name, value = pair
           attribute_name = multiparameter_name.split("(").first
           attributes[attribute_name] = {} unless attributes.include?(attribute_name)
