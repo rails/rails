@@ -180,7 +180,7 @@ module Rails
   #   <tt>my_engine:install:assets</tt>
   #
   # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
-  # <tt>my_engine_engine</tt>. You can change it manually it manually using the <tt>engine_name</tt> method:
+  # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
