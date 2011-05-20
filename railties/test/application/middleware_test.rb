@@ -19,7 +19,7 @@ module ApplicationTests
       boot!
 
       assert_equal [
-        "Rack::ContentLength",
+        "Rails::Rack::ContentLength",
         "ActionDispatch::Static",
         "Rack::Lock",
         "ActiveSupport::Cache::Strategy::LocalCache",
@@ -104,7 +104,7 @@ module ApplicationTests
     end
 
     test "insert middleware after" do
-      add_to_config "config.middleware.insert_after Rack::ContentLength, Rack::Config"
+      add_to_config "config.middleware.insert_after Rails::Rack::ContentLength, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.second
     end
@@ -127,7 +127,7 @@ module ApplicationTests
     end
 
     test "insert middleware before" do
-      add_to_config "config.middleware.insert_before Rack::ContentLength, Rack::Config"
+      add_to_config "config.middleware.insert_before Rails::Rack::ContentLength, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
     end
