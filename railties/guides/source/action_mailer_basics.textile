@@ -419,7 +419,7 @@ class UserMailer < ActionMailer::Base
     )
 
     if email.has_attachments?
-      for attachment in email.attachments
+      email.attachments.each do |attachment|
         page.attachments.create({
           :file => attachment,
           :description => email.subject
