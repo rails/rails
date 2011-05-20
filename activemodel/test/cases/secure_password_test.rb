@@ -3,6 +3,27 @@ require 'models/user'
 require 'models/visitor'
 require 'models/administrator'
 
+class AlternateUser
+  include ActiveModel::Validations
+  include ActiveModel::SecurePassword
+
+  module PhonyAuthenticator
+
+    def self.crypt(plaintext)
+      "ciphertext"
+    end 
+
+    def self.authenticate(ciphertext, plaintext)
+      true
+    end 
+
+  end 
+  
+  has_secure_password "secret", "crypted_secret", PhonyAuthenticator
+
+  attr_accessor :crypted_secret
+end 
+
 class SecurePasswordTest < ActiveModel::TestCase
 
   setup do
@@ -55,4 +76,13 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert !active_authorizer.include?(:password_digest)
     assert active_authorizer.include?(:name)
   end
+
+  test "defaults can be overwritten" do
+    user = AlternateUser.new
+    user.secret = "password"
+    
+    assert_equal "password", user.secret
+    assert user.authenticate("password")
+  end 
+
 end
