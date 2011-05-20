@@ -121,7 +121,7 @@ class CookiesTest < ActionController::TestCase
     end
 
     def string_key
-      cookies['user_name'] = "david"
+      cookies['user_name'] = "dhh"
       head :ok
     end
 
@@ -417,13 +417,17 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
+  
   def test_cookies_hash_is_indifferent_access
-    [:symbol_key, :string_key].each do |cookie_key|
-      get cookie_key
+      get :symbol_key
       assert_equal "david", cookies[:user_name]
       assert_equal "david", cookies['user_name']
-    end
+      get :string_key
+      assert_equal "dhh", cookies[:user_name]
+      assert_equal "dhh", cookies['user_name']
   end
+
+
 
   def test_setting_request_cookies_is_indifferent_access
     @request.cookies.clear

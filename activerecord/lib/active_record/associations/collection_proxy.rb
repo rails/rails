@@ -123,6 +123,30 @@ module ActiveRecord
           method_missing(:new, *args, &block)
         end
       end
+
+      def proxy_owner
+        ActiveSupport::Deprecation.warn(
+          "Calling record.#{@association.reflection.name}.proxy_owner is deprecated. Please use " \
+          "record.association(:#{@association.reflection.name}).owner instead."
+        )
+        @association.owner
+      end
+
+      def proxy_target
+        ActiveSupport::Deprecation.warn(
+          "Calling record.#{@association.reflection.name}.proxy_target is deprecated. Please use " \
+          "record.association(:#{@association.reflection.name}).target instead."
+        )
+        @association.target
+      end
+
+      def proxy_reflection
+        ActiveSupport::Deprecation.warn(
+          "Calling record.#{@association.reflection.name}.proxy_reflection is deprecated. Please use " \
+          "record.association(:#{@association.reflection.name}).reflection instead."
+        )
+        @association.reflection
+      end
     end
   end
 end
