@@ -7,8 +7,9 @@ module ActiveModel
     attr_reader :singular, :plural, :element, :collection, :partial_path, :route_key, :param_key, :i18n_key
     alias_method :cache_key, :collection
 
-    def initialize(klass, namespace = nil)
-      super(klass.name)
+    def initialize(klass, namespace = nil, name = nil)
+      name ||= klass.name
+      super(name)
       @unnamespaced = self.sub(/^#{namespace.name}::/, '') if namespace
 
       @klass = klass
