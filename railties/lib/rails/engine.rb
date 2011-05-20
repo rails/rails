@@ -522,9 +522,15 @@ module Rails
     end
 
     initializer :append_assets_path do |app|
-      app.config.assets.paths.unshift(*paths["vendor/assets"].existent)
-      app.config.assets.paths.unshift(*paths["lib/assets"].existent)
-      app.config.assets.paths.unshift(*paths["app/assets"].existent)
+      if app.config.assets.respond_to?(:prepend_path)
+        app.config.assets.prepend_path(*paths["vendor/assets"].existent)
+        app.config.assets.prepend_path(*paths["lib/assets"].existent)
+        app.config.assets.prepend_path(*paths["app/assets"].existent)
+      else
+        app.config.assets.paths.unshift(*paths["vendor/assets"].existent)
+        app.config.assets.paths.unshift(*paths["lib/assets"].existent)
+        app.config.assets.paths.unshift(*paths["app/assets"].existent)
+      end
     end
 
     initializer :prepend_helpers_path do |app|
