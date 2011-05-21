@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'test/unit'
-require 'active_support'
 require 'fileutils'
 
 MTIME_FIXTURES_PATH = File.expand_path("../fixtures", __FILE__)
