@@ -125,7 +125,7 @@ module ActiveModel
   #
   #   class CommentObserver < ActiveModel::Observer
   #     def after_save(comment)
-  #       Notifications.deliver_comment("admin@do.com", "New comment was posted", comment)
+  #       Notifications.comment("admin@do.com", "New comment was posted", comment).deliver
   #     end
   #   end
   #
