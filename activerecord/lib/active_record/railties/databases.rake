@@ -333,6 +333,7 @@ namespace :db do
     task :dump => :environment do
       require 'active_record/schema_dumper'
       File.open(ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb", "w") do |file|
+        ActiveRecord::Base.establish_connection(Rails.env)
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
       Rake::Task["db:schema:dump"].reenable
