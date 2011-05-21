@@ -367,6 +367,15 @@ class BasicsTest < ActiveRecord::TestCase
     GUESSED_CLASSES.each(&:reset_table_name)
   end
 
+  def test_singular_table_name_guesses_for_individual_table
+    CreditCard.pluralize_table_names = false
+    CreditCard.reset_table_name
+    assert_equal "credit_card", CreditCard.table_name
+    assert_equal "categories", Category.table_name
+  ensure
+    CreditCard.pluralize_table_names = true
+    CreditCard.reset_table_name
+  end
 
   if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
