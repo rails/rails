@@ -8,13 +8,6 @@ module ActionView
     config.action_view.stylesheet_expansions = {}
     config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
 
-    initializer "action_view.utf8_enforcer_param" do |app|
-      ActiveSupport.on_load(:action_view) do
-        param = app.config.action_view.delete(:utf8_enforcer_param)
-        ActionView::Helpers::FormTagHelper.utf8_enforcer_param = param
-      end
-    end
-
     initializer "action_view.cache_asset_ids" do |app|
       unless app.config.cache_classes
         ActiveSupport.on_load(:action_view) do

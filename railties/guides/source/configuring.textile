@@ -330,8 +330,6 @@ And can reference in the view with the following code:
 <%= stylesheet_link_tag :special %>
 </ruby>
 
-* +config.action_view.utf8_enforcer_param+ tells Rails what the +name+ attribute should be for the hidden tag that's used for enforcing UTF8 encoding in form submissions. The default is +'utf8'+.
-
 * +config.action_view.cache_asset_ids+ With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
 
 h4. Configuring Action Mailer
