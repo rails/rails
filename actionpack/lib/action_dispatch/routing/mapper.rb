@@ -910,7 +910,7 @@ module ActionDispatch
 
           alias :member_name :singular
 
-          # Checks for uncountable plurals, and appends "_index" if the plural 
+          # Checks for uncountable plurals, and appends "_index" if the plural
           # and singular form are the same.
           def collection_name
             singular == plural ? "#{plural}_index" : plural
@@ -1083,9 +1083,13 @@ module ActionDispatch
         #   Is the same as:
         #
         #     resources :posts do
-        #       resources :comments
+        #       resources :comments, :except => [:show, :edit, :update, :destroy]
         #     end
-        #     resources :comments
+        #     resources :comments, :only => [:show, :edit, :update, :destroy]
+        #
+        #   This allows URLs for resources that otherwise would be deeply nested such
+        #   as a comment on a blog post like <tt>/posts/a-long-permalink/comments/1234</tt>
+        #   to be shortened to just <tt>/comments/1234</tt>.
         #
         # [:shallow_path]
         #   Prefixes nested shallow routes with the specified path.
