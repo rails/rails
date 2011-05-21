@@ -319,7 +319,7 @@ When you run +rake+ you should see the tests all pass:
 
 h4. Add an Instance Method
 
-This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'.  The 'squawk'
+This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'. The 'squawk'
 method will simply set the value of one of the fields in the database.
 
 To start out, write a failing test that shows the behavior you'd like:
