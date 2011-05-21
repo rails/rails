@@ -18,4 +18,5 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
 
   s.add_dependency('multi_json', '~> 1.0')
+  s.add_dependency('i18n')
 end
