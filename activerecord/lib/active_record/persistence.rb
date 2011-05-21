@@ -209,6 +209,23 @@ module ActiveRecord
       end
     end
 
+    # Updates the attributes from the passed-in hash, without calling save.
+    #
+    # * Validation is skipped.
+    # * Callbacks are skipped.
+    # * +updated_at+/+updated_on+ column is not updated if that column is available.
+    #
+    # Raises an +ActiveRecordError+ when called on new objects, or when at least
+    # one if the attributes is marked as readonly.
+    def update_columns(attributes)
+      raise ActiveRecordError, "can not update on a new record object" unless persisted?
+      attributes.each_key {|key| raise ActiveRecordError, "#{key.to_s} is marked as readonly" if self.class.readonly_attributes.include?(key.to_s) }
+      attributes.each do |k,v|
+        raw_write_attribute(k,v)
+      end
+      self.class.update_all(attributes, self.class.primary_key => id) == 1
+    end
+
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
     # The increment is performed directly on the underlying attribute, no setter is invoked.
     # Only makes sense for number-based attributes. Returns +self+.
