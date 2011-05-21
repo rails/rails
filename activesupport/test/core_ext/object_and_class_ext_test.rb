@@ -101,6 +101,12 @@ class ObjectTryTest < Test::Unit::TestCase
     assert !@string.respond_to?(method)
     assert_nil @string.try(method)
   end
+  
+  def test_nonexisting_method_with_arguments
+    method = :undefined_method
+    assert !@string.respond_to?(method)
+    assert_nil @string.try(method, 'llo', 'y')
+  end
 
   def test_valid_method
     assert_equal 5, @string.try(:size)
