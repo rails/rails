@@ -264,6 +264,7 @@ module ActiveRecord
     end
 
     def find_or_instantiator_by_attributes(match, attributes, *args)
+      options = args.size > 1 && args.last(2).all?{ |a| a.is_a?(Hash) } ? args.extract_options! : {}
       protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
       args.each_with_index do |arg, i|
         if arg.is_a?(Hash)
@@ -278,8 +279,7 @@ module ActiveRecord
       record = where(conditions).first
 
       unless record
-        record = @klass.new do |r|
-          r.assign_attributes(protected_attributes_for_create)
+        record = @klass.new(protected_attributes_for_create, options) do |r|
           r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
         end
         yield(record) if block_given?

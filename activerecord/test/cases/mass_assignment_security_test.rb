@@ -239,6 +239,54 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_or_initialize_by_with_attr_accessible_attributes
+    p = TightPerson.find_or_initialize_by_first_name('Josh', attributes_hash)
+
+    assert_default_attributes(p)
+  end
+
+  def test_find_or_initialize_by_with_admin_role_with_attr_accessible_attributes
+    p = TightPerson.find_or_initialize_by_first_name('Josh', attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p)
+  end
+
+  def test_find_or_initialize_by_with_attr_protected_attributes
+    p = LoosePerson.find_or_initialize_by_first_name('Josh', attributes_hash)
+
+    assert_default_attributes(p)
+  end
+
+  def test_find_or_initialize_by_with_admin_role_with_attr_protected_attributes
+    p = LoosePerson.find_or_initialize_by_first_name('Josh', attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p)
+  end
+
+  def test_find_or_create_by_with_attr_accessible_attributes
+    p = TightPerson.find_or_create_by_first_name('Josh', attributes_hash)
+
+    assert_default_attributes(p, true)
+  end
+
+  def test_find_or_create_by_with_admin_role_with_attr_accessible_attributes
+    p = TightPerson.find_or_create_by_first_name('Josh', attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p, true)
+  end
+
+  def test_find_or_create_by_with_attr_protected_attributes
+    p = LoosePerson.find_or_create_by_first_name('Josh', attributes_hash)
+
+    assert_default_attributes(p, true)
+  end
+
+  def test_find_or_create_by_with_admin_role_with_attr_protected_attributes
+    p = LoosePerson.find_or_create_by_first_name('Josh', attributes_hash, :as => :admin)
+
+    assert_admin_attributes(p, true)
+  end
+
 end
 
 
