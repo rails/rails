@@ -3,7 +3,6 @@ require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/module/attr_accessor_with_default'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/object/blank'
@@ -565,10 +564,23 @@ module ActiveResource
         @headers ||= {}
       end
 
-      attr_accessor_with_default(:element_name)    { model_name.element } #:nodoc:
-      attr_accessor_with_default(:collection_name) { ActiveSupport::Inflector.pluralize(element_name) } #:nodoc:
+      attr_writer :element_name
 
-      attr_accessor_with_default(:primary_key, 'id') #:nodoc:
+      def element_name
+        @element_name ||= model_name.element
+      end
+
+      attr_writer :collection_name
+
+      def collection_name
+        @collection_name ||= ActiveSupport::Inflector.pluralize(element_name)
+      end
+
+      attr_writer :primary_key
+
+      def primary_key
+        @primary_key ||= 'id'
+      end
 
       # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.json</tt>)
       # This method is regenerated at runtime based on what the \prefix is set to.
