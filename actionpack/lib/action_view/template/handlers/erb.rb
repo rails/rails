@@ -1,5 +1,4 @@
 require 'active_support/core_ext/class/attribute_accessors'
-require 'action_view/template'
 require 'action_view/template/handler'
 require 'erubis'
 
