@@ -49,8 +49,8 @@ module ActiveRecord
         end
       end
 
-      def pluralize(table_name)
-        ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name.to_s
+      def pluralize(table_name, base)
+        base.pluralize_table_names ? table_name.to_s.pluralize : table_name.to_s
       end
 
       private
