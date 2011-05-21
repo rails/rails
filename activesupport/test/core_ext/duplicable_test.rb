@@ -3,7 +3,7 @@ require 'bigdecimal'
 require 'active_support/core_ext/object/duplicable'
 
 class DuplicableTest < Test::Unit::TestCase
-  NO  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56'), Class.new]
+  NO  = [nil, false, true, :symbol, 1, 2.3, BigDecimal.new('4.56'), Class.new, Module.new]
   YES = ['1', Object.new, /foo/, [], {}, Time.now]
 
   def test_duplicable
