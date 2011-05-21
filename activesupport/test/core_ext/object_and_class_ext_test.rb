@@ -133,3 +133,36 @@ class ObjectTryTest < Test::Unit::TestCase
     assert_equal false, ran
   end
 end
+
+class ObjectFetchTest < Test::Unit::TestCase
+  def setup
+    @string = "Hello"
+  end
+
+  def test_nonexisting_method
+    method = :undefined_method
+    assert !@string.respond_to?(method)
+    assert_equal 'default return', @string.fetch(method, 'default return')
+  end
+
+  def test_valid_method
+    assert_equal 5, @string.fetch(:size, 'default return')
+  end
+
+  def test_argument_forwarding
+    assert_equal 'Hey', @string.fetch(:sub, 'llo', 'y', 'default return')
+  end
+
+  def test_default_value
+    assert_equal 5, @string.fetch(:size)
+  end
+  
+  def test_nil_return
+    assert !@string.respond_to?(:to_float)
+    assert_nil @string.fetch(:to_float)
+  end
+
+  def test_default_return
+    assert_equal 'default return', @string.fetch(:to_float, 'default return')
+  end
+end
