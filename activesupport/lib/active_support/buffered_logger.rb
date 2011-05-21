@@ -56,9 +56,9 @@ module ActiveSupport
     end
 
     def open_log(log, mode)
-      open(log, mode).tap do |log|
-        log.set_encoding(Encoding::BINARY) if log.respond_to?(:set_encoding)
-        log.sync = true
+      open(log, mode).tap do |open_log|
+        open_log.set_encoding(Encoding::BINARY) if open_log.respond_to?(:set_encoding)
+        open_log.sync = true
       end
     end
 
