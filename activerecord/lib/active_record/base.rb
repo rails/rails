@@ -577,15 +577,25 @@ module ActiveRecord #:nodoc:
       #
       # ==== Examples
       #
-      #   class Invoice < ActiveRecord::Base; end;
+      #   class Invoice < ActiveRecord::Base
+      #   end
+      #
       #   file                  class               table_name
       #   invoice.rb            Invoice             invoices
       #
-      #   class Invoice < ActiveRecord::Base; class Lineitem < ActiveRecord::Base; end; end;
+      #   class Invoice < ActiveRecord::Base
+      #     class Lineitem < ActiveRecord::Base
+      #     end
+      #   end
+      #
       #   file                  class               table_name
       #   invoice.rb            Invoice::Lineitem   invoice_lineitems
       #
-      #   module Invoice; class Lineitem < ActiveRecord::Base; end; end;
+      #   module Invoice
+      #     class Lineitem < ActiveRecord::Base
+      #     end
+      #   end
+      #
       #   file                  class               table_name
       #   invoice/lineitem.rb   Invoice::Lineitem   lineitems
       #
