@@ -133,6 +133,16 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     assert_admin_attributes(p)
   end
 
+  def test_find_or_initialize_by_with_admin_role_and_attr_accessible_attributes
+    p = TightPerson.find_or_initialize_by_first_name(attributes_hash, :as => :admin)
+    assert_admin_attributes(p)
+  end
+
+   def test_find_or_initialize_by_with_default_role_and_attr_accessible_attributes
+    p = TightPerson.find_or_initialize_by_first_name(attributes_hash, :as => :default)
+    assert_default_attributes(p)
+  end
+
   def test_new_with_attr_accessible_attributes
     p = TightPerson.new(attributes_hash)
 
