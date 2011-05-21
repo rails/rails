@@ -393,8 +393,8 @@ module ActiveRecord #:nodoc:
     # Indicates whether table names should be the pluralized versions of the corresponding class names.
     # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
     # See table_name for the full rules on table/class naming. This is true, by default.
-    cattr_accessor :pluralize_table_names, :instance_writer => false
-    @@pluralize_table_names = true
+    class_attribute :pluralize_table_names, :instance_writer => false
+    self.pluralize_table_names = true
 
     ##
     # :singleton-method:
@@ -577,15 +577,25 @@ module ActiveRecord #:nodoc:
       #
       # ==== Examples
       #
-      #   class Invoice < ActiveRecord::Base; end;
+      #   class Invoice < ActiveRecord::Base
+      #   end
+      #
       #   file                  class               table_name
       #   invoice.rb            Invoice             invoices
       #
-      #   class Invoice < ActiveRecord::Base; class Lineitem < ActiveRecord::Base; end; end;
+      #   class Invoice < ActiveRecord::Base
+      #     class Lineitem < ActiveRecord::Base
+      #     end
+      #   end
+      #
       #   file                  class               table_name
       #   invoice.rb            Invoice::Lineitem   invoice_lineitems
       #
-      #   module Invoice; class Lineitem < ActiveRecord::Base; end; end;
+      #   module Invoice
+      #     class Lineitem < ActiveRecord::Base
+      #     end
+      #   end
+      #
       #   file                  class               table_name
       #   invoice/lineitem.rb   Invoice::Lineitem   lineitems
       #

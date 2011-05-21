@@ -11,7 +11,6 @@ Gem::Specification.new do |s|
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
-  s.rubyforge_project = 'rails'
 
   s.files              = Dir['CHANGELOG', 'README.rdoc', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
   s.require_path       = 'lib'

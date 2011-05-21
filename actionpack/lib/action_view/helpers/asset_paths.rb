@@ -1,5 +1,4 @@
 require 'active_support/core_ext/file'
-require 'action_view/helpers/asset_paths'
 
 module ActionView
   module Helpers

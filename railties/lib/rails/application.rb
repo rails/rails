@@ -185,10 +185,12 @@ module Rails
     end
 
     def initialize_tasks
-      require "rails/tasks"
-      task :environment do
-        $rails_rake_task = true
-        require_environment!
+      self.class.rake_tasks do
+        require "rails/tasks"
+        task :environment do
+          $rails_rake_task = true
+          require_environment!
+        end
       end
     end
 
