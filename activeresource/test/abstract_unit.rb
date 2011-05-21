@@ -13,11 +13,6 @@ require 'setter_trap'
 require 'logger'
 ActiveResource::Base.logger = Logger.new("#{File.dirname(__FILE__)}/debug.log")
 
-begin
-  require 'ruby-debug'
-rescue LoadError
-end
-
 def setup_response
   matz_hash = { 'person' => { :id => 1, :name => 'Matz' } }
 
