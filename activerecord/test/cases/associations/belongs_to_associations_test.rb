@@ -158,6 +158,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not_nil Company.find(3).firm_with_condition, "Microsoft should have a firm"
   end
 
+  def test_polymorphic_association_class
+    sponsor = Sponsor.new
+    assert_nil sponsor.association(:sponsorable).send(:klass)
+
+    sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
+    assert_nil sponsor.association(:sponsorable).send(:klass)
+
+    sponsor.sponsorable = Member.new :name => "Bert"
+    assert_equal Member, sponsor.association(:sponsorable).send(:klass)
+  end
+
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create :name => "Bert"
