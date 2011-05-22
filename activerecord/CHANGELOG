@@ -1,5 +1,13 @@
 *Rails 3.1.0 (unreleased)*
 
+* AR#pluralize_table_names can be used to singularize/pluralize table name of an individual model:
+
+    class User < ActiveRecord::Base
+      self.pluralize_table_names = false
+    end
+
+  Previously this could only be set globally for all models through ActiveRecord::Base.pluralize_table_names. [Guillermo Iguaran]
+
 * Add block setting of attributes to singular associations:
 
     class User < ActiveRecord::Base
