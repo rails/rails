@@ -1,4 +1,8 @@
 require 'abstract_unit'
+# Required in sprockets
+require 'rails/version' unless defined?(Rails::VERSION)
+# Required in sprockets
+require 'rails/engine' unless defined?(Rails::Engine)
 require 'sprockets'
 require 'mocha'
 
