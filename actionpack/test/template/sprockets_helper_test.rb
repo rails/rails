@@ -13,6 +13,7 @@ class SprocketsHelperTest < ActionView::TestCase
     super
 
     @controller = BasicController.new
+    @controller.stubs(:params).returns({})
 
     @request = Class.new do
       def protocol() 'http://' end
@@ -85,10 +86,13 @@ class SprocketsHelperTest < ActionView::TestCase
       sprockets_javascript_include_tag("xmlhr.js")
     assert_equal '<script src="http://www.example.com/xmlhr" type="text/javascript"></script>',
       sprockets_javascript_include_tag("http://www.example.com/xmlhr")
+
+    assert_equal "<script src=\"/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js?body=1\" type=\"text/javascript\"></script>\n<script src=\"/assets/application-d41d8cd98f00b204e9800998ecf8427e.js?body=1\" type=\"text/javascript\"></script>",
+      sprockets_javascript_include_tag(:application, :debug => true)
   end
 
   test "stylesheet path" do
-    assert_equal "/assets/application-d41d8cd98f00b204e9800998ecf8427e.css", asset_path(:application, "css")
+    assert_equal "/assets/application-68b329da9893e34099c7d8ad5cb9c940.css", asset_path(:application, "css")
 
     assert_equal "/assets/style-d41d8cd98f00b204e9800998ecf8427e.css", asset_path("style", "css")
     assert_equal "/assets/dir/style-d41d8cd98f00b204e9800998ecf8427e.css", asset_path("dir/style.css", "css")
@@ -101,7 +105,7 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "stylesheet link tag" do
-    assert_equal '<link href="/assets/application-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
+    assert_equal '<link href="/assets/application-68b329da9893e34099c7d8ad5cb9c940.css" media="screen" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag(:application)
 
     assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="screen" rel="stylesheet" type="text/css" />',
@@ -115,5 +119,8 @@ class SprocketsHelperTest < ActionView::TestCase
       sprockets_stylesheet_link_tag("style", :media => "all")
     assert_equal '<link href="/assets/style-d41d8cd98f00b204e9800998ecf8427e.css" media="print" rel="stylesheet" type="text/css" />',
       sprockets_stylesheet_link_tag("style", :media => "print")
+
+    assert_equal "<link href=\"/assets/style-d41d8cd98f00b204e9800998ecf8427e.css?body=1\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n<link href=\"/assets/application-68b329da9893e34099c7d8ad5cb9c940.css?body=1\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />",
+      sprockets_stylesheet_link_tag(:application, :debug => true)
   end
 end
