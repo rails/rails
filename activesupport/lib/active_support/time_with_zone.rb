@@ -333,7 +333,7 @@ module ActiveSupport
         @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
         begin
           @time_zone.period_for_local(@time)
-        rescue ::TZInfo::PeriodNotFound
+        rescue TZInfo::PeriodNotFound
           # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
           @time += 1.hour
           retry
