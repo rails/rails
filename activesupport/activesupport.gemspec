@@ -9,12 +9,13 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 1.8.7'
 
-  s.author            = 'David Heinemeier Hansson'
-  s.email             = 'david@loudthinking.com'
-  s.homepage          = 'http://www.rubyonrails.org'
+  s.author       = 'David Heinemeier Hansson'
+  s.email        = 'david@loudthinking.com'
+  s.homepage     = 'http://www.rubyonrails.org'
 
   s.files        = Dir['CHANGELOG', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
+  s.add_dependency('i18n', '~> 0.6.0beta1')
   s.add_dependency('multi_json', '~> 1.0')
 end

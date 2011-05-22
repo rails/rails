@@ -30,7 +30,7 @@ module ActiveModel
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
       def has_secure_password
-        attr_reader   :password
+        attr_reader :password
 
         validates_confirmation_of :password
         validates_presence_of     :password_digest
