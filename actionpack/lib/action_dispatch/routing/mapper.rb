@@ -578,8 +578,8 @@ module ActionDispatch
         #   end
         #
         # This generates helpers such as +account_projects_path+, just like +resources+ does.
-        # The difference here being that the routes generated are like /rails/projects/2,
-        # rather than /accounts/rails/projects/2.
+        # The difference here being that the routes generated are like /:account_id/projects,
+        # rather than /accounts/:account_id/projects.
         #
         # === Options
         #
