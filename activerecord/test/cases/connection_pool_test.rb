@@ -81,7 +81,7 @@ module ActiveRecord
         }
         pool.checkins = []
 
-        cleared_threads = pool.clear_stale_cached_connections!
+        cleared_threads = pool.send(:clear_stale_cached_connections!)
         assert((cleared_threads - threads.map { |x| x.object_id }).empty?,
                "threads should have been removed")
         assert_equal pool.checkins.length, threads.length
