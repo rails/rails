@@ -1229,6 +1229,7 @@ module ActionView
         RUBY_EVAL
       end
 
+      # Check +fields_for+ for docs and examples.
       def fields_for_with_index(record_name, record_object = nil, fields_options = {}, &block)
         index = fields_options[:index] || options[:child_index] || nested_child_index(@object_name)
         block_with_index = Proc.new{ |obj| block.call(obj, index) }
