@@ -186,3 +186,38 @@ class NumericExtSizeTest < Test::Unit::TestCase
     assert_equal 3458764513820540928, 3.exabyte
   end
 end
+
+class NumericExtTest < Test::Unit::TestCase
+  def test_multiple_of
+    [ -7, 0, 7, 14 ].each { |i| assert i.multiple_of?(7) }
+    [ -7, 7, 14 ].each { |i| assert ! i.multiple_of?(6) }
+    [ -8, 0, 4, 12 ].each { |i| assert i.multiple_of?(2,4) }
+    [ -8, 11, 15, 21 ].each { |i| assert ! i.multiple_of?(2,3) }
+
+    # test the 0 edge case
+    assert 0.multiple_of?(0)
+    assert !5.multiple_of?(0)
+    assert 0.multiple_of?(0, 2)
+    assert !5.multiple_of?(0, 5)
+    assert 0.multiple_of?(1)
+    assert 0.0.multiple_of?(1)
+    assert 0.multiple_of?(2)
+    assert 0.multiple_of?(0)
+    assert !0.1.multiple_of?(0)
+
+    assert 1.multiple_of?(1)
+    assert 1.0.multiple_of?(1)
+    assert !1.multiple_of?(0)
+    assert !1.multiple_of?(2)
+
+    assert 2.multiple_of?(1, 2)
+    assert !2.multiple_of?(1, 2, 3)
+
+
+    # test with a prime
+    assert !22953686867719691230002707821868552601124472329079.multiple_of?(2)
+    assert !22953686867719691230002707821868552601124472329079.multiple_of?(3)
+    assert !22953686867719691230002707821868552601124472329079.multiple_of?(5)
+    assert !22953686867719691230002707821868552601124472329079.multiple_of?(7)
+  end
+end
