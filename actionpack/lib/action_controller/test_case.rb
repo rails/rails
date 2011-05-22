@@ -395,7 +395,26 @@ module ActionController
       end
       alias xhr :xml_http_request
 
+      def stringify_values(hash_or_array_or_value)
+        case hash_or_array_or_value
+        when Hash
+          hash_or_array_or_value.each do |key, value|
+            hash_or_array_or_value[key] = stringify_values(value)
+          end
+        when Array
+          hash_or_array_or_value.map {|i| stringify_values(i)}
+        when Numeric, Symbol
+          hash_or_array_or_value.to_s
+        else
+          hash_or_array_or_value
+        end
+      end
+
       def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
+        # Ensure that numbers and symbols passed as params are converted to
+        # strings, as is the case when engaging rack.
+        stringify_values(parameters)
+
         # Sanity check for required instance variables so we can give an
         # understandable error message.
         %w(@routes @controller @request @response).each do |iv_name|
