@@ -8,8 +8,6 @@
 # Rails booted up.
 require 'fileutils'
 
-# TODO: Remove rubygems when possible
-require 'rubygems'
 require 'test/unit'
 
 # TODO: Remove setting this magic constant
