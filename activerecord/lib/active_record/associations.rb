@@ -1077,7 +1077,8 @@ module ActiveRecord
       #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> this object cannot be deleted if it has any associated object.
+      #   <tt>:restrict</tt> this object raises an <tt>ActiveRecord::DeleteRestrictionError</tt> exception and
+      #   cannot be deleted if it has any associated objects.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1226,7 +1227,8 @@ module ActiveRecord
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
       #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   Also, association is assigned.
+      #   Also, association is assigned. If set to <tt>:restrict</tt> this object raises an
+      #   <tt>ActiveRecord::DeleteRestrictionError</tt> exception and cannot be deleted if it has any associated object.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
