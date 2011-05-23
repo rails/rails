@@ -1,11 +1,4 @@
 require 'abstract_unit'
-
-module Rails
-  class Engine
-    def self.initializer(*args); end
-  end
-end
-
 require 'sprockets'
 require 'mocha'
 
