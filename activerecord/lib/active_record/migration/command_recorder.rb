@@ -79,8 +79,12 @@ module ActiveRecord
       end
 
       def invert_add_index(args)
-        table, columns, _ = *args
-        [:remove_index, [table, {:column => columns}]]
+        table, columns, options = *args
+        if options && options[:name]
+          [:remove_index, [table, {:name => options[:name]}]]
+        else
+          [:remove_index, [table, {:column => columns}]]
+        end
       end
 
       def invert_remove_timestamps(args)
