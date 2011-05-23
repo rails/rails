@@ -80,11 +80,8 @@ module ActiveRecord
 
       def invert_add_index(args)
         table, columns, options = *args
-        if options && options[:name]
-          options_hash = {:name => options[:name]}
-        else
-          options_hash = {:column => columns}
-        end
+        index_name = options.try(:[], :name)
+        options_hash =  index_name ? {:name => index_name} : {:column => columns}
         [:remove_index, [table, options_hash]]
       end
 
