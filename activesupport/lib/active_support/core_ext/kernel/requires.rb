@@ -1,4 +1,5 @@
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/module/deprecation'
 
 module Kernel
   # Require a library with fallback to RubyGems.  Warnings during library
@@ -23,4 +24,5 @@ module Kernel
       end
     end
   end
+  deprecate :require_library_or_gem
 end
