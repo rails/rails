@@ -272,7 +272,7 @@ module Rails
       end
 
       def app_secret
-        ActiveSupport::SecureRandom.hex(64)
+        SecureRandom.hex(64)
       end
 
       def mysql_socket

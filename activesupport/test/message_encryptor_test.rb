@@ -11,7 +11,7 @@ require 'active_support/time'
 
 class MessageEncryptorTest < Test::Unit::TestCase
   def setup
-    @encryptor = ActiveSupport::MessageEncryptor.new(ActiveSupport::SecureRandom.hex(64))
+    @encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64))
     @data = { :some => "data", :now => Time.local(2010) }
   end
 
