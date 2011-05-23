@@ -296,7 +296,7 @@ module Rails
   #   helper MyEngine::SharedEngineHelper
   # end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on egine's
+  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
   # instance:
   #
   # class ApplicationController < ActionController::Base
@@ -305,7 +305,7 @@ module Rails
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
-  # only helpers defined in helpers directory will be included.
+  # only helpers defined in the helpers directory will be included.
   #
   # == Migrations & seed data
   #
