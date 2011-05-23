@@ -274,11 +274,7 @@ module ActionView
       # The alias +path_to_image+ is provided to avoid that. Rails uses the alias internally, and
       # plugin authors are encouraged to do so.
       def image_path(source)
-        if config.use_sprockets
-          asset_path(source)
-        else
-          asset_paths.compute_public_path(source, 'images')
-        end
+        asset_paths.compute_public_path(source, 'images')
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
@@ -293,11 +289,7 @@ module ActionView
       #   video_path("/trailers/hd.avi")                              # => /trailers/hd.avi
       #   video_path("http://www.example.com/vid/hd.avi")             # => http://www.example.com/vid/hd.avi
       def video_path(source)
-        if config.use_sprockets
-          asset_path(source)
-        else
-          asset_paths.compute_public_path(source, 'videos')
-        end
+        asset_paths.compute_public_path(source, 'videos')
       end
       alias_method :path_to_video, :video_path # aliased to avoid conflicts with a video_path named route
 
@@ -312,11 +304,7 @@ module ActionView
       #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.wav
       #   audio_path("http://www.example.com/sounds/horse.wav")          # => http://www.example.com/sounds/horse.wav
       def audio_path(source)
-        if config.use_sprockets
-          asset_path(source)
-        else
-          asset_paths.compute_public_path(source, 'audios')
-        end
+        asset_paths.compute_public_path(source, 'audios')
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 

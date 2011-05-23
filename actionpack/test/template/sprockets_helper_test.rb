@@ -1,11 +1,13 @@
 require 'abstract_unit'
 require 'sprockets'
+require 'sprockets/helpers/rails_helper'
 require 'mocha'
 
 module Rails; end
 
 class SprocketsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::SprocketsHelper
+  include Sprockets::Helpers::RailsHelper
 
   attr_accessor :assets
 
