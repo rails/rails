@@ -6,8 +6,7 @@ require 'mocha'
 module Rails; end
 
 class SprocketsHelperTest < ActionView::TestCase
-  tests ActionView::Helpers::SprocketsHelper
-  include Sprockets::Helpers::RailsHelper
+  tests Sprockets::Helpers::RailsHelper
 
   attr_accessor :assets
 
