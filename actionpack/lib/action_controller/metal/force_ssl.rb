@@ -6,7 +6,7 @@ module ActionController
   # user authentication, account information, or credit card information.
   #
   # Note that if you are really concerned about your application safety, you might
-  # consider using +config.force_ssl+ in your configuration config file instead.
+  # consider using +config.force_ssl+ in your configuration file instead.
   # That will ensure all the data transferred via HTTPS protocol and prevent
   # user from getting session hijacked when accessing the site under unsecured
   # HTTP protocol.
