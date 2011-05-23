@@ -335,7 +335,7 @@ module ActionDispatch
         #
         # [:on]
         #   Shorthand for wrapping routes in a specific RESTful context. Valid
-        #   values are +:member+, +:collection+, and +:new+.  Only use within
+        #   values are +:member+, +:collection+, and +:new+. Only use within
         #   <tt>resource(s)</tt> block. For example:
         #
         #      resource :bar do

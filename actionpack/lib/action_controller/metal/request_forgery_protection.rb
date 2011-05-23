@@ -63,7 +63,7 @@ module ActionController #:nodoc:
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call.  Set which actions are verified.
+      # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call. Set which actions are verified.
       def protect_from_forgery(options = {})
         self.request_forgery_protection_token ||= :authenticity_token
         prepend_before_filter :verify_authenticity_token, options
@@ -71,7 +71,7 @@ module ActionController #:nodoc:
     end
 
     protected
-      # The actual before_filter that is used.  Modify this to change how you handle unverified requests.
+      # The actual before_filter that is used. Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         unless verified_request?
           logger.debug "WARNING: Can't verify CSRF token authenticity" if logger
@@ -83,7 +83,7 @@ module ActionController #:nodoc:
         reset_session
       end
 
-      # Returns true or false if a request is verified.  Checks:
+      # Returns true or false if a request is verified. Checks:
       #
       # * is it a GET request?  Gets should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
