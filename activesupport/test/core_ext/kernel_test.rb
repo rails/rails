@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/kernel'
 
-class KernelTest < Test::Unit::TestCase
+class KernelTest < ActiveSupport::TestCase
   def test_silence_warnings
     silence_warnings { assert_nil $VERBOSE }
     assert_equal 1234, silence_warnings { 1234 }
@@ -52,10 +52,16 @@ class KernelTest < Test::Unit::TestCase
     class << o; @x = 1; end
     assert_equal 1, o.class_eval { @x }
   end
-  
+
   def test_capture
     assert_equal 'STDERR', capture(:stderr) {$stderr.print 'STDERR'}
     assert_equal 'STDOUT', capture(:stdout) {print 'STDOUT'}
+  end
+
+  def test_require_library_or_gem_deprecated
+    assert_deprecated do
+      require_library_or_gem 'i18n'
+    end
   end
 end
 
