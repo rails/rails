@@ -35,7 +35,6 @@ module Sprockets
 
       ActiveSupport.on_load(:action_view) do
         app.assets.context_class.instance_eval do
-          include ::ActionView::Helpers::SprocketsHelper
           include ::Sprockets::Helpers::RailsHelper
         end
       end

@@ -4,8 +4,7 @@ require 'sprockets/helpers/rails_helper'
 require 'mocha'
 
 class SprocketsHelperTest < ActionView::TestCase
-  tests ActionView::Helpers::SprocketsHelper
-  include Sprockets::Helpers::RailsHelper
+  tests Sprockets::Helpers::RailsHelper
 
   attr_accessor :assets
 

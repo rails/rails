@@ -1,3 +1,6 @@
+require "action_view/helpers/asset_paths"
+require "action_view/helpers/asset_tag_helper"
+
 module Sprockets
   module Helpers
     module RailsHelper
@@ -7,12 +10,6 @@ module Sprockets
           controller = self.controller if respond_to?(:controller)
           RailsHelper::AssetPaths.new(config, controller)
         end
-      end
-
-      def asset_path(source, default_ext = nil, body = false)
-        source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', default_ext, true)
-        body ? "#{path}?body=1" : path
       end
 
       def javascript_include_tag(source, options = {})
@@ -51,6 +48,18 @@ module Sprockets
 
           tag 'link', options
         end
+      end
+
+    private
+      def debug_assets?
+        params[:debug_assets] == '1' ||
+          params[:debug_assets] == 'true'
+      end
+
+      def asset_path(source, default_ext = nil, body = false)
+        source = source.logical_path if source.respond_to?(:logical_path)
+        path = asset_paths.compute_public_path(source, 'assets', default_ext, true)
+        body ? "#{path}?body=1" : path
       end
 
       class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
