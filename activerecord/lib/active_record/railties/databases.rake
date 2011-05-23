@@ -338,6 +338,7 @@ db_namespace = namespace :db do
     task :dump => :load_config do
       require 'active_record/schema_dumper'
       File.open(ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb", "w") do |file|
+        ActiveRecord::Base.establish_connection(Rails.env)
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
       db_namespace['schema:dump'].reenable
