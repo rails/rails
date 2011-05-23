@@ -1,19 +1,12 @@
 require 'abstract_unit'
+require 'active_support/testing/deprecation'
 
 class SecureRandomTest < Test::Unit::TestCase
-  def test_random_bytes
-    b1 = SecureRandom.random_bytes(64)
-    b2 = SecureRandom.random_bytes(64)
-    assert_not_equal b1, b2
-  end
+  include ActiveSupport::Testing::Deprecation
 
-  def test_hex
-    b1 = SecureRandom.hex(64)
-    b2 = SecureRandom.hex(64)
-    assert_not_equal b1, b2
-  end
-
-  def test_random_number
-    assert SecureRandom.random_number(5000) < 5000
+  def test_deprecated
+    assert_deprecated do
+      ActiveSupport::SecureRandom.hex
+    end
   end
 end

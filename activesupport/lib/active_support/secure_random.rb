@@ -1,6 +1,6 @@
-require 'securerandom'
+require 'active_support/deprecation'
 
 module ActiveSupport
   # Use Ruby's SecureRandom library.
-  SecureRandom = ::SecureRandom # :nodoc:
+  SecureRandom = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActiveSupport::SecureRandom', ::SecureRandom) # :nodoc:
 end
