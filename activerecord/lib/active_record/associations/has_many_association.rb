@@ -18,7 +18,7 @@ module ActiveRecord
         #
         # If the association has a counter cache it gets that value. Otherwise
         # it will attempt to do a count via SQL, bounded to <tt>:limit</tt> if
-        # there's one.  Some configuration options like :group make it impossible
+        # there's one. Some configuration options like :group make it impossible
         # to do an SQL count, in those cases the array count will be used.
         #
         # That does not depend on whether the collection has already been loaded

@@ -199,7 +199,7 @@ module ActiveRecord
     # * <tt>:password</tt> - Defaults to nothing.
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
-    #   as a string of comma-separated schema names.  This is backward-compatible with the <tt>:schema_order</tt> option.
+    #   as a string of comma-separated schema names. This is backward-compatible with the <tt>:schema_order</tt> option.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
@@ -619,7 +619,7 @@ module ActiveRecord
         create_database(name)
       end
 
-      # Create a new PostgreSQL database.  Options include <tt>:owner</tt>, <tt>:template</tt>,
+      # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
       # <tt>:encoding</tt>, <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
       # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
       #

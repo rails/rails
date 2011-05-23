@@ -126,7 +126,7 @@ module ActiveRecord
         record
       end
 
-      # Add +records+ to this association.  Returns +self+ so method calls may be chained.
+      # Add +records+ to this association. Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
         result = true

@@ -287,7 +287,7 @@ module ActiveRecord
     end
 
     # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
-    # therefore all callbacks and filters are fired off before the object is deleted.  This method is
+    # therefore all callbacks and filters are fired off before the object is deleted. This method is
     # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
     #
     # This essentially finds the object (or multiple objects) with the given id, creates a new object
@@ -316,7 +316,7 @@ module ActiveRecord
     # Deletes the records matching +conditions+ without instantiating the records first, and hence not
     # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
     # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
-    # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.  Returns
+    # though, in particular <tt>:dependent</tt> rules defined on associations are not honored. Returns
     # the number of rows affected.
     #
     # ==== Parameters

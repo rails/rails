@@ -407,7 +407,7 @@ module ActiveRecord
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
         # Some queries, like SHOW CREATE TABLE don't work through the prepared
-        # statement API.  For those queries, we need to use this method. :'(
+        # statement API. For those queries, we need to use this method. :'(
         log(sql, name) do
           result = @connection.query(sql)
           cols = []
@@ -833,7 +833,7 @@ module ActiveRecord
           stmt.execute(*binds.map { |col, val| type_cast(val, col) })
         rescue Mysql::Error => e
           # Older versions of MySQL leave the prepared statement in a bad
-          # place when an error occurs.  To support older mysql versions, we
+          # place when an error occurs. To support older mysql versions, we
           # need to close the statement and delete the statement from the
           # cache.
           stmt.close
