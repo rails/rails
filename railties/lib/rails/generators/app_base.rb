@@ -1,5 +1,5 @@
 require 'digest/md5'
-require 'active_support/secure_random'
+require 'securerandom'
 require 'active_support/core_ext/string/strip'
 require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'

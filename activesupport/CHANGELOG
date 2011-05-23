@@ -1,4 +1,10 @@
+*Rails 3.2.0 (unreleased)*
+
+* Removed ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
+
 *Rails 3.1.0 (unreleased)*
+
+* Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
 
 * New reporting method Kernel#quietly. [fxn]
 

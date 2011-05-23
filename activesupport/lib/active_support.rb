@@ -70,7 +70,6 @@ module ActiveSupport
     autoload :OrderedHash
     autoload :OrderedOptions
     autoload :Rescuable
-    autoload :SecureRandom
     autoload :StringInquirer
     autoload :XmlMini
   end
