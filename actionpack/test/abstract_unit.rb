@@ -1,5 +1,4 @@
 require File.expand_path('../../../load_paths', __FILE__)
-require File.expand_path('../../../version', __FILE__)
 
 lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
