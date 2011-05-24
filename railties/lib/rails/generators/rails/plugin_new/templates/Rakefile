@@ -5,9 +5,9 @@ rescue LoadError
   puts 'You must `gem install bundler` and `bundle install` to run rake tasks'
 end
 
-require 'rake/rdoctask'
+require 'rdoc/task'
 
-Rake::RDocTask.new(:rdoc) do |rdoc|
+RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
   rdoc.title    = '<%= camelized %>'
   rdoc.options << '--line-numbers' << '--inline-source'
