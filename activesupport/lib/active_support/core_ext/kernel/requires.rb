@@ -1,7 +1,7 @@
 require 'active_support/core_ext/kernel/reporting'
 
 module Kernel
-  # Require a library with fallback to RubyGems.  Warnings during library
+  # Require a library with fallback to RubyGems. Warnings during library
   # loading are silenced to increase signal/noise for application warnings.
   def require_library_or_gem(library_name)
     silence_warnings do
