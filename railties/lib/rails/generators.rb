@@ -176,6 +176,7 @@ module Rails
         orm      = options[:rails][:orm]
         test     = options[:rails][:test_framework]
         template = options[:rails][:template_engine]
+        css      = options[:rails][:stylesheet_engine]
 
         [
           "rails",
@@ -195,7 +196,11 @@ module Rails
           "#{test}:plugin",
           "#{template}:controller",
           "#{template}:scaffold",
-          "#{template}:mailer"
+          "#{template}:mailer",
+          "#{css}:scaffold",
+          "#{css}:assets",
+          "css:assets",
+          "css:scaffold"
         ]
       end
     end
