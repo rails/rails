@@ -182,6 +182,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test/dummy"
   end
+  
+  def test_creating_dummy_without_tests_but_with_dummy_path
+    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
+    assert_file "spec/dummy"
+    assert_file "spec/dummy/config/application.rb"
+    assert_no_file "test"
+  end
 
   def test_skipping_gemspec
     run_generator [destination_root, "--skip-gemspec"]
