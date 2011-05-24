@@ -19,15 +19,6 @@ class NumberHelperTest < ActionView::TestCase
     gigabytes(number) * 1024
   end
 
-  def silence_deprecation_warnings
-    @old_deprecatios_silenced = ActiveSupport::Deprecation.silenced
-    ActiveSupport::Deprecation.silenced  = true
-  end
-
-  def restore_deprecation_warnings
-    ActiveSupport::Deprecation.silenced  = @old_deprecatios_silenced
-  end
-
   def test_number_to_phone
     assert_equal("555-1234", number_to_phone(5551234))
     assert_equal("800-555-1212", number_to_phone(8005551212))

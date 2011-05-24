@@ -218,12 +218,6 @@ module ActionView
         end]
       end
 
-      def _assigns
-        ActiveSupport::Deprecation.warn "ActionView::TestCase#_assigns is deprecated and will be removed in future versions. " <<
-          "Please use view_assigns instead."
-        view_assigns
-      end
-
       def _routes
         @controller._routes if @controller.respond_to?(:_routes)
       end
