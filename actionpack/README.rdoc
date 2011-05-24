@@ -334,7 +334,7 @@ Action Pack is released under the MIT license.
 
 API documentation is at
 
-* http://api.rubyonrails.com
+* http://api.rubyonrails.org
 
 Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
 
