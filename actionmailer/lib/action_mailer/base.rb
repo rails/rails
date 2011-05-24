@@ -1,5 +1,4 @@
 require 'mail'
-require 'action_mailer/tmail_compat'
 require 'action_mailer/collector'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
@@ -130,9 +129,6 @@ module ActionMailer #:nodoc:
   # option as a configuration option in <tt>config/application.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { :host => "example.com" }
-  #
-  # Setting <tt>ActionMailer::Base.default_url_options</tt> directly is now deprecated, use the configuration
-  # option mentioned above to set the default host.
   #
   # If you do decide to set a default <tt>:host</tt> for your mailers you want to use the
   # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are
@@ -297,9 +293,9 @@ module ActionMailer #:nodoc:
   #     information and a cryptographic Message Digest 5 algorithm to hash important information)
   #   * <tt>:enable_starttls_auto</tt> - When set to true, detects if STARTTLS is enabled in your SMTP server
   #     and starts to use it.
-  #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is 
-  #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name 
-  #     of an OpenSSL verify constant ('none', 'peer', 'client_once','fail_if_no_peer_cert') or directly the 
+  #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
+  #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
+  #     of an OpenSSL verify constant ('none', 'peer', 'client_once','fail_if_no_peer_cert') or directly the
   #     constant  (OpenSSL::SSL::VERIFY_NONE, OpenSSL::SSL::VERIFY_PEER,...).
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
@@ -325,19 +321,6 @@ module ActionMailer #:nodoc:
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>default_charset</tt> - This is now deprecated, use the +default+ method above to
-  #   set the default +:charset+.
-  #
-  # * <tt>default_content_type</tt> - This is now deprecated, use the +default+ method above
-  #   to set the default +:content_type+.
-  #
-  # * <tt>default_mime_version</tt> - This is now deprecated, use the +default+ method above
-  #   to set the default +:mime_version+.
-  #
-  # * <tt>default_implicit_parts_order</tt> - This is now deprecated, use the +default+ method above
-  #   to set the default +:parts_order+.  Parts Order is used when a message is built implicitly
-  #   (i.e. multiple parts are assembled from templates which specify the content type in their
-  #   filenames) this variable controls how the parts are ordered.
   class Base < AbstractController::Base
     include DeliveryMethods
     abstract!
@@ -352,7 +335,6 @@ module ActionMailer #:nodoc:
     self.protected_instance_variables = %w(@_action_has_layout)
 
     helper  ActionMailer::MailHelper
-    include ActionMailer::OldApi
 
     private_class_method :new #:nodoc:
 
