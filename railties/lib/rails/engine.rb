@@ -387,7 +387,7 @@ module Rails
     delegate :middleware, :root, :paths, :to => :config
     delegate :engine_name, :isolated?, :to => "self.class"
 
-    def load_tasks
+    def load_tasks(*)
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end

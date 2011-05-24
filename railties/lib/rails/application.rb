@@ -50,7 +50,9 @@ module Rails
       end
     end
 
-    attr_accessor :assets
+    attr_accessor :assets, :sandbox
+    alias_method :sandbox?, :sandbox
+
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     # This method is called just after an application inherits from Rails::Application,
@@ -96,9 +98,9 @@ module Rails
       self
     end
 
-    def load_tasks
+    def load_tasks(app=self)
       initialize_tasks
-      railties.all { |r| r.load_tasks }
+      railties.all { |r| r.load_tasks(app) }
       super
       self
     end
@@ -111,10 +113,10 @@ module Rails
       self
     end
 
-    def load_console(sandbox=false)
+    def load_console(app=self)
       initialize_console
-      railties.all { |r| r.load_console(sandbox) }
-      super()
+      railties.all { |r| r.load_console(app) }
+      super
       self
     end
 
