@@ -27,7 +27,7 @@ db_namespace = namespace :db do
         #
         #  development:
         #    database: blog_development
-        #    <<: *defaults
+        #    *defaults
         next unless config['database']
         # Only connect to local databases
         local_database?(config) { create_database(config) }
