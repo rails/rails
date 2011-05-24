@@ -202,7 +202,7 @@ task :default => :test
       end
 
       def create_test_dummy_files
-        return if options[:skip_test_unit]
+        return if options[:skip_test_unit] && options[:dummy_path] == 'test/dummy'
         create_dummy_app
       end
 
