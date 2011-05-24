@@ -141,22 +141,6 @@ module ActionView
     end
   end
 
-  class AssignsTest < ActionView::TestCase
-    setup do
-      ActiveSupport::Deprecation.stubs(:warn)
-    end
-
-    test "_assigns delegates to user_defined_ivars" do
-      self.expects(:view_assigns)
-      _assigns
-    end
-
-    test "_assigns is deprecated" do
-      ActiveSupport::Deprecation.expects(:warn)
-      _assigns
-    end
-  end
-
   class ViewAssignsTest < ActionView::TestCase
     test "view_assigns returns a Hash of user defined ivars" do
       @a = 'b'

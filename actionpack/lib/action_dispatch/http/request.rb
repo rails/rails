@@ -2,7 +2,6 @@ require 'tempfile'
 require 'stringio'
 require 'strscan'
 
-require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
@@ -26,7 +25,7 @@ module ActionDispatch
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
         HTTP_NEGOTIATE HTTP_PRAGMA ].freeze
-      
+
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{env.sub(/^HTTP_/n, '').downcase}
@@ -133,11 +132,6 @@ module ActionDispatch
     def fullpath
       @fullpath ||= super
     end
-
-    def forgery_whitelisted?
-      get?
-    end
-    deprecate :forgery_whitelisted? => "it is just an alias for 'get?' now, update your code"
 
     def media_type
       content_mime_type.to_s
