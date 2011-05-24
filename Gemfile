@@ -12,7 +12,7 @@ gem "coffee-script"
 gem "sass"
 gem "uglifier", :git => "git://github.com/lautis/uglifier.git"
 
-gem "rake",  ">= 0.8.7"
+gem "rake",  ">= 0.9.0"
 gem "mocha", ">= 0.9.8"
 
 group :doc do
