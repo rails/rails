@@ -174,7 +174,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_jquery_is_the_default_javascript_library
     run_generator
-    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype prototype_ujs\)/
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_match %r{^//= require jquery}, contents
       assert_match %r{^//= require jquery_ujs}, contents
@@ -186,7 +185,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_other_javascript_libraries
     run_generator [destination_root, '-j', 'prototype']
-    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype prototype_ujs\)/
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_match %r{^//= require prototype}, contents
       assert_match %r{^//= require prototype_ujs}, contents
@@ -198,7 +196,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
-    assert_file "config/application.rb", /^\s+# config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_no_match %r{^//=\s+require\s}, contents
     end
