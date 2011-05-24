@@ -29,7 +29,7 @@ module ActionDispatch
       end
 
       def generate_sid
-        sid = ActiveSupport::SecureRandom.hex(16)
+        sid = SecureRandom.hex(16)
         sid.encode!('UTF-8') if sid.respond_to?(:encode!)
         sid
       end

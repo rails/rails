@@ -296,7 +296,7 @@ db_namespace = namespace :db do
   end
 
   namespace :fixtures do
-    desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :load => :environment do
       require 'active_record/fixtures'
 
@@ -338,6 +338,7 @@ db_namespace = namespace :db do
     task :dump => :load_config do
       require 'active_record/schema_dumper'
       File.open(ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb", "w") do |file|
+        ActiveRecord::Base.establish_connection(Rails.env)
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
       db_namespace['schema:dump'].reenable

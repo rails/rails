@@ -23,8 +23,8 @@ module ActiveRecord
           db_rt_before_render = ActiveRecord::LogSubscriber.reset_runtime
           runtime = super
           db_rt_after_render = ActiveRecord::LogSubscriber.reset_runtime
-          self.db_runtime = db_rt_before_render + db_during_render          
-          runtime - db_during_render
+          self.db_runtime = db_rt_before_render + db_rt_after_render
+          runtime - db_rt_after_render
         else
           super
         end

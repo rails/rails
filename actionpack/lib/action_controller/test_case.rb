@@ -130,7 +130,7 @@ module ActionController
       super
 
       self.session = TestSession.new
-      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
+      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
     end
 
     class Result < ::Array #:nodoc:

@@ -25,6 +25,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   include ActionView::Context
   include RenderERBUtils
 
+  setup :_prepare_context
+
   def hash_for(opts = [])
     ActiveSupport::OrderedHash[*([:controller, "foo", :action, "bar"].concat(opts))]
   end

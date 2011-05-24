@@ -1,5 +1,7 @@
 module Sprockets
-  class Railtie < Rails::Railtie
+  autoload :Helpers, "sprockets/helpers"
+
+  class Railtie < ::Rails::Railtie
     def self.using_coffee?
       require 'coffee-script'
       defined?(CoffeeScript)
@@ -35,7 +37,7 @@ module Sprockets
 
       ActiveSupport.on_load(:action_view) do
         app.assets.context_class.instance_eval do
-          include ::ActionView::Helpers::SprocketsHelper
+          include ::Sprockets::Helpers::RailsHelper
         end
       end
 

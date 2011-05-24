@@ -187,6 +187,9 @@ class ActionCachingTestController < CachingController
     rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
   end
 
+  # Eliminate uninitialized ivar warning
+  before_filter { @title = nil }
+
   caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }

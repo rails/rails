@@ -141,8 +141,6 @@ module Rails
 
     def default_middleware_stack
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
-        middleware.use ::Rails::Rack::ContentLength, config.action_dispatch.x_sendfile_header
-
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
