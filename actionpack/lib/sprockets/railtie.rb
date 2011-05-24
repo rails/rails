@@ -28,7 +28,8 @@ module Sprockets
 
     # We need to configure this after initialization to ensure we collect
     # paths from all engines. This hook is invoked exactly before routes
-    # are compiled.
+    # are compiled, and so that other Railties have an opportunity to
+    # register compressors.
     config.after_initialize do |app|
       assets = app.config.assets
       next unless assets.enabled
@@ -61,8 +62,8 @@ module Sprockets
       env.static_root = File.join(app.root.join("public"), assets.prefix)
       env.paths.concat assets.paths
       env.logger = Rails.logger
-      env.js_compressor = expand_js_compressor(assets.js_compressor)
-      env.css_compressor = expand_css_compressor(assets.css_compressor)
+      env.js_compressor = expand_js_compressor(assets.js_compressor) if app.assets.compress
+      env.css_compressor = expand_css_compressor(assets.css_compressor) if app.assets.compress
       env
     end
 
