@@ -176,6 +176,11 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "bukkits.gemspec", /s.version = "0.0.1"/
   end
 
+  def test_shebang
+    run_generator
+    assert_file "script/rails", /#!\/usr\/bin\/env ruby/
+  end
+
   def test_passing_dummy_path_as_a_parameter
     run_generator [destination_root, "--dummy_path", "spec/dummy"]
     assert_file "spec/dummy"
