@@ -187,12 +187,8 @@ module ActionView
         #
         #   javascript_include_tag :all, :cache => true, :recursive => true
         def javascript_include_tag(*sources)
-          if config.use_sprockets
-            sprockets_javascript_include_tag(*sources)
-          else
-            @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
-            @javascript_include.include_tag(*sources)
-          end
+          @javascript_include ||= JavascriptIncludeTag.new(config, asset_paths)
+          @javascript_include.include_tag(*sources)
         end
       end
     end

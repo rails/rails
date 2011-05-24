@@ -4,6 +4,9 @@ require "action_view/helpers/asset_tag_helper"
 module Sprockets
   module Helpers
     module RailsHelper
+      extend ActiveSupport::Concern
+      include ActionView::Helpers::AssetTagHelper
+
       def asset_paths
         @asset_paths ||= begin
           config     = self.config if respond_to?(:config)
