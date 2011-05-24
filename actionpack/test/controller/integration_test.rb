@@ -81,6 +81,12 @@ class SessionTest < ActiveSupport::TestCase
     @session.delete_via_redirect(path, args, headers)
   end
 
+  def test_options_via_redirect
+    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    @session.expects(:request_via_redirect).with(:options, path, args, headers)
+    @session.options_via_redirect(path, args, headers)
+  end
+
   def test_get
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:get,path,params,headers)
@@ -109,6 +115,12 @@ class SessionTest < ActiveSupport::TestCase
     path = "/index"; params = "blah"; headers = {:location => 'blah'}
     @session.expects(:process).with(:delete,path,params,headers)
     @session.delete(path,params,headers)
+  end
+
+  def test_options
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    @session.expects(:process).with(:options, path, params, headers)
+    @session.options(path, params, headers)
   end
 
   def test_head
@@ -171,6 +183,16 @@ class SessionTest < ActiveSupport::TestCase
     )
     @session.expects(:process).with(:delete,path,params,headers_after_xhr)
     @session.xml_http_request(:delete,path,params,headers)
+  end
+
+  def test_xml_http_request_options
+    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    headers_after_xhr = headers.merge(
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
+    )
+    @session.expects(:process).with(:options, path, params, headers_after_xhr)
+    @session.xml_http_request(:options, path, params, headers)
   end
 
   def test_xml_http_request_head
