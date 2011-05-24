@@ -55,11 +55,11 @@ module ActionView
       # Pick an asset host for this source. Returns +nil+ if no host is set,
       # the host if no wildcard is set, the host interpolated with the
       # numbers 0-3 if it contains <tt>%d</tt> (the number is the source hash mod 4),
-      # or the value returned from invoking the proc if it's a proc or the value from
-      # invoking call if it's an object responding to call.
+      # or the value returned from invoking call on an object responding to call
+      # (proc or otherwise).
       def compute_asset_host(source)
         if host = config.asset_host
-          if host.is_a?(Proc) || host.respond_to?(:call)
+          if host.respond_to?(:call)
             case host.is_a?(Proc) ? host.arity : host.method(:call).arity
             when 2
               request = controller.respond_to?(:request) && controller.request
