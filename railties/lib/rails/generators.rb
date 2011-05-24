@@ -68,7 +68,7 @@ module Rails
       }
     }
 
-    def self.configure!(config = Rails.application.config.generators) #:nodoc:
+    def self.configure!(config) #:nodoc:
       no_color! unless config.colorize_logging
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
@@ -286,7 +286,6 @@ module Rails
       # Receives namespaces in an array and tries to find matching generators
       # in the load path.
       def self.lookup(namespaces) #:nodoc:
-        load_generators_from_railties!
         paths = namespaces_to_paths(namespaces)
 
         paths.each do |raw_path|
@@ -310,8 +309,6 @@ module Rails
 
       # This will try to load any generator in the load path to show in help.
       def self.lookup! #:nodoc:
-        load_generators_from_railties!
-
         $LOAD_PATH.each do |base|
           Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
             begin
@@ -322,13 +319,6 @@ module Rails
             end
           end
         end
-      end
-
-      # Allow generators to be loaded from custom paths.
-      def self.load_generators_from_railties! #:nodoc:
-        return if defined?(@generators_from_railties) || Rails.application.nil?
-        @generators_from_railties = true
-        Rails.application.load_generators
       end
 
       # Convert namespaces to paths by replacing ":" for "/" and adding

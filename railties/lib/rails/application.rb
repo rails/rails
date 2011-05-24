@@ -106,13 +106,13 @@ module Rails
     def load_generators(app=self)
       initialize_generators
       railties.all { |r| r.load_generators(app) }
-
+      Rails::Generators.configure!(app.config.generators)
       super
       self
     end
 
     def load_console(sandbox=false)
-      initialize_console(sandbox)
+      initialize_console
       railties.all { |r| r.load_console(sandbox) }
       super()
       self
@@ -197,7 +197,7 @@ module Rails
       require "rails/generators"
     end
 
-    def initialize_console(sandbox=false)
+    def initialize_console
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
