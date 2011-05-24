@@ -57,7 +57,7 @@ module Rails
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :stylesheets => true,
-        :stylesheet_engine => nil,
+        :stylesheet_engine => :css,
         :test_framework => false,
         :template_engine => :erb
       },

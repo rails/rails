@@ -9,15 +9,7 @@ module Sprockets
       false
     end
 
-    def self.using_scss?
-      require 'sass'
-      defined?(Sass)
-    rescue LoadError
-      false
-    end
-
     config.app_generators.javascript_engine :coffee if using_coffee?
-    config.app_generators.stylesheet_engine :scss   if using_scss?
 
     # Configure ActionController to use sprockets.
     initializer "sprockets.set_configs", :after => "action_controller.set_configs" do |app|
@@ -62,8 +54,8 @@ module Sprockets
       env.static_root = File.join(app.root.join("public"), assets.prefix)
       env.paths.concat assets.paths
       env.logger = Rails.logger
-      env.js_compressor = expand_js_compressor(assets.js_compressor) if app.assets.compress
-      env.css_compressor = expand_css_compressor(assets.css_compressor) if app.assets.compress
+      env.js_compressor = expand_js_compressor(assets.js_compressor) if assets.compress
+      env.css_compressor = expand_css_compressor(assets.css_compressor) if assets.compress
       env
     end
 
@@ -85,15 +77,6 @@ module Sprockets
 
     def expand_css_compressor(sym)
       case sym
-      when :scss
-        require 'sass'
-        compressor = Object.new
-        def compressor.compress(source)
-          Sass::Engine.new(source,
-            :syntax => :scss, :style => :compressed
-          ).render
-        end
-        compressor
       when :yui
         require 'yui/compressor'
         YUI::CssCompressor.new
