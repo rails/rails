@@ -162,3 +162,9 @@ class FirstPost < ActiveRecord::Base
   has_many :comments, :foreign_key => :post_id
   has_one  :comment,  :foreign_key => :post_id
 end
+
+class PostWithDefaultInclude < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope includes(:comments)
+  has_many :comments, :foreign_key => :post_id
+end
