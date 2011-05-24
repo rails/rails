@@ -31,7 +31,7 @@ module ApplicationTests
         AppTemplate::Application.initialize!
       RUBY
 
-      assert_match "SuperMiddleware", Dir.chdir(app_path){ `rake middleware` }
+      assert_match("SuperMiddleware", Dir.chdir(app_path){ `rake middleware` })
     end
 
     def test_initializers_are_executed_in_rake_tasks
@@ -93,16 +93,16 @@ module ApplicationTests
       end
 
       output = Dir.chdir(app_path){ `rake db:migrate` }
-      assert_match /create_table\(:users\)/, output
-      assert_match /CreateUsers: migrated/, output
-      assert_match /add_column\(:users, :email, :string\)/, output
-      assert_match /AddEmailToUsers: migrated/, output
+      assert_match(/create_table\(:users\)/, output)
+      assert_match(/CreateUsers: migrated/, output)
+      assert_match(/add_column\(:users, :email, :string\)/, output)
+      assert_match(/AddEmailToUsers: migrated/, output)
 
       output = Dir.chdir(app_path){ `rake db:rollback STEP=2` }
-      assert_match /drop_table\("users"\)/, output
-      assert_match /CreateUsers: reverted/, output
-      assert_match /remove_column\("users", :email\)/, output
-      assert_match /AddEmailToUsers: reverted/, output
+      assert_match(/drop_table\("users"\)/, output)
+      assert_match(/CreateUsers: reverted/, output)
+      assert_match(/remove_column\("users", :email\)/, output)
+      assert_match(/AddEmailToUsers: reverted/, output)
     end
 
     def test_loading_specific_fixtures
