@@ -127,6 +127,21 @@ class ClassMethodDeveloperCalledDavid < ActiveRecord::Base
   end
 end
 
+class ClassMethodReferencingScopeDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
+  scope :david, where(:name => 'David')
+
+  def self.default_scope
+    david
+  end
+end
+
+class LazyBlockReferencingScopeDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
+  scope :david, where(:name => 'David')
+  default_scope { david }
+end
+
 class DeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
 
