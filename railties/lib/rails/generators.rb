@@ -75,6 +75,7 @@ module Rails
       fallbacks.merge! config.fallbacks
       templates_path.concat config.templates
       templates_path.uniq!
+      hide_namespaces *config.hidden_namespaces
     end
 
     def self.templates_path

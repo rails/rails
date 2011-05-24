@@ -189,8 +189,8 @@ module Rails
       end
     end
 
-    def load_generators
-      self.class.generators.each(&:call)
+    def load_generators(app)
+      self.class.generators.each { |block| block.call(app) }
     end
   end
 end
