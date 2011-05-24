@@ -116,7 +116,7 @@ module ApplicationTests
     def reset_script_name!
       Rails.application.routes.default_url_options = {}
     end
-    
+
     def script_name(script_name)
       Rails.application.routes.default_url_options = {:script_name => script_name}
     end

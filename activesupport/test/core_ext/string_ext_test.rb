@@ -251,7 +251,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
-  
+
   def test_string_inquiry
     assert "production".inquiry.production?
     assert !"production".inquiry.development?

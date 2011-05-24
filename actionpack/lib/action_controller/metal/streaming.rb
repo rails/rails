@@ -204,7 +204,7 @@ module ActionController #:nodoc:
   # ==== Passenger
   #
   # To be described.
-  # 
+  #
   module Streaming
     extend ActiveSupport::Concern
 
@@ -260,4 +260,3 @@ module ActionController #:nodoc:
     end
   end
 end
-      

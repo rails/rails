@@ -70,7 +70,7 @@ module ActiveRecord
 
           # If the locking column has no default value set,
           # start the lock version at zero. Note we can't use
-          # <tt>locking_enabled?</tt> at this point as 
+          # <tt>locking_enabled?</tt> at this point as
           # <tt>@attributes</tt> may not have been initialized yet.
 
           if lock_optimistically && result.include?(self.class.locking_column)

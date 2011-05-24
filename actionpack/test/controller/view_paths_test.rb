@@ -179,7 +179,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     assert_nothing_raised { C.append_view_path 'c/path' }
     assert_paths C, "c/path"
   end
-  
+
   def test_lookup_context_accessor
     assert_equal ["test"], TestController.new.lookup_context.prefixes
   end

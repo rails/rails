@@ -10,7 +10,7 @@ module ActionView
   # this key is generated just once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes
-    
+
     mattr_accessor :fallbacks
     @@fallbacks = FallbackFileSystemResolver.instances
 

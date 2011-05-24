@@ -59,7 +59,7 @@ module ActiveModel
       #
       #   validates :name, :'file/title' => true
       #
-      # The validators hash can also handle regular expressions, ranges, 
+      # The validators hash can also handle regular expressions, ranges,
       # arrays and strings in shortcut form, e.g.
       #
       #   validates :email, :format => /@/

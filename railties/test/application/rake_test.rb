@@ -113,7 +113,7 @@ module ApplicationTests
       end
 
       require "#{rails_root}/config/environment"
-      
+
       # loading a specific fixture
       errormsg = Dir.chdir(app_path) { `rake db:fixtures:load FIXTURES=products` }
       assert $?.success?, errormsg
