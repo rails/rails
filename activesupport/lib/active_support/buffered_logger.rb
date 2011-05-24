@@ -55,13 +55,6 @@ module ActiveSupport
       end
     end
 
-    def open_log(log, mode)
-      open(log, mode).tap do |log|
-        log.set_encoding(Encoding::BINARY) if log.respond_to?(:set_encoding)
-        log.sync = true
-      end
-    end
-
     def add(severity, message = nil, progname = nil, &block)
       return if @level > severity
       message = (message || (block && block.call) || progname).to_s
@@ -133,5 +126,14 @@ module ActiveSupport
       def clear_buffer
         @buffer.delete(Thread.current)
       end
+
+    private
+
+    def open_log(log, mode)
+      open(log, mode).tap do |log|
+        log.set_encoding(Encoding::BINARY) if log.respond_to?(:set_encoding)
+        log.sync = true
+      end
+    end
   end
 end
