@@ -675,6 +675,46 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_eager_with_default_scope
+    developer = EagerDeveloperWithDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_class_method
+    developer = EagerDeveloperWithClassMethodDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_lambda
+    developer = EagerDeveloperWithLambdaDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_block
+    developer = EagerDeveloperWithBlockDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_callable
+    developer = EagerDeveloperWithCallableDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
   def find_all_ordered(className, include=nil)
     className.find(:all, :order=>"#{className.table_name}.#{className.primary_key}", :include=>include)
   end

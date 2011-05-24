@@ -112,6 +112,12 @@ module ActiveRecord
 
       preload = @preload_values
       preload +=  @includes_values unless eager_loading?
+
+      if default_scoped?
+        default_scope = @klass.send(:build_default_scope)
+        preload += default_scope.includes_values if default_scope
+      end
+
       preload.each do |associations|
         ActiveRecord::Associations::Preloader.new(@records, associations).run
       end
