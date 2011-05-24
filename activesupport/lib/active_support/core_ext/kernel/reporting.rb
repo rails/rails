@@ -59,7 +59,7 @@ module Kernel
       raise unless exception_classes.any? { |cls| e.kind_of?(cls) }
     end
   end
-  
+
   # Captures the given stream and returns it:
   #
   #   stream = capture(:stdout) { puts "Cool" }

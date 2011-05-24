@@ -65,7 +65,7 @@ module ActiveSupport
   # these from +Host+ directly including +Foo+ in +Bar+:
   #
   #   module Bar
-  #     include Foo 
+  #     include Foo
   #     def self.included(base)
   #       base.method_injected_by_foo
   #     end

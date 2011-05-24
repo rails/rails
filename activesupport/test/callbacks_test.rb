@@ -298,7 +298,7 @@ module CallbacksTest
       end
     end
   end
-  
+
   class AroundPersonResult < MySuper
     attr_reader :result
 
@@ -309,7 +309,7 @@ module CallbacksTest
     def tweedle_dum
       @result = yield
     end
-    
+
     def tweedle_1
       :tweedle_1
     end
@@ -317,7 +317,7 @@ module CallbacksTest
     def tweedle_2
       :tweedle_2
     end
-    
+
     def save
       run_callbacks :save do
         :running
@@ -363,7 +363,7 @@ module CallbacksTest
       ], around.history
     end
   end
-  
+
   class AroundCallbackResultTest < Test::Unit::TestCase
     def test_save_around
       around = AroundPersonResult.new

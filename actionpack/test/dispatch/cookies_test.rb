@@ -417,7 +417,7 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
-  
+
   def test_cookies_hash_is_indifferent_access
       get :symbol_key
       assert_equal "david", cookies[:user_name]

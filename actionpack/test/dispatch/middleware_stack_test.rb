@@ -45,7 +45,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack.last.klass
     assert_equal([true, {:foo => "bar"}], @stack.last.args)
   end
-  
+
   test "use should push middleware class with block arguments onto the stack" do
     proc = Proc.new {}
     assert_difference "@stack.size" do
@@ -54,7 +54,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BlockMiddleware, @stack.last.klass
     assert_equal proc, @stack.last.block
   end
-  
+
   test "insert inserts middleware at the integer index" do
     @stack.insert(1, BazMiddleware)
     assert_equal BazMiddleware, @stack[1].klass

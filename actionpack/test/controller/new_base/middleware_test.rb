@@ -25,14 +25,14 @@ module MiddlewareTest
       result
     end
   end
-  
+
   class BlockMiddleware
     attr_accessor :configurable_message
     def initialize(app, &block)
       @app = app
       yield(self) if block_given?
     end
-    
+
     def call(env)
       result = @app.call(env)
       result[1]["Configurable-Message"] = configurable_message
