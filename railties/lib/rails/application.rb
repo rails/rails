@@ -108,6 +108,7 @@ module Rails
     def load_generators(app=self)
       initialize_generators
       railties.all { |r| r.load_generators(app) }
+
       super
       self
     end
