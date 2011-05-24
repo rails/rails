@@ -36,7 +36,11 @@ module ActiveRecord
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
     # details.
     def save(*)
-      create_or_update
+      begin
+        create_or_update
+      rescue ActiveRecord::RecordInvalid
+        false
+      end
     end
 
     # Saves the model.
