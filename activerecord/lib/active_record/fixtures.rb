@@ -12,7 +12,6 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
-require 'active_support/core_ext/module/deprecation'
 require 'active_record/fixtures/file'
 
 if defined? ActiveRecord
@@ -392,9 +391,6 @@ class FixturesFileNotFound < StandardError; end
 #     *DEFAULTS
 #
 # Any fixture labeled "DEFAULTS" is safely ignored.
-
-Fixture = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixture', 'ActiveRecord::Fixture')
-Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixtures', 'ActiveRecord::Fixtures')
 
 module ActiveRecord
   class Fixtures
