@@ -237,7 +237,11 @@ module RailtiesTest
 
       boot_rails
       require 'rake'
-      require 'rdoc/task'
+      begin
+        require 'rdoc/task'
+      rescue LoadError
+        require 'rake/rdoctask'
+      end
       require 'rake/testtask'
       Rails.application.load_tasks
       Rake::Task[:foo].invoke

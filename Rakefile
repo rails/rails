@@ -1,6 +1,11 @@
 #!/usr/bin/env rake
 
-require 'rdoc/task'
+
+begin
+  require 'rdoc/task'
+rescue LoadError
+  require 'rake/rdoctask'
+end
 require 'net/http'
 
 $:.unshift File.expand_path('..', __FILE__)
