@@ -33,8 +33,7 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
-      def has_secure_password(opts = {})
-        name          = opts[:name] || "password"
+      def has_secure(name, opts = {})
         column        = opts[:column] || "#{name}_digest"
         authenticator = opts[:authenticator] || ActiveModel::Authenticators::BCrypt
 
@@ -65,6 +64,10 @@ module ActiveModel
           end
         end
       end
+
+      def has_secure_password(opts = {})
+        has_secure(:password, opts)
+      end 
     end
   end
 end
