@@ -216,7 +216,7 @@ module ActiveRecord
     # * +updated_at+/+updated_on+ column is not updated if that column is available.
     #
     # Raises an +ActiveRecordError+ when called on new objects, or when at least
-    # one if the attributes is marked as readonly.
+    # one of the attributes is marked as readonly.
     def update_columns(attributes)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
       attributes.each_key {|key| raise ActiveRecordError, "#{key.to_s} is marked as readonly" if self.class.readonly_attributes.include?(key.to_s) }
