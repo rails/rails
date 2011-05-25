@@ -26,17 +26,6 @@ class BenchmarkableTest < ActiveSupport::TestCase
     assert_last_logged 'test_run'
   end
 
-  def test_with_message_and_deprecated_level
-    i_was_run = false
-
-    assert_deprecated do
-      benchmark('debug_run', :debug) { i_was_run = true }
-    end
-
-    assert i_was_run
-    assert_last_logged 'debug_run'
-  end
-
   def test_within_level
     logger.level = ActiveSupport::BufferedLogger::DEBUG
     benchmark('included_debug_run', :level => :debug) { }
