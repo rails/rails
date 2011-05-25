@@ -167,8 +167,8 @@ module ActionDispatch
 
         handle_options(options)
 
-        @set_cookies[key] = options
-        @delete_cookies.delete(key)
+        @set_cookies[key.to_s] = options
+        @delete_cookies.delete(key.to_s)
         value
       end
 
@@ -181,7 +181,7 @@ module ActionDispatch
         handle_options(options)
 
         value = @cookies.delete(key.to_s)
-        @delete_cookies[key] = options
+        @delete_cookies[key.to_s] = options
         value
       end
 
@@ -305,7 +305,7 @@ module ActionDispatch
 
         if secret.length < SECRET_MIN_LENGTH
           raise ArgumentError, "Secret should be something secure, " +
-            "like \"#{ActiveSupport::SecureRandom.hex(16)}\".  The value you " +
+            "like \"#{SecureRandom.hex(16)}\". The value you " +
             "provided, \"#{secret}\", is shorter than the minimum length " +
             "of #{SECRET_MIN_LENGTH} characters"
         end

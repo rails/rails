@@ -8,9 +8,8 @@
 # Rails booted up.
 require 'fileutils'
 
-# TODO: Remove rubygems when possible
-require 'rubygems'
 require 'test/unit'
+require 'rubygems'
 
 # TODO: Remove setting this magic constant
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")

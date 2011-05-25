@@ -3,7 +3,6 @@ require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/module/attr_accessor_with_default'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/object/blank'
@@ -81,19 +80,19 @@ module ActiveResource
   # <tt>post</tt>, <tt>put</tt> and <tt>\delete</tt> methods where you can specify a custom REST method
   # name to invoke.
   #
-  #   # POST to the custom 'register' REST method, i.e. POST /people/new/register.xml.
+  #   # POST to the custom 'register' REST method, i.e. POST /people/new/register.json.
   #   Person.new(:name => 'Ryan').post(:register)
   #   # => { :id => 1, :name => 'Ryan', :position => 'Clerk' }
   #
-  #   # PUT an update by invoking the 'promote' REST method, i.e. PUT /people/1/promote.xml?position=Manager.
+  #   # PUT an update by invoking the 'promote' REST method, i.e. PUT /people/1/promote.json?position=Manager.
   #   Person.find(1).put(:promote, :position => 'Manager')
   #   # => { :id => 1, :name => 'Ryan', :position => 'Manager' }
   #
-  #   # GET all the positions available, i.e. GET /people/positions.xml.
+  #   # GET all the positions available, i.e. GET /people/positions.json.
   #   Person.get(:positions)
   #   # => [{:name => 'Manager'}, {:name => 'Clerk'}]
   #
-  #   # DELETE to 'fire' a person, i.e. DELETE /people/1/fire.xml.
+  #   # DELETE to 'fire' a person, i.e. DELETE /people/1/fire.json.
   #   Person.find(1).delete(:fire)
   #
   # For more information on using custom REST methods, see the
@@ -164,7 +163,7 @@ module ActiveResource
   # response code will be returned from the server which will raise an ActiveResource::ResourceNotFound
   # exception.
   #
-  #   # GET http://api.people.com:3000/people/999.xml
+  #   # GET http://api.people.com:3000/people/999.json
   #   ryan = Person.find(999) # 404, raises ActiveResource::ResourceNotFound
   #
   #
@@ -218,7 +217,7 @@ module ActiveResource
   #   ryan.save  # => false
   #
   #   # When
-  #   # PUT http://api.people.com:3000/people/1.xml
+  #   # PUT http://api.people.com:3000/people/1.json
   #   # or
   #   # PUT http://api.people.com:3000/people/1.json
   #   # is requested with invalid values, the response is:
@@ -489,7 +488,7 @@ module ActiveResource
       #   Person.format = ActiveResource::Formats::XmlFormat
       #   Person.find(1) # => GET /people/1.xml
       #
-      # Default format is <tt>:xml</tt>.
+      # Default format is <tt>:json</tt>.
       def format=(mime_type_reference_or_format)
         format = mime_type_reference_or_format.is_a?(Symbol) ?
           ActiveResource::Formats[mime_type_reference_or_format] : mime_type_reference_or_format
@@ -498,9 +497,9 @@ module ActiveResource
         connection.format = format if site
       end
 
-      # Returns the current format, default is ActiveResource::Formats::XmlFormat.
+      # Returns the current format, default is ActiveResource::Formats::JsonFormat.
       def format
-        self._format || ActiveResource::Formats::XmlFormat
+        self._format || ActiveResource::Formats::JsonFormat
       end
 
       # Sets the number of seconds after which requests to the REST API should time out.
@@ -565,12 +564,25 @@ module ActiveResource
         @headers ||= {}
       end
 
-      attr_accessor_with_default(:element_name)    { model_name.element } #:nodoc:
-      attr_accessor_with_default(:collection_name) { ActiveSupport::Inflector.pluralize(element_name) } #:nodoc:
+      attr_writer :element_name
 
-      attr_accessor_with_default(:primary_key, 'id') #:nodoc:
+      def element_name
+        @element_name ||= model_name.element
+      end
 
-      # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>)
+      attr_writer :collection_name
+
+      def collection_name
+        @collection_name ||= ActiveSupport::Inflector.pluralize(element_name)
+      end
+
+      attr_writer :primary_key
+
+      def primary_key
+        @primary_key ||= 'id'
+      end
+
+      # Gets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.json</tt>)
       # This method is regenerated at runtime based on what the \prefix is set to.
       def prefix(options={})
         default = site.path
@@ -587,7 +599,7 @@ module ActiveResource
         prefix_source
       end
 
-      # Sets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.xml</tt>).
+      # Sets the \prefix for a resource's nested URL (e.g., <tt>prefix/collectionname/1.json</tt>).
       # Default value is <tt>site.path</tt>.
       def prefix=(value = '/')
         # Replace :placeholders with '#{embedded options[:lookups]}'
@@ -618,21 +630,21 @@ module ActiveResource
       #
       # ==== Options
       # +prefix_options+ - A \hash to add a \prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
-      #                    would yield a URL like <tt>/accounts/19/purchases.xml</tt>).
+      #                    would yield a URL like <tt>/accounts/19/purchases.json</tt>).
       # +query_options+ - A \hash to add items to the query string for the request.
       #
       # ==== Examples
       #   Post.element_path(1)
-      #   # => /posts/1.xml
+      #   # => /posts/1.json
       #
       #   Comment.element_path(1, :post_id => 5)
-      #   # => /posts/5/comments/1.xml
+      #   # => /posts/5/comments/1.json
       #
       #   Comment.element_path(1, :post_id => 5, :active => 1)
-      #   # => /posts/5/comments/1.xml?active=1
+      #   # => /posts/5/comments/1.json?active=1
       #
       #   Comment.element_path(1, {:post_id => 5}, {:active => 1})
-      #   # => /posts/5/comments/1.xml?active=1
+      #   # => /posts/5/comments/1.json?active=1
       #
       def element_path(id, prefix_options = {}, query_options = nil)
         check_prefix_options(prefix_options)
@@ -645,14 +657,14 @@ module ActiveResource
       #
       # ==== Options
       # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
-      #   would yield a URL like <tt>/accounts/19/purchases/new.xml</tt>).
+      #   would yield a URL like <tt>/accounts/19/purchases/new.json</tt>).
       #
       # ==== Examples
       #   Post.new_element_path
-      #   # => /posts/new.xml
+      #   # => /posts/new.json
       #
       #   Comment.collection_path(:post_id => 5)
-      #   # => /posts/5/comments/new.xml
+      #   # => /posts/5/comments/new.json
       def new_element_path(prefix_options = {})
         "#{prefix(prefix_options)}#{collection_name}/new.#{format.extension}"
       end
@@ -662,21 +674,21 @@ module ActiveResource
       #
       # ==== Options
       # * +prefix_options+ - A hash to add a prefix to the request for nested URLs (e.g., <tt>:account_id => 19</tt>
-      #   would yield a URL like <tt>/accounts/19/purchases.xml</tt>).
+      #   would yield a URL like <tt>/accounts/19/purchases.json</tt>).
       # * +query_options+ - A hash to add items to the query string for the request.
       #
       # ==== Examples
       #   Post.collection_path
-      #   # => /posts.xml
+      #   # => /posts.json
       #
       #   Comment.collection_path(:post_id => 5)
-      #   # => /posts/5/comments.xml
+      #   # => /posts/5/comments.json
       #
       #   Comment.collection_path(:post_id => 5, :active => 1)
-      #   # => /posts/5/comments.xml?active=1
+      #   # => /posts/5/comments.json?active=1
       #
       #   Comment.collection_path({:post_id => 5}, {:active => 1})
-      #   # => /posts/5/comments.xml?active=1
+      #   # => /posts/5/comments.json?active=1
       #
       def collection_path(prefix_options = {}, query_options = nil)
         check_prefix_options(prefix_options)
@@ -745,34 +757,34 @@ module ActiveResource
       #
       # ==== Examples
       #   Person.find(1)
-      #   # => GET /people/1.xml
+      #   # => GET /people/1.json
       #
       #   Person.find(:all)
-      #   # => GET /people.xml
+      #   # => GET /people.json
       #
       #   Person.find(:all, :params => { :title => "CEO" })
-      #   # => GET /people.xml?title=CEO
+      #   # => GET /people.json?title=CEO
       #
       #   Person.find(:first, :from => :managers)
-      #   # => GET /people/managers.xml
+      #   # => GET /people/managers.json
       #
       #   Person.find(:last, :from => :managers)
-      #   # => GET /people/managers.xml
+      #   # => GET /people/managers.json
       #
-      #   Person.find(:all, :from => "/companies/1/people.xml")
-      #   # => GET /companies/1/people.xml
+      #   Person.find(:all, :from => "/companies/1/people.json")
+      #   # => GET /companies/1/people.json
       #
       #   Person.find(:one, :from => :leader)
-      #   # => GET /people/leader.xml
+      #   # => GET /people/leader.json
       #
       #   Person.find(:all, :from => :developers, :params => { :language => 'ruby' })
-      #   # => GET /people/developers.xml?language=ruby
+      #   # => GET /people/developers.json?language=ruby
       #
-      #   Person.find(:one, :from => "/companies/1/manager.xml")
-      #   # => GET /companies/1/manager.xml
+      #   Person.find(:one, :from => "/companies/1/manager.json")
+      #   # => GET /companies/1/manager.json
       #
       #   StreetAddress.find(1, :params => { :person_id => 1 })
-      #   # => GET /people/1/street_addresses/1.xml
+      #   # => GET /people/1/street_addresses/1.json
       #
       # == Failure or missing data
       #   A failure to find the requested object raises a ResourceNotFound
@@ -833,7 +845,7 @@ module ActiveResource
       #   my_event = Event.find(:first) # let's assume this is event with ID 7
       #   Event.delete(my_event.id) # sends DELETE /events/7
       #
-      #   # Let's assume a request to events/5/cancel.xml
+      #   # Let's assume a request to events/5/cancel.json
       #   Event.delete(params[:id]) # sends DELETE /events/5
       def delete(id, options = {})
         connection.delete(element_path(id, options))
@@ -1121,7 +1133,7 @@ module ActiveResource
 
     # Saves (+POST+) or \updates (+PUT+) a resource.  Delegates to +create+ if the object is \new,
     # +update+ if it exists. If the response to the \save includes a body, it will be assumed that this body
-    # is XML for the final object as it looked after the \save (which would include attributes like +created_at+
+    # is Json for the final object as it looked after the \save (which would include attributes like +created_at+
     # that weren't part of the original submit).
     #
     # ==== Examples
@@ -1232,9 +1244,16 @@ module ActiveResource
     #   your_supplier = Supplier.new
     #   your_supplier.load(my_attrs)
     #   your_supplier.save
-    def load(attributes)
+    def load(attributes, remove_root = false)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       @prefix_options, attributes = split_options(attributes)
+
+      if attributes.keys.size == 1
+        remove_root = self.class.element_name == attributes.keys.first.to_s
+      end
+
+      attributes = Formats.remove_root(attributes) if remove_root
+
       attributes.each do |key, value|
         @attributes[key.to_s] =
           case value
@@ -1285,7 +1304,7 @@ module ActiveResource
     # resource's attributes, the full body of the request will still be sent
     # in the save request to the remote service.
     def update_attributes(attributes)
-      load(attributes) && save
+      load(attributes, false) && save
     end
 
     # For checking <tt>respond_to?</tt> without searching the attributes (which is faster).
@@ -1339,7 +1358,7 @@ module ActiveResource
 
       def load_attributes_from_response(response)
         if !response['Content-Length'].blank? && response['Content-Length'] != "0" && !response.body.nil? && response.body.strip.size > 0
-          load(self.class.format.decode(response.body))
+          load(self.class.format.decode(response.body), true)
           @persisted = true
         end
       end

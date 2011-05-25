@@ -10,6 +10,7 @@ module ActiveSupport
   #   1.month.ago       # equivalent to Time.now.advance(:months => -1)
   class Duration < BasicObject
     attr_accessor :value, :parts
+    delegate :duplicable?, :to => :value # required when using ActiveSupport's BasicObject on 1.8
 
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts

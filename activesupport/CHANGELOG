@@ -1,4 +1,12 @@
+*Rails 3.2.0 (unreleased)*
+
+* Removed ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
+
 *Rails 3.1.0 (unreleased)*
+
+* Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
+
+* New reporting method Kernel#quietly. [fxn]
 
 * Add String#inquiry as a convenience method for turning a string into a StringInquirer object [DHH]
 
@@ -18,6 +26,8 @@ advantage of the new ClassCache.
 * Added weeks_ago and prev_week to Date/DateTime/Time. [Rob Zolkos, fxn]
 
 * Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! [Andrew White]
+
+* JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. [Josh Kalderimis]
 
 
 *Rails 3.0.7 (April 18, 2011)*

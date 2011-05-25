@@ -33,7 +33,8 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response
-    attr_accessor :request, :header, :status
+    attr_accessor :request, :header
+    attr_reader :status
     attr_writer :sending_file
 
     alias_method :headers=, :header=
@@ -115,31 +116,8 @@ module ActionDispatch # :nodoc:
 
     EMPTY = " "
 
-    class BodyBuster #:nodoc:
-      def initialize(response)
-        @response = response
-        @body = ""
-      end
-
-      def bust(body)
-        body.call(@response, self)
-        body.close if body.respond_to?(:close)
-        @body
-      end
-
-      def write(string)
-        @body << string.to_s
-      end
-    end
-
     def body=(body)
       @blank = true if body == EMPTY
-
-      if body.respond_to?(:call)
-        ActiveSupport::Deprecation.warn "Setting a Proc or an object that responds to call " \
-          "in response_body is no longer supported", caller
-        body = BodyBuster.new(self).bust(body)
-      end
 
       # Explicitly check for strings. This is *wrong* theoretically
       # but if we don't check this, the performance on string bodies

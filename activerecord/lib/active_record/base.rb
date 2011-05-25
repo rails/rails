@@ -393,8 +393,8 @@ module ActiveRecord #:nodoc:
     # Indicates whether table names should be the pluralized versions of the corresponding class names.
     # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
     # See table_name for the full rules on table/class naming. This is true, by default.
-    cattr_accessor :pluralize_table_names, :instance_writer => false
-    @@pluralize_table_names = true
+    class_attribute :pluralize_table_names, :instance_writer => false
+    self.pluralize_table_names = true
 
     ##
     # :singleton-method:
@@ -427,6 +427,10 @@ module ActiveRecord #:nodoc:
     # Stores the default scope for the class
     class_attribute :default_scopes, :instance_writer => false
     self.default_scopes = []
+
+    # Boolean flag to prevent infinite recursion when evaluating default scopes
+    class_attribute :apply_default_scope, :instance_writer => false
+    self.apply_default_scope = true
 
     # Returns a hash of all the attributes that have been specified for serialization as
     # keys and their class restriction as values.
@@ -577,15 +581,25 @@ module ActiveRecord #:nodoc:
       #
       # ==== Examples
       #
-      #   class Invoice < ActiveRecord::Base; end;
+      #   class Invoice < ActiveRecord::Base
+      #   end
+      #
       #   file                  class               table_name
       #   invoice.rb            Invoice             invoices
       #
-      #   class Invoice < ActiveRecord::Base; class Lineitem < ActiveRecord::Base; end; end;
+      #   class Invoice < ActiveRecord::Base
+      #     class Lineitem < ActiveRecord::Base
+      #     end
+      #   end
+      #
       #   file                  class               table_name
       #   invoice.rb            Invoice::Lineitem   invoice_lineitems
       #
-      #   module Invoice; class Lineitem < ActiveRecord::Base; end; end;
+      #   module Invoice
+      #     class Lineitem < ActiveRecord::Base
+      #     end
+      #   end
+      #
       #   file                  class               table_name
       #   invoice/lineitem.rb   Invoice::Lineitem   lineitems
       #
@@ -765,6 +779,17 @@ module ActiveRecord #:nodoc:
 
       def attribute_method?(attribute)
         super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
+      end
+
+      # Returns an array of column names as strings if it's not
+      # an abstract class and table exists.
+      # Otherwise it returns an empty array.
+      def attribute_names
+        @attribute_names ||= if !abstract_class? && table_exists?
+            column_names
+          else
+            []
+          end
       end
 
       # Set the lookup ancestors for ActiveModel.
@@ -1240,11 +1265,14 @@ MSG
           self.default_scopes = default_scopes + [scope]
         end
 
+        # The apply_default_scope flag is used to prevent an infinite recursion situation where
+        # a default scope references a scope which has a default scope which references a scope...
         def build_default_scope #:nodoc:
+          return unless apply_default_scope
+          self.apply_default_scope = false
+
           if method(:default_scope).owner != Base.singleton_class
-            # Use relation.scoping to ensure we ignore whatever the current value of
-            # self.current_scope may be.
-            relation.scoping { default_scope }
+            default_scope
           elsif default_scopes.any?
             default_scopes.inject(relation) do |default_scope, scope|
               if scope.is_a?(Hash)
@@ -1256,6 +1284,8 @@ MSG
               end
             end
           end
+        ensure
+          self.apply_default_scope = true
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
@@ -1840,12 +1870,16 @@ MSG
 
       # Returns the contents of the record as a nicely formatted string.
       def inspect
-        attributes_as_nice_string = self.class.column_names.collect { |name|
-          if has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
-          end
-        }.compact.join(", ")
-        "#<#{self.class} #{attributes_as_nice_string}>"
+        inspection = if @attributes
+                       self.class.column_names.collect { |name|
+                         if has_attribute?(name)
+                           "#{name}: #{attribute_for_inspect(name)}"
+                         end
+                       }.compact.join(", ")
+                     else
+                       "not initialized"
+                     end
+        "#<#{self.class} #{inspection}>"
       end
 
     protected
@@ -2007,7 +2041,7 @@ MSG
       def extract_callstack_for_multiparameter_attributes(pairs)
         attributes = { }
 
-        for pair in pairs
+        pairs.each do |pair|
           multiparameter_name, value = pair
           attribute_name = multiparameter_name.split("(").first
           attributes[attribute_name] = {} unless attributes.include?(attribute_name)

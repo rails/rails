@@ -452,7 +452,7 @@ module ApplicationTests
 
       app_file 'app/models/post.rb', <<-RUBY
       class Post
-        def self.column_names
+        def self.attribute_names
           %w(title)
         end
       end

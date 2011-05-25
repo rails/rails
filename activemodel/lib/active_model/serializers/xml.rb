@@ -25,7 +25,7 @@ module ActiveModel
           def decorations
             decorations = {}
             decorations[:encoding] = 'base64' if type == :binary
-            decorations[:type] = type unless type == :string
+            decorations[:type] = (type == :string) ? nil : type
             decorations[:nil] = true if value.nil?
             decorations
           end

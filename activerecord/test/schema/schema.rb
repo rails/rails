@@ -40,6 +40,10 @@ ActiveRecord::Schema.define do
     t.references :account
   end
 
+  create_table :aircraft, :force => true do |t|
+    t.string :name
+  end
+
   create_table :audit_logs, :force => true do |t|
     t.column :message, :string, :null=>false
     t.column :developer_id, :integer, :null=>false
@@ -90,6 +94,7 @@ ActiveRecord::Schema.define do
     t.integer :car_id
     t.string  :name
     t.boolean :frickinawesome
+    t.string :color
   end
 
   create_table "CamelCase", :force => true do |t|

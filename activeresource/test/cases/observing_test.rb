@@ -20,13 +20,13 @@ class ObservingTest < Test::Unit::TestCase
   end
 
   def setup
-    @matz = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
+    @matz = { 'person' => { :id => 1, :name => 'Matz' } }.to_json
 
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/1.xml", {}, @matz
-      mock.post   "/people.xml", {}, @matz, 201, 'Location' => '/people/1.xml'
-      mock.put    "/people/1.xml", {}, nil, 204
-      mock.delete "/people/1.xml", {}, nil, 200
+      mock.get    "/people/1.json", {}, @matz
+      mock.post   "/people.json",   {}, @matz, 201, 'Location' => '/people/1.json'
+      mock.put    "/people/1.json", {}, nil, 204
+      mock.delete "/people/1.json", {}, nil, 200
     end
 
     PersonObserver.instance

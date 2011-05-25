@@ -102,24 +102,30 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      @records = if @readonly_value.nil? && !@klass.locking_enabled?
-        eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
-      else
-        IdentityMap.without do
+      default_scoped = with_default_scope
+
+      if default_scoped.equal?(self)
+        @records = if @readonly_value.nil? && !@klass.locking_enabled?
           eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+        else
+          IdentityMap.without do
+            eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+          end
         end
-      end
 
-      preload = @preload_values
-      preload +=  @includes_values unless eager_loading?
-      preload.each do |associations|
-        ActiveRecord::Associations::Preloader.new(@records, associations).run
-      end
+        preload = @preload_values
+        preload +=  @includes_values unless eager_loading?
+        preload.each do |associations|
+          ActiveRecord::Associations::Preloader.new(@records, associations).run
+        end
 
-      # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
-      # are JOINS and no explicit SELECT.
-      readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
-      @records.each { |record| record.readonly! } if readonly
+        # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
+        # are JOINS and no explicit SELECT.
+        readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
+        @records.each { |record| record.readonly! } if readonly
+      else
+        @records = default_scoped.to_a
+      end
 
       @loaded = true
       @records
@@ -418,9 +424,10 @@ module ActiveRecord
     end
 
     def with_default_scope #:nodoc:
-      if default_scoped?
-        default_scope = @klass.send(:build_default_scope)
-        default_scope ? default_scope.merge(self) : self
+      if default_scoped? && default_scope = klass.send(:build_default_scope)
+        default_scope = default_scope.merge(self)
+        default_scope.default_scoped = false
+        default_scope
       else
         self
       end

@@ -336,15 +336,7 @@ module ActiveRecord
 
       def load_target
         if find_target?
-          targets = []
-
-          begin
-            targets = find_target
-          rescue ActiveRecord::RecordNotFound
-            reset
-          end
-
-          @target = merge_target_lists(targets, target)
+          @target = merge_target_lists(find_target, target)
         end
 
         loaded!
@@ -387,7 +379,7 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              find(:all)
+              scoped.all
             end
 
           records = options[:uniq] ? uniq(records) : records
@@ -395,25 +387,35 @@ module ActiveRecord
           records
         end
 
-        def merge_target_lists(loaded, existing)
-          return loaded if existing.empty?
-          return existing if loaded.empty?
+        # We have some records loaded from the database (persisted) and some that are
+        # in-memory (memory). The same record may be represented in the persisted array
+        # and in the memory array.
+        #
+        # So the task of this method is to merge them according to the following rules:
+        #
+        #   * The final array must not have duplicates
+        #   * The order of the persisted array is to be preserved
+        #   * Any changes made to attributes on objects in the memory array are to be preserved
+        #   * Otherwise, attributes should have the value found in the database
+        def merge_target_lists(persisted, memory)
+          return persisted if memory.empty?
+          return memory    if persisted.empty?
 
-          loaded.map do |f|
-            i = existing.index(f)
-            if i
-              existing.delete_at(i).tap do |t|
-                keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
-                # FIXME: this call to attributes causes many NoMethodErrors
-                attributes = f.attributes
-                (attributes.keys - keys).each do |k|
-                  t.send("#{k}=", attributes[k])
-                end
+          persisted.map! do |record|
+            mem_record = memory.delete(record)
+
+            if mem_record
+              (record.attribute_names - mem_record.changes.keys).each do |name|
+                mem_record[name] = record[name]
               end
+
+              mem_record
             else
-              f
+              record
             end
-          end + existing
+          end
+
+          persisted + memory
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
@@ -421,9 +423,13 @@ module ActiveRecord
           raise NotImplementedError
         end
 
+        def create_scope
+          scoped.scope_for_create.stringify_keys
+        end
+
         def build_record(attributes, options)
-          record = reflection.build_association
-          record.assign_attributes(scoped.scope_for_create, :without_protection => true)
+          record = reflection.build_association(attributes, options)
+          record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
           record.assign_attributes(attributes, options)
           record
         end

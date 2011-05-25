@@ -4,6 +4,7 @@ require 'models/project'
 require 'models/company'
 require 'models/ship'
 require 'models/pirate'
+require 'models/car'
 require 'models/bulb'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
@@ -376,5 +377,74 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_deprecated do
       assert_equal firm.association(:account).loaded?, firm.account_loaded?
     end
+  end
+
+  def test_association_keys_bypass_attribute_protection
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_bulb
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.build_bulb :car_id => car.id + 1
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.create_bulb
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.create_bulb :car_id => car.id + 1
+    assert_equal car.id, bulb.car_id
+  end
+
+  def test_association_conditions_bypass_attribute_protection
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_frickinawesome_bulb
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.build_frickinawesome_bulb(:frickinawesome => false)
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.create_frickinawesome_bulb
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.create_frickinawesome_bulb(:frickinawesome => false)
+    assert_equal true, bulb.frickinawesome?
+  end
+
+  def test_new_is_called_with_attributes_and_options
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_bulb
+    assert_equal Bulb, bulb.class
+
+    bulb = car.build_bulb
+    assert_equal Bulb, bulb.class
+
+    bulb = car.build_bulb(:bulb_type => :custom)
+    assert_equal Bulb, bulb.class
+
+    bulb = car.build_bulb({ :bulb_type => :custom }, :as => :admin)
+    assert_equal CustomBulb, bulb.class
+  end
+
+  def test_build_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_bulb{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
+  end
+
+  def test_create_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.create_bulb{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
+  end
+
+  def test_create_bang_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.create_bulb!{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
   end
 end

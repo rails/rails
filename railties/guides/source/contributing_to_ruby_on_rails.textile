@@ -232,11 +232,11 @@ You can also help out by examining pull requests that have been submitted to Rub
 $ git checkout -b testing_branch
 </shell>
 
-Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to the master branch located at https://github.com/JohnSmith/rails.
+Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to the topic branch located at https://github.com/JohnSmith/rails.
 
 <shell>
 $ git remote add JohnSmith git://github.com/JohnSmith/rails.git
-$ git pull JohnSmith master
+$ git pull JohnSmith topic
 </shell>
 
 After applying their branch, test it out! Here are some things to think about:
@@ -300,10 +300,16 @@ h4. Follow the Coding Conventions
 
 Rails follows a simple set of coding style conventions.
 
-* Two spaces, no tabs
-* Prefer +&amp;&amp;+/+||+ over +and+/+or+
-* +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+
-* Follow the conventions you see used in the source already
+* Two spaces, no tabs.
+* No trailing whitespace. Blank lines should not have any space.
+* Indent after private/protected.
+* Prefer +&amp;&amp;+/+||+ over +and+/+or+.
+* Prefer class << self block over self.method for class methods.
+* +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+.
+* a = b and not a=b.
+* Follow the conventions you see used in the source already.
+
+These are some guidelines and please use your best judgement in using them.
 
 h4. Sanity Check
 
@@ -344,20 +350,22 @@ Navigate to the Rails "GitHub repository":https://github.com/rails/rails and pre
 Add the new remote to your local repository on your local machine:
 
 <shell>
-$ git remote add mine https://&lt;your user name&gt;@github.com/&lt;your user name&gt;/rails.git
+$ git remote add mine https://<your user name>@github.com/<your user name>/rails.git
 </shell>
 
 Push to your remote:
 
 <shell>
-$ git push mine master
+$ git push mine my_new_branch
 </shell>
 
 h4. Issue a Pull Request
 
-Navigate to the Rails repository you just pushed to (e.g. https://github.com/&lt;your user name&gt;/rails) and press "Pull Request" in the upper right hand corner.
-  
-Ensure the changesets you introduced are included in the "Commits" tab and that the "Files Changed" incorporate all of your changes. 
+Navigate to the Rails repository you just pushed to (e.g. https://github.com/<your user name>/rails) and press "Pull Request" in the upper right hand corner.
+
+Write your branch name in branch field (is filled with master by default) and press "Update Commit Range"
+
+Ensure the changesets you introduced are included in the "Commits" tab and that the "Files Changed" incorporate all of your changes.
 
 Fill in some details about your potential patch including a meaningful title. When finished, press "Send pull request." Rails Core will be notified about your submission.
 
@@ -377,6 +385,7 @@ All contributions, either via master or docrails, get credit in "Rails Contribut
 
 h3. Changelog
 
+* May 12, 2011: Modified to prefer topic branches instead of master branch for users contributions by "Guillermo Iguaran":http://quillarb.org
 * April 29, 2011: Reflect GitHub Issues and Pull Request workflow by "Dan Pickett":http://www.enlightsolutions.com
 * April 14, 2011: Modified Contributing to the Rails Code section to add '[#ticket_number state:commited]' on patches commit messages by "Sebastian Martinez":http://wyeworks.com
 * December 28, 2010: Complete revision by "Xavier Noria":credits.html#fxn

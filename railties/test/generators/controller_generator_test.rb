@@ -9,7 +9,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_help_does_not_show_invoked_generators_options_if_they_already_exist
     content = run_generator ["--help"]
-    assert_no_match /Helper options\:/, content
+    assert_no_match(/Helper options\:/, content)
   end
 
   def test_controller_skeleton_is_created
@@ -20,7 +20,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_check_class_collision
     Object.send :const_set, :ObjectController, Class.new
     content = capture(:stderr){ run_generator ["object"] }
-    assert_match /The name 'ObjectController' is either already used in your application or reserved/, content
+    assert_match(/The name 'ObjectController' is either already used in your application or reserved/, content)
   ensure
     Object.send :remove_const, :ObjectController
   end
@@ -40,7 +40,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_invokes_assets
     run_generator
     assert_file "app/assets/javascripts/account.js.coffee"
-    assert_file "app/assets/stylesheets/account.css.scss"
+    assert_file "app/assets/stylesheets/account.css"
   end
 
   def test_invokes_default_test_framework

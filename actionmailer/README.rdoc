@@ -102,7 +102,7 @@ Example:
       )
 
       if email.has_attachments?
-        for attachment in email.attachments
+        email.attachments.each do |attachment| 
           page.attachments.create({
             :file => attachment, :description => email.subject
           })
@@ -157,5 +157,5 @@ API documentation is at
 
 Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
 
-* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets
+* https://github.com/rails/rails/issues
 

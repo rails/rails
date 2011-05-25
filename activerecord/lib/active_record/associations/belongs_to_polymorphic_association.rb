@@ -19,7 +19,7 @@ module ActiveRecord
 
         def klass
           type = owner[reflection.foreign_type]
-          type && type.constantize
+          type.presence && type.constantize
         end
 
         def raise_on_type_mismatch(record)

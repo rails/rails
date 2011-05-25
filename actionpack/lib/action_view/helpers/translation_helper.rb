@@ -15,10 +15,10 @@ module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
-      # Delegates to I18n#translate but also performs three additional functions.
+      # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
       #
-      # First, it'll pass the :rescue_format => :html option to I18n so that any
-      # thrown MissingTranslation messages will be turned into inline spans that
+      # First, it'll pass the <tt>:rescue_format => :html</tt> option to I18n so that any
+      # thrown +MissingTranslation+ messages will be turned into inline spans that
       #
       #   * have a "translation-missing" class set,
       #   * contain the missing key as a title attribute and
@@ -54,7 +54,7 @@ module ActionView
       end
       alias :t :translate
 
-      # Delegates to I18n.localize with no additional functionality.
+      # Delegates to <tt>I18n.localize</tt> with no additional functionality.
       def localize(*args)
         I18n.localize(*args)
       end

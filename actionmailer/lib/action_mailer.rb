@@ -40,12 +40,10 @@ require 'active_support/lazy_load_hooks'
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
-  autoload :AdvAttrAccessor
   autoload :Collector
   autoload :Base
   autoload :DeliveryMethods
   autoload :MailHelper
-  autoload :OldApi
   autoload :TestCase
   autoload :TestHelper
 end

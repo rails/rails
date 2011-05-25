@@ -95,6 +95,11 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/dummy/config/database.yml", /postgres/
   end
 
+  def test_generation_runs_bundle_install_with_full_and_mountable
+    result = run_generator [destination_root, "--mountable", "--full"]
+    assert_equal 1, result.scan("Your bundle is complete").size
+  end
+
   def test_skipping_javascripts_without_mountable_option
     run_generator
     assert_no_file "app/assets/javascripts/application.js"
@@ -119,17 +124,17 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
-  def test_ensure_that_tests_works
+  def test_ensure_that_tests_work
     run_generator
     FileUtils.cd destination_root
-    `bundle install`
+    quietly { system 'bundle install' }
     assert_match(/1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
   def test_ensure_that_tests_works_in_full_mode
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
-    `bundle install`
+    quietly { system 'bundle install' }
     assert_match(/1 tests, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
   end
 
@@ -164,11 +169,39 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/bukkits/application.html.erb", /<title>Bukkits<\/title>/
   end
 
+  def test_creating_gemspec
+    run_generator
+    assert_file "bukkits.gemspec", /s.name = "bukkits"/
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,lib\}\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.version = "0.0.1"/
+  end
+
+  def test_shebang
+    run_generator
+    assert_file "script/rails", /#!\/usr\/bin\/env ruby/
+  end
+
   def test_passing_dummy_path_as_a_parameter
     run_generator [destination_root, "--dummy_path", "spec/dummy"]
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test/dummy"
+  end
+
+  def test_creating_dummy_without_tests_but_with_dummy_path
+    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
+    assert_file "spec/dummy"
+    assert_file "spec/dummy/config/application.rb"
+    assert_no_file "test"
+  end
+
+  def test_skipping_test_unit
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_no_file "test"
+    assert_file "bukkits.gemspec" do |contents|
+      assert_no_match /s.test_files = Dir\["test\/\*\*\/\*"\]/, contents
+    end
   end
 
   def test_skipping_gemspec

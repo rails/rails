@@ -312,6 +312,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal [developers(:david).becomes(ClassMethodDeveloperCalledDavid)], ClassMethodDeveloperCalledDavid.all
   end
 
+  def test_default_scope_as_class_method_referencing_scope
+    assert_equal [developers(:david).becomes(ClassMethodReferencingScopeDeveloperCalledDavid)], ClassMethodReferencingScopeDeveloperCalledDavid.all
+  end
+
+  def test_default_scope_as_block_referencing_scope
+    assert_equal [developers(:david).becomes(LazyBlockReferencingScopeDeveloperCalledDavid)], LazyBlockReferencingScopeDeveloperCalledDavid.all
+  end
+
   def test_default_scope_with_lambda
     assert_equal [developers(:david).becomes(LazyLambdaDeveloperCalledDavid)], LazyLambdaDeveloperCalledDavid.all
   end

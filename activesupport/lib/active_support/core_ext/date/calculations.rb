@@ -206,7 +206,7 @@ class Date
 
   # Returns a new ; DateTime objects will have time set to 0:00DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
   def beginning_of_month
-    self.acts_like?(:time) ? change(:day => 1,:hour => 0, :min => 0, :sec => 0) : change(:day => 1)
+    self.acts_like?(:time) ? change(:day => 1, :hour => 0) : change(:day => 1)
   end
   alias :at_beginning_of_month :beginning_of_month
 
@@ -231,13 +231,13 @@ class Date
 
   # Returns a new Date/DateTime representing the start of the year (1st of january; DateTime objects will have time set to 0:00)
   def beginning_of_year
-    self.acts_like?(:time) ? change(:month => 1, :day => 1, :hour => 0, :min => 0, :sec => 0) : change(:month => 1, :day => 1)
+    self.acts_like?(:time) ? change(:month => 1, :day => 1, :hour => 0) : change(:month => 1, :day => 1)
   end
   alias :at_beginning_of_year :beginning_of_year
 
   # Returns a new Time representing the end of the year (31st of december; DateTime objects will have time set to 23:59:59)
   def end_of_year
-    self.acts_like?(:time) ? change(:month => 12,:day => 31,:hour => 23, :min => 59, :sec => 59) : change(:month => 12, :day => 31)
+    self.acts_like?(:time) ? change(:month => 12, :day => 31, :hour => 23, :min => 59, :sec => 59) : change(:month => 12, :day => 31)
   end
   alias :at_end_of_year :end_of_year
 

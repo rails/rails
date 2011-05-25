@@ -33,7 +33,7 @@ module ActiveRecord
 
   class HasManyThroughAssociationPointlessSourceTypeError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
-      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic.  Try removing :source_type on your association.")
+      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic. Try removing :source_type on your association.")
     end
   end
 
@@ -48,7 +48,7 @@ module ActiveRecord
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
       source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
-      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}.  Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'.  Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
+      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
     end
   end
 
@@ -96,7 +96,7 @@ module ActiveRecord
 
   class ReadOnlyAssociation < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      super("Can not add to a has_many :through association.  Try adding to #{reflection.through_reflection.name.inspect}.")
+      super("Can not add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
     end
   end
 
@@ -457,12 +457,13 @@ module ActiveRecord
     #     has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
     #   end
     #
-    # Some extensions can only be made to work with knowledge of the association proxy's internals.
-    # Extensions can access relevant state using accessors on the association proxy:
+    # Some extensions can only be made to work with knowledge of the association's internals.
+    # Extensions can access relevant state using the following methods (where 'items' is the
+    # name of the association):
     #
-    # * +proxy_owner+ - Returns the object the association is part of.
-    # * +proxy_reflection+ - Returns the reflection object that describes the association.
-    # * +proxy_target+ - Returns the associated object for +belongs_to+ and +has_one+, or
+    # * +record.association(:items).owner+ - Returns the object the association is part of.
+    # * +record.association(:items).reflection+ - Returns the reflection object that describes the association.
+    # * +record.association(:items).target+ - Returns the associated object for +belongs_to+ and +has_one+, or
     #   the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
     #
     # === Association Join Models
@@ -1379,7 +1380,7 @@ module ActiveRecord
       # [:touch]
       #   If true, the associated object will be touched (the updated_at/on attributes set to now)
       #   when this record is either saved or destroyed. If you specify a symbol, that attribute
-      #   will be updated with the current time instead of the updated_at/on attribute.
+      #   will be updated with the current time in addition to the updated_at/on attribute.
       # [:inverse_of]
       #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated
       #   object that is the inverse of this <tt>belongs_to</tt> association.  Does not work in

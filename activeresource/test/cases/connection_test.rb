@@ -5,29 +5,29 @@ class ConnectionTest < Test::Unit::TestCase
 
   def setup
     @conn = ActiveResource::Connection.new('http://localhost')
-    @matz  = { :id => 1, :name => 'Matz' }
-    @david = { :id => 2, :name => 'David' }
-    @people = [ @matz, @david ].to_xml(:root => 'people')
-    @people_single = [ @matz ].to_xml(:root => 'people-single-elements')
-    @people_empty = [ ].to_xml(:root => 'people-empty-elements')
-    @matz = @matz.to_xml(:root => 'person')
-    @david = @david.to_xml(:root => 'person')
-    @header = {'key' => 'value'}.freeze
+    matz  = { :person => { :id => 1, :name => 'Matz' } }
+    david = { :person => { :id => 2, :name => 'David' } }
+    @people = { :people => [ matz, david ] }.to_json
+    @people_single = { 'people-single-elements' => [ matz ] }.to_json
+    @people_empty = { 'people-empty-elements' => [ ] }.to_json
+    @matz  = matz.to_json
+    @david = david.to_json
+    @header = { 'key' => 'value' }.freeze
 
-    @default_request_headers = { 'Content-Type' => 'application/xml' }
+    @default_request_headers = { 'Content-Type' => 'application/json' }
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get    "/people/2.xml", @header, @david
-      mock.get    "/people.xml", {}, @people
-      mock.get    "/people_single_elements.xml", {}, @people_single
-      mock.get    "/people_empty_elements.xml", {}, @people_empty
-      mock.get    "/people/1.xml", {}, @matz
-      mock.put    "/people/1.xml", {}, nil, 204
-      mock.put    "/people/2.xml", {}, @header, 204
-      mock.delete "/people/1.xml", {}, nil, 200
-      mock.delete "/people/2.xml", @header, nil, 200
-      mock.post   "/people.xml",   {}, nil, 201, 'Location' => '/people/5.xml'
-      mock.post   "/members.xml",  {}, @header, 201, 'Location' => '/people/6.xml'
-      mock.head   "/people/1.xml", {}, nil, 200
+      mock.get    "/people/2.json", @header, @david
+      mock.get    "/people.json", {}, @people
+      mock.get    "/people_single_elements.json", {}, @people_single
+      mock.get    "/people_empty_elements.json", {}, @people_empty
+      mock.get    "/people/1.json", {}, @matz
+      mock.put    "/people/1.json", {}, nil, 204
+      mock.put    "/people/2.json", {}, @header, 204
+      mock.delete "/people/1.json", {}, nil, 200
+      mock.delete "/people/2.json", @header, nil, 200
+      mock.post   "/people.json",   {}, nil, 201, 'Location' => '/people/5.json'
+      mock.post   "/members.json",  {}, @header, 201, 'Location' => '/people/6.json'
+      mock.head   "/people/1.json", {}, nil, 200
     end
   end
 
@@ -120,64 +120,64 @@ class ConnectionTest < Test::Unit::TestCase
   end
 
   def test_get
-    matz = decode(@conn.get("/people/1.xml"))
+    matz = decode(@conn.get("/people/1.json"))
     assert_equal "Matz", matz["name"]
   end
 
   def test_head
-    response = @conn.head("/people/1.xml")
+    response = @conn.head("/people/1.json")
     assert response.body.blank?
     assert_equal 200, response.code
   end
 
   def test_get_with_header
-    david = decode(@conn.get("/people/2.xml", @header))
+    david = decode(@conn.get("/people/2.json", @header))
     assert_equal "David", david["name"]
   end
 
   def test_get_collection
-    people = decode(@conn.get("/people.xml"))
-    assert_equal "Matz", people[0]["name"]
-    assert_equal "David", people[1]["name"]
+    people = decode(@conn.get("/people.json"))
+    assert_equal "Matz", people[0]["person"]["name"]
+    assert_equal "David", people[1]["person"]["name"]
   end
 
   def test_get_collection_single
-    people = decode(@conn.get("/people_single_elements.xml"))
-    assert_equal "Matz", people[0]["name"]
+    people = decode(@conn.get("/people_single_elements.json"))
+    assert_equal "Matz", people[0]["person"]["name"]
   end
 
   def test_get_collection_empty
-    people = decode(@conn.get("/people_empty_elements.xml"))
+    people = decode(@conn.get("/people_empty_elements.json"))
     assert_equal [], people
   end
 
   def test_post
-    response = @conn.post("/people.xml")
-    assert_equal "/people/5.xml", response["Location"]
+    response = @conn.post("/people.json")
+    assert_equal "/people/5.json", response["Location"]
   end
 
   def test_post_with_header
-    response = @conn.post("/members.xml", @header)
-    assert_equal "/people/6.xml", response["Location"]
+    response = @conn.post("/members.json", @header)
+    assert_equal "/people/6.json", response["Location"]
   end
 
   def test_put
-    response = @conn.put("/people/1.xml")
+    response = @conn.put("/people/1.json")
     assert_equal 204, response.code
   end
 
   def test_put_with_header
-    response = @conn.put("/people/2.xml", @header)
+    response = @conn.put("/people/2.json", @header)
     assert_equal 204, response.code
   end
 
   def test_delete
-    response = @conn.delete("/people/1.xml")
+    response = @conn.delete("/people/1.json")
     assert_equal 200, response.code
   end
 
   def test_delete_with_header
-    response = @conn.delete("/people/2.xml", @header)
+    response = @conn.delete("/people/2.json", @header)
     assert_equal 200, response.code
   end
 
@@ -185,7 +185,7 @@ class ConnectionTest < Test::Unit::TestCase
     @http = mock('new Net::HTTP')
     @conn.expects(:http).returns(@http)
     @http.expects(:get).raises(Timeout::Error, 'execution expired')
-    assert_raise(ActiveResource::TimeoutError) { @conn.get('/people_timeout.xml') }
+    assert_raise(ActiveResource::TimeoutError) { @conn.get('/people_timeout.json') }
   end
 
   def test_setting_timeout
@@ -203,8 +203,8 @@ class ConnectionTest < Test::Unit::TestCase
     @http = mock('new Net::HTTP')
     @conn.expects(:http).returns(@http)
     path = '/people/1.xml'
-    @http.expects(:get).with(path,  {'Accept' => 'application/xhtml+xml'}).returns(ActiveResource::Response.new(@matz, 200, {'Content-Type' => 'text/xhtml'}))
-    assert_nothing_raised(Mocha::ExpectationError) { @conn.get(path, {'Accept' => 'application/xhtml+xml'}) }
+    @http.expects(:get).with(path, { 'Accept' => 'application/xhtml+xml' }).returns(ActiveResource::Response.new(@matz, 200, { 'Content-Type' => 'text/xhtml' }))
+    assert_nothing_raised(Mocha::ExpectationError) { @conn.get(path, { 'Accept' => 'application/xhtml+xml' }) }
   end
 
   def test_ssl_options_get_applied_to_http
@@ -222,7 +222,7 @@ class ConnectionTest < Test::Unit::TestCase
     http = Net::HTTP.new('')
     @conn.expects(:http).returns(http)
     http.expects(:get).raises(OpenSSL::SSL::SSLError, 'Expired certificate')
-    assert_raise(ActiveResource::SSLError) { @conn.get('/people/1.xml') }
+    assert_raise(ActiveResource::SSLError) { @conn.get('/people/1.json') }
   end
 
   def test_auth_type_can_be_string

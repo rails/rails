@@ -1,7 +1,7 @@
 require 'active_support/string_inquirer'
 
 class String
-  # Wraps the current string in the ActiveSupport::StringInquirer class,
+  # Wraps the current string in the <tt>ActiveSupport::StringInquirer</tt> class,
   # which gives you a prettier way to test for equality. Example:
   #
   #   env = "production".inquiry

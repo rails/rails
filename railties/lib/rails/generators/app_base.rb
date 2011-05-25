@@ -1,5 +1,5 @@
 require 'digest/md5'
-require 'active_support/secure_random'
+require 'securerandom'
 require 'active_support/core_ext/string/strip'
 require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
@@ -27,6 +27,9 @@ module Rails
 
         class_option :skip_gemfile,       :type => :boolean, :default => false,
                                           :desc => "Don't create a Gemfile"
+
+        class_option :skip_bundle,        :type => :boolean, :default => false,
+                                          :desc => "Don't run bundle install"
 
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
@@ -162,7 +165,7 @@ module Rails
       end
 
       def gem_for_ruby_debugger
-        if RUBY_VERSION < "1.9.2"
+        if RUBY_VERSION < "1.9"
           "gem 'ruby-debug'"
         else
           "gem 'ruby-debug19', :require => 'ruby-debug'"
@@ -170,7 +173,7 @@ module Rails
       end
 
       def gem_for_turn
-        unless RUBY_VERSION < "1.9.2"
+        unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
           <<-GEMFILE.strip_heredoc
             group :test do
               # Pretty printed test output
@@ -184,13 +187,18 @@ module Rails
         "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
       end
 
-      def bundle_if_dev_or_edge
-        bundle_command = File.basename(Thor::Util.ruby_command).sub(/ruby/, 'bundle')
-        run "#{bundle_command} install" if dev_or_edge?
+      def bundle_command(command)
+        require 'bundler'
+        require 'bundler/cli'
+
+        say_status :run, "bundle #{command}"
+        Bundler::CLI.new.send(command)
+      rescue
+        say_status :failure, "bundler raised an exception, are you offline?", :red
       end
 
-      def dev_or_edge?
-        options.dev? || options.edge?
+      def run_bundle
+        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
       end
 
       def empty_directory_with_gitkeep(destination, config = {})

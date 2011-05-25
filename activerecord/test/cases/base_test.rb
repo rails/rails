@@ -367,6 +367,15 @@ class BasicsTest < ActiveRecord::TestCase
     GUESSED_CLASSES.each(&:reset_table_name)
   end
 
+  def test_singular_table_name_guesses_for_individual_table
+    CreditCard.pluralize_table_names = false
+    CreditCard.reset_table_name
+    assert_equal "credit_card", CreditCard.table_name
+    assert_equal "categories", Category.table_name
+  ensure
+    CreditCard.pluralize_table_names = true
+    CreditCard.reset_table_name
+  end
 
   if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
@@ -1789,5 +1798,18 @@ class BasicsTest < ActiveRecord::TestCase
     actual   = Marshal.load(Marshal.dump(expected))
 
     assert_equal expected.attributes, actual.attributes
+  end
+
+  def test_attribute_names
+    assert_equal ["id", "type", "ruby_type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id"],
+                 Company.attribute_names
+  end
+
+  def test_attribute_names_on_table_not_exists
+    assert_equal [], NonExistentTable.attribute_names
+  end
+
+  def test_attribtue_names_on_abstract_class
+    assert_equal [], AbstractCompany.attribute_names
   end
 end

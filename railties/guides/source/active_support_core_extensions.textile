@@ -417,6 +417,14 @@ silence_stream(STDOUT) do
 end
 </ruby>
 
+The +quietly+ method addresses the common use case where you want to silence STDOUT and STDERR, even in subprocesses:
+
+<ruby>
+quietly { system 'bundle install' }
+</ruby>
+
+For example, the railties test suite uses that one in a few places to prevent command messages from being echoed intermixed with the progress status.
+
 Silencing exceptions is also possible with +suppress+. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is +kind_of?+ any of the arguments, +suppress+ captures it and returns silently. Otherwise the exception is reraised:
 
 <ruby>
@@ -1833,6 +1841,8 @@ The method +ordinalize+ returns the ordinal string corresponding to the receiver
 2.ordinalize    # => "2nd"
 53.ordinalize   # => "53rd"
 2009.ordinalize # => "2009th"
+-21.ordinalize  # => "-21st"
+-134.ordinalize # => "-134th"
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.

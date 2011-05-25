@@ -27,7 +27,7 @@ db_namespace = namespace :db do
         #
         #  development:
         #    database: blog_development
-        #    <<: *defaults
+        #    *defaults
         next unless config['database']
         # Only connect to local databases
         local_database?(config) { create_database(config) }
@@ -296,7 +296,7 @@ db_namespace = namespace :db do
   end
 
   namespace :fixtures do
-    desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :load => :environment do
       require 'active_record/fixtures'
 
@@ -338,6 +338,7 @@ db_namespace = namespace :db do
     task :dump => :load_config do
       require 'active_record/schema_dumper'
       File.open(ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb", "w") do |file|
+        ActiveRecord::Base.establish_connection(Rails.env)
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
       db_namespace['schema:dump'].reenable
@@ -480,8 +481,7 @@ db_namespace = namespace :db do
     # desc "Creates a sessions migration for use with ActiveRecord::SessionStore"
     task :create => :environment do
       raise 'Task unavailable to this database (no migration support)' unless ActiveRecord::Base.connection.supports_migrations?
-      require 'rails/generators'
-      Rails::Generators.configure!
+      Rails.application.load_generators
       require 'rails/generators/rails/session_migration/session_migration_generator'
       Rails::Generators::SessionMigrationGenerator.start [ ENV['MIGRATION'] || 'add_sessions_table' ]
     end

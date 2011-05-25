@@ -15,6 +15,8 @@ command = aliases[command] || command
 
 case command
 when 'generate', 'destroy', 'plugin'
+  require 'rails/generators'
+
   if command == 'plugin' && ARGV.first == 'new'
     require "rails/commands/plugin_new"
   else
@@ -22,7 +24,9 @@ when 'generate', 'destroy', 'plugin'
     Rails.application.require_environment!
 
     if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
-      Rails.application = engine
+      Rails.application.load_generators(engine)
+    else
+      Rails.application.load_generators
     end
 
     require "rails/commands/#{command}"

@@ -3,6 +3,9 @@
 # Install the MySQL driver:
 #   gem install activerecord-jdbcmysql-adapter
 #
+# Configure Using Gemfile
+# gem 'activerecord-jdbcmysql-adapter'
+#
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
 development:

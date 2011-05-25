@@ -1,5 +1,4 @@
 require 'active_record/connection_adapters/abstract_adapter'
-require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 
 # Make sure we're using pg high enough for PGResult#values
@@ -39,6 +38,16 @@ module ActiveRecord
       # :stopdoc:
       class << self
         attr_accessor :money_precision
+        def string_to_time(string)
+          return string unless String === string
+
+          case string
+          when 'infinity'  then 1.0 / 0.0
+          when '-infinity' then -1.0 / 0.0
+          else
+            super
+          end
+        end
       end
       # :startdoc:
 
@@ -349,6 +358,9 @@ module ActiveRecord
         return super unless column
 
         case value
+        when Float
+          return super unless value.infinite? && column.type == :datetime
+          "'#{value.to_s.downcase}'"
         when Numeric
           return super unless column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
@@ -688,11 +700,11 @@ module ActiveRecord
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
            SELECT distinct i.relname, d.indisunique, d.indkey, t.oid
-             FROM pg_class t, pg_class i, pg_index d
+           FROM pg_class t
+           INNER JOIN pg_index d ON t.oid = d.indrelid
+           INNER JOIN pg_class i ON d.indexrelid = i.oid
            WHERE i.relkind = 'i'
-             AND d.indexrelid = i.oid
              AND d.indisprimary = 'f'
-             AND t.oid = d.indrelid
              AND t.relname = '#{table_name}'
              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (#{schemas}) )
           ORDER BY i.relname
@@ -807,19 +819,13 @@ module ActiveRecord
         # given table's primary key.
         result = exec_query(<<-end_sql, 'SCHEMA').rows.first
           SELECT attr.attname, seq.relname
-          FROM pg_class      seq,
-               pg_attribute  attr,
-               pg_depend     dep,
-               pg_namespace  name,
-               pg_constraint cons
-          WHERE seq.oid           = dep.objid
-            AND seq.relkind       = 'S'
-            AND attr.attrelid     = dep.refobjid
-            AND attr.attnum       = dep.refobjsubid
-            AND attr.attrelid     = cons.conrelid
-            AND attr.attnum       = cons.conkey[1]
-            AND cons.contype      = 'p'
-            AND dep.refobjid      = '#{quote_table_name(table)}'::regclass
+          FROM pg_class seq
+          INNER JOIN pg_depend dep ON seq.oid = dep.objid
+          INNER JOIN pg_attribute attr ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
+          INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
+          WHERE seq.relkind  = 'S'
+            AND cons.contype = 'p'
+            AND dep.refobjid = '#{quote_table_name(table)}'::regclass
         end_sql
 
         # [primary_key, sequence]
@@ -832,16 +838,11 @@ module ActiveRecord
       def primary_key(table)
         row = exec_query(<<-end_sql, 'SCHEMA', [[nil, table]]).rows.first
           SELECT DISTINCT(attr.attname)
-          FROM pg_attribute  attr,
-               pg_depend     dep,
-               pg_namespace  name,
-               pg_constraint cons
-          WHERE attr.attrelid     = dep.refobjid
-            AND attr.attnum       = dep.refobjsubid
-            AND attr.attrelid     = cons.conrelid
-            AND attr.attnum       = cons.conkey[1]
-            AND cons.contype      = 'p'
-            AND dep.refobjid      = $1::regclass
+          FROM pg_attribute attr
+          INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
+          INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
+          WHERE cons.contype = 'p'
+            AND dep.refobjid = $1::regclass
         end_sql
 
         row && row.first

@@ -33,7 +33,7 @@ A short rundown of some of the major features:
 * Actions grouped in controller as methods instead of separate command objects
   and can therefore share helper methods
 
-    CustomersController < ActionController::Base
+    class CustomersController < ActionController::Base
       def show
         @customer = find_customer
       end
@@ -58,7 +58,7 @@ A short rundown of some of the major features:
 
 * ERB templates (static content mixed with dynamic output from ruby)
 
-    <% for post in @posts %>
+    <% @posts.each do |post| %>
       Title: <%= post.title %>
     <% end %>
 
@@ -81,7 +81,7 @@ A short rundown of some of the major features:
         xml.language "en-us"
         xml.ttl "40"
 
-        for item in @recent_items
+        @recent_items.each do |item|
           xml.item do
             xml.title(item_title(item))
             xml.description(item_description(item))
@@ -293,7 +293,7 @@ And the templates look like this:
     </body></html>
 
   weblog/index.html.erb:
-    <% for post in @posts %>
+    <% @posts.each do |post| %>
       <p><%= link_to(post.title, :action => "show", :id => post.id) %></p>
     <% end %>
 
@@ -338,4 +338,4 @@ API documentation is at
 
 Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
 
-* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets
+* https://github.com/rails/rails/issues

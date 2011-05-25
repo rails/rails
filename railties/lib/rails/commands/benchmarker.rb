@@ -1,25 +1,34 @@
-require 'active_support/core_ext/object/inclusion'
+require 'optparse'
+require 'rails/test_help'
+require 'rails/performance_test_help'
 
-if ARGV.first.in?([nil, "-h", "--help"])
-  puts "Usage: rails benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
-  exit 1
+ARGV.push('--benchmark') # HAX
+require 'active_support/testing/performance'
+ARGV.pop
+
+def options
+  options = {}
+  defaults = ActiveSupport::Testing::Performance::DEFAULTS
+  
+  OptionParser.new do |opt|
+    opt.banner = "Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]"
+    opt.on('-r', '--runs N', Numeric, 'Number of runs.', "Default: #{defaults[:runs]}") { |r| options[:runs] = r }
+    opt.on('-o', '--output PATH', String, 'Directory to use when writing the results.', "Default: #{defaults[:output]}") { |o| options[:output] = o }
+    opt.on('-m', '--metrics a,b,c', Array, 'Metrics to use.', "Default: #{defaults[:metrics].join(",")}") { |m| options[:metrics] = m.map(&:to_sym) }
+    opt.parse!(ARGV)
+  end
+  
+  options
 end
 
-begin
-  N = Integer(ARGV.first)
-  ARGV.shift
-rescue ArgumentError
-  N = 1
-end
-
-require 'benchmark'
-include Benchmark
-
-# Don't include compilation in the benchmark
-ARGV.each { |expression| eval(expression) }
-
-bm(6) do |x|
-  ARGV.each_with_index do |expression, idx|
-    x.report("##{idx + 1}") { N.times { eval(expression) } }
+class BenchmarkerTest < ActionDispatch::PerformanceTest
+  self.profile_options = options
+  
+  ARGV.each do |expression|
+    eval <<-RUBY
+      def test_#{expression.parameterize('_')}
+        #{expression}
+      end
+    RUBY
   end
 end

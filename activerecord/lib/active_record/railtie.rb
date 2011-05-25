@@ -29,8 +29,8 @@ module ActiveRecord
     # When loading console, force ActiveRecord::Base to be loaded
     # to avoid cross references when loading a constant for the
     # first time. Also, make it output to STDERR.
-    console do |sandbox|
-      require "active_record/railties/console_sandbox" if sandbox
+    console do |app|
+      require "active_record/railties/console_sandbox" if app.sandbox?
       ActiveRecord::Base.logger = Logger.new(STDERR)
     end
 

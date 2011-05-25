@@ -1,8 +1,8 @@
 Description:
-    Stubs out a new asset placeholders. Pass the asset name, either CamelCased
+    Stubs out new asset placeholders. Pass the asset name, either CamelCased
     or under_scored.
 
-    To create assets within a folder, specify the assets name as a
+    To create an asset within a folder, specify the asset's name as a
     path like 'parent/name'.
 
     This generates a JavaScript stub in app/assets/javascripts and a stylesheet
@@ -15,6 +15,6 @@ Example:
     `rails generate assets posts`
 
     Posts assets.
-        Javascript:     app/assets/javascripts/posts.js
+        JavaScript:     app/assets/javascripts/posts.js
         Stylesheet:     app/assets/stylesheets/posts.css
 

@@ -21,6 +21,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+require 'securerandom'
+
 module ActiveSupport
   class << self
     attr_accessor :load_all_hooks
@@ -30,7 +32,7 @@ module ActiveSupport
   self.load_all_hooks = []
 
   on_load_all do
-    [Dependencies, Deprecation, Gzip, MessageVerifier, Multibyte, SecureRandom]
+    [Dependencies, Deprecation, Gzip, MessageVerifier, Multibyte]
   end
 end
 
@@ -68,7 +70,6 @@ module ActiveSupport
     autoload :OrderedHash
     autoload :OrderedOptions
     autoload :Rescuable
-    autoload :SecureRandom
     autoload :StringInquirer
     autoload :XmlMini
   end

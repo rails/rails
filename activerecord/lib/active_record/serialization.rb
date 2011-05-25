@@ -37,7 +37,7 @@ module ActiveRecord #:nodoc:
         include_has_options = include_associations.is_a?(Hash)
         associations = include_has_options ? include_associations.keys : Array.wrap(include_associations)
 
-        for association in associations
+        associations.each do |association|
           records = case self.class.reflect_on_association(association).macro
           when :has_many, :has_and_belongs_to_many
             send(association).to_a

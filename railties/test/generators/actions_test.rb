@@ -118,8 +118,8 @@ class ActionsTest < Rails::Generators::TestCase
     end
 
     assert_file 'config/application.rb' do |content|
-      assert_match /# This will be added/, content
-      assert_no_match /# This wont be added/, content
+      assert_match(/# This will be added/, content)
+      assert_no_match(/# This wont be added/, content)
     end
   end
 

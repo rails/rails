@@ -11,6 +11,7 @@ require 'models/comment'
 require 'models/person'
 require 'models/reader'
 require 'models/tagging'
+require 'models/tag'
 require 'models/invoice'
 require 'models/line_item'
 require 'models/car'
@@ -1444,5 +1445,34 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     target = topics(:first).replies.target
 
     assert_not_equal target.object_id, ary.object_id
+  end
+
+  def test_merging_with_custom_attribute_writer
+    bulb = Bulb.new(:color => "red")
+    assert_equal "RED!", bulb.color
+
+    car = Car.create!
+    car.bulbs << bulb
+
+    assert_equal "RED!", car.bulbs.to_a.first.color
+  end
+
+  def test_new_is_called_with_attributes_and_options
+    car = Car.create(:name => 'honda')
+
+    bulb = car.bulbs.build
+    assert_equal Bulb, bulb.class
+
+    bulb = car.bulbs.build(:bulb_type => :custom)
+    assert_equal Bulb, bulb.class
+
+    bulb = car.bulbs.build({ :bulb_type => :custom }, :as => :admin)
+    assert_equal CustomBulb, bulb.class
+  end
+
+  def test_abstract_class_with_polymorphic_has_many
+    post = SubStiPost.create! :title => "fooo", :body => "baa"
+    tagging = Tagging.create! :taggable => post
+    assert_equal [tagging], post.taggings
   end
 end

@@ -62,7 +62,7 @@ module Kernel
   
   # Captures the given stream and returns it:
   #
-  #   stream = capture(:stdout){ puts "Cool" }
+  #   stream = capture(:stdout) { puts "Cool" }
   #   stream # => "Cool\n"
   #
   def capture(stream)
@@ -78,4 +78,16 @@ module Kernel
     result
   end
   alias :silence :capture
+
+  # Silences both STDOUT and STDERR, even for subprocesses.
+  #
+  #   quietly { system 'bundle install' }
+  #
+  def quietly
+    silence_stream(STDOUT) do
+      silence_stream(STDERR) do
+        yield
+      end
+    end
+  end
 end
