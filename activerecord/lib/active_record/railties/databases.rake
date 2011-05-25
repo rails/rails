@@ -481,8 +481,7 @@ db_namespace = namespace :db do
     # desc "Creates a sessions migration for use with ActiveRecord::SessionStore"
     task :create => :environment do
       raise 'Task unavailable to this database (no migration support)' unless ActiveRecord::Base.connection.supports_migrations?
-      require 'rails/generators'
-      Rails::Generators.configure!
+      Rails.application.load_generators
       require 'rails/generators/rails/session_migration/session_migration_generator'
       Rails::Generators::SessionMigrationGenerator.start [ ENV['MIGRATION'] || 'add_sessions_table' ]
     end
