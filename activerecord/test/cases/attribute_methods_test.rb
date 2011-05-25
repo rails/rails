@@ -109,6 +109,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, :title
   end
 
+  # IRB inspects the return value of "MyModel.allocate"
+  # by inspecting it.
+  def test_allocated_object_can_be_inspected
+    topic = Topic.allocate
+    assert_nothing_raised { topic.inspect }
+    assert topic.inspect, "#<Topic not initialized>"
+  end
+
   def test_array_content
     topic = Topic.new
     topic.content = %w( one two three )
