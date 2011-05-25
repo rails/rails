@@ -1675,7 +1675,7 @@ MSG
       #   user.is_admin?  # => false
       def attributes=(new_attributes, guard_protected_attributes = nil)
         unless guard_protected_attributes.nil?
-          message = "the use of 'guard_protected_attributes' will be removed from the next major release of rails, " +
+          message = "the use of 'guard_protected_attributes' will be removed from the next minor release of rails, " +
                     "if you want to bypass mass-assignment security then look into using assign_attributes"
           ActiveSupport::Deprecation.warn(message)
         end
