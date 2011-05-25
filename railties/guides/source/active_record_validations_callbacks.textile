@@ -171,7 +171,7 @@ Validates that a checkbox on the user interface was checked when a form was subm
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_acceptance_of :terms_of_service
+  validates :terms_of_service, :acceptance => true
 end
 </ruby>
 
@@ -181,7 +181,7 @@ The default error message for +validates_acceptance_of+ is "_must be accepted_".
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_acceptance_of :terms_of_service, :accept => 'yes'
+  validates :terms_of_service, :acceptance => true, :accept => 'yes'
 end
 </ruby>
 
