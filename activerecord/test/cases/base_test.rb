@@ -502,13 +502,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 'value2', weird.send('a$b')
   end
 
-  def test_attributes_guard_protected_attributes_is_deprecated
-    attributes = { "title" => "An amazing title" }
-    post = ProtectedTitlePost.new
-    assert_deprecated { post.send(:attributes=, attributes, false) }
-    assert_equal "An amazing title", post.title
-  end
-
   def test_multiparameter_attributes_on_date
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)

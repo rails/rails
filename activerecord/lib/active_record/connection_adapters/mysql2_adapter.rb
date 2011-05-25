@@ -347,19 +347,6 @@ module ActiveRecord
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 
-      def add_limit_offset!(sql, options)
-        limit, offset = options[:limit], options[:offset]
-        if limit && offset
-          sql << " LIMIT #{offset.to_i}, #{sanitize_limit(limit)}"
-        elsif limit
-          sql << " LIMIT #{sanitize_limit(limit)}"
-        elsif offset
-          sql << " OFFSET #{offset.to_i}"
-        end
-        sql
-      end
-      deprecate :add_limit_offset!
-
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump
@@ -581,11 +568,6 @@ module ActiveRecord
         pk_and_sequence = pk_and_sequence_for(table)
         pk_and_sequence && pk_and_sequence.first
       end
-
-      def case_sensitive_equality_operator
-        "= BINARY"
-      end
-      deprecate :case_sensitive_equality_operator
 
       def case_sensitive_modifier(node)
         Arel::Nodes::Bin.new(node)

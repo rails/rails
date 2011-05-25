@@ -1662,9 +1662,6 @@ MSG
       # If any attributes are protected by either +attr_protected+ or
       # +attr_accessible+ then only settable attributes will be assigned.
       #
-      # The +guard_protected_attributes+ argument is now deprecated, use
-      # the +assign_attributes+ method if you want to bypass mass-assignment security.
-      #
       #   class User < ActiveRecord::Base
       #     attr_protected :is_admin
       #   end
@@ -1673,20 +1670,10 @@ MSG
       #   user.attributes = { :username => 'Phusion', :is_admin => true }
       #   user.username   # => "Phusion"
       #   user.is_admin?  # => false
-      def attributes=(new_attributes, guard_protected_attributes = nil)
-        unless guard_protected_attributes.nil?
-          message = "the use of 'guard_protected_attributes' will be removed from the next major release of rails, " +
-                    "if you want to bypass mass-assignment security then look into using assign_attributes"
-          ActiveSupport::Deprecation.warn(message)
-        end
-
+      def attributes=(new_attributes)
         return unless new_attributes.is_a?(Hash)
 
-        if guard_protected_attributes == false
-          assign_attributes(new_attributes, :without_protection => true)
-        else
-          assign_attributes(new_attributes)
-        end
+        assign_attributes(new_attributes)
       end
 
       # Allows you to set all the attributes for a particular mass-assignment
