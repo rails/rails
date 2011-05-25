@@ -20,8 +20,6 @@ module ActiveRecord
       find_in_batches(options) do |records|
         records.each { |record| yield record }
       end
-
-      self
     end
 
     # Yields each batch of records that was found by the find +options+ as
