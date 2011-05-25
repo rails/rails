@@ -111,11 +111,11 @@ h5. Adding a Middleware
 
 You can add a new middleware to the middleware stack using any of the following methods:
 
-* +config.middleware.use(new_middleware, args)+ - Adds the new middleware at the bottom of the middleware stack.
+* <tt>config.middleware.use(new_middleware, args)</tt> - Adds the new middleware at the bottom of the middleware stack.
 
-* +config.middleware.insert_before(existing_middleware, new_middleware, args)+ - Adds the new middleware before the specified existing middleware in the middleware stack.
+* <tt>config.middleware.insert_before(existing_middleware, new_middleware, args)</tt> - Adds the new middleware before the specified existing middleware in the middleware stack.
 
-* +config.middleware.insert_after(existing_middleware, new_middleware, args)+ - Adds the new middleware after the specified existing middleware in the middleware stack.
+* <tt>config.middleware.insert_after(existing_middleware, new_middleware, args)</tt> - Adds the new middleware after the specified existing middleware in the middleware stack.
 
 <ruby>
 # config/environment.rb
@@ -154,20 +154,20 @@ h4. Internal Middleware Stack
 Much of Action Controller's functionality is implemented as Middlewares. The following table explains the purpose of each of them:
 
 |_.Middleware|_.Purpose|
-|+Rack::Lock+|Sets +env["rack.multithread"]+ flag to +true+ and wraps the application within a Mutex.|
+|+Rack::Lock+|Sets <tt>env["rack.multithread"]</tt> flag to +true+ and wraps the application within a Mutex.|
 |+ActionController::Failsafe+|Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.|
 |+ActiveRecord::QueryCache+|Enables the Active Record query cache.|
 |+ActionController::Session::CookieStore+|Uses the cookie based session store.|
 |+ActionController::Session::MemCacheStore+|Uses the memcached based session store.|
 |+ActiveRecord::SessionStore+|Uses the database based session store.|
-|+Rack::MethodOverride+|Sets HTTP method based on +_method+ parameter or +env["HTTP_X_HTTP_METHOD_OVERRIDE"]+.|
+|+Rack::MethodOverride+|Sets HTTP method based on +_method+ parameter or <tt>env["HTTP_X_HTTP_METHOD_OVERRIDE"]</tt>.|
 |+Rack::Head+|Discards the response body if the client sends a +HEAD+ request.|
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
 h4. Customizing Internal Middleware Stack
 
-It's possible to replace the entire middleware stack with a custom stack using +ActionController::Dispatcher.middleware=+.
+It's possible to replace the entire middleware stack with a custom stack using <tt>ActionController::Dispatcher.middleware=</tt>.
 
 Put the following in an initializer:
 
