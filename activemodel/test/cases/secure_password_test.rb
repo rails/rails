@@ -7,19 +7,19 @@ class AlternateUser
   include ActiveModel::Validations
   include ActiveModel::SecurePassword
 
-  module PhonyAuthenticator
+  class PhonyAuthenticator
 
-    def self.crypt(plaintext)
+    def crypt(plaintext)
       "ciphertext"
     end 
 
-    def self.authenticate(ciphertext, plaintext)
+    def authenticate(ciphertext, plaintext)
       true
     end 
 
   end 
   
-  has_secure :secret, :column => "crypted_secret", :authenticator => PhonyAuthenticator
+  has_secure :secret, PhonyAuthenticator.new, :column => "crypted_secret"
 
   attr_accessor :crypted_secret
 end 
