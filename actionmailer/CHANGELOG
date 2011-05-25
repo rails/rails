@@ -1,3 +1,7 @@
+*Rails 3.0.8 (unreleased)*
+
+* Mail dependency increased to 2.2.19
+
 *Rails 3.0.7 (April 18, 2011)*
 
 * remove AM delegating register_observer and register_interceptor to Mail [Josh Kalderimis]

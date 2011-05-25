@@ -1,3 +1,7 @@
+*Rails 3.0.8 (unreleased)*
+
+* Fixed github issue #342 with asset paths and relative roots.
+
 *Rails 3.0.7 (April 18, 2011)*
 
 *No changes.
