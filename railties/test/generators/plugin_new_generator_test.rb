@@ -173,6 +173,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "bukkits.gemspec", /s.name = "bukkits"/
     assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,lib\}\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.version = "0.0.1"/
   end
 
@@ -193,6 +194,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
+  end
+
+  def test_skipping_test_unit
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_no_file "test"
+    assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, File.read(File.join(destination_root, "bukkits.gemspec")))
   end
 
   def test_skipping_gemspec
