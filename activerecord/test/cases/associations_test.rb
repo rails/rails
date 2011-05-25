@@ -203,18 +203,6 @@ class AssociationProxyTest < ActiveRecord::TestCase
       assert_equal david.projects, david.projects.reload.reload
     end
   end
-
-  # Tests that proxy_owner, proxy_target and proxy_reflection are implement as deprecated methods
-  def test_proxy_deprecations
-    david = developers(:david)
-    david.projects.load_target
-
-    [:owner, :target, :reflection].each do |name|
-      assert_deprecated do
-        assert_equal david.association(:projects).send(name), david.projects.send("proxy_#{name}")
-      end
-    end
-  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
