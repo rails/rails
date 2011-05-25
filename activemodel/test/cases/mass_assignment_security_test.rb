@@ -76,4 +76,19 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal sanitized, { }
   end
 
+
+  def test_strict_mass_assignment_protection
+    user = User.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com" }
+    assert_raise ActiveModel::MassAssignmentSecurity::Error do
+      user.sanitize_for_mass_assignment(expected.merge("admin" => true), :default, true)
+    end
+    User.strict_mass_assignment = true
+    assert_raise ActiveModel::MassAssignmentSecurity::Error do
+      user.sanitize_for_mass_assignment(expected.merge("admin" => true))
+    end
+  ensure
+    User.strict_mass_assignment = false
+  end
+
 end

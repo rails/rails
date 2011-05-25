@@ -1,23 +1,45 @@
 module ActiveModel
   module MassAssignmentSecurity
     module Sanitizer
+
+      extend ActiveSupport::Concern
+      included do
+        class_attribute :strict_mass_assignment
+      end
+
       # Returns all attributes not denied by the authorizer.
-      def sanitize(attributes)
+      def sanitize(attributes, strict = false)
         sanitized_attributes = attributes.reject { |key, value| deny?(key) }
-        debug_protected_attribute_removal(attributes, sanitized_attributes)
+        debug_protected_attribute_removal(attributes, sanitized_attributes, strict)
         sanitized_attributes
       end
 
-    protected
+      protected
 
-      def debug_protected_attribute_removal(attributes, sanitized_attributes)
+      def debug_protected_attribute_removal(attributes, sanitized_attributes, strict)
         removed_keys = attributes.keys - sanitized_attributes.keys
-        warn!(removed_keys) if removed_keys.any?
+        process_error(removed_keys, strict) if removed_keys.any?
       end
 
-      def warn!(attrs)
-        self.logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if self.logger
+      def process_error(attrs, strict)
+        message = "Can't mass-assign protected attributes: #{attrs.join(', ')}"
+        if strict
+          raise ActiveModel::MassAssignmentSecurity::Error.new(message, attrs)
+        else
+          self.logger.debug "WARNING: #{message}" if self.logger
+        end
       end
+    end
+
+    class Error < StandardError
+      
+      attr_accessor :attrs
+      
+      def initialize(message, attrs)
+        super(message)
+        self.attrs = attrs
+      end
+
     end
   end
 end
