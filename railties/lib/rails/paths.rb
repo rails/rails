@@ -6,7 +6,7 @@ module Rails
     # It allows you to collect information about how you want to structure your application
     # paths by a Hash like API. It requires you to give a physical path on initialization.
     #
-    #   root = Root.new
+    #   root = Root.new "/rails"
     #   root.add "app/controllers", :eager_load => true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
@@ -36,8 +36,7 @@ module Rails
     #
     # Finally, the Path object also provides a few helpers:
     #
-    #   root = Root.new
-    #   root.path = "/rails"
+    #   root = Root.new "/rails"
     #   root.add "app/controllers"
     #
     #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
@@ -48,7 +47,7 @@ module Rails
       attr_accessor :path
 
       def initialize(path)
-        raise if path.is_a?(Array)
+        raise "Argument should be a String of the physical root path" if path.is_a?(Array)
         @current = nil
         @path = path
         @root = self
