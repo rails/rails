@@ -61,7 +61,7 @@ module ApplicationTests
     end
 
     test "environments has a glob equal to the current environment" do
-      assert_equal "#{Rails.env}.rb", @paths.config.environments.glob
+      assert_equal "#{Rails.env}.rb", @paths["config/environments"].glob
     end
 
     test "load path includes each of the paths in config.paths as long as the directories exist" do
