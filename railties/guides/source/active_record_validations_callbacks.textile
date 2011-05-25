@@ -381,7 +381,7 @@ This helper validates that the attribute's value is unique right before the obje
 
 <ruby>
 class Account < ActiveRecord::Base
-  validates_uniqueness_of :email
+  validates :email, :uniqueness => true
 end
 </ruby>
 
@@ -391,7 +391,7 @@ There is a +:scope+ option that you can use to specify other attributes that are
 
 <ruby>
 class Holiday < ActiveRecord::Base
-  validates_uniqueness_of :name, :scope => :year,
+  validates :name, :uniqueness => true, :scope => :year,
     :message => "should happen once per year"
 end
 </ruby>
@@ -400,7 +400,7 @@ There is also a +:case_sensitive+ option that you can use to define whether the 
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_uniqueness_of :name, :case_sensitive => false
+  validates :name, :uniqueness => true, :case_sensitive => false
 end
 </ruby>
 
@@ -503,7 +503,7 @@ The +:on+ option lets you specify when the validation should happen. The default
 <ruby>
 class Person < ActiveRecord::Base
   # it will be possible to update email with a duplicated value
-  validates_uniqueness_of :email, :on => :create
+  validates :email, :uniqueness => true, :on => :create
 
   # it will be possible to create the record with a non-numerical age
   validates_numericality_of :age, :on => :update
