@@ -13,19 +13,6 @@ module ActiveRecord::Associations::Builder
 
     private
 
-      def define_readers
-        super
-        name = self.name
-
-        model.redefine_method("#{name}_loaded?") do
-          ActiveSupport::Deprecation.warn(
-            "Calling obj.#{name}_loaded? is deprecated. Please use " \
-            "obj.association(:#{name}).loaded? instead."
-          )
-          association(name).loaded?
-        end
-      end
-
       def define_constructors
         name = self.name
 
