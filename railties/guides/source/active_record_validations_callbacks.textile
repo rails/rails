@@ -236,8 +236,8 @@ This helper validates that the attributes' values are not included in a given se
 
 <ruby>
 class Account < ActiveRecord::Base
-  validates_exclusion_of :subdomain, :in => %w(www us ca jp),
-    :message => "Subdomain %{value} is reserved."
+  validates :subdomain, :exclusion => { :in => %w(www us ca jp),
+    :message => "Subdomain %{value} is reserved." }
 end
 </ruby>
 
@@ -264,8 +264,8 @@ This helper validates that the attributes' values are included in a given set. I
 
 <ruby>
 class Coffee < ActiveRecord::Base
-  validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "%{value} is not a valid size"
+  validates :size, :inclusion => { :in => %w(small medium large),
+    :message => "%{value} is not a valid size" }
 end
 </ruby>
 
@@ -471,8 +471,8 @@ The +:allow_nil+ option skips the validation when the value being validated is +
 
 <ruby>
 class Coffee < ActiveRecord::Base
-  validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "%{value} is not a valid size", :allow_nil => true
+  validates :size, :inclusion => { :in => %w(small medium large),
+    :message => "%{value} is not a valid size" }, :allow_nil => true
 end
 </ruby>
 
@@ -598,7 +598,7 @@ You can even create your own validation helpers and reuse them in several differ
 <ruby>
 ActiveRecord::Base.class_eval do
   def self.validates_as_choice(attr_name, n, options={})
-    validates_inclusion_of attr_name, {:in => 1..n}.merge(options)
+    validates attr_name, :inclusion => { {:in => 1..n}.merge(options) }
   end
 end
 </ruby>
