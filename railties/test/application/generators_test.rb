@@ -69,7 +69,7 @@ module ApplicationTests
       # Initialize the application
       require "#{app_path}/config/environment"
       require "rails/generators"
-      Rails::Generators.configure!
+      Rails::Generators.configure!(Rails.application.config.generators)
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
@@ -85,7 +85,7 @@ module ApplicationTests
       # Initialize the application
       require "#{app_path}/config/environment"
       require "rails/generators"
-      Rails::Generators.configure!
+      Rails::Generators.configure!(Rails.application.config.generators)
 
       assert_equal Thor::Base.shell, Thor::Shell::Basic
     end
