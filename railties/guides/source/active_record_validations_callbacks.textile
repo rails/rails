@@ -279,10 +279,10 @@ This helper validates the length of the attributes' values. It provides a variet
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_length_of :name, :minimum => 2
-  validates_length_of :bio, :maximum => 500
-  validates_length_of :password, :in => 6..20
-  validates_length_of :registration_number, :is => 6
+  validates :name, :length => { :minimum => 2 }
+  validates :bio, :length => { :maximum => 500 }
+  validates :password, :length => { :in => 6..20 }
+  validates :registration_number, :length => { :is => 6 }
 end
 </ruby>
 
@@ -297,8 +297,8 @@ The default error messages depend on the type of length validation being perform
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_length_of :bio, :maximum => 1000,
-    :too_long => "%{count} characters is the maximum allowed"
+  validates :bio, :length => { :maximum => 1000,
+    :too_long => "%{count} characters is the maximum allowed" }
 end
 </ruby>
 
@@ -306,12 +306,13 @@ This helper counts characters by default, but you can split the value in a diffe
 
 <ruby>
 class Essay < ActiveRecord::Base
-  validates_length_of :content,
+  validates :content, :length => {
     :minimum   => 300,
     :maximum   => 400,
     :tokenizer => lambda { |str| str.scan(/\w+/) },
     :too_short => "must have at least %{count} words",
     :too_long  => "must have at most %{count} words"
+  }
 end
 </ruby>
 
@@ -483,7 +484,7 @@ The +:allow_blank+ option is similar to the +:allow_nil+ option. This option wil
 
 <ruby>
 class Topic < ActiveRecord::Base
-  validates_length_of :title, :is => 5, :allow_blank => true
+  validates :title, :length => { :is => 5, :allow_blank => true }
 end
 
 Topic.create("title" => "").valid? # => true
@@ -559,7 +560,7 @@ Sometimes it is useful to have multiple validations use one condition, it can be
 <ruby>
 class User < ActiveRecord::Base
   with_options :if => :is_admin? do |admin|
-    admin.validates_length_of :password, :minimum => 10
+    admin.validates :password, :length => { :minimum => 10 }
     admin.validates :email, :presence => true
   end
 end
@@ -622,8 +623,7 @@ Returns an OrderedHash with all errors. Each key is the attribute name and the v
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
-  validates_length_of :name, :minimum => 3
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new
@@ -642,8 +642,7 @@ h4(#working_with_validation_errors-errors-2). +errors[]+
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
-  validates_length_of :name, :minimum => 3
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new(:name => "John Doe")
@@ -718,8 +717,7 @@ The +clear+ method is used when you intentionally want to clear all the messages
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
-  validates_length_of :name, :minimum => 3
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new
@@ -742,8 +740,7 @@ The +size+ method returns the total number of error messages for the object.
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :email, :presence => true
-  validates_length_of   :name, :minimum => 3
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new
