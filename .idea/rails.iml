@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="RUBY_MODULE" version="4">
+  <component name="GemRequirementsHolder" version="3">
+    <requirement>
+      <requirement>
+        <dependency name="RedCloth" version="4.2" bound="LATEST_IN_BRANCH" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="activerecord-oracle_enhanced-adapter" version="0" bound="GREATER_OR_EQUAL" git="true" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="activerecord-oracle_enhanced-adapter" version="0" bound="GREATER_OR_EQUAL" url="file://$MODULE_DIR$" git="false" path="true" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="arel" version="0" bound="GREATER_OR_EQUAL" url="file://$MODULE_DIR$" git="false" path="true" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="arel" version="2.1.0" bound="LATEST_IN_BRANCH" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="bundler" version="1.0" bound="LATEST_IN_BRANCH" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="coffee-script" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="horo" version="1.0.3" bound="EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="memcache-client" version="1.8.5" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="mocha" version="0.9.8" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="rake" version="0.8.7" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="rdoc" version="3.4" bound="LATEST_IN_BRANCH" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="ruby-debug19" version="0" bound="GREATER_OR_EQUAL" lib="ruby-debug" git="false" path="false" platform="mri_19" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="sass" version="0" bound="GREATER_OR_EQUAL" git="false" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+    <requirement>
+      <requirement>
+        <dependency name="uglifier" version="0" bound="GREATER_OR_EQUAL" git="true" path="false" doRequire="true" />
+      </requirement>
+      <source from="Gemfile" />
+    </requirement>
+  </component>
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] bundler (v1.0.12, C:/Ruby192/lib/ruby/gems/1.9.1/gems/bundler-1.0.12)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] uglifier (v0.5.4, C:/Ruby192/lib/ruby/gems/1.9.1/gems/uglifier-0.5.4)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] rake (v0.9.0, C:/Ruby192/lib/ruby/gems/1.9.1/gems/rake-0.9.0)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] coffee-script (v2.2.0, C:/Ruby192/lib/ruby/gems/1.9.1/gems/coffee-script-2.2.0)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] arel (v2.1.1, C:/Ruby192/lib/ruby/gems/1.9.1/gems/arel-2.1.1)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] sass (v3.1.1, C:/Ruby192/lib/ruby/gems/1.9.1/gems/sass-3.1.1)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] multi_json (v1.0.3, C:/Ruby192/lib/ruby/gems/1.9.1/gems/multi_json-1.0.3)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] coffee-script-source (v1.1.1, C:/Ruby192/lib/ruby/gems/1.9.1/gems/coffee-script-source-1.1.1)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] execjs (v1.0.0, C:/Ruby192/lib/ruby/gems/1.9.1/gems/execjs-1.0.0)" level="application" />
+  </component>
+</module>
+
