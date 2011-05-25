@@ -49,8 +49,8 @@ module ActiveModel
   #
   # The last three methods are required in your object for Errors to be
   # able to generate error messages correctly and also handle multiple
-  # languages.  Of course, if you extend your object with ActiveModel::Translations
-  # you will not need to implement the last two.  Likewise, using
+  # languages. Of course, if you extend your object with ActiveModel::Translations
+  # you will not need to implement the last two. Likewise, using
   # ActiveModel::Validations will handle the validation related methods
   # for you.
   #
@@ -117,7 +117,7 @@ module ActiveModel
     end
 
     # Iterates through each error key, value pair in the error messages hash.
-    # Yields the attribute and the error for that attribute.  If the attribute
+    # Yields the attribute and the error for that attribute. If the attribute
     # has more than one error message, yields once for each error message.
     #
     #   p.errors.add(:name, "can't be blank")

@@ -379,7 +379,7 @@ module ActiveRecord
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :to => :source_reflection
 
-      # Gets the source of the through reflection.  It checks both a singularized
+      # Gets the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
       #   class Post < ActiveRecord::Base

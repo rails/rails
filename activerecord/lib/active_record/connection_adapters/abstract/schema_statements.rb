@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
       # Returns a Hash of mappings from the abstract data types to the native
-      # database types.  See TableDefinition#column for details on the recognized
+      # database types. See TableDefinition#column for details on the recognized
       # abstract data types.
       def native_database_types
         {}
@@ -78,7 +78,7 @@ module ActiveRecord
       # Creates a new table with the name +table_name+. +table_name+ may either
       # be a String or a Symbol.
       #
-      # There are two ways to work with +create_table+.  You can use the block
+      # There are two ways to work with +create_table+. You can use the block
       # form or the regular form, like this:
       #
       # === Block form
@@ -299,7 +299,7 @@ module ActiveRecord
         raise NotImplementedError, "rename_column is not implemented"
       end
 
-      # Adds a new index to the table.  +column_name+ can be a single Symbol, or
+      # Adds a new index to the table. +column_name+ can be a single Symbol, or
       # an Array of Symbols.
       #
       # The index will be named after the table and the first column name,

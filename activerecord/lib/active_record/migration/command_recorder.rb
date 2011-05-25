@@ -1,7 +1,7 @@
 module ActiveRecord
   class Migration
     # ActiveRecord::Migration::CommandRecorder records commands done during
-    # a migration and knows how to reverse those commands.  The CommandRecorder
+    # a migration and knows how to reverse those commands. The CommandRecorder
     # knows how to invert the following commands:
     #
     # * add_column
@@ -20,7 +20,7 @@ module ActiveRecord
         @delegate = delegate
       end
 
-      # record +command+.  +command+ should be a method name and arguments.
+      # record +command+. +command+ should be a method name and arguments.
       # For example:
       #
       #   recorder.record(:method_name, [:arg1, arg2])
@@ -29,7 +29,7 @@ module ActiveRecord
       end
 
       # Returns a list that represents commands that are the inverse of the
-      # commands stored in +commands+.  For example:
+      # commands stored in +commands+. For example:
       #
       #   recorder.record(:rename_table, [:old, :new])
       #   recorder.inverse # => [:rename_table, [:new, :old]]

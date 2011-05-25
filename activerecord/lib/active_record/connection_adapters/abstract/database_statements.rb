@@ -42,7 +42,7 @@ module ActiveRecord
       undef_method :execute
 
       # Executes +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes.  +name+ is logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [])
       end
@@ -276,7 +276,7 @@ module ActiveRecord
 
       # Set the sequence to the max value of the table's column.
       def reset_sequence!(table, column, sequence = nil)
-        # Do nothing by default.  Implement for PostgreSQL, Oracle, ...
+        # Do nothing by default. Implement for PostgreSQL, Oracle, ...
       end
 
       # Inserts the given fixture into the table. Overridden in adapters that require

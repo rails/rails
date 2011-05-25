@@ -166,10 +166,10 @@ module ActionDispatch
        )\.
     }x
 
-    # Determines originating IP address.  REMOTE_ADDR is the standard
-    # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
+    # Determines originating IP address. REMOTE_ADDR is the standard
+    # but will fail if the user is behind a proxy. HTTP_CLIENT_IP and/or
     # HTTP_X_FORWARDED_FOR are set by proxies so check for these if
-    # REMOTE_ADDR is a proxy.  HTTP_X_FORWARDED_FOR may be a comma-
+    # REMOTE_ADDR is a proxy. HTTP_X_FORWARDED_FOR may be a comma-
     # delimited list in the case of multiple chained proxies; the last
     # address which is not trusted is the originating IP.
     def remote_ip

@@ -212,7 +212,7 @@ module ActionMailer #:nodoc:
   #
   # = Observing and Intercepting Mails
   #
-  # Action Mailer provides hooks into the Mail observer and interceptor methods.  These allow you to
+  # Action Mailer provides hooks into the Mail observer and interceptor methods. These allow you to
   # register objects that are called during the mail delivery life cycle.
   #
   # An observer object must implement the <tt>:delivered_email(message)</tt> method which will be
@@ -220,7 +220,7 @@ module ActionMailer #:nodoc:
   #
   # An interceptor object must implement the <tt>:delivering_email(message)</tt> method which will be
   # called before the email is sent, allowing you to make modifications to the email before it hits
-  # the delivery agents.  Your object should make any needed modifications directly to the passed
+  # the delivery agents. Your object should make any needed modifications directly to the passed
   # in Mail::Message instance.
   #
   # = Default Hash
@@ -311,11 +311,11 @@ module ActionMailer #:nodoc:
   #
   # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
   #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
-  #   object eg. MyOwnDeliveryMethodClass.new.  See the Mail gem documentation on the interface you need to
+  #   object eg. MyOwnDeliveryMethodClass.new. See the Mail gem documentation on the interface you need to
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
-  #   call <tt>.deliver</tt> on an mail message or on an Action Mailer method.  This is on by default but can
+  #   call <tt>.deliver</tt> on an mail message or on an Action Mailer method. This is on by default but can
   #   be turned off to aid in functional testing.
   #
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
@@ -549,8 +549,8 @@ module ActionMailer #:nodoc:
     # method.
     #
     # When a <tt>:return_path</tt> is specified as header, that value will be used as the 'envelope from'
-    # address for the Mail message.  Setting this is useful when you want delivery notifications
-    # sent to a different address than the one in <tt>:from</tt>.  Mail will actually use the
+    # address for the Mail message. Setting this is useful when you want delivery notifications
+    # sent to a different address than the one in <tt>:from</tt>. Mail will actually use the
     # <tt>:return_path</tt> in preference to the <tt>:sender</tt> in preference to the <tt>:from</tt>
     # field for the 'envelope from' value.
     #

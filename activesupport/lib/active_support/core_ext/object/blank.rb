@@ -22,7 +22,7 @@ class Object
   # <tt>object.presence</tt> is equivalent to <tt>object.present? ? object : nil</tt>.
   #
   # This is handy for any representation of objects where blank is the same
-  # as not present at all.  For example, this simplifies a common check for
+  # as not present at all. For example, this simplifies a common check for
   # HTTP POST/query parameters:
   #
   #   state   = params[:state]   if params[:state].present?

@@ -137,6 +137,8 @@ module ActiveRecord
     # * Callbacks are skipped.
     # * updated_at/updated_on column is not updated if that column is available.
     #
+    # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
+    # attribute is marked as readonly.
     def update_column(name, value)
       name = name.to_s
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)

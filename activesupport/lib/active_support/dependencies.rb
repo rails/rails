@@ -652,7 +652,7 @@ module ActiveSupport #:nodoc:
     end
 
     class LoadingModule #:nodoc:
-      # Old style environment.rb referenced this method directly.  Please note, it doesn't
+      # Old style environment.rb referenced this method directly. Please note, it doesn't
       # actually *do* anything any more.
       def self.root(*args)
         if defined?(Rails) && Rails.logger

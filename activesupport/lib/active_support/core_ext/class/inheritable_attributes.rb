@@ -2,7 +2,7 @@ require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/deprecation'
 
-# Retained for backward compatibility.  Methods are now included in Class.
+# Retained for backward compatibility. Methods are now included in Class.
 module ClassInheritableAttributes # :nodoc:
   DEPRECATION_WARNING_MESSAGE = "class_inheritable_attribute is deprecated, please use class_attribute method instead. Notice their behavior are slightly different, so refer to class_attribute documentation first"
 end

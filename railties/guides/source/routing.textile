@@ -880,7 +880,7 @@ h3. Changelog
 
 * April 10, 2010: Updated guide to remove outdated and superfluous information, and to provide information about new features, by "Yehuda Katz":http://www.yehudakatz.com
 * April 2, 2010: Updated guide to match new Routing DSL in Rails 3, by "Rizwan Reza":http://www.rizwanreza.com/
-* Febuary 1, 2010: Modifies the routing documentation to match new routing DSL in Rails 3, by Prem Sichanugrist
+* February 1, 2010: Modifies the routing documentation to match new routing DSL in Rails 3, by Prem Sichanugrist
 * October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes, by "Mike Gunderloy":credits.html#mgunderloy
 * September 23, 2008: Added section on namespaced controllers and routing, by "Mike Gunderloy":credits.html#mgunderloy
 * September 10, 2008: initial version by "Mike Gunderloy":credits.html#mgunderloy

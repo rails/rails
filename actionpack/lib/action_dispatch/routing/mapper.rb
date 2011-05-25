@@ -335,7 +335,7 @@ module ActionDispatch
         #
         # [:on]
         #   Shorthand for wrapping routes in a specific RESTful context. Valid
-        #   values are +:member+, +:collection+, and +:new+.  Only use within
+        #   values are +:member+, +:collection+, and +:new+. Only use within
         #   <tt>resource(s)</tt> block. For example:
         #
         #      resource :bar do
@@ -578,8 +578,8 @@ module ActionDispatch
         #   end
         #
         # This generates helpers such as +account_projects_path+, just like +resources+ does.
-        # The difference here being that the routes generated are like /rails/projects/2,
-        # rather than /accounts/rails/projects/2.
+        # The difference here being that the routes generated are like /:account_id/projects,
+        # rather than /accounts/:account_id/projects.
         #
         # === Options
         #
@@ -1094,11 +1094,11 @@ module ActionDispatch
         # [:shallow_path]
         #   Prefixes nested shallow routes with the specified path.
         #
-        #   scope :shallow_path => "sekret" do
-        #     resources :posts do
-        #       resources :comments, :shallow => true
+        #     scope :shallow_path => "sekret" do
+        #       resources :posts do
+        #         resources :comments, :shallow => true
+        #       end
         #     end
-        #   end
         #
         #   The +comments+ resource here will have the following routes generated for it:
         #
