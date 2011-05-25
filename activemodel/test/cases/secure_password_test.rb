@@ -19,7 +19,9 @@ class AlternateUser
 
   end 
   
-  has_secure_password "secret", "crypted_secret", PhonyAuthenticator
+  has_secure_password :name => "secret",
+    :column => "crypted_secret",
+    :authenticator => PhonyAuthenticator
 
   attr_accessor :crypted_secret
 end 

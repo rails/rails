@@ -11,7 +11,7 @@ module ActiveModel
       # a "password_confirmation" attribute) are automatically added.
       # You can add more validations by hand if need be.
       #
-      # Takes optional parameters to specify the name of the attribute,
+      # Takes an optional hash to specify the name of the attribute,
       # the attribute backing it (to store the crypted password), and
       # an Authenticator module/class. By default, "password", "password_digest",
       # and BCrypt are used.
@@ -33,7 +33,11 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
-      def has_secure_password(name = "password", column = "#{name}_digest", authenticator = ActiveModel::Authenticators::BCrypt)
+      def has_secure_password(opts = {})
+        name          = opts[:name] || "password"
+        column        = opts[:column] || "#{name}_digest"
+        authenticator = opts[:authenticator] || ActiveModel::Authenticators::BCrypt
+
         attr_reader name
 
         validates_confirmation_of name
