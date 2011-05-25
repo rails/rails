@@ -185,13 +185,6 @@ class GeneratorsTest < Rails::Generators::TestCase
     Rails::Generators.subclasses.delete(WithOptionsGenerator)
   end
 
-  def test_load_generators_from_railties
-    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
-    Rails::Generators.send(:remove_instance_variable, :@generators_from_railties)
-    Rails.application.expects(:load_generators)
-    Rails::Generators.invoke("model", ["Account"])
-  end
-
   def test_rails_root_templates
     template = File.join(Rails.root, "lib", "templates", "active_record", "model", "model.rb")
 
