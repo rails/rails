@@ -484,10 +484,10 @@ The +:allow_blank+ option is similar to the +:allow_nil+ option. This option wil
 
 <ruby>
 class Topic < ActiveRecord::Base
-  validates :title, :length => { :is => 5, :allow_blank => true }
+  validates :title, :length => { :is => 5 }, :allow_blank => true
 end
 
-Topic.create("title" => "").valid? # => true
+Topic.create("title" => "").valid?  # => true
 Topic.create("title" => nil).valid? # => true
 </ruby>
 
@@ -762,12 +762,13 @@ $ rails plugin install git://github.com/joelmoss/dynamic_form.git
 </shell>
 
 h4. Installing as a Gem
+
 Add this line in your Gemfile:
 <ruby>
 gem "dynamic_form"
 </ruby>
 
-Now you will have access to these two methods in your view templates:
+Now you will have access to these two methods in your view templates.
 
 h4. +error_messages+ and +error_messages_for+
 
