@@ -20,10 +20,10 @@ can also be ordinary Ruby classes, or Ruby classes that implement a set of inter
 provided by the ActiveModel module. You can read more about Active Record in its
 {README}[link:files/activerecord/README_rdoc.html].
 
-The Controller layer handles incoming requests HTTP requests (such as Save New Account, 
-Update Product, Show Post). Controllers are responsible for providing a suitable response
-back to the client (usually a web browser, but possibly an JSON or XML API client, etc.).  
-Controllers manipulate models and render the appropriate view templates to generate the HTTP response.
+The Controller layer is responsible for handling incoming HTTP requests and providing a 
+suitable response.  Usually this means returning HTML, but Rails controllers can also 
+generate XML, JSON, PDFs, mobile-specific views, and more. Controllers manipulate models 
+and render view templates in order to generate the appropriate HTTP response.
 
 In Rails, the Controller and View layers are handled together by Action Pack.
 These two layers are bundled in a single package due to their heavy interdependence. 
