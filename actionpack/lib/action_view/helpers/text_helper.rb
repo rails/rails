@@ -115,13 +115,12 @@ module ActionView
         end
         options.reverse_merge!(:highlighter => '<strong class="highlight">\1</strong>')
 
-        text = sanitize(text) unless options[:sanitize] == false
-        if text.blank? || phrases.blank?
-          text
-        else
+        if text.present? && phrases.present?
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
-          text.gsub(/(#{match})(?!(?:[^<]*?)(?:["'])[^<>]*>)/i, options[:highlighter])
-        end.html_safe
+          text = text.to_str.gsub(/(#{match})(?!(?:[^<]*?)(?:["'])[^<>]*>)/i, options[:highlighter])
+        end
+        text = sanitize(text) unless options[:sanitize] == false
+        text
       end
 
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
@@ -251,14 +250,16 @@ module ActionView
       #   simple_format("Look ma! A class!", :class => 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
       def simple_format(text, html_options={}, options={})
-        text = ''.html_safe if text.nil?
+        text = text ? text.to_str : ''
+        text = text.dup if text.frozen?
         start_tag = tag('p', html_options, true)
-        text = sanitize(text) unless options[:sanitize] == false
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
         text.insert 0, start_tag
-        text.html_safe.safe_concat("</p>")
+        text.concat("</p>")
+        text = sanitize(text) unless options[:sanitize] == false
+        text
       end
 
       # Turns all URLs and e-mail addresses into clickable links. The <tt>:link</tt> option
@@ -477,7 +478,7 @@ module ActionView
         # is yielded and the result is used as the link text.
         def auto_link_urls(text, html_options = {}, options = {})
           link_attributes = html_options.stringify_keys
-          text.gsub(AUTO_LINK_RE) do
+          text.to_str.gsub(AUTO_LINK_RE) do
             scheme, href = $1, $&
             punctuation = []
 
@@ -494,14 +495,11 @@ module ActionView
                 end
               end
 
-              link_text = block_given?? yield(href) : href
+              link_text = block_given? ? yield(href) : href
               href = 'http://' + href unless scheme
 
-              unless options[:sanitize] == false
-                link_text = sanitize(link_text)
-                href      = sanitize(href)
-              end
-              content_tag(:a, link_text, link_attributes.merge('href' => href), !!options[:sanitize]) + punctuation.reverse.join('')
+              sanitize = options[:sanitize] != false
+              content_tag(:a, link_text, link_attributes.merge('href' => href), sanitize) + punctuation.reverse.join('')
             end
           end
         end
@@ -509,18 +507,14 @@ module ActionView
         # Turns all email addresses into clickable links.  If a block is given,
         # each email is yielded and the result is used as the link text.
         def auto_link_email_addresses(text, html_options = {}, options = {})
-          text.gsub(AUTO_EMAIL_RE) do
+          text.to_str.gsub(AUTO_EMAIL_RE) do
             text = $&
 
             if auto_linked?($`, $')
               text.html_safe
             else
-              display_text = (block_given?) ? yield(text) : text
-
-              unless options[:sanitize] == false
-                text         = sanitize(text)
-                display_text = sanitize(display_text) unless text == display_text
-              end
+              display_text = block_given? ? yield(text) : text
+              display_text = sanitize(display_text) unless options[:sanitize] == false
               mail_to text, display_text, html_options
             end
           end

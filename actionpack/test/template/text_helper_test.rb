@@ -48,6 +48,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
 
+  def test_simple_format_should_not_be_html_safe_when_sanitize_option_is_false
+    assert !simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false).html_safe?
+  end
+
   def test_truncate_should_not_be_html_safe
     assert !truncate("Hello World!", :length => 12).html_safe?
   end
@@ -163,6 +167,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal(
       "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
       highlight("This is a beautiful morning, but also a beautiful day", "beautiful", :highlighter => '<b>\1</b>')
+    )
+  end
+
+  def test_highlight_on_an_html_safe_string
+    assert_equal(
+      "<p>This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day</p>",
+      highlight("<p>This is a beautiful morning, but also a beautiful day</p>".html_safe, "beautiful", :highlighter => '<b>\1</b>')
     )
   end
 
@@ -306,13 +317,10 @@ class TextHelperTest < ActionView::TestCase
     end
   end
 
-  def generate_result(link_text, href = nil, escape = false)
-    href ||= link_text
-    if escape
-      %{<a href="#{CGI::escapeHTML href}">#{CGI::escapeHTML link_text}</a>}
-    else
-      %{<a href="#{href}">#{link_text}</a>}
-    end
+  def generate_result(link_text, href = nil)
+    href = CGI::escapeHTML(href || link_text)
+    text = CGI::escapeHTML(link_text)
+    %{<a href="#{href}">#{text}</a>}
   end
 
   def test_auto_link_should_not_be_html_safe
@@ -323,6 +331,8 @@ class TextHelperTest < ActionView::TestCase
     assert !auto_link('').html_safe?, 'should not be html safe'
     assert !auto_link("#{link_raw} #{link_raw} #{link_raw}").html_safe?, 'should not be html safe'
     assert !auto_link("hello #{email_raw}").html_safe?, 'should not be html safe'
+    assert !auto_link(link_raw.html_safe).html_safe?, 'should not be html safe'
+    assert !auto_link(email_raw.html_safe).html_safe?, 'should not be html safe'
   end
 
   def test_auto_link_email_address
@@ -425,7 +435,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_auto_link_should_sanitize_input_when_sanitize_option_is_not_false
     link_raw     = %{http://www.rubyonrails.com?id=1&num=2}
-    assert_equal %{<a href="http://www.rubyonrails.com?id=1&num=2">http://www.rubyonrails.com?id=1&num=2</a>}, auto_link(link_raw)
+    assert_equal %{<a href="http://www.rubyonrails.com?id=1&amp;num=2">http://www.rubyonrails.com?id=1&amp;num=2</a>}, auto_link(link_raw)
   end
 
   def test_auto_link_should_not_sanitize_input_when_sanitize_option_is_false
