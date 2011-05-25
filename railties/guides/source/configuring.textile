@@ -52,7 +52,7 @@ end
 
 * +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints builtin in browsers using different domain aliases. Shorter version of +config.action_controller.asset_host+.
 
-* +config.asset_path+ can take a callable, a string, or be +nil+. Default is +nil+. If set, this configuration parameter let's you decorate asset paths. For example, the normal path for +blog.js+ would be +/javascripts/blog.js+, let that absolute path be +path+. If +config.asset_path+ is a callable, Rails calls it when generating asset paths passing +path+ as argument. If +config.asset_path+ is a string, it is expected to be a +sprintf+ format string with a +%s+ where +path+ will get inserted. In either case, Rails outputs the decorated path. *This option is ignored if the asset pipeline is enabled, which is by default*. Shorter version of +config.action_controller.asset_path+.
+* +config.asset_path+ can take a callable, a string, or be +nil+. Default is +nil+. If set, this configuration parameter lets you decorate asset paths. For example, the normal path for +blog.js+ would be +/javascripts/blog.js+, let that absolute path be +path+. If +config.asset_path+ is a callable, Rails calls it when generating asset paths passing +path+ as argument. If +config.asset_path+ is a string, it is expected to be a +sprintf+ format string with a +%s+ where +path+ will get inserted. In either case, Rails outputs the decorated path. *This option is ignored if the asset pipeline is enabled, which is by default*. Shorter version of +config.action_controller.asset_path+.
 
 <ruby>
 config.asset_path = proc { |path| "/blog/public#{path}" }
