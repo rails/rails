@@ -208,7 +208,7 @@ You should use this helper when you have two text fields that should receive exa
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_confirmation_of :email
+  validates :email, :confirmation => true
 end
 </ruby>
 
@@ -223,8 +223,8 @@ This check is performed only if +email_confirmation+ is not +nil+. To require co
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_confirmation_of :email
-  validates_presence_of :email_confirmation
+  validates :email, :confirmation => true
+  validates :email_confirmation, :presence => true
 end
 </ruby>
 
@@ -547,7 +547,7 @@ Finally, it's possible to associate +:if+ and +:unless+ with a +Proc+ object whi
 
 <ruby>
 class Account < ActiveRecord::Base
-  validates_confirmation_of :password,
+  validates :password, :confirmation => true,
     :unless => Proc.new { |a| a.password.blank? }
 end
 </ruby>
