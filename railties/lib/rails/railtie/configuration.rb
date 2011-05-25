@@ -26,11 +26,6 @@ module Rails
         @@app_generators
       end
 
-      def generators(&block) #:nodoc
-        ActiveSupport::Deprecation.warn "config.generators in Rails::Railtie is deprecated. Please use config.app_generators instead."
-        app_generators(&block)
-      end
-
       # First configurable block to run. Called before any initializers are run.
       def before_configuration(&block)
         ActiveSupport.on_load(:before_configuration, :yield => true, &block)
