@@ -765,8 +765,8 @@ h4. Installing as a plugin
 $ rails plugin install git://github.com/joelmoss/dynamic_form.git
 </shell>
 
-h4 Installing as a Gem
-Add this line on your Gemfile:
+h4. Installing as a Gem
+Add this line in your Gemfile:
 <ruby>
 gem "dynamic_form"
 </ruby>
