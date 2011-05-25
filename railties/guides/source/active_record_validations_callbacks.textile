@@ -367,7 +367,7 @@ If you want to be sure that an association is present, you'll need to test wheth
 <ruby>
 class LineItem < ActiveRecord::Base
   belongs_to :order
-  validates_presence_of :order_id
+  validates :order_id, :presence => true
 end
 </ruby>
 
@@ -523,7 +523,7 @@ You can associate the +:if+ and +:unless+ options with a symbol corresponding to
 
 <ruby>
 class Order < ActiveRecord::Base
-  validates_presence_of :card_number, :if => :paid_with_card?
+  validates :card_number, :presence => true, :if => :paid_with_card?
 
   def paid_with_card?
     payment_type == "card"
@@ -537,7 +537,7 @@ You can also use a string that will be evaluated using +eval+ and needs to conta
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :surname, :if => "name.nil?"
+  validates :surname, :presence => true, :if => "name.nil?"
 end
 </ruby>
 
@@ -560,7 +560,7 @@ Sometimes it is useful to have multiple validations use one condition, it can be
 class User < ActiveRecord::Base
   with_options :if => :is_admin? do |admin|
     admin.validates_length_of :password, :minimum => 10
-    admin.validates_presence_of :email
+    admin.validates :email, :presence => true
   end
 end
 </ruby>
@@ -742,9 +742,8 @@ The +size+ method returns the total number of error messages for the object.
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
+  validates :name, :email, :presence => true
   validates_length_of   :name, :minimum => 3
-  validates_presence_of :email
 end
 
 person = Person.new
@@ -779,7 +778,7 @@ When creating a form with the +form_for+ helper, you can use the +error_messages
 
 <ruby>
 class Product < ActiveRecord::Base
-  validates_presence_of :description, :value
+  validates :description, :value, :presence => true
   validates_numericality_of :value, :allow_nil => true
 end
 </ruby>
@@ -878,7 +877,7 @@ In order to use the available callbacks, you need to register them. You can do t
 
 <ruby>
 class User < ActiveRecord::Base
-  validates_presence_of :login, :email
+  validates :login, :email, :presence => true
 
   before_validation :ensure_login_has_a_value
 
@@ -895,7 +894,7 @@ The macro-style class methods can also receive a block. Consider using this styl
 
 <ruby>
 class User < ActiveRecord::Base
-  validates_presence_of :login, :email
+  validates :login, :email, :presence => true
 
   before_create do |user|
     user.name = user.login.capitalize if user.name.blank?
