@@ -658,10 +658,11 @@ module ActiveRecord #:nodoc:
       #   end
       def set_table_name(value = nil, &block)
         @quoted_table_name = nil
-        define_attr_method :table_name, value, &block
-
-        @arel_table = Arel::Table.new(table_name, arel_engine)
-        @relation = Relation.new(self, arel_table)
+        value = block.call if block_given?
+        define_attr_method :table_name, value unless abstract_class?
+      
+        @arel_table = Arel::Table.new(value, arel_engine)
+        @relation = Relation.new(self, @arel_table)
       end
       alias :table_name= :set_table_name
 
