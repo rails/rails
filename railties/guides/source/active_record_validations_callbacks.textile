@@ -251,8 +251,8 @@ This helper validates the attributes' values by testing whether they match a giv
 
 <ruby>
 class Product < ActiveRecord::Base
-  validates_format_of :legacy_code, :with => /\A[a-zA-Z]+\z/,
-    :message => "Only letters allowed"
+  validates :legacy_code, :format => { :with => /\A[a-zA-Z]+\z/,
+    :message => "Only letters allowed" }
 end
 </ruby>
 
@@ -336,8 +336,8 @@ WARNING. Note that the regular expression above allows a trailing newline charac
 
 <ruby>
 class Player < ActiveRecord::Base
-  validates_numericality_of :points
-  validates_numericality_of :games_played, :only_integer => true
+  validates :points, :numericality => true
+  validates :games_played, :numericality => true, :only_integer => true
 end
 </ruby>
 
@@ -507,7 +507,7 @@ class Person < ActiveRecord::Base
   validates :email, :uniqueness => true, :on => :create
 
   # it will be possible to create the record with a non-numerical age
-  validates_numericality_of :age, :on => :update
+  validates :age, :numericality => true, :on => :update
 
   # the default (validates on both create and update)
   validates :name, :presence => true, :on => :save
@@ -776,7 +776,7 @@ When creating a form with the +form_for+ helper, you can use the +error_messages
 <ruby>
 class Product < ActiveRecord::Base
   validates :description, :value, :presence => true
-  validates_numericality_of :value, :allow_nil => true
+  validates :value, :numericality => true, :allow_nil => true
 end
 </ruby>
 
