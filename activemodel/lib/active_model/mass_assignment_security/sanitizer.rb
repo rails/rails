@@ -1,9 +1,9 @@
 module ActiveModel
   module MassAssignmentSecurity
-    module Sanitizer
+    class Sanitizer
       # Returns all attributes not denied by the authorizer.
-      def sanitize(attributes)
-        sanitized_attributes = attributes.reject { |key, value| deny?(key) }
+      def sanitize(attributes, authorizer)
+        sanitized_attributes = attributes.reject { |key, value| authorizer.deny?(key) }
         debug_protected_attribute_removal(attributes, sanitized_attributes)
         sanitized_attributes
       end
@@ -12,10 +12,24 @@ module ActiveModel
 
       def debug_protected_attribute_removal(attributes, sanitized_attributes)
         removed_keys = attributes.keys - sanitized_attributes.keys
-        warn!(removed_keys) if removed_keys.any?
+        process_removed_attributes(removed_keys) if removed_keys.any?
+      end
+      
+      def process_removed_attributes(attrs)
+        raise NotImplementedError, "#process_removed_attributes(attrs) suppose to be overwritten"
       end
 
-      def warn!(attrs)
+    end
+    class DefaultSanitizer < Sanitizer
+
+      attr_accessor :logger
+
+      def initialize(logger = nil)
+        self.logger = logger
+        super()
+      end
+      
+      def process_removed_attributes(attrs)
         self.logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if self.logger
       end
     end
