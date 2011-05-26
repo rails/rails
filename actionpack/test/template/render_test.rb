@@ -153,7 +153,7 @@ module RenderTestCases
   end
 
   def test_render_partial_collection_without_as
-    assert_equal "local_inspector,local_inspector_counter",
+    assert_equal "collection_size,local_inspector,local_inspector_counter",
       @view.render(:partial => "test/local_inspector", :collection => [ Customer.new("mary") ])
   end
 
