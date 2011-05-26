@@ -321,7 +321,10 @@ module ActionView
       if path = @path
         locals = @locals.keys
         locals << @variable
-        locals << @variable_counter if @collection
+        if @collection
+          locals << @variable_counter
+          locals << :collection_size
+        end
         find_template(path, locals)
       end
     end
@@ -340,6 +343,7 @@ module ActionView
       @collection.each do |object|
         locals[counter] += 1
         locals[as] = object
+        locals[:collection_size] = @collection.size
         segments << template.render(@view, locals)
       end
 
