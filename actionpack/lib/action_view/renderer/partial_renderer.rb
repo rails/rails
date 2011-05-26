@@ -64,9 +64,10 @@ module ActionView
   #
   #   <%= render :partial => "ad", :collection => @advertisements %>
   #
-  # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
-  # iteration counter will automatically be made available to the template with a name of the form
-  # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
+  # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display.
+  # Two locals variables will automatically be made available to the template: +collection_size+ and an
+  # iteration counter in the form +partial_name_counter+. In the case of the example above, the template would
+  # be fed +ad_counter+.
   #
   # The <tt>:as</tt> option may be used when rendering partials.
   #
@@ -321,7 +322,10 @@ module ActionView
       if path = @path
         locals = @locals.keys
         locals << @variable
-        locals << @variable_counter if @collection
+        if @collection
+          locals << @variable_counter
+          locals << :collection_size
+        end
         find_template(path, locals)
       end
     end
@@ -340,6 +344,7 @@ module ActionView
       @collection.each do |object|
         locals[counter] += 1
         locals[as] = object
+        locals[:collection_size] = @collection.size
         segments << template.render(@view, locals)
       end
 

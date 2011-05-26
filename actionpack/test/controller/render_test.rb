@@ -563,6 +563,10 @@ class TestController < ActionController::Base
     render :partial => "customer", :spacer_template => "partial_only", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
 
+  def partial_collection_with_collection_size
+    render :partial => "customer_collection_size", :collection => [ Customer.new("david"), Customer.new("mary") ]
+  end
+
   def partial_collection_shorthand_with_locals
     render :partial => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
   end
@@ -1254,6 +1258,11 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection
     get :partial_collection
     assert_equal "Hello: davidHello: mary", @response.body
+  end
+
+  def test_partial_collection_size
+    get :partial_collection_with_collection_size
+    assert_equal "1 of 22 of 2", @response.body
   end
 
   def test_partial_collection_with_as
