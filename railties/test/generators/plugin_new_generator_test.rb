@@ -148,6 +148,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views"
     assert_file "app/helpers"
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
+    assert_file "lib/bukkits/application.rb", /module Bukkits\n  class Application < ::Rails::Application\n  end\nend/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
@@ -175,6 +176,18 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,lib\}\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.version = "0.0.1"/
+  end
+
+  def test_application_class
+    run_generator
+    assert_file "lib/bukkits/application.rb", /require "rails\/all"/
+    assert_file "lib/bukkits/application.rb", /class Application < ::Rails::Application/
+  end
+
+  def test_requiring_generators
+    run_generator
+    assert_file "script/rails", /APP_PATH = File.expand_path\('..\/..\/lib\/bukkits\/application',  __FILE__\)/
+    assert_file "script/rails", /require 'rails\/commands'/
   end
 
   def test_shebang
@@ -232,7 +245,6 @@ class CustomPluginGeneratorTest < Rails::Generators::TestCase
     assert_file 'spec/dummy'
     assert_file 'Rakefile', /task :default => :spec/
     assert_file 'Rakefile', /# spec tasks in rakefile/
-    assert_file 'script/rails', %r{spec/dummy}
   end
 
 protected
