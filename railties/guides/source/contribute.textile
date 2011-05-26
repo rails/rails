@@ -33,7 +33,7 @@ h3. What to Contribute?
 h3. How is the process?
 
 * The preferred way to contribute is to commit to docrails directly.
-* A new guide is only edited by its author until finished though. In that case feedback can be given in its LH ticket.
+* A new guide is only edited by its author until finished though.
 * If you are writing a new guide freely commit to docrails partial work and ping lifo or fxn when done with a first draft.
 * Guides reviewers will then provide feedback, some of it possibly in form of direct commits to agilize the process.
 * Eventually the guide will be approved and added to the index.
