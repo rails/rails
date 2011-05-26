@@ -19,7 +19,7 @@ module ActionController
         :controller => self.class.name,
         :action     => self.action_name,
         :params     => request.filtered_parameters,
-        :format     => request.format.ref,
+        :format     => request.format.try(:ref),
         :method     => request.method,
         :path       => (request.fullpath rescue "unknown")
       }
