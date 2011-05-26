@@ -39,5 +39,5 @@ To setup the testing environment for PostgreSQL use this command:
 
 The incantation for running a particular test looks like this
 
-  rake test TEST=test/cases/datatype_test_postgresql.rb TESTOPTS="-n test_timestamp_with_zone_values_without_rails_time_zone_support"
+  rake test TEST=test/cases/datatype_test_postgresql.rb TESTOPTS="--name=test_timestamp_with_zone_values_without_rails_time_zone_support"
 
