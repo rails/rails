@@ -161,6 +161,15 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     assert_match %r{"tag":\{"name":"General"\}}, json
   end
 
+  def test_includes_doesnt_merge_opts_from_base
+    json = @david.to_json(
+      :only => :id,
+      :include => :posts
+    )
+
+    assert_match %{"title":"Welcome to the weblog"}, json
+  end
+
   def test_should_not_call_methods_on_associations_that_dont_respond
     def @david.favorite_quote; "Constraints are liberating"; end
     json = @david.to_json(:include => :posts, :methods => :favorite_quote)

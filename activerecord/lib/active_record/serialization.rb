@@ -31,9 +31,6 @@ module ActiveRecord #:nodoc:
       def serializable_add_includes(options = {})
         return unless include_associations = options.delete(:include)
 
-        base_only_or_except = { :except => options[:except],
-                                :only => options[:only] }
-
         include_has_options = include_associations.is_a?(Hash)
         associations = include_has_options ? include_associations.keys : Array.wrap(include_associations)
 
@@ -46,9 +43,8 @@ module ActiveRecord #:nodoc:
           end
 
           if records
-            association_options = include_has_options ? include_associations[association] : base_only_or_except
-            opts = options.merge(association_options)
-            yield(association, records, opts)
+            association_options = include_has_options ? include_associations[association] : {}
+            yield(association, records, association_options)
           end
         end
 
