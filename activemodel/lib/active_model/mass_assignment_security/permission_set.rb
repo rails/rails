@@ -1,10 +1,8 @@
 require 'set'
-require 'active_model/mass_assignment_security/sanitizer'
 
 module ActiveModel
   module MassAssignmentSecurity
     class PermissionSet < Set
-      attr_accessor :logger
 
       def +(values)
         super(values.map(&:to_s))
@@ -12,6 +10,10 @@ module ActiveModel
 
       def include?(key)
         super(remove_multiparameter_id(key))
+      end
+
+      def deny?(key)
+        raise NotImplementedError, "#deny?(key) suppose to be overwritten"
       end
 
     protected
@@ -22,7 +24,6 @@ module ActiveModel
     end
 
     class WhiteList < PermissionSet
-      include Sanitizer
 
       def deny?(key)
         !include?(key)
@@ -30,7 +31,6 @@ module ActiveModel
     end
 
     class BlackList < PermissionSet
-      include Sanitizer
 
       def deny?(key)
         include?(key)

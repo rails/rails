@@ -1,5 +1,6 @@
 require 'active_support/core_ext/class/attribute.rb'
 require 'active_model/mass_assignment_security/permission_set'
+require 'active_model/mass_assignment_security/sanitizer'
 
 module ActiveModel
   # = Active Model Mass-Assignment Security
@@ -10,6 +11,7 @@ module ActiveModel
       class_attribute :_accessible_attributes
       class_attribute :_protected_attributes
       class_attribute :_active_authorizer
+      class_attribute :mass_assignment_sanitizer
     end
 
     # Mass assignment security provides an interface for protecting attributes
@@ -181,16 +183,14 @@ module ActiveModel
 
       def protected_attributes_configs
         self._protected_attributes ||= begin
-          default_black_list = BlackList.new(attributes_protected_by_default).tap do |w|
-            w.logger = self.logger if self.respond_to?(:logger)
-          end
+          default_black_list = BlackList.new(attributes_protected_by_default)
           Hash.new(default_black_list)
         end
       end
 
       def accessible_attributes_configs
         self._accessible_attributes ||= begin
-          default_white_list = WhiteList.new.tap { |w| w.logger = self.logger if self.respond_to?(:logger) }
+          default_white_list = WhiteList.new
           Hash.new(default_white_list)
         end
       end
@@ -199,7 +199,11 @@ module ActiveModel
   protected
 
     def sanitize_for_mass_assignment(attributes, role = :default)
-      mass_assignment_authorizer(role).sanitize(attributes)
+      (mass_assignment_sanitizer || default_mass_assignment_sanitizer).sanitize(attributes, mass_assignment_authorizer(role))
+    end
+
+    def default_mass_assignment_sanitizer
+      DefaultSanitizer.new(self.respond_to?(:logger) && self.logger)
     end
 
     def mass_assignment_authorizer(role = :default)
