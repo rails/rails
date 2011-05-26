@@ -55,10 +55,10 @@ module ActiveModel
         end
 
         # To replicate the behavior in ActiveRecord#attributes, <tt>:except</tt>
-        # takes precedence over <tt>:only</tt>.  If <tt>:only</tt> is not set
+        # takes precedence over <tt>:only</tt>. If <tt>:only</tt> is not set
         # for a N level model but is set for the N+1 level models,
         # then because <tt>:except</tt> is set to a default value, the second
-        # level model can have both <tt>:except</tt> and <tt>:only</tt> set.  So if
+        # level model can have both <tt>:except</tt> and <tt>:only</tt> set. So if
         # <tt>:only</tt> is set, always delete <tt>:except</tt>.
         def attributes_hash
           attributes = @serializable.attributes

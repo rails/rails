@@ -2,29 +2,11 @@ require 'set'
 
 module Rails
   module Paths
-    module PathParent #:nodoc:
-      def method_missing(id, *args)
-        match = id.to_s.match(/^(.*)=$/)
-        full  = [@current, $1 || id].compact.join("/")
-
-        ActiveSupport::Deprecation.warn 'config.paths.app.controller API is deprecated in ' <<
-          'favor of config.paths["app/controller"] API.'
-
-        if match || args.any?
-          @root[full] = Path.new(@root, full, *args)
-        elsif path = @root[full]
-          path
-        else
-          super
-        end
-      end
-    end
-
     # This object is an extended hash that behaves as root of the Rails::Paths system.
     # It allows you to collect information about how you want to structure your application
     # paths by a Hash like API. It requires you to give a physical path on initialization.
     #
-    #   root = Root.new
+    #   root = Root.new "/rails"
     #   root.add "app/controllers", :eager_load => true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
@@ -54,8 +36,7 @@ module Rails
     #
     # Finally, the Path object also provides a few helpers:
     #
-    #   root = Root.new
-    #   root.path = "/rails"
+    #   root = Root.new "/rails"
     #   root.add "app/controllers"
     #
     #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
@@ -63,11 +44,10 @@ module Rails
     #
     # Check the Path documentation for more information.
     class Root < ::Hash
-      include PathParent
       attr_accessor :path
 
       def initialize(path)
-        raise if path.is_a?(Array)
+        raise "Argument should be a String of the physical root path" if path.is_a?(Array)
         @current = nil
         @path = path
         @root = self
@@ -121,8 +101,6 @@ module Rails
     end
 
     class Path < Array
-      include PathParent
-
       attr_reader :path
       attr_accessor :glob
 
@@ -192,11 +170,6 @@ module Rails
       # Returns all expanded paths but only if they exist in the filesystem.
       def existent
         expanded.select { |f| File.exists?(f) }
-      end
-
-      def paths
-        ActiveSupport::Deprecation.warn "paths is deprecated. Please call expand instead."
-        expanded
       end
 
       alias to_a expanded

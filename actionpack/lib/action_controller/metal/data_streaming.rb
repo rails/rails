@@ -37,7 +37,7 @@ module ActionController #:nodoc:
       #
       # The default Content-Type and Content-Disposition headers are
       # set to download arbitrary binary files in as many browsers as
-      # possible.  IE versions 4, 5, 5.5, and 6 are all known to have
+      # possible. IE versions 4, 5, 5.5, and 6 are all known to have
       # a variety of quirks (especially when downloading over SSL).
       #
       # Simple download:
@@ -58,8 +58,8 @@ module ActionController #:nodoc:
       #
       # Also be aware that the document may be cached by proxies and browsers.
       # The Pragma and Cache-Control headers declare how the file may be cached
-      # by intermediaries.  They default to require clients to validate with
-      # the server before releasing cached responses.  See
+      # by intermediaries. They default to require clients to validate with
+      # the server before releasing cached responses. See
       # http://www.mnot.net/cache_docs/ for an overview of web caching and
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.

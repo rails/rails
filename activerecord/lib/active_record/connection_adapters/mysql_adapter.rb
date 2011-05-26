@@ -406,7 +406,7 @@ module ActiveRecord
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
         # Some queries, like SHOW CREATE TABLE don't work through the prepared
-        # statement API.  For those queries, we need to use this method. :'(
+        # statement API. For those queries, we need to use this method. :'(
         log(sql, name) do
           result = @connection.query(sql)
           cols = []
@@ -486,19 +486,6 @@ module ActiveRecord
       def release_savepoint
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
-
-      def add_limit_offset!(sql, options) #:nodoc:
-        limit, offset = options[:limit], options[:offset]
-        if limit && offset
-          sql << " LIMIT #{offset.to_i}, #{sanitize_limit(limit)}"
-        elsif limit
-          sql << " LIMIT #{sanitize_limit(limit)}"
-        elsif offset
-          sql << " OFFSET #{offset.to_i}"
-        end
-        sql
-      end
-      deprecate :add_limit_offset!
 
       # SCHEMA STATEMENTS ========================================
 
@@ -712,11 +699,6 @@ module ActiveRecord
         pk_and_sequence && pk_and_sequence.first
       end
 
-      def case_sensitive_equality_operator
-        "= BINARY"
-      end
-      deprecate :case_sensitive_equality_operator
-
       def case_sensitive_modifier(node)
         Arel::Nodes::Bin.new(node)
       end
@@ -832,7 +814,7 @@ module ActiveRecord
           stmt.execute(*binds.map { |col, val| type_cast(val, col) })
         rescue Mysql::Error => e
           # Older versions of MySQL leave the prepared statement in a bad
-          # place when an error occurs.  To support older mysql versions, we
+          # place when an error occurs. To support older mysql versions, we
           # need to close the statement and delete the statement from the
           # cache.
           stmt.close

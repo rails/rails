@@ -94,7 +94,7 @@ module ActionView
         end
       end
 
-      # Returns a CDATA section with the given +content+.  CDATA sections
+      # Returns a CDATA section with the given +content+. CDATA sections
       # are used to escape blocks of text containing characters which would
       # otherwise be recognized as markup. CDATA sections begin with the string
       # <tt><![CDATA[</tt> and end with (and may not contain) the string <tt>]]></tt>.

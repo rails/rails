@@ -31,7 +31,7 @@ module ActiveModel
   # you want to serialize and their current value.
   #
   # Most of the time though, you will want to include the JSON or XML
-  # serializations.  Both of these modules automatically include the
+  # serializations. Both of these modules automatically include the
   # ActiveModel::Serialization module, so there is no need to explicitly
   # include it.
   #

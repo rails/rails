@@ -1,0 +1,29 @@
+h2. Asset Pipeline
+
+This guide will cover the ideology of the asset pipeline introduced in Rails 3.1.
+By referring to this guide you will be able to:
+
+* Properly organize your application assets
+* Understand the benefits of the asset pipline
+* Adding a preproccessor to the pipeline
+* Package assets with your plugin
+
+endprologue.
+
+h3. What Is The Asset Pipeline?
+
+h4. Why Should I Use it?
+
+h3. How to Use the Asset Pipeline
+
+h4. Asset Organization
+
+h4. Default Files Loaded
+
+h4. Directives
+
+h4. Stacking Preproccessors
+
+h3. Packaging Assets with Your Plugin
+
+h3. More on Sprockets

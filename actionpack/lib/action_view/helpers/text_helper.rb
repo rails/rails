@@ -232,7 +232,7 @@ module ActionView
       # considered as a linebreak and a <tt><br /></tt> tag is appended. This
       # method does not remove the newlines from the +text+.
       #
-      # You can pass any HTML attributes into <tt>html_options</tt>.  These
+      # You can pass any HTML attributes into <tt>html_options</tt>. These
       # will be added to all created paragraphs.
       #
       # ==== Options
@@ -267,7 +267,7 @@ module ActionView
 
       # Creates a Cycle object whose _to_s_ method cycles through elements of an
       # array every time it is called. This can be used for example, to alternate
-      # classes for table rows.  You can use named cycles to allow nesting in loops.
+      # classes for table rows. You can use named cycles to allow nesting in loops.
       # Passing a Hash as the last parameter with a <tt>:name</tt> key will create a
       # named cycle. The default name for a cycle without a +:name+ key is
       # <tt>"default"</tt>. You can manually reset a cycle by calling reset_cycle

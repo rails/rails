@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/deprecation'
 require 'active_support/json/variable'
 require 'active_support/ordered_hash'
 
@@ -139,8 +138,6 @@ module ActiveSupport
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = false
     end
-
-    CircularReferenceError = Deprecation::DeprecatedConstantProxy.new('ActiveSupport::JSON::CircularReferenceError', Encoding::CircularReferenceError)
   end
 end
 

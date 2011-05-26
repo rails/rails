@@ -5,7 +5,6 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/anonymous'
-require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
@@ -550,23 +549,6 @@ module ActiveSupport #:nodoc:
       end
       alias :get :[]
 
-      class Getter # :nodoc:
-        def initialize(name)
-          @name = name
-        end
-
-        def get
-          Reference.get @name
-        end
-        deprecate :get
-      end
-
-      def new(name)
-        self[name] = name
-        Getter.new(name)
-      end
-      deprecate :new
-
       def store(name)
         self[name] = name
         self
@@ -578,11 +560,6 @@ module ActiveSupport #:nodoc:
     end
 
     Reference = ClassCache.new
-
-    def ref(name)
-      Reference.new(name)
-    end
-    deprecate :ref
 
     # Store a reference to a class +klass+.
     def reference(klass)
@@ -652,7 +629,7 @@ module ActiveSupport #:nodoc:
     end
 
     class LoadingModule #:nodoc:
-      # Old style environment.rb referenced this method directly.  Please note, it doesn't
+      # Old style environment.rb referenced this method directly. Please note, it doesn't
       # actually *do* anything any more.
       def self.root(*args)
         if defined?(Rails) && Rails.logger

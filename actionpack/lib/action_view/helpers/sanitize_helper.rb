@@ -14,13 +14,13 @@ module ActionView
       #
       # It also strips href/src tags with invalid protocols, like javascript: especially.
       # It does its best to counter any  tricks that hackers may use, like throwing in
-      # unicode/ascii/hex values to get past the javascript: filters.  Check out
+      # unicode/ascii/hex values to get past the javascript: filters. Check out
       # the extensive test suite.
       #
       #   <%= sanitize @article.body %>
       #
       # You can add or remove tags/attributes if you want to customize it a bit.
-      # See ActionView::Base for full docs on the available options.  You can add
+      # See ActionView::Base for full docs on the available options. You can add
       # tags/attributes for single uses of +sanitize+ by passing either the
       # <tt>:attributes</tt> or <tt>:tags</tt> options:
       #
@@ -66,7 +66,7 @@ module ActionView
         self.class.white_list_sanitizer.sanitize_css(style)
       end
 
-      # Strips all HTML tags from the +html+, including comments.  This uses the
+      # Strips all HTML tags from the +html+, including comments. This uses the
       # html-scanner tokenizer and so its HTML parsing ability is limited by
       # that of html-scanner.
       #
@@ -142,7 +142,7 @@ module ActionView
           white_list_sanitizer.protocol_separator = value
         end
 
-        # Gets the HTML::FullSanitizer instance used by +strip_tags+.  Replace with
+        # Gets the HTML::FullSanitizer instance used by +strip_tags+. Replace with
         # any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -153,7 +153,7 @@ module ActionView
           @full_sanitizer ||= HTML::FullSanitizer.new
         end
 
-        # Gets the HTML::LinkSanitizer instance used by +strip_links+.  Replace with
+        # Gets the HTML::LinkSanitizer instance used by +strip_links+. Replace with
         # any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application

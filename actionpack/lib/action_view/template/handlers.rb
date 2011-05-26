@@ -41,12 +41,6 @@ module ActionView #:nodoc:
         @@default_template_handlers = klass
       end
 
-      def handler_class_for_extension(extension)
-        ActiveSupport::Deprecation.warn "handler_class_for_extension is deprecated. " <<
-          "Please use handler_for_extension instead", caller
-        handler_for_extension(extension)
-      end
-
       def handler_for_extension(extension)
         registered_template_handler(extension) || @@default_template_handlers
       end

@@ -712,7 +712,7 @@ You might want to render a form with a set of edit fields for each of a person's
 <erb>
 <%= form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
-  <% for address in @person.addresses %>
+  <% @person.addresses.each do |address| %>
     <%= person_form.fields_for address, :index => address do |address_form|%>
       <%= address_form.text_field :city %>
     <% end %>

@@ -12,7 +12,6 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
-require 'active_support/core_ext/module/deprecation'
 require 'active_record/fixtures/file'
 
 if defined? ActiveRecord
@@ -54,14 +53,14 @@ class FixturesFileNotFound < StandardError; end
 #     name: Google
 #     url: http://www.google.com
 #
-# This YAML fixture file includes two fixtures.  Each YAML fixture (ie. record) is given a name and is followed by an
-# indented list of key/value pairs in the "key: value" format.  Records are separated by a blank line for your viewing
+# This YAML fixture file includes two fixtures. Each YAML fixture (ie. record) is given a name and is followed by an
+# indented list of key/value pairs in the "key: value" format. Records are separated by a blank line for your viewing
 # pleasure.
 #
 # Note that YAML fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
 # See http://yaml.org/type/omap.html
-# for the specification.  You will need ordered fixtures when you have foreign key constraints on keys in the same table.
-# This is commonly needed for tree structures.  Example:
+# for the specification. You will need ordered fixtures when you have foreign key constraints on keys in the same table.
+# This is commonly needed for tree structures. Example:
 #
 #    --- !omap
 #    - parent:
@@ -75,7 +74,7 @@ class FixturesFileNotFound < StandardError; end
 #
 # = Using fixtures in testcases
 #
-# Since fixtures are a testing construct, we use them in our unit and functional tests.  There are two ways to use the
+# Since fixtures are a testing construct, we use them in our unit and functional tests. There are two ways to use the
 # fixtures, but first let's take a look at a sample unit test:
 #
 #   require 'test_helper'
@@ -393,9 +392,6 @@ class FixturesFileNotFound < StandardError; end
 #
 # Any fixture labeled "DEFAULTS" is safely ignored.
 
-Fixture = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixture', 'ActiveRecord::Fixture')
-Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixtures', 'ActiveRecord::Fixtures')
-
 module ActiveRecord
   class Fixtures
     MAX_ID = 2 ** 30 - 1
@@ -558,7 +554,7 @@ module ActiveRecord
       fixtures.size
     end
 
-    # Return a hash of rows to be inserted.  The key is the table, the value is
+    # Return a hash of rows to be inserted. The key is the table, the value is
     # a list of rows to insert to that table.
     def table_rows
       now = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now

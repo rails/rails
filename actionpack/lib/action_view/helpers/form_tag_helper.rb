@@ -204,7 +204,7 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "hidden"))
       end
 
-      # Creates a file upload field.  If you are using file uploads then you will also need
+      # Creates a file upload field. If you are using file uploads then you will also need
       # to set the multipart option for the form tag:
       #
       #   <%= form_tag '/upload', :multipart => true do %>
