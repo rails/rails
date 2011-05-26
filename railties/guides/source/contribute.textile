@@ -53,7 +53,7 @@ h3. Rules
 * If the same guide writer wants to write multiple guides, that's ideally the situation we'd love to be in! However, that guide writer will only receive the cash prize for all the subsequent guides (and not the GitHub or RPM prizes).
 * Our review team will have the final say on whether the guide is complete and of good enough quality.
 
-All authors should read and follow the "Rails Guides Conventions":https://wiki.github.com/lifo/docrails/rails-guides-conventions and the "Rails API Documentation Conventions":api_documentation_guidelines.html.
+All authors should read and follow the "Rails Guides Conventions":ruby_on_rails_guides_guidelines.html and the "Rails API Documentation Conventions":api_documentation_guidelines.html.
 
 h3. Translations
 
