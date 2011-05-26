@@ -258,7 +258,7 @@ task :default => :test
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{name}. Please give a name which does not match one of the reserved rails words."
         elsif Object.const_defined?(camelized)
-          raise Error, "Invalid plugin name #{name}, constant #{camelized} is already in use. Please choose another application name."
+          raise Error, "Invalid plugin name #{name}, constant #{camelized} is already in use. Please choose another plugin name."
         end
       end
 
