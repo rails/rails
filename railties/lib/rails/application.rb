@@ -105,14 +105,6 @@ module Rails
       self
     end
 
-    def load_generators(app=self)
-      initialize_generators
-      railties.all { |r| r.load_generators(app) }
-      Rails::Generators.configure!(app.config.generators)
-      super
-      self
-    end
-
     def load_console(app=self)
       initialize_console
       railties.all { |r| r.load_console(app) }
@@ -193,10 +185,6 @@ module Rails
           require_environment!
         end
       end
-    end
-
-    def initialize_generators
-      require "rails/generators"
     end
 
     def initialize_console

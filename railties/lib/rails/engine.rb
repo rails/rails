@@ -330,6 +330,14 @@ module Rails
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
 
+    def load_generators(app=self)
+      initialize_generators
+      railties.all { |r| r.load_generators(app) }
+      Rails::Generators.configure!(app.config.generators)
+      super
+      self
+    end
+
     class << self
       attr_accessor :called_from, :isolated
       alias :isolated? :isolated
@@ -566,6 +574,10 @@ module Rails
     end
 
   protected
+
+    def initialize_generators
+      require "rails/generators"
+    end
 
     def routes?
       defined?(@routes)
