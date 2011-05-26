@@ -211,12 +211,11 @@ module Rails
     end
 
     def initialize_tasks
-      self.class.rake_tasks do
-        require "rails/tasks"
-        task :environment do
-          $rails_rake_task = true
-          require_environment!
-        end
+      extend Rake::DSL if defined? Rake::DSL
+      require "rails/tasks"
+      task :environment do
+        $rails_rake_task = true
+        require_environment!
       end
     end
 
