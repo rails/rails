@@ -10,6 +10,7 @@ module ActiveModel
       class_attribute :_accessible_attributes
       class_attribute :_protected_attributes
       class_attribute :_active_authorizer
+      class_attribute :strict_mass_assignment
     end
 
     # Mass assignment security provides an interface for protecting attributes
@@ -40,6 +41,16 @@ module ActiveModel
     #     end
     #
     #   end
+    #
+    # The option <tt>strict_mass_assignment</tt> controls whether mass assignment proctection
+    # is exceptional or not.
+    # If false (the default) +sanitize_for_mass_assignment+ will warn about protected attributes.
+    # If true +sanitize_for_mass_assignment+ will raise an <tt>ActiveModel::MassAssignmentSecurity::Error</tt> exception.
+    # Example:
+    #
+    #   Customer.strict_mass_assignment = true
+    #   customer = Customer.new
+    #   customer.assign_attributes({"protected_attribute_name" => "value" }) # => raises exception
     #
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
@@ -160,6 +171,7 @@ module ActiveModel
         self._active_authorizer = self._accessible_attributes
       end
 
+
       def protected_attributes(role = :default)
         protected_attributes_configs[role]
       end
@@ -198,8 +210,8 @@ module ActiveModel
 
   protected
 
-    def sanitize_for_mass_assignment(attributes, role = :default)
-      mass_assignment_authorizer(role).sanitize(attributes)
+    def sanitize_for_mass_assignment(attributes, role = :default, strict = nil)
+      mass_assignment_authorizer(role).sanitize(attributes, strict.nil? ? self.strict_mass_assignment : strict)
     end
 
     def mass_assignment_authorizer(role = :default)
