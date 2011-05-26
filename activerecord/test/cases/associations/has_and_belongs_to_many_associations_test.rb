@@ -104,6 +104,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_proper_usage_of_primary_keys_and_join_table
     setup_data_for_habtm_case
 
+    assert_equal 'country_id', Country.primary_key
+    assert_equal 'treaty_id', Treaty.primary_key
+
     country = Country.first
     assert_equal 1, country.treaties.count
   end
