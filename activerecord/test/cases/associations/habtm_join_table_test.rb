@@ -32,12 +32,4 @@ class HabtmJoinTableTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.drop_table :my_readers
     ActiveRecord::Base.connection.drop_table :my_books_my_readers
   end
-
-  uses_transaction :test_should_not_raise_exception_when_join_table_has_a_primary_key
-  def test_should_not_raise_exception_when_join_table_has_a_primary_key
-    if ActiveRecord::Base.connection.supports_primary_key?
-      # This test is to confirm that this feature is now gone 
-      assert MyReader.has_and_belongs_to_many(:my_books).is_a?(ActiveRecord::Reflection::AssociationReflection)
-    end
-  end
 end
