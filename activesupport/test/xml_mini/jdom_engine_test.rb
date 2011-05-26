@@ -15,20 +15,20 @@ if RUBY_PLATFORM =~ /java/
       XmlMini.backend = @default_backend
     end
 
-    # def test_file_from_xml
-    #   hash = Hash.from_xml(<<-eoxml)
-    #     <blog>
-    #       <logo type="file" name="logo.png" content_type="image/png">
-    #       </logo>
-    #     </blog>
-    #   eoxml
-    #   assert hash.has_key?('blog')
-    #   assert hash['blog'].has_key?('logo')
-    #
-    #   file = hash['blog']['logo']
-    #   assert_equal 'logo.png', file.original_filename
-    #   assert_equal 'image/png', file.content_type
-    # end
+    def test_file_from_xml
+       hash = Hash.from_xml(<<-eoxml)
+         <blog>
+           <logo type="file" name="logo.png" content_type="image/png">
+           </logo>
+         </blog>
+       eoxml
+       assert hash.has_key?('blog')
+       assert hash['blog'].has_key?('logo')
+
+       file = hash['blog']['logo']
+       assert_equal 'logo.png', file.original_filename
+       assert_equal 'image/png', file.content_type
+    end
 
     def test_exception_thrown_on_expansion_attack
       assert_raise NativeException do
