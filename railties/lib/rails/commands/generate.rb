@@ -7,4 +7,9 @@ if ARGV.first.in?([nil, "-h", "--help"])
 end
 
 name = ARGV.shift
-Rails::Generators.invoke name, ARGV, :behavior => :invoke, :destination_root => Rails.root
+
+if defined?(ENGINE_ROOT)
+  Rails::Generators.invoke name, ARGV, :behavior => :invoke, :destination_root => ENGINE_ROOT
+else
+  Rails::Generators.invoke name, ARGV, :behavior => :invoke, :destination_root => Rails.root
+end
