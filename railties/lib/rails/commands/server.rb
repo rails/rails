@@ -43,7 +43,7 @@ module Rails
     end
 
     def app
-      @app ||= super.instance
+      @app ||= super
     end
 
     def opt_parser
