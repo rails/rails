@@ -37,7 +37,9 @@ module ActiveRecord
         elsif reflection.macro == :belongs_to
           { reflection.klass.primary_key => @owner.class.quote_value(@owner[reflection.primary_key_name]) }
         else
-          { reflection.primary_key_name => @owner[reflection.active_record_primary_key] }
+          column = @owner.class.columns_hash[reflection.active_record_primary_key]
+
+          { reflection.primary_key_name => @owner.class.quote_value(@owner[reflection.active_record_primary_key], column) }
         end
       end
 
