@@ -100,6 +100,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'c1', record[0]
     assert_equal 't1', record[1]
   end
+  
+  def test_proper_usage_of_primary_keys_and_join_table
+    setup_data_for_habtm_case
+
+    country = Country.first
+    assert_equal 1, country.treaties.count
+  end
 
   def test_has_and_belongs_to_many
     david = Developer.find(1)
