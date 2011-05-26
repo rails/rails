@@ -60,7 +60,7 @@ module ActiveRecord
 
             scope = scope.joins(join(
               join_table,
-              table[reflection.active_record_primary_key].
+              table[reflection.association_primary_key].
                 eq(join_table[reflection.association_foreign_key])
             ))
 
