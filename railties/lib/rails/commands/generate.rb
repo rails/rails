@@ -8,8 +8,5 @@ end
 
 name = ARGV.shift
 
-if defined?(ENGINE_ROOT)
-  Rails::Generators.invoke name, ARGV, :behavior => :invoke, :destination_root => ENGINE_ROOT
-else
-  Rails::Generators.invoke name, ARGV, :behavior => :invoke, :destination_root => Rails.root
-end
+root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+Rails::Generators.invoke name, ARGV, :behavior => :invoke, :destination_root => root
