@@ -9,14 +9,13 @@ aliases = {
 command = ARGV.shift
 command = aliases[command] || command
 
+require ENGINE_PATH
+engine = ::Rails::Engine.find(ENGINE_ROOT)
+
 case command
 when 'generate'
   require 'rails/generators'
-
-  require ENGINE_PATH
-  engine = ::Rails::Engine.find(ENGINE_ROOT)
   engine.load_generators
-
   require 'rails/commands/generate'
 
 when '--version', '-v'
