@@ -30,7 +30,9 @@ module ActiveRecord
       # Associate attributes pointing to owner, quoted.
       def construct_quoted_owner_attributes(reflection)
         if as = reflection.options[:as]
-          { "#{as}_id"   => @owner.class.quote_value(@owner[reflection.active_record_primary_key]),
+          { "#{as}_id"   => @owner.class.quote_value(
+              @owner[reflection.active_record_primary_key],
+              reflection.klass.columns_hash["#{as}_id"]),
             "#{as}_type" => reflection.klass.quote_value(
               @owner.class.base_class.name.to_s,
               reflection.klass.columns_hash["#{as}_type"]) }
