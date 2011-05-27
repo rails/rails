@@ -15,7 +15,7 @@ module RailtiesTest
 
       @plugin = engine "bukkits" do |plugin|
         plugin.write "lib/bukkits.rb", <<-RUBY
-          class Bukkits
+          module Bukkits
             class Engine < ::Rails::Engine
               railtie_name "bukkits"
             end
@@ -32,7 +32,7 @@ module RailtiesTest
 
     test "initializers are executed after application configuration initializers" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
             initializer "dummy_initializer" do
             end
@@ -73,7 +73,7 @@ module RailtiesTest
       add_to_config("config.action_dispatch.show_exceptions = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
             endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['Hello World']] }
             config.middleware.use ::RailtiesTest::EngineTest::Upcaser
@@ -123,7 +123,7 @@ module RailtiesTest
 
     test "it provides routes as default endpoint" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -149,7 +149,7 @@ module RailtiesTest
 
     test "engine can load its own plugins" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -166,7 +166,7 @@ module RailtiesTest
 
     test "engine does not load plugins that already exists in application" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -189,7 +189,7 @@ module RailtiesTest
 
     test "it loads its environment file" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -208,7 +208,7 @@ module RailtiesTest
 
     test "it passes router in env" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
             endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'hello'] }
           end
