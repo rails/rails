@@ -9,7 +9,7 @@ module ActiveRecord
                   :select_values, :group_values, :order_values, :joins_values,
                   :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
-                  :from_value, :reorder_value
+                  :from_value, :reorder_value, :reverse_order_value
 
     def includes(*args)
       args.reject! {|a| a.blank? }
@@ -158,13 +158,9 @@ module ActiveRecord
     end
 
     def reverse_order
-      order_clause = arel.order_clauses
-
-      order = order_clause.empty? ?
-        "#{table_name}.#{primary_key} DESC" :
-        reverse_sql_order(order_clause).join(', ')
-
-      except(:order).order(Arel.sql(order))
+      relation = clone
+      relation.reverse_order_value = true
+      relation
     end
 
     def arel
@@ -186,6 +182,7 @@ module ActiveRecord
       arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
 
       order = @reorder_value ? @reorder_value : @order_values
+      order = @reverse_order_value ? reverse_sql_order(order) : order
       arel.order(*order.uniq.reject{|o| o.blank?}) unless order.empty?
 
       build_select(arel, @select_values.uniq)

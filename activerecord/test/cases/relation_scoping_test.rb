@@ -10,6 +10,10 @@ require 'models/reference'
 
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
+  
+  def test_modified_default_scoped_find_last
+    assert_not_equal DeveloperOrderedBySalary.first, DeveloperOrderedBySalary.last
+  end
 
   def test_scoped_find
     Developer.where("name = 'David'").scoping do
