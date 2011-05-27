@@ -177,6 +177,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "bukkits.gemspec", /s.version = "0.0.1"/
   end
 
+  def test_usage_of_engine_commands
+    run_generator
+    assert_file "script/rails", /ENGINE_PATH = File.expand_path\('..\/..\/lib\/bukkits\/engine', __FILE__\)/
+    assert_file "script/rails", /ENGINE_ROOT = File.expand_path\('..\/..', __FILE__\)/
+    assert_file "script/rails", /require 'rails\/all'/
+    assert_file "script/rails", /require 'rails\/engine\/commands/
+  end
+
   def test_shebang
     run_generator
     assert_file "script/rails", /#!\/usr\/bin\/env ruby/
