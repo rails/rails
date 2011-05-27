@@ -1,37 +1,14 @@
-require 'active_support/core_ext/range'
+require "active_model/validations/clusivity"
 
 module ActiveModel
 
   # == Active Model Inclusion Validator
   module Validations
-    class InclusionValidator < EachValidator
-      ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
-                      "and must be supplied as the :in option of the configuration hash"
-
-      def check_validity!
-        unless [:include?, :call].any?{ |method| options[:in].respond_to?(method) }
-          raise ArgumentError, ERROR_MESSAGE
-        end
-      end
-
-      def validate_each(record, attribute, value)
-        delimiter = options[:in]
-        exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
-        unless exclusions.send(inclusion_method(exclusions), value)
-          record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
-        end
-      end
-
-    private
-
-      # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the
-      # range for equality, so it may be slow for large ranges. The new <tt>Range#cover?</tt>
-      # uses the previous logic of comparing a value with the range endpoints.
-      def inclusion_method(enumerable)
-        enumerable.is_a?(Range) ? :cover? : :include?
+    class InclusionValidator < ClusivityValidator
+      def _error_key
+        [ :inclusion, true ]
       end
     end
-
     module HelperMethods
       # Validates whether the value of the specified attribute is available in a particular enumerable object.
       #
