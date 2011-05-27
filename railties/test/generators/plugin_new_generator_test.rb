@@ -182,7 +182,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "script/rails", /ENGINE_PATH = File.expand_path\('..\/..\/lib\/bukkits\/engine', __FILE__\)/
     assert_file "script/rails", /ENGINE_ROOT = File.expand_path\('..\/..', __FILE__\)/
     assert_file "script/rails", /require 'rails\/all'/
-    assert_file "script/rails", /require 'rails\/engine\/commands/
+    assert_file "script/rails", /require 'rails\/engine\/commands'/
   end
 
   def test_shebang
