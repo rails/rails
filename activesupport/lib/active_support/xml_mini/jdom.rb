@@ -5,12 +5,12 @@ include Java
 
 require 'active_support/core_ext/object/blank'
 
-import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory
-import java.io.StringReader unless defined? StringReader
-import org.xml.sax.InputSource unless defined? InputSource
-import org.xml.sax.Attributes unless defined? Attributes
-import org.w3c.dom.Node unless defined? Node
+java_import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
+java_import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory
+java_import java.io.StringReader unless defined? StringReader
+java_import org.xml.sax.InputSource unless defined? InputSource
+java_import org.xml.sax.Attributes unless defined? Attributes
+java_import org.w3c.dom.Node unless defined? Node
 
 # = XmlMini JRuby JDOM implementation
 module ActiveSupport
