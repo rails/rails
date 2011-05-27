@@ -483,13 +483,13 @@ SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You
 For example:
 
 <ruby>
-Order.group("date(created_at)").having("created_at > ?", 1.month.ago)
+Order.group("date(created_at)").having("created_at < ?", 1.month.ago)
 </ruby>
 
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at) HAVING created_at > '2009-01-15'
+SELECT * FROM orders GROUP BY date(created_at) HAVING created_at < '2009-01-15'
 </sql>
 
 This will return single order objects for each day, but only for the last month.
