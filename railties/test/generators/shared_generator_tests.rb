@@ -67,12 +67,12 @@ module SharedGeneratorTests
   end
 
   def test_shebang_is_added_to_rails_file
-    run_generator [destination_root, "--ruby", "foo/bar/baz"]
+    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full"]
     assert_file "script/rails", /#!foo\/bar\/baz/
   end
 
   def test_shebang_when_is_the_same_as_default_use_env
-    run_generator [destination_root, "--ruby", Thor::Util.ruby_command]
+    run_generator [destination_root, "--ruby", Thor::Util.ruby_command, "--full"]
     assert_file "script/rails", /#!\/usr\/bin\/env/
   end
 
