@@ -380,6 +380,21 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal subscriptions, subscriber.subscriptions.sort_by(&:id)
   end
 
+  def test_string_id_column_joins
+    s = Subscriber.create! do |c|
+      c.id = "PL"
+    end
+
+    b = Book.create! do |t|
+      t.id = "UE"
+    end
+
+    Subscription.create!(:subscriber_id => "PL", :book_id => "UE")
+    s.reload
+    s.books
+    s.book_ids = s.book_ids
+  end
+
   def test_eager_load_has_many_through_with_string_keys
     books = books(:awdr, :rfr)
     subscriber = Subscriber.find(subscribers(:second).id, :include => :books)
