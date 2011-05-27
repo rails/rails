@@ -23,11 +23,7 @@ when 'generate', 'destroy', 'plugin'
     require APP_PATH
     Rails.application.require_environment!
 
-    if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
-      Rails.application.load_generators(engine)
-    else
-      Rails.application.load_generators
-    end
+    Rails.application.load_generators
 
     require "rails/commands/#{command}"
   end
