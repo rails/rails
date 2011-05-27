@@ -7,4 +7,12 @@ namespace :assets do
     assets = Rails.application.config.assets.precompile
     Rails.application.assets.precompile(*assets)
   end
+
+  desc "Remove compiled assets"
+  task :cleanup => :environment do
+    assets = Rails.application.config.assets
+    public_asset_path = Rails.public_path + assets.prefix
+    FileUtils.rm_r Dir.glob("#{public_asset_path}/*.js")
+    FileUtils.rm_r Dir.glob("#{public_asset_path}/*.css")
+  end
 end
