@@ -675,13 +675,17 @@ class Post < ActiveRecord::Base
   has_many :tags
 end
 
-class Comments < ActiveRecord::Base
+class Comment < ActiveRecord::Base
   belongs_to :post
   has_one :guest
 end
 
 class Guest < ActiveRecord::Base
   belongs_to :comment
+end
+
+class Tag < ActiveRecord::Base
+  belongs_to :post
 end
 </ruby>
 
@@ -700,6 +704,8 @@ SELECT categories.* FROM categories
   INNER JOIN posts ON posts.category_id = categories.id
 </sql>
 
+Or, in English: "return a category object for all categories with posts". (You will see duplicate categories if more than one post has the same category. If you want unique posts, you can use Category.joins(:post).select("distinct(categories.id)).)
+
 h5. Joining Multiple Associations
 
 <ruby>
@@ -714,17 +720,39 @@ SELECT posts.* FROM posts
   INNER JOIN comments ON comments.post_id = posts.id
 </sql>
 
+Or, in English: "return all posts that have a category and at least one comment". Note again that posts with multiple comments will show up multiple times.
+
 h5. Joining Nested Associations (Single Level)
 
 <ruby>
 Post.joins(:comments => :guest)
 </ruby>
 
+This produces:
+
+<sql>
+SELECT posts.* FROM posts
+  INNER JOIN comments ON comments.post_id = posts.id
+  INNER JOIN guests ON guests.comment_id = comments.id
+</sql>
+
+Or, in English: "return all posts that have a comment made by a guest."
+
 h5. Joining Nested Associations (Multiple Level)
 
 <ruby>
 Category.joins(:posts => [{:comments => :guest}, :tags])
 </ruby>
+
+This produces:
+
+<sql>
+SELECT categories.* FROM categories
+  INNER JOIN posts ON posts.category_id = categories.id
+  INNER JOIN comments ON comments.post_id = posts.id
+  INNER JOIN guests ON guests.comment_id = comments.id
+  INNER JOIN tags ON tags.post_id = posts.id
+</sql>
 
 h4. Specifying Conditions on the Joined Tables
 
