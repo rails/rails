@@ -114,6 +114,9 @@ class OrderedHashTest < Test::Unit::TestCase
     end
     assert_equal @values, values
     assert_equal @keys, keys
+
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
+    assert_kind_of expected_class, @ordered_hash.each_pair
   end
 
   def test_find_all
@@ -255,6 +258,26 @@ class OrderedHashTest < Test::Unit::TestCase
 
     @deserialized_ordered_hash.each {|key, value| values << value}
     assert_equal @values, values
+  end
+
+  def test_each_when_yielding_to_block_with_splat
+    hash_values         = []
+    ordered_hash_values = []
+
+    @hash.each         { |*v| hash_values         << v }
+    @ordered_hash.each { |*v| ordered_hash_values << v }
+
+    assert_equal hash_values.sort, ordered_hash_values.sort
+  end
+
+  def test_each_pair_when_yielding_to_block_with_splat
+    hash_values         = []
+    ordered_hash_values = []
+
+    @hash.each_pair         { |*v| hash_values         << v }
+    @ordered_hash.each_pair { |*v| ordered_hash_values << v }
+
+    assert_equal hash_values.sort, ordered_hash_values.sort
   end
 
   def test_order_after_yaml_serialization
