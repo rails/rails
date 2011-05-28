@@ -22,16 +22,16 @@ module ActionMailer #:nodoc:
   #
   # Examples:
   #
-  #  class Notifier < ActionMailer::Base
-  #    default :from => 'no-reply@example.com',
+  #   class Notifier < ActionMailer::Base
+  #     default :from => 'no-reply@example.com',
   #            :return_path => 'system@example.com'
   #
-  #    def welcome(recipient)
-  #      @account = recipient
-  #      mail(:to => recipient.email_address_with_name,
-  #           :bcc => ["bcc@example.com", "Order Watcher <watcher@example.com>"])
-  #      end
-  #    end
+  #     def welcome(recipient)
+  #       @account = recipient
+  #       mail(:to => recipient.email_address_with_name,
+  #            :bcc => ["bcc@example.com", "Order Watcher <watcher@example.com>"])
+  #     end
+  #   end
   #
   # Within the mailer method, you have access to the following methods:
   #
@@ -366,7 +366,7 @@ module ActionMailer #:nodoc:
       end
 
       # Register an Inteceptor which will be called before mail is sent.
-      # Either a class or a string can be passed in as the Observer. If a string is passed in
+      # Either a class or a string can be passed in as the Interceptor. If a string is passed in
       # it will be <tt>constantize</tt>d.
       def register_interceptor(interceptor)
         delivery_interceptor = (interceptor.is_a?(String) ? interceptor.constantize : interceptor)

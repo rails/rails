@@ -385,13 +385,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
       c.id = "PL"
     end
 
-    b = Book.create! do |t|
-      t.id = "UE"
-    end
+    b = Book.create!
 
-    Subscription.create!(:subscriber_id => "PL", :book_id => "UE")
+    Subscription.create!(:subscriber_id => "PL", :book_id => b.id)
     s.reload
-    s.books
     s.book_ids = s.book_ids
   end
 

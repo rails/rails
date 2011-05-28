@@ -102,6 +102,10 @@ module ActiveRecord
 
       # Clears the prepared statements cache.
       def clear_cache!
+        @statements.values.map { |hash| hash[:stmt] }.each { |stmt|
+          stmt.close unless stmt.closed?
+        }
+
         @statements.clear
       end
 
