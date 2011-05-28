@@ -159,7 +159,7 @@ module ActiveRecord
 
     def reverse_order
       relation = clone
-      relation.reverse_order_value = true
+      relation.reverse_order_value = !relation.reverse_order_value
       relation
     end
 
