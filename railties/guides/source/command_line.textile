@@ -55,7 +55,7 @@ INFO: This output will seem very familiar when we get to the +generate+ command.
 
 h4. +rails server+
 
-Let's try it! The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
+The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
 
 INFO: WEBrick isn't your only option for serving Rails. We'll get to that in a later section.
 
@@ -65,7 +65,7 @@ Without any prodding of any kind, +rails server+ will run our new shiny Rails ap
 $ cd commandsapp
 $ rails server
 => Booting WEBrick
-=> Rails 3.0.0 application starting in development on http://0.0.0.0:3000
+=> Rails 3.1.0 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
 [2010-04-18 03:20:33] INFO  WEBrick 1.3.1
@@ -74,6 +74,8 @@ $ rails server
 </shell>
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic Rails app running.
+
+You can also use the alias "s" to start the server: <tt>rails s</tt>.
 
 h4. +rails generate+
 
@@ -237,7 +239,7 @@ dependency  model
     create    test/unit/high_score_test.rb
     create    test/fixtures/high_scores.yml
     exists    db/migrate
-    create    db/migrate/20081217071914_create_high_scores.rb
+    create    db/migrate/20100209025147_create_high_scores.rb
 </shell>
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the +high_scores+ table and fields), takes care of the route for the *resource*, and new tests for everything.
@@ -267,11 +269,13 @@ h4. +rails console+
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
+You can also use the alias "c" to invoke the console: <tt>rails c</tt>.
+
 If you wish to test out some code without changing any data, you can do that by invoking +rails console --sandbox+.
 
 <shell>
 $ rails console --sandbox
-Loading development environment in sandbox (Rails 3.0.0)
+Loading development environment in sandbox (Rails 3.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 </shell>
@@ -279,6 +283,8 @@ irb(main):001:0>
 h4. +rails dbconsole+
 
 +rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
+
+You can also use the alias "db" to invoke the console: <tt>rails db</tt>.
 
 h4. +rails plugin+
 
@@ -306,7 +312,7 @@ $ rails runner "Model.long_running_method"
 
 h4. +rails destroy+
 
-Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it. Believe you-me, the creation of this tutorial used this command many times!
+Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it.
 
 <shell>
 $ rails generate model Oops
@@ -343,12 +349,12 @@ About your application's environment
 Ruby version              1.8.7 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.1
-Rails version             3.0.0
-Active Record version     3.0.0
-Action Pack version       3.0.0
-Active Resource version   3.0.0
-Action Mailer version     3.0.0
-Active Support version    3.0.0
+Rails version             3.1.0
+Active Record version     3.1.0
+Action Pack version       3.1.0
+Active Resource version   3.1.0
+Action Mailer version     3.1.0
+Active Support version    3.1.0
 Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::RemoteIp, Rack::Sendfile, ActionDispatch::Callbacks, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::MethodOverride, ActionDispatch::Head
 Application root          /home/foobar/commandsapp
 Environment               development
@@ -437,7 +443,7 @@ Successfully installed mongrel-1.1.5
 Installing RDoc documentation for mongrel-1.1.5...
 $ rails server mongrel
 => Booting Mongrel (use 'rails server webrick' to force WEBrick)
-=> Rails 3.0.0 application starting on http://0.0.0.0:3000
+=> Rails 3.1.0 application starting on http://0.0.0.0:3000
 ...
 </shell>
 
@@ -581,7 +587,7 @@ You can list all the timezones Rails knows about with +rake time:zones:all+, whi
 
 h5. +tmp:+ Temporary files
 
-The tmp directory is, like in the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of deletions gone awry.
+The tmp directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of deletions gone awry.
 
 h5. Miscellaneous Tasks
 
