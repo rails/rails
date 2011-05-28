@@ -150,7 +150,7 @@ A short rundown of some of the major features:
 * Database agnostic schema management with Migrations
 
     class AddSystemSettings < ActiveRecord::Migration
-      def self.up
+      def change
         create_table :system_settings do |t|
           t.string  :name
           t.string  :label
@@ -160,10 +160,6 @@ A short rundown of some of the major features:
         end
 
         SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
-      end
-
-      def self.down
-        drop_table :system_settings
       end
     end
 
