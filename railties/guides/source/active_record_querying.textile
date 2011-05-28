@@ -489,10 +489,10 @@ Order.group("date(created_at)").having("created_at < ?", 1.month.ago)
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at) HAVING created_at < '2009-01-15'
+SELECT * FROM orders GROUP BY date(created_at) HAVING created_at < '2011-04-27'
 </sql>
 
-This will return single order objects for each day, but only for the last month.
+This will return single order objects for each day, but only those that are at least one month old.
 
 h3. Overriding Conditions
 
