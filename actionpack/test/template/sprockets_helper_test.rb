@@ -57,7 +57,7 @@ class SprocketsHelperTest < ActionView::TestCase
       asset_path("http://www.example.com/video/play.mp4")
   end
 
-  test "asset path with relavtive url root" do
+  test "asset path with relative url root" do
     @controller.config.relative_url_root = "/collaboration/hieraki"
     assert_equal "/collaboration/hieraki/images/logo.gif",
      asset_path("/images/logo.gif")
