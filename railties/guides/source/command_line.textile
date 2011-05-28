@@ -284,7 +284,7 @@ h4. +rails dbconsole+
 
 +rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
 
-You can also use the alias "db" to invoke the console: <tt>rails db</tt>.
+You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
 h4. +rails plugin+
 
