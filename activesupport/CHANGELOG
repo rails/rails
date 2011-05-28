@@ -2,6 +2,9 @@
 
 * Removed ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
 
+* ActiveSupport::OrderedHash now has different behavior for #each and
+#each_pair when given a block accepting its parameters with a splat. [Andrew Radev]
+
 *Rails 3.1.0 (unreleased)*
 
 * Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
