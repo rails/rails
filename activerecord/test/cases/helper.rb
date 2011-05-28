@@ -26,8 +26,8 @@ ActiveSupport::Deprecation.debug = true
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 
-# Enable Identity Map for testing
-ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "false" ? false : true)
+# Enable Identity Map only when ENV['IM'] is set to "true"
+ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "true")
 
 def current_adapter?(*types)
   types.any? do |type|
