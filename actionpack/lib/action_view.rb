@@ -74,7 +74,6 @@ module ActionView
 
     autoload_at "action_view/template" do
       autoload :TemplateHandler
-      autoload :TemplateHandlers
     end
   end
 
