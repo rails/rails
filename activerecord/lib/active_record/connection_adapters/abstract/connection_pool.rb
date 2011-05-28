@@ -216,6 +216,18 @@ module ActiveRecord
         end
       end
 
+      # Return any checked-out connections back to the pool by threads that
+      # are no longer alive.
+      def clear_stale_cached_connections!
+        keys = @reserved_connections.keys - Thread.list.find_all { |t|
+          t.alive?
+        }.map { |thread| thread.object_id }
+        keys.each do |key|
+          checkin @reserved_connections[key]
+          @reserved_connections.delete(key)
+        end
+      end
+
       # Check-out a database connection from the pool, indicating that you want
       # to use it. You should call #checkin when you no longer need this.
       #
@@ -276,17 +288,6 @@ module ActiveRecord
         :connection, :release_connection, :connected?, :disconnect!, :with => :@connection_mutex
 
       private
-      # Return any checked-out connections back to the pool by threads that
-      # are no longer alive.
-      def clear_stale_cached_connections!
-        keys = @reserved_connections.keys - Thread.list.find_all { |t|
-          t.alive?
-        }.map { |thread| thread.object_id }
-        keys.each do |key|
-          checkin @reserved_connections[key]
-          @reserved_connections.delete(key)
-        end
-      end
 
       def new_connection
         ActiveRecord::Base.send(spec.adapter_method, spec.config)
