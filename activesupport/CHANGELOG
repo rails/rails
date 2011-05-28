@@ -4,6 +4,9 @@
 
 *Rails 3.1.0 (unreleased)*
 
+* ActiveSupport::OrderedHash now has different behavior for #each and
+#each_pair when given a block accepting its parameters with a splat. [Andrew Radev]
+
 * Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
 
 * New reporting method Kernel#quietly. [fxn]
