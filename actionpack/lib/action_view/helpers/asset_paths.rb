@@ -44,7 +44,12 @@ module ActionView
         raise NotImplementedError
       end
 
+      def rewrite_relative_url_root(source, relative_url_root)
+        relative_url_root && !source.starts_with?("#{relative_url_root}/") ? "#{relative_url_root}#{source}" : source
+      end
+
       def rewrite_host_and_protocol(source, has_request)
+        source = rewrite_relative_url_root(source, controller.config.relative_url_root) if has_request
         host = compute_asset_host(source)
         if has_request && host && !is_uri?(host)
           host = "#{controller.request.protocol}#{host}"
