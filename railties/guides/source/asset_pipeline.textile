@@ -30,4 +30,4 @@ h3. Packaging Assets with Your Plugin
 
 h3. More on Sprockets
 
-Sprockets is the engine that handles the asset pipeline in Rails 3.1 and above. Their offical website is avaialbe at "http://getsprockets.org/":http://getsprockets.org/ and the source code is "on github":https://github.com/sstephenson/sprockets.
+Sprockets is the engine that handles the asset pipeline in Rails 3.1 and above. Their offical website is available at "http://getsprockets.org/":http://getsprockets.org/ and the source code is "on github":https://github.com/sstephenson/sprockets.
