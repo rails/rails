@@ -860,7 +860,7 @@ module ActiveRecord
     # the inverse of each other and the inverse of the +dungeon+ association on +EvilWizard+
     # is the +evil_wizard+ association on +Dungeon+ (and vice-versa). By default,
     # Active Record doesn't know anything about these inverse relationships and so no object
-    # loading optimisation is possible. For example:
+    # loading optimization is possible. For example:
     #
     #    d = Dungeon.first
     #    t = d.traps.first
