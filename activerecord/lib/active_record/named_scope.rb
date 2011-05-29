@@ -17,7 +17,7 @@ module ActiveRecord
       #   posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
       #
       #   fruits = Fruit.scoped
-      #   fruits = fruits.where(:colour => 'red') if options[:red_only]
+      #   fruits = fruits.where(:color => 'red') if options[:red_only]
       #   fruits = fruits.limit(10) if limited?
       #
       # Anonymous \scopes tend to be useful when procedurally generating complex
