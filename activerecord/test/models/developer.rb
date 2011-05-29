@@ -86,6 +86,11 @@ class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base
   end
 end
 
+class DeveloperWithSelect < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope select('name')
+end
+
 class DeveloperOrderedBySalary < ActiveRecord::Base
   self.table_name = 'developers'
   default_scope :order => 'salary DESC'

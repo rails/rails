@@ -471,6 +471,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
   end
 
+  def test_default_scope_select_ignored_by_aggregations
+    assert_equal DeveloperWithSelect.all.count, DeveloperWithSelect.count
+  end
+
   def test_default_scope_order_ignored_by_aggregations
     assert_equal DeveloperOrderedBySalary.all.count, DeveloperOrderedBySalary.count
   end
