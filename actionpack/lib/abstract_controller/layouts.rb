@@ -356,6 +356,7 @@ module AbstractController
     end
 
     def _include_layout?(options)
+      return false if self.request.formats.include?("text/javascript")
       (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
     end
   end
