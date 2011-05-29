@@ -21,6 +21,7 @@ require 'models/parrot'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
+require 'models/ad'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -276,6 +277,8 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "credit_card_pin_numbers", CreditCard::SubPinNumber.table_name
     assert_equal "categories", CreditCard::Brand.table_name
     assert_equal "master_credit_cards", MasterCreditCard.table_name
+    assert_equal "abstract_ads", AbstractAd.table_name
+    assert_equal "ads", Ad.table_name
   ensure
     GUESSED_CLASSES.each(&:reset_table_name)
   end
