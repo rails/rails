@@ -493,6 +493,16 @@ XML
     )
   end
 
+  def test_params_passing_with_fixnums
+    get :test_params, :page => {:name => "Page name", :month => 4, :year => 2004, :day => 6}
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_test/test', 'action' => 'test_params',
+       'page' => {'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6'}},
+      parsed_params
+    )
+  end
+
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
       get :test_params, :frozen => 'icy'.freeze, :frozens => ['icy'.freeze].freeze

@@ -427,10 +427,6 @@ module ActiveRecord
         tables(nil, schema).include? table
       end
 
-      def drop_table(table_name, options = {})
-        super(table_name, options)
-      end
-
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
         indexes = []
