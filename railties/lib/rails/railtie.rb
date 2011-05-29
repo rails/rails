@@ -181,7 +181,7 @@ module Rails
     end
 
     def load_tasks
-      extend Rake::DSL if defined? Rake::DSL
+      self.class.extend Rake::DSL if defined? Rake::DSL
       self.class.rake_tasks.each(&:call)
     end
 
