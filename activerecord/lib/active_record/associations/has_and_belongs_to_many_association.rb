@@ -9,9 +9,15 @@ module ActiveRecord
         super
       end
 
-      def insert_record(record, validate = true)
-        return if record.new_record? && !record.save(:validate => validate)
-
+      def insert_record(record, validate = true, raise_error = false)
+        if record.new_record?
+          if raise_error
+            record.save!(:validate => validate)
+          elsif !record.save(:validate => validate)
+            return
+          end
+        end      
+        
         if options[:insert_sql]
           owner.connection.insert(interpolate(options[:insert_sql], record))
         else
