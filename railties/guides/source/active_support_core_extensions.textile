@@ -3024,7 +3024,7 @@ Date.new(2010, 1, 31).change(:month => 2)
 
 h5(#date-durations). Durations
 
-Durations can be added and substracted to dates:
+Durations can be added to and subtracted from dates:
 
 <ruby>
 d = Date.current
@@ -3232,7 +3232,7 @@ DateTime.current.change(:month => 2, :day => 30)
 
 h5(#datetime-durations). Durations
 
-Durations can be added and substracted to datetimes:
+Durations can be added to and subtracted from datetimes:
 
 <ruby>
 now = DateTime.current
@@ -3353,7 +3353,7 @@ If the time to be constructed lies beyond the range supported by +Time+ in the r
 
 h5(#time-durations). Durations
 
-Durations can be added and substracted to time objects:
+Durations can be added to and subtracted from time objects:
 
 <ruby>
 now = Time.current
