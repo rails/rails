@@ -12,6 +12,8 @@ endprologue.
 
 h3. What Is The Asset Pipeline?
 
+The asset pipeline is a new feature introduced in Rails 3.1 using the "Sprockets":http://getsprockets.org/ engine. It allows developers to place design elements in +app/assets+ instead of +public+, there are many advantages to this. A big one is that they are now processed by Rails instead of your webserver, allowing you to use preprocessors like CoffeeScript or SCSS. Another advantage is that your CSS and JavaScript is compiled into one file by default, this allows users to cache all the CSS and JavaScript data so your pages render faster.
+
 h4. Why Should I Use it?
 
 Using the asset pipeline allows you to package JavaScript, CSS, or images with your Rails application, library, or plugin. It also makes it easy to create dynamic CSS with LESS and clean JavaScript with CoffeeScript to name a few of the popular preprocessors. The big difference is that they are now categorized in app/assets, treating them like first-class citizens instead of just throwing them into categorized folders in the public directory.
@@ -32,4 +34,4 @@ You may find it useful to package certain assets with your gem. A simple example
 
 h3. More on Sprockets
 
-Sprockets is the engine that handles the asset pipeline in Rails 3.1 and above. Their official website is available at "http://getsprockets.org/":http://getsprockets.org/ and the source code is "on github":https://github.com/sstephenson/sprockets.
+Sprockets is the engine that handles the asset pipeline in Rails 3.1 and above. Their official website is available at "http://getsprockets.org/":http://getsprockets.org/ and the source code is "available on github":https://github.com/sstephenson/sprockets.
