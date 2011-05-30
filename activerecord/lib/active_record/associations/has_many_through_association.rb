@@ -33,7 +33,7 @@ module ActiveRecord
         super
       end        
       
-      def insert_record(record, validate = true)
+      def insert_record(record, validate = true, raise_error = false)
         ensure_not_nested
         
         if record.new_record?

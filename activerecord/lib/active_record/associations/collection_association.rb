@@ -430,7 +430,7 @@ module ActiveRecord
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
-        def insert_record(record, validate = true)
+        def insert_record(record, validate = true, raise_error = false)
           raise NotImplementedError
         end
 
