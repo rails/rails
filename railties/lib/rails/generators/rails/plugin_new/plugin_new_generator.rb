@@ -118,7 +118,7 @@ task :default => :test
       return if options.skip_javascript?
 
       if mountable?
-        copy_file "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
+        template "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/application.js"
       elsif full?
         empty_directory_with_gitkeep "app/assets/javascripts"

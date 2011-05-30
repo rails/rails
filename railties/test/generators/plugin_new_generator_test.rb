@@ -112,6 +112,28 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/javascripts/application.js"
   end
 
+  def test_jquery_is_the_default_javascript_library
+    run_generator [destination_root, "--mountable"]
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require jquery}, contents
+      assert_match %r{^//= require jquery_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match(/^gem 'jquery-rails'/, contents)
+    end
+  end
+
+  def test_other_javascript_libraries
+    run_generator [destination_root, "--mountable", '-j', 'prototype']
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require prototype}, contents
+      assert_match %r{^//= require prototype_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match(/^gem 'prototype-rails'/, contents)
+    end
+  end
+
   def test_skip_javascripts
     run_generator [destination_root, "--skip-javascript", "--mountable"]
     assert_no_file "app/assets/javascripts/application.js"
