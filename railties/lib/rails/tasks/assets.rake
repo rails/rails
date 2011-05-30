@@ -1,5 +1,3 @@
-require "fileutils"
-
 namespace :assets do
   desc "Compile all the assets named in config.assets.precompile"
   task :precompile => :environment do
@@ -15,6 +13,6 @@ namespace :assets do
     assets = Rails.application.config.assets
     public_asset_path = Rails.public_path + assets.prefix
     file_list = FileList.new("#{public_asset_path}/*.js", "#{public_asset_path}/*.css")
-    file_list.each{ |list| FileUtils.rm list }
+    file_list.each{ |file| rm file }
   end
 end
