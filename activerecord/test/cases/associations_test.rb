@@ -56,8 +56,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_loading_the_association_target_should_keep_child_records_marked_for_destruction
     ship = Ship.create!(:name => "The good ship Dollypop")
-    part = ship.parts.create!(:name => "Mast")
-    part.mark_for_destruction
+    ship.parts.create!(:name => "Mast")
+    ship.parts[0].mark_for_destruction
     ship.parts.send(:load_target)
     assert ship.parts[0].marked_for_destruction?
   end
