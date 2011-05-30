@@ -6,7 +6,7 @@ By referring to this guide you will be able to:
 * Properly organize your application assets
 * Understand the benefits of the asset pipline
 * Adding a preproccessor to the pipeline
-* Package assets with your plugin
+* Package assets with a gem
 
 endprologue.
 
@@ -26,7 +26,9 @@ h4. Directives
 
 h4. Stacking Preproccessors
 
-h3. Packaging Assets with Your Plugin
+h3. Packaging Assets with Your Gems
+
+You may find it useful to package certain assets with your gem. A simple example would be the "pjax_rails":https://github.com/rails/pjax_rails/ gem. This gem bundles the latest "PJAX":https://github.com/defunkt/jquery-pjax library and some helper methods. If you take a look at the source of pjax_rails, you'll see that it bundles the assets in +lib/assets+ just the same way as you would in +app/assets+. This allows pjax_rails to update the PJAX file without forcing you to copy it to your public folder like you had to pre Rails 3.1. But if you want the user to load your JavaScript files in their template, you will have to ask them to add a directive to do so. Also avoid any common names such as +form_check.js+ instead try using +mygem/form_check.js+ so it's clear where it's coming from. This will also make it unlikely that your users will create a file with the same name causing the asset pipeline to choose the user's file over yours.
 
 h3. More on Sprockets
 
