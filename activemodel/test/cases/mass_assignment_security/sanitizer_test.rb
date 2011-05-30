@@ -12,24 +12,32 @@ class SanitizerTest < ActiveModel::TestCase
   end
 
   def setup
-    @sanitizer = ActiveModel::MassAssignmentSecurity::DefaultSanitizer.new
+    @logger_sanitizer = ActiveModel::MassAssignmentSecurity::LoggerSanitizer.new
+    @strict_sanitizer = ActiveModel::MassAssignmentSecurity::StrictSanitizer.new
     @authorizer = Authorizer.new
   end
 
   test "sanitize attributes" do
     original_attributes = { 'first_name' => 'allowed', 'admin' => 'denied' }
-    attributes = @sanitizer.sanitize(original_attributes, @authorizer)
+    attributes = @logger_sanitizer.sanitize(original_attributes, @authorizer)
 
     assert attributes.key?('first_name'), "Allowed key shouldn't be rejected"
     assert !attributes.key?('admin'),     "Denied key should be rejected"
   end
 
-  test "debug mass assignment removal" do
+  test "debug mass assignment removal with LoggerSanitizer" do
     original_attributes = { 'first_name' => 'allowed', 'admin' => 'denied' }
     log = StringIO.new
-    @sanitizer.logger = Logger.new(log)
-    @sanitizer.sanitize(original_attributes, @authorizer)
+    @logger_sanitizer.logger = Logger.new(log)
+    @logger_sanitizer.sanitize(original_attributes, @authorizer)
     assert_match(/admin/, log.string, "Should log removed attributes: #{log.string}")
+  end
+
+  test "debug mass assignment removal with StrictSanitizer" do
+    original_attributes = { 'first_name' => 'allowed', 'admin' => 'denied' }
+    assert_raise ActiveModel::MassAssignmentSecurity::Error do
+      @strict_sanitizer.sanitize(original_attributes, @authorizer)
+    end
   end
 
 end
