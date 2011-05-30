@@ -309,7 +309,7 @@ Rails follows a simple set of coding style conventions.
 * a = b and not a=b.
 * Follow the conventions you see used in the source already.
 
-These are some guidelines and please use your best judgement in using them.
+These are some guidelines and please use your best judgment in using them.
 
 h4. Sanity Check
 

@@ -865,7 +865,7 @@ This method collects the initializers from the ancestors of this class and adds 
   end
 </ruby>
 
-So this <tt>+</tt> method is overriden to return a new collection comprising of the existing collection as an array and then using the <tt>Array#+</tt> method combines these two collections, returning a "super" +Collection+ object. In this case, the only initializer that's going to be in this new +Collection+ object is the +i18n.callbacks+ initializer.
+So this <tt>+</tt> method is overridden to return a new collection comprising of the existing collection as an array and then using the <tt>Array#+</tt> method combines these two collections, returning a "super" +Collection+ object. In this case, the only initializer that's going to be in this new +Collection+ object is the +i18n.callbacks+ initializer.
 
 The next method to be called after this +initializer+ method is the +after_initialize+ method on the +config+ object, which is defined like this:
 
