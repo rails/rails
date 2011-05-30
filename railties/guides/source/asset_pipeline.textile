@@ -12,25 +12,33 @@ endprologue.
 
 h3. What Is The Asset Pipeline?
 
-The asset pipeline is a new feature introduced in Rails 3.1 using the "Sprockets":http://getsprockets.org/ engine. It allows developers to place design elements in +app/assets+ instead of +public+, there are many advantages to this. A big one is that they are now processed by Rails instead of your webserver, allowing you to use preprocessors like CoffeeScript or SCSS. Another advantage is that your CSS and JavaScript is compiled into one file by default, this allows users to cache all the CSS and JavaScript data so your pages render faster.
-
-h4. Why Should I Use it?
-
-Using the asset pipeline allows you to package JavaScript, CSS, or images with your Rails application, library, or plugin. It also makes it easy to create dynamic CSS with LESS and clean JavaScript with CoffeeScript to name a few of the popular preprocessors. The big difference is that they are now categorized in app/assets, treating them like first-class citizens instead of just throwing them into categorized folders in the public directory.
+The asset pipeline is a new feature introduced in Rails 3.1 using the "Sprockets":http://getsprockets.org/ engine. It allows developers to place design elements in +app/assets+ instead of +public+, there are many advantages to this. A big one is that they are now processed by Rails instead of your webserver, allowing you to use preprocessors like CoffeeScript, SCSS, or ERB. Another advantage is that your CSS and JavaScript is compiled into one file by default, this allows users to cache all the CSS and JavaScript data so your pages render faster. Not to mention how much cleaner your application will become.
 
 h3. How to Use the Asset Pipeline
 
+The asset pipeline is easy to migrate to and use. There are a few things that you'll need to learn first, like where to place your files, how to create a manifest, and how to add any preproccesors if you desire. 
+
 h4. Asset Organization
 
-h4. Default Files Loaded
+Loads from /app/assets, /lib/assets, /vendor/assets, and your gem's assets
 
 h4. Directives
 
+require_tree, require, require_self
+
 h4. Stacking Preprocessors
+
+filename.css.scss not filename.scss.css, how and why
+
+h4. Adding a Preproccessor
+
+https://github.com/rtomayko/tilt for gems or config.register_processor('text/css', MyAwesomeProccessor) for local stuff
 
 h3. Packaging Assets with Your Gems
 
-You may find it useful to package certain assets with your gem. A simple example would be the "pjax_rails":https://github.com/rails/pjax_rails/ gem. This gem bundles the latest "PJAX":https://github.com/defunkt/jquery-pjax library and some helper methods. If you take a look at the source of pjax_rails, you'll see that it bundles the assets in +lib/assets+ just the same way as you would in +app/assets+. This allows pjax_rails to update the PJAX file without forcing you to copy it to your public folder like you had to pre Rails 3.1. But if you want the user to load your JavaScript files in their template, you will have to ask them to add a directive to do so. Also avoid any common names such as +form_check.js+ instead try using +mygem/form_check.js+ so it's clear where it's coming from. This will also make it unlikely that your users will create a file with the same name causing the asset pipeline to choose the user's file over yours.
+You may find it useful to package certain assets with your gem. A good example would be the "pjax_rails":https://github.com/rails/pjax_rails/ gem. This gem bundles the latest "PJAX":https://github.com/defunkt/jquery-pjax library and some helper methods. If you take a look at the source of pjax_rails, you'll see that it bundles the assets in +lib/assets+ just the same way as you would in +app/assets+. Doing so allows pjax_rails to update JavaScripts without asking users to copy them into their public folder
+
+If you want the user to load your JavaScript files in their template, you will have to ask them to add a directive to do so. Also avoid any common names such as +form_check.js+ instead try using +mygem/form_check.js+ so it's clear where it's coming from. This will also make it unlikely that your users will create a file with the same name causing the asset pipeline to choose the user's file over yours. 
 
 h3. More on Sprockets
 
