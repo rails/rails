@@ -31,11 +31,18 @@ module ActiveRecord
         end
 
         super
-      end
-
-      def insert_record(record, validate = true)
+      end        
+      
+      def insert_record(record, validate = true, raise_error = false)
         ensure_not_nested
-        return if record.new_record? && !record.save(:validate => validate)
+        
+        if record.new_record?
+          if raise_error
+            record.save!(:validate => validate)
+          elsif !record.save(:validate => validate)
+            return
+          end
+        end
 
         through_record(record).save!
         update_counter(1)

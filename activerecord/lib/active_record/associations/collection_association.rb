@@ -120,12 +120,23 @@ module ActiveRecord
         end
       end
 
-      def create!(attrs = {}, options = {}, &block)
-        record = create(attrs, options, &block)
-        Array.wrap(record).each(&:save!)
-        record
+      def create!(attributes = {}, options = {}, &block)
+        unless owner.persisted?
+          raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+        end
+        
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create!(attr, options, &block) }
+        else
+          transaction do
+            add_to_target(build_record(attributes, options)) do |record|
+              yield(record) if block_given?
+              insert_record(record, true, true)
+            end
+          end
+        end
       end
-
+      
       # Add +records+ to this association. Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
@@ -419,7 +430,7 @@ module ActiveRecord
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
-        def insert_record(record, validate = true)
+        def insert_record(record, validate = true, raise_error = false)
           raise NotImplementedError
         end
 
