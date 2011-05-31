@@ -71,11 +71,6 @@ module ActionView
       autoload :TemplateError
       autoload :WrongEncodingError
     end
-
-    autoload_at "action_view/template" do
-      autoload :TemplateHandler
-      autoload :TemplateHandlers
-    end
   end
 
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
