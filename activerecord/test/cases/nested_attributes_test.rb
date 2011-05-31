@@ -139,6 +139,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert man.reload.interests.empty?
   end
 
+  def test_has_many_association_setting_attributes_for_an_unloaded_single_record
+    ActiveRecord::IdentityMap.without do
+      Man.accepts_nested_attributes_for(:interests)
+      man = Man.create(:name => 'Ken')
+      interest = man.interests.create(:topic => 'photography')
+      man.reload
+      man.attributes = {:interests_attributes => {:topic => 'mahjong', :id => interest.id}}
+      assert_equal 'mahjong', man.interests.first.topic
+    end
+  end
+
   def test_has_many_association_updating_a_single_record
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(:name => 'John')
