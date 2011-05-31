@@ -1,3 +1,5 @@
+* Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior [Bogdan Gusiev]
+
 *Rails 3.1.0 (unreleased)*
 
 * attr_accessible and friends now accepts :as as option to specify a role [Josh Kalderimis]

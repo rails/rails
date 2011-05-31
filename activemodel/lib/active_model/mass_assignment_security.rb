@@ -11,7 +11,9 @@ module ActiveModel
       class_attribute :_accessible_attributes
       class_attribute :_protected_attributes
       class_attribute :_active_authorizer
-      class_attribute :mass_assignment_sanitizer
+
+      class_attribute :_mass_assignment_sanitizer
+      self.mass_assignment_sanitizer = :logger
     end
 
     # Mass assignment security provides an interface for protecting attributes
@@ -43,6 +45,16 @@ module ActiveModel
     #
     #   end
     #
+    # = Configuration options
+    #
+    # * <tt>mass_assignment_sanitizer</tt> - Defines sanitize method. Possible values are:
+    #   * <tt>:logger</tt> (default) - writes filtered attributes to logger
+    #   * <tt>:strict</tt> - raise <tt>ActiveModel::MassAssignmentSecurity::Error</tt> on any protected attribute update
+    #
+    # You can specify your own sanitizer object eg. MySanitizer.new.
+    # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
+    #
+    # 
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
       # whenever attributes are sanitized before assignment. A role for the
@@ -156,7 +168,7 @@ module ActiveModel
         options = args.extract_options!
         role = options[:as] || :default
 
-        self._accessible_attributes        = accessible_attributes_configs.dup
+        self._accessible_attributes       = accessible_attributes_configs.dup
         self._accessible_attributes[role] = self.accessible_attributes(role) + args
 
         self._active_authorizer = self._accessible_attributes
@@ -179,19 +191,25 @@ module ActiveModel
         []
       end
 
+      def mass_assignment_sanitizer=(value)
+        self._mass_assignment_sanitizer = if value.is_a?(Symbol)
+          const_get(:"#{value.to_s.camelize}Sanitizer").new(self)
+        else
+          value
+        end
+      end
+
       private
 
       def protected_attributes_configs
         self._protected_attributes ||= begin
-          default_black_list = BlackList.new(attributes_protected_by_default)
-          Hash.new(default_black_list)
+          Hash.new { |h,k| h[k] = BlackList.new(attributes_protected_by_default) }
         end
       end
 
       def accessible_attributes_configs
         self._accessible_attributes ||= begin
-          default_white_list = WhiteList.new
-          Hash.new(default_white_list)
+          Hash.new { |h,k| h[k] = WhiteList.new }
         end
       end
     end
@@ -199,11 +217,7 @@ module ActiveModel
   protected
 
     def sanitize_for_mass_assignment(attributes, role = :default)
-      (mass_assignment_sanitizer || default_mass_assignment_sanitizer).sanitize(attributes, mass_assignment_authorizer(role))
-    end
-
-    def default_mass_assignment_sanitizer
-      DefaultSanitizer.new(self.respond_to?(:logger) && self.logger)
+      _mass_assignment_sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
     end
 
     def mass_assignment_authorizer(role = :default)
