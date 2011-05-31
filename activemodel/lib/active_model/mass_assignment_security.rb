@@ -1,4 +1,5 @@
-require 'active_support/core_ext/class/attribute.rb'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/string/inflections'
 require 'active_model/mass_assignment_security/permission_set'
 require 'active_model/mass_assignment_security/sanitizer'
 
