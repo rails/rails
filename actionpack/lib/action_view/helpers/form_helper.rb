@@ -202,13 +202,13 @@ module ActionView
       #
       # is equivalent to something like:
       #
-      #   <%= form_for @post, :as => :post, :url => post_path(@post), :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
       #     ...
       #   <% end %>
       #
       # You can also overwrite the individual conventions, like this:
       #
-      #   <%= form_for(@post, :url => super_post_path(@post)) do |f| %>
+      #   <%= form_for(@post, :url => super_posts_path) do |f| %>
       #     ...
       #   <% end %>
       #
