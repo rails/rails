@@ -3,6 +3,7 @@ class Customer < ActiveRecord::Base
   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new { |balance| balance.to_money }
   composed_of :gps_location, :allow_nil => true
   composed_of :fullname, :mapping => %w(name to_s), :constructor => Proc.new { |name| Fullname.parse(name) }, :converter => :parse
+  composed_of :location, :class_name => "Location", :mapping => [ %w(address_city city), %w(address_country country) ], :converter => :convert_location
 end
 
 class Address
@@ -32,6 +33,21 @@ class Money
 
   def exchange_to(other_currency)
     Money.new((amount * EXCHANGE_RATES["#{currency}_TO_#{other_currency}"]).floor, other_currency)
+  end
+end
+
+class Location
+  attr_reader :city, :country, :who
+  def initialize(city, country, who = "")
+    @city, @country, @who = city, country, who
+  end
+
+  def self.convert_location(customer, values)
+    new(values.first, values.last, customer.fullname)
+  end
+
+  def to_s
+    "#{who} from #{city}, #{country}"
   end
 end
 
