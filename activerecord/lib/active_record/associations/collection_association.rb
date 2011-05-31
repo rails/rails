@@ -402,6 +402,9 @@ module ActiveRecord
           return memory    if persisted.empty?
 
           persisted.map! do |record|
+
+            # To work with ruby 1.8.7
+            # > 1.9 #=> mem_record = memory.delete(record)
             mem_record_index = memory.index(record)
             if mem_record_index
               mem_record = memory.at(mem_record_index)
