@@ -325,6 +325,22 @@ module Arel
         end
       end
 
+      describe 'Constants' do
+        it "should handle true" do
+          test = Table.new(:users).create_true
+          @visitor.accept(test).must_be_like %{
+            TRUE
+          }
+        end
+
+        it "should handle false" do
+          test = Table.new(:users).create_false
+          @visitor.accept(test).must_be_like %{
+            FALSE
+          }
+        end
+      end
+
       describe 'TableAlias' do
         it "should use the underlying table for checking columns" do
           test = Table.new(:users).alias('zomgusers')[:id].eq '3'

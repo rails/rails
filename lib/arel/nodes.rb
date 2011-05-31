@@ -8,6 +8,8 @@ require 'arel/nodes/update_statement'
 # terminal
 
 require 'arel/nodes/terminal'
+require 'arel/nodes/true'
+require 'arel/nodes/false'
 
 # unary
 require 'arel/nodes/unary'

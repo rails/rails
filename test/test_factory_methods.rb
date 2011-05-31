@@ -23,6 +23,16 @@ module Arel
         assert_equal :one, on.expr
       end
 
+      def test_create_true
+        true_node = @factory.create_true
+        assert_instance_of Nodes::True, true_node
+      end
+
+      def test_create_false
+        false_node = @factory.create_false
+        assert_instance_of Nodes::False, false_node
+      end
+
       def test_lower
         lower = @factory.lower :one
         assert_instance_of Nodes::NamedFunction, lower
