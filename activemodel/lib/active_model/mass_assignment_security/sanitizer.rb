@@ -20,7 +20,7 @@ module ActiveModel
       end
 
     end
-    class DefaultSanitizer < Sanitizer
+    class LoggerSanitizer < Sanitizer
 
       attr_accessor :logger
 
@@ -33,5 +33,15 @@ module ActiveModel
         self.logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if self.logger
       end
     end
+
+    class StrictSanitizer < Sanitizer
+      def process_removed_attributes(attrs)
+        raise ActiveModel::MassAssignmentSecurity::Error, "Can't mass-assign protected attributes: #{attrs.join(', ')}"
+      end
+    end
+
+    class Error < StandardError
+    end
+
   end
 end

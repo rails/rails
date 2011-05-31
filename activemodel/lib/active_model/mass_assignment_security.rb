@@ -11,7 +11,13 @@ module ActiveModel
       class_attribute :_accessible_attributes
       class_attribute :_protected_attributes
       class_attribute :_active_authorizer
-      class_attribute :mass_assignment_sanitizer
+
+      class_attribute :mass_assignment_sanitizer, :mass_assignment_sanitizers
+      self.mass_assignment_sanitizer = :logger
+      self.mass_assignment_sanitizers = {
+        :logger => LoggerSanitizer.new(self.respond_to?(:logger) && self.logger),
+        :strict => StrictSanitizer.new
+      }
     end
 
     # Mass assignment security provides an interface for protecting attributes
@@ -43,6 +49,16 @@ module ActiveModel
     #
     #   end
     #
+    # = Configuration options
+    #
+    # * <tt>mass_assignment_sanitizer</tt> - Defines sanitize method. Possible values are:
+    #   * <tt>:logger</tt> (default) - writes filtered attributes to logger
+    #   * <tt>:strict</tt> - raise <tt>ActiveModel::MassAssignmentSecurity::Error</tt> on any protected attribute update
+    #
+    # You can specify your own sanitizer object eg. MySanitizer.new.
+    # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
+    #
+    # 
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
       # whenever attributes are sanitized before assignment. A role for the
@@ -199,11 +215,13 @@ module ActiveModel
   protected
 
     def sanitize_for_mass_assignment(attributes, role = :default)
-      (mass_assignment_sanitizer || default_mass_assignment_sanitizer).sanitize(attributes, mass_assignment_authorizer(role))
-    end
-
-    def default_mass_assignment_sanitizer
-      DefaultSanitizer.new(self.respond_to?(:logger) && self.logger)
+      sanitizer = case mass_assignment_sanitizer
+                  when Symbol
+                    self.mass_assignment_sanitizers[mass_assignment_sanitizer]
+                  else
+                    mass_assignment_sanitizer
+                  end
+      sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
     end
 
     def mass_assignment_authorizer(role = :default)
