@@ -104,26 +104,11 @@ module ActiveRecord
       end
 
       def create(attributes = {}, options = {}, &block)
-        unless owner.persisted?
-          raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
-        end
-
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr, options, &block) }
-        else
-          transaction do
-            add_to_target(build_record(attributes, options)) do |record|
-              yield(record) if block_given?
-              insert_record(record)
-            end
-          end
-        end
+        create_record(attributes, options, &block)
       end
 
-      def create!(attrs = {}, options = {}, &block)
-        record = create(attrs, options, &block)
-        Array.wrap(record).each(&:save!)
-        record
+      def create!(attributes = {}, options = {}, &block)
+        create_record(attributes, options, true, &block)
       end
 
       # Add +records+ to this association. Returns +self+ so method calls may be chained.
@@ -422,8 +407,25 @@ module ActiveRecord
           persisted + memory
         end
 
+        def create_record(attributes, options, raise = false, &block)
+          unless owner.persisted?
+            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+          end
+
+          if attributes.is_a?(Array)
+            attributes.collect { |attr| create_record(attr, options, raise, &block) }
+          else
+            transaction do
+              add_to_target(build_record(attributes, options)) do |record|
+                yield(record) if block_given?
+                insert_record(record, true, raise)
+              end
+            end
+          end
+        end
+
         # Do the relevant stuff to insert the given record into the association collection.
-        def insert_record(record, validate = true)
+        def insert_record(record, validate = true, raise = false)
           raise NotImplementedError
         end
 

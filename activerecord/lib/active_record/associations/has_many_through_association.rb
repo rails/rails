@@ -33,9 +33,16 @@ module ActiveRecord
         super
       end
 
-      def insert_record(record, validate = true)
+      def insert_record(record, validate = true, raise = false)
         ensure_not_nested
-        return if record.new_record? && !record.save(:validate => validate)
+
+        if record.new_record?
+          if raise
+            record.save!(:validate => validate)
+          else
+            return unless record.save(:validate => validate)
+          end
+        end
 
         through_record(record).save!
         update_counter(1)
