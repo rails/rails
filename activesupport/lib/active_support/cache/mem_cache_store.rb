@@ -31,7 +31,7 @@ module ActiveSupport
         DELETED     = "DELETED\r\n"
       end
 
-      ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/
+      ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       def self.build_mem_cache(*addresses)
         addresses = addresses.flatten
