@@ -245,6 +245,21 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
 
+  def test_new_aliased_to_build
+    devel = Developer.find(1)
+    proj = assert_no_queries { devel.projects.new("name" => "Projekt") }
+    assert !devel.projects.loaded?
+
+    assert_equal devel.projects.last, proj
+    assert devel.projects.loaded?
+
+    assert !proj.persisted?
+    devel.save
+    assert proj.persisted?
+    assert_equal devel.projects.last, proj
+    assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
+  end
+
   def test_build_by_new_record
     devel = Developer.new(:name => "Marcel", :salary => 75000)
     devel.projects.build(:name => "Make bed")

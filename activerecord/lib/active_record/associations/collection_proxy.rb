@@ -56,6 +56,8 @@ module ActiveRecord
         Array.wrap(association.options[:extend]).each { |ext| proxy_extend(ext) }
       end
 
+      alias_method :new, :build
+
       def respond_to?(*args)
         super ||
         (load_target && target.respond_to?(*args)) ||
@@ -114,14 +116,6 @@ module ActiveRecord
       def reload
         @association.reload
         self
-      end
-
-      def new(*args, &block)
-        if @association.is_a?(HasManyThroughAssociation)
-          @association.build(*args, &block)
-        else
-          method_missing(:new, *args, &block)
-        end
       end
     end
   end
