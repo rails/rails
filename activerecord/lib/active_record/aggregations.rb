@@ -239,9 +239,12 @@ module ActiveRecord
               @aggregation_cache[name] = nil
             else
               unless part.is_a?(class_name.constantize) || converter.nil?
-                part = converter.respond_to?(:call) ?
-                  converter.call(part) :
-                  class_name.constantize.send(converter, part)
+                part = if converter.respond_to?(:call)
+                         converter.arity == 1 ? converter.call(part) : converter.call(self, part)
+                       else
+                         klass = class_name.constantize
+                         klass.method(converter).arity == 1 ? klass.send(converter, part) : klass.send(converter, self, part)
+                       end
               end
 
               mapping.each { |pair| self[pair.first] = part.send(pair.last) }
