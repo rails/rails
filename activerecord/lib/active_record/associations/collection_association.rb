@@ -402,16 +402,13 @@ module ActiveRecord
           return memory    if persisted.empty?
 
           persisted.map! do |record|
+            # Unfortunately we cannot simply do memory.delete(record) since on 1.8 this returns
+            # record rather than memory.at(memory.index(record)). The behaviour is fixed in 1.9.
+            mem_index = memory.index(record)
 
-            # To work with ruby 1.8.7
-            # > 1.9 #=> mem_record = memory.delete(record)
-            mem_record_index = memory.index(record)
-            if mem_record_index
-              mem_record = memory.at(mem_record_index)
-              memory.delete_at(mem_record_index)
-            end
+            if mem_index
+              mem_record = memory.delete_at(mem_index)
 
-            if mem_record
               (record.attribute_names - mem_record.changes.keys).each do |name|
                 mem_record[name] = record[name]
               end
