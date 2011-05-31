@@ -1411,7 +1411,7 @@ module ActiveRecord
         reflection = create_has_and_belongs_to_many_reflection(association_id, options, &extension)
         collection_accessor_methods(reflection, HasAndBelongsToManyAssociation)
 
-        configure_after_destroy_method_for_has_and_belongs_to_many(reflection)
+        configure_destroy_hook_for_has_and_belongs_to_many(reflection)
 
         add_association_callbacks(reflection.name, options)
       end
@@ -1705,15 +1705,16 @@ module ActiveRecord
           end
         end
 
-        def configure_after_destroy_method_for_has_and_belongs_to_many(reflection)
-          method_name = :"has_and_belongs_to_many_after_destroy_for_#{reflection.name}"
-          class_eval <<-eoruby, __FILE__, __LINE__ + 1
-            def #{method_name}
-              association = #{reflection.name}
-              association.delete_all if association
-            end
-          eoruby
-          after_destroy method_name
+        def configure_destroy_hook_for_has_and_belongs_to_many(reflection)
+          include(Module.new {
+            class_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def destroy_associations
+                association = #{reflection.name}
+                association.delete_all if association
+                super
+              end
+            RUBY
+          })
         end
 
         def delete_all_has_many_dependencies(record, reflection_name, association_class, dependent_conditions)
