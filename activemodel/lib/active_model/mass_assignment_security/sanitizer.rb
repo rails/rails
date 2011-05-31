@@ -1,6 +1,11 @@
+require 'active_support/core_ext/module/delegation'
+
 module ActiveModel
   module MassAssignmentSecurity
     class Sanitizer
+      def initialize(target=nil)
+      end
+
       # Returns all attributes not denied by the authorizer.
       def sanitize(attributes, authorizer)
         sanitized_attributes = attributes.reject { |key, value| authorizer.deny?(key) }
@@ -18,19 +23,22 @@ module ActiveModel
       def process_removed_attributes(attrs)
         raise NotImplementedError, "#process_removed_attributes(attrs) suppose to be overwritten"
       end
-
     end
+
     class LoggerSanitizer < Sanitizer
+      delegate :logger, :to => :@target
 
-      attr_accessor :logger
-
-      def initialize(logger = nil)
-        self.logger = logger
-        super()
+      def initialize(target)
+        @target = target
+        super
       end
-      
+
+      def logger?
+        @target.respond_to?(:logger) && @target.logger
+      end
+
       def process_removed_attributes(attrs)
-        self.logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if self.logger
+        logger.debug "WARNING: Can't mass-assign protected attributes: #{attrs.join(', ')}" if logger?
       end
     end
 
@@ -42,6 +50,5 @@ module ActiveModel
 
     class Error < StandardError
     end
-
   end
 end

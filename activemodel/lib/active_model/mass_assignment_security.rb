@@ -12,12 +12,8 @@ module ActiveModel
       class_attribute :_protected_attributes
       class_attribute :_active_authorizer
 
-      class_attribute :mass_assignment_sanitizer, :mass_assignment_sanitizers
+      class_attribute :_mass_assignment_sanitizer
       self.mass_assignment_sanitizer = :logger
-      self.mass_assignment_sanitizers = {
-        :logger => LoggerSanitizer.new(self.respond_to?(:logger) && self.logger),
-        :strict => StrictSanitizer.new
-      }
     end
 
     # Mass assignment security provides an interface for protecting attributes
@@ -172,7 +168,7 @@ module ActiveModel
         options = args.extract_options!
         role = options[:as] || :default
 
-        self._accessible_attributes        = accessible_attributes_configs.dup
+        self._accessible_attributes       = accessible_attributes_configs.dup
         self._accessible_attributes[role] = self.accessible_attributes(role) + args
 
         self._active_authorizer = self._accessible_attributes
@@ -195,19 +191,25 @@ module ActiveModel
         []
       end
 
+      def mass_assignment_sanitizer=(value)
+        self._mass_assignment_sanitizer = if value.is_a?(Symbol)
+          const_get(:"#{value.to_s.camelize}Sanitizer").new(self)
+        else
+          value
+        end
+      end
+
       private
 
       def protected_attributes_configs
         self._protected_attributes ||= begin
-          default_black_list = BlackList.new(attributes_protected_by_default)
-          Hash.new(default_black_list)
+          Hash.new { |h,k| h[k] = BlackList.new(attributes_protected_by_default) }
         end
       end
 
       def accessible_attributes_configs
         self._accessible_attributes ||= begin
-          default_white_list = WhiteList.new
-          Hash.new(default_white_list)
+          Hash.new { |h,k| h[k] = WhiteList.new }
         end
       end
     end
@@ -215,13 +217,7 @@ module ActiveModel
   protected
 
     def sanitize_for_mass_assignment(attributes, role = :default)
-      sanitizer = case mass_assignment_sanitizer
-                  when Symbol
-                    self.mass_assignment_sanitizers[mass_assignment_sanitizer]
-                  else
-                    mass_assignment_sanitizer
-                  end
-      sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
+      _mass_assignment_sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
     end
 
     def mass_assignment_authorizer(role = :default)
