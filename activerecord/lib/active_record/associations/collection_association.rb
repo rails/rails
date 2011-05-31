@@ -402,9 +402,8 @@ module ActiveRecord
           return memory    if persisted.empty?
 
           persisted.map! do |record|
-            mem_record = memory.delete(record)
-
-            if mem_record
+            if mem_id = memory.index(record)
+              mem_record = memory.delete_at(mem_id)
               (record.attribute_names - mem_record.changes.keys).each do |name|
                 mem_record[name] = record[name]
               end
