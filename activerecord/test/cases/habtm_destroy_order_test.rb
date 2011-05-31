@@ -16,6 +16,19 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
     assert !sicp.destroyed?
   end
 
+  test 'should not raise error if have foreign key in the join table' do
+    # TODO: Using foreign keys. Add conditionals if need to around dbs that support it.
+    Lesson.connection.execute  "ALTER TABLE lessons_students ADD CONSTRAINT lesson_id_fk FOREIGN KEY (lesson_id) REFERENCES  lessons(id)"
+    Student.connection.execute "ALTER TABLE lessons_students ADD CONSTRAINT student_id_fk FOREIGN KEY (student_id) REFERENCES students(id)"
+    student = Student.new(:name => "Ben Bitdiddle")
+    lesson = Lesson.new(:name => "SICP")
+    lesson.students << student
+    lesson.save!
+    assert_nothing_raised do
+      student.destroy
+    end
+  end
+
   test "not destroying a student with lessons leaves student<=>lesson association intact" do
     # test a normal before_destroy doesn't destroy the habtm joins
     begin

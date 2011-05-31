@@ -1712,6 +1712,10 @@ module ActiveRecord
               association = #{reflection.name}
               association.delete_all if association
             end
+            
+            def destroy_associations
+              #{reflection.name}.clear
+            end
           eoruby
           after_destroy method_name
         end
