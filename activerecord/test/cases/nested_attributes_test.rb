@@ -591,6 +591,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_remove_scheduled_destroys_when_loading_association
     @pirate.reload
+    @pirate.send(@association_name).send(:load_target)
     @pirate.send(association_setter, [{ :id => @child_1.id, :_destroy => '1' }])
     assert @pirate.send(@association_name).send(:load_target).find { |r| r.id == @child_1.id }.marked_for_destruction?
   end
