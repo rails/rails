@@ -143,6 +143,9 @@ class DependenciesTest < Test::Unit::TestCase
       assert_kind_of Class, A::B
       assert_kind_of Class, A::C::D
       assert_kind_of Class, A::C::E::F
+      
+      assert_equal A::B, A::C::B
+      assert_equal A::B, A::C::E::B
     end
   end
 
@@ -441,7 +444,7 @@ class DependenciesTest < Test::Unit::TestCase
     with_autoloading_fixtures do
       require_dependency '././counting_loader'
       assert_equal 1, $counting_loaded_times
-      assert_raise(ArgumentError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
+      ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader
       assert_equal 1, $counting_loaded_times
     end
   end
