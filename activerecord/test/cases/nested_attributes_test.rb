@@ -570,6 +570,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_overwrite_unsaved_updates_when_loading_association
     @pirate.reload
+    @pirate.send(@association_name).send(:load_target)
     @pirate.send(association_setter, [{ :id => @child_1.id, :name => 'Grace OMalley' }])
     assert_equal 'Grace OMalley', @pirate.send(@association_name).send(:load_target).find { |r| r.id == @child_1.id }.name
   end
@@ -591,6 +592,7 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_should_not_remove_scheduled_destroys_when_loading_association
     @pirate.reload
+    @pirate.send(@association_name).send(:load_target)
     @pirate.send(association_setter, [{ :id => @child_1.id, :_destroy => '1' }])
     assert @pirate.send(@association_name).send(:load_target).find { |r| r.id == @child_1.id }.marked_for_destruction?
   end
@@ -920,24 +922,24 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
 
   def setup
     @ship = Ship.create!(:name => "The good ship Dollypop")
-    @part = @ship.parts.create!(:name => "Mast")
-    @trinket = @part.trinkets.create!(:name => "Necklace")
+    @part    = @ship.association(:parts).create!(:name => "Mast")
+    @trinket = @ship.association(:parts).target[0].association(:trinkets).create!(:name => "Necklace")
   end
 
   test "if association is not loaded and association record is saved and then in memory record attributes should be saved" do
     @ship.parts_attributes=[{:id => @part.id,:name =>'Deck'}]
     assert_equal 1, @ship.association(:parts).target.size
-    assert_equal 'Deck', @ship.parts[0].name
+    assert_equal 'Deck', @ship.association(:parts).target[0].name
   end
 
   test "if association is not loaded and child doesn't change and I am saving a grandchild then in memory record should be used" do
     @ship.parts_attributes=[{:id => @part.id,:trinkets_attributes =>[{:id => @trinket.id, :name => 'Ruby'}]}]
     assert_equal 1, @ship.association(:parts).target.size
-    assert_equal 'Mast', @ship.parts[0].name
-    assert_no_difference("@ship.parts[0].association(:trinkets).target.size") do
-      @ship.parts[0].association(:trinkets).target.size
+    assert_equal 'Mast', @ship.association(:parts).target[0].name
+    assert_no_difference("@ship.association(:parts).target[0].association(:trinkets).target.size") do
+      @ship.association(:parts).target[0].association(:trinkets).target.size
     end
-    assert_equal 'Ruby', @ship.parts[0].trinkets[0].name
+    assert_equal 'Ruby', @ship.association(:parts).target[0].association(:trinkets).target[0].name
     @ship.save
     assert_equal 'Ruby', @ship.parts[0].trinkets[0].name
   end
