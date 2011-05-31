@@ -196,7 +196,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = reorder(nil)
+      relation = with_default_scope.reorder(nil)
 
       if operation == "count" && (relation.limit_value || relation.offset_value)
         # Shortcut when limit is zero.
@@ -245,7 +245,7 @@ module ActiveRecord
         "#{field} AS #{aliaz}"
       }
 
-      relation = except(:group).group(group.join(','))
+      relation = with_default_scope.except(:group).group(group.join(','))
       relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation.to_sql)
