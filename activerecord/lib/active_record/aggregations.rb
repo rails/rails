@@ -185,9 +185,11 @@ module ActiveRecord
       #   to instantiate a <tt>:class_name</tt> object.
       #   The default is <tt>:new</tt>.
       # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt>
-      #   or a Proc that is called when a new value is assigned to the value object. The converter is
-      #   passed the single value that is used in the assignment and is only called if the new value is
-      #   not an instance of <tt>:class_name</tt>.
+      #   or a Proc that is called when a new value is assigned to the value object. Depending on its arity,
+      #   the converter is passed either:
+      #   * the single value that is used in the assignment
+      #   * or the current object and this single value
+      #   The converter is only called if the new value is not an instance of <tt>:class_name</tt>.
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
