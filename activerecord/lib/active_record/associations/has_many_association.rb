@@ -7,9 +7,14 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < CollectionAssociation #:nodoc:
 
-      def insert_record(record, validate = true)
+      def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
-        record.save(:validate => validate)
+
+        if raise
+          record.save!(:validate => validate)
+        else
+          record.save(:validate => validate)
+        end
       end
 
       private
