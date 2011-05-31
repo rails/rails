@@ -1,5 +1,11 @@
 *Rails 3.1.0 (unreleased)*
 
+* AR#composed_of can now access the associated record
+
+    class User < ActiveRecord::Base
+      composed_of :some_aggregation, ...,  :converter => Proc.new { |record, values| ... }
+    end
+
 * AR#pluralize_table_names can be used to singularize/pluralize table name of an individual model:
 
     class User < ActiveRecord::Base
