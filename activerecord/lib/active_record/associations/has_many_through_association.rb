@@ -6,8 +6,6 @@ module ActiveRecord
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       include ThroughAssociation
 
-      alias_method :new, :build
-
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been
       # loaded and calling collection.size if it has. If it's more likely than not that the collection does
       # have a size larger than zero, and you need to fetch that collection afterwards, it'll take one fewer
