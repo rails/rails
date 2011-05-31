@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/developer'
 require 'models/project'
 require 'models/company'
+require 'models/contract'
 require 'models/topic'
 require 'models/reply'
 require 'models/category'
@@ -1474,5 +1475,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post = SubStiPost.create! :title => "fooo", :body => "baa"
     tagging = Tagging.create! :taggable => post
     assert_equal [tagging], post.taggings
+  end
+
+  def test_dont_call_save_callbacks_twice_on_has_many
+    firm = companies(:first_firm)
+    contract = firm.contracts.create!
+
+    assert_equal 1, contract.hi_count
+    assert_equal 1, contract.bye_count
   end
 end
