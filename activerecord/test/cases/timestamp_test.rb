@@ -14,30 +14,24 @@ class TimestampTest < ActiveRecord::TestCase
     @previously_updated_at = @developer.updated_at
   end
 
-  def test_load_infinity_and_beyond
-    unless current_adapter?(:PostgreSQLAdapter)
-      return skip("only tested on postgresql")
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_load_infinity_and_beyond
+      d = Developer.find_by_sql("select 'infinity'::timestamp as updated_at")
+      assert d.first.updated_at.infinite?, 'timestamp should be infinite'
+
+      d = Developer.find_by_sql("select '-infinity'::timestamp as updated_at")
+      time = d.first.updated_at
+      assert time.infinite?, 'timestamp should be infinite'
+      assert_operator time, :<, 0
     end
 
-    d = Developer.find_by_sql("select 'infinity'::timestamp as updated_at")
-    assert d.first.updated_at.infinite?, 'timestamp should be infinite'
+    def test_save_infinity_and_beyond
+      d = Developer.create!(:name => 'aaron', :updated_at => 1.0 / 0.0)
+      assert_equal(1.0 / 0.0, d.updated_at)
 
-    d = Developer.find_by_sql("select '-infinity'::timestamp as updated_at")
-    time = d.first.updated_at
-    assert time.infinite?, 'timestamp should be infinite'
-    assert_operator time, :<, 0
-  end
-
-  def test_save_infinity_and_beyond
-    unless current_adapter?(:PostgreSQLAdapter)
-      return skip("only tested on postgresql")
+      d = Developer.create!(:name => 'aaron', :updated_at => -1.0 / 0.0)
+      assert_equal(-1.0 / 0.0, d.updated_at)
     end
-
-    d = Developer.create!(:name => 'aaron', :updated_at => 1.0 / 0.0)
-    assert_equal(1.0 / 0.0, d.updated_at)
-
-    d = Developer.create!(:name => 'aaron', :updated_at => -1.0 / 0.0)
-    assert_equal(-1.0 / 0.0, d.updated_at)
   end
 
   def test_saving_a_changed_record_updates_its_timestamp
