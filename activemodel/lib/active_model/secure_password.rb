@@ -22,7 +22,6 @@ module ActiveModel
       #   end
       #
       #   # Custom Schema Definition : User(name:string, encrypted_password:string)
-      #   # Schema: User(name:string, password_digest:string)
       #   class User < ActiveRecord::Base
       #     has_secure_password :encrypted_password
       #   end
