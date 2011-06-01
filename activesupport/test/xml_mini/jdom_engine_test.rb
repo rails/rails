@@ -1,10 +1,9 @@
-require 'abstract_unit'
-require 'active_support/xml_mini'
-require 'active_support/core_ext/hash/conversions'
-
 if RUBY_PLATFORM =~ /java/
+  require 'abstract_unit'
+  require 'active_support/xml_mini'
+  require 'active_support/core_ext/hash/conversions'
 
-class JDOMEngineTest < Test::Unit::TestCase
+  class JDOMEngineTest < Test::Unit::TestCase
   include ActiveSupport
 
   def setup
