@@ -929,7 +929,7 @@ Creates a scope around a specific model object like form_for, but doesn‘t crea
 
 h5. file_field
 
-Returns an file upload input tag tailored for accessing a specified attribute.
+Returns a file upload input tag tailored for accessing a specified attribute.
 
 <ruby>
 file_field(:user, :avatar)

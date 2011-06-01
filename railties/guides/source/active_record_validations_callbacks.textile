@@ -429,7 +429,7 @@ end
 
 The +validates_with+ helper takes a class, or a list of classes to use for validation. There is no default error message for +validates_with+. You must manually add errors to the record's errors collection in the validator class.
 
-To implement the validate method, you must have an +record+ parameter defined, which is the record to be validated.
+To implement the validate method, you must have a +record+ parameter defined, which is the record to be validated.
 
 Like all other validations, +validates_with+ takes the +:if+, +:unless+ and +:on+ options. If you pass any other options, it will send those options to the validator class as +options+:
 
