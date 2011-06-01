@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'models/developer'
 
 class TimestampTest < ActiveRecord::TestCase
   def test_load_infinity_and_beyond
