@@ -503,7 +503,7 @@ def index
 end
 </ruby>
 
-+Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array of posts that we store in a instance variable called +@posts+.
++Post.all+ calls the +Post+ model to return all of the posts currently in the database. The result of this call is an array of posts that we store in an instance variable called +@posts+.
 
 TIP: For more information on finding records with Active Record, see "Active Record Query Interface":active_record_querying.html.
 

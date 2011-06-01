@@ -131,7 +131,7 @@ And let's execute our generator:
 $ rails generate initializer core_extensions
 </shell>
 
-We can see that now a initializer named core_extensions was created at +config/initializers/core_extensions.rb+ with the contents of our template. That means that +copy_file+ copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
+We can see that now an initializer named core_extensions was created at +config/initializers/core_extensions.rb+ with the contents of our template. That means that +copy_file+ copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
 
 The methods that are available for generators are covered in the "final section":#generator-methods of this guide.
 
