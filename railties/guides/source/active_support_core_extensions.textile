@@ -868,7 +868,7 @@ The macro accepts several methods:
 delegate :name, :age, :address, :twitter, :to => :profile
 </ruby>
 
-When interpolated into a string, the +:to+ option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such a expression is evaluated in the context of the receiver:
+When interpolated into a string, the +:to+ option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such an expression is evaluated in the context of the receiver:
 
 <ruby>
 # delegates to the Rails constant
