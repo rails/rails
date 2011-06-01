@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/user'
+require 'models/user_with_custom_password_attribute'
 require 'models/visitor'
 require 'models/administrator'
 
@@ -42,6 +43,14 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     assert !@user.authenticate("wrong")
     assert @user.authenticate("secret")
+  end
+
+  test "authenticate user with custom password attribute" do
+    user = UserWithCustomPasswordAttribute.new
+    user.password = "secret"
+
+    assert !user.authenticate("wrong")
+    assert user.authenticate("secret")
   end
 
   test "visitor#password_digest should be protected against mass assignment" do
