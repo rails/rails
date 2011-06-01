@@ -90,7 +90,7 @@ This command will install all dependencies except the MySQL and PostgreSQL Ruby 
 $ rake test
 </shell>
 
-You can also run tests for an specific framework, like Action Pack, by going into its directory and executing the same command:
+You can also run tests for a specific framework, like Action Pack, by going into its directory and executing the same command:
 
 <shell>
 $ cd actionpack
