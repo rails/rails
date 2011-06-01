@@ -833,7 +833,11 @@ module ActiveRecord
         end_sql
 
         # [primary_key, sequence]
-        sequence = result.second ==  'public' ?  result.last : "#{result.second}.#{result.last}"
+        if result.second ==  'public' then
+          sequence = result.last
+        else
+          sequence = "#{result.second}.#{result.last}"
+        end        
         
         [result.first, sequence]
       rescue
