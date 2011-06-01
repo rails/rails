@@ -91,7 +91,7 @@ In addition to those, there are:
  benchmarker  See how fast a piece of code runs
  profiler     Get profile information from a piece of code
  plugin       Install a plugin
- runner       Run a piece of code in the application environment
+ runner       Run a piece of code in the application environment (short-cut alias: "r")
 
 All commands can be run with -h for more information.
   EOT
