@@ -7,6 +7,8 @@
 
 *Rails 3.1.0 (unreleased)*
 
+* ActiveSupport::Dependencies now raises NameError if it finds an existing constant in load_missing_constant. This better reflects the nature of the error which is usually caused by calling constantize on a nested constant. [Andrew White]
+
 * Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
 
 * New reporting method Kernel#quietly. [fxn]

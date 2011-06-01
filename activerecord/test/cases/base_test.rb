@@ -1766,6 +1766,13 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_compute_type_argument_error
+    ActiveSupport::Dependencies.stubs(:constantize).raises(ArgumentError)
+    assert_raises ArgumentError do
+      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    end
+  end
+
   def test_clear_cache!
     # preheat cache
     c1 = Post.columns
