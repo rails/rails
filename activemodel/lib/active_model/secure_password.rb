@@ -75,7 +75,7 @@ module ActiveModel
 
       # Returns self if the password is correct, otherwise false.
       def authenticate(unencrypted_password)
-        if BCrypt::Password.new(send(:"#{custom_password_attribute}")) == unencrypted_password
+        if BCrypt::Password.new(send(custom_password_attribute)) == unencrypted_password
           self
         else
           false
