@@ -1,4 +1,4 @@
-require 'active_support/core_ext/range.rb'
+require 'active_support/core_ext/range'
 
 module ActiveModel
 
