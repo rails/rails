@@ -12,7 +12,7 @@ Rails.application.config.generators.templates = [File.join(Rails.root, "lib", "t
 
 # Call configure to load the settings from
 # Rails.application.config.generators to Rails::Generators
-Rails::Generators.configure!
+Rails.application.load_generators
 
 require 'active_record'
 require 'action_dispatch'

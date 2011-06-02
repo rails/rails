@@ -176,7 +176,7 @@ module ActiveRecord
       #   order in which mappings are defined determine the order in which attributes are sent to the
       #   value class constructor.
       # * <tt>:allow_nil</tt> - Specifies that the value object will not be instantiated when all mapped
-      #   attributes are +nil+.  Setting the value object to +nil+ has the effect of writing +nil+ to all
+      #   attributes are +nil+. Setting the value object to +nil+ has the effect of writing +nil+ to all
       #   mapped attributes.
       #   This defaults to +false+.
       # * <tt>:constructor</tt> - A symbol specifying the name of the constructor method or a Proc that

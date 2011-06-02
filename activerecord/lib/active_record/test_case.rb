@@ -13,7 +13,7 @@ module ActiveRecord
       ActiveRecord::IdentityMap.clear
     end
 
-    # Backport skip to Ruby 1.8.  test/unit doesn't support it, so just
+    # Backport skip to Ruby 1.8. test/unit doesn't support it, so just
     # make it a noop.
     unless instance_methods.map(&:to_s).include?("skip")
       def skip(message)

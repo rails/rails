@@ -1,6 +1,6 @@
 require 'jruby/profiler'
 require 'java' 
-import java.lang.management.ManagementFactory
+java_import java.lang.management.ManagementFactory
 
 module ActiveSupport
   module Testing

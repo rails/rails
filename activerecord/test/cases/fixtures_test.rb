@@ -174,12 +174,6 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
-  def test_empty_csv_fixtures
-    assert_deprecated do
-      assert_not_nil ActiveRecord::Fixtures.new( Account.connection, "accounts", 'Account', FIXTURES_ROOT + "/naked/csv/accounts")
-    end
-  end
-
   def test_omap_fixtures
     assert_nothing_raised do
       fixtures = ActiveRecord::Fixtures.new(Account.connection, 'categories', 'Category', FIXTURES_ROOT + "/categories_ordered")

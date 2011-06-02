@@ -544,7 +544,7 @@ This view iterates over the contents of the +@posts+ array to display content an
 * +link_to+ builds a hyperlink to a particular destination
 * +edit_post_path+ and +new_post_path+ are helpers that Rails provides as part of RESTful routing. You'll see a variety of these helpers for the different actions that the controller includes.
 
-NOTE. In previous versions of Rails, you had to use +&lt;%=h post.name %&gt;+ so that any HTML would be escaped before being inserted into the page.  In Rails 3.0, this is now the default. To get unescaped HTML, you now use +&lt;%= raw post.name %&gt;+.
+NOTE. In previous versions of Rails, you had to use +&lt;%=h post.name %&gt;+ so that any HTML would be escaped before being inserted into the page. In Rails 3.0, this is now the default. To get unescaped HTML, you now use +&lt;%= raw post.name %&gt;+.
 
 TIP: For more details on the rendering process, see "Layouts and Rendering in Rails":layouts_and_rendering.html.
 

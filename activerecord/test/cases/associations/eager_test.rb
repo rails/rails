@@ -380,6 +380,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal subscriptions, subscriber.subscriptions.sort_by(&:id)
   end
 
+  def test_string_id_column_joins
+    s = Subscriber.create! do |c|
+      c.id = "PL"
+    end
+
+    b = Book.create!
+
+    Subscription.create!(:subscriber_id => "PL", :book_id => b.id)
+    s.reload
+    s.book_ids = s.book_ids
+  end
+
   def test_eager_load_has_many_through_with_string_keys
     books = books(:awdr, :rfr)
     subscriber = Subscriber.find(subscribers(:second).id, :include => :books)
@@ -446,6 +458,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post_tags = Post.find(posts(:welcome).id).misc_tags
     eager_post_tags = Post.find(1, :include => :misc_tags).misc_tags
     assert_equal post_tags, eager_post_tags
+  end
+
+  def test_eager_with_has_many_through_join_model_ignores_default_includes
+    assert_nothing_raised do
+      authors(:david).comments_on_posts_with_default_include.to_a
+    end
   end
 
   def test_eager_with_has_many_and_limit
@@ -673,6 +691,46 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
       Post.find(6, :include=>[ :monkeys, :elephants ])
     }
+  end
+
+  def test_eager_with_default_scope
+    developer = EagerDeveloperWithDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_class_method
+    developer = EagerDeveloperWithClassMethodDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_lambda
+    developer = EagerDeveloperWithLambdaDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_block
+    developer = EagerDeveloperWithBlockDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_callable
+    developer = EagerDeveloperWithCallableDefaultScope.where(:name => 'David').first
+    projects = Project.order(:id).all
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
   end
 
   def find_all_ordered(className, include=nil)

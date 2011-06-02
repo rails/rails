@@ -83,7 +83,7 @@ module ActiveRecord
     #
     # Example for find with a lock: Imagine two concurrent transactions:
     # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
-    # in two saves of <tt>person.visits = 3</tt>.  By locking the row, the second
+    # in two saves of <tt>person.visits = 3</tt>. By locking the row, the second
     # transaction has to wait until the first is finished; we get the
     # expected <tt>person.visits == 4</tt>.
     #

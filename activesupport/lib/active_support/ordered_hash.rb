@@ -158,7 +158,11 @@ module ActiveSupport
         self
       end
 
-      alias_method :each_pair, :each
+      def each_pair
+        return to_enum(:each_pair) unless block_given?
+        @keys.each {|key| yield key, self[key]}
+        self
+      end
 
       alias_method :select, :find_all
 

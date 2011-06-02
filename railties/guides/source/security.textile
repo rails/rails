@@ -386,7 +386,7 @@ params[:user] # => {:name => “ow3ned”, :admin => true}
 
 So if you create a new user using mass-assignment, it may be too easy to become an administrator.
 
-Note that this vulnerability is not restricted to database columns.  Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3+. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
+Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the <tt>attributes=</tt> method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3+. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
 
 <ruby>
   class Person < ActiveRecord::Base
@@ -469,7 +469,7 @@ A more paranoid technique to protect your whole project would be to enforce that
 config.active_record.whitelist_attributes = true
 </ruby>
 
-This will create an empty whitelist of attributes available for mass-assignment for all models in your app. As such, your models will need to explicitly whitelist or blacklist accessible parameters by using an +attr_accessible+ or +attr_protected+ declaration.  This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to use this application config option; run your tests, and expose each attribute (via +attr_accessible+ or +attr_protected+) as dictated by your failing tests.
+This will create an empty whitelist of attributes available for mass-assignment for all models in your app. As such, your models will need to explicitly whitelist or blacklist accessible parameters by using an +attr_accessible+ or +attr_protected+ declaration. This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to use this application config option; run your tests, and expose each attribute (via +attr_accessible+ or +attr_protected+) as dictated by your failing tests.
 
 h3. User Management
 
@@ -540,7 +540,7 @@ Most bots are really dumb, they crawl the web and put their spam into every form
 Here are some ideas how to hide honeypot fields by JavaScript and/or CSS:
 
 * position the fields off of the visible area of the page
-* make the elements very small or colour them the same as the background of the page
+* make the elements very small or color them the same as the background of the page
 * leave the fields displayed, but tell humans to leave them blank
 
 The most simple negative CAPTCHA is one hidden honeypot field. On the server side, you will check the value of the field: If it contains any text, it must be a bot. Then, you can either ignore the post or return a positive result, but not saving the post to the database. This way the bot will be satisfied and moves on. You can do this with annoying users, too.
@@ -567,7 +567,7 @@ h4. Good Passwords
 
 -- _Do you find it hard to remember all your passwords? Don't write them down, but use the initial letters of each word in an easy to remember sentence._
 
-Bruce Schneier, a security technologist, "has analysed":http://www.schneier.com/blog/archives/2006/12/realworld_passw.html 34,000 real-world user names and passwords from the MySpace phishing attack mentioned <a href="#examples-from-the-underground">below</a>. It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
+Bruce Schneier, a security technologist, "has analyzed":http://www.schneier.com/blog/archives/2006/12/realworld_passw.html 34,000 real-world user names and passwords from the MySpace phishing attack mentioned <a href="#examples-from-the-underground">below</a>. It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
 
 password1, abc123, myspace1, password, blink182, qwerty1, ****you, 123abc, baseball1, football1, 123456, soccer, monkey1, liverpool1, princess1, jordan23, slipknot1, superman1, iloveyou1, and monkey.
 
@@ -885,7 +885,7 @@ The "moz-binding":http://www.securiteam.com/securitynews/5LP051FHPE.html CSS pro
 
 h5(#css-injection-countermeasures). Countermeasures
 
-This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _(highlight)If you want to allow custom colours or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' +sanitize()+ method as a model for a whitelist CSS filter, if you really need one.
+This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _(highlight)If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' +sanitize()+ method as a model for a whitelist CSS filter, if you really need one.
 
 h4. Textile Injection
 

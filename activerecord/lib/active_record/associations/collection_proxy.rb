@@ -56,6 +56,8 @@ module ActiveRecord
         Array.wrap(association.options[:extend]).each { |ext| proxy_extend(ext) }
       end
 
+      alias_method :new, :build
+
       def respond_to?(*args)
         super ||
         (load_target && target.respond_to?(*args)) ||
@@ -114,38 +116,6 @@ module ActiveRecord
       def reload
         @association.reload
         self
-      end
-
-      def new(*args, &block)
-        if @association.is_a?(HasManyThroughAssociation)
-          @association.build(*args, &block)
-        else
-          method_missing(:new, *args, &block)
-        end
-      end
-
-      def proxy_owner
-        ActiveSupport::Deprecation.warn(
-          "Calling record.#{@association.reflection.name}.proxy_owner is deprecated. Please use " \
-          "record.association(:#{@association.reflection.name}).owner instead."
-        )
-        @association.owner
-      end
-
-      def proxy_target
-        ActiveSupport::Deprecation.warn(
-          "Calling record.#{@association.reflection.name}.proxy_target is deprecated. Please use " \
-          "record.association(:#{@association.reflection.name}).target instead."
-        )
-        @association.target
-      end
-
-      def proxy_reflection
-        ActiveSupport::Deprecation.warn(
-          "Calling record.#{@association.reflection.name}.proxy_reflection is deprecated. Please use " \
-          "record.association(:#{@association.reflection.name}).reflection instead."
-        )
-        @association.reflection
       end
     end
   end

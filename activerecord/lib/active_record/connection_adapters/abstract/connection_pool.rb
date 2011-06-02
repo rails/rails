@@ -165,7 +165,7 @@ module ActiveRecord
         checkin conn if conn
       end
 
-      # If a connection already exists yield it to the block.  If no connection
+      # If a connection already exists yield it to the block. If no connection
       # exists checkout a connection, yield it to the block, and checkin the
       # connection when finished.
       def with_connection
@@ -262,7 +262,7 @@ module ActiveRecord
             else
               clear_stale_cached_connections!
               if @size == @checked_out.size
-                raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}.  The max pool size is currently #{@size}; consider increasing it."
+                raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
               end
             end
 

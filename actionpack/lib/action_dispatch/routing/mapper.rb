@@ -335,7 +335,7 @@ module ActionDispatch
         #
         # [:on]
         #   Shorthand for wrapping routes in a specific RESTful context. Valid
-        #   values are +:member+, +:collection+, and +:new+.  Only use within
+        #   values are +:member+, +:collection+, and +:new+. Only use within
         #   <tt>resource(s)</tt> block. For example:
         #
         #      resource :bar do
@@ -578,8 +578,8 @@ module ActionDispatch
         #   end
         #
         # This generates helpers such as +account_projects_path+, just like +resources+ does.
-        # The difference here being that the routes generated are like /rails/projects/2,
-        # rather than /accounts/rails/projects/2.
+        # The difference here being that the routes generated are like /:account_id/projects,
+        # rather than /accounts/:account_id/projects.
         #
         # === Options
         #
@@ -1094,11 +1094,11 @@ module ActionDispatch
         # [:shallow_path]
         #   Prefixes nested shallow routes with the specified path.
         #
-        #   scope :shallow_path => "sekret" do
-        #     resources :posts do
-        #       resources :comments, :shallow => true
+        #     scope :shallow_path => "sekret" do
+        #       resources :posts do
+        #         resources :comments, :shallow => true
+        #       end
         #     end
-        #   end
         #
         #   The +comments+ resource here will have the following routes generated for it:
         #
@@ -1423,7 +1423,9 @@ module ActionDispatch
           end
 
           def action_path(name, path = nil) #:nodoc:
-            path || @scope[:path_names][name.to_sym] || name.to_s
+            # Ruby 1.8 can't transform empty strings to symbols
+            name = name.to_sym if name.is_a?(String) && !name.empty?
+            path || @scope[:path_names][name] || name.to_s
           end
 
           def prefix_name_for_action(as, action) #:nodoc:

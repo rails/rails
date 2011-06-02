@@ -59,7 +59,7 @@ module ActionDispatch
   # The option symbols for setting cookies are:
   #
   # * <tt>:value</tt> - The cookie's value or list of values (as an array).
-  # * <tt>:path</tt> - The path for which this cookie applies.  Defaults to the root
+  # * <tt>:path</tt> - The path for which this cookie applies. Defaults to the root
   #   of the application.
   # * <tt>:domain</tt> - The domain for which this cookie applies so you can
   #   restrict to the domain level. If you use a schema like www.example.com
@@ -305,7 +305,7 @@ module ActionDispatch
 
         if secret.length < SECRET_MIN_LENGTH
           raise ArgumentError, "Secret should be something secure, " +
-            "like \"#{ActiveSupport::SecureRandom.hex(16)}\".  The value you " +
+            "like \"#{SecureRandom.hex(16)}\". The value you " +
             "provided, \"#{secret}\", is shorter than the minimum length " +
             "of #{SECRET_MIN_LENGTH} characters"
         end

@@ -86,6 +86,11 @@ class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base
   end
 end
 
+class DeveloperWithSelect < ActiveRecord::Base
+  self.table_name = 'developers'
+  default_scope select('name')
+end
+
 class DeveloperOrderedBySalary < ActiveRecord::Base
   self.table_name = 'developers'
   default_scope :order => 'salary DESC'
@@ -127,6 +132,21 @@ class ClassMethodDeveloperCalledDavid < ActiveRecord::Base
   end
 end
 
+class ClassMethodReferencingScopeDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
+  scope :david, where(:name => 'David')
+
+  def self.default_scope
+    david
+  end
+end
+
+class LazyBlockReferencingScopeDeveloperCalledDavid < ActiveRecord::Base
+  self.table_name = 'developers'
+  scope :david, where(:name => 'David')
+  default_scope { david }
+end
+
 class DeveloperCalledJamis < ActiveRecord::Base
   self.table_name = 'developers'
 
@@ -165,4 +185,39 @@ class ModuleIncludedPoorDeveloperCalledJamis < DeveloperCalledJamis
   include SalaryDefaultScope
 end
 
+class EagerDeveloperWithDefaultScope < ActiveRecord::Base
+  self.table_name = 'developers'
+  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
 
+  default_scope includes(:projects)
+end
+
+class EagerDeveloperWithClassMethodDefaultScope < ActiveRecord::Base
+  self.table_name = 'developers'
+  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+
+  def self.default_scope
+    includes(:projects)
+  end
+end
+
+class EagerDeveloperWithLambdaDefaultScope < ActiveRecord::Base
+  self.table_name = 'developers'
+  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+
+  default_scope lambda { includes(:projects) }
+end
+
+class EagerDeveloperWithBlockDefaultScope < ActiveRecord::Base
+  self.table_name = 'developers'
+  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+
+  default_scope { includes(:projects) }
+end
+
+class EagerDeveloperWithCallableDefaultScope < ActiveRecord::Base
+  self.table_name = 'developers'
+  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+
+  default_scope OpenStruct.new(:call => includes(:projects))
+end

@@ -50,7 +50,9 @@ module Rails
       end
     end
 
-    attr_accessor :assets
+    attr_accessor :assets, :sandbox
+    alias_method :sandbox?, :sandbox
+
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     # This method is called just after an application inherits from Rails::Application,
@@ -96,24 +98,25 @@ module Rails
       self
     end
 
-    def load_tasks
+    def load_tasks(app=self)
       initialize_tasks
-      railties.all { |r| r.load_tasks }
+      railties.all { |r| r.load_tasks(app) }
       super
       self
     end
 
-    def load_generators
+    def load_generators(app=self)
       initialize_generators
-      railties.all { |r| r.load_generators }
+      railties.all { |r| r.load_generators(app) }
+      Rails::Generators.configure!(app.config.generators)
       super
       self
     end
 
-    def load_console(sandbox=false)
-      initialize_console(sandbox)
-      railties.all { |r| r.load_console(sandbox) }
-      super()
+    def load_console(app=self)
+      initialize_console
+      railties.all { |r| r.load_console(app) }
+      super
       self
     end
 
@@ -196,7 +199,7 @@ module Rails
       require "rails/generators"
     end
 
-    def initialize_console(sandbox=false)
+    def initialize_console
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"

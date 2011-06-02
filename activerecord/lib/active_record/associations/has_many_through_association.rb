@@ -6,8 +6,6 @@ module ActiveRecord
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       include ThroughAssociation
 
-      alias_method :new, :build
-
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been
       # loaded and calling collection.size if it has. If it's more likely than not that the collection does
       # have a size larger than zero, and you need to fetch that collection afterwards, it'll take one fewer
@@ -33,9 +31,16 @@ module ActiveRecord
         super
       end
 
-      def insert_record(record, validate = true)
+      def insert_record(record, validate = true, raise = false)
         ensure_not_nested
-        return if record.new_record? && !record.save(:validate => validate)
+
+        if record.new_record?
+          if raise
+            record.save!(:validate => validate)
+          else
+            return unless record.save(:validate => validate)
+          end
+        end
 
         through_record(record).save!
         update_counter(1)

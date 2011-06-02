@@ -33,7 +33,11 @@ module ActiveRecord
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
     # details.
     def save(*)
-      create_or_update
+      begin
+        create_or_update
+      rescue ActiveRecord::RecordInvalid
+        false
+      end
     end
 
     # Saves the model.
@@ -133,6 +137,8 @@ module ActiveRecord
     # * Callbacks are skipped.
     # * updated_at/updated_on column is not updated if that column is available.
     #
+    # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
+    # attribute is marked as readonly.
     def update_column(name, value)
       name = name.to_s
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)

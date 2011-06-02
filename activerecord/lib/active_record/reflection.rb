@@ -1,5 +1,4 @@
 require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
@@ -202,11 +201,6 @@ module ActiveRecord
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
 
-      def primary_key_name
-        foreign_key
-      end
-      deprecate :primary_key_name => :foreign_key
-
       def foreign_type
         @foreign_type ||= options[:foreign_type] || "#{name}_type"
       end
@@ -379,7 +373,7 @@ module ActiveRecord
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :to => :source_reflection
 
-      # Gets the source of the through reflection.  It checks both a singularized
+      # Gets the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
       #   class Post < ActiveRecord::Base

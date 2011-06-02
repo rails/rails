@@ -1,4 +1,4 @@
-require 'active_support/core_ext/range.rb'
+require 'active_support/core_ext/range'
 
 module ActiveModel
 
@@ -54,10 +54,10 @@ module ActiveModel
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).  The
+      #   occur (e.g. <tt>:if => :allow_validation</tt>, or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The
+      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
         validates_with ExclusionValidator, _merge_attributes(attr_names)

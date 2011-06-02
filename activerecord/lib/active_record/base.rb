@@ -428,6 +428,10 @@ module ActiveRecord #:nodoc:
     class_attribute :default_scopes, :instance_writer => false
     self.default_scopes = []
 
+    # Boolean flag to prevent infinite recursion when evaluating default scopes
+    class_attribute :apply_default_scope, :instance_writer => false
+    self.apply_default_scope = true
+
     # Returns a hash of all the attributes that have been specified for serialization as
     # keys and their class restriction as values.
     class_attribute :serialized_attributes
@@ -1261,11 +1265,14 @@ MSG
           self.default_scopes = default_scopes + [scope]
         end
 
+        # The apply_default_scope flag is used to prevent an infinite recursion situation where
+        # a default scope references a scope which has a default scope which references a scope...
         def build_default_scope #:nodoc:
+          return unless apply_default_scope
+          self.apply_default_scope = false
+
           if method(:default_scope).owner != Base.singleton_class
-            # Use relation.scoping to ensure we ignore whatever the current value of
-            # self.current_scope may be.
-            relation.scoping { default_scope }
+            default_scope
           elsif default_scopes.any?
             default_scopes.inject(relation) do |default_scope, scope|
               if scope.is_a?(Hash)
@@ -1277,6 +1284,8 @@ MSG
               end
             end
           end
+        ensure
+          self.apply_default_scope = true
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
@@ -1299,7 +1308,6 @@ MSG
               rescue NameError => e
                 # We don't want to swallow NoMethodError < NameError errors
                 raise e unless e.instance_of?(NameError)
-              rescue ArgumentError
               end
             end
 
@@ -1653,9 +1661,6 @@ MSG
       # If any attributes are protected by either +attr_protected+ or
       # +attr_accessible+ then only settable attributes will be assigned.
       #
-      # The +guard_protected_attributes+ argument is now deprecated, use
-      # the +assign_attributes+ method if you want to bypass mass-assignment security.
-      #
       #   class User < ActiveRecord::Base
       #     attr_protected :is_admin
       #   end
@@ -1664,20 +1669,10 @@ MSG
       #   user.attributes = { :username => 'Phusion', :is_admin => true }
       #   user.username   # => "Phusion"
       #   user.is_admin?  # => false
-      def attributes=(new_attributes, guard_protected_attributes = nil)
-        unless guard_protected_attributes.nil?
-          message = "the use of 'guard_protected_attributes' will be removed from the next major release of rails, " +
-                    "if you want to bypass mass-assignment security then look into using assign_attributes"
-          ActiveSupport::Deprecation.warn(message)
-        end
-
+      def attributes=(new_attributes)
         return unless new_attributes.is_a?(Hash)
 
-        if guard_protected_attributes == false
-          assign_attributes(new_attributes, :without_protection => true)
-        else
-          assign_attributes(new_attributes)
-        end
+        assign_attributes(new_attributes)
       end
 
       # Allows you to set all the attributes for a particular mass-assignment
@@ -1861,12 +1856,16 @@ MSG
 
       # Returns the contents of the record as a nicely formatted string.
       def inspect
-        attributes_as_nice_string = self.class.column_names.collect { |name|
-          if has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
-          end
-        }.compact.join(", ")
-        "#<#{self.class} #{attributes_as_nice_string}>"
+        inspection = if @attributes
+                       self.class.column_names.collect { |name|
+                         if has_attribute?(name)
+                           "#{name}: #{attribute_for_inspect(name)}"
+                         end
+                       }.compact.join(", ")
+                     else
+                       "not initialized"
+                     end
+        "#<#{self.class} #{inspection}>"
       end
 
     protected

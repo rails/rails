@@ -112,6 +112,28 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/javascripts/application.js"
   end
 
+  def test_jquery_is_the_default_javascript_library
+    run_generator [destination_root, "--mountable"]
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require jquery}, contents
+      assert_match %r{^//= require jquery_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match(/^gem 'jquery-rails'/, contents)
+    end
+  end
+
+  def test_other_javascript_libraries
+    run_generator [destination_root, "--mountable", '-j', 'prototype']
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require prototype}, contents
+      assert_match %r{^//= require prototype_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match(/^gem 'prototype-rails'/, contents)
+    end
+  end
+
   def test_skip_javascripts
     run_generator [destination_root, "--skip-javascript", "--mountable"]
     assert_no_file "app/assets/javascripts/application.js"
@@ -148,7 +170,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views"
     assert_file "app/helpers"
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
-    assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < Rails::Engine\n  end\nend/
+    assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
   end
 
@@ -169,11 +191,39 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/bukkits/application.html.erb", /<title>Bukkits<\/title>/
   end
 
+  def test_creating_gemspec
+    run_generator
+    assert_file "bukkits.gemspec", /s.name = "bukkits"/
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,lib\}\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.version = "0.0.1"/
+  end
+
+  def test_shebang
+    run_generator
+    assert_file "script/rails", /#!\/usr\/bin\/env ruby/
+  end
+
   def test_passing_dummy_path_as_a_parameter
     run_generator [destination_root, "--dummy_path", "spec/dummy"]
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test/dummy"
+  end
+
+  def test_creating_dummy_without_tests_but_with_dummy_path
+    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
+    assert_file "spec/dummy"
+    assert_file "spec/dummy/config/application.rb"
+    assert_no_file "test"
+  end
+
+  def test_skipping_test_unit
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_no_file "test"
+    assert_file "bukkits.gemspec" do |contents|
+      assert_no_match /s.test_files = Dir\["test\/\*\*\/\*"\]/, contents
+    end
   end
 
   def test_skipping_gemspec

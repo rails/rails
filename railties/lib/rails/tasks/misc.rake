@@ -9,8 +9,8 @@ end
 
 desc 'Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions).'
 task :secret do
-  require 'active_support/secure_random'
-  puts ActiveSupport::SecureRandom.hex(64)
+  require 'securerandom'
+  puts SecureRandom.hex(64)
 end
 
 desc 'List versions of all Rails frameworks and the environment'

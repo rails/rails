@@ -1,5 +1,7 @@
 module Sprockets
-  class Railtie < Rails::Railtie
+  autoload :Helpers, "sprockets/helpers"
+
+  class Railtie < ::Rails::Railtie
     def self.using_coffee?
       require 'coffee-script'
       defined?(CoffeeScript)
@@ -7,15 +9,7 @@ module Sprockets
       false
     end
 
-    def self.using_scss?
-      require 'sass'
-      defined?(Sass)
-    rescue LoadError
-      false
-    end
-
     config.app_generators.javascript_engine :coffee if using_coffee?
-    config.app_generators.stylesheet_engine :scss   if using_scss?
 
     # Configure ActionController to use sprockets.
     initializer "sprockets.set_configs", :after => "action_controller.set_configs" do |app|
@@ -26,7 +20,8 @@ module Sprockets
 
     # We need to configure this after initialization to ensure we collect
     # paths from all engines. This hook is invoked exactly before routes
-    # are compiled.
+    # are compiled, and so that other Railties have an opportunity to
+    # register compressors.
     config.after_initialize do |app|
       assets = app.config.assets
       next unless assets.enabled
@@ -34,8 +29,10 @@ module Sprockets
       app.assets = asset_environment(app)
 
       ActiveSupport.on_load(:action_view) do
+        include ::Sprockets::Helpers::RailsHelper
+
         app.assets.context_class.instance_eval do
-          include ::ActionView::Helpers::SprocketsHelper
+          include ::Sprockets::Helpers::RailsHelper
         end
       end
 
@@ -57,8 +54,8 @@ module Sprockets
       env.static_root = File.join(app.root.join("public"), assets.prefix)
       env.paths.concat assets.paths
       env.logger = Rails.logger
-      env.js_compressor = expand_js_compressor(assets.js_compressor)
-      env.css_compressor = expand_css_compressor(assets.css_compressor)
+      env.js_compressor = expand_js_compressor(assets.js_compressor) if assets.compress
+      env.css_compressor = expand_css_compressor(assets.css_compressor) if assets.compress
       env
     end
 
@@ -80,15 +77,6 @@ module Sprockets
 
     def expand_css_compressor(sym)
       case sym
-      when :scss
-        require 'sass'
-        compressor = Object.new
-        def compressor.compress(source)
-          Sass::Engine.new(source,
-            :syntax => :scss, :style => :compressed
-          ).render
-        end
-        compressor
       when :yui
         require 'yui/compressor'
         YUI::CssCompressor.new

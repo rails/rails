@@ -104,7 +104,7 @@ When you call the +mail+ method now, Action Mailer will detect the two templates
 
 h5. Wire It Up So That the System Sends the Email When a User Signs Up
 
-There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model.  However, in Rails 3, mailers are really just another way to render a view.  Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead.  Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
+There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, in Rails 3, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
 
@@ -293,7 +293,7 @@ class UserMailer < ActionMailer::Base
 end
 </ruby>
 
-Will render 'another_template.text.erb' and 'another_template.html.erb'.  The render command is the same one used inside of Action Controller, so you can use all the same options, such as <tt>:text</tt> etc.
+Will render 'another_template.text.erb' and 'another_template.html.erb'. The render command is the same one used inside of Action Controller, so you can use all the same options, such as <tt>:text</tt> etc.
 
 h4. Action Mailer Layouts
 
@@ -363,7 +363,7 @@ h4. Sending Multipart Emails
 
 Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have +welcome_email.text.erb+ and +welcome_email.html.erb+ in +app/views/user_mailer+, Action Mailer will automatically send a multipart email with the HTML and text versions setup as different parts.
 
-The order of the parts getting inserted is determined by the <tt>:parts_order</tt> inside of the <tt>ActionMailer::Base.default</tt> method.  If you want to explicitly alter the order, you can either change the <tt>:parts_order</tt> or explicitly render the parts in a different order:
+The order of the parts getting inserted is determined by the <tt>:parts_order</tt> inside of the <tt>ActionMailer::Base.default</tt> method. If you want to explicitly alter the order, you can either change the <tt>:parts_order</tt> or explicitly render the parts in a different order:
 
 <ruby>
 class UserMailer < ActionMailer::Base
@@ -419,7 +419,7 @@ class UserMailer < ActionMailer::Base
     )
 
     if email.has_attachments?
-      for attachment in email.attachments
+      email.attachments.each do |attachment|
         page.attachments.create({
           :file => attachment,
           :description => email.subject

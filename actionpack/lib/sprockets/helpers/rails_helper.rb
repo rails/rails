@@ -1,27 +1,27 @@
-require 'uri'
-require 'action_view/helpers/asset_paths'
+require "action_view/helpers/asset_paths"
+require "action_view/helpers/asset_tag_helper"
 
-module ActionView
+module Sprockets
   module Helpers
-    module SprocketsHelper
-      def debug_assets?
-        params[:debug_assets] == '1' ||
-          params[:debug_assets] == 'true'
+    module RailsHelper
+      extend ActiveSupport::Concern
+      include ActionView::Helpers::AssetTagHelper
+
+      def asset_paths
+        @asset_paths ||= begin
+          config     = self.config if respond_to?(:config)
+          controller = self.controller if respond_to?(:controller)
+          RailsHelper::AssetPaths.new(config, controller)
+        end
       end
 
-      def asset_path(source, default_ext = nil, body = false)
-        source = source.logical_path if source.respond_to?(:logical_path)
-        path = sprockets_asset_paths.compute_public_path(source, 'assets', default_ext, true)
-        body ? "#{path}?body=1" : path
-      end
-
-      def sprockets_javascript_include_tag(source, options = {})
+      def javascript_include_tag(source, options = {})
         debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body  = options.key?(:body)  ? options.delete(:body)  : false
 
-        if debug && asset = sprockets_asset_paths.asset_for(source, 'js')
+        if debug && asset = asset_paths.asset_for(source, 'js')
           asset.to_a.map { |dep|
-            sprockets_javascript_include_tag(dep, :debug => false, :body => true)
+            javascript_include_tag(dep, :debug => false, :body => true)
           }.join("\n").html_safe
         else
           options = {
@@ -33,13 +33,13 @@ module ActionView
         end
       end
 
-      def sprockets_stylesheet_link_tag(source, options = {})
+      def stylesheet_link_tag(source, options = {})
         debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body  = options.key?(:body)  ? options.delete(:body)  : false
 
-        if debug && asset = sprockets_asset_paths.asset_for(source, 'css')
+        if debug && asset = asset_paths.asset_for(source, 'css')
           asset.to_a.map { |dep|
-            sprockets_stylesheet_link_tag(dep, :debug => false, :body => true)
+            stylesheet_link_tag(dep, :debug => false, :body => true)
           }.join("\n").html_safe
         else
           options = {
@@ -53,17 +53,23 @@ module ActionView
         end
       end
 
-      private
+    private
+      def debug_assets?
+        params[:debug_assets] == '1' ||
+          params[:debug_assets] == 'true'
+      end
 
-      def sprockets_asset_paths
-        @sprockets_asset_paths ||= begin
-          config     = self.config if respond_to?(:config)
-          controller = self.controller if respond_to?(:controller)
-          SprocketsHelper::AssetPaths.new(config, controller)
-        end
+      def asset_path(source, default_ext = nil, body = false)
+        source = source.logical_path if source.respond_to?(:logical_path)
+        path = asset_paths.compute_public_path(source, 'assets', default_ext, true)
+        body ? "#{path}?body=1" : path
       end
 
       class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
+        def compute_public_path(source, dir, ext=nil, include_host=true)
+          super(source, 'assets', ext, include_host)
+        end
+
         def asset_for(source, ext)
           source = source.to_s
           return nil if is_uri?(source)

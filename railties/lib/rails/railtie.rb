@@ -173,24 +173,24 @@ module Rails
     def eager_load!
     end
 
-    def load_console(sandbox=false)
-      self.class.console.each { |block| block.call(sandbox) }
+    def load_console(app)
+      self.class.console.each { |block| block.call(app) }
     end
 
-    def load_tasks
+    def load_tasks(app)
       extend Rake::DSL if defined? Rake::DSL
-      self.class.rake_tasks.each(&:call)
+      self.class.rake_tasks.each { |block| block.call(app) }
 
       # load also tasks from all superclasses
       klass = self.class.superclass
       while klass.respond_to?(:rake_tasks)
-        klass.rake_tasks.each { |t| self.instance_exec(&t) }
+        klass.rake_tasks.each { |t| self.instance_exec(app, &t) }
         klass = klass.superclass
       end
     end
 
-    def load_generators
-      self.class.generators.each(&:call)
+    def load_generators(app)
+      self.class.generators.each { |block| block.call(app) }
     end
   end
 end

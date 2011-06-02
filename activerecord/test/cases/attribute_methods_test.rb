@@ -109,6 +109,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, :title
   end
 
+  # IRB inspects the return value of "MyModel.allocate"
+  # by inspecting it.
+  def test_allocated_object_can_be_inspected
+    topic = Topic.allocate
+    assert_nothing_raised { topic.inspect }
+    assert topic.inspect, "#<Topic not initialized>"
+  end
+
   def test_array_content
     topic = Topic.new
     topic.content = %w( one two three )
@@ -126,7 +134,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   if current_adapter?(:MysqlAdapter)
     def test_read_attributes_before_type_cast_on_boolean
       bool = Boolean.create({ "value" => false })
-      assert_equal 0, bool.reload.attributes_before_type_cast["value"]
+      if RUBY_PLATFORM =~ /java/
+        # JRuby will return the value before typecast as string
+        assert_equal "0", bool.reload.attributes_before_type_cast["value"]
+      else
+        assert_equal 0, bool.reload.attributes_before_type_cast["value"]
+      end
     end
   end
 

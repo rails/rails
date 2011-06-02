@@ -4,7 +4,7 @@ require File.expand_path('../boot', __FILE__)
 require 'rails/all'
 <% else -%>
 # Pick the frameworks you want:
-<%= comment_if :skip_active_record %> require "active_record/railtie"
+<%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
 require "active_resource/railtie"
@@ -38,17 +38,6 @@ module <%= app_const_base %>
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-
-    # Please note that JavaScript expansions are *ignored altogether* if the asset
-    # pipeline is enabled (see config.assets.enabled below). Put your defaults in
-    # app/assets/javascripts/application.js in that case.
-    #
-    # JavaScript files you want as :defaults (application.js is always included).
-<% if options[:skip_javascript] -%>
-    # config.action_view.javascript_expansions[:defaults] = %w()
-<% else -%>
-    # config.action_view.javascript_expansions[:defaults] = %w(prototype prototype_ujs)
-<% end -%>
 
     # Configure the default encoding used in templates for Ruby 1.9.
     config.encoding = "utf-8"

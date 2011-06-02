@@ -283,7 +283,7 @@ module ActiveResource
       #     attribute 'name', :string
       #
       #     # or use the convenience methods and pass >=1 attribute names
-      #     string  'eye_colour', 'hair_colour'
+      #     string  'eye_color', 'hair_color'
       #     integer 'age'
       #     float   'height', 'weight'
       #

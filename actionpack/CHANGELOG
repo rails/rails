@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added 'ActionView::Helpers::FormHelper.fields_for_with_index', similar to fields_for but allows to have access to the current iteration index [Jorge Bejar]
+
 * Warn if we cannot verify CSRF token authenticity [José Valim]
 
 * Allow AM/PM format in datetime selectors [Aditya Sanghi]

@@ -400,7 +400,7 @@ module ActionController
       # the present token and options.
       #
       # controller      - ActionController::Base instance for the current request.
-      # login_procedure - Proc to call if a token is present.  The Proc should
+      # login_procedure - Proc to call if a token is present. The Proc should
       #                   take 2 arguments:
       #                     authenticate(controller) { |token, options| ... }
       #
@@ -413,7 +413,7 @@ module ActionController
         end
       end
 
-      # Parses the token and options out of the token authorization header.  If
+      # Parses the token and options out of the token authorization header. If
       # the header looks like this:
       #   Authorization: Token token="abc", nonce="def"
       # Then the returned token is "abc", and the options is {:nonce => "def"}

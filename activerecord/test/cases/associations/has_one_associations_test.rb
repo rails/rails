@@ -370,15 +370,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil new_ship.pirate_id
   end
 
-  def test_deprecated_association_loaded
-    firm   = companies(:first_firm)
-    firm.association(:account).stubs(:loaded?).returns(stub)
-
-    assert_deprecated do
-      assert_equal firm.association(:account).loaded?, firm.account_loaded?
-    end
-  end
-
   def test_association_keys_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 

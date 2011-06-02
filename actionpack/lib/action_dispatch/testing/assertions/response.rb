@@ -60,11 +60,11 @@ module ActionDispatch
         assert_response(:redirect, message)
         return true if options == @response.location
 
-        redirected_to_after_normalisation = normalize_argument_to_redirection(@response.location)
-        options_after_normalisation       = normalize_argument_to_redirection(options)
+        redirected_to_after_normalization = normalize_argument_to_redirection(@response.location)
+        options_after_normalization       = normalize_argument_to_redirection(options)
 
-        if redirected_to_after_normalisation != options_after_normalisation
-          flunk "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
+        if redirected_to_after_normalization != options_after_normalization
+          flunk "Expected response to be a redirect to <#{options_after_normalization}> but was a redirect to <#{redirected_to_after_normalization}>"
         end
       end
 

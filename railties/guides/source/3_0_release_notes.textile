@@ -61,7 +61,7 @@ h4. Upgrade Process
 
 To help with the upgrade process, a plugin named "Rails Upgrade":http://github.com/jm/rails_upgrade has been created to automate part of it.
 
-Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them).  It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one.  To get the plugin, simply run the following:
+Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them). It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one. To get the plugin, simply run the following:
 
 <shell>
 $ ruby script/plugin install git://github.com/jm/rails_upgrade.git
@@ -69,7 +69,7 @@ $ ruby script/plugin install git://github.com/jm/rails_upgrade.git
 
 You can see an example of how that works at "Rails Upgrade is now an Official Plugin":http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin
 
-Aside from Rails Upgrade tool, if you need more help, there are people on IRC and "rubyonrails-talk":http://groups.google.com/group/rubyonrails-talk that are probably doing the same thing, possibly hitting the same issues.  Be sure to blog your own experiences when upgrading so others can benefit from your knowledge!
+Aside from Rails Upgrade tool, if you need more help, there are people on IRC and "rubyonrails-talk":http://groups.google.com/group/rubyonrails-talk that are probably doing the same thing, possibly hitting the same issues. Be sure to blog your own experiences when upgrading so others can benefit from your knowledge!
 
 More information - "The Path to Rails 3: Approaching the upgrade":http://omgbloglol.com/post/353978923/the-path-to-rails-3-approaching-the-upgrade
 
@@ -113,42 +113,42 @@ Railties was updated to provide a consistent plugin API for the entire Rails fra
 
 h4. All Rails core components are decoupled
 
-With the merge of Merb and Rails, one of the big jobs was to remove the tight coupling between Rails core components.  This has now been achieved, and all Rails core components are now using the same API that you can use for developing plugins.  This means any plugin you make, or any core component replacement (like DataMapper or Sequel) can access all the functionality that the Rails core components have access to and extend and enhance at will.
+With the merge of Merb and Rails, one of the big jobs was to remove the tight coupling between Rails core components. This has now been achieved, and all Rails core components are now using the same API that you can use for developing plugins. This means any plugin you make, or any core component replacement (like DataMapper or Sequel) can access all the functionality that the Rails core components have access to and extend and enhance at will.
 
 More information: - "The Great Decoupling":http://yehudakatz.com/2009/07/19/rails-3-the-great-decoupling/
 
 
 h4. Active Model Abstraction
 
-Part of decoupling the core components was extracting all ties to Active Record from Action Pack.  This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
+Part of decoupling the core components was extracting all ties to Active Record from Action Pack. This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
 
 More information: - "Make Any Ruby Object Feel Like ActiveRecord":http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/
 
 
 h4. Controller Abstraction
 
-Another big part of decoupling the core components was creating a base superclass that is separated from the notions of HTTP in order to handle rendering of views etc.  This creation of +AbstractController+ allowed +ActionController+ and +ActionMailer+ to be greatly simplified with common code removed from all these libraries and put into Abstract Controller.
+Another big part of decoupling the core components was creating a base superclass that is separated from the notions of HTTP in order to handle rendering of views etc. This creation of +AbstractController+ allowed +ActionController+ and +ActionMailer+ to be greatly simplified with common code removed from all these libraries and put into Abstract Controller.
 
 More Information: - "Rails Edge Architecture":http://yehudakatz.com/2009/06/11/rails-edge-architecture/
 
 
 h4. Arel Integration
 
-"Arel":http://github.com/brynary/arel (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails.  Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
+"Arel":http://github.com/brynary/arel (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails. Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
 
 More information: - "Why I wrote Arel":http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/.
 
 
 h4. Mail Extraction
 
-Action Mailer ever since its beginnings has had monkey patches, pre parsers and even delivery and receiver agents, all in addition to having TMail vendored in the source tree.  Version 3 changes that with all email message related functionality abstracted out to the "Mail":http://github.com/mikel/mail gem.  This again reduces code duplication and helps create definable boundaries between Action Mailer and the email parser.
+Action Mailer ever since its beginnings has had monkey patches, pre parsers and even delivery and receiver agents, all in addition to having TMail vendored in the source tree. Version 3 changes that with all email message related functionality abstracted out to the "Mail":http://github.com/mikel/mail gem. This again reduces code duplication and helps create definable boundaries between Action Mailer and the email parser.
 
 More information: - "New Action Mailer API in Rails 3":http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3
 
 
 h3. Documentation
 
-The documentation in the Rails tree is being updated with all the API changes, additionally, the "Rails Edge Guides":http://edgeguides.rubyonrails.org/ are being updated one by one to reflect the changes in Rails 3.0.  The guides at "guides.rubyonrails.org":http://guides.rubyonrails.org/ however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
+The documentation in the Rails tree is being updated with all the API changes, additionally, the "Rails Edge Guides":http://edgeguides.rubyonrails.org/ are being updated one by one to reflect the changes in Rails 3.0. The guides at "guides.rubyonrails.org":http://guides.rubyonrails.org/ however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
 
 More Information: - "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects.
 
@@ -157,7 +157,7 @@ h3. Internationalization
 
 A large amount of work has been done with I18n support in Rails 3, including the latest "I18n":http://github.com/svenfuchs/i18n gem supplying many speed improvements.
 
-* I18n for any object - I18n behavior can be added to any object by including <tt>ActiveModel::Translation</tt> and <tt>ActiveModel::Validations</tt>.  There is also an <tt>errors.messages</tt> fallback for translations.
+* I18n for any object - I18n behavior can be added to any object by including <tt>ActiveModel::Translation</tt> and <tt>ActiveModel::Validations</tt>. There is also an <tt>errors.messages</tt> fallback for translations.
 * Attributes can have default translations.
 * Form Submit Tags automatically pull the correct status (Create or Update) depending on the object status, and so pull the correct translation.
 * Labels with I18n also now work by just passing the attribute name.
@@ -173,7 +173,7 @@ With the decoupling of the main Rails frameworks, Railties got a huge overhaul s
 * Anything under <tt>Rails.root/app</tt> is now added to the load path, so you can make <tt>app/observers/user_observer.rb</tt> and Rails will load it without any modifications.
 * Rails 3.0 now provides a <tt>Rails.config</tt> object, which provides a central repository of all sorts of Rails wide configuration options.
 
-Application generation has received extra flags allowing you to skip the installation of test-unit, Active Record, Prototype and Git.  Also a new <tt>--dev</tt> flag has been added which sets the application up with the +Gemfile+ pointing to your Rails checkout (which is determined by the path to the +rails+ binary).  See <tt>rails --help</tt> for more info.
+Application generation has received extra flags allowing you to skip the installation of test-unit, Active Record, Prototype and Git. Also a new <tt>--dev</tt> flag has been added which sets the application up with the +Gemfile+ pointing to your Rails checkout (which is determined by the path to the +rails+ binary). See <tt>rails --help</tt> for more info.
 
 Railties generators got a huge amount of attention in Rails 3.0, basically:
 
@@ -215,7 +215,7 @@ There have been significant internal and external changes in Action Pack.
 
 h4. Abstract Controller
 
-Abstract Controller pulls out the generic parts of Action Controller into a reusable module that any library can use to render templates, render partials, helpers, translations, logging, any part of the request response cycle.  This abstraction allowed <tt>ActionMailer::Base</tt> to now just inherit from +AbstractController+ and just wrap the Rails DSL onto the Mail gem.
+Abstract Controller pulls out the generic parts of Action Controller into a reusable module that any library can use to render templates, render partials, helpers, translations, logging, any part of the request response cycle. This abstraction allowed <tt>ActionMailer::Base</tt> to now just inherit from +AbstractController+ and just wrap the Rails DSL onto the Mail gem.
 
 It also provided an opportunity to clean up Action Controller, abstracting out what could to simplify the code.
 
@@ -231,7 +231,7 @@ h4. Action Controller
 * The <tt>session_store</tt> was configured in <tt>ActionController::Base.session</tt>, and that is now moved to <tt>Rails.application.config.session_store</tt>. Defaults are set up in <tt>config/initializers/session_store.rb</tt>.
 * <tt>cookies.secure</tt> allowing you to set encrypted values in cookies with <tt>cookie.secure[:key] => value</tt>.
 * <tt>cookies.permanent</tt> allowing you to set permanent values in the cookie hash <tt>cookie.permanent[:key] => value</tt> that raise exceptions on signed values if verification failures.
-* You can now pass <tt>:notice => 'This is a flash message'</tt> or <tt>:alert => 'Something went wrong'</tt> to the <tt>format</tt> call inside a +respond_to+ block.  The <tt>flash[]</tt> hash still works as previously.
+* You can now pass <tt>:notice => 'This is a flash message'</tt> or <tt>:alert => 'Something went wrong'</tt> to the <tt>format</tt> call inside a +respond_to+ block. The <tt>flash[]</tt> hash still works as previously.
 * <tt>respond_with</tt> method has now been added to your controllers simplifying the venerable +format+ blocks.
 * <tt>ActionController::Responder</tt> added allowing you flexibility in how your responses get generated.
 
@@ -298,9 +298,9 @@ h4. Action View
 
 h5. Unobtrusive JavaScript
 
-Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands.  This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
+Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands. This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
 
-What this means is that all previous <tt>remote_&lt;method&gt;</tt> helpers have been removed from Rails core and put into the "Prototype Legacy Helper":http://github.com/rails/prototype_legacy_helper.  To get UJS hooks into your HTML, you now pass <tt>:remote => true</tt> instead.  For example:
+What this means is that all previous <tt>remote_&lt;method&gt;</tt> helpers have been removed from Rails core and put into the "Prototype Legacy Helper":http://github.com/rails/prototype_legacy_helper. To get UJS hooks into your HTML, you now pass <tt>:remote => true</tt> instead. For example:
 
 <ruby>
 form_for @post, :remote => true
@@ -341,12 +341,12 @@ h5. Other Changes
 
 h3. Active Model
 
-Active Model is new in Rails 3.0.  It provides an abstraction layer for any ORM libraries to use to interact with Rails by implementing an Active Model interface.
+Active Model is new in Rails 3.0. It provides an abstraction layer for any ORM libraries to use to interact with Rails by implementing an Active Model interface.
 
 
 h4. ORM Abstraction and Action Pack Interface
 
-Part of decoupling the core components was extracting all ties to Active Record from Action Pack.  This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
+Part of decoupling the core components was extracting all ties to Active Record from Action Pack. This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
 
 More Information: - "Make Any Ruby Object Feel Like ActiveRecord":http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/
 
@@ -410,12 +410,12 @@ More Information:
 
 h3. Active Record
 
-Active Record received a lot of attention in Rails 3.0, including abstraction into Active Model, a full update to the Query interface using Arel, validation updates and many enhancements and fixes.  All of the Rails 2.x API will be usable through a compatibility layer that will be supported until version 3.1.
+Active Record received a lot of attention in Rails 3.0, including abstraction into Active Model, a full update to the Query interface using Arel, validation updates and many enhancements and fixes. All of the Rails 2.x API will be usable through a compatibility layer that will be supported until version 3.1.
 
 
 h4. Query Interface
 
-Active Record, through the use of Arel, now returns relations on its core methods.  The existing API in Rails 2.3.x is still supported and will not be deprecated until Rails 3.1 and not removed until Rails 3.2, however, the new API provides the following new methods that all return relations allowing them to be chained together:
+Active Record, through the use of Arel, now returns relations on its core methods. The existing API in Rails 2.3.x is still supported and will not be deprecated until Rails 3.1 and not removed until Rails 3.2, however, the new API provides the following new methods that all return relations allowing them to be chained together:
 
 * <tt>where</tt> - provides conditions on the relation, what gets returned.
 * <tt>select</tt> - choose what attributes of the models you wish to have returned from the database.
@@ -502,7 +502,7 @@ Deprecations:
 
 h3. Active Support
 
-A large effort was made in Active Support to make it cherry pickable, that is, you no longer have to require the entire Active Support library to get pieces of it.  This allows the various core components of Rails to run slimmer.
+A large effort was made in Active Support to make it cherry pickable, that is, you no longer have to require the entire Active Support library to get pieces of it. This allows the various core components of Rails to run slimmer.
 
 These are the main changes in Active Support:
 
@@ -559,7 +559,7 @@ The following methods have been removed because they are no longer used in the f
 
 h3. Action Mailer
 
-Action Mailer has been given a new API with TMail being replaced out with the new "Mail":http://github.com/mikel/mail as the Email library.  Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched.  The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
+Action Mailer has been given a new API with TMail being replaced out with the new "Mail":http://github.com/mikel/mail as the Email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
 
 * All mailers are now in <tt>app/mailers</tt> by default.
 * Can now send email using new API with three methods: +attachments+, +headers+ and +mail+.
@@ -589,7 +589,7 @@ More Information:
 
 h3. Credits
 
-See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails 3.  Kudos to all of them.
+See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails 3. Kudos to all of them.
 
 Rails 3.0 Release Notes were compiled by "Mikel Lindsaar":http://lindsaar.net.
 

@@ -517,7 +517,7 @@ module ActionView
       #   # that is named 'due' rather than 'day'.
       #   select_day(my_time, :field_name => 'due')
       #
-      #   # Generates a select field for days with a custom prompt.  Use <tt>:prompt => true</tt> for a
+      #   # Generates a select field for days with a custom prompt. Use <tt>:prompt => true</tt> for a
       #   # generic prompt.
       #   select_day(5, :prompt => 'Choose day')
       #

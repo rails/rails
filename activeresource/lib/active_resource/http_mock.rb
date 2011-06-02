@@ -55,7 +55,7 @@ module ActiveResource
         @responses = responses
       end
 
-      for method in [ :post, :put, :get, :delete, :head ]
+      [ :post, :put, :get, :delete, :head ].each do |method|
         # def post(path, request_headers = {}, body = nil, status = 200, response_headers = {})
         #   @responses[Request.new(:post, path, nil, request_headers)] = Response.new(body || "", status, response_headers)
         # end

@@ -1,5 +1,4 @@
 require 'active_record/connection_adapters/abstract_adapter'
-require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 
 # Make sure we're using pg high enough for PGResult#values
@@ -199,7 +198,7 @@ module ActiveRecord
     # * <tt>:password</tt> - Defaults to nothing.
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
-    #   as a string of comma-separated schema names.  This is backward-compatible with the <tt>:schema_order</tt> option.
+    #   as a string of comma-separated schema names. This is backward-compatible with the <tt>:schema_order</tt> option.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
@@ -619,7 +618,7 @@ module ActiveRecord
         create_database(name)
       end
 
-      # Create a new PostgreSQL database.  Options include <tt>:owner</tt>, <tt>:template</tt>,
+      # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
       # <tt>:encoding</tt>, <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
       # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
       #
@@ -806,8 +805,8 @@ module ActiveRecord
         end
 
         if pk && sequence
-          quoted_sequence = quote_column_name(sequence)
-
+          quoted_sequence = quote_table_name(sequence)
+          
           select_value <<-end_sql, 'Reset sequence'
             SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
           end_sql
@@ -819,18 +818,25 @@ module ActiveRecord
         # First try looking for a sequence with a dependency on the
         # given table's primary key.
         result = exec_query(<<-end_sql, 'SCHEMA').rows.first
-          SELECT attr.attname, seq.relname
+          SELECT attr.attname, ns.nspname, seq.relname
           FROM pg_class seq
           INNER JOIN pg_depend dep ON seq.oid = dep.objid
           INNER JOIN pg_attribute attr ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
           INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
+          INNER JOIN pg_namespace ns ON seq.relnamespace = ns.oid
           WHERE seq.relkind  = 'S'
             AND cons.contype = 'p'
             AND dep.refobjid = '#{quote_table_name(table)}'::regclass
         end_sql
 
         # [primary_key, sequence]
-        [result.first, result.last]
+        if result.second ==  'public' then
+          sequence = result.last
+        else
+          sequence = result.second+'.'+result.last
+        end
+        
+        [result.first, sequence]
       rescue
         nil
       end

@@ -441,7 +441,7 @@ class DependenciesTest < Test::Unit::TestCase
     with_autoloading_fixtures do
       require_dependency '././counting_loader'
       assert_equal 1, $counting_loaded_times
-      assert_raise(ArgumentError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
+      assert_raise(NameError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
       assert_equal 1, $counting_loaded_times
     end
   end
