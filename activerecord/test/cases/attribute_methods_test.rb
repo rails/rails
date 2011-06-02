@@ -126,9 +126,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       bool = Boolean.create({ "value" => false })
       if RUBY_PLATFORM =~ /java/
         # JRuby will return the value before typecast as string
-        assert_equal "0", bool.reload.attributes_before_type_cast["value"]
-      else
         assert_equal 0, bool.reload.attributes_before_type_cast["value"]
+      else
+        assert_equal "0", bool.reload.attributes_before_type_cast["value"]
       end
     end
   end
