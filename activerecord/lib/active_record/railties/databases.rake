@@ -371,7 +371,8 @@ db_namespace = namespace :db do
         unless search_path.blank?
           search_path = search_path.split(",").map{|search_path| "--schema=#{search_path.strip}" }.join(" ")
         end
-        `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
+        username = abcs[Rails.env]['username'] ? %Q{-U "#{abcs[Rails.env]['username']}"} : ""
+        `pg_dump -i #{username} -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
       when /sqlite/
         dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
