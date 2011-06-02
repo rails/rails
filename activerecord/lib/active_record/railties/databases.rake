@@ -419,7 +419,8 @@ db_namespace = namespace :db do
         ENV['PGHOST']     = abcs['test']['host'] if abcs['test']['host']
         ENV['PGPORT']     = abcs['test']['port'].to_s if abcs['test']['port']
         ENV['PGPASSWORD'] = abcs['test']['password'].to_s if abcs['test']['password']
-        `psql -U "#{abcs['test']['username']}" -f #{Rails.root}/db/#{Rails.env}_structure.sql #{abcs['test']['database']} #{abcs['test']['template']}`
+        username = abcs['test']['username'] ? %Q{-U "#{abcs['test']['username']}"} : ""
+        `psql #{username} -f #{Rails.root}/db/#{Rails.env}_structure.sql #{abcs['test']['database']} #{abcs['test']['template']}`
       when /sqlite/
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         `sqlite3 #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
