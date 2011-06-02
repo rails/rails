@@ -62,8 +62,8 @@ module ActiveModel
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
       #   class Person < ActiveRecord::Base
-      #     validates_length_of :first_name, :maximum=>30
-      #     validates_length_of :last_name, :maximum=>30, :message=>"less than 30 if you don't mind"
+      #     validates_length_of :first_name, :maximum => 30
+      #     validates_length_of :last_name, :maximum => 30, :message => "less than 30 if you don't mind"
       #     validates_length_of :fax, :in => 7..32, :allow_nil => true
       #     validates_length_of :phone, :in => 7..32, :allow_blank => true
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
