@@ -673,9 +673,9 @@ module ActiveRecord
 
         exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
             SELECT COUNT(*)
-            FROM pg_tables
-            WHERE tablename = $1
-            #{schema ? "AND schemaname = $2" : ''}
+            FROM pg_tables, pg_views
+            WHERE (tablename = $1 #{schema ? "AND pg_tables.schemaname = $2" : ''})
+            OR (viewname = $1 #{schema ? "AND pg_views.schemaname = $2" : ''})
         SQL
       end
 
