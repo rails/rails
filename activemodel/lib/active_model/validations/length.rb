@@ -69,7 +69,7 @@ module ActiveModel
       #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
       #     validates_length_of :zip_code, :minimum => 5, :too_short => "please enter at least 5 characters"
       #     validates_length_of :smurf_leader, :is => 4, :message => "papa is spelled with 4 characters... don't play me."
-      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least 100 words."), :tokenizer => lambda {|str| str.scan(/\w+/) }
+      #     validates_length_of :essay, :minimum => 100, :too_short => "Your essay must be at least 100 words.", :tokenizer => lambda { |str| str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
