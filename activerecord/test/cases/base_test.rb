@@ -1364,6 +1364,12 @@ class BasicsTest < ActiveRecord::TestCase
     k.set_table_name "bar"
     assert_equal "bar", k.table_name
   end
+  
+  def test_set_table_name_exists
+    k = Class.new(ActiveRecord::Base)
+    k.set_table_name "pirates"
+    assert k.table_exists?
+  end
 
   def test_switching_between_table_name
     assert_difference("GoodJoke.count") do
