@@ -148,8 +148,8 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   def test_parameterize_with_custom_separator
-    StringToParameterized.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string.gsub('-', '_'), ActiveSupport::Inflector.parameterize(some_string, '_'))
+    StringToParameterizeWithUnderscore.each do |some_string, parameterized_string|
+      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, '_'))
     end
   end
 
