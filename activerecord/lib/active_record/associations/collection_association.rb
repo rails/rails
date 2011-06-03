@@ -436,7 +436,6 @@ module ActiveRecord
         def build_record(attributes, options)
           record = reflection.build_association(attributes, options)
           record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
-          record.assign_attributes(attributes, options)
           record
         end
 
