@@ -12,12 +12,6 @@ module Sprockets
         end
       end
 
-      def asset_path(source, default_ext = nil, body = false)
-        source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', default_ext, true)
-        body ? "#{path}?body=1" : path
-      end
-
       def javascript_include_tag(source, options = {})
         debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body  = options.key?(:body)  ? options.delete(:body)  : false
