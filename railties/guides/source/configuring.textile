@@ -121,10 +121,10 @@ h4. Configuring Generators
 Rails 3 allows you to alter what generators are used with the +config.generators+ method. This method takes a block:
 
 <ruby>
-  config.generators do |g|
-    g.orm :active_record
-    g.test_framework :test_unit
-  end
+config.generators do |g|
+  g.orm :active_record
+  g.test_framework :test_unit
+end
 </ruby>
 
 The full set of methods that can be used in this block are as follows:
@@ -167,31 +167,31 @@ Every Rails application comes with a standard set of middleware which it uses in
 Besides these usual middleware, you can add your own by using the +config.middleware.use+ method:
 
 <ruby>
-  config.middleware.use Magical::Unicorns
+config.middleware.use Magical::Unicorns
 </ruby>
 
 This will put the +Magical::Unicorns+ middleware on the end of the stack. If you wish to put this middleware before another use +insert_before+:
 
 <ruby>
-  config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns
+config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns
 </ruby>
 
 There's also +insert_after+ which will insert a middleware _after_ another:
 
 <ruby>
-  config.middleware.insert_after ActionDispatch::Head, Magical::Unicorns
+config.middleware.insert_after ActionDispatch::Head, Magical::Unicorns
 </ruby>
 
 Middlewares can also be completely swapped out and replaced with others:
 
 <ruby>
-  config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
+config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
 </ruby>
 
 They can also be removed from the stack completely:
 
 <ruby>
-  config.middleware.delete ActionDispatch::BestStandardsSupport
+config.middleware.delete ActionDispatch::BestStandardsSupport
 </ruby>
 
 h4. Configuring i18n
@@ -204,7 +204,7 @@ h4. Configuring Active Record
 
 <tt>config.active_record</tt> includes a variety of configuration options:
 
-* +config.active_record.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8.x Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an Active Record model class or an Active Record model instance. Set to nil to disable logging.
+* +config.active_record.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8.x Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an Active Record model class or an Active Record model instance. Set to +nil+ to disable logging.
 
 * +config.active_record.primary_key_prefix_type+ lets you adjust the naming for primary key columns. By default, Rails assumes that primary key columns are named +id+ (and this configuration option doesn't need to be set.) There are two other choices:
 ** +:table_name+ would make the primary key for the Customer class +customerid+
@@ -250,7 +250,7 @@ h4. Configuring Action Controller
 
 * +config.action_controller.default_charset+ specifies the default character set for all renders. The default is "utf-8".
 
-* +config.action_controller.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to nil to disable logging.
+* +config.action_controller.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Controller. Set to +nil+ to disable logging.
 
 * +config.action_controller.request_forgery_protection_token+ sets the token parameter name for RequestForgery. Calling +protect_from_forgery+ sets it to +:authenticity_token+ by default.
 
@@ -292,7 +292,7 @@ There are only a few configuration options for Action View, starting with four o
 
 * +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+.
 
-* +config.action_view.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to nil to disable logging.
+* +config.action_view.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to +nil+ to disable logging.
 
 * +config.action_view.erb_trim_mode+ gives the trim mode to be used by ERB. It defaults to +'-'+. See the "ERB documentation":http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/ for more information.
 
@@ -326,7 +326,7 @@ h4. Configuring Action Mailer
 
 There are a number of settings available on +config.action_mailer+:
 
-* +config.action_mailer.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to nil to disable logging.
+* +config.action_mailer.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Action Mailer. Set to +nil+ to disable logging.
 
 * +config.action_mailer.smtp_settings+ allows detailed configuration for the +:smtp+ delivery method. It accepts a hash of options, which can include any of these options:
 ** +:address+ - Allows you to use a remote mail server. Just change it from its default "localhost" setting.
@@ -348,17 +348,17 @@ There are a number of settings available on +config.action_mailer+:
 
 * +config.action_mailer.default+ configures Action Mailer defaults. These default to:
 <ruby>
-  :mime_version => "1.0",
-  :charset      => "UTF-8",
-  :content_type => "text/plain",
-  :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+:mime_version => "1.0",
+:charset      => "UTF-8",
+:content_type => "text/plain",
+:parts_order  => [ "text/plain", "text/enriched", "text/html" ]
 </ruby>
 
 h4. Configuring Active Resource
 
 There is a single configuration setting available on +config.active_resource+:
 
-* +config.active_resource.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Active Resource. Set to nil to disable logging.
+* +config.active_resource.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then used to log information from Active Resource. Set to +nil+ to disable logging.
 
 h4. Configuring Active Support
 
