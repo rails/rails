@@ -237,13 +237,13 @@
   rails g model post user:belongs_to will generate the following:
 
     class CreatePosts < ActiveRecord::Migration
-        def change
-          create_table :posts do |t|
-            t.belongs_to :user
-            t.timestamps
-          end
-          add_index :posts, :user_id
+      def change
+        create_table :posts do |t|
+          t.belongs_to :user
+          t.timestamps
         end
+        add_index :posts, :user_id
+      end
     end
 
   [Santiago Pastorino]
