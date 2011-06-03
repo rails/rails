@@ -288,7 +288,7 @@ When using +magazine_ad_path+, you can pass in instances of +Magazine+ and +Ad+ 
 You can also use +url_for+ with a set of objects, and Rails will automatically determine which route you want:
 
 <erb>
-<%= link_to "Ad details", url_for(@magazine, @ad) %>
+<%= link_to "Ad details", url_for([@magazine, @ad]) %>
 </erb>
 
 In this case, Rails will see that +@magazine+ is a +Magazine+ and +@ad+ is an +Ad+ and will therefore use the +magazine_ad_path+ helper. In helpers like +link_to+, you can specify just the object in place of the full +url_for+ call:
