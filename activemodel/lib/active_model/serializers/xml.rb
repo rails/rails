@@ -139,8 +139,8 @@ module ActiveModel
       # Without any +options+, the returned XML string will include all the model's
       # attributes. For example:
       #
-      #   konata = User.find(1)
-      #   konata.to_xml
+      #   user = User.find(1)
+      #   user.to_xml
       #
       #   <?xml version="1.0" encoding="UTF-8"?>
       #   <user>

@@ -22,13 +22,13 @@ module ActiveModel
       # of +as_json+. If true (the default) +as_json+ will emit a single root
       # node named after the object's type. For example:
       #
-      #   konata = User.find(1)
-      #   konata.as_json
+      #   user = User.find(1)
+      #   user.as_json
       #   # => { "user": {"id": 1, "name": "Konata Izumi", "age": 16,
       #                   "created_at": "2006/08/01", "awesome": true} }
       #
       #   ActiveRecord::Base.include_root_in_json = false
-      #   konata.as_json
+      #   user.as_json
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true}
       #
@@ -38,30 +38,30 @@ module ActiveModel
       # Without any +options+, the returned JSON string will include all the model's
       # attributes. For example:
       #
-      #   konata = User.find(1)
-      #   konata.as_json
+      #   user = User.find(1)
+      #   user.as_json
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true}
       #
       # The <tt>:only</tt> and <tt>:except</tt> options can be used to limit the attributes
       # included, and work similar to the +attributes+ method. For example:
       #
-      #   konata.as_json(:only => [ :id, :name ])
+      #   user.as_json(:only => [ :id, :name ])
       #   # => {"id": 1, "name": "Konata Izumi"}
       #
-      #   konata.as_json(:except => [ :id, :created_at, :age ])
+      #   user.as_json(:except => [ :id, :created_at, :age ])
       #   # => {"name": "Konata Izumi", "awesome": true}
       #
       # To include the result of some method calls on the model use <tt>:methods</tt>:
       #
-      #   konata.as_json(:methods => :permalink)
+      #   user.as_json(:methods => :permalink)
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true,
       #         "permalink": "1-konata-izumi"}
       #
       # To include associations use <tt>:include</tt>:
       #
-      #   konata.as_json(:include => :posts)
+      #   user.as_json(:include => :posts)
       #   # => {"id": 1, "name": "Konata Izumi", "age": 16,
       #         "created_at": "2006/08/01", "awesome": true,
       #         "posts": [{"id": 1, "author_id": 1, "title": "Welcome to the weblog"},
@@ -69,7 +69,7 @@ module ActiveModel
       #
       # Second level and higher order associations work as well:
       #
-      #   konata.as_json(:include => { :posts => {
+      #   user.as_json(:include => { :posts => {
       #                                  :include => { :comments => {
       #                                                :only => :body } },
       #                                  :only => :title } })
