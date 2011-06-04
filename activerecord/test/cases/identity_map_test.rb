@@ -1,5 +1,4 @@
-require "cases/helper"
-
+require File.expand_path('../helper', __FILE__)
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -140,7 +139,7 @@ class IdentityMapTest < ActiveRecord::TestCase
       assert_not_same(p1, p2)
     end
   end
-  
+
   def test_inherited_with_type_attribute_without_identity_map
     ActiveRecord::IdentityMap.without do
       c = comments(:sub_special_comment)

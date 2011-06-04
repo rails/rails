@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../../helper', __FILE__)
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -100,7 +100,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'c1', record[0]
     assert_equal 't1', record[1]
   end
-  
+
   def test_proper_usage_of_primary_keys_and_join_table
     setup_data_for_habtm_case
 

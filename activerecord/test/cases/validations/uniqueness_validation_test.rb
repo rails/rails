@@ -1,5 +1,5 @@
 # encoding: utf-8
-require "cases/helper"
+require File.expand_path('../../helper', __FILE__)
 require 'models/topic'
 require 'models/reply'
 require 'models/warehouse_thing'

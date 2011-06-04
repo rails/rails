@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../../helper', __FILE__)
 require 'active_support/core_ext/object/inclusion'
 require 'models/tag'
 require 'models/tagging'
