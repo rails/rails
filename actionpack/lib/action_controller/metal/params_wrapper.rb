@@ -64,7 +64,7 @@ module ActionController
   #     end
   #
   # will try to check if +Admin::User+ or +User+ model exists, and use it to
-  # determine the wrapper key respectively. If both of the model doesn't exists,
+  # determine the wrapper key respectively. If both models don't exist,
   # it will then fallback to use +user+ as the key.
   module ParamsWrapper
     extend ActiveSupport::Concern
@@ -88,14 +88,14 @@ module ActionController
       #     # wraps parameters into +params[:person]+ hash
       #
       #   wrap_parameters Person
-      #     # wraps parameters by determine the wrapper key from Person class
+      #     # wraps parameters by determining the wrapper key from Person class
       #     (+person+, in this case) and the list of attribute names
       #
       #   wrap_parameters :include => [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.
       #
       #   wrap_parameters false
-      #     # disable parameters wrapping for this controller altogether.
+      #     # disables parameters wrapping for this controller altogether.
       #
       # ==== Options
       # * <tt>:format</tt> - The list of formats in which the parameters wrapper
