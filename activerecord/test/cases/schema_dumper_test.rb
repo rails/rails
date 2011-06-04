@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../helper', __FILE__)
 require 'stringio'
 
 
@@ -230,4 +230,3 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t.string[[:space:]]+"id",[[:space:]]+:null => false$}, match[2], "non-primary key id column not preserved"
   end
 end
-

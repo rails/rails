@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../helper', __FILE__)
 require 'models/topic'
 require 'models/reply'
 
@@ -43,4 +43,3 @@ class ActiveRecordI18nTests < ActiveRecord::TestCase
     assert_equal 'topic model', Reply.model_name.human
   end
 end
-

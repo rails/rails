@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../../../helper', __FILE__)
 
 module ActiveRecord
   module ConnectionAdapters
@@ -23,4 +23,3 @@ module ActiveRecord
     end
   end
 end
-

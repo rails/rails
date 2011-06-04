@@ -43,26 +43,24 @@ end
 
 %w( mysql mysql2 postgresql sqlite3 sqlite3_mem firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") { |t|
-    connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
-    t.libs << "test" << connection_path
     t.test_files = (Dir.glob( "test/cases/**/*_test.rb" ).reject {
       |x| x =~ /\/adapters\//
     } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb")).sort
 
     t.verbose = true
     t.warning = true
+    t.ruby_opts = ["-r#{File.expand_path('../', __FILE__)}/test/connections/#{adapter}"]
   }
 
   task "isolated_test_#{adapter}" do
-    connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
-    puts [adapter, adapter_short, connection_path].inspect
+    puts [adapter, adapter_short].inspect
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     (Dir["test/cases/**/*_test.rb"].reject {
       |x| x =~ /\/adapters\//
     } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-      sh(ruby, "-Ilib:test:#{connection_path}", file)
+      sh(ruby, "-Itest", "-r#{File.expand_path('../', __FILE__)}/test/connections/#{adapter}", file)
     end or raise "Failures"
   end
 

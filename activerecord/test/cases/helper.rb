@@ -1,5 +1,8 @@
 require File.expand_path('../../../../load_paths', __FILE__)
 
+test = File.expand_path('../..', __FILE__)
+$:.unshift(test) unless $:.include?('test') || $:.include?(test)
+
 lib = File.expand_path("#{File.dirname(__FILE__)}/../../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
@@ -11,14 +14,13 @@ require 'mocha'
 
 require 'active_record'
 require 'active_support/dependencies'
-begin
-  require 'connection'
-rescue LoadError
-  # If we cannot load connection we assume that driver was not loaded for this test case, so we load sqlite3 as default one.
-  # This allows for running separate test cases by simply running test file.
-  connection_type = defined?(JRUBY_VERSION) ? 'jdbc' : 'native'
-  require "test/connections/#{connection_type}_sqlite3/connection"
-end
+
+require 'support/config'
+require 'support/connection'
+
+ARTest.connect
+
+# TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
