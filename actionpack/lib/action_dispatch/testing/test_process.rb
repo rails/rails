@@ -1,3 +1,4 @@
+require 'action_dispatch/middleware/cookies'
 require 'action_dispatch/middleware/flash'
 require 'active_support/core_ext/hash/indifferent_access'
 
