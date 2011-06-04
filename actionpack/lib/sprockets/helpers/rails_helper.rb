@@ -4,18 +4,15 @@ require "action_view/helpers/asset_tag_helper"
 module Sprockets
   module Helpers
     module RailsHelper
+      extend ActiveSupport::Concern
+      include ActionView::Helpers::AssetTagHelper
+      
       def asset_paths
         @asset_paths ||= begin
           config     = self.config if respond_to?(:config)
           controller = self.controller if respond_to?(:controller)
           RailsHelper::AssetPaths.new(config, controller)
         end
-      end
-
-      def asset_path(source, default_ext = nil, body = false)
-        source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', default_ext, true)
-        body ? "#{path}?body=1" : path
       end
 
       def javascript_include_tag(source, options = {})
