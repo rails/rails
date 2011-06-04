@@ -1,6 +1,5 @@
 ActiveRecord::Schema.define do
 
-  execute "DROP VIEW IF EXISTS model_views"
   %w(postgresql_tsvectors postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones).each do |table_name|
     execute "DROP TABLE  IF EXISTS #{quote_table_name table_name}"
@@ -115,12 +114,6 @@ _SQL
     id SERIAL PRIMARY KEY,
     time TIMESTAMP WITH TIME ZONE
   );
-_SQL
-
-  execute <<_SQL
-  CREATE VIEW model_views AS 
-    SELECT *
-    FROM postgresql_numbers;
 _SQL
 
   begin

@@ -17,6 +17,11 @@ class AdapterTest < ActiveRecord::TestCase
     assert @connection.table_exists?("accounts")
     assert !@connection.table_exists?("nonexistingtable")
   end
+  
+  def test_view_exists?
+    assert @connection.table_exists?('model_views')
+    assert !@connection.table_exists?('nonexistingview')
+  end
 
   def test_indexes
     idx_name = "accounts_idx"
