@@ -248,7 +248,7 @@ module ActiveModel
     #
     #   company = Company.create(:address => '123 First St.')
     #   company.errors.full_messages # =>
-    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
+    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
       map { |attribute, message|
         if attribute == :base
