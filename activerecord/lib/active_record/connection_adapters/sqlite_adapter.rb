@@ -257,6 +257,15 @@ module ActiveRecord
           row['name']
         end
       end
+      
+      def table_exists?(name)
+        exec_query(<<-SQL).rows.first[0].to_i > 0
+          SELECT COUNT(*)
+            FROM sqlite_master
+            WHERE (type = 'table' OR type = 'view')
+            AND name = '#{name}'
+        SQL
+      end
 
       # Returns an array of +SQLiteColumn+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil) #:nodoc:
