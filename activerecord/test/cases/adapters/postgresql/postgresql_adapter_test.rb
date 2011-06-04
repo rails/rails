@@ -10,6 +10,11 @@ module ActiveRecord
         @connection.exec_query('create table ex(id serial primary key, number integer, data character varying(255))')
       end
 
+      def test_view_exists?
+        assert @connection.table_exists?('model_views')
+        assert !@connection.table_exists('nonexistingview')
+      end
+
       def test_serial_sequence
         assert_equal 'public.accounts_id_seq',
           @connection.serial_sequence('accounts', 'id')
