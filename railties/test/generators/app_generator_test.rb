@@ -10,6 +10,7 @@ DEFAULT_APP_FILES = %w(
   config.ru
   app/assets/javascripts
   app/assets/stylesheets
+  app/assets/images
   app/controllers
   app/helpers
   app/mailers
@@ -22,8 +23,8 @@ DEFAULT_APP_FILES = %w(
   doc
   lib
   lib/tasks
+  lib/assets
   log
-  app/assets/images
   script/rails
   test/fixtures
   test/functional
