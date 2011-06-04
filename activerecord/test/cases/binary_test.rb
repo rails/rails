@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../helper', __FILE__)
 
 # Without using prepared statements, it makes no sense to test
 # BLOB data with DB2 or Firebird, because the length of a statement

@@ -1,4 +1,4 @@
-require 'cases/helper'
+require File.expand_path('../../helper', __FILE__)
 require 'action_dispatch'
 require 'active_record/session_store'
 

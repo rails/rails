@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../../../helper', __FILE__)
 
 class SchemaTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false

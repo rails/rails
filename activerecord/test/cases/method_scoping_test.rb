@@ -2,7 +2,7 @@
 # All the tests were already ported to relation_scoping_test.rb when the new
 # relation scoping API was added.
 
-require "cases/helper"
+require File.expand_path('../helper', __FILE__)
 require 'models/post'
 require 'models/author'
 require 'models/developer'

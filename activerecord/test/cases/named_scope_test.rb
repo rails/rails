@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../helper', __FILE__)
 require 'active_support/core_ext/array/random_access'
 require 'models/post'
 require 'models/topic'

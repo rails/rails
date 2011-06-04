@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../../../helper', __FILE__)
 
 class MysqlConnectionTest < ActiveRecord::TestCase
   def setup

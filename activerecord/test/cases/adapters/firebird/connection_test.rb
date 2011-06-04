@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../../../helper', __FILE__)
 
 class FirebirdConnectionTest < ActiveRecord::TestCase
   def test_charset_properly_set

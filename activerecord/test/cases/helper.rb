@@ -1,5 +1,8 @@
 require File.expand_path('../../../../load_paths', __FILE__)
 
+test = File.expand_path('../..', __FILE__)
+$:.unshift(test) unless $:.include?('test') || $:.include?(test)
+
 lib = File.expand_path("#{File.dirname(__FILE__)}/../../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
@@ -11,7 +14,13 @@ require 'mocha'
 
 require 'active_record'
 require 'active_support/dependencies'
-require 'connection'
+
+require 'support/config'
+require 'support/connection'
+
+ARTest.connect
+
+# TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true

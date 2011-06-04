@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../helper', __FILE__)
 
 class TestRecord < ActiveRecord::Base
 end

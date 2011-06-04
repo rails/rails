@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../helper', __FILE__)
 require 'models/tagging'
 require 'models/post'
 require 'models/topic'

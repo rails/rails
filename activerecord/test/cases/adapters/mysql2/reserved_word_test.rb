@@ -1,4 +1,4 @@
-require "cases/helper"
+require File.expand_path('../../../helper', __FILE__)
 
 class Group < ActiveRecord::Base
   Group.table_name = 'group'
