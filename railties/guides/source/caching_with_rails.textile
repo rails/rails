@@ -345,7 +345,7 @@ ActionController::Base.cache_store = MyCacheStore.new
 
 h4. Cache Keys
 
-The keys used in a cache can be any object that responds to either +:cache_key+ or to +:to_param+. You can implement the +:cache_key+ method on your classes if you need to generate custom keys. ActiveRecord will generate keys based on the class name and record id.
+The keys used in a cache can be any object that responds to either +:cache_key+ or to +:to_param+. You can implement the +:cache_key+ method on your classes if you need to generate custom keys. Active Record will generate keys based on the class name and record id.
 
 You can use Hashes and Arrays of values as cache keys.
 
