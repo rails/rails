@@ -456,6 +456,14 @@ class NamedScopeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scopes_to_get_newest
+    post = posts(:welcome)
+    old_last_comment = post.comments.newest
+    new_comment = post.comments.create(:body => "My new comment")
+    assert_equal new_comment, post.comments.newest
+    assert_not_equal old_last_comment, post.comments.newest
+  end
+
   def test_scopes_are_reset_on_association_reload
     post = posts(:welcome)
 
