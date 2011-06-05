@@ -20,8 +20,8 @@ module ActiveResource # :nodoc:
     #  end
     #
     #  The schema stores the name and type of each attribute. That is then
-    #  read out by the schema method to populate the actual
-    #  Resource's schema
+    #  read out by the schema method to populate the schema of the actual
+    #  resource.
     def initialize
       @attrs = {}
     end
@@ -40,6 +40,12 @@ module ActiveResource # :nodoc:
     # The following are the attribute types supported by Active Resource
     # migrations.
     KNOWN_ATTRIBUTE_TYPES.each do |attr_type|
+      # def string(*args)
+      #   options = args.extract_options!
+      #   attr_names = args
+      #
+      #   attr_names.each { |name| attribute(name, 'string', options) }
+      # end
       class_eval <<-EOV, __FILE__, __LINE__ + 1
         def #{attr_type.to_s}(*args)
           options = args.extract_options!
