@@ -417,7 +417,7 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
-  
+
   def test_cookies_hash_is_indifferent_access
       get :symbol_key
       assert_equal "david", cookies[:user_name]
@@ -468,7 +468,54 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_can_set_http_cookie_header
-    @request.env['HTTP_COOKIE'] = "user_name=david"
+    @request.env['HTTP_COOKIE'] = 'user_name=david'
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    @request.env['HTTP_COOKIE'] = 'user_name=andrew'
+    get :noop
+    assert_equal 'andrew', cookies['user_name']
+    assert_equal 'andrew', cookies[:user_name]
+  end
+
+  def test_can_set_request_cookies
+    @request.cookies['user_name'] = 'david'
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    @request.cookies[:user_name] = 'andrew'
+    get :noop
+    assert_equal 'andrew', cookies['user_name']
+    assert_equal 'andrew', cookies[:user_name]
+  end
+
+  def test_cookies_precedence_over_http_cookie
+    @request.env['HTTP_COOKIE'] = 'user_name=andrew'
+    get :authenticate
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+  end
+
+  def test_cookies_precedence_over_request_cookies
+    @request.cookies['user_name'] = 'andrew'
+    get :authenticate
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
     get :noop
     assert_equal 'david', cookies['user_name']
     assert_equal 'david', cookies[:user_name]

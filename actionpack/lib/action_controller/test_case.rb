@@ -182,7 +182,14 @@ module ActionController
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = nil
       @env['action_dispatch.request.query_parameters'] = {}
-      cookie_jar.reset!
+      @set_cookies ||= {}
+      @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
+      deleted_cookies = cookie_jar.instance_variable_get("@delete_cookies")
+      @set_cookies.reject!{ |k,v| deleted_cookies.include?(k) }
+      cookie_jar.update(rack_cookies)
+      cookie_jar.update(cookies)
+      cookie_jar.update(@set_cookies)
+      cookie_jar.recycle!
     end
   end
 

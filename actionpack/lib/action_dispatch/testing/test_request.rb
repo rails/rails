@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'rack/utils'
 
@@ -14,7 +15,6 @@ module ActionDispatch
       env = Rails.application.env_config.merge(env) if defined?(Rails.application)
       super(DEFAULT_ENV.merge(env))
 
-      @cookies = nil
       self.host        = 'test.host'
       self.remote_addr = '0.0.0.0'
       self.user_agent  = 'Rails Testing'
@@ -63,6 +63,12 @@ module ActionDispatch
     def accept=(mime_types)
       @env.delete('action_dispatch.request.accepts')
       @env['HTTP_ACCEPT'] = Array(mime_types).collect { |mime_type| mime_type.to_s }.join(",")
+    end
+
+    alias :rack_cookies :cookies
+
+    def cookies
+      @cookies ||= {}.with_indifferent_access
     end
   end
 end

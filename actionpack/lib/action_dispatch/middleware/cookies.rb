@@ -228,7 +228,7 @@ module ActionDispatch
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
       end
 
-      def reset! #:nodoc:
+      def recycle! #:nodoc:
         @set_cookies.clear
         @delete_cookies.clear
       end
