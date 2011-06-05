@@ -48,7 +48,7 @@ module ActiveRecord
         end
 
         attr_accessor :original_primary_key
-        
+
         # Attribute writer for the primary key column
         def primary_key=(value)
           @quoted_primary_key = nil
