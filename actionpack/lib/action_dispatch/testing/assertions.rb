@@ -8,12 +8,11 @@ module ActionDispatch
 
     extend ActiveSupport::Concern
 
-    included do
-      include DomAssertions
-      include ResponseAssertions
-      include RoutingAssertions
-      include SelectorAssertions
-      include TagAssertions
-    end
+    include DomAssertions
+    include ResponseAssertions
+    include RoutingAssertions
+    include SelectorAssertions
+    include TagAssertions
   end
 end
+
