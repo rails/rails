@@ -43,7 +43,7 @@ class AdapterTest < ActiveRecord::TestCase
 
   def test_current_database
     if @connection.respond_to?(:current_database)
-      assert_equal ENV['ARUNIT_DB_NAME'] || "activerecord_unittest", @connection.current_database
+      assert_equal ARTest.connection_config['arunit']['database'], @connection.current_database
     end
   end
 
@@ -68,7 +68,12 @@ class AdapterTest < ActiveRecord::TestCase
       begin
         assert_nothing_raised do
           ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
-          ActiveRecord::Base.connection.execute "SELECT activerecord_unittest.pirates.*, activerecord_unittest2.courses.* FROM activerecord_unittest.pirates, activerecord_unittest2.courses"
+
+          config = ARTest.connection_config
+          ActiveRecord::Base.connection.execute(
+            "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
+            "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
+          )
         end
       ensure
         ActiveRecord::Base.establish_connection 'arunit'
