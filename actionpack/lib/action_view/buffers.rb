@@ -35,7 +35,7 @@ module ActionView
     def html_safe?
       true
     end
-    
+
     def html_safe
       self
     end

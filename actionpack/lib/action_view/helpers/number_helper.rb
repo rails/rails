@@ -342,7 +342,7 @@ module ActionView
         options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
         storage_units_format = I18n.translate(:'number.human.storage_units.format', :locale => options[:locale], :raise => true)
-        
+
         base = options[:prefix] == :si ? 1000 : 1024
 
         if number.to_i < base
