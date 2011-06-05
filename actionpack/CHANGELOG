@@ -1,4 +1,4 @@
-*Rails 3.1.0 (unreleased)*
+*Rails 3.2.0 (unreleased)*
 
 * Refactor ActionController::TestCase cookies [Andrew White]
 
@@ -17,6 +17,9 @@
   We now no longer write out HTTP_COOKIE and the cookie jar is
   persistent between requests so if you need to manipulate the environment
   for your test you need to do it before the cookie jar is created.
+
+
+*Rails 3.1.0 (unreleased)*
 
 * Added 'ActionView::Helpers::FormHelper.fields_for_with_index', similar to fields_for but allows to have access to the current iteration index [Jorge Bejar]
 
