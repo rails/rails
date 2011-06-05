@@ -4,8 +4,14 @@ class LoadingTest < Test::Unit::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup
+    @prev_rails_env = ENV['RAILS_ENV']
+    ENV['RAILS_ENV'] = 'development'
     build_app
     boot_rails
+  end
+
+  def teardown
+    ENV['RAILS_ENV'] = @prev_rails_env
   end
 
   def app
