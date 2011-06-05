@@ -1,4 +1,5 @@
-require "active_support/core_ext/object/blank"
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/keys'
 
 module ActionDispatch
   class Request
@@ -129,7 +130,7 @@ module ActionDispatch
       end
 
       def update(other_hash)
-        @cookies.update other_hash
+        @cookies.update other_hash.stringify_keys
         self
       end
 
