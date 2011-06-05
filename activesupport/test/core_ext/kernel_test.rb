@@ -60,7 +60,7 @@ class KernelTest < ActiveSupport::TestCase
 
   def test_require_library_or_gem_deprecated
     assert_deprecated do
-      require_library_or_gem 'i18n'
+      require_library_or_gem 'multi_json'
     end
   end
 end
