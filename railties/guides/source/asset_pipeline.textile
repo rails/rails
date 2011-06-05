@@ -20,17 +20,29 @@ The asset pipeline is easy to migrate to and use. There are a few things that yo
 
 h4. Asset Organization
 
-Loads from /app/assets, /lib/assets, /vendor/assets, and your gem's assets
+WIP
+
+Sprockets will automatically load manifest files by searching directories in app/assets and including the first file with a basename of index. (Confirm and add: does it load app/assets/index?)
 
 h4. Directives
 
-require_tree, require, require_self
+WIP
+
+Sprockets, the rails tie that powers the asset pipeline, provides three directives which are like Ruby's methods. They are: +require+, +require_tree+, and +require_self+. These directives must be called at the top of a file in a comment with an equal sign before it. (note: CSS directives need *= if in a continuous comment -- confirm please)  
+
+The require directive loads a file with the supplied basename from the following paths: app/assets/*, lib/assets/*, vendor/assets/*, as well as any of your gem's asset files. 
+
+Require tree does...
+
+Require self does...
 
 h4. Stacking Preprocessors
 
-filename.css.scss not filename.scss.css, how and why
+Sprockets allows you to stack preprocessors. The stack is ran off the file extensions in a last in, first out method (like popping an array). For example if we want to make a JavaScript asset with both CoffeeScript and ERB the file would be named: +name.js.coffee.erb+. If it were named +name.js.erb.coffee+ CoffeeScript would raise an error because it doesn't understand ERB tags. 
 
 h4. Adding a Preproccessor
+
+WIP
 
 https://github.com/rtomayko/tilt for gems or config.register_processor('text/css', MyAwesomeProccessor) for local stuff
 
