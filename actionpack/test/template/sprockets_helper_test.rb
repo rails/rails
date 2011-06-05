@@ -94,6 +94,9 @@ class SprocketsHelperTest < ActionView::TestCase
 
     assert_equal "<script src=\"/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js?body=1\" type=\"text/javascript\"></script>\n<script src=\"/assets/application-d41d8cd98f00b204e9800998ecf8427e.js?body=1\" type=\"text/javascript\"></script>",
       javascript_include_tag(:application, :debug => true)
+
+    assert_equal  "<script src=\"/assets/xmlhr-d41d8cd98f00b204e9800998ecf8427e.js\" type=\"text/javascript\"></script>\n<script src=\"/assets/extra-d41d8cd98f00b204e9800998ecf8427e.js\" type=\"text/javascript\"></script>",
+      javascript_include_tag("xmlhr", "extra")
   end
 
   test "stylesheet path" do
@@ -127,5 +130,8 @@ class SprocketsHelperTest < ActionView::TestCase
 
     assert_equal "<link href=\"/assets/style-d41d8cd98f00b204e9800998ecf8427e.css?body=1\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n<link href=\"/assets/application-68b329da9893e34099c7d8ad5cb9c940.css?body=1\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />",
       stylesheet_link_tag(:application, :debug => true)
+
+    assert_equal "<link href=\"/assets/style-d41d8cd98f00b204e9800998ecf8427e.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n<link href=\"/assets/extra-d41d8cd98f00b204e9800998ecf8427e.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />",
+      stylesheet_link_tag("style", "extra")
   end
 end
