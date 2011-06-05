@@ -55,6 +55,8 @@ class AddReceiveNewsletterToUsers < ActiveRecord::Migration
 end
 </ruby>
 
+NOTE: Some "caveats":#using-models-in-your-migrations apply to using models in your migrations.
+
 This migration adds a +receive_newsletter+ column to the +users+ table. We want it to default to +false+ for new users, but existing users are considered
 to have already opted in, so we use the User model to set the flag to +true+ for existing users.
 
@@ -73,11 +75,9 @@ class CreateProducts < ActiveRecord::Migration
 end
 </ruby>
 
-NOTE: Some "caveats":#using-models-in-your-migrations apply to using models in your migrations.
-
 h4. Migrations are Classes
 
-A migration is a subclass of <tt>ActiveRecord::Migration</tt> that implements two class methods: +up+ (perform the required transformations) and +down+ (revert them).
+A migration is a subclass of <tt>ActiveRecord::Migration</tt> that implements two methods: +up+ (perform the required transformations) and +down+ (revert them).
 
 Active Record provides methods that perform common data definition tasks in a database independent way (you'll read about them in detail later):
 
@@ -115,7 +115,7 @@ h4. Changing Migrations
 
 Occasionally you will make a mistake when writing a migration. If you have already run the migration then you cannot just edit the migration and run the migration again: Rails thinks it has already run the migration and so will do nothing when you run +rake db:migrate+. You must rollback the migration (for example with +rake db:rollback+), edit your migration and then run +rake db:migrate+ to run the corrected version.
 
-In general editing existing migrations is not a good idea: you will be creating extra work for yourself and your co-workers and cause major headaches if the existing version of the migration has already been run on production machines. Instead you should write a new migration that performs the changes you require. Editing a freshly generated migration that has not yet been committed to source control (or more generally which has not been propagated beyond your development machine) is relatively harmless. Just use some common sense.
+In general editing existing migrations is not a good idea: you will be creating extra work for yourself and your co-workers and cause major headaches if the existing version of the migration has already been run on production machines. Instead you should write a new migration that performs the changes you require. Editing a freshly generated migration that has not yet been committed to source control (or more generally which has not been propagated beyond your development machine) is relatively harmless.
 
 h3. Creating a Migration
 
