@@ -85,7 +85,7 @@ module RailtiesTest
       assert !$ran_block
       require 'rake'
       require 'rake/testtask'
-      require 'rake/rdoctask'
+      require 'rdoc/task'
 
       AppTemplate::Application.load_tasks
       assert $ran_block
