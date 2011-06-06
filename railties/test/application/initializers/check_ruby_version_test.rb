@@ -9,6 +9,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "rails initializes with ruby 1.8.7 or later, except for 1.9.1" do
       if RUBY_VERSION < '1.8.7'
         assert_rails_does_not_boot

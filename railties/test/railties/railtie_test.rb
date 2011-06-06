@@ -11,6 +11,10 @@ module RailtiesTest
       require "rails/all"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app
       @app ||= Rails.application
     end

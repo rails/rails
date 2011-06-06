@@ -9,6 +9,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app_const
       @app_const ||= Class.new(Rails::Application)
     end

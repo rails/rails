@@ -9,6 +9,10 @@ module ApplicationTests
       # boot_rails
     end
 
+    def teardown
+      # teardown_app
+    end
+
     test "booting rails sets the load paths correctly" do
       # This test is pending reworking the boot process
     end

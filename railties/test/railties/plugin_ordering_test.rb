@@ -12,6 +12,10 @@ module RailtiesTest
       plugin "c_plugin", "$arr << :c"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def boot_rails
       super
       require "#{app_path}/config/environment"
