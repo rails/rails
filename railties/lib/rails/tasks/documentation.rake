@@ -1,4 +1,8 @@
-require 'rdoc/task'
+begin
+  require 'rdoc/task'
+rescue LoadError
+  require 'rake/rdoctask'
+end
 
 # Monkey-patch to remove redoc'ing and clobber descriptions to cut down on rake -T noise
 class RDocTaskWithoutDescriptions < RDoc::Task

@@ -2,7 +2,11 @@ gem 'rdoc', '>= 2.5.10'
 require 'rdoc'
 
 require 'rake'
-require 'rdoc/task'
+begin
+  require 'rdoc/task'
+rescue LoadError
+  require 'rake/rdoctask'
+end
 
 $:.unshift File.expand_path('..', __FILE__)
 require "tasks/release"
