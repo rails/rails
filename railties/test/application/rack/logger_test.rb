@@ -14,6 +14,10 @@ module ApplicationTests
         super
       end
 
+      def teardown
+        teardown_app
+      end
+
       def logs
         @logs ||= @logger.logged(:info)
       end

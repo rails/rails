@@ -11,6 +11,10 @@ module ApplicationTests
       extend Rack::Test::Methods
     end
 
+    def teardown
+      teardown_app
+    end
+
     def simple_controller
       controller :expires, <<-RUBY
         class ExpiresController < ApplicationController

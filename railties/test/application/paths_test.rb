@@ -20,6 +20,10 @@ module ApplicationTests
       @paths = Rails.application.config.paths
     end
 
+    def teardown
+      teardown_app
+    end
+
     def root(*path)
       app_path(*path).to_s
     end

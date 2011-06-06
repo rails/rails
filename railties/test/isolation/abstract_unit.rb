@@ -91,6 +91,8 @@ module TestHelpers
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
+      @prev_rails_env = ENV.delete('RAILS_ENV')
+
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(tmp_path('app_template'), app_path)
 
@@ -113,6 +115,10 @@ module TestHelpers
       end
 
       add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"; config.active_support.deprecation = :log'
+    end
+
+    def teardown_app
+      ENV['RAILS_ENV'] = @prev_rails_env if @prev_rails_env
     end
 
     # Make a very basic app, without creating the whole directory structure.
