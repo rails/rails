@@ -561,6 +561,10 @@ rake tmp:sessions:clear                   # Clears all files in tmp/sessions
 rake tmp:sockets:clear                    # Clears all files in tmp/sockets
 </shell>
 
+h5. +assets:+ Assets
+
+You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove compiled assets using <tt>rake assets:clean</tt>.
+
 h5. +db:+ Database
 
 The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
