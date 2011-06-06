@@ -264,7 +264,7 @@ When working with documentation, please take into account the "API Documentation
 
 NOTE: As explained above, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
 
-WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails.
+WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
 If you have an idea for a new guide you can refer to the "contribution page":contribute.html for instructions on getting involved.
 
