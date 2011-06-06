@@ -91,7 +91,7 @@ connections:
     arunit2:
       username: admin
 
-  oracle_enhanced:
+  oracle:
      arunit:
        adapter: oracle_enhanced
        database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
