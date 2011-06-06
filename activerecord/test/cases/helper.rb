@@ -1,11 +1,5 @@
 require File.expand_path('../../../../load_paths', __FILE__)
 
-test = File.expand_path('../..', __FILE__)
-$:.unshift(test) unless $:.include?('test') || $:.include?(test)
-
-lib = File.expand_path("#{File.dirname(__FILE__)}/../../lib")
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
-
 require 'config'
 
 require 'test/unit'
