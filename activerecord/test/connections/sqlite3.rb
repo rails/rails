@@ -1,1 +1,0 @@
-ENV['ARCONN'] = 'sqlite3'
