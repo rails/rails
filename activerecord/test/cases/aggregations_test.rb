@@ -1,4 +1,4 @@
-require File.expand_path('../helper', __FILE__)
+require "cases/helper"
 require 'models/customer'
 require 'active_support/core_ext/exception'
 
