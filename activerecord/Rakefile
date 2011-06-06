@@ -68,7 +68,7 @@ end
     task :isolated_test => "isolated_test_#{adapter}"
 
     # Set the connection environment for the adapter
-    task :env { ENV['ARCONN'] = adapter }
+    task(:env) { ENV['ARCONN'] = adapter }
   end
 
   # Make sure the adapter test evaluates the env setting task
