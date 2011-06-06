@@ -11,6 +11,10 @@ module ApplicationTests
       require "rails/all"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def load_app
       require "#{app_path}/config/environment"
     end

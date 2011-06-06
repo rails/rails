@@ -11,14 +11,12 @@ module ApplicationTests
     end
 
     def setup
-      @prev_rails_env = ENV['RAILS_ENV']
-      ENV['RAILS_ENV'] = 'development'
       build_app
       boot_rails
     end
 
     def teardown
-      ENV['RAILS_ENV'] = @prev_rails_env
+      teardown_app
     end
 
     test "rails app is present" do

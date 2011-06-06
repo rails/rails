@@ -10,6 +10,10 @@ module ApplicationTests
       FileUtils.rm_rf("#{app_path}/config/environments")
     end
 
+    def teardown
+      teardown_app
+    end
+
     def test_gems_tasks_are_loaded_first_than_application_ones
       app_file "lib/tasks/app.rake", <<-RUBY
         $task_loaded = Rake::Task.task_defined?("db:create:all")

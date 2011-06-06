@@ -10,6 +10,10 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "load initializers" do
       app_file "config/initializers/foo.rb", "$foo = true"
       require "#{app_path}/config/environment"

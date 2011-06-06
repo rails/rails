@@ -15,6 +15,10 @@ module RailtiesTest
       end
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "Rails::Plugin itself does not respond to config" do
       boot_rails
       assert !Rails::Plugin.respond_to?(:config)

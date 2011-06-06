@@ -9,6 +9,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     def instrument(*args, &block)
       ActiveSupport::Notifications.instrument(*args, &block)
     end

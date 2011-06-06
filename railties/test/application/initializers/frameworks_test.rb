@@ -5,15 +5,13 @@ module ApplicationTests
     include ActiveSupport::Testing::Isolation
 
     def setup
-      @prev_rails_env = ENV['RAILS_ENV']
-      ENV['RAILS_ENV'] = 'development'
       build_app
       boot_rails
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
     def teardown
-      ENV['RAILS_ENV'] = @prev_rails_env
+      teardown_app
     end
 
     # AC & AM
