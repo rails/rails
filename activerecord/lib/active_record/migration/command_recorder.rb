@@ -50,9 +50,9 @@ module ActiveRecord
 
       [:create_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args)
-            record(:"#{method}", args)
-          end
+          def #{method}(*args)          # def create_table(*args)
+            record(:"#{method}", args)  #   record(:create_table, args)
+          end                           # end
         EOV
       end
 
