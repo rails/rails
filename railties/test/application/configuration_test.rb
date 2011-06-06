@@ -36,9 +36,6 @@ module ApplicationTests
 
     def teardown
       teardown_app
-    end
-
-    def teardown
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
