@@ -11,6 +11,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def setup
     @developer = Developer.first
+    @developer.update_attribute(:updated_at, Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
   end
 
