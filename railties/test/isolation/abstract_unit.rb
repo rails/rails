@@ -91,7 +91,8 @@ module TestHelpers
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
-      @prev_rails_env = ENV.delete('RAILS_ENV')
+      @prev_rails_env = ENV['RAILS_ENV']
+      ENV['RAILS_ENV'] = 'development'
 
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(tmp_path('app_template'), app_path)
