@@ -29,25 +29,37 @@ module EngineTests
     def engine_path
       tmp_path('foo_bar')
     end
-    
-    def build_engine
-      FileUtils.mkdir_p(engine_path)
-      FileUtils.rm_r(engine_path)
+
+    def rails(cmd)
       environment = File.expand_path('../../../../load_paths', __FILE__)
       if File.exist?("#{environment}.rb")
         require_environment = "-r #{environment}"
       end
-      `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/bin/rails plugin new #{engine_path} --full --mountable`
+      `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/bin/rails #{cmd}`
+    end
+    
+    def build_engine
+      FileUtils.mkdir_p(engine_path)
+      FileUtils.rm_r(engine_path)
+      
+      rails("plugin new #{engine_path} --full --mountable")
     end
 
     def setup
       build_engine
     end
     
-    def test_omg
+    def test_controllers_are_correctly_namespaced
       Dir.chdir(engine_path) do
-        `rails g controller topics`
+        rails("g controller topics")
         assert_file "app/controllers/foo_bar/topics_controller.rb"
+      end
+    end
+    
+    def test_models_are_correctly_namespaced
+      Dir.chdir(engine_path) do
+        rails("g model topic")
+        assert_file "app/models/foo_bar/topic.rb"
       end
     end
   end
