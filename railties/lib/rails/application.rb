@@ -3,6 +3,7 @@ require 'active_support/file_update_checker'
 require 'fileutils'
 require 'rails/plugin'
 require 'rails/engine'
+require 'rake'
 
 module Rails
   # In Rails 3.0, a Rails::Application object was introduced which is nothing more than
@@ -34,6 +35,9 @@ module Rails
   # The Application is also responsible for building the middleware stack.
   #
   class Application < Engine
+    # Include Rake::DSL as define the new Rake version, works with oldest versions and required by new versions
+    include Rake::DSL
+    
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
