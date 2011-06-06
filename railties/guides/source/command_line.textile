@@ -339,9 +339,29 @@ $ rails destroy model Oops
     notempty  app
 </shell>
 
-h4. +rake about+
+h3. Rake
 
-Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! +about+ is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'make', and uses a 'Rakefile' and +.rake+ files to build up a list of tasks. In Rails, Rake is used for common administration tasks, especially sophisticated ones that build off of each other.
+
+You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing +rake --tasks+. Each task has a description, and should help you find the thing you need.
+
+<shell>
+$ rake --tasks
+(in /home/foobar/commandsapp)
+rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
+rake db:charset                           # Retrieves the charset for the current environment's database
+rake db:collation                         # Retrieves the collation for the current environment's database
+rake db:create                            # Create the database defined in config/database.yml for the current Rails.env
+...
+...
+rake tmp:pids:clear                       # Clears all files in tmp/pids
+rake tmp:sessions:clear                   # Clears all files in tmp/sessions
+rake tmp:sockets:clear                    # Clears all files in tmp/sockets
+</shell>
+
+h4. +about+
+
+<tt>rake about</tt> gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 <shell>
 $ rake about
@@ -359,6 +379,44 @@ Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rai
 Application root          /home/foobar/commandsapp
 Environment               development
 </shell>
+
+h4. +assets+
+
+You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove compiled assets using <tt>rake assets:clean</tt>.
+
+h4. +db+
+
+The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
+
+h4. +doc+
+
+If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
+
+h4. +notes+
+
+These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
+
+h4. +routes+
+
++rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
+
+h4. +test+
+
+INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
+
+Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should.
+
+The +test:+ namespace helps in running the different tests you will (hopefully!) write.
+
+h4. +tmp+
+
+The <tt>Rails.root/tmp</tt> directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of deletions gone awry.
+
+h4. Miscellaneous
+
+* +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
+* +rake secret+ will give you a pseudo-random key to use for your session secret.
+* <tt>rake time:zones:all</tt> lists all the timezones Rails knows about.
 
 h3. The Rails Advanced Command Line
 
@@ -540,64 +598,3 @@ I got assigned some args:
 </shell>
 
 Tada!
-
-h4. Rake is Ruby Make
-
-Rake is a standalone Ruby utility that replaces the Unix utility 'make', and uses a 'Rakefile' and +.rake+ files to build up a list of tasks. In Rails, Rake is used for common administration tasks, especially sophisticated ones that build off of each other.
-
-You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing +rake --tasks+. Each task has a description, and should help you find the thing you need.
-
-<shell>
-$ rake --tasks
-(in /home/foobar/commandsapp)
-rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
-rake db:charset                           # Retrieves the charset for the current environment's database
-rake db:collation                         # Retrieves the collation for the current environment's database
-rake db:create                            # Create the database defined in config/database.yml for the current Rails.env
-...
-...
-rake tmp:pids:clear                       # Clears all files in tmp/pids
-rake tmp:sessions:clear                   # Clears all files in tmp/sessions
-rake tmp:sockets:clear                    # Clears all files in tmp/sockets
-</shell>
-
-h5. +assets:+ Assets
-
-You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove compiled assets using <tt>rake assets:clean</tt>.
-
-h5. +db:+ Database
-
-The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
-
-h5. +doc:+ Documentation
-
-If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
-
-h5. +notes:+ Code note enumeration
-
-These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
-
-h5. +test:+ Rails tests
-
-INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
-
-Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should.
-
-The +test:+ namespace helps in running the different tests you will (hopefully!) write.
-
-h5. +time:+ Timezones
-
-You can list all the timezones Rails knows about with +rake time:zones:all+, which is useful just in day-to-day life.
-
-h5. +tmp:+ Temporary files
-
-The tmp directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of deletions gone awry.
-
-h5. Miscellaneous Tasks
-
- +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
-
- +rake secret+ will give you a pseudo-random key to use for your session secret.
-
- +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
-
