@@ -1,5 +1,5 @@
 require 'thread'
-require File.expand_path('../helper', __FILE__)
+require "cases/helper"
 require 'models/person'
 require 'models/reader'
 require 'models/legacy_thing'

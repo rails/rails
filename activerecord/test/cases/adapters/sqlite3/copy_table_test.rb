@@ -1,4 +1,4 @@
-require File.expand_path('../../../helper', __FILE__)
+require "cases/helper"
 
 class CopyTableTest < ActiveRecord::TestCase
   fixtures :customers, :companies, :comments

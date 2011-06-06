@@ -1,4 +1,4 @@
-require File.expand_path('../helper', __FILE__)
+require "cases/helper"
 require 'models/post'
 require 'models/author'
 require 'models/developer'
