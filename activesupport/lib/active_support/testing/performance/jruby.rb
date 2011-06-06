@@ -1,5 +1,5 @@
 require 'jruby/profiler'
-require 'java' 
+require 'java'
 java_import java.lang.management.ManagementFactory
 
 module ActiveSupport
@@ -12,21 +12,21 @@ module ActiveSupport
           { :metrics => [:wall_time],
             :formats => [:flat, :graph] }
         end).freeze
-      
+
       protected
         def run_gc
           ManagementFactory.memory_mx_bean.gc
-        end   
+        end
 
       class Profiler < Performer
         def initialize(*args)
           super
           @supported = @metric.is_a?(Metrics::WallTime)
         end
-        
+
         def run
           return unless @supported
-          
+
           @total = time_with_block do
             @data = JRuby::Profiler.profile do
               full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
@@ -36,7 +36,7 @@ module ActiveSupport
 
         def record
           return unless @supported
-          
+
           klasses = full_profile_options[:formats].map { |f| JRuby::Profiler.const_get("#{f.to_s.camelize}ProfilePrinter") }.compact
 
           klasses.each do |klass|
@@ -61,7 +61,7 @@ module ActiveSupport
           end
       end
 
-      module Metrics        
+      module Metrics
         class Base
           def profile
             yield
@@ -85,7 +85,7 @@ module ActiveSupport
             ManagementFactory.thread_mx_bean.get_current_thread_cpu_time / 1000 / 1000 / 1000.0 # seconds
           end
         end
-        
+
         class UserTime < Time
           def measure
             ManagementFactory.thread_mx_bean.get_current_thread_user_time / 1000 / 1000 / 1000.0 # seconds
@@ -97,7 +97,7 @@ module ActiveSupport
             ManagementFactory.memory_mx_bean.non_heap_memory_usage.used + ManagementFactory.memory_mx_bean.heap_memory_usage.used
           end
         end
-        
+
         class GcRuns < Amount
           def measure
             ManagementFactory.garbage_collector_mx_beans.inject(0) { |total_runs, current_gc| total_runs += current_gc.collection_count }

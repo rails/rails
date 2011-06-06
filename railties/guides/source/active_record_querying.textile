@@ -483,16 +483,16 @@ SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You
 For example:
 
 <ruby>
-Order.group("date(created_at)").having("created_at > ?", 1.month.ago)
+Order.group("date(created_at)").having("created_at < ?", 1.month.ago)
 </ruby>
 
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at) HAVING created_at > '2009-01-15'
+SELECT * FROM orders GROUP BY date(created_at) HAVING created_at < '2011-04-27'
 </sql>
 
-This will return single order objects for each day, but only for the last month.
+This will return single order objects for each day, but only those that are at least one month old.
 
 h3. Overriding Conditions
 
@@ -675,13 +675,17 @@ class Post < ActiveRecord::Base
   has_many :tags
 end
 
-class Comments < ActiveRecord::Base
+class Comment < ActiveRecord::Base
   belongs_to :post
   has_one :guest
 end
 
 class Guest < ActiveRecord::Base
   belongs_to :comment
+end
+
+class Tag < ActiveRecord::Base
+  belongs_to :post
 end
 </ruby>
 
@@ -700,6 +704,8 @@ SELECT categories.* FROM categories
   INNER JOIN posts ON posts.category_id = categories.id
 </sql>
 
+Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:post).select("distinct(categories.id)"). 
+
 h5. Joining Multiple Associations
 
 <ruby>
@@ -714,17 +720,39 @@ SELECT posts.* FROM posts
   INNER JOIN comments ON comments.post_id = posts.id
 </sql>
 
+Or, in English: "return all posts that have a category and at least one comment". Note again that posts with multiple comments will show up multiple times.
+
 h5. Joining Nested Associations (Single Level)
 
 <ruby>
 Post.joins(:comments => :guest)
 </ruby>
 
+This produces:
+
+<sql>
+SELECT posts.* FROM posts
+  INNER JOIN comments ON comments.post_id = posts.id
+  INNER JOIN guests ON guests.comment_id = comments.id
+</sql>
+
+Or, in English: "return all posts that have a comment made by a guest."
+
 h5. Joining Nested Associations (Multiple Level)
 
 <ruby>
 Category.joins(:posts => [{:comments => :guest}, :tags])
 </ruby>
+
+This produces:
+
+<sql>
+SELECT categories.* FROM categories
+  INNER JOIN posts ON posts.category_id = categories.id
+  INNER JOIN comments ON comments.post_id = posts.id
+  INNER JOIN guests ON guests.comment_id = comments.id
+  INNER JOIN tags ON tags.post_id = posts.id
+</sql>
 
 h4. Specifying Conditions on the Joined Tables
 

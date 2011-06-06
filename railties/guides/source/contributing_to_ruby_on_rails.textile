@@ -24,7 +24,7 @@ If you've found a problem in Ruby on Rails which is not a security risk do a sea
 
 At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need to at least post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
 
-Then don't get your hopes up. Unless you have a "Code Red, Mission Critical, The World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating a issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with a "I'm having this problem too" comment.
+Then don't get your hopes up. Unless you have a "Code Red, Mission Critical, The World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with a "I'm having this problem too" comment.
 
 h4. Special Treatment for Security Issues
 
@@ -90,7 +90,7 @@ This command will install all dependencies except the MySQL and PostgreSQL Ruby 
 $ rake test
 </shell>
 
-You can also run tests for an specific framework, like Action Pack, by going into its directory and executing the same command:
+You can also run tests for a specific framework, like Action Pack, by going into its directory and executing the same command:
 
 <shell>
 $ cd actionpack
@@ -309,7 +309,7 @@ Rails follows a simple set of coding style conventions.
 * a = b and not a=b.
 * Follow the conventions you see used in the source already.
 
-These are some guidelines and please use your best judgement in using them.
+These are some guidelines and please use your best judgment in using them.
 
 h4. Sanity Check
 

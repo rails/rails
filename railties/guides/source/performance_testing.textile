@@ -276,7 +276,7 @@ measurement,created_at,app,rails,ruby,platform
 
 h5(#output-profiling). Profiling
 
-In profiling mode, performance tests can generate multiple types of outputs. The command line output is always presented but support for the others is dependant on the interpreter in use. A brief description of each type and their availability across interpreters is given below.
+In profiling mode, performance tests can generate multiple types of outputs. The command line output is always presented but support for the others is dependent on the interpreter in use. A brief description of each type and their availability across interpreters is given below.
 
 h6. Command Line
 

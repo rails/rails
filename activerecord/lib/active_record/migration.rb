@@ -53,7 +53,7 @@ module ActiveRecord
   #
   # This migration will add a boolean flag to the accounts table and remove it
   # if you're backing out of the migration. It shows how all migrations have
-  # two class methods +up+ and +down+ that describes the transformations
+  # two methods +up+ and +down+ that describes the transformations
   # required to implement or remove the migration. These methods can consist
   # of both the migration specific methods like add_column and remove_column,
   # but may also contain regular Ruby code for generating data needed for the

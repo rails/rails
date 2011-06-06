@@ -55,7 +55,7 @@ INFO: This output will seem very familiar when we get to the +generate+ command.
 
 h4. +rails server+
 
-Let's try it! The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
+The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
 
 INFO: WEBrick isn't your only option for serving Rails. We'll get to that in a later section.
 
@@ -65,7 +65,7 @@ Without any prodding of any kind, +rails server+ will run our new shiny Rails ap
 $ cd commandsapp
 $ rails server
 => Booting WEBrick
-=> Rails 3.0.0 application starting in development on http://0.0.0.0:3000
+=> Rails 3.1.0 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
 [2010-04-18 03:20:33] INFO  WEBrick 1.3.1
@@ -74,6 +74,8 @@ $ rails server
 </shell>
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic Rails app running.
+
+You can also use the alias "s" to start the server: <tt>rails s</tt>.
 
 h4. +rails generate+
 
@@ -237,7 +239,7 @@ dependency  model
     create    test/unit/high_score_test.rb
     create    test/fixtures/high_scores.yml
     exists    db/migrate
-    create    db/migrate/20081217071914_create_high_scores.rb
+    create    db/migrate/20100209025147_create_high_scores.rb
 </shell>
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the +high_scores+ table and fields), takes care of the route for the *resource*, and new tests for everything.
@@ -267,11 +269,13 @@ h4. +rails console+
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
+You can also use the alias "c" to invoke the console: <tt>rails c</tt>.
+
 If you wish to test out some code without changing any data, you can do that by invoking +rails console --sandbox+.
 
 <shell>
 $ rails console --sandbox
-Loading development environment in sandbox (Rails 3.0.0)
+Loading development environment in sandbox (Rails 3.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 </shell>
@@ -279,6 +283,8 @@ irb(main):001:0>
 h4. +rails dbconsole+
 
 +rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
+
+You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
 h4. +rails plugin+
 
@@ -306,7 +312,7 @@ $ rails runner "Model.long_running_method"
 
 h4. +rails destroy+
 
-Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it. Believe you-me, the creation of this tutorial used this command many times!
+Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it.
 
 <shell>
 $ rails generate model Oops
@@ -333,9 +339,29 @@ $ rails destroy model Oops
     notempty  app
 </shell>
 
-h4. +rake about+
+h3. Rake
 
-Check it: Version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version! +about+ is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'make', and uses a 'Rakefile' and +.rake+ files to build up a list of tasks. In Rails, Rake is used for common administration tasks, especially sophisticated ones that build off of each other.
+
+You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing +rake --tasks+. Each task has a description, and should help you find the thing you need.
+
+<shell>
+$ rake --tasks
+(in /home/foobar/commandsapp)
+rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
+rake db:charset                           # Retrieves the charset for the current environment's database
+rake db:collation                         # Retrieves the collation for the current environment's database
+rake db:create                            # Create the database defined in config/database.yml for the current Rails.env
+...
+...
+rake tmp:pids:clear                       # Clears all files in tmp/pids
+rake tmp:sessions:clear                   # Clears all files in tmp/sessions
+rake tmp:sockets:clear                    # Clears all files in tmp/sockets
+</shell>
+
+h4. +about+
+
+<tt>rake about</tt> gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 <shell>
 $ rake about
@@ -343,16 +369,54 @@ About your application's environment
 Ruby version              1.8.7 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.1
-Rails version             3.0.0
-Active Record version     3.0.0
-Action Pack version       3.0.0
-Active Resource version   3.0.0
-Action Mailer version     3.0.0
-Active Support version    3.0.0
+Rails version             3.1.0
+Active Record version     3.1.0
+Action Pack version       3.1.0
+Active Resource version   3.1.0
+Action Mailer version     3.1.0
+Active Support version    3.1.0
 Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::RemoteIp, Rack::Sendfile, ActionDispatch::Callbacks, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::MethodOverride, ActionDispatch::Head
 Application root          /home/foobar/commandsapp
 Environment               development
 </shell>
+
+h4. +assets+
+
+You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove compiled assets using <tt>rake assets:clean</tt>.
+
+h4. +db+
+
+The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
+
+h4. +doc+
+
+If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
+
+h4. +notes+
+
+These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
+
+h4. +routes+
+
++rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
+
+h4. +test+
+
+INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
+
+Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should.
+
+The +test:+ namespace helps in running the different tests you will (hopefully!) write.
+
+h4. +tmp+
+
+The <tt>Rails.root/tmp</tt> directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of deletions gone awry.
+
+h4. Miscellaneous
+
+* +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
+* +rake secret+ will give you a pseudo-random key to use for your session secret.
+* <tt>rake time:zones:all</tt> lists all the timezones Rails knows about.
 
 h3. The Rails Advanced Command Line
 
@@ -437,7 +501,7 @@ Successfully installed mongrel-1.1.5
 Installing RDoc documentation for mongrel-1.1.5...
 $ rails server mongrel
 => Booting Mongrel (use 'rails server webrick' to force WEBrick)
-=> Rails 3.0.0 application starting on http://0.0.0.0:3000
+=> Rails 3.1.0 application starting on http://0.0.0.0:3000
 ...
 </shell>
 
@@ -534,60 +598,3 @@ I got assigned some args:
 </shell>
 
 Tada!
-
-h4. Rake is Ruby Make
-
-Rake is a standalone Ruby utility that replaces the Unix utility 'make', and uses a 'Rakefile' and +.rake+ files to build up a list of tasks. In Rails, Rake is used for common administration tasks, especially sophisticated ones that build off of each other.
-
-You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing +rake --tasks+. Each task has a description, and should help you find the thing you need.
-
-<shell>
-$ rake --tasks
-(in /home/foobar/commandsapp)
-rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
-rake db:charset                           # Retrieves the charset for the current environment's database
-rake db:collation                         # Retrieves the collation for the current environment's database
-rake db:create                            # Create the database defined in config/database.yml for the current Rails.env
-...
-...
-rake tmp:pids:clear                       # Clears all files in tmp/pids
-rake tmp:sessions:clear                   # Clears all files in tmp/sessions
-rake tmp:sockets:clear                    # Clears all files in tmp/sockets
-</shell>
-
-h5. +db:+ Database
-
-The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
-
-h5. +doc:+ Documentation
-
-If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
-
-h5. +notes:+ Code note enumeration
-
-These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
-
-h5. +test:+ Rails tests
-
-INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
-
-Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should.
-
-The +test:+ namespace helps in running the different tests you will (hopefully!) write.
-
-h5. +time:+ Timezones
-
-You can list all the timezones Rails knows about with +rake time:zones:all+, which is useful just in day-to-day life.
-
-h5. +tmp:+ Temporary files
-
-The tmp directory is, like in the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of deletions gone awry.
-
-h5. Miscellaneous Tasks
-
- +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
-
- +rake secret+ will give you a pseudo-random key to use for your session secret.
-
- +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
-

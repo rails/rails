@@ -106,7 +106,7 @@ module ActionController
 
       module ControllerMethods
         extend ActiveSupport::Concern
-        
+
         module ClassMethods
           def http_basic_authenticate_with(options = {})
             before_filter(options.except(:name, :password, :realm)) do
@@ -116,7 +116,7 @@ module ActionController
             end
           end
         end
-        
+
         def authenticate_or_request_with_http_basic(realm = "Application", &login_procedure)
           authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm)
         end
