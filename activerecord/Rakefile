@@ -50,7 +50,6 @@ end
 
     t.verbose = true
     t.warning = true
-    t.ruby_opts = ["-r#{File.expand_path('../', __FILE__)}/test/connections/#{adapter}"]
   }
 
   task "isolated_test_#{adapter}" do
@@ -67,7 +66,13 @@ end
   namespace adapter do
     task :test => "test_#{adapter}"
     task :isolated_test => "isolated_test_#{adapter}"
+
+    # Set the connection environment for the adapter
+    task :env { ENV['ARCONN'] = adapter }
   end
+
+  # Make sure the adapter test evaluates the env setting task
+  task "test_#{adapter}" => "#{adapter}:env"
 end
 
 rule '.sqlite3' do |t|
