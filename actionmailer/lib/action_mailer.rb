@@ -43,6 +43,7 @@ module ActionMailer
   autoload :Collector
   autoload :Base
   autoload :DeliveryMethods
+  autoload :MailBagHelper, "action_mailer/mail_bag"
   autoload :MailHelper
   autoload :TestCase
   autoload :TestHelper

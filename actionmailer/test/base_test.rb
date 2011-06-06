@@ -393,7 +393,6 @@ class BaseTest < ActiveSupport::TestCase
     assert_respond_to BaseMailer, :welcome
     assert_respond_to BaseMailer, :implicit_multipart
     assert !BaseMailer.respond_to?(:mail)
-    assert !BaseMailer.respond_to?(:headers)
   end
 
   test "calling just the action should return the generated mail object" do
@@ -406,8 +405,8 @@ class BaseTest < ActiveSupport::TestCase
   test "calling deliver on the action should deliver the mail object" do
     BaseMailer.deliveries.clear
     BaseMailer.expects(:deliver_mail).once
-    mail = BaseMailer.welcome.deliver
-    assert_instance_of Mail::Message, mail
+    mails = BaseMailer.welcome.deliver
+    assert_instance_of Mail::Message, mails[0]
   end
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
@@ -426,29 +425,29 @@ class BaseTest < ActiveSupport::TestCase
 
   # Rendering
   test "you can specify a different template for implicit render" do
-    mail = BaseMailer.implicit_different_template('implicit_multipart').deliver
-    assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
-    assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
+    mails = BaseMailer.implicit_different_template('implicit_multipart').deliver
+    assert_equal("HTML Implicit Multipart", mails[0].html_part.body.decoded)
+    assert_equal("TEXT Implicit Multipart", mails[0].text_part.body.decoded)
   end
 
   test "you can specify a different template for explicit render" do
-    mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver
-    assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
-    assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
+    mails = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver
+    assert_equal("HTML Explicit Multipart Templates", mails[0].html_part.body.decoded)
+    assert_equal("TEXT Explicit Multipart Templates", mails[0].text_part.body.decoded)
   end
 
   test "you can specify a different layout" do
-    mail = BaseMailer.different_layout('different_layout').deliver
-    assert_equal("HTML -- HTML", mail.html_part.body.decoded)
-    assert_equal("PLAIN -- PLAIN", mail.text_part.body.decoded)
+    mails = BaseMailer.different_layout('different_layout').deliver
+    assert_equal("HTML -- HTML", mails[0].html_part.body.decoded)
+    assert_equal("PLAIN -- PLAIN", mails[0].text_part.body.decoded)
   end
 
   test "you can specify the template path for implicit lookup" do
-    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver
-    assert_equal("Welcome from another path", mail.body.encoded)
+    mails = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver
+    assert_equal("Welcome from another path", mails[0].body.encoded)
 
-    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver
-    assert_equal("Welcome from another path", mail.body.encoded)
+    mails = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver
+    assert_equal("Welcome from another path", mails[0].body.encoded)
   end
 
   test "assets tags should use ActionMailer's asset_host settings" do
@@ -486,22 +485,22 @@ class BaseTest < ActiveSupport::TestCase
   test "you can register an observer to the mail object that gets informed on email delivery" do
     ActionMailer::Base.register_observer(MyObserver)
     mail = BaseMailer.welcome
-    MyObserver.expects(:delivered_email).with(mail)
+    MyObserver.expects(:delivered_email).with(mail.mails.first)
     mail.deliver
   end
 
   test "you can register an observer using its stringified name to the mail object that gets informed on email delivery" do
     ActionMailer::Base.register_observer("BaseTest::MyObserver")
     mail = BaseMailer.welcome
-    MyObserver.expects(:delivered_email).with(mail)
+    MyObserver.expects(:delivered_email).with(mail.mails.first)
     mail.deliver
   end
 
   test "you can register multiple observers to the mail object that both get informed on email delivery" do
     ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
     mail = BaseMailer.welcome
-    MyObserver.expects(:delivered_email).with(mail)
-    MySecondObserver.expects(:delivered_email).with(mail)
+    MyObserver.expects(:delivered_email).with(mail.mails.first)
+    MySecondObserver.expects(:delivered_email).with(mail.mails.first)
     mail.deliver
   end
 
@@ -518,22 +517,22 @@ class BaseTest < ActiveSupport::TestCase
   test "you can register an interceptor to the mail object that gets passed the mail object before delivery" do
     ActionMailer::Base.register_interceptor(MyInterceptor)
     mail = BaseMailer.welcome
-    MyInterceptor.expects(:delivering_email).with(mail)
+    MyInterceptor.expects(:delivering_email).with(mail.mails.first)
     mail.deliver
   end
 
   test "you can register an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
     ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
     mail = BaseMailer.welcome
-    MyInterceptor.expects(:delivering_email).with(mail)
+    MyInterceptor.expects(:delivering_email).with(mail.mails.first)
     mail.deliver
   end
 
   test "you can register multiple interceptors to the mail object that both get passed the mail object before delivery" do
     ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
     mail = BaseMailer.welcome
-    MyInterceptor.expects(:delivering_email).with(mail)
-    MySecondInterceptor.expects(:delivering_email).with(mail)
+    MyInterceptor.expects(:delivering_email).with(mail.mails.first)
+    MySecondInterceptor.expects(:delivering_email).with(mail.mails.first)
     mail.deliver
   end
 

@@ -101,18 +101,18 @@ class MailDeliveryTest < ActiveSupport::TestCase
   end
 
   test "delivery method can be customized per instance" do
-    email = DeliveryMailer.welcome.deliver
-    assert_instance_of Mail::SMTP, email.delivery_method
-    email = DeliveryMailer.welcome(:delivery_method => :test).deliver
-    assert_instance_of Mail::TestMailer, email.delivery_method
+    emails = DeliveryMailer.welcome.deliver
+    assert_instance_of Mail::SMTP, emails[0].delivery_method
+    emails = DeliveryMailer.welcome(:delivery_method => :test).deliver
+    assert_instance_of Mail::TestMailer, emails[0].delivery_method
   end
 
   test "delivery method can be customized in subclasses not changing the parent" do
     DeliveryMailer.delivery_method = :test
     assert_equal :smtp, ActionMailer::Base.delivery_method
     $BREAK = true
-    email = DeliveryMailer.welcome.deliver
-    assert_instance_of Mail::TestMailer, email.delivery_method
+    emails = DeliveryMailer.welcome.deliver
+    assert_instance_of Mail::TestMailer, emails[0].delivery_method
   end
 
   test "non registered delivery methods raises errors" do

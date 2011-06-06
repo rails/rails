@@ -1,6 +1,18 @@
 *Rails 3.1.0 (unreleased)*
 
-* No changes
+* Add MailBag to Action Mailer to handling bulk mailing and chaining method [Prem Sichnaugrist]
+
+  MailBag gives you the ability to bulk mailing to multiple users. Instead of having to call the mailer multiple time, you can now pass the list of emails to it like this:
+
+      Notification.plan_expire.to_bulk(@users.map(&:email)).deliver
+
+  You could also modify the headers of your E-Mail at runtime by do a chaining, just like Active Record's scope.
+
+      Notification.plan_expire.subject("Your plan is expired!").deliver
+
+  Please note that calling your mailer's method will now always returning a MailBag object. This is only for method chaining, and you can always call another methods such as #deliver on it as normal. The only gotcha would be the resulting object after you call #deliver will now always be an array.
+
+  You can also get the normal Mail::Message objects before delivery by calling #mails method on the MailBag instance. This will be helpful when you're performing a test.
 
 
 *Rails 3.0.7 (April 18, 2011)*

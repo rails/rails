@@ -331,6 +331,7 @@ module ActionMailer #:nodoc:
     include AbstractController::Helpers
     include AbstractController::Translation
     include AbstractController::AssetPaths
+    include ActionMailer::MailBagHelper
 
     self.protected_instance_variables = %w(@_action_has_layout)
 
@@ -434,7 +435,7 @@ module ActionMailer #:nodoc:
 
       def method_missing(method, *args) #:nodoc:
         return super unless respond_to?(method)
-        new(method, *args).message
+        MailBag.new(self).public_send(method, *args)
       end
     end
 
