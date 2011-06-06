@@ -912,20 +912,20 @@ h4. Creating an Object
 * +before_validation+
 * +after_validation+
 * +before_save+
-* +after_save+
 * +before_create+
 * +around_create+
 * +after_create+
+* +after_save+
 
 h4. Updating an Object
 
 * +before_validation+
 * +after_validation+
 * +before_save+
-* +after_save+
 * +before_update+
 * +around_update+
 * +after_update+
+* +after_save+
 
 h4. Destroying an Object
 
