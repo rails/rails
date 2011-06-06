@@ -54,22 +54,22 @@ module Sprockets
       env.static_root = File.join(app.root.join("public"), assets.prefix)
       env.paths.concat assets.paths
       env.logger = Rails.logger
-      env.js_compressor = expand_js_compressor(assets.js_compressor) if assets.compress
+      env.js_compressor = expand_js_compressor(assets.js_compressor, assets.js_compressor_options || {}) if assets.compress
       env.css_compressor = expand_css_compressor(assets.css_compressor) if assets.compress
       env
     end
 
-    def expand_js_compressor(sym)
+    def expand_js_compressor(sym, options)
       case sym
       when :closure
         require 'closure-compiler'
-        Closure::Compiler.new
+        Closure::Compiler.new(options)
       when :uglifier
         require 'uglifier'
-        Uglifier.new
+        Uglifier.new(options)
       when :yui
         require 'yui/compressor'
-        YUI::JavaScriptCompressor.new
+        YUI::JavaScriptCompressor.new(options)
       else
         sym
       end
