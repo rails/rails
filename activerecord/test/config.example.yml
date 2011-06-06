@@ -91,19 +91,19 @@ connections:
     arunit2:
       username: admin
 
-  oracle:
-    arunit:
-      adapter: oracle_enhanced
-      database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
-      username: arunit
-      password: arunit
-      emulate_oracle_adapter: true
-    arunit:
-      adapter: oracle_enhanced
-      database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
-      username: arunit2
-      password: arunit2
-      emulate_oracle_adapter: true
+  oracle_enhanced:
+     arunit:
+       adapter: oracle_enhanced
+       database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
+       username: <%= ENV['ARUNIT_USER_NAME'] || 'arunit' %>
+       password: <%= ENV['ARUNIT_PASSWORD'] || 'arunit' %>
+       emulate_oracle_adapter: true
+     arunit2:
+       adapter: oracle_enhanced
+       database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
+       username: <%= ENV['ARUNIT2_USER_NAME'] || 'arunit2' %>
+       password: <%= ENV['ARUNIT2_PASSWORD'] || 'arunit2' %>
+       emulate_oracle_adapter: true
 
   postgresql:
     arunit:
