@@ -47,6 +47,8 @@ module ActiveSupport
 
       def _run_class_setup      # class setup method should only happen in parent
         unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
+          # CI server OR user environment may be different when running tests
+          ENV['RAILS_ENV'] = 'development'
           self.class.setup if self.class.respond_to?(:setup)
           @@ran_class_setup = true
         end
