@@ -1,4 +1,4 @@
-require File.expand_path('../helper', __FILE__)
+require 'cases/helper'
 require 'models/topic'
 
 module ActiveRecord

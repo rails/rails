@@ -1,4 +1,4 @@
-require File.expand_path('../../helper', __FILE__)
+require 'cases/helper'
 
 class MyReader < ActiveRecord::Base
   has_and_belongs_to_many :my_books
