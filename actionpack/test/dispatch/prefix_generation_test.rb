@@ -50,7 +50,9 @@ module TestGenerationPrefix
             scope "/:omg", :omg => "awesome" do
               mount BlogEngine => "/blog", :as => "blog_engine"
             end
+            match "/posts/:id", :to => "outside_engine_generating#post", :as => :post
             match "/generate", :to => "outside_engine_generating#index"
+            match "/polymorphic_path_for_app", :to => "outside_engine_generating#polymorphic_path_for_app"
             match "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
             match "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
             match "/conflicting_url", :to => "outside_engine_generating#conflicting"
@@ -101,6 +103,7 @@ module TestGenerationPrefix
 
     class ::OutsideEngineGeneratingController < ActionController::Base
       include BlogEngine.routes.mounted_helpers
+      include RailsApplication.routes.url_helpers
 
       def index
         render :text => blog_engine.post_path(:id => 1)
@@ -108,6 +111,10 @@ module TestGenerationPrefix
 
       def polymorphic_path_for_engine
         render :text => blog_engine.polymorphic_path(Post.new)
+      end
+
+      def polymorphic_path_for_app
+        render :text => polymorphic_path(Post.new)
       end
 
       def polymorphic_with_url_for
@@ -199,6 +206,11 @@ module TestGenerationPrefix
     test "[APP] generating engine's url with polymorphic path" do
       get "/polymorphic_path_for_engine"
       assert_equal "/awesome/blog/posts/1", last_response.body
+    end
+
+    test "polymorphic_path_for_app" do
+      get "/polymorphic_path_for_app"
+      assert_equal "/posts/1", last_response.body
     end
 
     test "[APP] generating engine's url with url_for(@post)" do
