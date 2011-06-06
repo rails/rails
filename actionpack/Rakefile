@@ -1,7 +1,7 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/packagetask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 
 desc "Default Task"
 task :default => :test
@@ -35,7 +35,7 @@ end
 
 spec = eval(File.read('actionpack.gemspec'))
 
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
