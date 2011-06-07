@@ -364,6 +364,16 @@ There are a number of settings available on +config.action_mailer+:
 :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
 </ruby>
 
+* +config.action_mailer.observers+ registers observers which will be notified when mail is delivered.
+<ruby>
+config.active_record.observers = ["MailObserver"]
+</ruby>
+
+* +config.action_mailer.interceptors+ registers interceptors which will be called before mail is sent.
+<ruby>
+config.active_record.interceptors = ["MailInterceptor"]
+</ruby>
+
 h4. Configuring Active Resource
 
 There is a single configuration setting available on +config.active_resource+:
@@ -424,7 +434,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built.
 
-* +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ enviroment.
+* +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ environment.
 
 * +after_initialize+: Run directly after the initialization of the application, but before the application initializers are run.
 
