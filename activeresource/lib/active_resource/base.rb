@@ -919,6 +919,7 @@ module ActiveResource
         end
 
         def instantiate_collection(collection, prefix_options = {})
+          collection = collection['records'] if collection.instance_of?(Hash)
           collection.collect! { |record| instantiate_record(record, prefix_options) }
         end
 
