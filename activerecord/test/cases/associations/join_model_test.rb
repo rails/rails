@@ -145,6 +145,17 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal posts(:thinking),    tagging.taggable
   end
 
+  def test_set_polymorphic_has_one_on_new_record
+    tagging = tags(:misc).taggings.create
+    post = Post.new :title => "foo", :body => "bar"
+    post.tagging = tagging
+    post.save!
+
+    assert_equal "Post",  tagging.taggable_type
+    assert_equal post.id, tagging.taggable_id
+    assert_equal post,    tagging.taggable
+  end
+
   def test_create_polymorphic_has_many_with_scope
     old_count = posts(:welcome).taggings.count
     tagging = posts(:welcome).taggings.create(:tag => tags(:misc))
