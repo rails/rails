@@ -141,7 +141,7 @@ module ActiveRecord
             @target ||= find_target
           end
         end
-        loaded!
+        loaded! unless loaded?
         target
       rescue ActiveRecord::RecordNotFound
         reset
