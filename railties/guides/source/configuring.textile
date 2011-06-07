@@ -374,7 +374,7 @@ config.active_record.observers = ["MailObserver"]
 config.active_record.interceptors = ["MailInterceptor"]
 </ruby>
 
- h4. Configuring Active Resource
+h4. Configuring Active Resource
 
 There is a single configuration setting available on +config.active_resource+:
 
