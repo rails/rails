@@ -279,7 +279,7 @@ module ActiveRecord
 
         @changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
-        self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
+        self.class.unscoped.update_all(changes, { primary_key => self[primary_key] }) == 1
       end
     end
 
