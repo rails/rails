@@ -7,7 +7,7 @@ source 'http://rubygems.org'
 <%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
 # Asset template engines
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
-gem 'sass-rails'
+gem 'sass-rails', "~> 3.1.0.rc"
 gem 'coffee-script'
 gem 'uglifier'
 
