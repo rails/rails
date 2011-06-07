@@ -1,6 +1,7 @@
 require 'rails/initializable'
 require 'rails/configuration'
 require 'active_support/inflector'
+require 'active_support/core_ext/module/introspection'
 
 module Rails
   # Railtie is the core of the Rails framework and provides several hooks to extend
@@ -191,6 +192,10 @@ module Rails
 
     def load_generators(app)
       self.class.generators.each { |block| block.call(app) }
+    end
+
+    def railtie_namespace
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:_railtie) }
     end
   end
 end

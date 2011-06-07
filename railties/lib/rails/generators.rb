@@ -90,6 +90,16 @@ module Rails
       @options ||= DEFAULT_OPTIONS.dup
     end
 
+    def self.namespace
+      @namespace ||= if defined?(Rails) && Rails.application
+         Rails.application.class.parents.detect { |n| n.respond_to?(:_railtie) }
+      end
+    end
+
+    def self.namespace=(namespace)
+      @namespace ||= namespace
+    end
+
     # Hold configured generators fallbacks. If a plugin developer wants a
     # generator group to fallback to another group in case of missing generators,
     # they can add a fallback.

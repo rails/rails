@@ -15,6 +15,7 @@ engine = ::Rails::Engine.find(ENGINE_ROOT)
 case command
 when 'generate', 'destroy'
   require 'rails/generators'
+  Rails::Generators.namespace = engine.railtie_namespace
   engine.load_generators
   require "rails/commands/#{command}"
 
