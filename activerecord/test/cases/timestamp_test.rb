@@ -41,7 +41,7 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal previous_salary, @developer.salary
   end
 
-  def test_touching_a_record_with_default_scope_that_exludes_it_updates_its_timestamp
+  def test_touching_a_record_with_default_scope_that_excludes_it_updates_its_timestamp
     developer = @developer.becomes(DeveloperCalledJamis)
 
     developer.touch
