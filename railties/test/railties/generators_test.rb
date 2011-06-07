@@ -1,4 +1,4 @@
-RAILS_ISOLATION_COMMAND = "engine"
+RAILS_ISOLATED_ENGINE = true
 require "isolation/abstract_unit"
 
 require "#{RAILS_FRAMEWORK_ROOT}/railties/lib/rails/generators/test_case"
