@@ -20,6 +20,8 @@ module Rails
     autoload :ResourceHelpers, 'rails/generators/resource_helpers'
     autoload :TestCase,        'rails/generators/test_case'
 
+    mattr_accessor :namespace
+
     DEFAULT_ALIASES = {
       :rails => {
         :actions => '-a',
@@ -88,16 +90,6 @@ module Rails
 
     def self.options #:nodoc:
       @options ||= DEFAULT_OPTIONS.dup
-    end
-
-    def self.namespace
-      @namespace ||= if defined?(Rails) && Rails.application
-         Rails.application.class.parents.detect { |n| n.respond_to?(:_railtie) }
-      end
-    end
-
-    def self.namespace=(namespace)
-      @namespace ||= namespace
     end
 
     # Hold configured generators fallbacks. If a plugin developer wants a

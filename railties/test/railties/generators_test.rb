@@ -58,9 +58,6 @@ module RailtiesTests
       build_engine(true)
     end
 
-    def setup
-    end
-
     def test_controllers_are_correctly_namespaced_when_engine_is_mountable
       build_mountable_engine
       Dir.chdir(engine_path) do
