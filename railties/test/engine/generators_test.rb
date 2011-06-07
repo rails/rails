@@ -28,7 +28,7 @@ module EngineTests
       tmp_path('foo_bar')
     end
 
-    def bundle_exec(cmd)
+    def bundled_rails(cmd)
       `bundle exec rails #{cmd}`
     end
 
@@ -68,15 +68,22 @@ module EngineTests
 
     def test_controllers_are_correctly_namespaced
       Dir.chdir(engine_path) do
-        bundle_exec("g controller topics")
+        bundled_rails("g controller topics")
         assert_file "app/controllers/foo_bar/topics_controller.rb", /FooBar::TopicsController/
       end
     end
 
     def test_models_are_correctly_namespaced
       Dir.chdir(engine_path) do
-        bundle_exec("g model topic")
+        bundled_rails("g model topic")
         assert_file "app/models/foo_bar/topic.rb", /FooBar::Topic/
+      end
+    end
+
+    def test_helpers_are_correctly_namespaced
+      Dir.chdir(engine_path) do
+        bundled_rails("g helper topics")
+        assert_file "app/helpers/foo_bar/topics_helper.rb", /FooBar::TopicsHelper/
       end
     end
   end
