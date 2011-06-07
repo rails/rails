@@ -13,7 +13,7 @@ require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/declar
 require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/core_ext/kernel/reporting"
 require "#{RAILS_FRAMEWORK_ROOT}/railties/lib/rails/generators/test_case"
 
-module EngineTests
+module RailtiesTests
   class GeneratorTest < Rails::Generators::TestCase
     include ActiveSupport::Testing::Isolation
 
