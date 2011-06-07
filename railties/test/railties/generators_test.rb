@@ -1,16 +1,6 @@
-require 'fileutils'
+RAILS_ISOLATION_COMMAND = "engine"
+require "isolation/abstract_unit"
 
-require 'test/unit'
-require 'rubygems'
-
-# TODO: Remove setting this magic constant
-RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
-
-# These files do not require any others and are needed
-# to run the tests
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/isolation"
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/testing/declarative"
-require "#{RAILS_FRAMEWORK_ROOT}/activesupport/lib/active_support/core_ext/kernel/reporting"
 require "#{RAILS_FRAMEWORK_ROOT}/railties/lib/rails/generators/test_case"
 
 module RailtiesTests
@@ -70,6 +60,7 @@ module RailtiesTests
       Dir.chdir(engine_path) do
         bundled_rails("g controller topics")
         assert_file "app/controllers/foo_bar/topics_controller.rb", /FooBar::TopicsController/
+        assert_no_file "app/controllers/topics_controller.rb"
       end
     end
 
@@ -77,6 +68,7 @@ module RailtiesTests
       Dir.chdir(engine_path) do
         bundled_rails("g model topic")
         assert_file "app/models/foo_bar/topic.rb", /FooBar::Topic/
+        assert_no_file "app/models/topic.rb"
       end
     end
 
@@ -84,6 +76,7 @@ module RailtiesTests
       Dir.chdir(engine_path) do
         bundled_rails("g helper topics")
         assert_file "app/helpers/foo_bar/topics_helper.rb", /FooBar::TopicsHelper/
+        assert_no_file "app/helpers/topics_helper.rb"
       end
     end
   end
