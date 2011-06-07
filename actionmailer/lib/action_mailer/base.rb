@@ -365,7 +365,7 @@ module ActionMailer #:nodoc:
         Mail.register_observer(delivery_observer)
       end
 
-      # Register an Inteceptor which will be called before mail is sent.
+      # Register an Interceptor which will be called before mail is sent.
       # Either a class or a string can be passed in as the Interceptor. If a string is passed in
       # it will be <tt>constantize</tt>d.
       def register_interceptor(interceptor)
