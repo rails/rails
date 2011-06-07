@@ -138,6 +138,10 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
+    def to_app
+      self
+    end
+
   protected
 
     alias :build_middleware_stack :app
