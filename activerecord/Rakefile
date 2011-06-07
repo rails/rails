@@ -59,7 +59,7 @@ end
     (Dir["test/cases/**/*_test.rb"].reject {
       |x| x =~ /\/adapters\//
     } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-      sh(ruby, "-Itest", "-r#{File.expand_path('../', __FILE__)}/test/connections/#{adapter}", file)
+      sh(ruby, "-Itest", file)
     end or raise "Failures"
   end
 
@@ -73,6 +73,7 @@ end
 
   # Make sure the adapter test evaluates the env setting task
   task "test_#{adapter}" => "#{adapter}:env"
+  task "isolated_test_#{adapter}" => "#{adapter}:env"
 end
 
 rule '.sqlite3' do |t|
