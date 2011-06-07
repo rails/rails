@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* The new rake task assets:clean removes precompiled assets. [fxn]
+
 * Application and plugin generation run bundle install unless --skip-gemfile or --skip-bundle. [fxn]
 
 * Fixed database tasks for jdbc* adapters #jruby
