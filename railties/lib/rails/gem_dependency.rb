@@ -74,7 +74,9 @@ module Rails
       end
 
       begin
-        self.to_spec.activate           # >= 1.8 happy way
+        dep = Gem::Dependency.new(name, requirement)
+        spec = Gem.source_index.find { |_,s| s.satisfies_requirement?(dep) }.last
+        spec.activate           # a way that exists
       rescue
         gem self.name, self.requirement # <  1.8 unhappy way
       end
