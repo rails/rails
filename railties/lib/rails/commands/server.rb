@@ -43,7 +43,7 @@ module Rails
     end
 
     def app
-      @app ||= super.instance
+      @app ||= super.respond_to?(:to_app) ? super.to_app : super
     end
 
     def opt_parser
