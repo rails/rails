@@ -40,6 +40,7 @@ class Post < ActiveRecord::Base; end
 class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
+class ModelView < ActiveRecord::Base; end
 
 class ReadonlyTitlePost < Post
   attr_readonly :title
@@ -115,6 +116,10 @@ class BasicsTest < ActiveRecord::TestCase
   def test_table_exists
     assert !NonExistentTable.table_exists?
     assert Topic.table_exists?
+  end
+  
+  def test_view_exists
+    assert ModelView.table_exists?
   end
 
   def test_preserving_date_objects

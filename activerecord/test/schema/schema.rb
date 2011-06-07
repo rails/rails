@@ -705,9 +705,17 @@ ActiveRecord::Schema.define do
     t.integer :molecule_id
     t.string :name
   end
+
+  execute "DROP VIEW IF EXISTS model_views"
   create_table :weirds, :force => true do |t|
     t.string 'a$b'
   end
+  
+  execute <<_SQL
+  CREATE VIEW model_views AS 
+    SELECT *
+    FROM weirds;
+_SQL
 
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
