@@ -364,7 +364,17 @@ There are a number of settings available on +config.action_mailer+:
 :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
 </ruby>
 
-h4. Configuring Active Resource
+* +config.action_mailer.observers+ registers observers which will be notified when mail is delivered.
+<ruby>
+config.active_record.observers = ["MailObserver"]
+</ruby>
+
+* +config.action_mailer.interceptors+ registers interceptors which will be called before mail is sent.
+<ruby>
+config.active_record.interceptors = ["MailInterceptor"]
+</ruby>
+
+ h4. Configuring Active Resource
 
 There is a single configuration setting available on +config.active_resource+:
 
