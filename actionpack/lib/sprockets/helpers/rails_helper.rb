@@ -67,13 +67,13 @@ module Sprockets
 
       def asset_path(source, default_ext = nil, body = false)
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', default_ext, true)
+        path = asset_paths.compute_public_path(source, Rails.application.config.assets.prefix, default_ext, true)
         body ? "#{path}?body=1" : path
       end
 
       class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
         def compute_public_path(source, dir, ext=nil, include_host=true)
-          super(source, 'assets', ext, include_host)
+          super(source, Rails.application.config.assets.prefix, ext, include_host)
         end
 
         def asset_for(source, ext)
