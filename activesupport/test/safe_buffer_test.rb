@@ -38,4 +38,16 @@ class SafeBufferTest < ActiveSupport::TestCase
     new_buffer = @buffer.to_s
     assert_equal ActiveSupport::SafeBuffer, new_buffer.class
   end
+
+  test "Should not return safe buffer from gsub" do
+    altered_buffer = @buffer.gsub('', 'asdf')
+    assert_equal 'asdf', altered_buffer
+    assert !altered_buffer.html_safe?
+  end
+
+  test "Should not allow gsub! on safe buffers" do
+    assert_raise TypeError do
+      @buffer.gsub!('', 'asdf')
+    end
+  end
 end
