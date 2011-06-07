@@ -112,7 +112,7 @@ As an example, if you wanted to show all the orders placed on your website in re
 
 <ruby>
 <% Order.find_recent.each do |o| %>
-  <%= o.buyer.name %> bought <% o.product.name %>
+  <%= o.buyer.name %> bought <%= o.product.name %>
 <% end %>
 
 <% cache do %>
@@ -162,17 +162,17 @@ class ProductSweeper < ActionController::Caching::Sweeper
 
   # If our sweeper detects that a Product was created call this
   def after_create(product)
-          expire_cache_for(product)
+    expire_cache_for(product)
   end
 
   # If our sweeper detects that a Product was updated call this
   def after_update(product)
-          expire_cache_for(product)
+    expire_cache_for(product)
   end
 
   # If our sweeper detects that a Product was deleted call this
   def after_destroy(product)
-          expire_cache_for(product)
+    expire_cache_for(product)
   end
 
   private
