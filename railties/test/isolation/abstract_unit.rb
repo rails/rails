@@ -280,4 +280,4 @@ Module.new do
     end
     f.puts "require 'rails/all'"
   end
-end
+end unless RAILS_ISOLATION_COMMAND=="engine"
