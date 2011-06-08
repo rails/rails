@@ -220,21 +220,21 @@ h4. Configuring Active Record
 
 * +config.active_record.table_name_suffix+ lets you set a global string to be appended to table names. If you set this to +_northwest+, then the Customer class will look for +customers_northwest+ as its table. The default is an empty string.
 
-* +config.active_record.pluralize_table_names+ specifies whether Rails will look for singular or plural table names in the database. If set to +true+ (the default), then the Customer class will use the +customers+ table. If set to +false+, then the Customer class will use the +customer+ table.
+* +config.active_record.pluralize_table_names+ specifies whether Rails will look for singular or plural table names in the database. If set to true (the default), then the Customer class will use the +customers+ table. If set to false, then the Customer class will use the +customer+ table.
 
 * +config.active_record.default_timezone+ determines whether to use +Time.local+ (if set to +:local+) or +Time.utc+ (if set to +:utc+) when pulling dates and times from the database. The default is +:utc+ for Rails, although Active Record defaults to +:local+ when used outside of Rails.
 
 * +config.active_record.schema_format+ controls the format for dumping the database schema to a file. The options are +:ruby+ (the default) for a database-independent version that depends on migrations, or +:sql+ for a set of (potentially database-dependent) SQL statements.
 
-* +config.active_record.timestamped_migrations+ controls whether migrations are numbered with serial integers or with timestamps. The default is +true+, to use timestamps, which are preferred if there are multiple developers working on the same application.
+* +config.active_record.timestamped_migrations+ controls whether migrations are numbered with serial integers or with timestamps. The default is true, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
-* +config.active_record.lock_optimistically+ controls whether Active Record will use optimistic locking. By default this is +true+.
+* +config.active_record.lock_optimistically+ controls whether Active Record will use optimistic locking and is true by default.
 
 * +config.active_record.whitelist_attributes+ will create an empty whitelist of attributes available for mass-assignment security for all models in your app.
 
 The MySQL adapter adds one additional configuration option:
 
-* +ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether Active Record will consider all +tinyint(1)+ columns in a MySQL database to be booleans. By default this is +true+.
+* +ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether Active Record will consider all +tinyint(1)+ columns in a MySQL database to be booleans and is true by default.
 
 The schema dumper adds one additional configuration option:
 
@@ -260,7 +260,7 @@ h4. Configuring Action Controller
 
 * +config.action_controller.request_forgery_protection_token+ sets the token parameter name for RequestForgery. Calling +protect_from_forgery+ sets it to +:authenticity_token+ by default.
 
-* +config.action_controller.allow_forgery_protection+ enables or disables CSRF protection. By default this is +false+ in test mode and +true+ in all other modes.
+* +config.action_controller.allow_forgery_protection+ enables or disables CSRF protection. By default this is false in test mode and true in all other modes.
 
 * +config.action_controller.relative_url_root+ can be used to tell Rails that you are deploying to a subdirectory. The default is +ENV['RAILS_RELATIVE_URL_ROOT']+.
 
@@ -350,11 +350,11 @@ There are a number of settings available on +config.action_mailer+:
 ** +:location+ - The location of the sendmail executable. Defaults to +/usr/sbin/sendmail+.
 ** +:arguments+ - The command line arguments. Defaults to +-i -t+.
 
-* +config.action_mailer.raise_delivery_errors+ specifies whether to raise an error if email delivery cannot be completed. It defaults to +true+.
+* +config.action_mailer.raise_delivery_errors+ specifies whether to raise an error if email delivery cannot be completed. It defaults to true.
 
 * +config.action_mailer.delivery_method+ defines the delivery method. The allowed values are +:smtp+ (default), +:sendmail+, and +:test+.
 
-* +config.action_mailer.perform_deliveries+ specifies whether mail will actually be delivered. By default this is +true+; it can be convenient to set it to +false+ for testing.
+* +config.action_mailer.perform_deliveries+ specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to false for testing.
 
 * +config.action_mailer.default+ configures Action Mailer defaults. These default to:
 <ruby>
@@ -478,13 +478,13 @@ Serves as a placeholder so that +:load_environment_config+ can be defined to run
 
 *+set_clear_dependencies_hook+* Provides a hook for +active_record.set_dispatch_hooks+ to use, which will run before this initializer. This initializer -- which runs only if +cache_classes+ is set to +false+ -- uses +ActionDispatch::Callbacks.after+ to remove the constants which have been referenced during the request from the object space so that they will be reloaded during the following request.
 
-*+initialize_dependency_mechanism+* If +config.cache_classes+ is set to +true+, configures +ActiveSupport::Dependencies.mechanism+ to +require+ dependencies rather than +load+ them.
+*+initialize_dependency_mechanism+* If +config.cache_classes+ is true, configures +ActiveSupport::Dependencies.mechanism+ to +require+ dependencies rather than +load+ them.
 
 *+bootstrap_hook+* Runs all configured +before_initialize+ blocks.
 
 *+i18n.callbacks+* In the development environment, sets up a +to_prepare+ callback which will call +I18n.reload!+ if any of the locales have changed since the last request. In production mode this callback will only run on the first request.
 
-*+active_support.initialize_whiny_nils+* Requires +active_support/whiny_nil+ if +config.whiny_nils+ is set to +true+. This file will output errors such as:
+*+active_support.initialize_whiny_nils+* Requires +active_support/whiny_nil+ if +config.whiny_nils+ is true. This file will output errors such as:
 
 <plain>
   Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id
@@ -568,13 +568,13 @@ The error occurred while evaluating nil.each
 
 *+build_middleware_stack+* Builds the middleware stack for the application, returning an object which has a +call+ method which takes a Rack environment object for the request.
 
-*+eager_load!+* If +config.cache_classes+ is +true+, runs the +config.before_eager_load+ hooks and then calls +eager_load!+ which will load all the Ruby files from +config.eager_load_paths+.
+*+eager_load!+* If +config.cache_classes+ is true, runs the +config.before_eager_load+ hooks and then calls +eager_load!+ which will load all the Ruby files from +config.eager_load_paths+.
 
 *+finisher_hook+* Provides a hook for after the initialization of process of the application is complete, as well as running all the +config.after_initialize+ blocks for the application, railties and engines.
 
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
-*+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to +true+ and +config.dependency_loading+ is set to +false+.
+*+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to true and +config.dependency_loading+ is set to false.
 
 h3. Changelog
 
