@@ -5,7 +5,7 @@ Rails comes with every command line tool you'll need to
 * Create a Rails application
 * Generate models, controllers, database migrations, and unit tests
 * Start a development server
-* Mess with objects through an interactive shell
+* Experiment with objects through an interactive shell
 * Profile and benchmark your new creation
 
 endprologue.
@@ -507,7 +507,7 @@ $ rails server mongrel
 
 h4. The Rails Generation: Generators
 
-INFO: For a good rundown on generators, see "Understanding Generators":http://wiki.rubyonrails.org/rails/pages/UnderstandingGenerators. A lot of its material is presented here.
+INFO: For a good rundown on generators, see "Understanding Generators":generators.html. A lot of its material is presented here.
 
 Generators are code that generates code. Let's experiment by building one. Our generator will generate a text file.
 
