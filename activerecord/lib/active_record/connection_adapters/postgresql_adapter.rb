@@ -636,7 +636,7 @@ module ActiveRecord
             SELECT COUNT(*)
             FROM pg_tables
             WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
-            #{schema ? "AND schemaname = '#{schema}'" : ''}
+            AND schemaname = #{schema ? "'#{schema}'" : "ANY (current_schemas(false))"}
         SQL
       end
 

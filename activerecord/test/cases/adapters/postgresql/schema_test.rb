@@ -5,6 +5,7 @@ class SchemaTest < ActiveRecord::TestCase
 
   SCHEMA_NAME = 'test_schema'
   SCHEMA2_NAME = 'test_schema2'
+  SCHEMA3_NAME = 'foo'
   TABLE_NAME = 'things'
   CAPITALIZED_TABLE_NAME = 'Things'
   INDEX_A_NAME = 'a_index_things_on_name'
@@ -49,11 +50,13 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
+    @connection.execute "CREATE SCHEMA #{SCHEMA3_NAME}"
   end
 
   def teardown
     @connection.execute "DROP SCHEMA #{SCHEMA2_NAME} CASCADE"
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
+    @connection.execute "DROP SCHEMA #{SCHEMA3_NAME}"
   end
 
   def test_table_exists?
@@ -67,8 +70,16 @@ class SchemaTest < ActiveRecord::TestCase
     assert(!@connection.table_exists?("foo.things"), "table should not exist")
   end
 
+  def test_table_exists_wrong_search_path
+    with_schema_search_path SCHEMA3_NAME do
+      assert(!@connection.table_exists?("things"), "table should not exist")
+    end
+  end
+
   def test_table_exists_quoted_table
-    assert(@connection.table_exists?('"things.table"'), "table should exist")
+    with_schema_search_path(SCHEMA_NAME) do
+      assert(@connection.table_exists?('"things.table"'), "table should exist")
+    end
   end
 
   def test_with_schema_prefixed_table_name
