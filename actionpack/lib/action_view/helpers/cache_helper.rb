@@ -53,7 +53,7 @@ module ActionView
           # This dance is needed because Builder can't use capture
           pos = output_buffer.length
           yield
-          fragment = output_buffer.slice!(pos..-1)
+          fragment = output_buffer.to_str.slice!(pos..-1)
           controller.write_fragment(name, fragment, options)
         end
       end
