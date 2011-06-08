@@ -15,6 +15,10 @@ class RelationScopingTest < ActiveRecord::TestCase
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
   end
 
+  def test_reverse_order_with_arel_node
+    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
+  end
+
   def test_double_reverse_order_produces_original_order
     assert_equal Developer.order("name DESC"), Developer.order("name DESC").reverse_order.reverse_order
   end
