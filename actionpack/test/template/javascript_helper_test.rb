@@ -30,6 +30,13 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
 
+  def test_escape_javascript_with_safebuffer
+    given = %('quoted' "double-quoted" new-line:\n </closed>)
+    expect = %(\\'quoted\\' \\"double-quoted\\" new-line:\\n <\\/closed>)
+    assert_equal expect, escape_javascript(given)
+    assert_equal expect, escape_javascript(ActiveSupport::SafeBuffer.new(given))
+  end
+
   def test_button_to_function
     assert_dom_equal %(<input type="button" onclick="alert('Hello world!');" value="Greeting" />),
       button_to_function("Greeting", "alert('Hello world!')")
