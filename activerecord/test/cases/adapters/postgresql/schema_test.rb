@@ -5,6 +5,7 @@ class SchemaTest < ActiveRecord::TestCase
 
   SCHEMA_NAME = 'test_schema'
   SCHEMA2_NAME = 'test_schema2'
+  SCHEMA3_NAME = 'foo'
   TABLE_NAME = 'things'
   CAPITALIZED_TABLE_NAME = 'Things'
   INDEX_A_NAME = 'a_index_things_on_name'
@@ -49,120 +50,133 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
+    @connection.execute "CREATE SCHEMA #{SCHEMA3_NAME}"
   end
 
   def teardown
     @connection.execute "DROP SCHEMA #{SCHEMA2_NAME} CASCADE"
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
+    @connection.execute "DROP SCHEMA #{SCHEMA3_NAME}"
   end
 
-  def test_table_exists?
-    [Thing1, Thing2, Thing3, Thing4].each do |klass|
-      name = klass.table_name
-      assert @connection.table_exists?(name), "'#{name}' table should exist"
-    end
-  end
+  # def test_table_exists?
+  #   [Thing1, Thing2, Thing3, Thing4].each do |klass|
+  #     name = klass.table_name
+  #     assert @connection.table_exists?(name), "'#{name}' table should exist"
+  #   end
+  # end
+  # 
+  # def test_table_exists_wrong_schema
+  #   assert(!@connection.table_exists?("foo.things"), "table should not exist")
+  # end
+  # 
+  # def test_table_exists_wrong_search_path
+  #   with_schema_search_path SCHEMA3_NAME do
+  #     assert(!@connection.table_exists?("things"), "table should not exist")
+  #   end
+  # end
 
-  def test_table_exists_wrong_schema
-    assert(!@connection.table_exists?("foo.things"), "table should not exist")
-  end
-
-  def test_table_exists_quoted_table
+  def test_table_exists_quoted_table_with_schema
+    puts "testing failed!!"
     assert(@connection.table_exists?('"things.table"'), "table should exist")
   end
 
-  def test_with_schema_prefixed_table_name
-    assert_nothing_raised do
-      assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{TABLE_NAME}")
-    end
-  end
-
-  def test_with_schema_prefixed_capitalized_table_name
-    assert_nothing_raised do
-      assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{CAPITALIZED_TABLE_NAME}")
-    end
-  end
-
-  def test_with_schema_search_path
-    assert_nothing_raised do
-      with_schema_search_path(SCHEMA_NAME) do
-        assert_equal COLUMNS, columns(TABLE_NAME)
-      end
-    end
-  end
-
-
-  def test_proper_encoding_of_table_name
-    assert_equal '"table_name"', @connection.quote_table_name('table_name')
-    assert_equal '"table.name"', @connection.quote_table_name('"table.name"')
-    assert_equal '"schema_name"."table_name"', @connection.quote_table_name('schema_name.table_name')
-    assert_equal '"schema_name"."table.name"', @connection.quote_table_name('schema_name."table.name"')
-    assert_equal '"schema.name"."table_name"', @connection.quote_table_name('"schema.name".table_name')
-    assert_equal '"schema.name"."table.name"', @connection.quote_table_name('"schema.name"."table.name"')
-  end
-
-  def test_classes_with_qualified_schema_name
-    assert_equal 0, Thing1.count
-    assert_equal 0, Thing2.count
-    assert_equal 0, Thing3.count
-    assert_equal 0, Thing4.count
-
-    Thing1.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
-    assert_equal 1, Thing1.count
-    assert_equal 0, Thing2.count
-    assert_equal 0, Thing3.count
-    assert_equal 0, Thing4.count
-
-    Thing2.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
-    assert_equal 1, Thing1.count
-    assert_equal 1, Thing2.count
-    assert_equal 0, Thing3.count
-    assert_equal 0, Thing4.count
-
-    Thing3.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
-    assert_equal 1, Thing1.count
-    assert_equal 1, Thing2.count
-    assert_equal 1, Thing3.count
-    assert_equal 0, Thing4.count
-
-    Thing4.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
-    assert_equal 1, Thing1.count
-    assert_equal 1, Thing2.count
-    assert_equal 1, Thing3.count
-    assert_equal 1, Thing4.count
-  end
-
-  def test_raise_on_unquoted_schema_name
-    assert_raise(ActiveRecord::StatementInvalid) do
-      with_schema_search_path '$user,public'
-    end
-  end
-
-  def test_without_schema_search_path
-    assert_raise(ActiveRecord::StatementInvalid) { columns(TABLE_NAME) }
-  end
-
-  def test_ignore_nil_schema_search_path
-    assert_nothing_raised { with_schema_search_path nil }
-  end
-
-  def test_dump_indexes_for_schema_one
-    do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1)
-  end
-
-  def test_dump_indexes_for_schema_two
-    do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2)
-  end
-
-  def test_with_uppercase_index_name
-    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
-
-    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
-    ActiveRecord::Base.connection.schema_search_path = "public"
-  end
+  # def test_table_exists_quoted_table_with_schema
+  #   assert(@connection.table_exists?('"table"'), "table should exist")
+  # end
+  # 
+  # def test_with_schema_prefixed_table_name
+  #   assert_nothing_raised do
+  #     assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{TABLE_NAME}")
+  #   end
+  # end
+  # 
+  # def test_with_schema_prefixed_capitalized_table_name
+  #   assert_nothing_raised do
+  #     assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{CAPITALIZED_TABLE_NAME}")
+  #   end
+  # end
+  # 
+  # def test_with_schema_search_path
+  #   assert_nothing_raised do
+  #     with_schema_search_path(SCHEMA_NAME) do
+  #       assert_equal COLUMNS, columns(TABLE_NAME)
+  #     end
+  #   end
+  # end
+  # 
+  # 
+  # def test_proper_encoding_of_table_name
+  #   assert_equal '"table_name"', @connection.quote_table_name('table_name')
+  #   assert_equal '"table.name"', @connection.quote_table_name('"table.name"')
+  #   assert_equal '"schema_name"."table_name"', @connection.quote_table_name('schema_name.table_name')
+  #   assert_equal '"schema_name"."table.name"', @connection.quote_table_name('schema_name."table.name"')
+  #   assert_equal '"schema.name"."table_name"', @connection.quote_table_name('"schema.name".table_name')
+  #   assert_equal '"schema.name"."table.name"', @connection.quote_table_name('"schema.name"."table.name"')
+  # end
+  # 
+  # def test_classes_with_qualified_schema_name
+  #   assert_equal 0, Thing1.count
+  #   assert_equal 0, Thing2.count
+  #   assert_equal 0, Thing3.count
+  #   assert_equal 0, Thing4.count
+  # 
+  #   Thing1.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+  #   assert_equal 1, Thing1.count
+  #   assert_equal 0, Thing2.count
+  #   assert_equal 0, Thing3.count
+  #   assert_equal 0, Thing4.count
+  # 
+  #   Thing2.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+  #   assert_equal 1, Thing1.count
+  #   assert_equal 1, Thing2.count
+  #   assert_equal 0, Thing3.count
+  #   assert_equal 0, Thing4.count
+  # 
+  #   Thing3.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+  #   assert_equal 1, Thing1.count
+  #   assert_equal 1, Thing2.count
+  #   assert_equal 1, Thing3.count
+  #   assert_equal 0, Thing4.count
+  # 
+  #   Thing4.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+  #   assert_equal 1, Thing1.count
+  #   assert_equal 1, Thing2.count
+  #   assert_equal 1, Thing3.count
+  #   assert_equal 1, Thing4.count
+  # end
+  # 
+  # def test_raise_on_unquoted_schema_name
+  #   assert_raise(ActiveRecord::StatementInvalid) do
+  #     with_schema_search_path '$user,public'
+  #   end
+  # end
+  # 
+  # def test_without_schema_search_path
+  #   assert_raise(ActiveRecord::StatementInvalid) { columns(TABLE_NAME) }
+  # end
+  # 
+  # def test_ignore_nil_schema_search_path
+  #   assert_nothing_raised { with_schema_search_path nil }
+  # end
+  # 
+  # def test_dump_indexes_for_schema_one
+  #   do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1)
+  # end
+  # 
+  # def test_dump_indexes_for_schema_two
+  #   do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2)
+  # end
+  # 
+  # def test_with_uppercase_index_name
+  #   ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+  #   assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
+  # 
+  #   ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+  #   ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
+  #   assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
+  #   ActiveRecord::Base.connection.schema_search_path = "public"
+  # end
 
   private
     def columns(table_name)

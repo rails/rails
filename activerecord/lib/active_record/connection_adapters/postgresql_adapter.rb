@@ -633,10 +633,10 @@ module ActiveRecord
         end
 
         query(<<-SQL).first[0].to_i > 0
-            SELECT COUNT(*)
+          SELECT COUNT(*)
             FROM pg_tables
-            WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
-            #{schema ? "AND schemaname = '#{schema}'" : ''}
+          WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
+            AND schemaname = #{schema ? '#{schema}' : "ANY (current_schemas(false))"}
         SQL
       end
 
