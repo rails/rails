@@ -1,5 +1,34 @@
 *Rails 3.1.0 (unreleased)*
 
+* Fix escape_js to work correctly with the new SafeBuffer restriction [Paul Gallagher]
+
+* Brought back alternative convention for namespaced models in i18n [thoefer]
+
+  Now the key can be either "namespace.model" or "namespace/model" until further deprecation.
+
+* It is prohibited to perform a in-place SafeBuffer mutation [tenderlove]
+
+  The old behavior of SafeBuffer allowed you to mutate string in place via
+  method like `sub!`. These methods can add unsafe strings to a safe buffer,
+  and the safe buffer will continue to be marked as safe.
+
+  An example problem would be something like this:
+
+    <%= link_to('hello world', @user).sub!(/hello/, params[:xss])  %>
+
+  In the above example, an untrusted string (`params[:xss]`) is added to the
+  safe buffer returned by `link_to`, and the untrusted content is successfully
+  sent to the client without being escaped.  To prevent this from happening
+  `sub!` and other similar methods will now raise an exception when they are called on a safe buffer.
+
+  In addition to the in-place versions, some of the versions of these methods which return a copy of the string will incorrectly mark strings as safe. For example:
+
+     <%= link_to('hello world', @user).sub(/hello/, params[:xss]) %>
+
+  The new versions will now ensure that *all* strings returned by these methods on safe buffers are marked unsafe.
+
+  You can read more about this change in http://groups.google.com/group/rubyonrails-security/browse_thread/thread/2e516e7acc96c4fb
+
 * Warn if we cannot verify CSRF token authenticity [José Valim]
 
 * Allow AM/PM format in datetime selectors [Aditya Sanghi]
