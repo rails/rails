@@ -457,6 +457,22 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_multiple_to_add_hidden_input
+    output_buffer =  select(:post, :category, "", {}, :multiple => true)
+    assert_dom_equal(
+      "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      output_buffer
+    )
+  end
+
+  def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
+    output_buffer =  select(:post, :category, "", {}, :multiple => true, :disabled => true)
+    assert_dom_equal(
+      "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
+      output_buffer
+    )
+  end
+
   def test_select_with_blank
     @post = Post.new
     @post.category = "<mus>"
@@ -649,11 +665,11 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_collection_select_with_multiple_option_appends_array_brackets
+  def test_collection_select_with_multiple_option_appends_array_brackets_and_hidden_input
     @post = Post.new
     @post.author_name = "Babe"
 
-    expected = "<select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
+    expected = "<input type=\"hidden\" name=\"post[author_name][]\" value=\"\"/><select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
 
     # Should suffix default name with [].
     assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true }, :multiple => true)
