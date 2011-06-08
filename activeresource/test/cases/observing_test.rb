@@ -37,7 +37,7 @@ class ObservingTest < Test::Unit::TestCase
   end
 
   def test_create_fires_save_and_create_notifications
-    rick = Person.create(:name => 'Rick')
+    Person.create(:name => 'Rick')
     assert_equal [:before_save, :before_create, :after_create, :after_save], self.history
   end
 

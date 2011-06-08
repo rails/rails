@@ -29,7 +29,6 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
   end
 
   def test_clear_emptys_session
-    params = {:one => 'one', :two => 'two'}
     session = ActionController::TestSession.new({:one => 'one', :two => 'two'})
     session.clear
     assert_nil(session[:one])
