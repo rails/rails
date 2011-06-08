@@ -32,9 +32,9 @@ Sprockets, the rails tie that powers the asset pipeline, provides three directiv
 
 The require directive loads a file with the supplied basename from the following paths: app/assets/*, lib/assets/*, vendor/assets/*, as well as any of your gem's asset files. 
 
-Require tree does...
+Using the +require_tree+ directive you can easily include an entire folder of assets. The paths must be relative, so begin them with either a forward slash or dots. For example to include a folder in the same directory I would do +require_tree ./folder_name+
 
-Require self does...
+Require self does... something
 
 h4. Stacking Preprocessors
 
