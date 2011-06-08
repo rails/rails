@@ -659,7 +659,10 @@ module ActiveRecord
       # Returns the list of all tables in the schema search path or a specified schema.
       def tables(name = nil)
         query(<<-SQL, 'SCHEMA').map { |row| row[0] }
-          SELECT tablename
+          SELECT  case  
+                    when schemaname = 'public' or schemaname = current_user then tablename
+                    else schemaname||'.'||tablename 
+                  end as tablename
           FROM pg_tables
           WHERE schemaname = ANY (current_schemas(false))
         SQL
@@ -833,8 +836,8 @@ module ActiveRecord
         if result.second ==  'public' then
           sequence = result.last
         else
-          sequence = result.second+'.'+result.last
-        end
+          sequence = "#{result.second}.#{result.last}"
+        end        
         
         [result.first, sequence]
       rescue
