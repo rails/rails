@@ -722,8 +722,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_with_pluralize_table_names_false
-    engine = Engine.create!(:car_id => 1)
-    aircraft = Aircraft.create!(:name => "Airbus 380", :id => 1)
+    aircraft = Aircraft.create!(:name => "Airbus 380")
+    engine = Engine.create!(:car_id => aircraft.id)
     assert_equal aircraft.engines, [engine]
   end
 
