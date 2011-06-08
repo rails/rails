@@ -4,26 +4,54 @@ This guide will cover the ideology of the asset pipeline introduced in Rails 3.1
 By referring to this guide you will be able to:
 
 * Properly organize your application assets
-* Understand the benefits of the asset pipline
-* Adding a preproccessor to the pipeline
-* Package assets with your plugin
+* Understand the benefits of the asset pipeline
+* Adding a preprocessor to the pipeline
+* Package assets with a gem
 
 endprologue.
 
 h3. What Is The Asset Pipeline?
 
-h4. Why Should I Use it?
+The asset pipeline is a new feature introduced in Rails 3.1 using the "Sprockets":http://getsprockets.org/ engine. It allows developers to place design elements in +app/assets+ instead of +public+, there are many advantages to this. A big one is that they are now processed by Rails instead of your webserver, allowing you to use preprocessors like CoffeeScript, SCSS, or ERB. Another advantage is that your CSS and JavaScript is compiled into one file by default, this allows users to cache all the CSS and JavaScript data so your pages render faster. Not to mention how much cleaner your application will become.
 
 h3. How to Use the Asset Pipeline
 
+The asset pipeline is easy to migrate to and use. There are a few things that you'll need to learn first, like where to place your files, how to create a manifest, and how to add any preproccesors if you desire. 
+
 h4. Asset Organization
 
-h4. Default Files Loaded
+WIP
+
+Sprockets will automatically load manifest files by searching directories in app/assets and including the first file with a basename of index. (Confirm and add: does it load app/assets/index?)
 
 h4. Directives
 
-h4. Stacking Preproccessors
+WIP
 
-h3. Packaging Assets with Your Plugin
+Sprockets, the rails tie that powers the asset pipeline, provides three directives which are like Ruby's methods. They are: +require+, +require_tree+, and +require_self+. These directives must be called at the top of a file in a comment with an equal sign before it. (note: CSS directives need *= if in a continuous comment -- confirm please)  
+
+The require directive loads a file with the supplied basename from the following paths: app/assets/*, lib/assets/*, vendor/assets/*, as well as any of your gem's asset files. 
+
+Require tree does...
+
+Require self does...
+
+h4. Stacking Preprocessors
+
+Sprockets allows you to stack preprocessors. The stack is ran off the file extensions in a last in, first out method (like popping an array). For example if we want to make a JavaScript asset with both CoffeeScript and ERB the file would be named: +name.js.coffee.erb+. If it were named +name.js.erb.coffee+ CoffeeScript would raise an error because it doesn't understand ERB tags. 
+
+h4. Adding a Preproccessor
+
+WIP
+
+https://github.com/rtomayko/tilt for gems or config.register_processor('text/css', MyAwesomeProccessor) for local stuff
+
+h3. Packaging Assets with Your Gems
+
+You may find it useful to package certain assets with your gem. A good example would be the "pjax_rails":https://github.com/rails/pjax_rails/ gem. This gem bundles the latest "PJAX":https://github.com/defunkt/jquery-pjax library and some helper methods. If you take a look at the source of pjax_rails, you'll see that it bundles the assets in +lib/assets+ just the same way as you would in +app/assets+. Doing so allows pjax_rails to update JavaScripts without asking users to copy them into their public folder
+
+If you want the user to load your JavaScript files in their template, you will have to ask them to add a directive to do so. Also avoid any common names such as +form_check.js+ instead try using +mygem/form_check.js+ so it's clear where it's coming from. This will also make it unlikely that your users will create a file with the same name causing the asset pipeline to choose the user's file over yours. 
 
 h3. More on Sprockets
+
+Sprockets is the engine that handles the asset pipeline in Rails 3.1 and above. Their official website is available at "http://getsprockets.org/":http://getsprockets.org/ and the source code is "available on github":https://github.com/sstephenson/sprockets.

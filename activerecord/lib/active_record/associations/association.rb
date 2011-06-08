@@ -141,7 +141,7 @@ module ActiveRecord
             @target ||= find_target
           end
         end
-        loaded!
+        loaded! unless loaded?
         target
       rescue ActiveRecord::RecordNotFound
         reset
@@ -177,9 +177,7 @@ module ActiveRecord
 
         # Sets the owner attributes on the given record
         def set_owner_attributes(record)
-          if owner.persisted?
-            creation_attributes.each { |key, value| record[key] = value }
-          end
+          creation_attributes.each { |key, value| record[key] = value }
         end
 
         # Should be true if there is a foreign key present on the owner which

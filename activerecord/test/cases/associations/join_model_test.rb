@@ -139,7 +139,21 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_set_polymorphic_has_one
     tagging = tags(:misc).taggings.create
     posts(:thinking).tagging = tagging
-    assert_equal "Post", tagging.taggable_type
+
+    assert_equal "Post",              tagging.taggable_type
+    assert_equal posts(:thinking).id, tagging.taggable_id
+    assert_equal posts(:thinking),    tagging.taggable
+  end
+
+  def test_set_polymorphic_has_one_on_new_record
+    tagging = tags(:misc).taggings.create
+    post = Post.new :title => "foo", :body => "bar"
+    post.tagging = tagging
+    post.save!
+
+    assert_equal "Post",  tagging.taggable_type
+    assert_equal post.id, tagging.taggable_id
+    assert_equal post,    tagging.taggable
   end
 
   def test_create_polymorphic_has_many_with_scope
@@ -708,8 +722,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_with_pluralize_table_names_false
-    engine = Engine.create!(:car_id => 1)
-    aircraft = Aircraft.create!(:name => "Airbus 380", :id => 1)
+    aircraft = Aircraft.create!(:name => "Airbus 380")
+    engine = Engine.create!(:car_id => aircraft.id)
     assert_equal aircraft.engines, [engine]
   end
 

@@ -427,7 +427,7 @@ module ActionView
       #
       # Sample usage (Hash):
       #   grouped_options = {
-      #    'North America' => [['United States','US], 'Canada'],
+      #    'North America' => [['United States','US'], 'Canada'],
       #    'Europe' => ['Denmark','Germany','France']
       #   }
       #   grouped_options_for_select(grouped_options)

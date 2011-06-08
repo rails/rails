@@ -82,6 +82,7 @@ The following methods skip validations, and will save the object to the database
 * +increment!+
 * +increment_counter+
 * +toggle!+
+* +touch+
 * +update_all+
 * +update_attribute+
 * +update_column+
@@ -429,7 +430,7 @@ end
 
 The +validates_with+ helper takes a class, or a list of classes to use for validation. There is no default error message for +validates_with+. You must manually add errors to the record's errors collection in the validator class.
 
-To implement the validate method, you must have an +record+ parameter defined, which is the record to be validated.
+To implement the validate method, you must have a +record+ parameter defined, which is the record to be validated.
 
 Like all other validations, +validates_with+ takes the +:if+, +:unless+ and +:on+ options. If you pass any other options, it will send those options to the validator class as +options+:
 
@@ -911,20 +912,20 @@ h4. Creating an Object
 * +before_validation+
 * +after_validation+
 * +before_save+
-* +after_save+
 * +before_create+
 * +around_create+
 * +after_create+
+* +after_save+
 
 h4. Updating an Object
 
 * +before_validation+
 * +after_validation+
 * +before_save+
-* +after_save+
 * +before_update+
 * +around_update+
 * +after_update+
+* +after_save+
 
 h4. Destroying an Object
 
@@ -1007,6 +1008,7 @@ Just as with validations, it's also possible to skip callbacks. These methods sh
 * +increment+
 * +increment_counter+
 * +toggle+
+* +touch+
 * +update_column+
 * +update_all+
 * +update_counters+

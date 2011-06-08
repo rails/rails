@@ -10,6 +10,10 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app
       @app ||= Rails.application
     end

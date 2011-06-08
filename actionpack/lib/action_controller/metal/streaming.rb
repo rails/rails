@@ -260,4 +260,3 @@ module ActionController #:nodoc:
     end
   end
 end
-      

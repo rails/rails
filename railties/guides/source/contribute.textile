@@ -14,7 +14,7 @@ h3. How to Contribute?
 * Sample format : "Active Record Associations":https://github.com/lifo/docrails/blob/3e56a3832415476fdd1cb963980d0ae390ac1ed3/railties/guides/source/association_basics.textile.
 * Sample output : "Active Record Associations":association_basics.html.
 * You can build the Guides during testing by running +bundle exec rake generate_guides+ in the +railties+ directory.
-* You're encouraged to validate XHTML for the generated guides before commiting your changes by running +bundle exec rake validate_guides+ in the +railties+ directory.
+* You're encouraged to validate XHTML for the generated guides before committing your changes by running +bundle exec rake validate_guides+ in the +railties+ directory.
 * Edge guides "can be consulted online":http://edgeguides.rubyonrails.org/. That website is generated periodically from docrails.
 
 h3. What to Contribute?
@@ -33,7 +33,7 @@ h3. What to Contribute?
 h3. How is the process?
 
 * The preferred way to contribute is to commit to docrails directly.
-* A new guide is only edited by its author until finished though. In that case feedback can be given in its LH ticket.
+* A new guide is only edited by its author until finished though.
 * If you are writing a new guide freely commit to docrails partial work and ping lifo or fxn when done with a first draft.
 * Guides reviewers will then provide feedback, some of it possibly in form of direct commits to agilize the process.
 * Eventually the guide will be approved and added to the index.
@@ -53,7 +53,7 @@ h3. Rules
 * If the same guide writer wants to write multiple guides, that's ideally the situation we'd love to be in! However, that guide writer will only receive the cash prize for all the subsequent guides (and not the GitHub or RPM prizes).
 * Our review team will have the final say on whether the guide is complete and of good enough quality.
 
-All authors should read and follow the "Rails Guides Conventions":https://wiki.github.com/lifo/docrails/rails-guides-conventions and the "Rails API Documentation Conventions":https://wiki.github.com/lifo/docrails/rails-api-documentation-conventions.
+All authors should read and follow the "Rails Guides Conventions":ruby_on_rails_guides_guidelines.html and the "Rails API Documentation Conventions":api_documentation_guidelines.html.
 
 h3. Translations
 

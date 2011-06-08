@@ -929,7 +929,7 @@ Creates a scope around a specific model object like form_for, but doesn‘t crea
 
 h5. file_field
 
-Returns an file upload input tag tailored for accessing a specified attribute.
+Returns a file upload input tag tailored for accessing a specified attribute.
 
 <ruby>
 file_field(:user, :avatar)
@@ -1037,7 +1037,7 @@ Sample usage (selecting the associated Author for an instance of Post, +@post+):
 collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {:prompt => true})
 </ruby>
 
-If @post.author_id is already 1, this would return:
+If <tt>@post.author_id</tt> is 1, this would return:
 
 <html>
 <select name="post[author_id]">
@@ -1079,8 +1079,6 @@ Sample usage:
 <ruby>
 option_groups_from_collection_for_select(@continents, :countries, :name, :id, :name, 3)
 </ruby>
-
-TODO check above textile output looks right
 
 Possible output:
 
@@ -1132,13 +1130,13 @@ h5. select
 
 Create a select tag and a series of contained option tags for the provided object and method.
 
-Example with @post.person_id => 1:
+Example:
 
 <ruby>
 select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
 </ruby>
 
-could become:
+If <tt>@post.person_id</tt> is 1, this would become:
 
 <html>
 <select name="post[person_id]">
@@ -1189,7 +1187,7 @@ h5. file_field_tag
 
 Creates a file upload field.
 
-If you are using file uploads then you will also need to set the multipart option for the form tag:
+Prior to Rails 3.1, if you are using file uploads, then you will need to set the multipart option for the form tag. Rails 3.1+ does this automatically.
 
 <ruby>
 <%= form_tag { :action => "post" }, { :multipart => true } do %>
@@ -1400,102 +1398,6 @@ number_with_precision(111.2345)     # => 111.235
 number_with_precision(111.2345, 2)  # => 111.23
 </ruby>
 
-h5. evaluate_remote_response
-
-Returns +eval(request.responseText)+ which is the JavaScript function that form_remote_tag can call in +:complete+ to evaluate a multiple update return document using +update_element_function+ calls.
-
-h5. form_remote_tag
-
-Returns a form tag that will submit using XMLHttpRequest in the background instead of the regular reloading POST arrangement. Even though it‘s using JavaScript to serialize the form elements, the form submission will work just like a regular submission as viewed by the receiving side.
-
-For example, this:
-
-<ruby>
-form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
-</ruby>
-
-would generate the following:
-
-<html>
-<form action="/some/place" method="post" onsubmit="new Ajax.Request('',
-  {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;">
-</html>
-
-h5. link_to_remote
-
-Returns a link to a remote action that's called in the background using XMLHttpRequest. You can generate a link that uses AJAX in the general case, while degrading gracefully to plain link behavior in the absence of JavaScript. For example:
-
-<ruby>
-link_to_remote "Delete this post",
-  { :update => "posts", :url => { :action => "destroy", :id => post.id } },
-  :href => url_for(:action => "destroy", :id => post.id)
-</ruby>
-
-h5. observe_field
-
-Observes the field specified and calls a callback when its contents have changed.
-
-<ruby>
-observe_field("my_field", :function => "alert('Field changed')")
-</ruby>
-
-h5. observe_form
-
-Observes the form specified and calls a callback when its contents have changed. The options for observe_form are the same as the options for observe_field.
-
-<ruby>
-observe_field("my_form", :function => "alert('Form changed')")
-</ruby>
-
-h5. periodically_call_remote
-
-Periodically calls the specified url as often as specified. Usually used to update a specified div with the results of the remote call. The following example will call update every 20 seconds and update the news_block div:
-
-<ruby>
-periodically_call_remote(:url => 'update', :frequency => '20', :update => 'news_block')
-# => PeriodicalExecuter(function() {new Ajax.Updater('news_block', 'update', {asynchronous:true, evalScripts:true})}, 20)
-</ruby>
-
-h5. remote_form_for
-
-Creates a form that will submit using XMLHttpRequest in the background instead of the regular reloading POST arrangement and a scope around a specific resource that is used as a base for questioning about values for the fields.
-
-<ruby>
-<%= remote_form_for(@post) do |f| %>
-  ...
-<% end %>
-</ruby>
-
-h5. remote_function
-
-Returns the JavaScript needed for a remote function. Takes the same arguments as +link_to_remote+.
-
-<ruby>
-<select id="options" onchange="<%= remote_function(:update => "options", :url => { :action => :update_options }) %>">
-  <option value="0">Hello</option>
-  <option value="1">World</option>
-</select>
-# => <select id="options" onchange="new Ajax.Updater('options', '/testing/update_options', {asynchronous:true, evalScripts:true})">
-</ruby>
-
-h5. submit_to_remote
-
-Returns a button input tag that will submit form using XMLHttpRequest in the background instead of a regular POST request that reloads the page.
-
-For example, the following:
-
-<ruby>
-submit_to_remote 'create_btn', 'Create', :url => { :action => 'create' }
-</ruby>
-
-would generate:
-
-<html>
-<input name="create_btn" onclick="new Ajax.Request('/testing/create',
-  {asynchronous:true, evalScripts:true, parameters:Form.serialize(this.form)});
-  return false;" type="button" value="Create" />
-</html>
-
 h3. Localized Views
 
 Action View has the ability render different templates depending on the current locale.
@@ -1520,6 +1422,7 @@ You can read more about the Rails Internationalization (I18n) API "here":i18n.ht
 
 h3. Changelog
 
+* May 29, 2011: Removed references to remote_* helpers - Vijay Dev
 * April 16, 2011: Added 'Using Action View with Rails', 'Templates' and 'Partials' sections. "Sebastian Martinez":http://wyeworks.com
 * September 3, 2009: Continuing work by Trevor Turk, leveraging the Action Pack docs and "What's new in Edge Rails":http://ryandaigle.com/articles/2007/8/3/what-s-new-in-edge-rails-partials-get-layouts
 * April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs

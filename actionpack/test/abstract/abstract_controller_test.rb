@@ -178,12 +178,6 @@ module AbstractController
       end
     end
 
-    class Me5 < WithLayouts
-      def index
-        render
-      end
-    end
-
     class TestLayouts < ActiveSupport::TestCase
       test "layouts are included" do
         controller = Me4.new
@@ -241,11 +235,11 @@ module AbstractController
         assert_dispatch ActionMissingRespondToActionController, "success", :ohai
       end
 
-      test "a method is available as an action if respond_to_action? returns true" do
+      test "a method is available as an action if method_for_action returns true" do
         assert_dispatch RespondToActionController, "success", :index
       end
 
-      test "raises ActionNotFound if method is defined but respond_to_action? returns false" do
+      test "raises ActionNotFound if method is defined but method_for_action returns false" do
         assert_raise(ActionNotFound) { RespondToActionController.new.process(:fail) }
       end
     end

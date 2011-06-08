@@ -24,7 +24,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
     assert !sequence_exists?('foo_seq')
     assert sequence_exists?('foo_custom_seq')
 
-    assert_nothing_raised { @connection.drop_table(:foo, :sequence => 'foo_custom_seq') }
+    assert_nothing_raised { @connection.drop_table(:foo) }
     assert !sequence_exists?('foo_custom_seq')
   ensure
     FireRuby::Generator.new('foo_custom_seq', @fireruby_connection).drop rescue nil

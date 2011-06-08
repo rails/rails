@@ -213,14 +213,14 @@ module ActionMailer #:nodoc:
   # = Observing and Intercepting Mails
   #
   # Action Mailer provides hooks into the Mail observer and interceptor methods. These allow you to
-  # register objects that are called during the mail delivery life cycle.
+  # register classes that are called during the mail delivery life cycle.
   #
-  # An observer object must implement the <tt>:delivered_email(message)</tt> method which will be
+  # An observer class must implement the <tt>:delivered_email(message)</tt> method which will be
   # called once for every email sent after the email has been sent.
   #
-  # An interceptor object must implement the <tt>:delivering_email(message)</tt> method which will be
+  # An interceptor class must implement the <tt>:delivering_email(message)</tt> method which will be
   # called before the email is sent, allowing you to make modifications to the email before it hits
-  # the delivery agents. Your object should make any needed modifications directly to the passed
+  # the delivery agents. Your class should make any needed modifications directly to the passed
   # in Mail::Message instance.
   #
   # = Default Hash

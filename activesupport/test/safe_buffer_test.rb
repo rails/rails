@@ -60,4 +60,16 @@ class SafeBufferTest < ActiveSupport::TestCase
     yaml = YAML.dump data
     assert_equal({'str' => str}, YAML.load(yaml))
   end
+
+  test "Should not return safe buffer from gsub" do
+    altered_buffer = @buffer.gsub('', 'asdf')
+    assert_equal 'asdf', altered_buffer
+    assert !altered_buffer.html_safe?
+  end
+
+  test "Should not allow gsub! on safe buffers" do
+    assert_raise TypeError do
+      @buffer.gsub!('', 'asdf')
+    end
+  end
 end

@@ -64,8 +64,8 @@ There are also some optional column names that will create additional features t
 * *created_on* - Automatically gets set to the current date when the record is first created.
 * *updated_at* - Automatically gets set to the current date and time whenever the record is updated.
 * *updated_on* - Automatically gets set to the current date whenever the record is updated.
-* *lock_version* - Adds "optimistic locking":http://api.rubyonrails.com/classes/ActiveRecord/Locking.html to a model.
-* *type* - Specifies that the model uses "Single Table Inheritance":http://api.rubyonrails.com/classes/ActiveRecord/Base.html
+* *lock_version* - Adds "optimistic locking":http://api.rubyonrails.org/classes/ActiveRecord/Locking.html to a model.
+* *type* - Specifies that the model uses "Single Table Inheritance":http://api.rubyonrails.org/classes/ActiveRecord/Base.html
 * *(table_name)_count* - Used to cache the number of belonging objects on associations. For example, a +comments_count+ column in a +Post+ class that has many instances of +Comment+ will cache the number of existent comments for each post.
 
 NOTE: While these column names are optional they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, "type" is a reserved keyword used to designate a table using Single Table Inheritance. If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.

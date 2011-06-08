@@ -48,14 +48,12 @@ class RecordTagHelperTest < ActionView::TestCase
   end
 
   def test_block_works_with_content_tag_for_in_erb
-    __in_erb_template = ''
     expected = %(<tr class="post" id="post_45">#{@post.body}</tr>)
     actual = content_tag_for(:tr, @post) { concat @post.body }
     assert_dom_equal expected, actual
   end
 
   def test_div_for_in_erb
-    __in_erb_template = ''
     expected = %(<div class="post bar" id="post_45">#{@post.body}</div>)
     actual = div_for(@post, :class => "bar") { concat @post.body }
     assert_dom_equal expected, actual

@@ -1,4 +1,4 @@
-require "cases/helper"
+require 'cases/helper'
 require 'tempfile'
 
 module ActiveRecord

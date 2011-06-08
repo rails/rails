@@ -10,6 +10,10 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "initializing an application adds the application paths to the load path" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"

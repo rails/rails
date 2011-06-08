@@ -106,7 +106,7 @@ module ActionController
 
       module ControllerMethods
         extend ActiveSupport::Concern
-        
+
         module ClassMethods
           def http_basic_authenticate_with(options = {})
             before_filter(options.except(:name, :password, :realm)) do
@@ -116,7 +116,7 @@ module ActionController
             end
           end
         end
-        
+
         def authenticate_or_request_with_http_basic(realm = "Application", &login_procedure)
           authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm)
         end
@@ -423,7 +423,7 @@ module ActionController
       # Returns an Array of [String, Hash] if a token is present.
       # Returns nil if no token is found.
       def token_and_options(request)
-        if header = request.authorization.to_s[/^Token (.*)/]
+        if request.authorization.to_s[/^Token (.*)/]
           values = Hash[$1.split(',').map do |value|
             value.strip!                      # remove any spaces between commas and values
             key, value = value.split(/\=\"?/) # split key=value pairs

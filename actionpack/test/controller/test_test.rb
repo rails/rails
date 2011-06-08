@@ -593,13 +593,13 @@ XML
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
-    @request.cookies['foo'] = 'bar'
+    cookies['foo'] = 'bar'
     get :no_op
     assert_equal 'bar', cookies['foo']
   end
 
   def test_should_detect_if_cookie_is_deleted
-    @request.cookies['foo'] = 'bar'
+    cookies['foo'] = 'bar'
     get :delete_cookie
     assert_nil cookies['foo']
   end

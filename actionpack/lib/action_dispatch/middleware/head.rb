@@ -8,7 +8,7 @@ module ActionDispatch
       if env["REQUEST_METHOD"] == "HEAD"
         env["REQUEST_METHOD"] = "GET"
         env["rack.methodoverride.original_method"] = "HEAD"
-        status, headers, body = @app.call(env)
+        status, headers, _ = @app.call(env)
         [status, headers, []]
       else
         @app.call(env)

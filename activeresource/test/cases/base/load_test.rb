@@ -72,7 +72,6 @@ class BaseLoadTest < Test::Unit::TestCase
 
   def test_after_load_attributes_are_accessible_via_indifferent_access
     assert_equal Hash.new, @person.attributes
-    matz_attributes = @matz.values.first
     assert_equal @matz.stringify_keys, @person.load(@matz).attributes
     assert_equal @matz[:name], @person.attributes['name']
     assert_equal @matz[:name], @person.attributes[:name]

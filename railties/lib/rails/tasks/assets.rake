@@ -13,6 +13,9 @@ namespace :assets do
     assets = Rails.application.config.assets
     public_asset_path = Rails.public_path + assets.prefix
     file_list = FileList.new("#{public_asset_path}/*.js", "#{public_asset_path}/*.css")
-    file_list.each{ |file| rm file }
+    file_list.each do |file|
+      rm file
+      rm "#{file}.gz", :force => true
+    end
   end
 end

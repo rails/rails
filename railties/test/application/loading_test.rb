@@ -8,6 +8,10 @@ class LoadingTest < Test::Unit::TestCase
     boot_rails
   end
 
+  def teardown
+    teardown_app
+  end
+
   def app
     @app ||= Rails.application
   end

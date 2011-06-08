@@ -15,6 +15,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "rails app is present" do
       assert File.exist?(app_path("config"))
     end
