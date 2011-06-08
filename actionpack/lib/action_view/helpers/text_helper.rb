@@ -255,14 +255,16 @@ module ActionView
       #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
-        text = ''.html_safe if text.nil?
+        text = text ? text.to_str : ''
+        text = text.dup if text.frozen?
         start_tag = tag('p', html_options, true)
-        text = sanitize(text) unless options[:sanitize] == false
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
         text.insert 0, start_tag
-        text.html_safe.safe_concat("</p>")
+        text.concat("</p>")
+        text = sanitize(text) unless options[:sanitize] == false
+        text
       end
 
       # Creates a Cycle object whose _to_s_ method cycles through elements of an
