@@ -51,7 +51,9 @@ module ActionView
           # This dance is needed because Builder can't use capture
           pos = output_buffer.length
           yield
-          fragment = output_buffer.slice!(pos..-1)
+          safe_output_buffer = output_buffer.to_str
+          fragment = safe_output_buffer.slice!(pos..-1)
+          self.output_buffer = ActionView::OutputBuffer.new(safe_output_buffer)
           controller.write_fragment(name, fragment, options)
         end
       end
