@@ -178,12 +178,6 @@ module AbstractController
       end
     end
 
-    class Me5 < WithLayouts
-      def index
-        render
-      end
-    end
-
     class TestLayouts < ActiveSupport::TestCase
       test "layouts are included" do
         controller = Me4.new
