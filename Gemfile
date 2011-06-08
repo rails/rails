@@ -44,7 +44,8 @@ platforms :ruby do
   gem "nokogiri", ">= 1.4.4"
 
   group :test do
-    gem "ruby-prof"
+    gem "ruby-prof" if RUBY_VERSION < "1.9.3"
+
   end
   # AR
   gem "sqlite3", "~> 1.3.3"
