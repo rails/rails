@@ -498,8 +498,8 @@ module ActionView
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
         email_address_obfuscated = email_address.dup
-        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
-        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
+        email_address_obfuscated = email_address_obfuscated.gsub(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
+        email_address_obfuscated = email_address_obfuscated.gsub(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
         case encode
         when "javascript"
           string = ''
