@@ -112,7 +112,7 @@ module ActiveSupport #:nodoc:
       to_str.to_yaml(*args)
     end
 
-    for unsafe_method in UNSAFE_STRING_METHODS
+    UNSAFE_STRING_METHODS.each do |unsafe_method|
       class_eval <<-EOT, __FILE__, __LINE__
         def #{unsafe_method}(*args)
           super.to_str
