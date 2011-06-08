@@ -484,8 +484,8 @@ module ActionView
         extras = extras.empty? ? '' : '?' + html_escape(extras.join('&'))
 
         email_address_obfuscated = email_address.dup
-        email_address_obfuscated = email_address_obfuscated.gsub(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
-        email_address_obfuscated = email_address_obfuscated.gsub(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
+        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
+        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
 
         string = ''
 
