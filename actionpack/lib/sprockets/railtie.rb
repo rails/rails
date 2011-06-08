@@ -54,8 +54,8 @@ module Sprockets
       env.static_root = File.join(app.root.join("public"), assets.prefix)
       env.paths.concat assets.paths
       env.logger = Rails.logger
-      env.js_compressor = expand_js_compressor(assets.js_compressor) if assets.compress
-      env.css_compressor = expand_css_compressor(assets.css_compressor) if assets.compress
+      env.js_compressor = expand_js_compressor(assets.js_compressor)
+      env.css_compressor = expand_css_compressor(assets.css_compressor)
       env
     end
 
