@@ -1,5 +1,7 @@
 *Rails 3.0.9 (unreleased)*
 
+* Make sure escape_js returns SafeBuffer string if it receives SafeBuffer string [Prem Sichanugrist]
+
 * Fix text helpers to work correctly with the new SafeBuffer restriction [Paul Gallagher, Arun Agrawal, Prem Sichanugrist]
 
 
