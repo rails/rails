@@ -660,7 +660,6 @@ module ActiveRecord #:nodoc:
         @quoted_table_name = nil
         define_attr_method :table_name, value, &block
 
-        @arel_table = Arel::Table.new(table_name, arel_engine)
         @relation = Relation.new(self, arel_table)
       end
       alias :table_name= :set_table_name
