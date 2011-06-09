@@ -628,14 +628,14 @@ module ActiveRecord
         end
 
         if name =~ /^"/ # Handle quoted table names
-          table = name
+          table  = name
           schema = nil
         end
-        
+
         query(<<-SQL).first[0].to_i > 0
-          SELECT COUNT(*)
+            SELECT COUNT(*)
             FROM pg_tables
-          WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
+            WHERE tablename = '#{table.gsub(/(^"|"$)/,'')}'
             AND schemaname = #{schema ? "'#{schema}'" : "ANY (current_schemas(false))"}
         SQL
       end
