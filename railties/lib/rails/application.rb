@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/file_update_checker'
 require 'fileutils'
+require 'tsort'
 require 'rails/plugin'
 require 'rails/engine'
 
@@ -54,6 +55,19 @@ module Rails
     alias_method :sandbox?, :sandbox
 
     delegate :default_url_options, :default_url_options=, :to => :routes
+
+    class Collection < Array
+      include TSort
+
+      alias :tsort_each_node :each
+      def tsort_each_child(initializer, &block)
+        select { |i| i.before == initializer.name || i.name == initializer.after }.each(&block)
+      end
+
+      def +(other)
+        Collection.new(to_a + other.to_a)
+      end
+    end
 
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
@@ -130,7 +144,7 @@ module Rails
 
     def initializers
       Bootstrap.initializers_for(self) +
-      super +
+      Collection.new(super).tsort +
       Finisher.initializers_for(self)
     end
 
