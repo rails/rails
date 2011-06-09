@@ -659,6 +659,7 @@ module ActiveRecord #:nodoc:
       def set_table_name(value = nil, &block)
         @quoted_table_name = nil
         define_attr_method :table_name, value, &block
+        @arel_table = nil
 
         @arel_table = Arel::Table.new(table_name, arel_engine)
         @relation = Relation.new(self, arel_table)
@@ -892,7 +893,7 @@ module ActiveRecord #:nodoc:
       end
 
       def arel_table
-        Arel::Table.new(table_name, arel_engine)
+        @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
       def arel_engine
