@@ -9,24 +9,19 @@ You can build postgres and mysql databases using the build_postgresql and build_
 
 You can run a particular test file from the command line, e.g.
 
-  $ ruby test/cases/base_test.rb
+  $ ruby -Itest test/cases/base_test.rb
 
 To run a specific test:
 
-  $ ruby test/cases/base_test.rb -n test_something_works
+  $ ruby -Itest test/cases/base_test.rb -n test_something_works
 
 You can run with a database other than the default you set in test/config.yml, using the ARCONN
 environment variable:
 
-  $ ARCONN=postgresql ruby test/cases/base_test.rb
+  $ ARCONN=postgresql ruby -Itest test/cases/base_test.rb
 
 You can run all the tests for a given database via rake:
 
-To setup the testing environment for PostgreSQL use this command:
+  $ rake test_mysql
 
-  rake postgresql:build_databases
-
-The incantation for running a particular test looks like this
-
-  rake test TEST=test/cases/datatype_test_postgresql.rb TESTOPTS="--name=test_timestamp_with_zone_values_without_rails_time_zone_support"
-
+The 'rake test' task will run all the tests for mysql, mysql2, sqlite3 and postgresql.
