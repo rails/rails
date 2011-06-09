@@ -117,7 +117,7 @@ module ActiveRecord
         result = true
         load_target if owner.new_record?
 
-        transaction do
+        block = lambda do
           records.flatten.each do |record|
             raise_on_type_mismatch(record)
             add_to_target(record) do |r|
@@ -125,6 +125,8 @@ module ActiveRecord
             end
           end
         end
+
+        owner.new_record? ? block.call : transaction(&block)
 
         result && records
       end
@@ -295,7 +297,7 @@ module ActiveRecord
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
 
-        transaction do
+        block = lambda do
           delete(target - other_array)
 
           unless concat(other_array - target)
@@ -304,6 +306,8 @@ module ActiveRecord
                                   "new records could not be saved."
           end
         end
+
+        owner.new_record? ? block.call : transaction(&block)
       end
 
       def include?(record)
@@ -444,7 +448,7 @@ module ActiveRecord
           records.each { |record| raise_on_type_mismatch(record) }
           existing_records = records.reject { |r| r.new_record? }
 
-          transaction do
+          block = lambda do
             records.each { |record| callback(:before_remove, record) }
 
             delete_records(existing_records, method) if existing_records.any?
@@ -452,6 +456,8 @@ module ActiveRecord
 
             records.each { |record| callback(:after_remove, record) }
           end
+
+          existing_records.any? ? transaction(&block) : block.call
         end
 
         # Delete the given records from the association, using one of the methods :destroy,
