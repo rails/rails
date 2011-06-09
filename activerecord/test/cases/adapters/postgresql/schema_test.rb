@@ -20,6 +20,7 @@ class SchemaTest < ActiveRecord::TestCase
     'email character varying(50)',
     'moment timestamp without time zone default now()'
   ]
+  PK_TABLE_NAME = 'table_with_pk'
 
   class Thing1 < ActiveRecord::Base
     set_table_name "test_schema.things"
@@ -37,6 +38,10 @@ class SchemaTest < ActiveRecord::TestCase
     set_table_name 'test_schema."Things"'
   end
 
+  class PrimaryKeyTestHarness < ActiveRecord::Base
+    set_table_name 'test_schema.pktest'
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
@@ -49,6 +54,7 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
+    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
   end
 
   def teardown
@@ -63,12 +69,30 @@ class SchemaTest < ActiveRecord::TestCase
     end
   end
 
+  def test_table_exists_when_on_schema_search_path
+    with_schema_search_path(SCHEMA_NAME) do
+      assert(@connection.table_exists?(TABLE_NAME), "table should exist and be found")
+    end
+  end
+
+  def test_table_exists_when_not_on_schema_search_path
+    with_schema_search_path('PUBLIC') do
+      assert(!@connection.table_exists?(TABLE_NAME), "table exists but should not be found")
+    end
+  end
+
   def test_table_exists_wrong_schema
     assert(!@connection.table_exists?("foo.things"), "table should not exist")
   end
 
-  def test_table_exists_quoted_table
-    assert(@connection.table_exists?('"things.table"'), "table should exist")
+  def test_table_exists_quoted_names
+    [ %("#{SCHEMA_NAME}"."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}")].each do |given|
+      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+    end
+    with_schema_search_path(SCHEMA_NAME) do
+      given = %("#{TABLE_NAME}")
+      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+    end
   end
 
   def test_with_schema_prefixed_table_name
@@ -162,6 +186,63 @@ class SchemaTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
     assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
     ActiveRecord::Base.connection.schema_search_path = "public"
+  end
+
+  def test_primary_key_with_schema_specified
+    [ %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"), %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}"), %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}")].each do |given|
+      assert_equal 'id', @connection.primary_key(given), "primary key should be found when table referenced as #{given}"
+    end
+  end
+
+  def test_primary_key_assuming_schema_search_path
+    with_schema_search_path(SCHEMA_NAME) do
+      assert_equal 'id', @connection.primary_key(PK_TABLE_NAME), "primary key should be found"
+    end
+  end
+
+  def test_primary_key_raises_error_if_table_not_found_on_schema_search_path
+    with_schema_search_path(SCHEMA2_NAME) do
+      assert_raises(ActiveRecord::StatementInvalid) do
+        @connection.primary_key(PK_TABLE_NAME)
+      end
+    end
+  end
+
+  def test_extract_schema_and_table
+    {
+      %(table_name)            => [nil,'table_name'],
+      %("table.name")          => [nil,'"table.name"'],
+      %(schema.table_name)     => %w{schema table_name},
+      %("schema".table_name)   => %w{"schema" table_name},
+      %(schema."table_name")   => %w{schema "table_name"},
+      %("schema"."table_name") => %w{"schema" "table_name"},
+      %("even spaces".table)   => ['"even spaces"','table'],
+      %(schema."table.name")   => %w{schema "table.name"}
+    }.each do |given,expect|
+      assert_equal expect, @connection.extract_schema_and_table(given)
+    end
+  end
+
+  def test_current_schema
+    {
+      %('$user',public) => 'public',
+      SCHEMA_NAME => SCHEMA_NAME,
+      %(#{SCHEMA2_NAME},#{SCHEMA_NAME},public) => SCHEMA2_NAME,
+      %(public,#{SCHEMA2_NAME},#{SCHEMA_NAME}) => 'public'
+    }.each do |given,expect|
+      with_schema_search_path(given) { assert_equal expect, @connection.current_schema }
+    end
+  end
+
+  def test_schema_exists?
+    {
+      'public'     => true,
+      SCHEMA_NAME  => true,
+      SCHEMA2_NAME => true,
+      'darkside'   => false
+    }.each do |given,expect|
+      assert_equal expect, @connection.schema_exists?(given)
+    end
   end
 
   private

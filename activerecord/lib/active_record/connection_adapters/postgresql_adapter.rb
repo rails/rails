@@ -466,10 +466,11 @@ module ActiveRecord
 
       # Executes an INSERT query and returns the new record's ID
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        # Extract the table from the insert sql. Yuck.
-        _, table = extract_schema_and_table(sql.split(" ", 4)[2])
-
-        pk ||= primary_key(table)
+        unless pk
+          # Extract the table from the insert sql. Yuck.
+          table_ref = extract_table_ref_from_insert_sql(sql)
+          pk = primary_key(table_ref) if table_ref
+        end
 
         if pk
           select_value("#{sql} RETURNING #{quote_column_name(pk)}")
@@ -565,9 +566,9 @@ module ActiveRecord
 
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)
         unless pk
-          _, table = extract_schema_and_table(sql.split(" ", 4)[2])
-
-          pk = primary_key(table)
+          # Extract the table from the insert sql. Yuck.
+          table_ref = extract_table_ref_from_insert_sql(sql)
+          pk = primary_key(table_ref) if table_ref
         end
 
         sql = "#{sql} RETURNING #{quote_column_name(pk)}" if pk
@@ -665,33 +666,48 @@ module ActiveRecord
         SQL
       end
 
+      # Returns true of table exists.
+      # If the schema is not specified as part of +name+ then it will only find tables within
+      # the current schema search path (regardless of permissions to access tables in other schemas)
       def table_exists?(name)
         schema, table = extract_schema_and_table(name.to_s)
+        return false unless table
 
         binds = [[nil, table.gsub(/(^"|"$)/,'')]]
-        binds << [nil, schema] if schema
+        binds << [nil, schema.gsub(/(^"|"$)/,'')] if schema
 
         exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
-            SELECT COUNT(*)
-            FROM pg_tables
-            WHERE tablename = $1
-            #{schema ? "AND schemaname = $2" : ''}
+          SELECT COUNT(*)
+          FROM pg_tables
+          WHERE tablename = $1
+          AND schemaname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
         SQL
       end
 
-      # Extracts the table and schema name from +name+
+      # Returns true if schema exists.
+      def schema_exists?(name)
+        exec_query(<<-SQL, 'SCHEMA', [[nil, name]]).rows.first[0].to_i > 0
+          SELECT COUNT(*)
+          FROM pg_namespace
+          WHERE nspname = $1
+        SQL
+      end
+
+      # Returns an array of [schema_name, table_name] extracted from +name+.
+      # The schema_name will be nil if not provided in +name+.
+      # Quotes are preserved in the schema and table name components if provided.
+      # Valid combinations for quoting the schema and table names:
+      #
+      # - table_name
+      # - "table.name"
+      # - schema_name.table_name
+      # - schema_name."table.name"
+      # - "schema.name".table_name
+      # - "schema.name"."table_name"
+      # - "schema.name"."table.name"
       def extract_schema_and_table(name)
-        schema, table = name.split('.', 2)
-
-        unless table # A table was provided without a schema
-          table  = schema
-          schema = nil
-        end
-
-        if name =~ /^"/ # Handle quoted table names
-          table  = name
-          schema = nil
-        end
+        name[/([^"\.\s]+|"[^"]+")(?:\.([^"\.\s]+|"[^"]*"))?/]
+        table, schema = [$1,$2].compact.reverse
         [schema, table]
       end
 
@@ -740,6 +756,11 @@ module ActiveRecord
       # Returns the current database name.
       def current_database
         query('select current_database()')[0][0]
+      end
+
+      # Returns the current schema name.
+      def current_schema
+        query('SELECT current_schema', 'SCHEMA')[0][0]
       end
 
       # Returns the current database encoding format.
@@ -843,7 +864,7 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table)
-        row = exec_query(<<-end_sql, 'SCHEMA', [[nil, table]]).rows.first
+        row = exec_query(<<-end_sql, 'SCHEMA', [[nil, quote_table_name(table)]]).rows.first
           SELECT DISTINCT(attr.attname)
           FROM pg_attribute attr
           INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
@@ -1078,6 +1099,11 @@ module ActiveRecord
             rest = rest[1, rest.length] if rest.start_with? "."
             [match_data[1], (rest.length > 0 ? rest : nil)]
           end
+        end
+
+        def extract_table_ref_from_insert_sql(sql)
+          sql[/into\s+([^\(]*).*values\s*\(/i]
+          $1.strip if $1
         end
 
       def table_definition
