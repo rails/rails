@@ -537,6 +537,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
 
+  def test_transactions_when_adding_to_persisted
+    force_signal37_to_load_all_clients_of_firm
+    Client.expects(:transaction)
+    companies(:first_firm).clients_of_firm.concat(Client.new("name" => "Natural Company"))
+  end
+
+  def test_transactions_when_adding_to_new_record
+    Client.expects(:transaction).never
+    firm = Firm.new
+    firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
+  end
+
   def test_new_aliased_to_build
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.new("name" => "Another Client") }
@@ -776,6 +788,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     companies(:first_firm).clients_of_firm.delete_all
     assert_equal 0, companies(:first_firm).clients_of_firm.size
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
+  def test_transaction_when_deleting_persisted
+    force_signal37_to_load_all_clients_of_firm
+    client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    Client.expects(:transaction)
+    companies(:first_firm).clients_of_firm.delete(client)
+  end
+
+  def test_transaction_when_deleting_new_record
+    client = Client.new("name" => "New Client")
+    firm = Firm.new
+    firm.clients_of_firm << client
+    Client.expects(:transaction).never
+    firm.clients_of_firm.delete(client)
   end
 
   def test_clearing_an_association_collection
@@ -1109,6 +1136,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       firm.accounts = [account]
     end
     assert_equal orig_accounts, firm.accounts
+  end
+
+  def test_transactions_when_replacing_on_persisted
+    firm = Firm.find(:first, :order => "id")
+    firm.clients = [companies(:first_client)]
+    assert firm.save, "Could not save firm"
+    firm.reload
+
+    Client.expects(:transaction)
+    firm.clients_of_firm = [Client.new("name" => "Natural Company")]
+  end
+
+  def test_transactions_when_replacing_on_new_record
+    firm = Firm.new
+    firm.clients_of_firm << Client.new("name" => "Natural Company")
+
+    Client.expects(:transaction).never
+    firm.clients_of_firm = [Client.new("name" => "New Client")]
   end
 
   def test_get_ids
