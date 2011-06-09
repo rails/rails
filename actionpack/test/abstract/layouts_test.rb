@@ -87,18 +87,6 @@ module AbstractControllerTests
       end
     end
 
-    class WithSymbolReturningString < Base
-      layout :no_hello
-
-      def index
-        render :template => ActionView::Template::Text.new("Hello missing symbol!")
-      end
-    private
-      def no_hello
-        nil
-      end
-    end
-
     class WithSymbolReturningNil < Base
       layout :nilz
 
