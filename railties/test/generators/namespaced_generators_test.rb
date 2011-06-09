@@ -7,15 +7,7 @@ require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   def setup
-    TestApp::Application.isolate_namespace(TestApp)
-  end
-
-  def teardown
-    if TestApp.respond_to?(:_railtie)
-      TestApp.singleton_class.send(:undef_method, :_railtie)
-      TestApp.singleton_class.send(:undef_method, :table_name_prefix)
-      TestApp::Application.isolated = false
-    end
+    Rails::Generators.namespace = TestApp
   end
 end
 

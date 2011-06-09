@@ -126,6 +126,8 @@ task :default => :test
     end
 
     def script(force = false)
+      return unless full?
+
       directory "script", :force => force do |content|
         "#{shebang}\n" + content
       end

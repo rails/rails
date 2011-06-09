@@ -54,7 +54,7 @@ module RailtiesTest
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
 
       Dir.chdir(app_path) do
-        output = `rake bukkits:install:migrations`
+        output = `bundle exec rake bukkits:install:migrations`
 
         assert File.exists?("#{app_path}/db/migrate/2_create_users.rb")
         assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.rb")
@@ -63,7 +63,7 @@ module RailtiesTest
         assert_match /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/, output
         assert_equal 3, Dir["#{app_path}/db/migrate/*.rb"].length
 
-        output = `rake railties:install:migrations`
+        output = `bundle exec rake railties:install:migrations`
 
         assert File.exists?("#{app_path}/db/migrate/4_create_yaffles.rb")
         assert_match /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/, output
@@ -71,7 +71,7 @@ module RailtiesTest
         assert_no_match /2_create_users/, output
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
-        output = `rake railties:install:migrations`
+        output = `bundle exec rake railties:install:migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
       end
