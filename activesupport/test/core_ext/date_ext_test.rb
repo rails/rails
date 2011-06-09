@@ -454,4 +454,10 @@ class DateExtBehaviorTest < Test::Unit::TestCase
       Date.today.freeze.inspect
     end
   end
+
+  def test_can_freeze_twice
+    assert_nothing_raised do
+      Date.today.freeze.freeze
+    end
+  end
 end
