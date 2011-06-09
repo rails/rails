@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Make sure escape_js returns SafeBuffer string if it receives SafeBuffer string [Prem Sichanugrist]
+
 * Fix escape_js to work correctly with the new SafeBuffer restriction [Paul Gallagher]
 
 * Brought back alternative convention for namespaced models in i18n [thoefer]
