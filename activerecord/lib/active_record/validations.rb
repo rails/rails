@@ -333,7 +333,6 @@ module ActiveRecord
     end
 
     def generate_message(attribute, message = :invalid, options = {})
-      ActiveSupport::Deprecation.warn("ActiveRecord::Errors#generate_message has been deprecated. Please use ActiveRecord::Error.new().to_s.")
       Error.new(@base, attribute, message, options).to_s
     end
   end
