@@ -49,7 +49,8 @@ module ActionView
       # Escape carrier returns and single and double quotes for JavaScript segments.
       def escape_javascript(javascript)
         if javascript
-          javascript.gsub(/(\\|<\/|\r\n|[\n\r"'])/) {|match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|[\n\r"'])/) {|match| JS_ESCAPE_MAP[match] }
+          javascript.html_safe? ? result.html_safe : result
         else
           ''
         end
