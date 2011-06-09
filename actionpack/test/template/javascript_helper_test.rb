@@ -35,6 +35,8 @@ class JavaScriptHelperTest < ActionView::TestCase
     expect = %(\\'quoted\\' \\"double-quoted\\" new-line:\\n <\\/closed>)
     assert_equal expect, escape_javascript(given)
     assert_equal expect, escape_javascript(ActiveSupport::SafeBuffer.new(given))
+    assert_instance_of String, escape_javascript(given)
+    assert_instance_of ActiveSupport::SafeBuffer, escape_javascript(ActiveSupport::SafeBuffer.new(given))
   end
 
   def test_button_to_function
