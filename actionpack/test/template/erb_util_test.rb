@@ -16,6 +16,16 @@ class ErbUtilTest < Test::Unit::TestCase
     end
   end
 
+  def test_json_escape_returns_unsafe_strings_when_passed_unsafe_strings
+    value = json_escape("asdf")
+    assert !value.html_safe?
+  end
+
+  def test_json_escape_returns_safe_strings_when_passed_safe_strings
+    value = json_escape("asdf".html_safe)
+    assert value.html_safe?
+  end
+
   def test_html_escape_is_html_safe
     escaped = h("<p>")
     assert_equal "&lt;p&gt;", escaped
