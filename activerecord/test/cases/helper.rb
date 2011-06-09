@@ -12,18 +12,19 @@ require 'active_support/dependencies'
 require 'support/config'
 require 'support/connection'
 
-ARTest.connect
-
 # TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-# Quote "type" if it's a reserved word for the current connection.
-QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
-
 # Enable Identity Map only when ENV['IM'] is set to "true"
 ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "true")
+
+# Connect to the database
+ARTest.connect
+
+# Quote "type" if it's a reserved word for the current connection.
+QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 
 def current_adapter?(*types)
   types.any? do |type|
