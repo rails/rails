@@ -65,12 +65,14 @@ module ActiveSupport
     # though there are cases where that does not hold:
     #
     #   "SSLError".underscore.camelize # => "SslError"
-    def camelize(lower_case_and_underscored_word, first_letter_in_uppercase = true)
-      if first_letter_in_uppercase
-        lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+    def camelize(term, uppercase_first_letter = true)
+      string = term.to_s
+      if uppercase_first_letter
+        string = string.sub(/^[a-z\d]*/) { inflections.acronyms[$&] || $&.capitalize }
       else
-        lower_case_and_underscored_word.to_s[0].chr.downcase + camelize(lower_case_and_underscored_word)[1..-1]
+        string = string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[A-Z_])|\w)/) { $&.downcase }
       end
+      string.gsub(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }.gsub('/', '::')
     end
 
     # Makes an underscored, lowercase form from the expression in the string.
@@ -88,7 +90,8 @@ module ActiveSupport
     def underscore(camel_cased_word)
       word = camel_cased_word.to_s.dup
       word.gsub!(/::/, '/')
-      word.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+      word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
       word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
       word.tr!("-", "_")
       word.downcase!
@@ -103,9 +106,9 @@ module ActiveSupport
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
       result = lower_case_and_underscored_word.to_s.dup
-
       inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-      result.gsub(/_id$/, "").gsub(/_/, " ").capitalize
+      result.gsub!(/_id$/, "")
+      result.gsub(/(_)?([a-z\d]*)/i) { "#{$1 && ' '}#{inflections.acronyms[$2] || $2.downcase}" }.gsub(/^\w/) { $&.upcase }
     end
 
     # Capitalizes all the words and replaces some characters in the string to create

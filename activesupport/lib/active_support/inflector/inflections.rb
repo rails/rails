@@ -20,10 +20,10 @@ module ActiveSupport
         @__instance__ ||= new
       end
 
-      attr_reader :plurals, :singulars, :uncountables, :humans
+      attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
 
       def initialize
-        @plurals, @singulars, @uncountables, @humans, @acronyms = [], [], [], [], []
+        @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], [], [], {}, /(?=a)b/
       end
 
       # Specifies a new acronym. An acronym must be specified as it will appear in a camelized string.  An underscore
@@ -73,7 +73,8 @@ module ActiveSupport
       #   underscore 'McDonald' #=> 'mcdonald'
       #   camelize 'mcdonald' #=> 'McDonald'
       def acronym(word)
-        @acronyms.unshift(word)
+        @acronyms[word.downcase] = word
+        @acronym_regex = /#{@acronyms.values.join("|")}/
       end
 
       # Specifies a new pluralization rule and its replacement. The rule can either be a string or a regular expression.

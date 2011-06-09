@@ -1460,7 +1460,15 @@ end
 
 That may be handy to compute method names in a language that follows that convention, for example JavaScript.
 
-INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
+INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>. To support cases such as this, Active Support allows you to specify acronyms in +config/initializers/inflections.rb+:
+
+<ruby>
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym 'SSL'
+end
+
+"SSLError".underscore.camelize #=> "SSLError"
+</ruby>
 
 +camelize+ is aliased to +camelcase+.
 
