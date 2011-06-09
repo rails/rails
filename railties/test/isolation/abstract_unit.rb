@@ -287,4 +287,4 @@ Module.new do
     end
     f.puts "require 'rails/all'"
   end
-end
+end unless defined?(RAILS_ISOLATED_ENGINE)

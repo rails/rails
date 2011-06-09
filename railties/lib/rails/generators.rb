@@ -20,6 +20,8 @@ module Rails
     autoload :ResourceHelpers, 'rails/generators/resource_helpers'
     autoload :TestCase,        'rails/generators/test_case'
 
+    mattr_accessor :namespace
+
     DEFAULT_ALIASES = {
       :rails => {
         :actions => '-a',
