@@ -430,7 +430,7 @@ namespace :db do
       when /mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"], abcs["test"])
-      when "postgresql"
+      when /postgresql/
         ActiveRecord::Base.clear_active_connections!
         drop_database(abcs['test'])
         create_database(abcs['test'])
