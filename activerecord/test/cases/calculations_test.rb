@@ -18,6 +18,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 318, Account.sum(:credit_limit)
   end
 
+  def test_should_sum_more_than_one_field
+    assert_equal [318, 21], Account.sum([:credit_limit, :id])
+  end
+
   def test_should_average_field
     value = Account.average(:credit_limit)
     assert_equal 53.0, value
@@ -29,7 +33,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_return_integer_average_if_db_returns_such
-    Account.connection.stubs :select_value => 3
+    Account.connection.stubs :select_row => [3]
     value = Account.average(:id)
     assert_equal 3, value
   end
@@ -57,8 +61,26 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_get_maximum_of_more_than_one_field_with_scoped_include
+    Account.send :with_scope, :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
+      assert_equal [55, 6], Account.maximum([:credit_limit, :id])
+    end
+  end
+
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
+  end
+
+  def test_should_get_multiple_aggregate_values_of_field
+    assert_equal [318, 53.0, 50, 60], Account.calculate([:sum, :average, :minimum, :maximum], :credit_limit)
+  end
+
+  def test_should_get_aggregate_value_of_more_than_one_field
+    assert_equal [53.0, 3.5], Account.calculate(:average, [:credit_limit, :id])
+  end
+
+  def test_should_get_multiple_aggregate_values_of_different_fields
+    assert_equal [318, 3.5], Account.calculate([:sum, :average], [:credit_limit, :id])
   end
 
   def test_should_group_by_field

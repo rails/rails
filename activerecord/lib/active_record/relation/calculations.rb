@@ -158,27 +158,43 @@ module ActiveRecord
 
     private
 
-    def perform_calculation(operation, column_name, options = {})
-      operation = operation.to_s.downcase
+    def normalize_column_names_and_options(operations, column_names)
+      operations = [operations] if !operations.kind_of?(Array)
+      column_names = [column_names] if !column_names.kind_of?(Array)
+      li = [operations.length, column_names.length].max - 1
+
+      for i in 0..li do
+        operations.push(operations.last) if operations[i].nil?
+        column_names.push(column_names.last) if column_names[i].nil?
+      end
+
+      operations.map! { |o| o.to_s.downcase }
+      [operations, column_names]
+    end
+
+    def perform_calculation(operations, column_names, options = {})
+      operations, column_names = normalize_column_names_and_options(operations, column_names)
 
       distinct = options[:distinct]
 
-      if operation == "count"
-        column_name ||= (select_for_count || :all)
-
-        unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
-          distinct = true
-        end
-
-        column_name = primary_key if column_name == :all && distinct
-
-        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
-      end
-
+#      if operation == "count"
+#        column_name ||= (select_for_count || :all)
+#
+#        unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
+#          distinct = true
+#        end
+#
+#        column_name = primary_key if column_name == :all && distinct
+#
+#        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
+#      end
+#
       if @group_values.any?
-        execute_grouped_calculation(operation, column_name, distinct)
+        p "GROUPED"
+        execute_grouped_calculation(operations, column_names, distinct)
       else
-        execute_simple_calculation(operation, column_name, distinct)
+        p "SIMPLE"
+        execute_simple_calculation(operations, column_names, distinct)
       end
     end
 
@@ -194,26 +210,30 @@ module ActiveRecord
       operation == 'count' ? column.count(distinct) : column.send(operation)
     end
 
-    def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
+    def execute_simple_calculation(operations, column_names, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
       relation = with_default_scope.reorder(nil)
 
-      if operation == "count" && (relation.limit_value || relation.offset_value)
-        # Shortcut when limit is zero.
-        return 0 if relation.limit_value == 0
+#      if operation == "count" && (relation.limit_value || relation.offset_value)
+#        # Shortcut when limit is zero.
+#        return 0 if relation.limit_value == 0
+#
+#        query_builder = build_count_subquery(relation, column_name, distinct)
+#      else
 
-        query_builder = build_count_subquery(relation, column_name, distinct)
-      else
-        column = aggregate_column(column_name)
+        columns = column_names.map { |c| aggregate_column(c) }
 
-        select_value = operation_over_aggregate_column(column, operation, distinct)
+        select_values = []
+        operations.each_with_index { |op, i| select_values.push(operation_over_aggregate_column(columns[i], op, distinct)) }
 
-        relation.select_values = [select_value]
+        relation.select_values = select_values
 
         query_builder = relation.arel
-      end
-
-      type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
+#      end
+      results = []
+      row = @klass.connection.select_row(query_builder.to_sql)
+      row.each_with_index { |value, i| results.push(type_cast_calculated_value(value, column_for(column_names[i]), operations[i])) }
+      results.length == 1 ? results[0] : results
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
