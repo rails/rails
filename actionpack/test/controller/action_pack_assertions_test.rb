@@ -100,9 +100,6 @@ class AssertResponseWithUnexpectedErrorController < ActionController::Base
   end
 end
 
-class UserController < ActionController::Base
-end
-
 module Admin
   class InnerModuleController < ActionController::Base
     def index
