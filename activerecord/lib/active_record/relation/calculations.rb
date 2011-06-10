@@ -194,10 +194,8 @@ module ActiveRecord
       end
 
       if @group_values.any?
-        p "GROUPED"
         execute_grouped_calculation(operations, column_names, distinct)
       else
-        p "SIMPLE"
         execute_simple_calculation(operations, column_names, distinct)
       end
     end
@@ -244,13 +242,12 @@ module ActiveRecord
 
           query_builder = relation.arel
       end
-     # p query_builder.to_sql
       row = @klass.connection.select_row(query_builder.to_sql)
       row.each_with_index { |value, i| results.push(type_cast_calculated_value(value, column_for(column_names[i]), operations[i])) }
       results.length == 1 ? results[0] : results
     end
 
-    def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
+    def execute_grouped_calculation(operations, column_names, distinct) #:nodoc:
       group_attr      = @group_values
       association     = @klass.reflect_on_association(group_attr.first.to_sym)
       associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
@@ -262,18 +259,22 @@ module ActiveRecord
 
       group = @klass.connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
 
-      if operation == 'count' && column_name == :all
-        aggregate_alias = 'count_all'
-      else
-        aggregate_alias = column_alias_for(operation, column_name)
-      end
+      select_values = []
+      aggregate_aliases = []
+      operations.each_with_index do |op, i|
+        if op == 'count' && column_names[i] == :all
+          aggregate_aliases.push('count_all')
+        else
+          aggregate_aliases.push(column_alias_for(op, column_names[i]))
+        end
 
-      select_values = [
-        operation_over_aggregate_column(
-          aggregate_column(column_name),
-          operation,
-          distinct).as(aggregate_alias)
-      ]
+        select_values.push(
+          operation_over_aggregate_column(
+            aggregate_column(column_names[i]),
+            op,
+            distinct).as(aggregate_aliases[i])
+        )
+      end
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
         "#{field} AS #{aliaz}"
@@ -294,9 +295,11 @@ module ActiveRecord
         key   = group_columns.map { |aliaz, column|
           type_cast_calculated_value(row[aliaz], column)
         }
-        key   = key.first if key.size == 1
+        key = key.first if key.size == 1
         key = key_records[key] if associated
-        [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
+        values = []
+        aggregate_aliases.each_with_index { |aa, i| values.push(type_cast_calculated_value(row[aa], column_for(column_names[i]), operations[i])) }
+        [key, values.length == 1 ? values.first : values]
       end]
     end
 
