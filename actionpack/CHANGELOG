@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* json_escape will now return a SafeBuffer string if it receives SafeBuffer string [tenderlove]
+
 * Make sure escape_js returns SafeBuffer string if it receives SafeBuffer string [Prem Sichanugrist]
 
 * Fix escape_js to work correctly with the new SafeBuffer restriction [Paul Gallagher]
