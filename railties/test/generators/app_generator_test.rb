@@ -122,10 +122,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     Rails.application.class.stubs(:name).returns("Myapp")
     Rails.application.stubs(:is_a?).returns(Rails::Application)
 
-    FileUtils.mv(app_root, app_moved_root)
-
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
                                                                :destination_root => app_moved_root, :shell => @shell
+    FileUtils.mv(app_root, app_moved_root)
     generator.send(:app_const)
     silence(:stdout){ generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
