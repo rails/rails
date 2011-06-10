@@ -62,8 +62,8 @@ module ActiveRecord
     # no row. See +calculate+ for examples with options.
     #
     #   Person.average('age') # => 35.8
-    def average(column_name, options = {})
-      calculate(:average, column_name, options)
+    def average(column_names, options = {})
+      calculate(:average, column_names, options)
     end
 
     # Calculates the minimum value on a given column. The value is returned
@@ -71,8 +71,8 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.minimum('age') # => 7
-    def minimum(column_name, options = {})
-      calculate(:minimum, column_name, options)
+    def minimum(column_names, options = {})
+      calculate(:minimum, column_names, options)
     end
 
     # Calculates the maximum value on a given column. The value is returned
@@ -80,8 +80,8 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.maximum('age') # => 93
-    def maximum(column_name, options = {})
-      calculate(:maximum, column_name, options)
+    def maximum(column_names, options = {})
+      calculate(:maximum, column_names, options)
     end
 
     # Calculates the sum of values on a given column. The value is returned
@@ -89,8 +89,8 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.sum('age') # => 4562
-    def sum(column_name, options = {})
-      calculate(:sum, column_name, options)
+    def sum(column_names, options = {})
+      calculate(:sum, column_names, options)
     end
 
     # This calculates aggregate values in the given column. Methods for count, sum, average,
@@ -142,14 +142,15 @@ module ActiveRecord
     #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name)
     #
     #   Person.sum("2 * age")
-    def calculate(operation, column_name, options = {})
+    def calculate(operations, column_names, options = {})
+      operations, column_names = normalize_column_names_and_options(operations, column_names)
       if options.except(:distinct).present?
-        apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
+        apply_finder_options(options.except(:distinct)).calculate(operations, column_names, :distinct => options[:distinct])
       else
         if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
-          construct_relation_for_association_calculations.calculate(operation, column_name, options)
+          construct_relation_for_association_calculations.calculate(operations, column_names, options)
         else
-          perform_calculation(operation, column_name, options)
+          perform_calculation(operations, column_names, options)
         end
       end
     rescue ThrowResult
@@ -163,9 +164,11 @@ module ActiveRecord
       column_names = [column_names] if !column_names.kind_of?(Array)
       li = [operations.length, column_names.length].max - 1
 
-      for i in 0..li do
-        operations.push(operations.last) if operations[i].nil?
-        column_names.push(column_names.last) if column_names[i].nil?
+      if li > 0
+        for i in 0..li do
+          operations.push(operations.last) if operations[i].nil?
+          column_names.push(column_names.last) if column_names[i].nil?
+        end
       end
 
       operations.map! { |o| o.to_s.downcase }
@@ -173,22 +176,23 @@ module ActiveRecord
     end
 
     def perform_calculation(operations, column_names, options = {})
-      operations, column_names = normalize_column_names_and_options(operations, column_names)
 
       distinct = options[:distinct]
 
-#      if operation == "count"
-#        column_name ||= (select_for_count || :all)
-#
-#        unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
-#          distinct = true
-#        end
-#
-#        column_name = primary_key if column_name == :all && distinct
-#
-#        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
-#      end
-#
+      operations.each_with_index do |op, i|
+        if op == "count"
+          column_names[i] ||= (select_for_count || :all)
+
+          unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
+            distinct = true
+          end
+
+          column_names[i] = primary_key if column_names[i] == :all && distinct
+
+          distinct = nil if column_names[i] =~ /\s*DISTINCT\s+/i
+        end
+      end
+
       if @group_values.any?
         p "GROUPED"
         execute_grouped_calculation(operations, column_names, distinct)
@@ -213,24 +217,34 @@ module ActiveRecord
     def execute_simple_calculation(operations, column_names, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
       relation = with_default_scope.reorder(nil)
-
-#      if operation == "count" && (relation.limit_value || relation.offset_value)
-#        # Shortcut when limit is zero.
-#        return 0 if relation.limit_value == 0
-#
-#        query_builder = build_count_subquery(relation, column_name, distinct)
-#      else
-
-        columns = column_names.map { |c| aggregate_column(c) }
-
-        select_values = []
-        operations.each_with_index { |op, i| select_values.push(operation_over_aggregate_column(columns[i], op, distinct)) }
-
-        relation.select_values = select_values
-
-        query_builder = relation.arel
-#      end
       results = []
+
+      if relation.limit_value || relation.offset_value
+        if relation.limit_value == 0
+          # Shortcut when limit is zero
+          null_values = {"count" => 0,
+                         "sum" => 0,
+                         "average" => nil,
+                         "minimum" => nil,
+                         "maximum" => nil}
+    
+          operations.each_with_index { |op, i| results.push(type_cast_calculated_value(null_values[operations[i]], column_for(column_names[i]), operations[i])) }
+          return results.length == 1 ? results[0] : results
+        else
+          query_builder = build_aggregate_subquery(relation, operations, column_names, distinct)
+        end
+
+      else
+          columns = column_names.map { |c| aggregate_column(c) }
+
+          select_values = []
+          operations.each_with_index { |op, i| select_values.push(operation_over_aggregate_column(columns[i], op, distinct)) }
+
+          relation.select_values = select_values
+
+          query_builder = relation.arel
+      end
+     # p query_builder.to_sql
       row = @klass.connection.select_row(query_builder.to_sql)
       row.each_with_index { |value, i| results.push(type_cast_calculated_value(value, column_for(column_names[i]), operations[i])) }
       results.length == 1 ? results[0] : results
@@ -330,17 +344,22 @@ module ActiveRecord
       end
     end
 
-    def build_count_subquery(relation, column_name, distinct)
-      column_alias = Arel.sql('count_column')
-      subquery_alias = Arel.sql('subquery_for_count')
+    def build_aggregate_subquery(relation, operations, column_names, distinct)
+      subquery_alias = Arel.sql('subquery_for_aggregate')
 
-      aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
-      relation.select_values = [aliased_column]
+      aliased_columns = []
+      select_values = []
+      column_names.each_with_index do |c, i|
+        column_alias = Arel.sql("#{operations[i]}_#{c}_column")
+        aliased_columns.push(aggregate_column(c == :all ? 1 : c).as(column_alias))
+        select_values.push(operation_over_aggregate_column(column_alias, operations[i], distinct))
+      end
+
+      relation.select_values = aliased_columns
       subquery = relation.arel.as(subquery_alias)
 
       sm = Arel::SelectManager.new relation.engine
-      select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
-      sm.project(select_value).from(subquery)
+      sm.project(select_values).from(subquery)
     end
   end
 end
