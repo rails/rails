@@ -53,14 +53,6 @@ module Arel
         sql.must_be_like "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY ) as _row_num) as _t WHERE _row_num >= 21"
       end
 
-      it 'should guard FixNums' do
-        stmt = Nodes::SelectStatement.new
-        stmt.limit = Nodes::Limit.new(10)
-        stmt.cores.first.projections << 1
-        sql = @visitor.accept(stmt)
-        sql.must_be_like "SELECT _t.* FROM (SELECT 1 as _fld_1, ROW_NUMBER() OVER (ORDER BY ) as _row_num) as _t WHERE _row_num BETWEEN 1 AND 10"
-      end
-
       it 'should generate subquery for .count' do
         stmt = Nodes::SelectStatement.new
         stmt.limit = Nodes::Limit.new(10)

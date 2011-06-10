@@ -24,7 +24,6 @@ module Arel
             x.projections = [row_num_literal(core_order_by)]
             is_select_count = true
           else
-            guard_against_select_constant! x
             x.projections << row_num_literal(core_order_by)
           end
 
@@ -63,21 +62,12 @@ module Arel
         x.projections.length == 1 && Arel::Nodes::Count === x.projections.first
       end
 
-      def guard_against_select_constant! x
-        # guard against .select(1) (i.e. validate_uniqueness uses it to minimize qry result set)
-        # todo it won't work for .select('a'), which is probably ok. 'coz of workaround: .select("'a' as a")
-        x.projections.map! do |p|
-          p.kind_of?(Fixnum) ? Nodes::SqlLiteral.new("#{p} as _fld_#{p}") : p
-        end
-      end
-
       # fixme raise exception of there is no pk?
       # fixme!! Table.primary_key will be depricated. What is the replacement??
       def find_left_table_pk o
         return visit o.primary_key if o.instance_of? Arel::Table
         find_left_table_pk o.left if o.kind_of? Arel::Nodes::Join
       end
-
     end
   end
 end
