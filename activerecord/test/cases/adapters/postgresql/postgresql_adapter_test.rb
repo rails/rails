@@ -74,6 +74,36 @@ module ActiveRecord
           @connection.default_sequence_name('zomg')
       end
 
+      def test_pk_and_sequence_for
+        pk, seq = @connection.pk_and_sequence_for('ex')
+        assert_equal 'id', pk
+        assert_equal @connection.default_sequence_name('ex', 'id'), seq
+      end
+
+      def test_pk_and_sequence_for_with_non_standard_primary_key
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(code serial primary key)')
+        pk, seq = @connection.pk_and_sequence_for('ex')
+        assert_equal 'code', pk
+        assert_equal @connection.default_sequence_name('ex', 'code'), seq
+      end
+
+      def test_pk_and_sequence_for_returns_nil_if_no_seq
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(id integer primary key)')
+        assert_nil @connection.pk_and_sequence_for('ex')
+      end
+
+      def test_pk_and_sequence_for_returns_nil_if_no_pk
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(id integer)')
+        assert_nil @connection.pk_and_sequence_for('ex')
+      end
+
+      def test_pk_and_sequence_for_returns_nil_if_table_not_found
+        assert_nil @connection.pk_and_sequence_for('unobtainium')
+      end
+
       def test_exec_insert_number
         insert(@connection, 'number' => 10)
 

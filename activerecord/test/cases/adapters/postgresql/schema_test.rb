@@ -38,10 +38,6 @@ class SchemaTest < ActiveRecord::TestCase
     set_table_name 'test_schema."Things"'
   end
 
-  class PrimaryKeyTestHarness < ActiveRecord::Base
-    set_table_name 'test_schema.pktest'
-  end
-
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
@@ -189,7 +185,11 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_with_schema_specified
-    [ %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"), %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}"), %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}")].each do |given|
+    [
+      %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"),
+      %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}"),
+      %(#{SCHEMA_NAME}.#{PK_TABLE_NAME})
+    ].each do |given|
       assert_equal 'id', @connection.primary_key(given), "primary key should be found when table referenced as #{given}"
     end
   end
@@ -205,6 +205,18 @@ class SchemaTest < ActiveRecord::TestCase
       assert_raises(ActiveRecord::StatementInvalid) do
         @connection.primary_key(PK_TABLE_NAME)
       end
+    end
+  end
+
+  def test_pk_and_sequence_for_with_schema_specified
+    [
+      %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"),
+      %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}"),
+      %(#{SCHEMA_NAME}.#{PK_TABLE_NAME})
+    ].each do |given|
+      pk, seq = @connection.pk_and_sequence_for(given)
+      assert_equal 'id', pk, "primary key should be found when table referenced as #{given}"
+      assert_equal "#{SCHEMA_NAME}.#{PK_TABLE_NAME}_id_seq", seq, "sequence name should be found when table referenced as #{given}"
     end
   end
 
