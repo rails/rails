@@ -130,7 +130,7 @@ module ActiveSupport #:nodoc:
     # If you really need the magic matching variables after the gsub call
     # you will need to covert SafeBuffer to a String first
     def gsub(*args)
-      String.new(self).gsub(*args)
+      to_str.gsub(*args)
     end
   end
 end

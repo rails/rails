@@ -52,13 +52,13 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should set magic match variables within block passed to gsub" do
-    'clear'[/(matches)/]
+    'burn'[/(matches)/]
     @buffer << 'swan'
     @buffer.gsub(/(swan)/) { assert_equal 'swan', $1 }
   end
 
   test "Should not expect magic match variables after gsub call" do
-    'clear'[/(matches)/]
+    'burn'[/(matches)/]
     @buffer << 'vesta'
     @buffer.gsub(/(vesta)/, '')
     assert !$1, %(
