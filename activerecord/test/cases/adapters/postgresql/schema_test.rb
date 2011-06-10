@@ -225,8 +225,8 @@ class SchemaTest < ActiveRecord::TestCase
 
   def test_current_schema
     {
-      %('$user',public) => 'public',
-      SCHEMA_NAME => SCHEMA_NAME,
+      %('$user',public)                        => 'public',
+      SCHEMA_NAME                              => SCHEMA_NAME,
       %(#{SCHEMA2_NAME},#{SCHEMA_NAME},public) => SCHEMA2_NAME,
       %(public,#{SCHEMA2_NAME},#{SCHEMA_NAME}) => 'public'
     }.each do |given,expect|

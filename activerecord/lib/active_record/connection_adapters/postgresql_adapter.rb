@@ -666,7 +666,7 @@ module ActiveRecord
         SQL
       end
 
-      # Returns true of table exists.
+      # Returns true if table exists.
       # If the schema is not specified as part of +name+ then it will only find tables within
       # the current schema search path (regardless of permissions to access tables in other schemas)
       def table_exists?(name)
@@ -981,27 +981,27 @@ module ActiveRecord
         end
 
       private
-      def exec_no_cache(sql, binds)
-        @connection.async_exec(sql)
-      end
-
-      def exec_cache(sql, binds)
-        unless @statements.key? sql
-          nextkey = "a#{@statements.length + 1}"
-          @connection.prepare nextkey, sql
-          @statements[sql] = nextkey
+        def exec_no_cache(sql, binds)
+          @connection.async_exec(sql)
         end
 
-        key = @statements[sql]
+        def exec_cache(sql, binds)
+          unless @statements.key? sql
+            nextkey = "a#{@statements.length + 1}"
+            @connection.prepare nextkey, sql
+            @statements[sql] = nextkey
+          end
 
-        # Clear the queue
-        @connection.get_last_result
-        @connection.send_query_prepared(key, binds.map { |col, val|
-          type_cast(val, col)
-        })
-        @connection.block
-        @connection.get_last_result
-      end
+          key = @statements[sql]
+
+          # Clear the queue
+          @connection.get_last_result
+          @connection.send_query_prepared(key, binds.map { |col, val|
+            type_cast(val, col)
+          })
+          @connection.block
+          @connection.get_last_result
+        end
 
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
@@ -1106,9 +1106,9 @@ module ActiveRecord
           $1.strip if $1
         end
 
-      def table_definition
-        TableDefinition.new(self)
-      end
+        def table_definition
+          TableDefinition.new(self)
+        end
     end
   end
 end

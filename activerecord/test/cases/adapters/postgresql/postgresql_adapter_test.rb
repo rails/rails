@@ -11,7 +11,7 @@ module ActiveRecord
       end
 
       def test_primary_key
-        assert_equal 'id',@connection.primary_key('ex')
+        assert_equal 'id', @connection.primary_key('ex')
       end
 
       def test_non_standard_primary_key
