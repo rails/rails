@@ -66,7 +66,7 @@ resources :posts
 # home_controller.rb
 class HomeController < ApplicationController
   def dashboard
-    @users = User.last_ten(:include => :avatars)
+    @users = User.last_ten.includes(:avatars)
     @posts = Post.all_today
   end
 end
