@@ -192,6 +192,9 @@ module ActionView
         locals_code = locals.keys.map! { |key| "#{key} = local_assigns[:#{key}];" }.join
 
         if source.encoding_aware?
+          # Avoid performing in-place mutation for SafeBuffer
+          @source = source.to_str if source.html_safe?
+
           # Look for # encoding: *. If we find one, we'll encode the
           # String in that encoding, otherwise, we'll use the
           # default external encoding.
