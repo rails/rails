@@ -128,5 +128,10 @@ class TestERBTemplate < ActiveSupport::TestCase
     ensure
       Encoding.default_external = old
     end
+
+    def test_render_inline_safebuffer_should_not_raise_error
+      @template = new_template("Hello".html_safe)
+      render
+    end
   end
 end
