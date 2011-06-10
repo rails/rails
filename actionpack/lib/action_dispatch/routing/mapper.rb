@@ -1102,9 +1102,9 @@ module ActionDispatch
         #
         #   The +comments+ resource here will have the following routes generated for it:
         #
-        #     post_comments    GET    /sekret/posts/:post_id/comments(.:format)
-        #     post_comments    POST   /sekret/posts/:post_id/comments(.:format)
-        #     new_post_comment GET    /sekret/posts/:post_id/comments/new(.:format)
+        #     post_comments    GET    /posts/:post_id/comments(.:format)
+        #     post_comments    POST   /posts/:post_id/comments(.:format)
+        #     new_post_comment GET    /posts/:post_id/comments/new(.:format)
         #     edit_comment     GET    /sekret/comments/:id/edit(.:format)
         #     comment          GET    /sekret/comments/:id(.:format)
         #     comment          PUT    /sekret/comments/:id(.:format)
