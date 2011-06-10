@@ -1,5 +1,28 @@
 *Rails 3.2.0 (unreleased)*
 
+* Refactor ActionController::TestCase cookies [Andrew White]
+
+  Assigning cookies for test cases should now use cookies[], e.g:
+
+    cookies[:email] = 'user@example.com'
+    get :index
+    assert_equal 'user@example.com', cookies[:email]
+
+  To clear the cookies, use clear, e.g:
+
+    cookies.clear
+    get :index
+    assert_nil cookies[:email]
+
+  We now no longer write out HTTP_COOKIE and the cookie jar is
+  persistent between requests so if you need to manipulate the environment
+  for your test you need to do it before the cookie jar is created.
+
+
+*Rails 3.1.0 (unreleased)*
+
+* json_escape will now return a SafeBuffer string if it receives SafeBuffer string [tenderlove]
+
 * Make sure escape_js returns SafeBuffer string if it receives SafeBuffer string [Prem Sichanugrist]
 
 * Fix escape_js to work correctly with the new SafeBuffer restriction [Paul Gallagher]
@@ -30,27 +53,6 @@
   The new versions will now ensure that *all* strings returned by these methods on safe buffers are marked unsafe.
 
   You can read more about this change in http://groups.google.com/group/rubyonrails-security/browse_thread/thread/2e516e7acc96c4fb
-
-* Refactor ActionController::TestCase cookies [Andrew White]
-
-  Assigning cookies for test cases should now use cookies[], e.g:
-
-    cookies[:email] = 'user@example.com'
-    get :index
-    assert_equal 'user@example.com', cookies[:email]
-
-  To clear the cookies, use clear, e.g:
-
-    cookies.clear
-    get :index
-    assert_nil cookies[:email]
-
-  We now no longer write out HTTP_COOKIE and the cookie jar is
-  persistent between requests so if you need to manipulate the environment
-  for your test you need to do it before the cookie jar is created.
-
-
-*Rails 3.1.0 (unreleased)*
 
 * Added 'ActionView::Helpers::FormHelper.fields_for_with_index', similar to fields_for but allows to have access to the current iteration index [Jorge Bejar]
 
