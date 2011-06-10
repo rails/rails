@@ -190,7 +190,7 @@ module Rails
       def bundle_command(command)
         say_status :run, "bundle #{command}"
 
-        # We are going to shell out rather than invoking Bundle::CLI.new(command)
+        # We are going to shell out rather than invoking Bundler::CLI.new(command)
         # because `rails new` loads the Thor gem and on the other hand bundler uses
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
