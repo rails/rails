@@ -74,6 +74,7 @@ class ContentTypeTest < ActionController::TestCase
     get :render_defaults
     assert_equal "utf-16", @response.charset
     assert_equal Mime::HTML, @response.content_type
+  ensure
     OldContentTypeController.default_charset = "utf-8"
   end
 
