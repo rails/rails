@@ -481,7 +481,7 @@ h4. +profiler+
 Usage:
 
 <shell>
-Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
+Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
     -r, --runs N                     Number of runs.
                                      Default: 1
     -o, --output PATH                Directory to use when writing the results.
