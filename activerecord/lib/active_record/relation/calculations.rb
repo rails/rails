@@ -58,42 +58,46 @@ module ActiveRecord
       calculate(:count, column_name, options)
     end
 
-    # Calculates the average value on a given column. Returns +nil+ if there's
+    # Calculates the average value on one or more given columns. Returns +nil+ if there's
     # no row. See +calculate+ for examples with options.
     #
     #   Person.average('age') # => 35.8
+    #   Person.average(['age', 'weight']) # => [35.8, 170]
     def average(column_names, options = {})
       calculate(:average, column_names, options)
     end
 
-    # Calculates the minimum value on a given column. The value is returned
+    # Calculates the minimum value on one or more given columns. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
     # +calculate+ for examples with options.
     #
     #   Person.minimum('age') # => 7
+    #   Person.minimum(['age', 'weight']) # => [7, 100]
     def minimum(column_names, options = {})
       calculate(:minimum, column_names, options)
     end
 
-    # Calculates the maximum value on a given column. The value is returned
+    # Calculates the maximum value on one or more given columns. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
     # +calculate+ for examples with options.
     #
     #   Person.maximum('age') # => 93
+    #   Person.maximum(['age', 'weight']) # => [93, 210]
     def maximum(column_names, options = {})
       calculate(:maximum, column_names, options)
     end
 
-    # Calculates the sum of values on a given column. The value is returned
+    # Calculates the sum of values on one or more given columns. The value is returned
     # with the same data type of the column, 0 if there's no row. See
     # +calculate+ for examples with options.
     #
     #   Person.sum('age') # => 4562
+    #   Person.sum(['age', 'weight']) # => [4562, 16721]
     def sum(column_names, options = {})
       calculate(:sum, column_names, options)
     end
 
-    # This calculates aggregate values in the given column. Methods for count, sum, average,
+    # This calculates aggregate values in one or more given columns. Methods for count, sum, average,
     # minimum, and maximum have been added as shortcuts. Options such as <tt>:conditions</tt>,
     # <tt>:order</tt>, <tt>:group</tt>, <tt>:having</tt>, and <tt>:joins</tt> can be passed to customize the query.
     #
@@ -142,6 +146,11 @@ module ActiveRecord
     #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name)
     #
     #   Person.sum("2 * age")
+    #
+    #   # Using multiple columns or aggregate functions
+    #   Person.calculate(:average, [:age, :weight]) # SELECT AVG(age), AVG(weight) FROM people
+    #   Person.calculate([:average, :sum], :age) # SELECT AVG(age), SUM(age) FROM people
+    #   Person.calculate([:average, :sum], [:age, :weight]) # SELECT AVG(age), SUM(weight) FROM people
     def calculate(operations, column_names, options = {})
       operations, column_names = normalize_column_names_and_options(operations, column_names)
       if options.except(:distinct).present?
