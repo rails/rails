@@ -30,7 +30,7 @@ module Sprockets
 
       ActiveSupport.on_load(:action_view) do
         include ::Sprockets::Helpers::RailsHelper
-        
+
         app.assets.context_class.instance_eval do
           include ::Sprockets::Helpers::RailsHelper
         end
@@ -82,6 +82,9 @@ module Sprockets
 
       def expand_css_compressor(sym)
         case sym
+        when :scss
+          require 'sass/rails/compressor'
+          Sass::Rails::CssCompressor.new
         when :yui
           require 'yui/compressor'
           YUI::CssCompressor.new
