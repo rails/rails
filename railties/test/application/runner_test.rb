@@ -22,6 +22,10 @@ module ApplicationTests
       teardown_app
     end
 
+    def test_should_include_runner_in_shebang_line_in_help_without_option
+      assert_match "/rails runner", Dir.chdir(app_path) { `bundle exec rails runner` }
+    end
+
     def test_should_include_runner_in_shebang_line_in_help
       assert_match "/rails runner", Dir.chdir(app_path) { `bundle exec rails runner --help` }
     end
