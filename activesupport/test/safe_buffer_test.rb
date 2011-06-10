@@ -63,8 +63,8 @@ class SafeBufferTest < ActiveSupport::TestCase
     @buffer.gsub(/(vesta)/, '')
     assert !$1, %(
       if you can make this test fail it is a _good_ thing: somehow you have
-      restored the standard behaviour of SafeBuffer#gsub to make magic matching variables
-      available after the call, and you can probably deprecate this test
+      restored the standard behaviour of SafeBuffer#gsub to make magic matching
+      variables available after the call, and you could invert this test
     )
   end
 

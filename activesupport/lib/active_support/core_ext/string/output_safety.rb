@@ -128,7 +128,7 @@ module ActiveSupport #:nodoc:
     # In this case $1 == 'm' within the block, but not afterwards
     #
     # If you really need the magic matching variables after the gsub call
-    # you will need to covert SafeBuffer to a String first
+    # you will need to convert SafeBuffer to a String first
     def gsub(*args)
       to_str.gsub(*args)
     end
