@@ -50,4 +50,22 @@ class SafeBufferTest < ActiveSupport::TestCase
       @buffer.gsub!('', 'asdf')
     end
   end
+
+  test "Should set magic match variables within block passed to gsub" do
+    'clear'[/(matches)/]
+    @buffer << 'swan'
+    @buffer.gsub(/(swan)/) { assert_equal 'swan', $1 }
+  end
+
+  test "Should not expect magic match variables after gsub call" do
+    'clear'[/(matches)/]
+    @buffer << 'vesta'
+    @buffer.gsub(/(vesta)/, '')
+    assert !$1, %(
+      if you can make this test fail it is a _good_ thing: somehow you have
+      restored the standard behaviour of SafeBuffer#gsub to make magic matching variables
+      available after the call, and you can probably deprecate this test
+    )
+  end
+
 end
