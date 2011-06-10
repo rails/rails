@@ -213,7 +213,7 @@ module ActionView
         defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         options = options.reverse_merge(defaults)
 
-        parts = number.to_s.split('.')
+        parts = number.to_s.to_str.split('.')
         parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
         parts.join(options[:separator]).html_safe
 
