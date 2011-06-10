@@ -166,8 +166,8 @@ module ActiveRecord
 
       if li > 0
         for i in 0..li do
-          operations.push(operations.last) if operations[i].nil?
-          column_names.push(column_names.last) if column_names[i].nil?
+          operations << operations.last  if operations[i].nil?
+          column_names << column_names.last if column_names[i].nil?
         end
       end
 
@@ -215,7 +215,7 @@ module ActiveRecord
     def execute_simple_calculation(operations, column_names, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
       relation = with_default_scope.reorder(nil)
-      results = []
+      values = []
 
       if relation.limit_value || relation.offset_value
         if relation.limit_value == 0
@@ -225,9 +225,9 @@ module ActiveRecord
                          "average" => nil,
                          "minimum" => nil,
                          "maximum" => nil}
-    
-          operations.each_with_index { |op, i| results.push(type_cast_calculated_value(null_values[operations[i]], column_for(column_names[i]), operations[i])) }
-          return results.length == 1 ? results[0] : results
+
+          operations.each_with_index { |op, i| values << type_cast_calculated_value(null_values[operations[i]], column_for(column_names[i]), operations[i]) }
+          return values.length == 1 ? values[0] : values
         else
           query_builder = build_aggregate_subquery(relation, operations, column_names, distinct)
         end
@@ -236,15 +236,15 @@ module ActiveRecord
           columns = column_names.map { |c| aggregate_column(c) }
 
           select_values = []
-          operations.each_with_index { |op, i| select_values.push(operation_over_aggregate_column(columns[i], op, distinct)) }
+          operations.each_with_index { |op, i| select_values << operation_over_aggregate_column(columns[i], op, distinct) }
 
           relation.select_values = select_values
 
           query_builder = relation.arel
       end
       row = @klass.connection.select_row(query_builder.to_sql)
-      row.each_with_index { |value, i| results.push(type_cast_calculated_value(value, column_for(column_names[i]), operations[i])) }
-      results.length == 1 ? results[0] : results
+      row.each_with_index { |value, i| values << type_cast_calculated_value(value, column_for(column_names[i]), operations[i]) }
+      values.length == 1 ? values[0] : values
     end
 
     def execute_grouped_calculation(operations, column_names, distinct) #:nodoc:
@@ -263,17 +263,13 @@ module ActiveRecord
       aggregate_aliases = []
       operations.each_with_index do |op, i|
         if op == 'count' && column_names[i] == :all
-          aggregate_aliases.push('count_all')
+          aggregate_aliases << 'count_all'
         else
-          aggregate_aliases.push(column_alias_for(op, column_names[i]))
+          aggregate_aliases << column_alias_for(op, column_names[i])
         end
 
-        select_values.push(
-          operation_over_aggregate_column(
-            aggregate_column(column_names[i]),
-            op,
-            distinct).as(aggregate_aliases[i])
-        )
+        select_values << operation_over_aggregate_column(
+            aggregate_column(column_names[i]), op, distinct).as(aggregate_aliases[i])
       end
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
@@ -298,7 +294,7 @@ module ActiveRecord
         key = key.first if key.size == 1
         key = key_records[key] if associated
         values = []
-        aggregate_aliases.each_with_index { |aa, i| values.push(type_cast_calculated_value(row[aa], column_for(column_names[i]), operations[i])) }
+        aggregate_aliases.each_with_index { |aa, i| values << type_cast_calculated_value(row[aa], column_for(column_names[i]), operations[i]) }
         [key, values.length == 1 ? values.first : values]
       end]
     end
@@ -354,8 +350,8 @@ module ActiveRecord
       select_values = []
       column_names.each_with_index do |c, i|
         column_alias = Arel.sql("#{operations[i]}_#{c}_column")
-        aliased_columns.push(aggregate_column(c == :all ? 1 : c).as(column_alias))
-        select_values.push(operation_over_aggregate_column(column_alias, operations[i], distinct))
+        aliased_columns << aggregate_column(c == :all ? 1 : c).as(column_alias)
+        select_values << operation_over_aggregate_column(column_alias, operations[i], distinct)
       end
 
       relation.select_values = aliased_columns
