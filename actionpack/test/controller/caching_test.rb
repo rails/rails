@@ -127,7 +127,7 @@ class PageCachingTest < ActionController::TestCase
     assert_equal 'I am xml', @response.body
   end
 
-  def test_should_cache_with_trailing_slash_on_url
+  def test_cached_page_should_not_have_trailing_slash_even_if_url_has_trailing_slash
     @controller.class.cache_page 'cached content', '/page_caching_test/trailing_slash/'
     assert File.exist?("#{FILE_STORE_PATH}/page_caching_test/trailing_slash.html")
   end
