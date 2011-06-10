@@ -1059,6 +1059,14 @@ class FinderTest < ActiveRecord::TestCase
       Company.connection.select_rows("SELECT id, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map! {|i| i.map! {|j| j.to_s unless j.nil?}}
   end
 
+  def test_select_row
+    assert_equal(
+      ["1", "1", nil, "37signals"],
+      Company.connection.select_row("SELECT id, firm_id, client_of, name FROM companies WHERE id = (1)").map! {|j| j.to_s unless j.nil?})
+    assert_equal(nil,
+      Company.connection.select_row("SELECT id, name FROM companies WHERE id = 11"))
+  end
+
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
     assert_equal 2, Post.find(:all, :include => { :authors => :author_address }, :order => ' author_addresses.id DESC ', :limit => 2).size
 

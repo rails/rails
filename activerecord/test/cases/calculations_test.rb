@@ -18,6 +18,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 318, Account.sum(:credit_limit)
   end
 
+  def test_should_sum_more_than_one_field
+    assert_equal [318, 21], Account.sum([:credit_limit, :id])
+  end
+
   def test_should_average_field
     value = Account.average(:credit_limit)
     assert_equal 53.0, value
@@ -29,7 +33,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_return_integer_average_if_db_returns_such
-    Account.connection.stubs :select_value => 3
+    Account.connection.stubs :select_row => [3]
     value = Account.average(:id)
     assert_equal 3, value
   end
@@ -57,8 +61,26 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_get_maximum_of_more_than_one_field_with_scoped_include
+    Account.send :with_scope, :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
+      assert_equal [55, 6], Account.maximum([:credit_limit, :id])
+    end
+  end
+
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
+  end
+
+  def test_should_get_multiple_aggregate_values_of_field
+    assert_equal [318, 53.0, 50, 60], Account.calculate([:sum, :average, :minimum, :maximum], :credit_limit)
+  end
+
+  def test_should_get_aggregate_value_of_more_than_one_field
+    assert_equal [53.0, 3.5], Account.calculate(:average, [:credit_limit, :id])
+  end
+
+  def test_should_get_multiple_aggregate_values_of_different_fields
+    assert_equal [318, 3.5], Account.calculate([:sum, :average], [:credit_limit, :id])
   end
 
   def test_should_group_by_field
@@ -86,6 +108,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,   c[2]
   end
 
+  def test_should_group_by_multiple_aggregate_fields
+    ops = [:count, :sum, :average, :minimum, :maximum]
+    c = Account.calculate(ops, :credit_limit, :group => :firm_id)
+    assert_equal [1, 50, 50, 50, 50],     c[1]
+    assert_equal [2, 105, 52.5, 50, 55],  c[6]
+    assert_equal [1, 60, 60, 60, 60],     c[2]
+  end
+
   def test_should_order_by_grouped_field
     c = Account.sum(:credit_limit, :group => :firm_id, :order => "firm_id")
     assert_equal [1, 2, 6, 9], c.keys.compact
@@ -95,6 +125,13 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Account.sum(:credit_limit, :group => :firm_id, :order => "sum_credit_limit desc, firm_id")
     assert_equal [105, 60, 53, 50, 50], c.keys.collect { |k| c[k] }
     assert_equal [6, 2, 9, 1], c.keys.compact
+  end
+
+  def test_should_order_by_multiple_calculation
+    ops = [:sum, :minimum]
+    c = Account.calculate(ops, :credit_limit, :group => :firm_id, :order => "minimum_credit_limit asc, sum_credit_limit desc, firm_id")
+    assert_equal [[105, 50], [50, 50], [50, 50], [53, 53], [60, 60]], c.keys.collect { |k| c[k] }
+    assert_equal [6, 1, 9, 2], c.keys.compact
   end
 
   def test_should_limit_calculation
@@ -122,7 +159,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 0, accounts.count }
   end
 
-  def test_limit_is_kept
+  def test_sum_should_shortcut_with_limit_zero
+    accounts = Account.limit(0)
+
+    assert_no_queries { assert_equal 0, accounts.sum(:credit_limit) }
+  end
+
+  def test_aggregates_should_shortcut_with_limit_zero
+    accounts = Account.limit(0)
+
+    ops = [:count, :sum, :average, :minimum, :maximum]
+    assert_no_queries { assert_equal [0, 0, nil, nil, nil], accounts.calculate(ops, :id) }
+  end
+
+  def test_limit_is_kept_on_count
     return if current_adapter?(:OracleAdapter)
 
     queries = assert_sql { Account.limit(1).count }
@@ -130,7 +180,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_match(/LIMIT/, queries.first)
   end
 
-  def test_offset_is_kept
+  def test_limit_is_kept_on_sum
+    return if current_adapter?(:OracleAdapter)
+
+    queries = assert_sql { Account.limit(1).sum(:credit_limit) }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+  end
+
+  def test_limit_is_kept_on_calculate_multiple_aggregates
+    return if current_adapter?(:OracleAdapter)
+
+    ops = [:count, :sum, :average, :minimum, :maximum]
+    queries = assert_sql { Account.limit(1).calculate(ops, :credit_limit) }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+  end
+
+  def test_offset_is_kept_on_count
     return if current_adapter?(:OracleAdapter)
 
     queries = assert_sql { Account.offset(1).count }
@@ -138,7 +205,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_match(/OFFSET/, queries.first)
   end
 
-  def test_limit_with_offset_is_kept
+  def test_offset_is_kept_on_sum
+    return if current_adapter?(:OracleAdapter)
+
+    queries = assert_sql { Account.offset(1).sum(:credit_limit) }
+    assert_equal 1, queries.length
+    assert_match(/OFFSET/, queries.first)
+  end
+
+  def test_offset_is_kept_on_calculate_multiple_aggregates
+    return if current_adapter?(:OracleAdapter)
+
+    ops = [:count, :sum, :average, :minimum, :maximum]
+    queries = assert_sql { Account.offset(1).calculate(ops, :credit_limit) }
+    assert_equal 1, queries.length
+    assert_match(/OFFSET/, queries.first)
+  end
+
+  def test_limit_with_offset_is_kept_on_count
     return if current_adapter?(:OracleAdapter)
 
     queries = assert_sql { Account.limit(1).offset(1).count }
@@ -147,8 +231,42 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_match(/OFFSET/, queries.first)
   end
 
-  def test_no_limit_no_offset
+  def test_limit_with_offset_is_kept_on_sum
+    return if current_adapter?(:OracleAdapter)
+
+    queries = assert_sql { Account.limit(1).offset(1).sum(:credit_limit) }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+    assert_match(/OFFSET/, queries.first)
+  end
+
+  def test_limit_with_offset_is_kept_on_calculate_multiple_aggregates
+    return if current_adapter?(:OracleAdapter)
+
+    ops = [:count, :sum, :average, :minimum, :maximum]
+    queries = assert_sql { Account.limit(1).offset(1).calculate(ops, :credit_limit) }
+    assert_equal 1, queries.length
+    assert_match(/LIMIT/, queries.first)
+    assert_match(/OFFSET/, queries.first)
+  end
+
+  def test_no_limit_no_offset_on_count
     queries = assert_sql { Account.count }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_no_limit_no_offset_on_sum
+    queries = assert_sql { Account.sum(:credit_limit) }
+    assert_equal 1, queries.length
+    assert_no_match(/LIMIT/, queries.first)
+    assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_no_limit_no_offset_on_calculate_multiple_aggregates
+    ops = [:count, :sum, :average, :minimum, :maximum]
+    queries = assert_sql { Account.calculate(ops, :credit_limit) }
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
@@ -413,6 +531,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Account.maximum(:credit_limit), Account.maximum(:credit_limit, :from => 'accounts')
     assert_equal Account.maximum(:credit_limit, :conditions => "credit_limit > 50"),
         Account.maximum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
+  end
+
+  def test_calculate_multiple_aggregates_with_from_option
+    ops = [:sum, :average]
+    assert_equal Account.calculate(ops, :credit_limit), Account.calculate(ops,:credit_limit, :from => 'accounts')
+    assert_equal Account.calculate(ops, :credit_limit, :conditions => "credit_limit > 50"),
+        Account.calculate(ops, :credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
   end
 
   def test_from_option_with_specified_index
