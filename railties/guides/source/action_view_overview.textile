@@ -165,7 +165,7 @@ will produce
 <em>emphasized</em>
 <em><b>emph &amp; bold</b></em>
 <a href="http://rubyonrails.org">A link</a>
-<target option="fast" name="compile" \>
+<target option="fast" name="compile" />
 </html>
 
 Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
@@ -211,7 +211,7 @@ xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
 end
 </ruby>
 
-h5. Template caching
+h5. Template Caching
 
 By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will check the file's modification time and recompile it in development mode.
 
@@ -235,7 +235,7 @@ This will render a file named +_menu.html.erb+ at that point within the view is 
 
 That code will pull in the partial from +app/views/shared/_menu.html.erb+.
 
-h5. Using Partials to Simplify Views
+h5. Using Partials to simplify Views
 
 One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
 
