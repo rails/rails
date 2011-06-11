@@ -154,7 +154,7 @@ module Rails
                         plugin runner test]
 
     class AppGenerator < Base
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql)
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -394,13 +394,14 @@ module Rails
       end
 
       def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql)
         case options[:database]
         when "oracle"     then "ruby-oci8"
         when "postgresql" then "pg"
         when "sqlite3"    then "sqlite3"
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
+        when "jdbcmysql"  then "activerecord-jdbcmysql-adapter"
         else options[:database]
         end
       end
