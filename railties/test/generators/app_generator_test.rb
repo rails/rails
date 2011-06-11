@@ -165,6 +165,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql2["'],\s*'~> 0.2.6'$/
   end
 
+  def test_config_jdbcmysql_database
+    run_generator([destination_root, "-d", "jdbcmysql"])
+    assert_file "config/database.yml", /jdbcmysql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+  end
+
   def test_config_database_is_not_added_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
