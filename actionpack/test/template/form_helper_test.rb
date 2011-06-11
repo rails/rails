@@ -1890,7 +1890,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def snowman(method = nil)
+  def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
     if method && !method.to_s.in?(['get', 'post'])
@@ -1918,7 +1918,7 @@ class FormHelperTest < ActionView::TestCase
       method = options
     end
 
-    form_text(action, id, html_class, remote, multipart, method) + snowman(method) + contents + "</form>"
+    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
   end
 
   def test_default_form_builder

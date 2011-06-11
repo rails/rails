@@ -17,6 +17,13 @@ module ActionView
       include UrlHelper
       include TextHelper
 
+      # You can change what the name will be for the hidden tag that forces utf8
+      # encoding for forms generated with Rails form helpers.
+      #
+      #   ActionView::Helpers::FormTagHelper.utf8_enforcer_param = "_unicode"
+      mattr_accessor :utf8_enforcer_param
+      @@utf8_enforcer_param = "utf8"
+
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
@@ -597,6 +604,13 @@ module ActionView
         number_field_tag(name, value, options.stringify_keys.update("type" => "range"))
       end
 
+      # Creates the hidden UTF8 enforcer tag. Override this method in a helper
+      # to customize the tag. If you just need to change the field name, set the
+      # +config.action_view.utf8_enforcer_param+ configuration option instead.
+      def utf8_enforcer_tag
+        tag(:input, :type => "hidden", :name => utf8_enforcer_param, :value => "&#x2713;".html_safe)
+      end
+
       private
         def html_options_for_form(url_for_options, options, *parameters_for_url)
           options.stringify_keys.tap do |html_options|
@@ -611,9 +625,6 @@ module ActionView
         end
 
         def extra_tags_for_form(html_options)
-          snowman_tag = tag(:input, :type => "hidden",
-                            :name => "utf8", :value => "&#x2713;".html_safe)
-
           authenticity_token = html_options.delete("authenticity_token")
           method = html_options.delete("method").to_s
 
@@ -629,7 +640,7 @@ module ActionView
               tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
           end
 
-          tags = snowman_tag << method_tag
+          tags = utf8_enforcer_tag << method_tag
           content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
         end
 

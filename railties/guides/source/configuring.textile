@@ -330,7 +330,7 @@ And can reference in the view with the following code:
 <%= stylesheet_link_tag :special %>
 </ruby>
 
-* +ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids+ With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
+* +config.action_view.cache_asset_ids+ With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
 
 h4. Configuring Action Mailer
 
