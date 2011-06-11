@@ -1,5 +1,8 @@
 *Rails 3.1.0 (unreleased)*
 
+* Alternate I18n namespace lookup is no longer supported.
+  Instead of "activerecord.models.admins.post", do "activerecord.models.admins/post" instead [José Valim]
+
 * attr_accessible and friends now accepts :as as option to specify a role [Josh Kalderimis]
 
 * Add support for proc or lambda as an option for InclusionValidator,
