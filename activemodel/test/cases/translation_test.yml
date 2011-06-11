@@ -1,0 +1,30 @@
+# Sample localization file for English. Add more files in this directory for other locales.
+# See http://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
+
+en:
+  activemodel:
+    models:
+      invoice:
+        item: "Invoice::Item dot notation"
+      invoice/item: "Invoice::Item slash notation"
+    attributes:
+      invoice/item:
+        name: "Invoice::Item.name slash notation"
+      invoice:
+        item:
+          name: "Invoice::Item.name dot notation"
+    errors:
+      models:
+        blog:
+          post:
+            attributes:
+              title:
+                blank: "can't be blank - dot notation"
+              header:
+                blank: "can't be blank - dot notation"
+        blog/post:
+          attributes:
+            title:
+              blank: "can't be blank - slash notation"
+            editor:
+              blank: "can't be blank - slash notation"
