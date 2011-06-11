@@ -96,5 +96,21 @@ module ActiveRecord
         end
       end
     end
+
+    config.after_initialize do
+      container  = :"activerecord.attributes"
+      I18n.t(container, :default => {}).each do |key, value|
+        if value.is_a?(Hash) && value.any? { |k,v| v.is_a?(Hash) }
+          $stderr.puts "[DEPRECATION WARNING] Nested I18n namespace lookup under \"#{container}.#{key}\" is no longer supported"
+        end
+      end
+
+      container  = :"activerecord.models"
+      I18n.t(container, :default => {}).each do |key, value|
+        if value.is_a?(Hash)
+          $stderr.puts "[DEPRECATION WARNING] Nested I18n namespace lookup under \"#{container}.#{key}\" is no longer supported"
+        end
+      end
+    end
   end
 end
