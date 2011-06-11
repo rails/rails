@@ -1,5 +1,10 @@
 *Rails 3.2.0 (unreleased)*
 
+* Generate hidden input before select with :multiple option set to true.
+  This is useful when you rely on the fact that when no options is set,
+  the state of select will be sent to rails application. Without hidden field
+  nothing is sent according to HTML spec [Bogdan Gusiev]
+
 * Refactor ActionController::TestCase cookies [Andrew White]
 
   Assigning cookies for test cases should now use cookies[], e.g:
