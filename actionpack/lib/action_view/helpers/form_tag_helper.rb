@@ -17,13 +17,6 @@ module ActionView
       include UrlHelper
       include TextHelper
 
-      # You can change what the name will be for the hidden tag that forces utf8
-      # encoding for forms generated with Rails form helpers.
-      #
-      #   ActionView::Helpers::FormTagHelper.utf8_enforcer_param = "_unicode"
-      mattr_accessor :utf8_enforcer_param
-      @@utf8_enforcer_param = "utf8"
-
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
@@ -605,10 +598,9 @@ module ActionView
       end
 
       # Creates the hidden UTF8 enforcer tag. Override this method in a helper
-      # to customize the tag. If you just need to change the field name, set the
-      # +config.action_view.utf8_enforcer_param+ configuration option instead.
+      # to customize the tag.
       def utf8_enforcer_tag
-        tag(:input, :type => "hidden", :name => utf8_enforcer_param, :value => "&#x2713;".html_safe)
+        tag(:input, :type => "hidden", :name => "utf8", :value => "&#x2713;".html_safe)
       end
 
       private
