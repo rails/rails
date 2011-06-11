@@ -86,5 +86,25 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     I18n.backend.store_translations 'en', :activemodel => {:models => {:person => {:gender => 'person gender model'}}}
     assert_equal 'person gender model', Person::Gender.model_name.human
   end
+
+  def test_alternate_namespaced_model_error_translation
+    with_test_translations_loaded do
+      post = Blog::Post.new
+      post.valid?
+      assert_equal "can't be blank - dot notation", post.errors.get(:title).first    # both notations exist 
+      assert_equal "can't be blank - dot notation", post.errors.get(:header).first   # only dot notation exists
+      assert_equal "can't be blank - slash notation", post.errors.get(:editor).first # only slash notation exists
+    end
+  end
+
+
+  private
+
+  def with_test_translations_loaded
+    yaml_file = File.dirname(__FILE__) + '/translation_test.yml'
+    I18n.load_path << yaml_file
+    yield if block_given?
+    I18n.load_path.delete(yaml_file)
+  end
 end
 
