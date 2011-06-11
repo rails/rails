@@ -154,7 +154,9 @@ module Rails
                         plugin runner test]
 
     class AppGenerator < Base
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql jdbcsqlite3 jdbcpostgresql )
+      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql )
+      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
       add_shebang_option!
