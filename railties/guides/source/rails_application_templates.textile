@@ -1,6 +1,6 @@
 h2. Rails Application Templates
 
-Application templates are simple ruby files containing DSL for adding plugins/gems/initializers etc. to your freshly created Rails project or an existing Rails project.
+Application templates are simple Ruby files containing DSL for adding plugins/gems/initializers etc. to your freshly created Rails project or an existing Rails project.
 
 By referring to this guide, you will be able to:
 
@@ -58,13 +58,11 @@ gem "bj"
 gem "nokogiri"
 </ruby>
 
-Please note that this will NOT install the gems for you. So you may want to run the +rake gems:install+ task too:
+Please note that this will NOT install the gems for you and you will have to run +bundle install+ to do that.
 
 <ruby>
-rake "gems:install"
+bundle install
 </ruby>
-
-And let Rails take care of installing the required gems if they’re not already installed.
 
 h4. add_source(source, options = {})
 
@@ -229,7 +227,7 @@ rake("rails:freeze:gems") if yes?("Freeze rails gems ?")
 no?(question) acts just the opposite.
 </ruby>
 
-h4. git(:must => "-a love")
+h4. git(:command)
 
 Rails templates let you run any git command:
 
