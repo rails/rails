@@ -51,15 +51,13 @@ $ rails new commandsapp
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
 
-INFO: This output will seem very familiar when we get to the +generate+ command.
-
 h4. +rails server+
 
-The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
+The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to access your application through a web browser.
 
-INFO: WEBrick isn't your only option for serving Rails. We'll get to that in a later section.
+INFO: WEBrick isn't your only option for serving Rails. We'll get to that "later":#different-servers.
 
-Without any prodding of any kind, +rails server+ will run our new shiny Rails app:
+With no further work, +rails server+ will run our new shiny Rails app:
 
 <shell>
 $ cd commandsapp
@@ -83,7 +81,7 @@ The +rails generate+ command uses templates to create a whole lot of things. You
 
 <shell>
 $ rails generate
-Usage: rails generate generator [args] [options]
+Usage: rails generate GENERATOR [args] [options]
 
 ...
 ...
@@ -171,7 +169,7 @@ Then the view, to display our message (in +app/views/greetings/hello.html.erb+):
 <p><%= @message %></p>
 </html>
 
-Deal. Go check it out in your browser. Fire up your server using +rails server+.
+Fire up your server using +rails server+.
 
 <shell>
 $ rails server
@@ -486,7 +484,7 @@ It also generated some lines in our database.yml configuration corresponding to 
 
 NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails new+ command to generate the basis of your app.
 
-h4. +server+ with Different Backends
+h4(#different-servers). +server+ with Different Backends
 
 Many people have created a large number different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
 
