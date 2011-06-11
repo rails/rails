@@ -83,7 +83,7 @@ module Rails
   # == Loading rake tasks and generators
   #
   # If your railtie has rake tasks, you can tell Rails to load them through the method
-  # rake tasks:
+  # rake_tasks:
   #
   #   class MyRailtie < Rails::Railtie
   #     rake_tasks do
