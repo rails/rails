@@ -78,7 +78,7 @@ You can also use the alias "s" to start the server: <tt>rails s</tt>.
 The server can be run on a different port using the +-p+ option. The default development environment can be changed using +-e+.
 
 <shell>
-$ rails server -e production
+$ rails server -e production -p 4000
 </shell>
 
 h4. +rails generate+
