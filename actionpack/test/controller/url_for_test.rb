@@ -293,8 +293,8 @@ module AbstractController
         first_class.default_url_options[:host] = first_host
         second_class.default_url_options[:host] = second_host
 
-        assert_equal first_class.default_url_options[:host], first_host
-        assert_equal second_class.default_url_options[:host], second_host
+        assert_equal  first_host, first_class.default_url_options[:host]
+        assert_equal second_host, second_class.default_url_options[:host]
       end
 
       def test_with_stringified_keys
