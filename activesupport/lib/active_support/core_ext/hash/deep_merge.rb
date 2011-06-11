@@ -6,6 +6,7 @@ class Hash
 
   # Returns a new hash with +self+ and +other_hash+ merged recursively.
   # Modifies the receiver in place.
+  remove_method :deep_merge!
   def deep_merge!(other_hash)
     other_hash.each_pair do |k,v|
       tv = self[k]

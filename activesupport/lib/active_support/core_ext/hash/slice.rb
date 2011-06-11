@@ -12,6 +12,7 @@ class Hash
   #
   #   valid_keys = [:mass, :velocity, :time]
   #   search(options.slice(*valid_keys))
+  remove_method :slice #we could use alias_method :old_slice, :slice as alternative
   def slice(*keys)
     keys = keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
     hash = self.class.new
