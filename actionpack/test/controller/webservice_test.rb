@@ -30,7 +30,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   def test_check_parameters
     with_test_route_set do
       get "/"
-      assert_blank @controller.response.body
+      assert_equal '', @controller.response.body
     end
   end
 
@@ -162,7 +162,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   def test_use_xml_ximple_with_empty_request
     with_test_route_set do
       assert_nothing_raised { post "/", "", {'CONTENT_TYPE' => 'application/xml'} }
-      assert_blank @controller.response.body
+      assert_equal '', @controller.response.body
     end
   end
 
