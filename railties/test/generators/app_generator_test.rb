@@ -169,6 +169,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-d", "jdbcmysql"])
     assert_file "config/database.yml", /jdbcmysql/
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+    # TODO: When the JRuby guys merge jruby-openssl in
+    # jruby this will be removed
+    assert_file "Gemfile", /^gem\s+["']jruby-openssl["']$/ if defined?(JRUBY_VERSION)
   end
 
   def test_config_jdbcsqlite3_database
