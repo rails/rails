@@ -51,7 +51,7 @@ $ rails new commandsapp
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
 
-INFO: This output will seem very familiar when we get to the +generate+ command. Creepy foreshadowing!
+INFO: This output will seem very familiar when we get to the +generate+ command.
 
 h4. +rails server+
 
@@ -288,11 +288,7 @@ You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
 h4. +rails plugin+
 
-The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command +discover+, which sifts through repositories looking for plugins, or call +source+ to add a specific repository of plugins, or you can specify the plugin location directly.
-
-Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but instead, just set a field?
-
-There is such a thing! The plugin we're installing is called +acts_as_paranoid+, and it lets models implement a +deleted_at+ column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
+The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility.
 
 <shell>
 $ rails plugin install https://github.com/technoweenie/acts_as_paranoid.git
@@ -308,6 +304,12 @@ h4. +rails runner+
 
 <shell>
 $ rails runner "Model.long_running_method"
+</shell>
+
+You can specify the environment in which the +runner+ command should operate using the +-e+ switch.
+
+<shell>
+$ rails runner -e staging "Model.long_running_method"
 </shell>
 
 h4. +rails destroy+
@@ -387,6 +389,8 @@ You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:preco
 h4. +db+
 
 The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
+
+More information about migrations can be found in the "Migrations":migrations.html guide.
 
 h4. +doc+
 
@@ -478,7 +482,9 @@ development:
 ...
 </shell>
 
-It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails new+ command to generate the basis of your app.
+It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database.
+
+NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails new+ command to generate the basis of your app.
 
 h4. +server+ with Different Backends
 
