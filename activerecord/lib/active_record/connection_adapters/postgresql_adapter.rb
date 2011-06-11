@@ -673,8 +673,8 @@ module ActiveRecord
         schema, table = extract_schema_and_table(name.to_s)
         return false unless table
 
-        binds = [[nil, table.gsub(/(^"|"$)/,'')]]
-        binds << [nil, schema.gsub(/(^"|"$)/,'')] if schema
+        binds = [[nil, table]]
+        binds << [nil, schema] if schema
 
         exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
           SELECT COUNT(*)
@@ -691,24 +691,6 @@ module ActiveRecord
           FROM pg_namespace
           WHERE nspname = $1
         SQL
-      end
-
-      # Returns an array of [schema_name, table_name] extracted from +name+.
-      # The schema_name will be nil if not provided in +name+.
-      # Quotes are preserved in the schema and table name components if provided.
-      # Valid combinations for quoting the schema and table names:
-      #
-      # - table_name
-      # - "table.name"
-      # - schema_name.table_name
-      # - schema_name."table.name"
-      # - "schema.name".table_name
-      # - "schema.name"."table_name"
-      # - "schema.name"."table.name"
-      def extract_schema_and_table(name)
-        name[/([^"\.\s]+|"[^"]+")(?:\.([^"\.\s]+|"[^"]*"))?/]
-        table, schema = [$1,$2].compact.reverse
-        [schema, table]
       end
 
       # Returns an array of indexes for the given table.
@@ -1099,6 +1081,21 @@ module ActiveRecord
             rest = rest[1, rest.length] if rest.start_with? "."
             [match_data[1], (rest.length > 0 ? rest : nil)]
           end
+        end
+
+        # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
+        # +schema_name+ is nil if not specified in +name+.
+        # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
+        # +name+ supports the range of schema/table references understood by PostgreSQL, for example:
+        #
+        # * <tt>table_name</tt>
+        # * <tt>"table.name"</tt>
+        # * <tt>schema_name.table_name</tt>
+        # * <tt>schema_name."table.name"</tt>
+        # * <tt>"schema.name"."table name"</tt>
+        def extract_schema_and_table(name)
+          table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
+          [schema, table]
         end
 
         def extract_table_ref_from_insert_sql(sql)
