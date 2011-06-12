@@ -65,9 +65,8 @@ module ActiveRecord
     # ignored SQL.  This ignored SQL is for Oracle.
     ignored_sql.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
 
-    def initialize
-      $queries_executed = []
-    end
+    cattr_accessor :log
+    self.log = []
 
     def call(name, start, finish, message_id, values)
       sql = values[:sql]
@@ -75,10 +74,11 @@ module ActiveRecord
       # FIXME: this seems bad. we should probably have a better way to indicate
       # the query was cached
       unless 'CACHE' == values[:name]
-        $queries_executed << sql unless self.class.ignored_sql.any? { |r| sql =~ r }
+        self.class.log << sql unless self.class.ignored_sql.any? { |r| sql =~ r }
       end
     end
   end
+
   ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
 
