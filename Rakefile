@@ -51,9 +51,27 @@ desc "Generate documentation for the Rails framework"
 RDoc::Task.new do |rdoc|
   RDOC_MAIN = 'RDOC_MAIN.rdoc'
 
+  # This is a hack.
+  #
+  # Backslashes are needed to prevent RDoc from autolinking "Rails" to the
+  # documentation of the Rails module. On the other hand, as of this
+  # writing README.rdoc is displayed in the front page of the project in
+  # GitHub, where backslashes are shown and look weird.
+  #
+  # The temporary solution is to have a README.rdoc without backslashes for
+  # GitHub, and gsub it to generate the main page of the API.
+  #
+  # The idea for the future is to have totally different files, since the
+  # API is no longer a generic entry point to Rails and deserves a
+  # dedicated main page specifically thought as an API entry point.
   rdoc.before_running_rdoc do
     rdoc_main = File.read('README.rdoc')
-    rdoc_main.gsub!(/\b(?=Rails)\b/) { '\\' }
+
+    # The ^(?=\S) assertion prevents code blocks from being processed,
+    # since no autolinking happens there and RDoc displays the backslash
+    # otherwise.
+    rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
+
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)
     end
