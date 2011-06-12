@@ -538,15 +538,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_adding_to_persisted
-    force_signal37_to_load_all_clients_of_firm
-    Client.expects(:transaction)
-    companies(:first_firm).clients_of_firm.concat(Client.new("name" => "Natural Company"))
+    good = Client.new(:name => "Good")
+    bad  = Client.new(:name => "Bad", :raise_on_save => true)
+
+    begin
+      companies(:first_firm).clients_of_firm.concat(good, bad)
+    rescue Client::RaisedOnSave
+    end
+
+    assert !companies(:first_firm).clients_of_firm(true).include?(good)
   end
 
   def test_transactions_when_adding_to_new_record
-    Client.expects(:transaction).never
-    firm = Firm.new
-    firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
+    prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
+    ActiveRecord::SQLCounter.ignored_sql = []
+
+    assert_no_queries do
+      firm = Firm.new
+      firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
+    end
+  ensure
+    ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
   end
 
   def test_new_aliased_to_build
@@ -791,18 +803,31 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transaction_when_deleting_persisted
-    force_signal37_to_load_all_clients_of_firm
-    client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    Client.expects(:transaction)
-    companies(:first_firm).clients_of_firm.delete(client)
+    good = Client.new(:name => "Good")
+    bad  = Client.new(:name => "Bad", :raise_on_destroy => true)
+
+    companies(:first_firm).clients_of_firm = [good, bad]
+
+    begin
+      companies(:first_firm).clients_of_firm.destroy(good, bad)
+    rescue Client::RaisedOnDestroy
+    end
+
+    assert_equal [good, bad], companies(:first_firm).clients_of_firm(true)
   end
 
   def test_transaction_when_deleting_new_record
-    client = Client.new("name" => "New Client")
-    firm = Firm.new
-    firm.clients_of_firm << client
-    Client.expects(:transaction).never
-    firm.clients_of_firm.delete(client)
+    prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
+    ActiveRecord::SQLCounter.ignored_sql = []
+
+    assert_no_queries do
+      firm = Firm.new
+      client = Client.new("name" => "New Client")
+      firm.clients_of_firm << client
+      firm.clients_of_firm.destroy(client)
+    end
+  ensure
+    ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
   end
 
   def test_clearing_an_association_collection
@@ -1139,21 +1164,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_replacing_on_persisted
-    firm = Firm.find(:first, :order => "id")
-    firm.clients = [companies(:first_client)]
-    assert firm.save, "Could not save firm"
-    firm.reload
+    good = Client.new(:name => "Good")
+    bad  = Client.new(:name => "Bad", :raise_on_save => true)
 
-    Client.expects(:transaction)
-    firm.clients_of_firm = [Client.new("name" => "Natural Company")]
+    companies(:first_firm).clients_of_firm = [good]
+
+    begin
+      companies(:first_firm).clients_of_firm = [bad]
+    rescue Client::RaisedOnSave
+    end
+
+    assert_equal [good], companies(:first_firm).clients_of_firm(true)
   end
 
   def test_transactions_when_replacing_on_new_record
-    firm = Firm.new
-    firm.clients_of_firm << Client.new("name" => "Natural Company")
+    prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
+    ActiveRecord::SQLCounter.ignored_sql = []
 
-    Client.expects(:transaction).never
-    firm.clients_of_firm = [Client.new("name" => "New Client")]
+    assert_no_queries do
+      firm = Firm.new
+      firm.clients_of_firm = [Client.new("name" => "New Client")]
+    end
+  ensure
+    ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
   end
 
   def test_get_ids

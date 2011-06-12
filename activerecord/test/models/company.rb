@@ -124,6 +124,18 @@ class Client < Company
   has_many :accounts, :through => :firm
   belongs_to :account
 
+  class RaisedOnSave < RuntimeError; end
+  attr_accessor :raise_on_save
+  before_save do
+    raise RaisedOnSave if raise_on_save
+  end
+
+  class RaisedOnDestroy < RuntimeError; end
+  attr_accessor :raise_on_destroy
+  before_destroy do
+    raise RaisedOnDestroy if raise_on_destroy
+  end
+
   # Record destruction so we can test whether firm.clients.clear has
   # is calling client.destroy, deleting from the database, or setting
   # foreign keys to NULL.
