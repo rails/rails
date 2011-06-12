@@ -72,7 +72,7 @@ RDoc::Task.new do |rdoc|
   rdoc.rdoc_files.include('railties/MIT-LICENSE')
   rdoc.rdoc_files.include('railties/README.rdoc')
   rdoc.rdoc_files.include('railties/lib/**/*.rb')
-  rdoc.rdoc_files.exclude('railties/lib/rails/generators/**/templates/*')
+  rdoc.rdoc_files.exclude('railties/lib/rails/generators/**/templates/**/*.rb')
 
   rdoc.rdoc_files.include('activerecord/README.rdoc')
   rdoc.rdoc_files.include('activerecord/CHANGELOG')
