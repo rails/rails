@@ -550,15 +550,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_adding_to_new_record
-    prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
-    ActiveRecord::SQLCounter.ignored_sql = []
-
     assert_no_queries do
       firm = Firm.new
       firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
     end
-  ensure
-    ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
   end
 
   def test_new_aliased_to_build
@@ -817,17 +812,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transaction_when_deleting_new_record
-    prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
-    ActiveRecord::SQLCounter.ignored_sql = []
-
     assert_no_queries do
       firm = Firm.new
       client = Client.new("name" => "New Client")
       firm.clients_of_firm << client
       firm.clients_of_firm.destroy(client)
     end
-  ensure
-    ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
   end
 
   def test_clearing_an_association_collection
@@ -1178,15 +1168,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_transactions_when_replacing_on_new_record
-    prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
-    ActiveRecord::SQLCounter.ignored_sql = []
-
     assert_no_queries do
       firm = Firm.new
       firm.clients_of_firm = [Client.new("name" => "New Client")]
     end
-  ensure
-    ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
   end
 
   def test_get_ids

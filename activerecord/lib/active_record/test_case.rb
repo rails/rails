@@ -50,7 +50,11 @@ module ActiveRecord
     end
 
     def assert_no_queries(&block)
+      prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
+      ActiveRecord::SQLCounter.ignored_sql = []
       assert_queries(0, &block)
+    ensure
+      ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
     end
 
     def with_kcode(kcode)
