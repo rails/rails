@@ -514,6 +514,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
       assert !'ruby'.encoding_aware?
     end
   end
+
+  test "call to_param returns a normal string" do
+    string = @string.html_safe
+    assert string.html_safe?
+    assert !string.to_param.html_safe?
+  end
 end
 
 class StringExcludeTest < ActiveSupport::TestCase

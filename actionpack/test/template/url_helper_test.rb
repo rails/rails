@@ -15,6 +15,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   routes.draw do
     match "/" => "foo#bar"
     match "/other" => "foo#other"
+    match "/article/:id" => "foo#article", :as => :article
   end
 
   include routes.url_helpers
@@ -259,6 +260,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_tag_using_block_in_erb
     out = render_erb %{<%= link_to('/') do %>Example site<% end %>}
     assert_equal '<a href="/">Example site</a>', out
+  end
+
+  def test_link_tag_with_html_safe_string
+    assert_dom_equal(
+      "<a href=\"/article/Gerd_M%C3%BCller\">Gerd Müller</a>",
+      link_to("Gerd Müller", article_path("Gerd_Müller".html_safe))
+    )
   end
 
   def test_link_to_unless

@@ -102,6 +102,10 @@ module ActiveSupport #:nodoc:
       self
     end
 
+    def to_param
+      to_str
+    end
+
     def to_yaml(*args)
       to_str.to_yaml(*args)
     end
