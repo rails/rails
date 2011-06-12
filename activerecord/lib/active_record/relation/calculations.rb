@@ -232,8 +232,10 @@ module ActiveRecord
                          "minimum" => nil,
                          "maximum" => nil}
 
-          operations.each_with_index { |op, i| values << type_cast_calculated_value(null_values[operations[i]], column_for(column_names[i]), operations[i]) }
-          return values.length == 1 ? values[0] : values
+          operations.each_with_index do |op, i| 
+            values << type_cast_calculated_value(null_values[operations[i]], column_for(column_names[i]), operations[i])
+          end
+          return values.length == 1 ? values.first : values
         else
           query_builder = build_aggregate_subquery(relation, operations, column_names, distinct)
         end
@@ -248,9 +250,10 @@ module ActiveRecord
 
           query_builder = relation.arel
       end
+
       row = @klass.connection.select_row(query_builder.to_sql)
       row.each_with_index { |value, i| values << type_cast_calculated_value(value, column_for(column_names[i]), operations[i]) }
-      values.length == 1 ? values[0] : values
+      values.length == 1 ? values.first : values
     end
 
     def execute_grouped_calculation(operations, column_names, distinct) #:nodoc:
@@ -299,8 +302,12 @@ module ActiveRecord
         }
         key = key.first if key.size == 1
         key = key_records[key] if associated
+
         values = []
-        aggregate_aliases.each_with_index { |aa, i| values << type_cast_calculated_value(row[aa], column_for(column_names[i]), operations[i]) }
+        aggregate_aliases.each_with_index do |aa, i| 
+          values << type_cast_calculated_value(row[aa], column_for(column_names[i]), operations[i])
+        end
+
         [key, values.length == 1 ? values.first : values]
       end]
     end
