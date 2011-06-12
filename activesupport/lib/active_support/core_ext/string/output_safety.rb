@@ -103,6 +103,10 @@ module ActiveSupport #:nodoc:
       self
     end
 
+    def to_param
+      to_str
+    end
+
     def encode_with(coder)
       coder.represent_scalar nil, to_str
     end
