@@ -10,8 +10,8 @@ module ActionController
       format  = payload[:format]
       format  = format.to_s.upcase if format.is_a?(Symbol)
 
-      info "  Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
-      info "  Parameters: #{params.inspect}" unless params.empty?
+      info("  Processing by #{payload[:controller]}##{payload[:action]} as #{format}")
+      info("  Parameters: #{params.inspect}") unless params.empty?
     end
 
     def process_action(event)
@@ -35,7 +35,7 @@ module ActionController
     end
 
     def redirect_to(event)
-      info "Redirected to #{event.payload[:location]}"
+      info("Redirected to #{event.payload[:location]}")
     end
 
     def send_data(event)
