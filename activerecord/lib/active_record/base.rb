@@ -661,7 +661,7 @@ module ActiveRecord #:nodoc:
         define_attr_method :table_name, value, &block
         @arel_table = nil
 
-        @relation = Relation.new(self, arel_table)
+        @relation = create_relation
       end
       alias :table_name= :set_table_name
 
@@ -974,13 +974,17 @@ module ActiveRecord #:nodoc:
       private
 
         def relation #:nodoc:
-          @relation ||= Relation.new(self, arel_table)
+          @relation ||= create_relation
 
           if finder_needs_type_condition?
             @relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
           else
             @relation
           end
+        end
+
+        def create_relation
+          Relation.new(self, arel_table)
         end
 
         def find_sti_class(type_name)
