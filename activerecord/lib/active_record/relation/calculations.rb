@@ -169,8 +169,7 @@ module ActiveRecord
     private
 
     def normalize_column_names_and_options(operations, column_names)
-      operations = [operations] if !operations.kind_of?(Array)
-      column_names = [column_names] if !column_names.kind_of?(Array)
+      operations, column_names = [*operations], [*column_names]
       li = [operations.length, column_names.length].max - 1
 
       if li > 0
