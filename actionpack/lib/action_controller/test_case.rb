@@ -521,14 +521,14 @@ module ActionController
       end
 
       protected
+      
         def rescue_action_without_handler(e)
           self.exception = e
-
-          if request.remote_addr == "0.0.0.0"
-            raise(e)
-          else
-            super(e)
-          end
+          local_request? ? raise(e) : super(e)
+        end
+        
+        def local_request?
+          request.remote_addr == "0.0.0.0"
         end
     end
 
