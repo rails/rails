@@ -32,3 +32,8 @@ By default the tests run with the Identity Map turned off. But all tests should 
 not the identity map is on or off. You can turn it on using the IM env variable:
 
   $ IM=true ruby -Itest test/case/base_test.rb
+
+== Config file
+
+By default, the config file is expected to be at the path test/config.yml. You can specify a
+custom location with the ARCONFIG environment variable.
