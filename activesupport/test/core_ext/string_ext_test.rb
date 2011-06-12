@@ -251,7 +251,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
-  
+
   def test_string_inquiry
     assert "production".inquiry.production?
     assert !"production".inquiry.development?
@@ -450,6 +450,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
     else
       assert !'ruby'.encoding_aware?
     end
+  end
+
+  test "call to_param returns a normal string" do
+    string = @string.html_safe
+    assert string.html_safe?
+    assert !string.to_param.html_safe?
   end
 end
 
