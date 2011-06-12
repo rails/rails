@@ -114,21 +114,13 @@ module ActiveRecord
       # Add +records+ to this association. Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
-        result = true
         load_target if owner.new_record?
 
-        block = lambda do
-          records.flatten.each do |record|
-            raise_on_type_mismatch(record)
-            add_to_target(record) do |r|
-              result &&= insert_record(record) unless owner.new_record?
-            end
-          end
+        if owner.new_record?
+          concat_records(records)
+        else
+          transaction { concat_records(records) }
         end
-
-        owner.new_record? ? block.call : transaction(&block)
-
-        result && records
       end
 
       # Starts a transaction in the association class's database connection.
@@ -297,17 +289,11 @@ module ActiveRecord
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
 
-        block = lambda do
-          delete(target - other_array)
-
-          unless concat(other_array - target)
-            @target = original_target
-            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
-                                  "new records could not be saved."
-          end
+        if owner.new_record?
+          replace_records(other_array, original_target)
+        else
+          transaction { replace_records(other_array, original_target) }
         end
-
-        owner.new_record? ? block.call : transaction(&block)
       end
 
       def include?(record)
@@ -448,22 +434,49 @@ module ActiveRecord
           records.each { |record| raise_on_type_mismatch(record) }
           existing_records = records.reject { |r| r.new_record? }
 
-          block = lambda do
-            records.each { |record| callback(:before_remove, record) }
-
-            delete_records(existing_records, method) if existing_records.any?
-            records.each { |record| target.delete(record) }
-
-            records.each { |record| callback(:after_remove, record) }
+          if existing_records.empty?
+            remove_records(existing_records, records, method)
+          else
+            transaction { remove_records(existing_records, records, method) }
           end
+        end
 
-          existing_records.any? ? transaction(&block) : block.call
+        def remove_records(existing_records, records, method)
+          records.each { |record| callback(:before_remove, record) }
+
+          delete_records(existing_records, method) if existing_records.any?
+          records.each { |record| target.delete(record) }
+
+          records.each { |record| callback(:after_remove, record) }
         end
 
         # Delete the given records from the association, using one of the methods :destroy,
         # :delete_all or :nullify (or nil, in which case a default is used).
         def delete_records(records, method)
           raise NotImplementedError
+        end
+
+        def replace_records(new_target, original_target)
+          delete(target - new_target)
+
+          unless concat(new_target - target)
+            @target = original_target
+            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
+                                  "new records could not be saved."
+          end
+        end
+
+        def concat_records(records)
+          result = true
+
+          records.flatten.each do |record|
+            raise_on_type_mismatch(record)
+            add_to_target(record) do |r|
+              result &&= insert_record(record) unless owner.new_record?
+            end
+          end
+
+          result && records
         end
 
         def callback(method, record)
