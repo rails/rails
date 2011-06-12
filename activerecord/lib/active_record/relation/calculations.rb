@@ -170,15 +170,13 @@ module ActiveRecord
 
     def normalize_column_names_and_options(operations, column_names)
       operations, column_names = [*operations], [*column_names]
-      li = [operations.length, column_names.length].max - 1
-
-      if li > 0
-        for i in 0..li do
+      params_last_index = [operations.length, column_names.length].max - 1
+      if params_last_index > 0
+        (0..params_last_index).each do |i|
           operations << operations.last  if operations[i].nil?
           column_names << column_names.last if column_names[i].nil?
         end
       end
-
       operations.map! { |o| o.to_s.downcase }
       [operations, column_names]
     end
