@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Added Time#whole_day/week/quarter/year as a way of generating ranges (example: Event.where(created_at: Time.now.whole_week)) [DHH]
+
 * Added instance_accessor: false as an option to Class#cattr_accessor and friends [DHH]
 
 * Removed ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
