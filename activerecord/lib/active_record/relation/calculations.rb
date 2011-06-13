@@ -173,7 +173,7 @@ module ActiveRecord
       params_last_index = [operations.length, column_names.length].max - 1
       if params_last_index > 0
         (0..params_last_index).each do |i|
-          operations << operations.last  if operations[i].nil?
+          operations << operations.last if operations[i].nil?
           column_names << column_names.last if column_names[i].nil?
         end
       end
@@ -233,7 +233,7 @@ module ActiveRecord
                          "maximum" => nil}
 
           operations.each_with_index do |op, i| 
-            values << type_cast_calculated_value(null_values[operations[i]], column_for(column_names[i]), operations[i])
+            values << type_cast_calculated_value(null_values[op], column_for(column_names[i]), op)
           end
           return values.length == 1 ? values.first : values
         else
