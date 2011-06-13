@@ -23,7 +23,8 @@ module ActiveSupport
         #   ...
         # end
         def test(name, &block)
-          test_name = "test_#{name.gsub(/\s+/,'_')}".to_sym
+          methodified_name = name.gsub(/\s+/,'_').gsub(/(\W)/) { |s| s.unpack('M') }
+          test_name = "test_#{methodified_name}".to_sym
           defined = instance_method(test_name) rescue false
           raise "#{test_name} is already defined in #{self}" if defined
           if block_given?
