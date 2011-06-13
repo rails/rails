@@ -17,6 +17,7 @@ require 'active_support/core_ext/array/extract_options'
 #
 # To opt out of the instance writer method, pass :instance_writer => false.
 # To opt out of the instance reader method, pass :instance_reader => false.
+# To opt out of both instance methods, pass :instance_accessor => false.
 #
 #   class Person
 #     cattr_accessor :hair_colors, :instance_writer => false, :instance_reader => false
@@ -38,7 +39,7 @@ class Class
         end
       EOS
 
-      unless options[:instance_reader] == false
+      unless options[:instance_reader] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}
             @@#{sym}
@@ -61,7 +62,7 @@ class Class
         end
       EOS
 
-      unless options[:instance_writer] == false
+      unless options[:instance_writer] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
             @@#{sym} = obj

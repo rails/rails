@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Added instance_accessor: false as an option to Class#cattr_accessor and friends [DHH]
+
 * Removed ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
 
 * ActiveSupport::OrderedHash now has different behavior for #each and
