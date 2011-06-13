@@ -21,9 +21,9 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert !user.valid?, 'user should be invalid'
   end
 
-  test "password must be present" do
+  test "password digest must be present" do
     assert !@user.valid?
-    assert_equal 1, @user.errors.size
+    assert_equal ["can't be blank"], @user.errors[:password_digest]
   end
 
   test "password must match confirmation" do
@@ -54,5 +54,5 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert active_authorizer.kind_of?(ActiveModel::MassAssignmentSecurity::WhiteList)
     assert !active_authorizer.include?(:password_digest)
     assert active_authorizer.include?(:name)
-  end
+  end  
 end
