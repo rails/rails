@@ -27,6 +27,7 @@ gem "memcache-client", ">= 1.8.5"
 platforms :mri_18 do
   gem "system_timer"
   gem "ruby-debug", ">= 0.10.3"
+  gem "linecache", " 0.43"
   gem "json"
 end
 
@@ -59,6 +60,7 @@ end
 
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
+  gem "linecache", " 0.43"
   gem "json"
   gem "activerecord-jdbcsqlite3-adapter"
 
