@@ -1036,18 +1036,24 @@ module ActionView
 end
 </ruby>
 
-we can access +field_error_proc+ in views. The generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+we can access +field_error_proc+ in views.
+
+The generation of the reader instance method can be prevented by setting +:instance_reader+ to +false+ and the generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+. Generation of both methods can be prevented by setting +:instance_accessor+ to +false+. In all cases, the value must be exactly +false+ and not any false value.
 
 <ruby>
-module ActiveRecord
-  class Base
-    # No pluralize_table_names= instance writer is generated.
-    cattr_accessor :pluralize_table_names, :instance_writer => false
+module A
+  class B
+    # No first_name instance reader is generated.
+    cattr_accessor :first_name, :instance_reader => false
+    # No last_name= instance writer is generated.
+    cattr_accessor :last_name, :instance_writer => false
+    # No surname instance reader or surname= writer is generated.
+    cattr_accessor :surname, :instance_accessor => false
   end
 end
 </ruby>
 
-A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
+A model may find it useful to set +:instance_accessor+ to +false+ as a way to prevent mass-assignment from setting the attribute.
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
