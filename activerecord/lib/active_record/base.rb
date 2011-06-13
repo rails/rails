@@ -1717,10 +1717,13 @@ MSG
         attributes.each do |k, v|
           if k.include?("(")
             multi_parameter_attributes << [ k, v ]
-          elsif respond_to?("#{k}=")
-            send("#{k}=", v)
           else
-            raise(UnknownAttributeError, "unknown attribute: #{k}")
+            method_name = "#{k}="
+            if respond_to?(method_name)
+              method(method_name).arity == -2 ? send(method_name, v, options) : send(method_name, v)
+            else
+              raise(UnknownAttributeError, "unknown attribute: #{k}")
+            end
           end
         end
 
