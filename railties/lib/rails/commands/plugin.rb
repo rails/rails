@@ -313,7 +313,7 @@ module Commands
         o.separator ""
         o.separator "EXAMPLES"
         o.separator "  Install a plugin from a subversion URL:"
-        o.separator "    #{@script_name} plugin install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
+        o.separator "    #{@script_name} plugin install http://dev.rubyonrails.org/svn/rails/plugins/continuous_builder\n"
         o.separator "  Install a plugin from a git URL:"
         o.separator "    #{@script_name} plugin install git://github.com/SomeGuy/my_awesome_plugin.git\n"
         o.separator "  Install a plugin and add a svn:externals entry to vendor/plugins"

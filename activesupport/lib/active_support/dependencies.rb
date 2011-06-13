@@ -634,7 +634,7 @@ module ActiveSupport #:nodoc:
       def self.root(*args)
         if defined?(Rails) && Rails.logger
           Rails.logger.warn "Your environment.rb uses the old syntax, it may not continue to work in future releases."
-          Rails.logger.warn "For upgrade instructions please see: http://manuals.rubyonrails.com/read/book/19"
+          Rails.logger.warn "For upgrade instructions please see: http://guides.rubyonrails.org/configuring.html"
         end
       end
     end
