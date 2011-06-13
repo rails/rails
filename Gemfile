@@ -26,6 +26,9 @@ gem "memcache-client", ">= 1.8.5"
 
 platforms :mri_18 do
   gem "system_timer"
+  # ruby-debug requires linecache which depends on require_relative but doesn't explicitly
+  # declare this in its gemspec
+  gem "require_relative"
   gem "ruby-debug", ">= 0.10.3"
   gem "json"
 end
