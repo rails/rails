@@ -3327,7 +3327,7 @@ h5. +all_day+, +all_week+, +all_month+, +all_quarter+ and +all_year+
 The method +all_day+ returns a range representing the whole day of the current time.
 
 <ruby>
-now = Time.now
+now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_day
 # => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
@@ -3336,7 +3336,7 @@ now.all_day
 Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the purpose of generating time ranges.
 
 <ruby>
-now = Time.now
+now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_week
 # => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
