@@ -14,12 +14,7 @@ module ActionDispatch
     end
     
     if "ruby".encoding_aware?
-      def test_filename_should_be_in_default_encoding
-        Encoding.default_external = "UTF-16LE"
-        uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
-        assert "UTF-16LE", uf.original_filename.encoding.to_s
-        
-        Encoding.default_external = "UTF-8"
+      def test_filename_should_be_in_utf_8
         uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
         assert "UTF-8", uf.original_filename.encoding.to_s
       end
