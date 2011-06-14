@@ -21,9 +21,9 @@ module Arel
       def test_opertaion_ordering
         operation = InfixOperation.new :+, 1, 2
         ordering = operation.desc
-        assert_kind_of Ordering, ordering
+        assert_kind_of Descending, ordering
         assert_equal operation, ordering.expr
-        assert_equal :desc, ordering.direction
+        assert ordering.descending?
       end
     end
   end

@@ -33,6 +33,7 @@ module Arel
         Arel::Nodes::On,
         Arel::Nodes::Grouping,
         Arel::Nodes::Offset,
+        Arel::Nodes::Ordering,
         Arel::Nodes::Having,
         Arel::Nodes::UnqualifiedColumn,
         Arel::Nodes::Top,
@@ -63,7 +64,6 @@ module Arel
         Arel::Nodes::Values,
         Arel::Nodes::As,
         Arel::Nodes::DeleteStatement,
-        Arel::Nodes::Ordering,
         Arel::Nodes::JoinSource,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do

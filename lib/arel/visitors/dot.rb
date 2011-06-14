@@ -30,7 +30,6 @@ module Arel
       private
       def visit_Arel_Nodes_Ordering o
         visit_edge o, "expr"
-        visit_edge o, "direction"
       end
 
       def visit_Arel_Nodes_TableAlias o

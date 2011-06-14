@@ -203,8 +203,12 @@ key on UpdateManager using UpdateManager#key=
         "(#{visit o.expr})"
       end
 
-      def visit_Arel_Nodes_Ordering o
-        "#{visit o.expr} #{o.descending? ? 'DESC' : 'ASC'}"
+      def visit_Arel_Nodes_Ascending o
+        "#{visit o.expr} ASC"
+      end
+
+      def visit_Arel_Nodes_Descending o
+        "#{visit o.expr} DESC"
       end
 
       def visit_Arel_Nodes_Group o
