@@ -150,7 +150,8 @@ module Rails
           middleware.use ::Rack::SSL
         end
 
-        if config.serve_static_assets
+        running_webrick = Rails::Info.properties.value_for("Server") == ActiveSupport::Inflector.demodulize(::Rack::Handler::WEBrick)
+        if config.serve_static_assets || running_webrick && Rails.env == "production"
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
