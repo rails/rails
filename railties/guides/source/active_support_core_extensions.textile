@@ -3322,6 +3322,32 @@ Active Support defines +Time.current+ to be today in the current time zone. That
 
 When making Time comparisons using methods which honor the user time zone, make sure to use +Time.current+ and not +Time.now+. There are cases where the user time zone might be in the future compared to the system time zone, which +Time.today+ uses by default. This means +Time.now+ may equal +Time.yesterday+.
 
+h5. +all_day+, +all_week+, +all_month+, +all_quarter+ and +all_year+
+
+The method +all_day+ returns a range representing the whole day of the current time.
+
+<ruby>
+now = Time.now
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now.all_day
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
+</ruby>
+
+Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the purpose of generating time ranges.
+
+<ruby>
+now = Time.now
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now.all_week
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+now.all_month
+# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
+now.all_quarter
+# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
+now.all_year
+# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
+</ruby>
+
 h4. Time Constructors
 
 Active Support defines +Time.current+ to be +Time.zone.now+ if there's a user time zone defined, with fallback to +Time.now+:
