@@ -54,7 +54,12 @@ module Sprockets
         env = Sprockets::Environment.new(app.root.to_s)
 
         env.static_root = File.join(app.root.join("public"), assets.prefix)
-        env.paths.concat assets.paths
+
+        if env.respond_to?(:append_path)
+          assets.paths.each { |path| env.append_path(path) }
+        else
+          env.paths.concat assets.paths
+        end
 
         env.logger = Rails.logger
 
