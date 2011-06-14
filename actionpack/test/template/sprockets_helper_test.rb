@@ -33,8 +33,9 @@ class SprocketsHelperTest < ActionView::TestCase
     Rails.stubs(:application).returns(application)
     application.stubs(:config).returns(config)
     application.stubs(:assets).returns(@assets)
-
-    config.perform_caching = true
+    @config = config
+    @config.action_controller ||= ActiveSupport::InheritableOptions.new
+    @config.perform_caching = true
   end
 
   def url_for(*args)
@@ -57,6 +58,48 @@ class SprocketsHelperTest < ActionView::TestCase
       asset_path("http://www.example.com/video/play")
     assert_equal "http://www.example.com/video/play.mp4",
       asset_path("http://www.example.com/video/play.mp4")
+  end
+
+  test "asset_url" do
+    # With no asset_host the asset_url and the asset_path should be the same.
+    assert_equal asset_path("logo.png"), asset_url("logo.png")
+
+    # With a simple asset host the url should be protocol relative.
+    @controller.config.asset_host = "assets-%d.example.com"
+    assert_match %r{//assets-\d.example.com/assets/logo-[0-9a-f]+.png},
+      asset_url("logo.png")
+
+    # With a proc asset host that returns no protocol the url should be protocol relative.
+    @controller.config.asset_host = Proc.new do |asset|
+      "assets-999.example.com"
+    end
+    assert_match %r{//assets-999.example.com/assets/logo-[0-9a-f]+.png},
+      asset_url("logo.png")
+
+    # With a proc asset host that returns a protocol the url use it.
+    @controller.config.asset_host = Proc.new do |asset|
+      "http://assets-999.example.com"
+    end
+    assert_match %r{http://assets-999.example.com/assets/logo-[0-9a-f]+.png},
+      asset_url("logo.png")
+
+    # stylesheets served with a controller in scope can access the request.
+    config.asset_host = Proc.new do |asset, request|
+      assert_not_nil request
+      "http://assets-666.example.com"
+    end
+    assert_match %r{http://assets-666.example.com/assets/logo-[0-9a-f]+.png},
+      asset_url("logo.png")
+  end
+
+  test "stylesheets served without a controller in scope cannot access the request" do
+    remove_instance_variable("@controller")
+    @config.action_controller.asset_host = Proc.new do |asset, request|
+      fail "This should not have been called."
+    end
+    assert_raises ActionController::RoutingError do
+      asset_url("logo.png")
+    end
   end
 
   test "asset path with relavtive url root" do
