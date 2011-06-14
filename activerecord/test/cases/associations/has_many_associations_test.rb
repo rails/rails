@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/bird'
 require 'models/developer'
 require 'models/project'
 require 'models/company'
@@ -6,6 +7,7 @@ require 'models/contract'
 require 'models/topic'
 require 'models/reply'
 require 'models/category'
+require 'models/pirate'
 require 'models/post'
 require 'models/author'
 require 'models/comment'
@@ -66,6 +68,25 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create(:name => 'exotic')
     assert_equal 'exotic', bulb.name
+  end
+
+  def test_create_from_association_with_type_should_respect_sti
+    pirate = Pirate.create!(:catchphrase => "SCAAAAAARRRRRRRRVES")
+    opts = {:name => "Grover"}
+
+    bird = pirate.birds.build opts.dup
+    assert_equal Bird, bird.class
+
+    bird = pirate.birds.create opts.dup
+    assert_equal Bird, bird.class
+
+    opts = opts.merge(Bird.inheritance_column => "Robin")
+
+    bird = pirate.birds.build opts.dup
+    assert_equal Robin, bird.class
+
+    bird = pirate.birds.create opts.dup
+    assert_equal Robin, bird.class
   end
 
   def test_create_from_association_with_nil_values_should_work

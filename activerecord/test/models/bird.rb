@@ -7,3 +7,6 @@ class Bird < ActiveRecord::Base
     false
   end
 end
+
+class Robin < Bird
+end

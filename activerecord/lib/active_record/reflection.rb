@@ -161,6 +161,24 @@ module ActiveRecord
         @klass ||= active_record.send(:compute_type, class_name)
       end
 
+      # Returns the target association's class, taking into account opts.first[klass.inheritance_column] (usually opts.first[:type]).
+      #
+      #   class Author < ActiveRecord::Base
+      #     has_many :books
+      #   end
+      #
+      #   Author.reflect_on_association(:books).klass(:type => "ComicBook")
+      #   # => ComicBook
+      #
+      def klass_with_sti(*opts)
+        sti_col = klass.inheritance_column
+        if (h = opts.first).is_a? Hash and (passed_type = ( h[sti_col] || h[sti_col.to_sym] ))
+          active_record.send(:compute_type, passed_type)
+        else
+          klass
+        end
+      end
+
       def initialize(macro, name, options, active_record)
         super
         @collection = macro.in?([:has_many, :has_and_belongs_to_many])
@@ -169,14 +187,14 @@ module ActiveRecord
       # Returns a new, unsaved instance of the associated class. +options+ will
       # be passed to the class's constructor.
       def build_association(*options)
-        klass.new(*options)
+        klass_with_sti(*options).new(*options)
       end
 
       # Creates a new instance of the associated class, and immediately saves it
       # with ActiveRecord::Base#save. +options+ will be passed to the class's
       # creation method. Returns the newly created object.
       def create_association(*options)
-        klass.create(*options)
+        klass_with_sti.create(*options)
       end
 
       # Creates a new instance of the associated class, and immediately saves it
