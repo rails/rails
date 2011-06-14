@@ -29,12 +29,17 @@ module ActiveSupport #:nodoc:
       super(key.to_sym)
     end
 
+    SETTER = /(.*)=$/ #:nodoc:
     def method_missing(name, *args)
-      if name.to_s =~ /(.*)=$/
+      if name.to_s =~ SETTER
         self[$1] = args.first
       else
         self[name]
       end
+    end
+
+    def respond_to?(name)
+      true
     end
   end
 
