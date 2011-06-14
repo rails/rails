@@ -905,6 +905,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_has_many_using_primary_key_method
+    expected = Firm.find(:first).clients_using_primary_key_method.to_a
+    firm = Firm.find :first, :include => :clients_using_primary_key_method
+    assert_no_queries do
+      assert_equal expected, firm.clients_using_primary_key_method
+    end
+  end
+
   def test_include_has_many_using_primary_key
     expected = Firm.find(1).clients_using_primary_key.sort_by(&:name)
     # Oracle adapter truncates alias to 30 characters

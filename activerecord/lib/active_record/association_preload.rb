@@ -176,7 +176,7 @@ module ActiveRecord
         ids = []
         records.each do |record|
           primary_key ||= record.class.primary_key
-          ids << record[primary_key]
+          ids << record.send(primary_key)
           mapped_records = (id_to_record_map[ids.last.to_s] ||= [])
           mapped_records << record
         end
