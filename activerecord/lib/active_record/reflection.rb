@@ -161,6 +161,15 @@ module ActiveRecord
         @klass ||= active_record.send(:compute_type, class_name)
       end
 
+      # Returns the target association's class, taking into account opts.first[klass.inheritance_column] (usually opts.first[:type]).
+      #
+      #   class Author < ActiveRecord::Base
+      #     has_many :books
+      #   end
+      #
+      #   Author.reflect_on_association(:books).klass(:type => "ComicBook")
+      #   # => ComicBook
+      #
       def klass_with_sti(*opts)
         sti_col = klass.inheritance_column
         if (h = opts.first).is_a? Hash and (passed_type = ( h[sti_col] || h[sti_col.to_sym] ))
