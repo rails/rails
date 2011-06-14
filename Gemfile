@@ -30,6 +30,7 @@ platforms :mri_18 do
   # declare this in its gemspec
   gem "require_relative"
   gem "ruby-debug", ">= 0.10.3"
+  gem "linecache", " 0.43"
   gem "json"
 end
 
@@ -62,6 +63,7 @@ end
 
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
+  gem "linecache", " 0.43"
   gem "json"
   gem "activerecord-jdbcsqlite3-adapter"
 
