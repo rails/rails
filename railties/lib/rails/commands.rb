@@ -51,6 +51,7 @@ when 'server'
     # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
+    Rails::Info.property("Server", ActiveSupport::Inflector.demodulize(server.server))
     server.start
   }
 
