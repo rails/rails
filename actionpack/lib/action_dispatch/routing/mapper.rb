@@ -87,7 +87,7 @@ module ActionDispatch
                 raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
               end
             end
-        end
+          end
 
           # match "account/overview"
           def using_match_shorthand?(path, options)
