@@ -4,7 +4,7 @@ module ActionDispatch
       attr_accessor :original_filename, :content_type, :tempfile, :headers
 
       def initialize(hash)
-        @original_filename = hash[:filename]
+        @original_filename = encode_filename(hash[:filename])
         @content_type      = hash[:type]
         @headers           = hash[:head]
         @tempfile          = hash[:tempfile]
@@ -29,6 +29,17 @@ module ActionDispatch
 
       def size
         @tempfile.size
+      end
+      
+      private
+      def encode_filename(filename)
+        # Encode the filename in the default_external encoding, unless it is nil or we're in 1.8
+        if "ruby".encoding_aware? && filename
+          encoding = Encoding.default_external
+          filename.force_encoding(encoding)
+        else
+          filename
+        end
       end
     end
 
