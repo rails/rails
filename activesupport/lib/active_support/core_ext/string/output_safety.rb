@@ -129,8 +129,8 @@ module ActiveSupport #:nodoc:
     #
     # If you really need the magic matching variables after the gsub call
     # you will need to convert SafeBuffer to a String first
-    def gsub(*args)
-      to_str.gsub(*args)
+    def gsub(*args, &block)
+      to_str.gsub(*args, &block)
     end
   end
 end

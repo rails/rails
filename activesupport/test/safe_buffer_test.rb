@@ -54,7 +54,9 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should set magic match variables within block passed to gsub" do
     'burn'[/(matches)/]
     @buffer << 'swan'
-    @buffer.gsub(/(swan)/) { assert_equal 'swan', $1 }
+    result = nil
+    @buffer.gsub(/(swan)/) { result = $1 }
+    assert_equal 'swan', result, "dang it, still not working"
   end
 
   test "Should not expect magic match variables after gsub call" do
