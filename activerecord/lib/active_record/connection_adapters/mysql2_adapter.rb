@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-gem 'mysql2', '~> 0.3.0'
+gem 'mysql2', '~> 0.3.3'
 require 'mysql2'
 
 module ActiveRecord
@@ -629,7 +629,7 @@ module ActiveRecord
         end
 
         def configure_connection
-          @connection.query_options.merge!(:as => :array)
+          @connection.query_options.merge!(:as => :array, :cast => false)
 
           # By default, MySQL 'where id is null' selects the last inserted id.
           # Turn this off. http://dev.rubyonrails.org/ticket/6778
