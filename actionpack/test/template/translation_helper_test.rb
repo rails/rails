@@ -38,11 +38,19 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_returns_missing_translation_message_wrapped_into_span
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
     assert_equal expected, translate(:"translations.missing")
+    assert_equal true, translate(:"translations.missing").html_safe?
   end
 
   def test_returns_missing_translation_message_using_nil_as_rescue_format
     expected = 'translation missing: en.translations.missing'
     assert_equal expected, translate(:"translations.missing", :rescue_format => nil)
+    assert_equal false, translate(:"translations.missing", :rescue_format => nil).html_safe?
+  end
+
+  def test_i18n_translate_defaults_to_nil_rescue_format
+    expected = 'translation missing: en.translations.missing'
+    assert_equal expected, I18n.translate(:"translations.missing")
+    assert_equal false, I18n.translate(:"translations.missing").html_safe?
   end
 
   def test_translation_returning_an_array
