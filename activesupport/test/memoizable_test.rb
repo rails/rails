@@ -96,6 +96,15 @@ class MemoizableTest < ActiveSupport::TestCase
     end
     memoize :fib
 
+    def add_or_subtract(i, j, add)
+      if add
+        i + j
+      else
+        i - j
+      end
+    end
+    memoize :add_or_subtract
+
     def counter
       @count ||= 0
       @count += 1
@@ -197,6 +206,11 @@ class MemoizableTest < ActiveSupport::TestCase
     assert_equal 12, @calculator.fib_calls
     assert_equal 55, @calculator.fib(10, true)
     assert_equal 13, @calculator.fib_calls
+  end
+
+  def test_memoization_with_boolean_arg
+    assert_equal 4, @calculator.add_or_subtract(2, 2, true)
+    assert_equal 2, @calculator.add_or_subtract(4, 2, false)
   end
 
   def test_object_memoization
