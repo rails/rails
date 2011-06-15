@@ -266,7 +266,7 @@ development:
   database: db/development.sqlite3
 </yaml>
 
-h5. Configuring an MySQL Database for JRuby Platform
+h5. Configuring a MySQL Database for JRuby Platform
 
 If you choose to use MySQL and using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
@@ -278,7 +278,7 @@ development:
   password:
 </yaml>
 
-h5. Configuring an PostgreSQL Database for JRuby Platform
+h5. Configuring a PostgreSQL Database for JRuby Platform
 
 Finally if you choose to use PostgreSQL and using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
