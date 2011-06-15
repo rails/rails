@@ -1,8 +1,15 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/aliasing'
+require 'active_support/deprecation'
 
 module ActiveSupport
   module Memoizable
+    def self.extended(base)
+      ActiveSupport::Deprecation.warn "ActiveSupport::Memoizable is deprecated and will be removed in future releases," \
+        "simply use Ruby instead.", caller
+      super
+    end
+
     def self.memoized_ivar_for(symbol)
       "@_memoized_#{symbol.to_s.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')}".to_sym
     end

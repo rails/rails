@@ -2,7 +2,9 @@ require 'abstract_unit'
 require 'test/unit'
 
 class FlashCacheOnPrivateMemoizationTest < Test::Unit::TestCase
-  extend ActiveSupport::Memoizable
+  ActiveSupport::Deprecation.silence do
+    extend ActiveSupport::Memoizable
+  end
 
   def test_public
     assert_method_unmemoizable :pub
