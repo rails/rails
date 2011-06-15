@@ -290,7 +290,7 @@ module ActionView
       #
       # Example:
       #
-      #   <%= form(@post) do |f| %>
+      #   <%= form_for(@post) do |f| %>
       #     <% f.fields_for(:comments, :include_id => false) do |cf| %>
       #       ...
       #     <% end %>
