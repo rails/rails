@@ -244,7 +244,7 @@ If your development computer's MySQL installation includes a root user with an e
 
 h5. Configuring a PostgreSQL Database
 
-Finally if you choose to use PostgreSQL, your +config/database.yml+ will be customized to use PostgreSQL databases:
+If you choose to use PostgreSQL, your +config/database.yml+ will be customized to use PostgreSQL databases:
 
 <yaml>
 development:
@@ -282,7 +282,7 @@ development:
 
 h5. Configuring an PostgreSQL Database for Jruby Platform
 
-If you choose to use PostgreSQL and using Jruby, your +config/database.yml+ will look a little different. Here's the development section:
+Finally if you choose to use PostgreSQL and using Jruby, your +config/database.yml+ will look a little different. Here's the development section:
 
 <yaml>
 development:
