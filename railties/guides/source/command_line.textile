@@ -402,7 +402,7 @@ If you want to strip out or rebuild any of the Rails documentation (including th
 
 h4. +notes+
 
-+rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. This checks only for files with extension +.builder+, +.rb+, +.rxml+, +.rhtml+ and +.erb+.
++rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is only done in files with extension +.builder+, +.rb+, +.rxml+, +.rhtml+ and +.erb+ for both default and custom annotations.
 
 <shell>
 $ rake notes
@@ -416,7 +416,19 @@ app/model/school.rb:
   * [ 17] [FIXME]
 </shell>
 
-You can also use custom annotations in your code and list them using +rake notes:custom+ and specify the annotation using an environment variable +ANNOTATION+.
+If you are looking for a specific annotation, say FIXME, you can use +rake notes:fixme+. Note that you have to lower case the annotation's name.
+
+<shell>
+$ rake notes:fixme
+(in /home/foobar/commandsapp)
+app/controllers/admin/users_controller.rb:
+  * [132] high priority for next deploy
+
+app/model/school.rb:
+  * [ 17]
+</shell>
+
+You can also use custom annotations in your code and list them using +rake notes:custom+ by specifying the annotation using an environment variable +ANNOTATION+.
 
 <shell>
 $ rake notes:custom ANNOTATION=BUG
@@ -424,6 +436,8 @@ $ rake notes:custom ANNOTATION=BUG
 app/model/post.rb:
   * [ 23] Have to fix this one before pushing!
 </shell>
+
+NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
 
 h4. +routes+
 
