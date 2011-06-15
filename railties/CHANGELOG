@@ -1,4 +1,7 @@
-*Rails 3.0.8 (unreleased)*
+*Rails 3.0.9 (unreleased)*
+
+
+*Rails 3.0.8 (June 7, 2011)*
 
 * Fix Rake 0.9.0 support.
 
