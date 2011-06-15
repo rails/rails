@@ -173,11 +173,11 @@ module Rails
     def eager_load!
     end
 
-    def load_console(app)
+    def load_console(app=self)
       self.class.console.each { |block| block.call(app) }
     end
 
-    def load_tasks(app)
+    def load_tasks(app=self)
       extend Rake::DSL if defined? Rake::DSL
       self.class.rake_tasks.each { |block| block.call(app) }
 
@@ -189,7 +189,7 @@ module Rails
       end
     end
 
-    def load_generators(app)
+    def load_generators(app=self)
       self.class.generators.each { |block| block.call(app) }
     end
   end
