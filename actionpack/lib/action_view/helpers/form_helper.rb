@@ -517,6 +517,18 @@ module ActionView
       #     end
       #   end
       #
+      # Note that the <tt>projects_attributes=</tt> writer method is in fact
+      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # collection, and the correct indices to be set in the form markup.
+      #
+      # When projects is already an association on Person you can use
+      # +accepts_nested_attributes_for+ to define the writer method for you:
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :projects
+      #     accepts_nested_attributes_for :projects
+      #   end
+      #
       # This model can now be used with a nested fields_for. The block given to
       # the nested fields_for call will be repeated for each instance in the
       # collection:
@@ -567,14 +579,6 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
-      #
-      # When projects is already an association on Person you can use
-      # +accepts_nested_attributes_for+ to define the writer method for you:
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :projects
-      #     accepts_nested_attributes_for :projects
-      #   end
       #
       # If you want to destroy any of the associated models through the
       # form, you have to enable it first using the <tt>:allow_destroy</tt>
