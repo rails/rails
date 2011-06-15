@@ -64,8 +64,8 @@ module Rails
 
       def initialize(*args)
         @original_wd = Dir.pwd
-
         super
+        convert_database_option_for_jruby
       end
 
     protected
@@ -162,6 +162,17 @@ module Rails
         when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
         when "jdbc"           then "activerecord-jdbc-adapter"
         else options[:database]
+        end
+      end
+
+      def convert_database_option_for_jruby
+        if defined?(JRUBY_VERSION)
+          case options[:database]
+          when "oracle"     then options[:database].replace "jdbc"
+          when "postgresql" then options[:database].replace "jdbcpostgresql"
+          when "mysql"      then options[:database].replace "jdbcmysql"
+          when "sqlite3"    then options[:database].replace "jdbcsqlite3"
+          end
         end
       end
 
