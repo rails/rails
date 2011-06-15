@@ -402,7 +402,28 @@ If you want to strip out or rebuild any of the Rails documentation (including th
 
 h4. +notes+
 
-These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
++rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. This checks only for files with extension +.builder+, +.rb+, +.rxml+, +.rhtml+ and +.erb+.
+
+<shell>
+$ rake notes
+(in /home/foobar/commandsapp)
+app/controllers/admin/users_controller.rb:
+  * [ 20] [TODO] any other way to do this?
+  * [132] [FIXME] high priority for next deploy
+
+app/model/school.rb:
+  * [ 13] [OPTIMIZE] refactor this code to make it faster
+  * [ 17] [FIXME]
+</shell>
+
+You can also use custom annotations in your code and list them using +rake notes:custom+ and specify the annotation using an environment variable +ANNOTATION+.
+
+<shell>
+$ rake notes:custom ANNOTATION=BUG
+(in /home/foobar/commandsapp)
+app/model/post.rb:
+  * [ 23] Have to fix this one before pushing!
+</shell>
 
 h4. +routes+
 
