@@ -5,7 +5,11 @@ module I18n
   class ExceptionHandler
     include Module.new {
       def call(exception, locale, key, options)
-        exception.is_a?(MissingTranslation) ? super.html_safe : super
+        if exception.is_a?(MissingTranslation)
+          options[:rescue_format] == :html ? super.html_safe : super
+        else
+          super
+        end
       end
     }
   end
