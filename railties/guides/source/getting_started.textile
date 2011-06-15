@@ -256,8 +256,6 @@ development:
   password:
 </yaml>
 
-Change the username and password in the +development+ section as appropriate.
-
 h5. Configuring an SQLite3 Database for Jruby Platform
 
 If you choose to use SQLite3 and using Jruby, your +config/database.yml+ will look a little different. Here's the development section:
@@ -292,6 +290,8 @@ development:
   username: blog
   password:
 <yaml>
+
+Change the username and password in the +development+ section as appropriate.
 
 TIP: You don't have to update the database configurations manually. If you had a look at the options of application generator, you have seen that one of them is named <tt>--database</tt>. It lets you choose an adapter for couple of most used relational databases. You can even run the generator repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting of the +config/database.yml+ file, your application will be configured for MySQL instead of SQLite.
 
