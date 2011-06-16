@@ -4,9 +4,9 @@ module Rails
   class Application < Engine
     class Railties < Rails::Engine::Railties
       def all(&block)
-        @all ||= railties + engines + super
-        @all.each(&block) if block
-        @all
+        @railties_plus_engines ||= railties + engines
+        @railties_plus_engines.each(&block) if block
+        @railties_plus_engines + super
       end
     end
   end
