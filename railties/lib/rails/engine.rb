@@ -395,12 +395,20 @@ module Rails
     delegate :middleware, :root, :paths, :to => :config
     delegate :engine_name, :isolated?, :to => "self.class"
 
-    def load_tasks(*)
+    def load_tasks(app=self)
+      railties.all { |r| r.load_tasks(app) }
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
-
+    
+    def load_console(app=self)
+      railties.all { |r| r.load_console(app) }
+      super
+    end
+    
     def eager_load!
+      railties.all(&:eager_load!)
+      
       config.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
