@@ -44,7 +44,7 @@ platforms :ruby do
   end
   gem "json"
   gem "yajl-ruby"
-  gem "nokogiri", ">= 1.4.4"
+  gem "nokogiri", ">= 1.4.5"
 
   group :test do
     gem "ruby-prof" if RUBY_VERSION < "1.9.3"
