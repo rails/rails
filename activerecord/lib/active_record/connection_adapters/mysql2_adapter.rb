@@ -629,7 +629,7 @@ module ActiveRecord
         end
 
         def configure_connection
-          @connection.query_options.merge!(:as => :array, :cast => false)
+          @connection.query_options.merge!(:as => :array)
 
           # By default, MySQL 'where id is null' selects the last inserted id.
           # Turn this off. http://dev.rubyonrails.org/ticket/6778
