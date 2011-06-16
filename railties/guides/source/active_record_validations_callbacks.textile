@@ -336,13 +336,8 @@ WARNING. Note that the regular expression above allows a trailing newline charac
 
 <ruby>
 class Player < ActiveRecord::Base
-<<<<<<< HEAD
-  validates_numericality_of :points
-  validates_numericality_of :games_played, :only_integer => true
-=======
   validates :points, :numericality => true
   validates :games_played, :numericality => { :only_integer => true }
->>>>>>> 7fd8f71... fix incorrect validation examples
 end
 </ruby>
 
@@ -397,13 +392,8 @@ There is a +:scope+ option that you can use to specify other attributes that are
 
 <ruby>
 class Holiday < ActiveRecord::Base
-<<<<<<< HEAD
-  validates_uniqueness_of :name, :scope => :year,
-    :message => "should happen once per year"
-=======
   validates :name, :uniqueness => { :scope => :year,
     :message => "should happen once per year" }
->>>>>>> 7fd8f71... fix incorrect validation examples
 end
 </ruby>
 
@@ -411,11 +401,7 @@ There is also a +:case_sensitive+ option that you can use to define whether the 
 
 <ruby>
 class Person < ActiveRecord::Base
-<<<<<<< HEAD
-  validates_uniqueness_of :name, :case_sensitive => false
-=======
   validates :name, :uniqueness => { :case_sensitive => false }
->>>>>>> 7fd8f71... fix incorrect validation examples
 end
 </ruby>
 
