@@ -103,6 +103,15 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_underscore_with_safe_buffer
+    CamelToUnderscore.each do |camel, underscore|
+      assert_equal(underscore, ActiveSupport::Inflector.underscore(ActiveSupport::SafeBuffer.new(camel)))
+    end
+    CamelToUnderscoreWithoutReverse.each do |camel, underscore|
+      assert_equal(underscore, ActiveSupport::Inflector.underscore(ActiveSupport::SafeBuffer.new(camel)))
+    end
+  end
+
   def test_camelize_with_module
     CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
       assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
