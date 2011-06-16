@@ -78,10 +78,6 @@ module Rails
       require environment if environment
     end
 
-    def eager_load! #:nodoc:
-      railties.all(&:eager_load!)
-      super
-    end
 
     def reload_routes!
       routes_reloader.reload!
@@ -100,22 +96,18 @@ module Rails
 
     def load_tasks(app=self)
       initialize_tasks
-      railties.all { |r| r.load_tasks(app) }
       super
       self
     end
 
     def load_generators(app=self)
       initialize_generators
-      railties.all { |r| r.load_generators(app) }
-
       super
       self
     end
 
     def load_console(app=self)
       initialize_console
-      railties.all { |r| r.load_console(app) }
       super
       self
     end
