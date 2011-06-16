@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'active_support/core_ext/string/inflections'
+require 'yaml'
 
 class SafeBufferTest < ActiveSupport::TestCase
   def setup
@@ -39,15 +41,46 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal ActiveSupport::SafeBuffer, new_buffer.class
   end
 
+  test "Should work with underscore" do
+    str = "MyTest".html_safe.underscore
+    assert_equal "my_test", str
+  end
+
   test "Should not return safe buffer from gsub" do
     altered_buffer = @buffer.gsub('', 'asdf')
     assert_equal 'asdf', altered_buffer
     assert !altered_buffer.html_safe?
   end
 
-  test "Should not allow gsub! on safe buffers" do
-    assert_raise TypeError do
-      @buffer.gsub!('', 'asdf')
+  test "Should not return safe buffer from gsub!" do
+    @buffer.gsub!('', 'asdf')
+    assert_equal 'asdf', @buffer
+    assert !@buffer.html_safe?
+  end
+
+  test "Should escape dirty buffers on add" do
+    dirty = @buffer
+    clean = "hello".html_safe
+    @buffer.gsub!('', '<>')
+    assert_equal "hello&lt;&gt;", clean + @buffer
+  end
+
+  test "Should concat as a normal string when dirty" do
+    dirty = @buffer
+    clean = "hello".html_safe
+    @buffer.gsub!('', '<>')
+    assert_equal "<>hello", @buffer + clean
+  end
+
+  test "Should preserve dirty? status on copy" do
+    @buffer.gsub!('', '<>')
+    assert !@buffer.dup.html_safe?
+  end
+
+  test "Should raise an error when safe_concat is called on dirty buffers" do
+    @buffer.gsub!('', '<>')
+    assert_raise ActiveSupport::SafeBuffer::SafeConcatError do
+      @buffer.safe_concat "BUSTED"
     end
   end
 end
