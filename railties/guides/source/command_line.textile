@@ -292,7 +292,7 @@ You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
 h4. +rails plugin+
 
-The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility.
+The +rails plugin+ command simplifies plugin management. Plugins can be installed by name or their repository urls. You need to have git installed if you want to install a plugin from a git repo. The same holds for Subversion too.
 
 <shell>
 $ rails plugin install https://github.com/technoweenie/acts_as_paranoid.git
