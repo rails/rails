@@ -6,7 +6,7 @@ module ActiveSupport
   module Memoizable
     def self.extended(base)
       ActiveSupport::Deprecation.warn "ActiveSupport::Memoizable is deprecated and will be removed in future releases," \
-        "simply use Ruby instead.", caller
+        "simply use Ruby memoization pattern instead.", caller
       super
     end
 
