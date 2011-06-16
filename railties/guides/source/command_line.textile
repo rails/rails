@@ -527,7 +527,7 @@ NOTE. The only catch with using the SCM options is that you have to make your ap
 
 h4(#different-servers). +server+ with Different Backends
 
-Many people have created a large number different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
+Many people have created a large number of different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
 
 NOTE: For more details on the Rack integration, see "Rails on Rack":rails_on_rack.html.
 
