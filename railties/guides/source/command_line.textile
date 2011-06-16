@@ -83,7 +83,7 @@ $ rails server -e production -p 4000
 
 h4. +rails generate+
 
-The +rails generate+ command uses templates to create a whole lot of things. You can always find out what's available by running +rails generate+ by itself. Let's do that:
+The +rails generate+ command uses templates to create a whole lot of things. Running +rails generate+ by itself gives a list of available generators:
 
 <shell>
 $ rails generate
@@ -103,7 +103,7 @@ Rails:
 
 NOTE: You can install more generators through generator gems, portions of plugins you'll undoubtedly install, and you can even create your own!
 
-Using generators will save you a large amount of time by writing *boilerplate code*, code that is necessary for the app to work, but not necessary for you to spend time writing. That's what we have computers for.
+Using generators will save you a large amount of time by writing *boilerplate code*, code that is necessary for the app to work.
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
@@ -152,7 +152,8 @@ $ rails generate controller Greetings hello
      create      test/unit/helpers/greetings_helper_test.rb
      invoke  assets
      create    app/assets/javascripts/greetings.js
-     create    app/assets/stylesheets/greetings.css
+     invoke    css
+     create      app/assets/stylesheets/greetings.css
 
 </shell>
 
@@ -188,7 +189,7 @@ The URL will be "http://localhost:3000/greetings/hello":http://localhost:3000/gr
 
 INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the *index* action of that controller.
 
-Rails comes with a generator for data models too:
+Rails comes with a generator for data models too.
 
 <shell>
 $ rails generate model
