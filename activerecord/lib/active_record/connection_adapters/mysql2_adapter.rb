@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-gem 'mysql2', '~> 0.3.4'
+gem 'mysql2', '~> 0.3.5'
 require 'mysql2'
 
 module ActiveRecord
