@@ -219,9 +219,9 @@ module ActionView
       #   <% end %>
       #
       # If you have an object that needs to be represented as a different
-      # parameter, like a Client that acts as a Person:
+      # parameter, like a Person that acts as a Client:
       #
-      #   <%= form_for(@post, :as => :client) do |f| %>
+      #   <%= form_for(@person, :as => :client) do |f| %>
       #     ...
       #   <% end %>
       #
