@@ -97,4 +97,11 @@ class SafeBufferTest < ActiveSupport::TestCase
     @buffer.gsub!('', '<>')
     assert !@buffer.dup.html_safe?
   end
+
+  test "Should raise an error when safe_concat is called on dirty buffers" do
+    @buffer.gsub!('', '<>')
+    assert_raise ActiveSupport::SafeBuffer::SafeConcatError do
+      @buffer.safe_concat "BUSTED"
+    end
+  end
 end
