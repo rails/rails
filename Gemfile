@@ -1,4 +1,4 @@
-source 'http://rubygems.org'
+source "http://rubygems.org"
 
 gemspec
 
@@ -35,19 +35,20 @@ end
 
 platforms :mri_19 do
   # TODO: Remove the conditional when ruby-debug19 supports Ruby >= 1.9.3
-  gem "ruby-debug19", :require => 'ruby-debug' if RUBY_VERSION < "1.9.3"
+  gem "ruby-debug19", :require => "ruby-debug" if RUBY_VERSION < "1.9.3"
 end
 
 platforms :ruby do
   if ENV["RB_FSEVENT"]
-    gem 'rb-fsevent'
+    gem "rb-fsevent"
   end
-  gem 'json'
-  gem 'yajl-ruby'
+  gem "json"
+  gem "yajl-ruby"
   gem "nokogiri", ">= 1.4.4"
 
   group :test do
-    gem 'ruby-prof'
+    gem "ruby-prof" if RUBY_VERSION < "1.9.3"
+
   end
   # AR
   gem "sqlite3", "~> 1.3.3"
@@ -55,7 +56,7 @@ platforms :ruby do
   group :db do
     gem "pg", ">= 0.11.0"
     gem "mysql", ">= 2.8.1"
-    gem "mysql2", ">= 0.3.4"
+    gem "mysql2", ">= 0.3.5"
   end
 end
 
@@ -78,10 +79,10 @@ end
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
   platforms :ruby do
-    gem 'ruby-oci8', ">= 2.0.4"
+    gem "ruby-oci8", ">= 2.0.4"
   end
   if ENV['ORACLE_ENHANCED_PATH']
-    gem 'activerecord-oracle_enhanced-adapter', :path => ENV['ORACLE_ENHANCED_PATH']
+    gem "activerecord-oracle_enhanced-adapter", :path => ENV['ORACLE_ENHANCED_PATH']
   else
     gem "activerecord-oracle_enhanced-adapter", :git => "git://github.com/rsim/oracle-enhanced.git"
   end
