@@ -111,7 +111,6 @@ class SchemaTest < ActiveRecord::TestCase
     end
   end
 
-
   def test_proper_encoding_of_table_name
     assert_equal '"table_name"', @connection.quote_table_name('table_name')
     assert_equal '"table.name"', @connection.quote_table_name('"table.name"')
