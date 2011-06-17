@@ -7,7 +7,7 @@ module Rails
       attr_accessor :name, :type
 
       def initialize(name, type)
-        raise Thor::Error, "Missing type for attribute '#{name}'.\nExample: '#{name}:string' where string is the type." if type.blank?
+        type = :string if type.blank?
         @name, @type = name, type.to_sym
       end
 
