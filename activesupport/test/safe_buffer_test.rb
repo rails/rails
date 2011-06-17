@@ -104,4 +104,8 @@ class SafeBufferTest < ActiveSupport::TestCase
       @buffer.safe_concat "BUSTED"
     end
   end
+  
+  test "should not fail if the returned object is not a string" do
+    assert_kind_of Enumerator, @buffer.gsub(/.*/)
+  end
 end

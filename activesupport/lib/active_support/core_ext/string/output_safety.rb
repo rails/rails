@@ -137,8 +137,8 @@ module ActiveSupport #:nodoc:
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       class_eval <<-EOT, __FILE__, __LINE__
-        def #{unsafe_method}(*args)
-          super.to_str
+        def #{unsafe_method}(*args, &block)
+          to_str.#{unsafe_method}(*args, &block)
         end
 
         def #{unsafe_method}!(*args)
