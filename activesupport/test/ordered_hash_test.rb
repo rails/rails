@@ -147,6 +147,32 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal @ordered_hash.keys, merged.keys
   end
 
+  def test_merge_with_block
+    hash = ActiveSupport::OrderedHash.new
+    hash[:a] = 0
+    hash[:b] = 0
+    merged = hash.merge(:b => 2, :c => 7) do |key, old_value, new_value|
+      new_value + 1
+    end
+
+    assert_equal 0, merged[:a]
+    assert_equal 3, merged[:b]
+    assert_equal 7, merged[:c]
+  end
+
+  def test_merge_bang_with_block
+    hash = ActiveSupport::OrderedHash.new
+    hash[:a] = 0
+    hash[:b] = 0
+    hash.merge!(:a => 1, :c => 7) do |key, old_value, new_value|
+      new_value + 3
+    end
+
+    assert_equal 4, hash[:a]
+    assert_equal 0, hash[:b]
+    assert_equal 7, hash[:c]
+  end
+
   def test_shift
     pair = @ordered_hash.shift
     assert_equal [@keys.first, @values.first], pair
