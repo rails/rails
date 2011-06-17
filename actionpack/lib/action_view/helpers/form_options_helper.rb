@@ -574,43 +574,26 @@ module ActionView
       include FormOptionsHelper
 
       def to_select_tag(choices, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
-        selected_value = options.has_key?(:selected) ? options[:selected] : value
-        disabled_value = options.has_key?(:disabled) ? options[:disabled] : nil
-        select_content_tag(add_options(options_for_select(choices, :selected => selected_value, :disabled => disabled_value), options, selected_value), html_options)
+        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
+        select_content_tag(options_for_select(choices, :selected => selected_value, :disabled => options[:disabled]), options, html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
-        disabled_value = options.has_key?(:disabled) ? options[:disabled] : nil
-        selected_value = options.has_key?(:selected) ? options[:selected] : value
+        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
         select_content_tag(
-          add_options(options_from_collection_for_select(collection, value_method, text_method, :selected => selected_value, :disabled => disabled_value), options, value), html_options
+          options_from_collection_for_select(collection, value_method, text_method, :selected => selected_value, :disabled => options[:disabled]), options, html_options
         )
       end
 
       def to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
         select_content_tag(
-          add_options(option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, value), options, value), html_options
+          option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, value(object)), options, html_options
         )
       end
 
       def to_time_zone_select_tag(priority_zones, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
         select_content_tag(
-          add_options(
-            time_zone_options_for_select(value || options[:default], priority_zones, options[:model] || ActiveSupport::TimeZone),
-            options, value
-          ), html_options
+            time_zone_options_for_select(value(object) || options[:default], priority_zones, options[:model] || ActiveSupport::TimeZone), options, html_options
         )
       end
 
@@ -626,8 +609,10 @@ module ActionView
           option_tags.html_safe
         end
 
-        def select_content_tag(content, html_options)
-          select = content_tag("select", content, html_options)
+        def select_content_tag(option_tags, options, html_options)
+          html_options = html_options.stringify_keys
+          add_default_name_and_id(html_options)
+          select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
           if html_options["multiple"]
             tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select 
           else
