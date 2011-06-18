@@ -16,7 +16,8 @@ module ActionView
         end
 
         def asset_tag(source, options)
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_asset(source, :request)) }.merge(options), false, false)
+          # We force the :request protocol here to avoid a double-download bug in IE7 and IE8
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_asset(source, true, :request)) }.merge(options), false, false)
         end
 
         def custom_dir

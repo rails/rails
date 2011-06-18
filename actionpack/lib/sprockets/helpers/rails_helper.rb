@@ -65,9 +65,9 @@ module Sprockets
         end.join("\n").html_safe
       end
 
-      def asset_path(source, default_ext = nil, body = false, protocol = :relative)
+      def asset_path(source, default_ext = nil, body = false, protocol = nil)
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', default_ext, protocol)
+        path = asset_paths.compute_public_path(source, 'assets', default_ext, true, protocol)
         body ? "#{path}?body=1" : path
       end
 
@@ -78,7 +78,7 @@ module Sprockets
       end
 
       class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
-        def compute_public_path(source, dir, ext=nil, include_host=true, protocol = :relative)
+        def compute_public_path(source, dir, ext=nil, include_host=true, protocol = nil)
           super(source, 'assets', ext, include_host, protocol)
         end
 
