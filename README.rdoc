@@ -1,7 +1,6 @@
 == Welcome to Rails
 
 Rails is a web-application framework that includes everything needed to create
-
 database-backed web applications according to the {Model-View-Controller (MVC)}[http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller] pattern.
 
 Understanding the MVC pattern is key to understanding Rails.  MVC divides your application
@@ -21,14 +20,16 @@ can also be ordinary Ruby classes, or Ruby classes that implement a set of inter
 provided by the ActiveModel module. You can read more about Active Record in its
 {README}[link:files/activerecord/README_rdoc.html].
 
-The controller and view are handled by the Action Pack, which handles both
-layers by its two parts: Action View and Action Controller. These two layers
-are bundled in a single package due to their heavy interdependence. This is
-unlike the relationship between the Active Record and Action Pack that is much
-more separate. Each of these packages can be used independently outside of
-Rails. You can read more about Action Pack in its
-{README}[link:files/actionpack/README_rdoc.html].
+The Controller layer is responsible for handling incoming HTTP requests and providing a 
+suitable response.  Usually this means returning HTML, but Rails controllers can also 
+generate XML, JSON, PDFs, mobile-specific views, and more. Controllers manipulate models 
+and render view templates in order to generate the appropriate HTTP response.
 
+In Rails, the Controller and View layers are handled together by Action Pack.
+These two layers are bundled in a single package due to their heavy interdependence. 
+This is unlike the relationship between the Active Record and Action Pack which are
+independent. Each of these packages can be used independently outside of Rails. You 
+can read more about Action Pack in its {README}[link:files/actionpack/README_rdoc.html].
 
 == Getting Started
 
@@ -64,7 +65,7 @@ Rails. You can read more about Action Pack in its
 == Contributing
 
 We encourage you to contribute to Ruby on Rails! Please check out the {Contributing to Rails
-guide}[http://edgeguides.rubyonrails.org/contributing_to_rails.html] for guidelines about how
+guide}[http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how
 to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
 == License
