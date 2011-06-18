@@ -6,7 +6,7 @@ By referring to this guide you will be able to:
 * Understand what the asset pipeline is and what it does
 * Properly organize your application assets
 * Understand the benefits of the asset pipeline
-* Adding a preprocessor to the pipeline
+* Adding a pre-processor to the pipeline
 * Package assets with a gem
 
 endprologue.
