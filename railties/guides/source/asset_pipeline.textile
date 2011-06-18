@@ -72,9 +72,9 @@ Sprockets allows some assets to be manifest files. These manifest files require 
 For example, in the default Rails application there's a +app/assets/javascripts/application.js+ file which contains the following lines:
 
 <plain>
-  //= require jquery
-  //= require jquery_ujs
-  //= require_tree .
+//= require jquery
+//= require jquery_ujs
+//= require_tree .
 </plain>
 
 In JS files, directives begin with +//=+. In this case, the file is using the +require+ directive twice and the +require_tree+ directive once. The +require+ directive tells Sprockets that we would like to require a file called +jquery.js+ that is available somewhere in the search path for Sprockets. By default, this is located inside the +vendor/assets/javascripts+ directory contained within the +jquery_rails+ gem. An identical event takes place for the +jquery_ujs+ require specified here also.
@@ -84,10 +84,10 @@ The +require_tree .+ directive tells Sprockets to include _all_ JavaScript files
 There's also a default +app/assets/stylesheets/application.css+ file which contains these lines:
 
 <plain>
-  /* ...
-  *= require_self
-  *= require_tree .
-  */
+/* ...
+*= require_self
+*= require_tree .
+*/
 </plain>
 
 The directives that work in the JavaScript files will also work in stylesheets, obviously requiring stylesheets rather than JavaScript files. The +require_tree+ directive here works the same way as the JavaScript one, requiring all stylesheets from the current directory.
