@@ -177,14 +177,14 @@ In any case, Rails will create a folder in your working directory called <tt>blo
 |Gemfile|This file allows you to specify what gem dependencies are needed for your Rails application.|
 |README|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
 |Rakefile|This file contains batch jobs that can be run from the terminal.|
-|app/|Contains the controllers, models, and views for your application. You'll focus on this folder for the remainder of this guide.|
+|app/|Contains the controllers, models, views and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |config/|Configure your application's runtime rules, routes, database, and more.|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Shows your current database schema, as well as the database migrations. You'll learn about migrations shortly.|
 |doc/|In-depth documentation for your application.|
 |lib/|Extended modules for your application (not covered in this guide).|
 |log/|Application log files.|
-|public/|The only folder seen to the world as-is. This is where your images, JavaScript files, stylesheets (CSS), and other static files go.|
+|public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
@@ -244,7 +244,7 @@ If your development computer's MySQL installation includes a root user with an e
 
 h5. Configuring a PostgreSQL Database
 
-Finally if you choose to use PostgreSQL, your +config/database.yml+ will be customized to use PostgreSQL databases:
+If you choose to use PostgreSQL, your +config/database.yml+ will be customized to use PostgreSQL databases:
 
 <yaml>
 development:
@@ -255,6 +255,41 @@ development:
   username: blog
   password:
 </yaml>
+
+h5. Configuring an SQLite3 Database for JRuby Platform
+
+If you choose to use SQLite3 and using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
+
+<yaml>
+development:
+  adapter: jdbcsqlite3
+  database: db/development.sqlite3
+</yaml>
+
+h5. Configuring a MySQL Database for JRuby Platform
+
+If you choose to use MySQL and using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
+
+<yaml>
+development:
+  adapter: jdbcmysql
+  database: blog_development
+  username: root
+  password:
+</yaml>
+
+h5. Configuring a PostgreSQL Database for JRuby Platform
+
+Finally if you choose to use PostgreSQL and using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
+
+<yaml>
+development:
+  adapter: jdbcpostgresql
+  encoding: unicode
+  database: blog_development
+  username: blog
+  password:
+<yaml>
 
 Change the username and password in the +development+ section as appropriate.
 
@@ -290,7 +325,7 @@ This will fire up an instance of the WEBrick web server by default (Rails can al
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's running. In development mode, Rails does not generally require you to stop the server; changes you make in files will be automatically picked up by the server.
 
-The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your Application's environment.
+The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your application's environment.
 
 h4. Say "Hello", Rails
 
@@ -364,11 +399,11 @@ The scaffold generator will build 15 files in your application, along with some 
 |app/views/posts/new.html.erb                 |A view to create a new post|
 |app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
 |app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
+|app/assets/stylesheets/scaffold.css.scss     |Cascading style sheet to make the scaffolded views look better|
 |test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
 |config/routes.rb                             |Edited to include routing information for posts|
-|app/assets/stylesheets/scaffold.css.scss     |Cascading style sheet to make the scaffolded views look better|
 
 h4. Running a Migration
 

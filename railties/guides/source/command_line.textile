@@ -51,15 +51,13 @@ $ rails new commandsapp
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
 
-INFO: This output will seem very familiar when we get to the +generate+ command. Creepy foreshadowing!
-
 h4. +rails server+
 
-The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to view your work through a web browser.
+The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to access your application through a web browser.
 
-INFO: WEBrick isn't your only option for serving Rails. We'll get to that in a later section.
+INFO: WEBrick isn't your only option for serving Rails. We'll get to that "later":#different-servers.
 
-Without any prodding of any kind, +rails server+ will run our new shiny Rails app:
+With no further work, +rails server+ will run our new shiny Rails app:
 
 <shell>
 $ cd commandsapp
@@ -77,13 +75,19 @@ With just three commands we whipped up a Rails server listening on port 3000. Go
 
 You can also use the alias "s" to start the server: <tt>rails s</tt>.
 
+The server can be run on a different port using the +-p+ option. The default development environment can be changed using +-e+.
+
+<shell>
+$ rails server -e production -p 4000
+</shell>
+
 h4. +rails generate+
 
-The +rails generate+ command uses templates to create a whole lot of things. You can always find out what's available by running +rails generate+ by itself. Let's do that:
+The +rails generate+ command uses templates to create a whole lot of things. Running +rails generate+ by itself gives a list of available generators:
 
 <shell>
 $ rails generate
-Usage: rails generate generator [args] [options]
+Usage: rails generate GENERATOR [args] [options]
 
 ...
 ...
@@ -99,7 +103,7 @@ Rails:
 
 NOTE: You can install more generators through generator gems, portions of plugins you'll undoubtedly install, and you can even create your own!
 
-Using generators will save you a large amount of time by writing *boilerplate code*, code that is necessary for the app to work, but not necessary for you to spend time writing. That's what we have computers for.
+Using generators will save you a large amount of time by writing *boilerplate code*, code that is necessary for the app to work.
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
@@ -148,7 +152,8 @@ $ rails generate controller Greetings hello
      create      test/unit/helpers/greetings_helper_test.rb
      invoke  assets
      create    app/assets/javascripts/greetings.js
-     create    app/assets/stylesheets/greetings.css
+     invoke    css
+     create      app/assets/stylesheets/greetings.css
 
 </shell>
 
@@ -171,7 +176,7 @@ Then the view, to display our message (in +app/views/greetings/hello.html.erb+):
 <p><%= @message %></p>
 </html>
 
-Deal. Go check it out in your browser. Fire up your server using +rails server+.
+Fire up your server using +rails server+.
 
 <shell>
 $ rails server
@@ -184,7 +189,7 @@ The URL will be "http://localhost:3000/greetings/hello":http://localhost:3000/gr
 
 INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the *index* action of that controller.
 
-Rails comes with a generator for data models too:
+Rails comes with a generator for data models too.
 
 <shell>
 $ rails generate model
@@ -288,11 +293,7 @@ You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
 h4. +rails plugin+
 
-The +rails plugin+ command simplifies plugin management; think a miniature version of the Gem utility. Let's walk through installing a plugin. You can call the sub-command +discover+, which sifts through repositories looking for plugins, or call +source+ to add a specific repository of plugins, or you can specify the plugin location directly.
-
-Let's say you're creating a website for a client who wants a small accounting system. Every event having to do with money must be logged, and must never be deleted. Wouldn't it be great if we could override the behavior of a model to never actually take its record out of the database, but instead, just set a field?
-
-There is such a thing! The plugin we're installing is called +acts_as_paranoid+, and it lets models implement a +deleted_at+ column that gets set when you call destroy. Later, when calling find, the plugin will tack on a database check to filter out "deleted" things.
+The +rails plugin+ command simplifies plugin management. Plugins can be installed by name or their repository URLs. You need to have Git installed if you want to install a plugin from a Git repo. The same holds for Subversion too.
 
 <shell>
 $ rails plugin install https://github.com/technoweenie/acts_as_paranoid.git
@@ -308,6 +309,12 @@ h4. +rails runner+
 
 <shell>
 $ rails runner "Model.long_running_method"
+</shell>
+
+You can specify the environment in which the +runner+ command should operate using the +-e+ switch.
+
+<shell>
+$ rails runner -e staging "Model.long_running_method"
 </shell>
 
 h4. +rails destroy+
@@ -388,13 +395,56 @@ h4. +db+
 
 The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
 
+More information about migrations can be found in the "Migrations":migrations.html guide.
+
 h4. +doc+
 
-If you want to strip out or rebuild any of the Rails documentation (including this guide!), the +doc:+ namespace has the tools. Stripping documentation is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
+The +doc:+ namespace has the tools to generate documentation for your app, API documentation, guides. Documentation can also be stripped which is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
+
+* +rake doc:app+ generates documentation for your application in +doc/app+.
+* +rake doc:guides+ generates Rails guides in +doc/guides+.
+* +rake doc:rails+ generates API documentation for Rails in +doc/api+.
+* +rake doc:plugins+ generates API documentation for all the plugins installed in the application in +doc/plugins+.
+* +rake doc:clobber_plugins+ removes the generated documentation for all plugins.
 
 h4. +notes+
 
-These tasks will search through your code for commented lines beginning with "FIXME", "OPTIMIZE", "TODO", or any custom annotation (like XXX) and show you them.
++rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is only done in files with extension +.builder+, +.rb+, +.rxml+, +.rhtml+ and +.erb+ for both default and custom annotations.
+
+<shell>
+$ rake notes
+(in /home/foobar/commandsapp)
+app/controllers/admin/users_controller.rb:
+  * [ 20] [TODO] any other way to do this?
+  * [132] [FIXME] high priority for next deploy
+
+app/model/school.rb:
+  * [ 13] [OPTIMIZE] refactor this code to make it faster
+  * [ 17] [FIXME]
+</shell>
+
+If you are looking for a specific annotation, say FIXME, you can use +rake notes:fixme+. Note that you have to lower case the annotation's name.
+
+<shell>
+$ rake notes:fixme
+(in /home/foobar/commandsapp)
+app/controllers/admin/users_controller.rb:
+  * [132] high priority for next deploy
+
+app/model/school.rb:
+  * [ 17]
+</shell>
+
+You can also use custom annotations in your code and list them using +rake notes:custom+ by specifying the annotation using an environment variable +ANNOTATION+.
+
+<shell>
+$ rake notes:custom ANNOTATION=BUG
+(in /home/foobar/commandsapp)
+app/model/post.rb:
+  * [ 23] Have to fix this one before pushing!
+</shell>
+
+NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
 
 h4. +routes+
 
@@ -478,11 +528,13 @@ development:
 ...
 </shell>
 
-It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails new+ command to generate the basis of your app.
+It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database.
 
-h4. +server+ with Different Backends
+NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails new+ command to generate the basis of your app.
 
-Many people have created a large number different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
+h4(#different-servers). +server+ with Different Backends
+
+Many people have created a large number of different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
 
 NOTE: For more details on the Rack integration, see "Rails on Rack":rails_on_rack.html.
 
