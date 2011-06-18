@@ -39,7 +39,7 @@ Any subdirectory that exists within these three locations will be added to the s
 
 h4. External Assets
 
-Assets can also come from external sources such as engines. A good example of this is the +jquery_rails+ gem which comes with Rails 3.1 as standard. This gem contains an engine class which inherits from +Rails::Engine+. By doing this, Rails is informed that the directory for this gem may contain assets and the +app/assets+, +lib/assets+ and +vendor/assets+ directories of this engine are added to the search path of Sprockets.
+Assets can also come from external sources such as engines. A good example of this is the +jquery-rails+ gem which comes with Rails 3.1 as standard. This gem contains an engine class which inherits from +Rails::Engine+. By doing this, Rails is informed that the directory for this gem may contain assets and the +app/assets+, +lib/assets+ and +vendor/assets+ directories of this engine are added to the search path of Sprockets.
 
 h4. Serving Assets
 
