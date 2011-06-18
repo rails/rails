@@ -13,7 +13,9 @@ endprologue.
 
 h3. What Is The Asset Pipeline?
 
-With Rails 3.1 comes a new feature known as the asset pipeline. The asset pipeline provides features that have usually been implemented by external gems, such as "Jammit":http://documentcloud.github.com/jammit and "Sprockets.":http://getsprockets.org  These gems are popular for being able to serve concatenated or compressed versions of the assets of an application, such as Cascade Style Sheets (CSS) or JavaScript (JS) files so that the number of requests made to the server are reduced, making the page load faster. Rails 3.1 includes the Sprockets gem.
+With Rails 3.1 comes a new feature known as the asset pipeline. The asset pipeline provides features that have usually been implemented by external Ruby libraries, such as Jammit and Sprockets. These libraries would serve concatenated or compressed versions of the assets of an application, such as stylesheets or javascript files so that the number of requests made to the server are lessened, making the page load faster. Rails 3.1 includes the +sprockets-rails+ gem, which depends on the +sprockets+ gem, by default.
+
+By having this now as a core feature of Rails, all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets.
 
 h3. How to Use the Asset Pipeline
 
