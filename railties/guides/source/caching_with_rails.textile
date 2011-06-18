@@ -382,6 +382,7 @@ class ProductsController < ApplicationController
     # anything. The default render checks for this using the parameters
     # used in the previous call to stale? and will automatically send a
     # :not_modified. So that's it, you're done.
+  end
 end
 </ruby>
 

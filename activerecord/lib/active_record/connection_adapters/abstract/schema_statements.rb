@@ -346,11 +346,11 @@ module ActiveRecord
 
       # Remove the given index from the table.
       #
-      # Remove the suppliers_name_index in the suppliers table.
-      #   remove_index :suppliers, :name
-      # Remove the index named accounts_branch_id_index in the accounts table.
+      # Remove the index_accounts_on_column in the accounts table.
+      #   remove_index :accounts, :column
+      # Remove the index named index_accounts_on_branch_id in the accounts table.
       #   remove_index :accounts, :column => :branch_id
-      # Remove the index named accounts_branch_id_party_id_index in the accounts table.
+      # Remove the index named index_accounts_on_branch_id_and_party_id in the accounts table.
       #   remove_index :accounts, :column => [:branch_id, :party_id]
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party

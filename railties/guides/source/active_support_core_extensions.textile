@@ -1036,18 +1036,24 @@ module ActionView
 end
 </ruby>
 
-we can access +field_error_proc+ in views. The generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+we can access +field_error_proc+ in views.
+
+The generation of the reader instance method can be prevented by setting +:instance_reader+ to +false+ and the generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+. Generation of both methods can be prevented by setting +:instance_accessor+ to +false+. In all cases, the value must be exactly +false+ and not any false value.
 
 <ruby>
-module ActiveRecord
-  class Base
-    # No pluralize_table_names= instance writer is generated.
-    cattr_accessor :pluralize_table_names, :instance_writer => false
+module A
+  class B
+    # No first_name instance reader is generated.
+    cattr_accessor :first_name, :instance_reader => false
+    # No last_name= instance writer is generated.
+    cattr_accessor :last_name, :instance_writer => false
+    # No surname instance reader or surname= writer is generated.
+    cattr_accessor :surname, :instance_accessor => false
   end
 end
 </ruby>
 
-A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
+A model may find it useful to set +:instance_accessor+ to +false+ as a way to prevent mass-assignment from setting the attribute.
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
@@ -2300,7 +2306,7 @@ NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
 
 h5. +in_groups(number, fill_with = nil)+
 
-The method +in_groups+ splits an array into a certain number of groups. The method returns and array with the groups:
+The method +in_groups+ splits an array into a certain number of groups. The method returns an array with the groups:
 
 <ruby>
 %w(1 2 3 4 5 6 7).in_groups(3)
@@ -2732,7 +2738,7 @@ Active Support extends the method +Range#step+ so that it can be invoked without
 (1..10).step(2) # => [1, 3, 5, 7, 9]
 </ruby>
 
-As the example shows, in that case the method returns and array with the corresponding elements.
+As the example shows, in that case the method returns an array with the corresponding elements.
 
 NOTE: Defined in +active_support/core_ext/range/blockless_step.rb+.
 
@@ -3333,6 +3339,32 @@ h5. +Time.current+
 Active Support defines +Time.current+ to be today in the current time zone. That's like +Time.now+, except that it honors the user time zone, if defined. It also defines +Time.yesterday+ and +Time.tomorrow+, and the instance predicates +past?+, +today?+, and +future?+, all of them relative to +Time.current+.
 
 When making Time comparisons using methods which honor the user time zone, make sure to use +Time.current+ and not +Time.now+. There are cases where the user time zone might be in the future compared to the system time zone, which +Time.today+ uses by default. This means +Time.now+ may equal +Time.yesterday+.
+
+h5. +all_day+, +all_week+, +all_month+, +all_quarter+ and +all_year+
+
+The method +all_day+ returns a range representing the whole day of the current time.
+
+<ruby>
+now = Time.current
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now.all_day
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
+</ruby>
+
+Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the purpose of generating time ranges.
+
+<ruby>
+now = Time.current
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now.all_week
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+now.all_month
+# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
+now.all_quarter
+# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
+now.all_year
+# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
+</ruby>
 
 h4. Time Constructors
 
