@@ -49,7 +49,7 @@ To serve assets, we can use the same tags that we are generally familiar with:
   <%= image_tag "rails.png" %>
 </erb>
 
-Providing that assets are enabled within our application (+Rails.application.config.assets.enabled+ is set to +true+), this file will be served by Sprockets unless a file at +public/images/rails.png+ exists, in which case that file will be served. If there is no file at +public/images+, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
+Providing that assets are enabled within our application (+Rails.application.config.assets.enabled+ is set to +true+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served. If there is no file at +public/assets+, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
 
 To include a JavaScript file we can still use the familiar +javascript_include_tag+.
 
