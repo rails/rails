@@ -3,6 +3,8 @@ module ActionDispatch
     class IpSpoofAttackError < StandardError ; end
 
     class RemoteIpGetter
+      VALID_IP = /(^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$)/
+      
       def initialize(env, check_ip_spoofing, trusted_proxies)
         @env = env
         @check_ip_spoofing = check_ip_spoofing
@@ -12,7 +14,7 @@ module ActionDispatch
       def remote_addrs
         @remote_addrs ||= begin
           list = @env['REMOTE_ADDR'] ? @env['REMOTE_ADDR'].split(/[,\s]+/) : []
-          list.reject { |addr| addr =~ @trusted_proxies }
+          list.reject { |addr| addr =~ @trusted_proxies || addr !~ VALID_IP }
         end
       end
 
@@ -31,7 +33,7 @@ module ActionDispatch
           return client_ip
         end
 
-        return forwarded_ips.reject { |ip| ip =~ @trusted_proxies }.last || @env["REMOTE_ADDR"]
+        return forwarded_ips.reject { |ip| ip =~ @trusted_proxies || ip !~ VALID_IP }.last || @env["REMOTE_ADDR"]
       end
     end
 
