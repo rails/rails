@@ -39,7 +39,7 @@ Any subdirectory that exists within these three locations will be added to the s
 
 h4. External Assets
 
-Assets can also come from external sources such as engines. A good example of this is the +jquery_rails+ gem which comes with Rails 3.1 as standard. This gem contains an engine class which inherits from +Rails::Engine+. By doing this, Rails is informed that the directory for this gem may contain assets and the +app/assets+, +lib/assets+ and +vendor/assets+ directories of this engine are added to the search path of Sprockets.
+Assets can also come from external sources such as engines. A good example of this is the +jquery-rails+ gem which comes with Rails 3.1 as standard. This gem contains an engine class which inherits from +Rails::Engine+. By doing this, Rails is informed that the directory for this gem may contain assets and the +app/assets+, +lib/assets+ and +vendor/assets+ directories of this engine are added to the search path of Sprockets.
 
 h4. Serving Assets
 
@@ -77,7 +77,7 @@ For example, in the default Rails application there's a +app/assets/javascripts/
 //= require_tree .
 </plain>
 
-In JS files, directives begin with +//=+. In this case, the file is using the +require+ directive twice and the +require_tree+ directive once. The +require+ directive tells Sprockets that we would like to require a file called +jquery.js+ that is available somewhere in the search path for Sprockets. By default, this is located inside the +vendor/assets/javascripts+ directory contained within the +jquery_rails+ gem. An identical event takes place for the +jquery_ujs+ require specified here also.
+In JS files, directives begin with +//=+. In this case, the file is using the +require+ directive twice and the +require_tree+ directive once. The +require+ directive tells Sprockets that we would like to require a file called +jquery.js+ that is available somewhere in the search path for Sprockets. By default, this is located inside the +vendor/assets/javascripts+ directory contained within the +jquery-rails+ gem. An identical event takes place for the +jquery_ujs+ require specified here also.
 
 The +require_tree .+ directive tells Sprockets to include _all_ JavaScript files in this directory into the output. A path relative to the file can be specified if only certain files are required to be loaded.
 
