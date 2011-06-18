@@ -3,7 +3,7 @@ h2. A Guide to The Rails Command Line
 Rails comes with every command line tool you'll need to
 
 * Create a Rails application
-* Generate models, controllers, database migrations and unit tests
+* Generate models, controllers, database migrations, and unit tests
 * Start a development server
 * Experiment with objects through an interactive shell
 * Profile and benchmark your new creation
@@ -293,7 +293,7 @@ You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
 h4. +rails plugin+
 
-The +rails plugin+ command simplifies plugin management. Plugins can be installed by name or their repository urls. You need to have git installed if you want to install a plugin from a git repo. The same holds for Subversion too.
+The +rails plugin+ command simplifies plugin management. Plugins can be installed by name or their repository URLs. You need to have Git installed if you want to install a plugin from a Git repo. The same holds for Subversion too.
 
 <shell>
 $ rails plugin install https://github.com/technoweenie/acts_as_paranoid.git
