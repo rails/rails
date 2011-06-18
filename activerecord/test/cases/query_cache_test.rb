@@ -203,3 +203,14 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     end
   end
 end
+
+class QueryCacheBodyProxyTest < ActiveRecord::TestCase
+
+  test "is polite to it's body and responds to it" do
+    body = Class.new(String) { def to_path; "/path"; end }.new
+    proxy = ActiveRecord::QueryCache::BodyProxy.new(nil, body)
+    assert proxy.respond_to?(:to_path)
+    assert_equal proxy.to_path, "/path"
+  end
+
+end
