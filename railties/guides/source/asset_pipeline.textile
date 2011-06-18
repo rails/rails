@@ -98,7 +98,7 @@ h4. Preprocessing
 
 Based on the extensions of the assets, Sprockets will do preprocessing on the files. With the default gemset that comes with Rails, when a controller or a scaffold is generated, a CoffeeScript file and a SCSS file will be generated in place of a regular JavaScript and CSS file. The example used before was a controller called "projects", which generated an +app/assets/javascripts/projects.js.coffee+ and a +app/assets/stylesheets/projects.css.scss+ file.
 
-When these files are requested, they will be processed by the processors provided by the +coffee-script+ and +sass-rails+ gems and then sent back to the browser as JavaScript and SCSS respectively.
+When these files are requested, they will be processed by the processors provided by the +coffee-script+ and +sass-rails+ gems and then sent back to the browser as JavaScript and CSS respectively.
 
 In addition to this single layer of pre-processing, we can also put on additional extensions to the end of the file in order for them to be processed using other languages first. For example, we could call our stylesheet +app/assets/stylesheets/projects.css.scss.erb+ it would first be processed as ERB, then SCSS and finally served as CSS. We could also do this with our JavaScript file, calling it +app/assets/javascripts/projects.js.coffee.erb+.
 
