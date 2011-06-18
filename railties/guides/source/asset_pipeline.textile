@@ -49,21 +49,9 @@ To serve assets, we can use the same tags that we are generally familiar with:
   <%= image_tag "rails.png" %>
 </erb>
 
-Providing that assets are enabled within our application (+Rails.application.config.assets.enabled+ is set to +true+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served. If there is no file at +public/assets+, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
+Providing that assets are enabled within our application (+config.assets.enabled+ in your environment is set to +true+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served. Otherwise, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
 
-To include a JavaScript file we can still use the familiar +javascript_include_tag+.
-
-<erb>
-  <%= javascript_include_tag "application" %>
-</erb>
-
-Similarly, to include a CSS file we can also still use +stylesheet_link_tag+.
-
-<erb>
-  <%= stylesheet_link_tag "application" %>
-</erb>
-
-These files could just be straight JavaScript or CSS files, or they could be _manifest files_.
+Sprockets does not add any new methods to require your assets, we still use the familiar +javascript_include_tag+ and +stylesheet_link_tag+. You can use it to include from the normal public directory or the assets directory.
 
 h4. Manifest Files and Directives
 
@@ -77,9 +65,9 @@ For example, in the default Rails application there's a +app/assets/javascripts/
 //= require_tree .
 </plain>
 
-In JS files, directives begin with +//=+. In this case, the file is using the +require+ directive twice and the +require_tree+ directive once. The +require+ directive tells Sprockets that we would like to require a file called +jquery.js+ that is available somewhere in the search path for Sprockets. By default, this is located inside the +vendor/assets/javascripts+ directory contained within the +jquery-rails+ gem. An identical event takes place for the +jquery_ujs+ require specified here also.
+In JavaScript files, directives begin with +//=+. In this case, the following file is using the +require+ directive and the +require_tree+ directive. The +require+ directive tells Sprockets that we would like to require a file called +jquery.js+ that is available somewhere in the search path for Sprockets. By default, this is located inside the +vendor/assets/javascripts+ directory contained within the +jquery-rails+ gem. An identical event takes place for the +jquery_ujs+ require specified here also.
 
-The +require_tree .+ directive tells Sprockets to include _all_ JavaScript files in this directory into the output. A path relative to the file can be specified if only certain files are required to be loaded.
+The +require_tree .+ directive tells Sprockets to include _all_ JavaScript files in this directory into the output. Only a path relative to the file can be specified.
 
 There's also a default +app/assets/stylesheets/application.css+ file which contains these lines:
 
@@ -107,3 +95,7 @@ Keep in mind that the order of these pre-processors is important. For example, i
 h4. Compressing Assets
 
 WIP: Compressed Assets in Rails are served ... how? 
+
+h4. Adding Assets to Your Gems
+
+h4. Making Your Library or Gem a Pre-Processors
