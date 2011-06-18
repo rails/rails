@@ -116,7 +116,22 @@ WARNING: Threadsafe operation is incompatible with the normal workings of develo
 
 * +config.whiny_nils+ enables or disables warnings when a certain set of methods are invoked on +nil+ and it does not respond to them. Defaults to true in development and test environments.
 
+h4. Configuring Assets
+
+Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
+
+* +config.assets.css_compressor+ defines the CSS compressor to use. Only supported value at the moment is +:yui+, which uses the +yui-compressor+ gem.
+
 * +config.assets.enabled+ a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in +config/application.rb+.
+
+* +config.assets.js_compressor+ defines the JavaScript compressor to use. Possible values are +:closure+, +:uglifier+ and +:yui+ which require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems respectively.
+
+* +config.assets.paths+ contains the paths which are used to look for assets. Appending paths to this configuration option will cause those paths to be used in the search for assets.
+
+* +config.assets.precompile+ allows you to specify additional assets (other than +application.css+ and +application.js+) which are to be precompiled when +rake assets:precompile+ is run.
+
+* +config.assets.prefix+ defines the prefix where assets are served from. Defaults to +/assets+.
+
 
 h4. Configuring Generators
 
