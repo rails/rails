@@ -10,6 +10,12 @@ module Sprockets
         @asset_paths ||= begin
           config     = self.config if respond_to?(:config)
           controller = self.controller if respond_to?(:controller)
+          config ||= Rails.application.config
+          if config.action_controller.present?
+            config.action_controller.default_asset_host_protocol ||= :relative
+          else
+            config.default_asset_host_protocol ||= :relative
+          end
           RailsHelper::AssetPaths.new(config, controller)
         end
       end
@@ -109,7 +115,7 @@ module Sprockets
 
         # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available
         def performing_caching?
-          @config ? @config.perform_caching : Rails.application.config.action_controller.perform_caching
+          config.action_controller.present? ? config.action_controller.perform_caching : config.perform_caching
         end
       end
     end

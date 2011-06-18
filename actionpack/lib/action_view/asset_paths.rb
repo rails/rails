@@ -107,20 +107,17 @@ module ActionView
     end
 
     def relative_url_root
-      if controller.respond_to?(:config) && controller.config
-        controller.config.relative_url_root
-      elsif config.respond_to?(:action_controller) && config.action_controller
-        config.action_controller.relative_url_root
-      elsif Rails.respond_to?(:application) && Rails.application.config
-        Rails.application.config.action_controller.relative_url_root
-      end
+      config = controller.config if controller.respond_to?(:config)
+      config ||= config.action_controller if config.action_controller.present?
+      config ||= config
+      config.relative_url_root
     end
 
     def asset_host_config
-      if config.respond_to?(:asset_host)
+      if config.action_controller.present?
+        config.action_controller.asset_host
+      else
         config.asset_host
-      elsif Rails.respond_to?(:application)
-        Rails.application.config.action_controller.asset_host
       end
     end
 
