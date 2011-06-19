@@ -426,6 +426,14 @@ module ActiveRecord
           @testing = testing
         end
 
+        def method_missing(method_sym, *arguments, &block)
+          @body.send(method_sym, *arguments, &block)
+        end
+
+        def respond_to?(method_sym, include_private = false)
+          super || @body.respond_to?(method_sym)
+        end
+
         def each(&block)
           body.each(&block)
         end
