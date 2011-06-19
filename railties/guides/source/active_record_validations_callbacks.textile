@@ -182,7 +182,7 @@ It can receive an +:accept+ option, which determines the value that will be cons
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :terms_of_service, :acceptance => true, :accept => 'yes'
+  validates :terms_of_service, :acceptance => { :accept => 'yes' }
 end
 </ruby>
 
@@ -338,7 +338,7 @@ WARNING. Note that the regular expression above allows a trailing newline charac
 <ruby>
 class Player < ActiveRecord::Base
   validates :points, :numericality => true
-  validates :games_played, :numericality => true, :only_integer => true
+  validates :games_played, :numericality => { :only_integer => true }
 end
 </ruby>
 
@@ -393,8 +393,8 @@ There is a +:scope+ option that you can use to specify other attributes that are
 
 <ruby>
 class Holiday < ActiveRecord::Base
-  validates :name, :uniqueness => true, :scope => :year,
-    :message => "should happen once per year"
+  validates :name, :uniqueness => { :scope => :year,
+    :message => "should happen once per year" }
 end
 </ruby>
 
@@ -402,7 +402,7 @@ There is also a +:case_sensitive+ option that you can use to define whether the 
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :uniqueness => true, :case_sensitive => false
+  validates :name, :uniqueness => { :case_sensitive => false }
 end
 </ruby>
 

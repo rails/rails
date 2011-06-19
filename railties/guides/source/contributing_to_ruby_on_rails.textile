@@ -350,7 +350,7 @@ Navigate to the Rails "GitHub repository":https://github.com/rails/rails and pre
 Add the new remote to your local repository on your local machine:
 
 <shell>
-$ git remote add mine https://<your user name>@github.com/<your user name>/rails.git
+$ git remote add mine git@github.com:<your user name>/rails.git
 </shell>
 
 Push to your remote:
@@ -361,7 +361,7 @@ $ git push mine my_new_branch
 
 h4. Issue a Pull Request
 
-Navigate to the Rails repository you just pushed to (e.g. https://github.com/<your user name>/rails) and press "Pull Request" in the upper right hand corner.
+Navigate to the Rails repository you just pushed to (e.g. https://github.com/your-user-name/rails) and press "Pull Request" in the upper right hand corner.
 
 Write your branch name in branch field (is filled with master by default) and press "Update Commit Range"
 

@@ -621,7 +621,6 @@ module ActionView
     end
 
     class DateTimeSelector #:nodoc:
-      extend ActiveSupport::Memoizable
       include ActionView::Helpers::TagHelper
 
       DEFAULT_PREFIX = 'date'.freeze
@@ -786,11 +785,12 @@ module ActionView
         # Returns translated month names, but also ensures that a custom month
         # name array has a leading nil element.
         def month_names
-          month_names = @options[:use_month_names] || translated_month_names
-          month_names.unshift(nil) if month_names.size < 13
-          month_names
+          @month_names ||= begin
+            month_names = @options[:use_month_names] || translated_month_names
+            month_names.unshift(nil) if month_names.size < 13
+            month_names
+          end
         end
-        memoize :month_names
 
         # Returns translated month names.
         #  => [nil, "January", "February", "March",
@@ -825,9 +825,8 @@ module ActionView
         end
 
         def date_order
-          @options[:order] || translated_date_order
+          @date_order ||= @options[:order] || translated_date_order
         end
-        memoize :date_order
 
         def translated_date_order
           I18n.translate(:'date.order', :locale => @options[:locale]) || []

@@ -1,6 +1,12 @@
 *Rails 3.2.0 (unreleased)*
 
-* Removed ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
+* Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim] 
+
+* Added Time#all_day/week/quarter/year as a way of generating ranges (example: Event.where(created_at: Time.now.all_week)) [DHH]
+
+* Added instance_accessor: false as an option to Class#cattr_accessor and friends [DHH]
+
+* Removed ActiveSupport::SecureRandom in favor of SecureRandom from the standard library [Jon Leighton]
 
 * ActiveSupport::OrderedHash now has different behavior for #each and
 #each_pair when given a block accepting its parameters with a splat. [Andrew Radev]

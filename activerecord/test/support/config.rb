@@ -1,6 +1,7 @@
 require 'yaml'
 require 'erubis'
 require 'fileutils'
+require 'pathname'
 
 module ARTest
   class << self
@@ -10,13 +11,16 @@ module ARTest
 
     private
 
+    def config_file
+      Pathname.new(ENV['ARCONFIG'] || TEST_ROOT + '/config.yml')
+    end
+
     def read_config
-      unless File.exist?(TEST_ROOT + '/config.yml')
-        FileUtils.cp TEST_ROOT + '/config.example.yml', TEST_ROOT + '/config.yml'
+      unless config_file.exist?
+        FileUtils.cp TEST_ROOT + '/config.example.yml', config_file
       end
 
-      raw = File.read(TEST_ROOT + '/config.yml')
-      erb = Erubis::Eruby.new(raw)
+      erb = Erubis::Eruby.new(config_file.read)
       expand_config(YAML.parse(erb.result(binding)).transform)
     end
 

@@ -4,6 +4,7 @@ begin
 rescue LoadError
 end
 
+require 'active_support/core_ext/string/inflections'
 require 'yaml'
 
 class SafeBufferTest < ActiveSupport::TestCase
@@ -45,7 +46,7 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal ActiveSupport::SafeBuffer, new_buffer.class
   end
 
-  def test_to_yaml
+  test "Should be converted to_yaml" do
     str  = 'hello!'
     buf  = ActiveSupport::SafeBuffer.new str
     yaml = buf.to_yaml
@@ -54,11 +55,16 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal 'hello!', YAML.load(yaml)
   end
 
-  def test_nested
+  test "Should work in nested to_yaml conversion" do
     str  = 'hello!'
     data = { 'str' => ActiveSupport::SafeBuffer.new(str) }
     yaml = YAML.dump data
     assert_equal({'str' => str}, YAML.load(yaml))
+  end
+
+  test "Should work with underscore" do
+    str = "MyTest".html_safe.underscore
+    assert_equal "my_test", str
   end
 
   test "Should not return safe buffer from gsub" do
@@ -67,9 +73,35 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert !altered_buffer.html_safe?
   end
 
-  test "Should not allow gsub! on safe buffers" do
-    assert_raise TypeError do
-      @buffer.gsub!('', 'asdf')
+  test "Should not return safe buffer from gsub!" do
+    @buffer.gsub!('', 'asdf')
+    assert_equal 'asdf', @buffer
+    assert !@buffer.html_safe?
+  end
+
+  test "Should escape dirty buffers on add" do
+    dirty = @buffer
+    clean = "hello".html_safe
+    @buffer.gsub!('', '<>')
+    assert_equal "hello&lt;&gt;", clean + @buffer
+  end
+
+  test "Should concat as a normal string when dirty" do
+    dirty = @buffer
+    clean = "hello".html_safe
+    @buffer.gsub!('', '<>')
+    assert_equal "<>hello", @buffer + clean
+  end
+
+  test "Should preserve dirty? status on copy" do
+    @buffer.gsub!('', '<>')
+    assert !@buffer.dup.html_safe?
+  end
+
+  test "Should raise an error when safe_concat is called on dirty buffers" do
+    @buffer.gsub!('', '<>')
+    assert_raise ActiveSupport::SafeBuffer::SafeConcatError do
+      @buffer.safe_concat "BUSTED"
     end
   end
 end

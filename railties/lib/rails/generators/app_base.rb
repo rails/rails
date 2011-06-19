@@ -188,13 +188,19 @@ module Rails
       end
 
       def bundle_command(command)
-        require 'bundler'
-        require 'bundler/cli'
-
         say_status :run, "bundle #{command}"
-        Bundler::CLI.new.send(command)
-      rescue
-        say_status :failure, "bundler raised an exception, are you offline?", :red
+
+        # We are going to shell out rather than invoking Bundler::CLI.new(command)
+        # because `rails new` loads the Thor gem and on the other hand bundler uses
+        # its own vendored Thor, which could be a different version. Running both
+        # things in the same process is a recipe for a night with paracetamol.
+        #
+        # We use backticks and #print here instead of vanilla #system because it
+        # is easier to silence stdout in the existing test suite this way. The
+        # end-user gets the bundler commands called anyway, so no big deal.
+        #
+        # Thanks to James Tucker for the Gem tricks involved in this call.
+        print `"#{Gem.ruby}" -rubygems "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
       end
 
       def run_bundle

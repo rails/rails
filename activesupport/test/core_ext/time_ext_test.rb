@@ -767,6 +767,26 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal false, Time === DateTime.civil(2000)
   end
 
+  def test_all_day
+    assert_equal Time.local(2011,6,7,0,0,0)..Time.local(2011,6,7,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_day
+  end
+
+  def test_all_week
+    assert_equal Time.local(2011,6,6,0,0,0)..Time.local(2011,6,12,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_week
+  end
+
+  def test_all_month
+    assert_equal Time.local(2011,6,1,0,0,0)..Time.local(2011,6,30,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_month
+  end
+
+  def test_all_quarter
+    assert_equal Time.local(2011,4,1,0,0,0)..Time.local(2011,6,30,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_quarter
+  end
+
+  def test_all_year
+    assert_equal Time.local(2011,1,1,0,0,0)..Time.local(2011,12,31,23,59,59,999999.999), Time.local(2011,6,7,10,10,10).all_year
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

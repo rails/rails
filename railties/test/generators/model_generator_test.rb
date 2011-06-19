@@ -12,9 +12,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_model_with_missing_attribute_type
-    content = capture(:stderr) { run_generator ["post", "title:string", "body"] }
-    assert_match(/Missing type for attribute 'body'/, content)
-    assert_match(/Example: 'body:string' where string is the type/, content)
+    run_generator ["post", "title", "body:text", "author"]
+
+    assert_migration "db/migrate/create_posts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.string :title/, up)
+        assert_match(/t\.text :body/, up)
+        assert_match(/t\.string :author/, up)
+      end
+    end
   end
 
   def test_invokes_default_orm

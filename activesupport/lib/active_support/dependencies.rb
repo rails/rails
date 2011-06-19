@@ -628,17 +628,6 @@ module ActiveSupport #:nodoc:
       return []
     end
 
-    class LoadingModule #:nodoc:
-      # Old style environment.rb referenced this method directly. Please note, it doesn't
-      # actually *do* anything any more.
-      def self.root(*args)
-        if defined?(Rails) && Rails.logger
-          Rails.logger.warn "Your environment.rb uses the old syntax, it may not continue to work in future releases."
-          Rails.logger.warn "For upgrade instructions please see: http://manuals.rubyonrails.com/read/book/19"
-        end
-      end
-    end
-
     # Convert the provided const desc to a qualified constant name (as a string).
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:

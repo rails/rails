@@ -811,7 +811,7 @@ module ActiveRecord
 
         if pk && sequence
           quoted_sequence = quote_table_name(sequence)
-          
+
           select_value <<-end_sql, 'Reset sequence'
             SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
           end_sql
@@ -840,7 +840,7 @@ module ActiveRecord
         else
           sequence = result.second+'.'+result.last
         end
-        
+
         [result.first, sequence]
       rescue
         nil

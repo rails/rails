@@ -612,7 +612,6 @@ XML
           send(method, :test_remote_addr)
           assert false, "expected RuntimeError, got nothing"
         rescue RuntimeError => error
-          assert true
           assert_match(%r{@#{variable} is nil}, error.message)
         rescue => error
           assert false, "expected RuntimeError, got #{error.class}"

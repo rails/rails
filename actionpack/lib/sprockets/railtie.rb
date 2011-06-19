@@ -54,12 +54,21 @@ module Sprockets
         env = Sprockets::Environment.new(app.root.to_s)
 
         env.static_root = File.join(app.root.join("public"), assets.prefix)
-        env.paths.concat assets.paths
+
+        if env.respond_to?(:append_path)
+          assets.paths.each { |path| env.append_path(path) }
+        else
+          env.paths.concat assets.paths
+        end
 
         env.logger = Rails.logger
 
-        env.js_compressor  = expand_js_compressor(assets.js_compressor)
-        env.css_compressor = expand_css_compressor(assets.css_compressor)
+        if assets.compress
+          # temporarily hardcode default JS compressor to uglify. Soon, it will work
+          # the same as SCSS, where a default plugin sets the default.
+          env.js_compressor  = expand_js_compressor(assets.js_compressor || :uglifier)
+          env.css_compressor = expand_css_compressor(assets.css_compressor)
+        end
 
         env
       end

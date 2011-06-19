@@ -57,7 +57,7 @@ module ActionMailer #:nodoc:
   # will accept (any valid Email header including optional fields).
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
-  # the same name as the method, so the above action would send the +welcome.text.plain.erb+ view
+  # the same name as the method, so the above action would send the +welcome.text.erb+ view
   # file as well as the +welcome.text.html.erb+ view file in a +multipart/alternative+ email.
   #
   # If you want to explicitly render only certain templates, pass a block:
@@ -88,7 +88,7 @@ module ActionMailer #:nodoc:
   #
   # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same
   # name as the method in your mailer model. For example, in the mailer defined above, the template at
-  # <tt>app/views/notifier/signup_notification.text.plain.erb</tt> would be used to generate the email.
+  # <tt>app/views/notifier/welcome.text.erb</tt> would be used to generate the email.
   #
   # Variables defined in the model are accessible as instance variables in the view.
   #
@@ -153,7 +153,7 @@ module ActionMailer #:nodoc:
   # by the content type. Each such detected template will be added as separate part to the message.
   #
   # For example, if the following templates exist:
-  # * signup_notification.text.plain.erb
+  # * signup_notification.text.erb
   # * signup_notification.text.html.erb
   # * signup_notification.text.xml.builder
   # * signup_notification.text.yaml.erb
@@ -178,7 +178,7 @@ module ActionMailer #:nodoc:
   #     end
   #   end
   #
-  # Which will (if it had both a <tt>welcome.text.plain.erb</tt> and <tt>welcome.text.html.erb</tt>
+  # Which will (if it had both a <tt>welcome.text.erb</tt> and <tt>welcome.text.html.erb</tt>
   # template in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
   # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
@@ -365,7 +365,7 @@ module ActionMailer #:nodoc:
         Mail.register_observer(delivery_observer)
       end
 
-      # Register an Inteceptor which will be called before mail is sent.
+      # Register an Interceptor which will be called before mail is sent.
       # Either a class or a string can be passed in as the Interceptor. If a string is passed in
       # it will be <tt>constantize</tt>d.
       def register_interceptor(interceptor)

@@ -66,7 +66,7 @@ resources :posts
 # home_controller.rb
 class HomeController < ApplicationController
   def dashboard
-    @users = User.last_ten(:include => :avatars)
+    @users = User.last_ten.includes(:avatars)
     @posts = Post.all_today
   end
 end
@@ -481,7 +481,7 @@ h4. +profiler+
 Usage:
 
 <shell>
-Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
+Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
     -r, --runs N                     Number of runs.
                                      Default: 1
     -o, --output PATH                Directory to use when writing the results.
@@ -573,7 +573,7 @@ h3. Useful Links
 h4. Rails Plugins and Gems
 
 * "Rails Analyzer":http://rails-analyzer.rubyforge.org
-* "Palmist":http://www.flyingmachinestudios.com/projects/
+* "Palmist":http://www.flyingmachinestudios.com/programming/announcing-palmist
 * "Rails Footnotes":https://github.com/josevalim/rails-footnotes/tree/master
 * "Query Reviewer":https://github.com/dsboulder/query_reviewer/tree/master
 

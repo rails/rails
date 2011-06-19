@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Attributes on scaffold and model generators default to string. This allows the following: "rails g scaffold Post title body:text author" [José Valim]
+
 * Removed old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command. [Guillermo Iguaran]
 
 * Removed old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API. [Guillermo Iguaran]

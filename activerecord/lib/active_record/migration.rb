@@ -116,8 +116,10 @@ module ActiveRecord
   #   with the name of the column. Other options include
   #   <tt>:name</tt> and <tt>:unique</tt> (e.g.
   #   <tt>{ :name => "users_name_index", :unique => true }</tt>).
-  # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified
-  #   by +index_name+.
+  # * <tt>remove_index(table_name, :column => column_name)</tt>: Removes the index
+  #   specified by +column_name+.
+  # * <tt>remove_index(table_name, :name => index_name)</tt>: Removes the index
+  #   specified by +index_name+.
   #
   # == Irreversible transformations
   #

@@ -128,6 +128,28 @@ module ActionView
       # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>:selected => value</tt> to use a different selection
       # or <tt>:selected => nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
+      #
+      # ==== Gotcha
+      #
+      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected 
+      # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
+      # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
+      # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
+      # any mass-assignment idiom like
+      #
+      #   @user.update_attributes(params[:user])
+      #
+      # wouldn't update roles.
+      #
+      # To prevent this the helper generates an auxiliary hidden field before
+      # every multiple select. The hidden field has the same name as multiple select and blank value.
+      #
+      # This way, the client either sends only the hidden field (representing
+      # the deselected multiple select box), or both fields. Since the HTML specification
+      # says key/value pairs have to be sent in the same order they appear in the
+      # form, and parameters extraction gets the last occurrence of any repeated
+      # key in the query string, that works for ordinary forms.
+      #
       def select(object, method, choices, options = {}, html_options = {})
         InstanceTag.new(object, method, self, options.delete(:object)).to_select_tag(choices, options, html_options)
       end
@@ -552,43 +574,26 @@ module ActionView
       include FormOptionsHelper
 
       def to_select_tag(choices, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
-        selected_value = options.has_key?(:selected) ? options[:selected] : value
-        disabled_value = options.has_key?(:disabled) ? options[:disabled] : nil
-        content_tag("select", add_options(options_for_select(choices, :selected => selected_value, :disabled => disabled_value), options, selected_value), html_options)
+        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
+        select_content_tag(options_for_select(choices, :selected => selected_value, :disabled => options[:disabled]), options, html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
-        disabled_value = options.has_key?(:disabled) ? options[:disabled] : nil
-        selected_value = options.has_key?(:selected) ? options[:selected] : value
-        content_tag(
-          "select", add_options(options_from_collection_for_select(collection, value_method, text_method, :selected => selected_value, :disabled => disabled_value), options, value), html_options
+        selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
+        select_content_tag(
+          options_from_collection_for_select(collection, value_method, text_method, :selected => selected_value, :disabled => options[:disabled]), options, html_options
         )
       end
 
       def to_grouped_collection_select_tag(collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
-        content_tag(
-          "select", add_options(option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, value), options, value), html_options
+        select_content_tag(
+          option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, value(object)), options, html_options
         )
       end
 
       def to_time_zone_select_tag(priority_zones, options, html_options)
-        html_options = html_options.stringify_keys
-        add_default_name_and_id(html_options)
-        value = value(object)
-        content_tag("select",
-          add_options(
-            time_zone_options_for_select(value || options[:default], priority_zones, options[:model] || ActiveSupport::TimeZone),
-            options, value
-          ), html_options
+        select_content_tag(
+            time_zone_options_for_select(value(object) || options[:default], priority_zones, options[:model] || ActiveSupport::TimeZone), options, html_options
         )
       end
 
@@ -602,6 +607,17 @@ module ActionView
             option_tags = "<option value=\"\">#{ERB::Util.html_escape(prompt)}</option>\n" + option_tags
           end
           option_tags.html_safe
+        end
+
+        def select_content_tag(option_tags, options, html_options)
+          html_options = html_options.stringify_keys
+          add_default_name_and_id(html_options)
+          select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
+          if html_options["multiple"]
+            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select 
+          else
+            select
+          end
         end
     end
 

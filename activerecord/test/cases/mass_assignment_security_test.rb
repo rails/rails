@@ -384,81 +384,81 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
 
   # build
 
-  def test_has_one_build_with_attr_protected_attributes
+  def test_belongs_to_build_with_attr_protected_attributes
     best_friend = @person.build_best_friend_of(attributes_hash)
     assert_default_attributes(best_friend)
   end
 
-  def test_has_one_build_with_attr_accessible_attributes
+  def test_belongs_to_build_with_attr_accessible_attributes
     best_friend = @person.build_best_friend_of(attributes_hash)
     assert_default_attributes(best_friend)
   end
 
-  def test_has_one_build_with_admin_role_with_attr_protected_attributes
+  def test_belongs_to_build_with_admin_role_with_attr_protected_attributes
     best_friend = @person.build_best_friend_of(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend)
   end
 
-  def test_has_one_build_with_admin_role_with_attr_accessible_attributes
+  def test_belongs_to_build_with_admin_role_with_attr_accessible_attributes
     best_friend = @person.build_best_friend_of(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend)
   end
 
-  def test_has_one_build_without_protection
+  def test_belongs_to_build_without_protection
     best_friend = @person.build_best_friend_of(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
   end
 
   # create
 
-  def test_has_one_create_with_attr_protected_attributes
+  def test_belongs_to_create_with_attr_protected_attributes
     best_friend = @person.create_best_friend_of(attributes_hash)
     assert_default_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_attr_accessible_attributes
+  def test_belongs_to_create_with_attr_accessible_attributes
     best_friend = @person.create_best_friend_of(attributes_hash)
     assert_default_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_admin_role_with_attr_protected_attributes
+  def test_belongs_to_create_with_admin_role_with_attr_protected_attributes
     best_friend = @person.create_best_friend_of(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_admin_role_with_attr_accessible_attributes
+  def test_belongs_to_create_with_admin_role_with_attr_accessible_attributes
     best_friend = @person.create_best_friend_of(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend, true)
   end
 
-  def test_has_one_create_without_protection
+  def test_belongs_to_create_without_protection
     best_friend = @person.create_best_friend_of(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
   end
 
   # create!
 
-  def test_has_one_create_with_bang_with_attr_protected_attributes
+  def test_belongs_to_create_with_bang_with_attr_protected_attributes
     best_friend = @person.create_best_friend!(attributes_hash)
     assert_default_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_bang_with_attr_accessible_attributes
+  def test_belongs_to_create_with_bang_with_attr_accessible_attributes
     best_friend = @person.create_best_friend!(attributes_hash)
     assert_default_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_bang_with_admin_role_with_attr_protected_attributes
+  def test_belongs_to_create_with_bang_with_admin_role_with_attr_protected_attributes
     best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_bang_with_admin_role_with_attr_accessible_attributes
+  def test_belongs_to_create_with_bang_with_admin_role_with_attr_accessible_attributes
     best_friend = @person.create_best_friend!(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_bang_without_protection
+  def test_belongs_to_create_with_bang_without_protection
     best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
   end
@@ -472,83 +472,328 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
 
   # build
 
-  def test_has_one_build_with_attr_protected_attributes
+  def test_has_many_build_with_attr_protected_attributes
     best_friend = @person.best_friends.build(attributes_hash)
     assert_default_attributes(best_friend)
   end
 
-  def test_has_one_build_with_attr_accessible_attributes
+  def test_has_many_build_with_attr_accessible_attributes
     best_friend = @person.best_friends.build(attributes_hash)
     assert_default_attributes(best_friend)
   end
 
-  def test_has_one_build_with_admin_role_with_attr_protected_attributes
+  def test_has_many_build_with_admin_role_with_attr_protected_attributes
     best_friend = @person.best_friends.build(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend)
   end
 
-  def test_has_one_build_with_admin_role_with_attr_accessible_attributes
+  def test_has_many_build_with_admin_role_with_attr_accessible_attributes
     best_friend = @person.best_friends.build(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend)
   end
 
-  def test_has_one_build_without_protection
+  def test_has_many_build_without_protection
     best_friend = @person.best_friends.build(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
   end
 
   # create
 
-  def test_has_one_create_with_attr_protected_attributes
+  def test_has_many_create_with_attr_protected_attributes
     best_friend = @person.best_friends.create(attributes_hash)
     assert_default_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_attr_accessible_attributes
+  def test_has_many_create_with_attr_accessible_attributes
     best_friend = @person.best_friends.create(attributes_hash)
     assert_default_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_admin_role_with_attr_protected_attributes
+  def test_has_many_create_with_admin_role_with_attr_protected_attributes
     best_friend = @person.best_friends.create(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend, true)
   end
 
-  def test_has_one_create_with_admin_role_with_attr_accessible_attributes
+  def test_has_many_create_with_admin_role_with_attr_accessible_attributes
     best_friend = @person.best_friends.create(attributes_hash, :as => :admin)
     assert_admin_attributes(best_friend, true)
   end
 
-  def test_has_one_create_without_protection
+  def test_has_many_create_without_protection
     best_friend = @person.best_friends.create(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
   end
 
   # create!
 
-  def test_has_one_create_with_bang_with_attr_protected_attributes
+  def test_has_many_create_with_bang_with_attr_protected_attributes
     best_friend = @person.best_friends.create!(attributes_hash)
     assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_many_create_with_bang_with_attr_accessible_attributes
+    best_friend = @person.best_friends.create!(attributes_hash)
+    assert_default_attributes(best_friend, true)
+  end
+
+  def test_has_many_create_with_bang_with_admin_role_with_attr_protected_attributes
+    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_many_create_with_bang_with_admin_role_with_attr_accessible_attributes
+    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
+    assert_admin_attributes(best_friend, true)
+  end
+
+  def test_has_many_create_with_bang_without_protection
+    best_friend = @person.best_friends.create!(attributes_hash, :without_protection => true)
+    assert_all_attributes(best_friend)
+  end
+
+end
+
+
+class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
+  include MassAssignmentTestHelpers
+
+  def nested_attributes_hash(association, collection = false, except = [:id])
+    if collection
+      { :first_name => 'David' }.merge(:"#{association}_attributes" => [attributes_hash.except(*except)])
+    else
+      { :first_name => 'David' }.merge(:"#{association}_attributes" => attributes_hash.except(*except))
+    end
+  end
+
+  # build
+
+  def test_has_one_new_with_attr_protected_attributes
+    person = LoosePerson.new(nested_attributes_hash(:best_friend))
+    assert_default_attributes(person.best_friend)
+  end
+
+  def test_has_one_new_with_attr_accessible_attributes
+    person = TightPerson.new(nested_attributes_hash(:best_friend))
+    assert_default_attributes(person.best_friend)
+  end
+
+  def test_has_one_new_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.new(nested_attributes_hash(:best_friend), :as => :admin)
+    assert_admin_attributes(person.best_friend)
+  end
+
+  def test_has_one_new_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.new(nested_attributes_hash(:best_friend), :as => :admin)
+    assert_admin_attributes(person.best_friend)
+  end
+
+  def test_has_one_new_without_protection
+    person = LoosePerson.new(nested_attributes_hash(:best_friend, false, nil), :without_protection => true)
+    assert_all_attributes(person.best_friend)
+  end
+
+  def test_belongs_to_new_with_attr_protected_attributes
+    person = LoosePerson.new(nested_attributes_hash(:best_friend_of))
+    assert_default_attributes(person.best_friend_of)
+  end
+
+  def test_belongs_to_new_with_attr_accessible_attributes
+    person = TightPerson.new(nested_attributes_hash(:best_friend_of))
+    assert_default_attributes(person.best_friend_of)
+  end
+
+  def test_belongs_to_new_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.new(nested_attributes_hash(:best_friend_of), :as => :admin)
+    assert_admin_attributes(person.best_friend_of)
+  end
+
+  def test_belongs_to_new_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.new(nested_attributes_hash(:best_friend_of), :as => :admin)
+    assert_admin_attributes(person.best_friend_of)
+  end
+
+  def test_belongs_to_new_without_protection
+    person = LoosePerson.new(nested_attributes_hash(:best_friend_of, false, nil), :without_protection => true)
+    assert_all_attributes(person.best_friend_of)
+  end
+
+  def test_has_many_new_with_attr_protected_attributes
+    person = LoosePerson.new(nested_attributes_hash(:best_friends, true))
+    assert_default_attributes(person.best_friends.first)
+  end
+
+  def test_has_many_new_with_attr_accessible_attributes
+    person = TightPerson.new(nested_attributes_hash(:best_friends, true))
+    assert_default_attributes(person.best_friends.first)
+  end
+
+  def test_has_many_new_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.new(nested_attributes_hash(:best_friends, true), :as => :admin)
+    assert_admin_attributes(person.best_friends.first)
+  end
+
+  def test_has_many_new_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.new(nested_attributes_hash(:best_friends, true), :as => :admin)
+    assert_admin_attributes(person.best_friends.first)
+  end
+
+  def test_has_many_new_without_protection
+    person = LoosePerson.new(nested_attributes_hash(:best_friends, true, nil), :without_protection => true)
+    assert_all_attributes(person.best_friends.first)
+  end
+
+  # create
+
+  def test_has_one_create_with_attr_protected_attributes
+    person = LoosePerson.create(nested_attributes_hash(:best_friend))
+    assert_default_attributes(person.best_friend, true)
+  end
+
+  def test_has_one_create_with_attr_accessible_attributes
+    person = TightPerson.create(nested_attributes_hash(:best_friend))
+    assert_default_attributes(person.best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.create(nested_attributes_hash(:best_friend), :as => :admin)
+    assert_admin_attributes(person.best_friend, true)
+  end
+
+  def test_has_one_create_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.create(nested_attributes_hash(:best_friend), :as => :admin)
+    assert_admin_attributes(person.best_friend, true)
+  end
+
+  def test_has_one_create_without_protection
+    person = LoosePerson.create(nested_attributes_hash(:best_friend, false, nil), :without_protection => true)
+    assert_all_attributes(person.best_friend)
+  end
+
+  def test_belongs_to_create_with_attr_protected_attributes
+    person = LoosePerson.create(nested_attributes_hash(:best_friend_of))
+    assert_default_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_with_attr_accessible_attributes
+    person = TightPerson.create(nested_attributes_hash(:best_friend_of))
+    assert_default_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.create(nested_attributes_hash(:best_friend_of), :as => :admin)
+    assert_admin_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.create(nested_attributes_hash(:best_friend_of), :as => :admin)
+    assert_admin_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_without_protection
+    person = LoosePerson.create(nested_attributes_hash(:best_friend_of, false, nil), :without_protection => true)
+    assert_all_attributes(person.best_friend_of)
+  end
+
+  def test_has_many_create_with_attr_protected_attributes
+    person = LoosePerson.create(nested_attributes_hash(:best_friends, true))
+    assert_default_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_with_attr_accessible_attributes
+    person = TightPerson.create(nested_attributes_hash(:best_friends, true))
+    assert_default_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.create(nested_attributes_hash(:best_friends, true), :as => :admin)
+    assert_admin_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.create(nested_attributes_hash(:best_friends, true), :as => :admin)
+    assert_admin_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_without_protection
+    person = LoosePerson.create(nested_attributes_hash(:best_friends, true, nil), :without_protection => true)
+    assert_all_attributes(person.best_friends.first)
+  end
+
+  # create!
+
+  def test_has_one_create_with_bang_with_attr_protected_attributes
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend))
+    assert_default_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_with_bang_with_attr_accessible_attributes
-    best_friend = @person.best_friends.create!(attributes_hash)
-    assert_default_attributes(best_friend, true)
+    person = TightPerson.create!(nested_attributes_hash(:best_friend))
+    assert_default_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_with_bang_with_admin_role_with_attr_protected_attributes
-    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
-    assert_admin_attributes(best_friend, true)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend), :as => :admin)
+    assert_admin_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_with_bang_with_admin_role_with_attr_accessible_attributes
-    best_friend = @person.best_friends.create!(attributes_hash, :as => :admin)
-    assert_admin_attributes(best_friend, true)
+    person = TightPerson.create!(nested_attributes_hash(:best_friend), :as => :admin)
+    assert_admin_attributes(person.best_friend, true)
   end
 
   def test_has_one_create_with_bang_without_protection
-    best_friend = @person.best_friends.create!(attributes_hash, :without_protection => true)
-    assert_all_attributes(best_friend)
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend, false, nil), :without_protection => true)
+    assert_all_attributes(person.best_friend)
+  end
+
+  def test_belongs_to_create_with_bang_with_attr_protected_attributes
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend_of))
+    assert_default_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_with_bang_with_attr_accessible_attributes
+    person = TightPerson.create!(nested_attributes_hash(:best_friend_of))
+    assert_default_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_with_bang_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend_of), :as => :admin)
+    assert_admin_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_with_bang_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.create!(nested_attributes_hash(:best_friend_of), :as => :admin)
+    assert_admin_attributes(person.best_friend_of, true)
+  end
+
+  def test_belongs_to_create_with_bang_without_protection
+    person = LoosePerson.create!(nested_attributes_hash(:best_friend_of, false, nil), :without_protection => true)
+    assert_all_attributes(person.best_friend_of)
+  end
+
+  def test_has_many_create_with_bang_with_attr_protected_attributes
+    person = LoosePerson.create!(nested_attributes_hash(:best_friends, true))
+    assert_default_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_with_bang_with_attr_accessible_attributes
+    person = TightPerson.create!(nested_attributes_hash(:best_friends, true))
+    assert_default_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_with_bang_with_admin_role_with_attr_protected_attributes
+    person = LoosePerson.create!(nested_attributes_hash(:best_friends, true), :as => :admin)
+    assert_admin_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_with_bang_with_admin_role_with_attr_accessible_attributes
+    person = TightPerson.create!(nested_attributes_hash(:best_friends, true), :as => :admin)
+    assert_admin_attributes(person.best_friends.first, true)
+  end
+
+  def test_has_many_create_with_bang_without_protection
+    person = LoosePerson.create!(nested_attributes_hash(:best_friends, true, nil), :without_protection => true)
+    assert_all_attributes(person.best_friends.first)
   end
 
 end

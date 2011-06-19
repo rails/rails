@@ -19,7 +19,7 @@ module ActiveModel
         removed_keys = attributes.keys - sanitized_attributes.keys
         process_removed_attributes(removed_keys) if removed_keys.any?
       end
-      
+
       def process_removed_attributes(attrs)
         raise NotImplementedError, "#process_removed_attributes(attrs) suppose to be overwritten"
       end
