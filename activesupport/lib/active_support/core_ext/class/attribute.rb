@@ -1,5 +1,6 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/array/extract_options'
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -65,13 +66,9 @@ class Class
   #
   #   object.setting = false  # => NoMethodError
   def class_attribute(*attrs)
-    instance_reader = true
-    instance_writer = true
-    if attrs.last.is_a?(Hash)
-      instance_accessors = attrs.pop
-      instance_reader = instance_accessors[:instance_reader]
-      instance_writer = instance_accessors[:instance_writer]
-    end
+    options = attrs.extract_options!
+    instance_reader = options.fetch(:instance_reader, true)
+    instance_writer = options.fetch(:instance_writer, true)
 
     attrs.each do |name|
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
