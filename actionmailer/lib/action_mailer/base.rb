@@ -130,9 +130,9 @@ module ActionMailer #:nodoc:
   #
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
-  # If you do decide to set a default <tt>:host</tt> for your mailers you want to use the
+  # If you decide to set a default <tt>:host</tt> for your mailers, then you want to use the
   # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are
-  # generated because the <tt>url_for</tt> view helper will, by default, generate relative URLs when a
+  # generated because the <tt>url_for</tt> view helper  by default will generate relative URLs when a
   # <tt>:host</tt> option isn't explicitly provided.
   #
   # = Sending mail
@@ -732,3 +732,4 @@ module ActionMailer #:nodoc:
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end
+
