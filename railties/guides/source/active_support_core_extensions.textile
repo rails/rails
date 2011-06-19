@@ -947,7 +947,7 @@ h4. Class Attributes
 
 h5. +class_attribute+
 
-The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
+The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy.
 
 <ruby>
 class A
@@ -983,7 +983,7 @@ self.default_params = {
 }.freeze
 </ruby>
 
-They can be also accessed and overridden at the instance level:
+They can be also accessed and overridden at the instance level.
 
 <ruby>
 A.x = 1
@@ -996,7 +996,7 @@ a1.x # => 1, comes from A
 a2.x # => 2, overridden in a2
 </ruby>
 
-The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to false, as in
+The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to +false+.
 
 <ruby>
 module ActiveRecord
@@ -1009,7 +1009,19 @@ end
 
 A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
 
+The generation of the reader instance method can be prevented by setting the option +:instance_reader+ to +false+.
+
+<ruby>
+class A
+  class_attribute :x, :instance_reader => false
+end
+
+A.x = 1 # NoMethodError
+</ruby>
+
 For convenience +class_attribute+ also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
+
+When +:instance_reader+ is +false+, the instance predicate returns a +NoMethodError+ just like the reader method.
 
 NOTE: Defined in +active_support/core_ext/class/attribute.rb+
 
