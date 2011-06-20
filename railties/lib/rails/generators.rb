@@ -299,9 +299,6 @@ module Rails
               return
             rescue LoadError => e
               raise unless e.message =~ /#{Regexp.escape(path)}$/
-            rescue NameError => e
-              raise unless e.message =~ /Rails::Generator(\s|::|$)/
-              warn "[WARNING] Could not load generator #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
             rescue Exception => e
               warn "[WARNING] Could not load generator #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
             end
