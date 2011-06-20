@@ -88,12 +88,6 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert Rails::Generators.find_by_namespace(:model)
   end
 
-  def test_find_by_namespace_show_warning_if_generator_cant_be_loaded
-    output = capture(:stderr) { Rails::Generators.find_by_namespace(:wrong) }
-    assert_match(/\[WARNING\] Could not load generator/, output)
-    assert_match(/Rails 2\.x generator/, output)
-  end
-
   def test_invoke_with_nested_namespaces
     model_generator = mock('ModelGenerator') do
       expects(:start).with(["Account"], {})
