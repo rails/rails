@@ -10,7 +10,7 @@ module Rails
   module Generators
     class AppBase < Base
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql )
+      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
@@ -157,9 +157,10 @@ module Rails
         when "postgresql" then "pg"
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
-        when "jdbcmysql"  then "activerecord-jdbcmysql-adapter"
-        when "jdbcsqlite3"  then "activerecord-jdbcsqlite3-adapter"
-        when "jdbcpostgresql"  then "activerecord-jdbcpostgresql-adapter"
+        when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
+        when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
+        when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
+        when "jdbc"           then "activerecord-jdbc-adapter"
         else options[:database]
         end
       end
