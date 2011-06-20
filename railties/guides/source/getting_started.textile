@@ -289,7 +289,7 @@ development:
   database: blog_development
   username: blog
   password:
-<yaml>
+</yaml>
 
 Change the username and password in the +development+ section as appropriate.
 
