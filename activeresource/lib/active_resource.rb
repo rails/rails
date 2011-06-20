@@ -35,6 +35,7 @@ module ActiveResource
   extend ActiveSupport::Autoload
 
   autoload :Base
+  autoload :Callbacks
   autoload :Connection
   autoload :CustomMethods
   autoload :Formats
