@@ -19,7 +19,7 @@ namespace :assets do
     public_asset_path = Rails.public_path + assets.prefix
     file_list = FileList.new("#{public_asset_path}/**/*")
     file_list.each do |file|
-      rm file
+      rm file, :force => true
       rm "#{file}.gz", :force => true
     end
   end
