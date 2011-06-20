@@ -305,9 +305,18 @@ module ActiveRecord
     def reverse_sql_order(order_query)
       order_query = ["#{quoted_table_name}.#{quoted_primary_key} ASC"] if order_query.empty?
 
-      order_query.join(', ').split(',').collect do |s|
-        s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
-      end
+      order_query.map do |o|
+        case o
+        when Arel::Nodes::Ordering
+          o.reverse
+        when String, Symbol
+          o.to_s.split(',').collect do |s|
+            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+          end
+        else
+          o
+        end
+      end.flatten
     end
 
     def array_of_strings?(o)
