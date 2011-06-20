@@ -145,6 +145,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:first).title, topics.first.title
   end
 
+
+  def test_finding_with_arel_order
+    topics = Topic.order(Topic.arel_table[:id].asc)
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:first).title, topics.first.title
+  end
+
+  def test_finding_last_with_arel_order
+    topics = Topic.order(Topic.arel_table[:id].asc)
+    assert_equal topics(:fourth).title, topics.last.title
+  end
+
   def test_finding_with_order_concatenated
     topics = Topic.order('author_name').order('title')
     assert_equal 4, topics.to_a.size
