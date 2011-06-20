@@ -369,7 +369,7 @@ db_namespace = namespace :db do
         ENV['PGPASSWORD'] = abcs[Rails.env]['password'].to_s if abcs[Rails.env]['password']
         search_path = abcs[Rails.env]['schema_search_path']
         unless search_path.blank?
-          search_path = search_path.split(",").map{|search_path| "--schema=#{search_path.strip}" }.join(" ")
+          search_path = search_path.split(",").map{|search_path_part| "--schema=#{search_path_part.strip}" }.join(" ")
         end
         `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
