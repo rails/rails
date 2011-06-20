@@ -1689,6 +1689,24 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_hash_like_model
+    @author = Author.new
+    def @author.is_a?(klass); klass == Hash; end
+    def @author.extractable_options?; false; end
+
+    form_for(@post) do |f|
+      concat f.fields_for(:author, @author) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="new author" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_fields_for
     output_buffer = fields_for(:post, @post) do |f|
       concat f.text_field(:title)
