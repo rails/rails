@@ -377,8 +377,7 @@ db_namespace = namespace :db do
         dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
         `sqlite3 #{dbfile} .schema > db/#{Rails.env}_structure.sql`
       when 'sqlserver'
-        `scptxfr /s #{abcs[Rails.env]['host']} /d #{abcs[Rails.env]['database']} /I /f db\\#{Rails.env}_structure.sql /q /A /r`
-        `scptxfr /s #{abcs[Rails.env]['host']} /d #{abcs[Rails.env]['database']} /I /F db\ /q /A /r`
+        `smoscript -s #{abcs[Rails.env]['host']} -d #{abcs[Rails.env]['database']} -u #{abcs[Rails.env]['username']} -p #{abcs[Rails.env]['password']} -f db\\#{Rails.env}_structure.sql -A -U`
       when "firebird"
         set_firebird_env(abcs[Rails.env])
         db_string = firebird_db_string(abcs[Rails.env])
@@ -423,7 +422,7 @@ db_namespace = namespace :db do
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         `sqlite3 #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
       when 'sqlserver'
-        `osql -E -S #{abcs['test']['host']} -d #{abcs['test']['database']} -i db\\#{Rails.env}_structure.sql`
+        `sqlcmd -S #{abcs['test']['host']} -d #{abcs['test']['database']} -U #{abcs['test']['username']} -P #{abcs['test']['password']} -i db\\#{Rails.env}_structure.sql`
       when 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(:test)
         IO.readlines("#{Rails.root}/db/#{Rails.env}_structure.sql").join.split(";\n\n").each do |ddl|
@@ -453,9 +452,11 @@ db_namespace = namespace :db do
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         File.delete(dbfile) if File.exist?(dbfile)
       when 'sqlserver'
-        dropfkscript = "#{abcs['test']['host']}.#{abcs['test']['database']}.DP1".gsub(/\\/,'-')
-        `osql -E -S #{abcs['test']['host']} -d #{abcs['test']['database']} -i db\\#{dropfkscript}`
-        `osql -E -S #{abcs['test']['host']} -d #{abcs['test']['database']} -i db\\#{Rails.env}_structure.sql`
+        test = abcs.deep_dup['test']
+        test_database = test['database']
+        test['database'] = 'master'
+        ActiveRecord::Base.establish_connection(test)
+        ActiveRecord::Base.connection.recreate_database!(test_database)
       when "oci", "oracle"
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.structure_drop.split(";\n\n").each do |ddl|
