@@ -46,7 +46,7 @@ db_namespace = namespace :db do
 
   def create_database(config)
     begin
-      if config['adapter'] =~ /sqlite/
+      if config['adapter'] =~ /^(jdbc)?sqlite/
         if File.exist?(config['database'])
           $stderr.puts "#{config['database']} already exists"
         else
@@ -247,7 +247,7 @@ db_namespace = namespace :db do
     when /^(jdbc)?postgresql$/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
-    when /sqlite/
+    when /^(jdbc)?sqlite/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
     else
@@ -373,7 +373,7 @@ db_namespace = namespace :db do
         end
         `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
-      when /sqlite/
+      when /^(jdbc)?sqlite/
         dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
         `sqlite3 #{dbfile} .schema > db/#{Rails.env}_structure.sql`
       when 'sqlserver'
@@ -419,7 +419,7 @@ db_namespace = namespace :db do
         ENV['PGPORT']     = abcs['test']['port'].to_s if abcs['test']['port']
         ENV['PGPASSWORD'] = abcs['test']['password'].to_s if abcs['test']['password']
         `psql -U "#{abcs['test']['username']}" -f #{Rails.root}/db/#{Rails.env}_structure.sql #{abcs['test']['database']} #{abcs['test']['template']}`
-      when /sqlite/
+      when /^(jdbc)?sqlite/
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         `sqlite3 #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
       when 'sqlserver'
@@ -449,7 +449,7 @@ db_namespace = namespace :db do
         ActiveRecord::Base.clear_active_connections!
         drop_database(abcs['test'])
         create_database(abcs['test'])
-      when /sqlite/
+      when /^(jdbc)?sqlite/
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         File.delete(dbfile) if File.exist?(dbfile)
       when 'sqlserver'
@@ -528,7 +528,7 @@ def drop_database(config)
   when /mysql/
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
-  when /sqlite/
+  when /^(jdbc)?sqlite/
     require 'pathname'
     path = Pathname.new(config['database'])
     file = path.absolute? ? path.to_s : File.join(Rails.root, path)
