@@ -30,6 +30,7 @@ module ActionView
   extend ActiveSupport::Autoload
 
   eager_autoload do
+    autoload :AssetPaths
     autoload :Base
     autoload :Context
     autoload :Helpers
