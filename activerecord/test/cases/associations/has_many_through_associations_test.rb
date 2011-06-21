@@ -482,6 +482,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [posts(:eager_other)], posts
   end
 
+  def test_join_on_has_many_association_collection_with_conditions
+    posts(:welcome).tags.create!(:name => 'Misc')
+    invalid_posts = Post.joins(:misc_tags).where('posts.id' => posts(:welcome).id).where('taggings.tag_id != tags.id')
+    assert_equal [], invalid_posts
+
+    posts = Post.joins(:misc_tags).where('posts.id' => posts(:welcome).id)
+    assert_equal [posts(:welcome)], posts
+
+    invalid_posts = Post.all(:joins => :misc_tags, :conditions => ['posts.id =? and taggings.tag_id != tags.id', posts(:welcome).id])
+    assert_equal [], invalid_posts
+
+    posts = Post.all(:joins => :misc_tags, :conditions => {:posts => {:id => posts(:welcome).id}})
+    assert_equal [posts(:welcome)], posts
+  end
+
   def test_interpolated_conditions
     post = posts(:welcome)
     assert !post.tags.empty?

@@ -342,6 +342,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
   end
 
+  def test_polymorphic_join_with_conditions
+    assert_equal [], Author.joins(:posts => :invalid_taggings).all
+    assert_equal [], Post.joins(:invalid_taggings).all
+  end
+
   def test_has_many_polymorphic_with_source_type
     # added sort by ID as otherwise Oracle select sometimes returned rows in different order
     assert_equal posts(:welcome, :thinking).sort_by(&:id), tags(:general).tagged_posts.sort_by(&:id)
