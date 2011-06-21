@@ -7,9 +7,8 @@ source "http://rubygems.org"
 <% end -%>
 
 <% if mountable? -%>
-<%= gem_for_javascript -%>
+<%= javascript_gemfile_entry -%>
 <% end -%>
 
-if RUBY_VERSION < '1.9'
-  gem "ruby-debug", ">= 0.10.3"
-end
+# To use debugger
+# <%= ruby_debugger_gemfile_entry %>

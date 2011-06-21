@@ -164,7 +164,7 @@ module Rails
         end
       end
 
-      def gem_for_ruby_debugger
+      def ruby_debugger_gemfile_entry
         if RUBY_VERSION < "1.9"
           "gem 'ruby-debug'"
         else
@@ -172,7 +172,7 @@ module Rails
         end
       end
 
-      def gem_for_turn
+      def turn_gemfile_entry
         unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
           <<-GEMFILE.strip_heredoc
             group :test do
@@ -183,7 +183,7 @@ module Rails
         end
       end
 
-      def gem_for_javascript
+      def javascript_gemfile_entry
         "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
       end
 

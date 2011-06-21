@@ -11,9 +11,10 @@ require "active_resource/railtie"
 <%= comment_if :skip_test_unit %> require "rails/test_unit/railtie"
 <% end -%>
 
-# If you have a Gemfile, require the gems listed there, including any gems
-# you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env) if defined?(Bundler)
+# If you have a Gemfile, require the default gems, the ones in the
+# current environment and also include :assets gems if in development
+# or test environments.
+Bundler.require *Rails.groups(:assets => %w(development test)) if defined?(Bundler)
 
 module <%= app_const_base %>
   class Application < Rails::Application

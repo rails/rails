@@ -239,6 +239,10 @@ module TestHelpers
       end
     end
 
+    def remove_file(path)
+      FileUtils.rm_rf "#{app_path}/#{path}"
+    end
+
     def controller(name, contents)
       app_file("app/controllers/#{name}_controller.rb", contents)
     end

@@ -1,8 +1,9 @@
 require 'isolation/abstract_unit'
+require 'active_support/core_ext/kernel/reporting'
 require 'rack/test'
 
 module ApplicationTests
-  class RoutingTest < Test::Unit::TestCase
+  class AssetsTest < Test::Unit::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -32,6 +33,17 @@ module ApplicationTests
 
       get "/assets/demo.js"
       assert_match "alert()", last_response.body
+    end
+
+    test "assets are compiled properly" do
+      app_file "app/assets/javascripts/application.js", "alert();"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      file = Dir["#{app_path}/public/assets/application-*.js"][0]
+      assert_equal "alert();\n", File.read(file)
     end
 
     test "does not stream session cookies back" do
