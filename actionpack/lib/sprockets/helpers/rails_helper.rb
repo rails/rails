@@ -1,4 +1,4 @@
-require "action_view/helpers/asset_tag_helper"
+require "action_view/helpers"
 
 module Sprockets
   module Helpers
