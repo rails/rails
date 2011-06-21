@@ -92,8 +92,13 @@ Keep in mind that the order of these pre-processors is important. For example, i
 
 h4. Compressing Assets
 
-WIP: Compressed Assets in Rails are served ... how? 
+The default Gemfile also includes the "uglifier":https://github.com/lautis/uglifier gem. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your if and else statements to ternary operators when possible. 
 
 h4. Adding Assets to Your Gems
 
+To include your assets inside of a gem, simple package it in +lib/assets+ as you would in +app/assets+. You should append or prepend the name of your gem though, this should help avoid name conflicts with other gems or the user's application.
+
 h4. Making Your Library or Gem a Pre-Processor
+
+"You should be able to register [your gems] on Tilt and Sprockets will find them." - Josh 
+Tilt: https://github.com/rtomayko/tilt
