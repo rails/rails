@@ -238,7 +238,7 @@ namespace :db do
     when /^(jdbc)?postgresql$/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
-    when /sqlite3/
+    when /^(jdbc)?sqlite/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
     else
