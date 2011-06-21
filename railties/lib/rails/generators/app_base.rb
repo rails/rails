@@ -10,7 +10,7 @@ module Rails
   module Generators
     class AppBase < Base
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql )
+      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
@@ -64,8 +64,8 @@ module Rails
 
       def initialize(*args)
         @original_wd = Dir.pwd
-
         super
+        convert_database_option_for_jruby
       end
 
     protected
@@ -157,10 +157,22 @@ module Rails
         when "postgresql" then "pg"
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
-        when "jdbcmysql"  then "activerecord-jdbcmysql-adapter"
-        when "jdbcsqlite3"  then "activerecord-jdbcsqlite3-adapter"
-        when "jdbcpostgresql"  then "activerecord-jdbcpostgresql-adapter"
+        when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
+        when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
+        when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
+        when "jdbc"           then "activerecord-jdbc-adapter"
         else options[:database]
+        end
+      end
+
+      def convert_database_option_for_jruby
+        if defined?(JRUBY_VERSION)
+          case options[:database]
+          when "oracle"     then options[:database].replace "jdbc"
+          when "postgresql" then options[:database].replace "jdbcpostgresql"
+          when "mysql"      then options[:database].replace "jdbcmysql"
+          when "sqlite3"    then options[:database].replace "jdbcsqlite3"
+          end
         end
       end
 
