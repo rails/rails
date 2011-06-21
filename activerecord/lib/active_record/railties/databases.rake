@@ -84,20 +84,37 @@ db_namespace = namespace :db do
           ActiveRecord::Base.establish_connection(config)
         rescue error_class => sqlerr
           if sqlerr.errno == access_denied_error
-            print "#{sqlerr.error}. \nPlease provide the root password for your mysql installation\n>"
-            root_password = $stdin.gets.strip
+
             grant_statement = "GRANT ALL PRIVILEGES ON #{config['database']}.* " \
               "TO '#{config['username']}'@'localhost' " \
               "IDENTIFIED BY '#{config['password']}' WITH GRANT OPTION;"
-            ActiveRecord::Base.establish_connection(config.merge(
-                'database' => nil, 'username' => 'root', 'password' => root_password))
-            ActiveRecord::Base.connection.create_database(config['database'], creation_options)
-            ActiveRecord::Base.connection.execute grant_statement
-            ActiveRecord::Base.establish_connection(config)
-          else
-            $stderr.puts sqlerr.error
-            $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation}"
-            $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['charset']
+
+            begin 
+              # First attempt to use the specified creation user before
+              # defaulting to root via interactive.
+              #
+              schema_config = ActiveRecord::Base.configurations['schema']
+              ActiveRecord::Base.establish_connection(config.merge(
+                  'database' => nil, 'username' => schema_config['username'], 'password' => schema_config['password']))
+              ActiveRecord::Base.connection.create_database(config['database'], creation_options)
+              ActiveRecord::Base.connection.execute grant_statement
+              ActiveRecord::Base.establish_connection(config)
+            rescue error_class => sqlerr
+              if sqlerr.errno == access_denied_error
+
+                print "#{sqlerr.error}. \nPlease provide the root password for your mysql installation\n>"
+                root_password = $stdin.gets.strip
+                ActiveRecord::Base.establish_connection(config.merge(
+                    'database' => nil, 'username' => 'root', 'password' => root_password))
+                ActiveRecord::Base.connection.create_database(config['database'], creation_options)
+                ActiveRecord::Base.connection.execute grant_statement
+                ActiveRecord::Base.establish_connection(config)
+              else
+                $stderr.puts sqlerr.error
+                $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation}"
+                $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['charset']
+              end
+            end
           end
         end
       when /postgresql/
