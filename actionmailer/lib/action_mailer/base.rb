@@ -122,8 +122,9 @@ module ActionMailer #:nodoc:
   #
   #   <%= users_url(:host => "example.com") %>
   #
-  # You want to avoid using the <tt>name_of_route_path</tt> form of named routes because it doesn't
-  # make sense to generate relative URLs in email messages.
+  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the 
+  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will 
+  # have no concept of a current URL from which to determine a relative path.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
   # option as a configuration option in <tt>config/application.rb</tt>:
