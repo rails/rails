@@ -149,9 +149,9 @@ module ActionMailer #:nodoc:
   #
   # = Multipart Emails
   #
-  # Multipart messages can also be used implicitly because Action Mailer will automatically
-  # detect and use multipart templates, where each template is named after the name of the action, followed
-  # by the content type. Each such detected template will be added as separate part to the message.
+  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use 
+  # multipart templates, where each template is named after the name of the action, followed by the content 
+  # type. Each such detected template will be added as a separate part to the message.
   #
   # For example, if the following templates exist:
   # * signup_notification.text.erb
