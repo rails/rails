@@ -100,7 +100,7 @@ db_namespace = namespace :db do
             $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['charset']
           end
         end
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
@@ -244,7 +244,7 @@ db_namespace = namespace :db do
     when /mysql/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.charset
-    when /postgresql/
+    when /^(jdbc)?postgresql$/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
     when /sqlite/
@@ -363,7 +363,7 @@ db_namespace = namespace :db do
       when /mysql/, 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(abcs[Rails.env])
         File.open("#{Rails.root}/db/#{Rails.env}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         ENV['PGHOST']     = abcs[Rails.env]['host'] if abcs[Rails.env]['host']
         ENV['PGPORT']     = abcs[Rails.env]["port"].to_s if abcs[Rails.env]['port']
         ENV['PGPASSWORD'] = abcs[Rails.env]['password'].to_s if abcs[Rails.env]['password']
@@ -414,7 +414,7 @@ db_namespace = namespace :db do
         IO.readlines("#{Rails.root}/db/#{Rails.env}_structure.sql").join.split("\n\n").each do |table|
           ActiveRecord::Base.connection.execute(table)
         end
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         ENV['PGHOST']     = abcs['test']['host'] if abcs['test']['host']
         ENV['PGPORT']     = abcs['test']['port'].to_s if abcs['test']['port']
         ENV['PGPASSWORD'] = abcs['test']['password'].to_s if abcs['test']['password']
@@ -445,7 +445,7 @@ db_namespace = namespace :db do
       when /mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.recreate_database(abcs['test']['database'], abcs['test'])
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         ActiveRecord::Base.clear_active_connections!
         drop_database(abcs['test'])
         create_database(abcs['test'])
@@ -534,7 +534,7 @@ def drop_database(config)
     file = path.absolute? ? path.to_s : File.join(Rails.root, path)
 
     FileUtils.rm(file)
-  when /postgresql/
+  when /^(jdbc)?postgresql$/
     ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
     ActiveRecord::Base.connection.drop_database config['database']
   end
