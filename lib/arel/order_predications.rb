@@ -2,11 +2,11 @@ module Arel
   module OrderPredications
 
     def asc
-      Nodes::Ordering.new self, :asc
+      Nodes::Ascending.new self
     end
 
     def desc
-      Nodes::Ordering.new self, :desc
+      Nodes::Descending.new self
     end
 
   end

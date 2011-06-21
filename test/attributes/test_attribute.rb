@@ -619,9 +619,9 @@ module Arel
       end
 
       describe '#asc' do
-        it 'should create an Ordering node' do
+        it 'should create an Ascending node' do
           relation = Table.new(:users)
-          relation[:id].asc.must_be_kind_of Nodes::Ordering
+          relation[:id].asc.must_be_kind_of Nodes::Ascending
         end
 
         it 'should generate ASC in sql' do
@@ -635,9 +635,9 @@ module Arel
       end
 
       describe '#desc' do
-        it 'should create an Ordering node' do
+        it 'should create a Descending node' do
           relation = Table.new(:users)
-          relation[:id].desc.must_be_kind_of Nodes::Ordering
+          relation[:id].desc.must_be_kind_of Nodes::Descending
         end
 
         it 'should generate DESC in sql' do
