@@ -1,7 +1,7 @@
 require 'tmpdir'
 
 module ActionMailer
-  # This modules handles everything related to the delivery, from registering new
+  # This module handles everything related to mail delivery, from registering new
   # delivery methods to configuring the mail object to be sent.
   module DeliveryMethods
     extend ActiveSupport::Concern
