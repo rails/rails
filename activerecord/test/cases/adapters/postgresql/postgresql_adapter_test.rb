@@ -10,6 +10,45 @@ module ActiveRecord
         @connection.exec_query('create table ex(id serial primary key, number integer, data character varying(255))')
       end
 
+      def test_primary_key
+        assert_equal 'id', @connection.primary_key('ex')
+      end
+
+      def test_non_standard_primary_key
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(data character varying(255) primary key)')
+        assert_equal 'data', @connection.primary_key('ex')
+      end
+
+      def test_primary_key_returns_nil_for_no_pk
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(id integer)')
+        assert_nil @connection.primary_key('ex')
+      end
+
+      def test_primary_key_raises_error_if_table_not_found
+        assert_raises(ActiveRecord::StatementInvalid) do
+          @connection.primary_key('unobtainium')
+        end
+      end
+
+      def test_insert_sql_with_proprietary_returning_clause
+        id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
+        assert_equal "5150", id
+      end
+
+      def test_insert_sql_with_quoted_schema_and_table_name
+        id = @connection.insert_sql('insert into "public"."ex" (number) values(5150)')
+        expect = @connection.query('select max(id) from ex').first.first
+        assert_equal expect, id
+      end
+
+      def test_insert_sql_with_no_space_after_table_name
+        id = @connection.insert_sql("insert into ex(number) values(5150)")
+        expect = @connection.query('select max(id) from ex').first.first
+        assert_equal expect, id
+      end
+
       def test_serial_sequence
         assert_equal 'public.accounts_id_seq',
           @connection.serial_sequence('accounts', 'id')
@@ -33,6 +72,36 @@ module ActiveRecord
 
         assert_equal 'zomg_id_seq',
           @connection.default_sequence_name('zomg')
+      end
+
+      def test_pk_and_sequence_for
+        pk, seq = @connection.pk_and_sequence_for('ex')
+        assert_equal 'id', pk
+        assert_equal @connection.default_sequence_name('ex', 'id'), seq
+      end
+
+      def test_pk_and_sequence_for_with_non_standard_primary_key
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(code serial primary key)')
+        pk, seq = @connection.pk_and_sequence_for('ex')
+        assert_equal 'code', pk
+        assert_equal @connection.default_sequence_name('ex', 'code'), seq
+      end
+
+      def test_pk_and_sequence_for_returns_nil_if_no_seq
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(id integer primary key)')
+        assert_nil @connection.pk_and_sequence_for('ex')
+      end
+
+      def test_pk_and_sequence_for_returns_nil_if_no_pk
+        @connection.exec_query('drop table if exists ex')
+        @connection.exec_query('create table ex(id integer)')
+        assert_nil @connection.pk_and_sequence_for('ex')
+      end
+
+      def test_pk_and_sequence_for_returns_nil_if_table_not_found
+        assert_nil @connection.pk_and_sequence_for('unobtainium')
       end
 
       def test_exec_insert_number
