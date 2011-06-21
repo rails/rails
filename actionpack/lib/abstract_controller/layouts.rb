@@ -81,11 +81,12 @@ module AbstractController
   #   class EmployeeController < BankController
   #     layout nil
   #
-  # The InformationController uses "bank_standard" inherited from the BankController, the VaultController overwrites
-  # and picks the layout dynamically, and the EmployeeController doesn't want to use a layout at all.
-  #
-  # The TellerController uses +teller.html.erb+, and TillController inherits that layout and
-  # uses it as well.
+  # In these examples:
+  # * The InformationController will use the "bank_standard" layout, which is inherited from BankController
+  # * The TellerController will follow convention and use +app/views/layouts/teller.html.erb+
+  # * The TillController will inherit the layout from TellerController and use +teller.html.erb+ as well
+  # * The VaultController will pick a layout dynamically by calling the <tt>access_level_layout</tt> method
+  # * The EmployeeController will not use a layout
   #
   # == Types of layouts
   #
