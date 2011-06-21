@@ -63,6 +63,10 @@ module Sprockets
 
         env.logger = Rails.logger
 
+        if env.respond_to?(:cache)
+          env.cache = Rails.cache
+        end
+
         if assets.compress
           # temporarily hardcode default JS compressor to uglify. Soon, it will work
           # the same as SCSS, where a default plugin sets the default.
