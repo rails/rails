@@ -10,7 +10,7 @@ end
 
 gem "coffee-script"
 gem "sass"
-gem "uglifier", :git => "git://github.com/lautis/uglifier.git"
+gem "uglifier", ">= 1.0.0"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
