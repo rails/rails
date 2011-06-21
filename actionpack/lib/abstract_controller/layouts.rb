@@ -139,8 +139,8 @@ module AbstractController
   #
   #   end
   #
-  # This will assign "weblog_standard" as the WeblogController's layout  except for the +rss+ action, which will not wrap a layout
-  # around the rendered view.
+  # This will assign "weblog_standard" as the WeblogController's layout for all actions except for the +rss+ action, which will 
+  # be rendered directly, without wrapping a layout around the rendered view.
   #
   # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so
   # #<tt>:except => [ :rss, :text_only ]</tt> is valid, as is <tt>:except => :rss</tt>.
@@ -159,7 +159,7 @@ module AbstractController
   #     end
   #   end
   #
-  # This will render the help action with the "help" layout instead of the controller-wide "weblog_standard" layout.
+  # This will override the controller-wide "weblog_standard" layout, and will render the help action with the "help" layout instead.
   module Layouts
     extend ActiveSupport::Concern
 
