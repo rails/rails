@@ -43,7 +43,21 @@ module ApplicationTests
       end
 
       file = Dir["#{app_path}/public/assets/application-*.js"][0]
+      assert_not_nil file, "Expected application.js asset to be generated, but none found"
       assert_equal "alert();\n", File.read(file)
+    end
+
+    test "assets are cleaned up properly" do
+      app_file "public/assets/application.js", "alert();"
+      app_file "public/assets/application.css", "a { color: green; }"
+      app_file "public/assets/subdir/broken.png", "not really an image file"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean` }
+      end
+
+      files = Dir["#{app_path}/public/assets/**/*"]
+      assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
     end
 
     test "does not stream session cookies back" do
