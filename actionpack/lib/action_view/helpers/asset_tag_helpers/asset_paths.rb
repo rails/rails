@@ -1,11 +1,10 @@
 require 'active_support/core_ext/file'
-require 'action_view/helpers/asset_paths'
 
 module ActionView
   module Helpers
     module AssetTagHelper
 
-      class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
+      class AssetPaths < ::ActionView::AssetPaths #:nodoc:
         # You can enable or disable the asset tag ids cache.
         # With the cache enabled, the asset tag helper methods will make fewer
         # expensive file system calls (the default implementation checks the file
