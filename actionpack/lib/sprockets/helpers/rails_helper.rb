@@ -1,4 +1,3 @@
-require "action_view/helpers/asset_paths"
 require "action_view/helpers/asset_tag_helper"
 
 module Sprockets
@@ -71,7 +70,7 @@ module Sprockets
         body ? "#{path}?body=1" : path
       end
 
-      class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
+      class AssetPaths < ::ActionView::AssetPaths #:nodoc:
         def compute_public_path(source, dir, ext=nil, include_host=true)
           super(source, Rails.application.config.assets.prefix, ext, include_host)
         end
