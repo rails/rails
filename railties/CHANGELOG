@@ -1,20 +1,16 @@
 *Rails 3.1.0 (unreleased)*
 
+* Added Rails.groups that automatically handles Rails.env and ENV["RAILS_GROUPS"] [José Valim]
+
 * The new rake task assets:clean removes precompiled assets. [fxn]
 
 * Application and plugin generation run bundle install unless --skip-gemfile or --skip-bundle. [fxn]
 
-* Fixed database tasks for jdbc* adapters #jruby
+* Fixed database tasks for jdbc* adapters #jruby [Rashmi Yadav]
 
-  [Rashmi Yadav]
+* Template generation for jdbcpostgresql  #jruby [Vishnu Atrai]
 
-* Template generation for jdbcpostgresql  #jruby
-
-  [Vishnu Atrai]
-
-* Template generation for jdbcmysql and jdbcsqlite3 #jruby
-
-  [Arun Agrawal]
+* Template generation for jdbcmysql and jdbcsqlite3 #jruby [Arun Agrawal]
 
 * The -j option of the application generator accepts an arbitrary string. If passed "foo",
 the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest
