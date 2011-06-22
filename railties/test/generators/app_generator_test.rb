@@ -167,7 +167,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_config_jdbcmysql_database
     run_generator([destination_root, "-d", "jdbcmysql"])
-    assert_file "config/database.yml", /jdbcmysql/
+    assert_file "config/database.yml", /mysql/
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
     # TODO: When the JRuby guys merge jruby-openssl in
     # jruby this will be removed
@@ -176,13 +176,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_config_jdbcsqlite3_database
     run_generator([destination_root, "-d", "jdbcsqlite3"])
-    assert_file "config/database.yml", /jdbcsqlite3/
+    assert_file "config/database.yml", /sqlite3/
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
   end
 
   def test_config_jdbcpostgresql_database
     run_generator([destination_root, "-d", "jdbcpostgresql"])
-    assert_file "config/database.yml", /jdbcpostgresql/
+    assert_file "config/database.yml", /postgresql/
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
   end
 
