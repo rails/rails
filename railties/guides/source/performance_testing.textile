@@ -151,7 +151,7 @@ Performance tests can be run in two modes: Benchmarking and Profiling.
 
 h5. Benchmarking
 
-Benchmarking makes it easy to quickly gather a few metrics about each test tun. By default, each test case is run +4 times+ in benchmarking mode.
+Benchmarking makes it easy to quickly gather a few metrics about each test tun. By default, each test case is run *4 times* in benchmarking mode.
 
 To run performance tests in benchmarking mode:
 
@@ -161,7 +161,7 @@ $ rake test:benchmark
 
 h5. Profiling
 
-Profiling allows you to make an in-depth analysis of each of your tests by using an external profiler. Depending on your Ruby interpreter, this profiler can be native (Rubinius, JRuby) or not (MRI, which uses RubyProf). By default, each test case is run +1 time+ in profiling mode.
+Profiling allows you to make an in-depth analysis of each of your tests by using an external profiler. Depending on your Ruby interpreter, this profiler can be native (Rubinius, JRuby) or not (MRI, which uses RubyProf). By default, each test case is run *once* in profiling mode.
 
 To run performance tests in profiling mode:
 
