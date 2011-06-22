@@ -104,7 +104,7 @@ module Sprockets
 
         # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available
         def performing_caching?
-          @config ?  @config.perform_caching : Rails.application.config.action_controller.perform_caching
+          @config.respond_to?(:perform_caching) ?  @config.perform_caching : Rails.application.config.action_controller.perform_caching
         end
       end
     end
