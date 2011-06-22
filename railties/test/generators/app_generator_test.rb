@@ -153,6 +153,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
   end
 
+  def test_config_jdbc_database
+    run_generator([destination_root, "-d", "jdbc"])
+    assert_file "config/database.yml", /jdbc/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbc-adapter["']$/
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
