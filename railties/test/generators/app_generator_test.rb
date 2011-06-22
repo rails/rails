@@ -160,6 +160,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbc-adapter["']$/
   end
 
+  def test_config_jdbc_database_when_no_option_given
+    if defined?(JRUBY_VERSION)
+      run_generator([destination_root])
+      assert_file "config/database.yml", /sqlite3/
+      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+    end
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
