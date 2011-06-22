@@ -170,6 +170,17 @@ class Author < Comment
   def post_attributes=(attributes); end
 end
 
+class HashBackedAuthor < Hash
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+
+  def persisted?; false; end
+
+  def name
+    "hash backed author"
+  end
+end
+
 module Blog
   def self._railtie
     self
