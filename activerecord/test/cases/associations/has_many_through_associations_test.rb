@@ -459,6 +459,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert author.comments.include?(comment)
   end
 
+  def test_through_association_readonly_should_be_false
+    assert !people(:michael).posts.first.readonly?
+    assert !people(:michael).posts.all.first.readonly?
+  end
+
+  def test_can_update_through_association
+    assert_nothing_raised do
+      people(:michael).posts.first.update_attributes!(:title => "Can write")
+    end
+  end
+
   def test_size_of_through_association_should_increase_correctly_when_has_many_association_is_added
     post = posts(:thinking)
     readers = post.readers.size
