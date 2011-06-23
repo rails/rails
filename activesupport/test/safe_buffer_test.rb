@@ -106,6 +106,6 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
   
   test "should not fail if the returned object is not a string" do
-    assert_kind_of Enumerator, @buffer.gsub(/.*/)
+    assert_kind_of NilClass, @buffer.slice("chipchop")
   end
 end
