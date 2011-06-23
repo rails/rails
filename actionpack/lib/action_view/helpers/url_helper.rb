@@ -619,8 +619,8 @@ module ActionView
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get"
-            html_options["rel"] = "#{html_options["rel"].to_s} nofollow".split(" ").uniq.join(" ")
+          if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
+            html_options["rel"] = "#{html_options["rel"]} nofollow".strip
           end
           html_options["data-method"] = method
         end
