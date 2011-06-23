@@ -122,18 +122,19 @@ module ActionMailer #:nodoc:
   #
   #   <%= users_url(:host => "example.com") %>
   #
-  # You want to avoid using the <tt>name_of_route_path</tt> form of named routes because it doesn't
-  # make sense to generate relative URLs in email messages.
+  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the 
+  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will 
+  # have no concept of a current URL from which to determine a relative path.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
   # option as a configuration option in <tt>config/application.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
-  # If you do decide to set a default <tt>:host</tt> for your mailers you want to use the
-  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. This will ensure that absolute URLs are
-  # generated because the <tt>url_for</tt> view helper will, by default, generate relative URLs when a
-  # <tt>:host</tt> option isn't explicitly provided.
+  # When you decide to set a default <tt>:host</tt> for your mailers, then you need to make sure to use the
+  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper 
+  # will generate relative URLs by default when a <tt>:host</tt> option isn't explicitly provided, passing
+  # <tt>:only_path => false</tt> will ensure that absolute URLs are generated.
   #
   # = Sending mail
   #
@@ -148,9 +149,9 @@ module ActionMailer #:nodoc:
   #
   # = Multipart Emails
   #
-  # Multipart messages can also be used implicitly because Action Mailer will automatically
-  # detect and use multipart templates, where each template is named after the name of the action, followed
-  # by the content type. Each such detected template will be added as separate part to the message.
+  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use 
+  # multipart templates, where each template is named after the name of the action, followed by the content 
+  # type. Each such detected template will be added as a separate part to the message.
   #
   # For example, if the following templates exist:
   # * signup_notification.text.erb
@@ -732,3 +733,4 @@ module ActionMailer #:nodoc:
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end
+

@@ -57,6 +57,7 @@ The methods are:
 * +group+
 * +order+
 * +reorder+
+* +reverse_order+
 * +limit+
 * +offset+
 * +joins+
@@ -549,6 +550,32 @@ In case the +reorder+ clause is not used, the SQL executed would be:
 <sql>
 SELECT * FROM posts WHERE id = 10 ORDER BY posted_at DESC
 </sql>
+
+h4. +reverse_order+
+
+The +reverse_order+ method reverses the ordering clause if specified.
+
+<ruby>
+Client.where("orders_count > 10").order(:name).reverse_order
+</ruby>
+
+The SQL that would be executed:
+<sql>
+SELECT * FROM clients WHERE orders_count > 10 ORDER BY name DESC
+</sql>
+
+If no ordering clause is specified in the query, the +reverse_order+ orders by the primary key in reverse order.
+
+<ruby>
+Client.where("orders_count > 10").reverse_order
+</ruby>
+
+The SQL that would be executed:
+<sql>
+SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
+</sql>
+
+This method accepts *no* arguments.
 
 h3. Readonly Objects
 

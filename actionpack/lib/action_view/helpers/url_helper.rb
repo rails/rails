@@ -55,9 +55,9 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # If you instead of a hash pass a record (like an Active Record or Active Resource) as the options parameter,
-      # you'll trigger the named route for that record. The lookup will happen on the name of the class. So passing
-      # a Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
+      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will 
+      # trigger the named route for that record. The lookup will happen on the name of the class. So passing a 
+      # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
       #
       # ==== Examples
@@ -112,13 +112,13 @@ module ActionView
         end
       end
 
-      # Creates a link tag of the given +name+ using a URL created by the set
-      # of +options+. See the valid options in the documentation for
-      # +url_for+. It's also possible to pass a string instead
-      # of an options hash to get a link tag that uses the value of the string as the
-      # href for the link, or use <tt>:back</tt> to link to the referrer - a JavaScript back
-      # link will be used in place of a referrer if none exists. If +nil+ is passed as
-      # a name, the link itself will become the name.
+      # Creates a link tag of the given +name+ using a URL created by the set of +options+.
+      # See the valid options in the documentation for +url_for+. It's also possible to 
+      # pass a String instead of an options hash, which generates a link tag that uses the
+      # value of the String as the href for the link. Using a <tt>:back</tt> Symbol instead
+      # of an options hash will generate a link to the referrer (a JavaScript back link
+      # will be used in place of a referrer if none exists). If +nil+ is passed as the name
+      # the value of the link itself will become the name.
       #
       # ==== Signatures
       #

@@ -81,11 +81,12 @@ module AbstractController
   #   class EmployeeController < BankController
   #     layout nil
   #
-  # The InformationController uses "bank_standard" inherited from the BankController, the VaultController overwrites
-  # and picks the layout dynamically, and the EmployeeController doesn't want to use a layout at all.
-  #
-  # The TellerController uses +teller.html.erb+, and TillController inherits that layout and
-  # uses it as well.
+  # In these examples:
+  # * The InformationController uses the "bank_standard" layout, inherited from BankController.
+  # * The TellerController follows convention and uses +app/views/layouts/teller.html.erb+.
+  # * The TillController inherits the layout from TellerController and uses +teller.html.erb+ as well.
+  # * The VaultController chooses a layout dynamically by calling the <tt>access_level_layout</tt> method.
+  # * The EmployeeController does not use a layout at all.
   #
   # == Types of layouts
   #
@@ -138,8 +139,8 @@ module AbstractController
   #
   #   end
   #
-  # This will assign "weblog_standard" as the WeblogController's layout  except for the +rss+ action, which will not wrap a layout
-  # around the rendered view.
+  # This will assign "weblog_standard" as the WeblogController's layout for all actions except for the +rss+ action, which will 
+  # be rendered directly, without wrapping a layout around the rendered view.
   #
   # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so
   # #<tt>:except => [ :rss, :text_only ]</tt> is valid, as is <tt>:except => :rss</tt>.
@@ -158,7 +159,7 @@ module AbstractController
   #     end
   #   end
   #
-  # This will render the help action with the "help" layout instead of the controller-wide "weblog_standard" layout.
+  # This will override the controller-wide "weblog_standard" layout, and will render the help action with the "help" layout instead.
   module Layouts
     extend ActiveSupport::Concern
 
