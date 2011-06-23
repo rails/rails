@@ -75,7 +75,7 @@ module ActiveRecord
         end
 
         def association_class
-          @owner[@reflection.options[:foreign_type]] ? @owner[@reflection.options[:foreign_type]].constantize : nil
+          @owner[@reflection.options[:foreign_type]].present? ? @owner[@reflection.options[:foreign_type]].constantize : nil
         end
     end
   end

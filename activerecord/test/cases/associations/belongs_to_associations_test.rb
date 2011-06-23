@@ -161,6 +161,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil sponsor.sponsorable_with_conditions
   end
 
+  def test_polymorphic_with_empty_string_for_type
+    sponsor = Sponsor.create
+    sponsor.sponsorable_type = ""
+
+    assert_nil sponsor.sponsorable
+  end
+
   def test_with_select
     assert_equal Company.find(2).firm_with_select.attributes.size, 1
     assert_equal Company.find(2, :include => :firm_with_select ).firm_with_select.attributes.size, 1
