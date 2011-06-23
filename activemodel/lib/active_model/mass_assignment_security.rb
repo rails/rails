@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute.rb'
+require 'active_support/core_ext/array/wrap'
 require 'active_model/mass_assignment_security/permission_set'
 
 module ActiveModel
@@ -97,7 +98,7 @@ module ActiveModel
 
         self._protected_attributes = protected_attributes_configs.dup
 
-        Array(role).each do |name|
+        Array.wrap(role).each do |name|
           self._protected_attributes[name] = self.protected_attributes(name) + args
         end
 
@@ -159,7 +160,7 @@ module ActiveModel
 
         self._accessible_attributes = accessible_attributes_configs.dup
 
-        Array(role).each do |name|
+        Array.wrap(role).each do |name|
           self._accessible_attributes[name] = self.accessible_attributes(name) + args
         end
 
