@@ -498,4 +498,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     lowest_salary_dev = DeveloperOrderedBySalary.find(developers(:poor_jamis).id)
     assert_equal lowest_salary_dev, DeveloperOrderedBySalary.last
   end
+
+  def test_default_scope_include_with_count
+    d = DeveloperWithIncludes.create!
+    d.audit_logs.create! :message => 'foo'
+
+    assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => 'foo' }).count
+  end
 end
