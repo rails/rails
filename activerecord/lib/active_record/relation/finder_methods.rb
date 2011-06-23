@@ -199,193 +199,193 @@ module ActiveRecord
 
     protected
 
-    def find_with_associations
-      join_dependency = construct_join_dependency_for_association_find
-      relation = construct_relation_for_association_find(join_dependency)
-      rows = connection.select_all(relation.to_sql, 'SQL', relation.bind_values)
-      join_dependency.instantiate(rows)
-    rescue ThrowResult
-      []
-    end
-
-    def construct_join_dependency_for_association_find
-      including = (@eager_load_values + @includes_values).uniq
-      ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
-    end
-
-    def construct_relation_for_association_calculations
-      including = (@eager_load_values + @includes_values).uniq
-      join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
-      relation = except(:includes, :eager_load, :preload)
-      apply_join_dependency(relation, join_dependency)
-    end
-
-    def construct_relation_for_association_find(join_dependency)
-      relation = except(:includes, :eager_load, :preload, :select).select(join_dependency.columns)
-      apply_join_dependency(relation, join_dependency)
-    end
-
-    def apply_join_dependency(relation, join_dependency)
-      join_dependency.join_associations.each do |association|
-        relation = association.join_relation(relation)
+      def find_with_associations
+        join_dependency = construct_join_dependency_for_association_find
+        relation = construct_relation_for_association_find(join_dependency)
+        rows = connection.select_all(relation.to_sql, 'SQL', relation.bind_values)
+        join_dependency.instantiate(rows)
+      rescue ThrowResult
+        []
       end
 
-      limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
-
-      if !limitable_reflections && relation.limit_value
-        limited_id_condition = construct_limited_ids_condition(relation.except(:select))
-        relation = relation.where(limited_id_condition)
+      def construct_join_dependency_for_association_find
+        including = (@eager_load_values + @includes_values).uniq
+        ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
       end
 
-      relation = relation.except(:limit, :offset) unless limitable_reflections
-
-      relation
-    end
-
-    def construct_limited_ids_condition(relation)
-      orders = relation.order_values
-      values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
-
-      relation = relation.dup
-
-      ids_array = relation.select(values).collect {|row| row[primary_key]}
-      ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
-    end
-
-    def find_by_attributes(match, attributes, *args)
-      conditions = Hash[attributes.map {|a| [a, args[attributes.index(a)]]}]
-      result = where(conditions).send(match.finder)
-
-      if match.bang? && result.blank?
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
-      else
-        result
+      def construct_relation_for_association_calculations
+        including = (@eager_load_values + @includes_values).uniq
+        join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, arel.froms.first)
+        relation = except(:includes, :eager_load, :preload)
+        apply_join_dependency(relation, join_dependency)
       end
-    end
 
-    def find_or_instantiator_by_attributes(match, attributes, *args)
-      options = args.size > 1 && args.last(2).all?{ |a| a.is_a?(Hash) } ? args.extract_options! : {}
-      protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
-      args.each_with_index do |arg, i|
-        if arg.is_a?(Hash)
-          protected_attributes_for_create = args[i].with_indifferent_access
+      def construct_relation_for_association_find(join_dependency)
+        relation = except(:includes, :eager_load, :preload, :select).select(join_dependency.columns)
+        apply_join_dependency(relation, join_dependency)
+      end
+
+      def apply_join_dependency(relation, join_dependency)
+        join_dependency.join_associations.each do |association|
+          relation = association.join_relation(relation)
+        end
+
+        limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
+
+        if !limitable_reflections && relation.limit_value
+          limited_id_condition = construct_limited_ids_condition(relation.except(:select))
+          relation = relation.where(limited_id_condition)
+        end
+
+        relation = relation.except(:limit, :offset) unless limitable_reflections
+
+        relation
+      end
+
+      def construct_limited_ids_condition(relation)
+        orders = relation.order_values
+        values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
+
+        relation = relation.dup
+
+        ids_array = relation.select(values).collect {|row| row[primary_key]}
+        ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
+      end
+
+      def find_by_attributes(match, attributes, *args)
+        conditions = Hash[attributes.map {|a| [a, args[attributes.index(a)]]}]
+        result = where(conditions).send(match.finder)
+
+        if match.bang? && result.blank?
+          raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
         else
-          unprotected_attributes_for_create[attributes[i]] = args[i]
+          result
         end
       end
 
-      conditions = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes).symbolize_keys
-
-      record = where(conditions).first
-
-      unless record
-        record = @klass.new(protected_attributes_for_create, options) do |r|
-          r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
-        end
-        yield(record) if block_given?
-        record.save if match.instantiator == :create
-      end
-
-      record
-    end
-
-    def find_with_ids(*ids)
-      return to_a.find { |*block_args| yield(*block_args) } if block_given?
-
-      expects_array = ids.first.kind_of?(Array)
-      return ids.first if expects_array && ids.first.empty?
-
-      ids = ids.flatten.compact.uniq
-
-      case ids.size
-      when 0
-        raise RecordNotFound, "Couldn't find #{@klass.name} without an ID"
-      when 1
-        result = find_one(ids.first)
-        expects_array ? [ result ] : result
-      else
-        find_some(ids)
-      end
-    end
-
-    def find_one(id)
-      id = id.id if ActiveRecord::Base === id
-
-      if IdentityMap.enabled? && where_values.blank? &&
-        limit_value.blank? && order_values.blank? &&
-        includes_values.blank? && preload_values.blank? &&
-        readonly_value.nil? && joins_values.blank? &&
-        !@klass.locking_enabled? &&
-        record = IdentityMap.get(@klass, id)
-        return record
-      end
-
-      column = columns_hash[primary_key]
-
-      substitute = connection.substitute_at(column, @bind_values.length)
-      relation = where(table[primary_key].eq(substitute))
-      relation.bind_values = [[column, id]]
-      record = relation.first
-
-      unless record
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{primary_key}=#{id}#{conditions}"
-      end
-
-      record
-    end
-
-    def find_some(ids)
-      result = where(table[primary_key].in(ids)).all
-
-      expected_size =
-        if @limit_value && ids.size > @limit_value
-          @limit_value
-        else
-          ids.size
-        end
-
-      # 11 ids with limit 3, offset 9 should give 2 results.
-      if @offset_value && (ids.size - @offset_value < expected_size)
-        expected_size = ids.size - @offset_value
-      end
-
-      if result.size == expected_size
-        result
-      else
-        conditions = arel.where_sql
-        conditions = " [#{conditions}]" if conditions
-
-        error = "Couldn't find all #{@klass.name.pluralize} with IDs "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
-        raise RecordNotFound, error
-      end
-    end
-
-    def find_first
-      if loaded?
-        @records.first
-      else
-        @first ||= limit(1).to_a[0]
-      end
-    end
-
-    def find_last
-      if loaded?
-        @records.last
-      else
-        @last ||=
-          if offset_value || limit_value
-            to_a.last
+      def find_or_instantiator_by_attributes(match, attributes, *args)
+        options = args.size > 1 && args.last(2).all?{ |a| a.is_a?(Hash) } ? args.extract_options! : {}
+        protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
+        args.each_with_index do |arg, i|
+          if arg.is_a?(Hash)
+            protected_attributes_for_create = args[i].with_indifferent_access
           else
-            reverse_order.limit(1).to_a[0]
+            unprotected_attributes_for_create[attributes[i]] = args[i]
           end
-      end
-    end
+        end
 
-    def using_limitable_reflections?(reflections)
-      reflections.none? { |r| r.collection? }
-    end
+        conditions = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes).symbolize_keys
+
+        record = where(conditions).first
+
+        unless record
+          record = @klass.new(protected_attributes_for_create, options) do |r|
+            r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
+          end
+          yield(record) if block_given?
+          record.save if match.instantiator == :create
+        end
+
+        record
+      end
+
+      def find_with_ids(*ids)
+        return to_a.find { |*block_args| yield(*block_args) } if block_given?
+
+        expects_array = ids.first.kind_of?(Array)
+        return ids.first if expects_array && ids.first.empty?
+
+        ids = ids.flatten.compact.uniq
+
+        case ids.size
+        when 0
+          raise RecordNotFound, "Couldn't find #{@klass.name} without an ID"
+        when 1
+          result = find_one(ids.first)
+          expects_array ? [ result ] : result
+        else
+          find_some(ids)
+        end
+      end
+
+      def find_one(id)
+        id = id.id if ActiveRecord::Base === id
+
+        if IdentityMap.enabled? && where_values.blank? &&
+          limit_value.blank? && order_values.blank? &&
+          includes_values.blank? && preload_values.blank? &&
+          readonly_value.nil? && joins_values.blank? &&
+          !@klass.locking_enabled? &&
+          record = IdentityMap.get(@klass, id)
+          return record
+        end
+
+        column = columns_hash[primary_key]
+
+        substitute = connection.substitute_at(column, @bind_values.length)
+        relation = where(table[primary_key].eq(substitute))
+        relation.bind_values = [[column, id]]
+        record = relation.first
+
+        unless record
+          conditions = arel.where_sql
+          conditions = " [#{conditions}]" if conditions
+          raise RecordNotFound, "Couldn't find #{@klass.name} with #{primary_key}=#{id}#{conditions}"
+        end
+
+        record
+      end
+
+      def find_some(ids)
+        result = where(table[primary_key].in(ids)).all
+
+        expected_size =
+          if @limit_value && ids.size > @limit_value
+            @limit_value
+          else
+            ids.size
+          end
+
+        # 11 ids with limit 3, offset 9 should give 2 results.
+        if @offset_value && (ids.size - @offset_value < expected_size)
+          expected_size = ids.size - @offset_value
+        end
+
+        if result.size == expected_size
+          result
+        else
+          conditions = arel.where_sql
+          conditions = " [#{conditions}]" if conditions
+
+          error = "Couldn't find all #{@klass.name.pluralize} with IDs "
+          error << "(#{ids.join(", ")})#{conditions} (found #{result.size} results, but was looking for #{expected_size})"
+          raise RecordNotFound, error
+        end
+      end
+
+      def find_first
+        if loaded?
+          @records.first
+        else
+          @first ||= limit(1).to_a[0]
+        end
+      end
+
+      def find_last
+        if loaded?
+          @records.last
+        else
+          @last ||=
+            if offset_value || limit_value
+              to_a.last
+            else
+              reverse_order.limit(1).to_a[0]
+            end
+        end
+      end
+
+      def using_limitable_reflections?(reflections)
+        reflections.none? { |r| r.collection? }
+      end
   end
 end

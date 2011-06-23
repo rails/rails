@@ -195,133 +195,133 @@ module ActiveRecord
 
     private
 
-    def custom_join_ast(table, joins)
-      joins = joins.reject { |join| join.blank? }
+      def custom_join_ast(table, joins)
+        joins = joins.reject { |join| join.blank? }
 
-      return [] if joins.empty?
+        return [] if joins.empty?
 
-      @implicit_readonly = true
+        @implicit_readonly = true
 
-      joins.map do |join|
-        case join
-        when Array
-          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
-        when String
-          join = Arel.sql(join)
-        end
-        table.create_string_join(join)
-      end
-    end
-
-    def collapse_wheres(arel, wheres)
-      equalities = wheres.grep(Arel::Nodes::Equality)
-
-      arel.where(Arel::Nodes::And.new(equalities)) unless equalities.empty?
-
-      (wheres - equalities).each do |where|
-        where = Arel.sql(where) if String === where
-        arel.where(Arel::Nodes::Grouping.new(where))
-      end
-    end
-
-    def build_where(opts, other = [])
-      case opts
-      when String, Array
-        [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
-      when Hash
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
-        PredicateBuilder.build_from_hash(table.engine, attributes, table)
-      else
-        [opts]
-      end
-    end
-
-    def build_joins(manager, joins)
-      buckets = joins.group_by do |join|
-        case join
-        when String
-          'string_join'
-        when Hash, Symbol, Array
-          'association_join'
-        when ActiveRecord::Associations::JoinDependency::JoinAssociation
-          'stashed_join'
-        when Arel::Nodes::Join
-          'join_node'
-        else
-          raise 'unknown class: %s' % join.class.name
-        end
-      end
-
-      association_joins         = buckets['association_join'] || []
-      stashed_association_joins = buckets['stashed_join'] || []
-      join_nodes                = buckets['join_node'] || []
-      string_joins              = (buckets['string_join'] || []).map { |x|
-        x.strip
-      }.uniq
-
-      join_list = custom_join_ast(manager, string_joins)
-
-      join_dependency = ActiveRecord::Associations::JoinDependency.new(
-        @klass,
-        association_joins,
-        join_list
-      )
-
-      join_nodes.each do |join|
-        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
-      end
-
-      join_dependency.graft(*stashed_association_joins)
-
-      @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
-
-      # FIXME: refactor this to build an AST
-      join_dependency.join_associations.each do |association|
-        association.join_to(manager)
-      end
-
-      manager.join_sources.concat join_nodes.uniq
-      manager.join_sources.concat join_list
-
-      manager
-    end
-
-    def build_select(arel, selects)
-      unless selects.empty?
-        @implicit_readonly = false
-        arel.project(*selects)
-      else
-        arel.project(@klass.arel_table[Arel.star])
-      end
-    end
-
-    def apply_modules(modules)
-      unless modules.empty?
-        @extensions += modules
-        modules.each {|extension| extend(extension) }
-      end
-    end
-
-    def reverse_sql_order(order_query)
-      order_query = ["#{quoted_table_name}.#{quoted_primary_key} ASC"] if order_query.empty?
-
-      order_query.map do |o|
-        case o
-        when Arel::Nodes::Ordering
-          o.reverse
-        when String, Symbol
-          o.to_s.split(',').collect do |s|
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+        joins.map do |join|
+          case join
+          when Array
+            join = Arel.sql(join.join(' ')) if array_of_strings?(join)
+          when String
+            join = Arel.sql(join)
           end
-        else
-          o
+          table.create_string_join(join)
         end
-      end.flatten
-    end
+      end
 
-    def array_of_strings?(o)
-      o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
-    end
+      def collapse_wheres(arel, wheres)
+        equalities = wheres.grep(Arel::Nodes::Equality)
+
+        arel.where(Arel::Nodes::And.new(equalities)) unless equalities.empty?
+
+        (wheres - equalities).each do |where|
+          where = Arel.sql(where) if String === where
+          arel.where(Arel::Nodes::Grouping.new(where))
+        end
+      end
+
+      def build_where(opts, other = [])
+        case opts
+        when String, Array
+          [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
+        when Hash
+          attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
+          PredicateBuilder.build_from_hash(table.engine, attributes, table)
+        else
+          [opts]
+        end
+      end
+
+      def build_joins(manager, joins)
+        buckets = joins.group_by do |join|
+          case join
+          when String
+            'string_join'
+          when Hash, Symbol, Array
+            'association_join'
+          when ActiveRecord::Associations::JoinDependency::JoinAssociation
+            'stashed_join'
+          when Arel::Nodes::Join
+            'join_node'
+          else
+            raise 'unknown class: %s' % join.class.name
+          end
+        end
+
+        association_joins         = buckets['association_join'] || []
+        stashed_association_joins = buckets['stashed_join'] || []
+        join_nodes                = buckets['join_node'] || []
+        string_joins              = (buckets['string_join'] || []).map { |x|
+          x.strip
+        }.uniq
+
+        join_list = custom_join_ast(manager, string_joins)
+
+        join_dependency = ActiveRecord::Associations::JoinDependency.new(
+          @klass,
+          association_joins,
+          join_list
+        )
+
+        join_nodes.each do |join|
+          join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
+        end
+
+        join_dependency.graft(*stashed_association_joins)
+
+        @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
+
+        # FIXME: refactor this to build an AST
+        join_dependency.join_associations.each do |association|
+          association.join_to(manager)
+        end
+
+        manager.join_sources.concat join_nodes.uniq
+        manager.join_sources.concat join_list
+
+        manager
+      end
+
+      def build_select(arel, selects)
+        unless selects.empty?
+          @implicit_readonly = false
+          arel.project(*selects)
+        else
+          arel.project(@klass.arel_table[Arel.star])
+        end
+      end
+
+      def apply_modules(modules)
+        unless modules.empty?
+          @extensions += modules
+          modules.each {|extension| extend(extension) }
+        end
+      end
+
+      def reverse_sql_order(order_query)
+        order_query = ["#{quoted_table_name}.#{quoted_primary_key} ASC"] if order_query.empty?
+
+        order_query.map do |o|
+          case o
+          when Arel::Nodes::Ordering
+            o.reverse
+          when String, Symbol
+            o.to_s.split(',').collect do |s|
+              s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+            end
+          else
+            o
+          end
+        end.flatten
+      end
+
+      def array_of_strings?(o)
+        o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
+      end
 
   end
 end

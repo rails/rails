@@ -158,169 +158,169 @@ module ActiveRecord
 
     private
 
-    def perform_calculation(operation, column_name, options = {})
-      operation = operation.to_s.downcase
+      def perform_calculation(operation, column_name, options = {})
+        operation = operation.to_s.downcase
 
-      distinct = options[:distinct]
+        distinct = options[:distinct]
 
-      if operation == "count"
-        column_name ||= (select_for_count || :all)
+        if operation == "count"
+          column_name ||= (select_for_count || :all)
 
-        unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
-          distinct = true
+          unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
+            distinct = true
+          end
+
+          column_name = primary_key if column_name == :all && distinct
+
+          distinct = nil if column_name =~ /\s*DISTINCT\s+/i
         end
 
-        column_name = primary_key if column_name == :all && distinct
-
-        distinct = nil if column_name =~ /\s*DISTINCT\s+/i
+        if @group_values.any?
+          execute_grouped_calculation(operation, column_name, distinct)
+        else
+          execute_simple_calculation(operation, column_name, distinct)
+        end
       end
 
-      if @group_values.any?
-        execute_grouped_calculation(operation, column_name, distinct)
-      else
-        execute_simple_calculation(operation, column_name, distinct)
-      end
-    end
-
-    def aggregate_column(column_name)
-      if @klass.column_names.include?(column_name.to_s)
-        Arel::Attribute.new(@klass.unscoped.table, column_name)
-      else
-        Arel.sql(column_name == :all ? "*" : column_name.to_s)
-      end
-    end
-
-    def operation_over_aggregate_column(column, operation, distinct)
-      operation == 'count' ? column.count(distinct) : column.send(operation)
-    end
-
-    def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-      # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = with_default_scope.reorder(nil)
-
-      if operation == "count" && (relation.limit_value || relation.offset_value)
-        # Shortcut when limit is zero.
-        return 0 if relation.limit_value == 0
-
-        query_builder = build_count_subquery(relation, column_name, distinct)
-      else
-        column = aggregate_column(column_name)
-
-        select_value = operation_over_aggregate_column(column, operation, distinct)
-
-        relation.select_values = [select_value]
-
-        query_builder = relation.arel
+      def aggregate_column(column_name)
+        if @klass.column_names.include?(column_name.to_s)
+          Arel::Attribute.new(@klass.unscoped.table, column_name)
+        else
+          Arel.sql(column_name == :all ? "*" : column_name.to_s)
+        end
       end
 
-      type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
-    end
-
-    def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
-      group_attr      = @group_values
-      association     = @klass.reflect_on_association(group_attr.first.to_sym)
-      associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
-      group_fields  = Array(associated ? association.foreign_key : group_attr)
-      group_aliases = group_fields.map { |field| column_alias_for(field) }
-      group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
-        [aliaz, column_for(field)]
-      }
-
-      group = @klass.connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
-
-      if operation == 'count' && column_name == :all
-        aggregate_alias = 'count_all'
-      else
-        aggregate_alias = column_alias_for(operation, column_name)
+      def operation_over_aggregate_column(column, operation, distinct)
+        operation == 'count' ? column.count(distinct) : column.send(operation)
       end
 
-      select_values = [
-        operation_over_aggregate_column(
-          aggregate_column(column_name),
-          operation,
-          distinct).as(aggregate_alias)
-      ]
+      def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
+        # Postgresql doesn't like ORDER BY when there are no GROUP BY
+        relation = with_default_scope.reorder(nil)
 
-      select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
-        "#{field} AS #{aliaz}"
-      }
+        if operation == "count" && (relation.limit_value || relation.offset_value)
+          # Shortcut when limit is zero.
+          return 0 if relation.limit_value == 0
 
-      relation = with_default_scope.except(:group).group(group.join(','))
-      relation.select_values = select_values
+          query_builder = build_count_subquery(relation, column_name, distinct)
+        else
+          column = aggregate_column(column_name)
 
-      calculated_data = @klass.connection.select_all(relation.to_sql)
+          select_value = operation_over_aggregate_column(column, operation, distinct)
 
-      if association
-        key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
-        key_records = association.klass.base_class.find(key_ids)
-        key_records = Hash[key_records.map { |r| [r.id, r] }]
+          relation.select_values = [select_value]
+
+          query_builder = relation.arel
+        end
+
+        type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
       end
 
-      ActiveSupport::OrderedHash[calculated_data.map do |row|
-        key   = group_columns.map { |aliaz, column|
-          type_cast_calculated_value(row[aliaz], column)
+      def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
+        group_attr      = @group_values
+        association     = @klass.reflect_on_association(group_attr.first.to_sym)
+        associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
+        group_fields  = Array(associated ? association.foreign_key : group_attr)
+        group_aliases = group_fields.map { |field| column_alias_for(field) }
+        group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
+          [aliaz, column_for(field)]
         }
-        key   = key.first if key.size == 1
-        key = key_records[key] if associated
-        [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
-      end]
-    end
 
-    # Converts the given keys to the value that the database adapter returns as
-    # a usable column name:
-    #
-    #   column_alias_for("users.id")                 # => "users_id"
-    #   column_alias_for("sum(id)")                  # => "sum_id"
-    #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
-    #   column_alias_for("count(*)")                 # => "count_all"
-    #   column_alias_for("count", "id")              # => "count_id"
-    def column_alias_for(*keys)
-      table_name = keys.join(' ')
-      table_name.downcase!
-      table_name.gsub!(/\*/, 'all')
-      table_name.gsub!(/\W+/, ' ')
-      table_name.strip!
-      table_name.gsub!(/ +/, '_')
+        group = @klass.connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
 
-      @klass.connection.table_alias_for(table_name)
-    end
+        if operation == 'count' && column_name == :all
+          aggregate_alias = 'count_all'
+        else
+          aggregate_alias = column_alias_for(operation, column_name)
+        end
 
-    def column_for(field)
-      field_name = field.to_s.split('.').last
-      @klass.columns.detect { |c| c.name.to_s == field_name }
-    end
+        select_values = [
+          operation_over_aggregate_column(
+            aggregate_column(column_name),
+            operation,
+            distinct).as(aggregate_alias)
+        ]
 
-    def type_cast_calculated_value(value, column, operation = nil)
-      case operation
-        when 'count'   then value.to_i
-        when 'sum'     then type_cast_using_column(value || '0', column)
-        when 'average' then value.respond_to?(:to_d) ? value.to_d : value
-        else type_cast_using_column(value, column)
+        select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
+          "#{field} AS #{aliaz}"
+        }
+
+        relation = with_default_scope.except(:group).group(group.join(','))
+        relation.select_values = select_values
+
+        calculated_data = @klass.connection.select_all(relation.to_sql)
+
+        if association
+          key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
+          key_records = association.klass.base_class.find(key_ids)
+          key_records = Hash[key_records.map { |r| [r.id, r] }]
+        end
+
+        ActiveSupport::OrderedHash[calculated_data.map do |row|
+          key   = group_columns.map { |aliaz, column|
+            type_cast_calculated_value(row[aliaz], column)
+          }
+          key   = key.first if key.size == 1
+          key = key_records[key] if associated
+          [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
+        end]
       end
-    end
 
-    def type_cast_using_column(value, column)
-      column ? column.type_cast(value) : value
-    end
+      # Converts the given keys to the value that the database adapter returns as
+      # a usable column name:
+      #
+      #   column_alias_for("users.id")                 # => "users_id"
+      #   column_alias_for("sum(id)")                  # => "sum_id"
+      #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
+      #   column_alias_for("count(*)")                 # => "count_all"
+      #   column_alias_for("count", "id")              # => "count_id"
+      def column_alias_for(*keys)
+        table_name = keys.join(' ')
+        table_name.downcase!
+        table_name.gsub!(/\*/, 'all')
+        table_name.gsub!(/\W+/, ' ')
+        table_name.strip!
+        table_name.gsub!(/ +/, '_')
 
-    def select_for_count
-      if @select_values.present?
-        select = @select_values.join(", ")
-        select if select !~ /(,|\*)/
+        @klass.connection.table_alias_for(table_name)
       end
-    end
 
-    def build_count_subquery(relation, column_name, distinct)
-      column_alias = Arel.sql('count_column')
-      subquery_alias = Arel.sql('subquery_for_count')
+      def column_for(field)
+        field_name = field.to_s.split('.').last
+        @klass.columns.detect { |c| c.name.to_s == field_name }
+      end
 
-      aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
-      relation.select_values = [aliased_column]
-      subquery = relation.arel.as(subquery_alias)
+      def type_cast_calculated_value(value, column, operation = nil)
+        case operation
+          when 'count'   then value.to_i
+          when 'sum'     then type_cast_using_column(value || '0', column)
+          when 'average' then value.respond_to?(:to_d) ? value.to_d : value
+          else type_cast_using_column(value, column)
+        end
+      end
 
-      sm = Arel::SelectManager.new relation.engine
-      select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
-      sm.project(select_value).from(subquery)
-    end
+      def type_cast_using_column(value, column)
+        column ? column.type_cast(value) : value
+      end
+
+      def select_for_count
+        if @select_values.present?
+          select = @select_values.join(", ")
+          select if select !~ /(,|\*)/
+        end
+      end
+
+      def build_count_subquery(relation, column_name, distinct)
+        column_alias = Arel.sql('count_column')
+        subquery_alias = Arel.sql('subquery_for_count')
+
+        aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
+        relation.select_values = [aliased_column]
+        subquery = relation.arel.as(subquery_alias)
+
+        sm = Arel::SelectManager.new relation.engine
+        select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
+        sm.project(select_value).from(subquery)
+      end
   end
 end

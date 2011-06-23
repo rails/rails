@@ -58,47 +58,47 @@ module ActiveRecord
 
       private
 
-      def invert_create_table(args)
-        [:drop_table, args]
-      end
+        def invert_create_table(args)
+          [:drop_table, args]
+        end
 
-      def invert_rename_table(args)
-        [:rename_table, args.reverse]
-      end
+        def invert_rename_table(args)
+          [:rename_table, args.reverse]
+        end
 
-      def invert_add_column(args)
-        [:remove_column, args.first(2)]
-      end
+        def invert_add_column(args)
+          [:remove_column, args.first(2)]
+        end
 
-      def invert_rename_index(args)
-        [:rename_index, args.reverse]
-      end
+        def invert_rename_index(args)
+          [:rename_index, args.reverse]
+        end
 
-      def invert_rename_column(args)
-        [:rename_column, [args.first] + args.last(2).reverse]
-      end
+        def invert_rename_column(args)
+          [:rename_column, [args.first] + args.last(2).reverse]
+        end
 
-      def invert_add_index(args)
-        table, columns, options = *args
-        index_name = options.try(:[], :name)
-        options_hash =  index_name ? {:name => index_name} : {:column => columns}
-        [:remove_index, [table, options_hash]]
-      end
+        def invert_add_index(args)
+          table, columns, options = *args
+          index_name = options.try(:[], :name)
+          options_hash =  index_name ? {:name => index_name} : {:column => columns}
+          [:remove_index, [table, options_hash]]
+        end
 
-      def invert_remove_timestamps(args)
-        [:add_timestamps, args]
-      end
+        def invert_remove_timestamps(args)
+          [:add_timestamps, args]
+        end
 
-      def invert_add_timestamps(args)
-        [:remove_timestamps, args]
-      end
+        def invert_add_timestamps(args)
+          [:remove_timestamps, args]
+        end
 
-      # Forwards any missing method call to the \target.
-      def method_missing(method, *args, &block)
-        @delegate.send(method, *args, &block)
-      rescue NoMethodError => e
-        raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
-      end
+        # Forwards any missing method call to the \target.
+        def method_missing(method, *args, &block)
+          @delegate.send(method, *args, &block)
+        rescue NoMethodError => e
+          raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
+        end
 
     end
   end

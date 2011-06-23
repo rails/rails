@@ -30,26 +30,27 @@ module ActiveRecord
       end
 
       private
-      def rows
-        return @rows if @rows
 
-        data = YAML.load(render(IO.read(@file)))
-        @rows = data ? validate(data).to_a : []
-      end
+        def rows
+          return @rows if @rows
 
-      def render(content)
-        ERB.new(content).result
-      end
-
-      # Validate our unmarshalled data.
-      def validate(data)
-        unless Hash === data || YAML::Omap === data
-          raise Fixture::FormatError, 'fixture is not a hash'
+          data = YAML.load(render(IO.read(@file)))
+          @rows = data ? validate(data).to_a : []
         end
 
-        raise Fixture::FormatError unless data.all? { |name, row| Hash === row }
-        data
-      end
+        def render(content)
+          ERB.new(content).result
+        end
+
+        # Validate our unmarshalled data.
+        def validate(data)
+          unless Hash === data || YAML::Omap === data
+            raise Fixture::FormatError, 'fixture is not a hash'
+          end
+
+          raise Fixture::FormatError unless data.all? { |name, row| Hash === row }
+          data
+        end
     end
   end
 end
