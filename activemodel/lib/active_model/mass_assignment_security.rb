@@ -95,8 +95,11 @@ module ActiveModel
         options = args.extract_options!
         role = options[:as] || :default
 
-        self._protected_attributes        = protected_attributes_configs.dup
-        self._protected_attributes[role] = self.protected_attributes(role) + args
+        self._protected_attributes = protected_attributes_configs.dup
+
+        Array(role).each do |name|
+          self._protected_attributes[name] = self.protected_attributes(name) + args
+        end
 
         self._active_authorizer = self._protected_attributes
       end
@@ -154,8 +157,11 @@ module ActiveModel
         options = args.extract_options!
         role = options[:as] || :default
 
-        self._accessible_attributes        = accessible_attributes_configs.dup
-        self._accessible_attributes[role] = self.accessible_attributes(role) + args
+        self._accessible_attributes = accessible_attributes_configs.dup
+
+        Array(role).each do |name|
+          self._accessible_attributes[name] = self.accessible_attributes(name) + args
+        end
 
         self._active_authorizer = self._accessible_attributes
       end
