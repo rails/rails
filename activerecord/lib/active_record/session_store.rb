@@ -101,15 +101,8 @@ module ActiveRecord
         end
 
         private
-          def original_data
-            if changes && changes[@@data_column_name] && changes[@@data_column_name][0]
-              return self.class.unmarshal(changes[@@data_column_name][0])
-            end
-            return {}
-          end
-
           def data_changed?
-            original_data != data
+            changes && changes[@@data_column_name]
           end
 
           def session_id_column
