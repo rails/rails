@@ -34,6 +34,20 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
     assert_equal expected, sanitized
   end
 
+  def test_attributes_accessible_with_roles_given_as_array
+    user = Account.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com" }
+    sanitized = user.sanitize_for_mass_assignment(expected.merge("admin" => true))
+    assert_equal expected, sanitized
+  end
+
+  def test_attributes_accessible_with_admin_role_when_roles_given_as_array
+    user = Account.new
+    expected = { "name" => "John Smith", "email" => "john@smith.com", "admin" => true }
+    sanitized = user.sanitize_for_mass_assignment(expected.merge("super_powers" => true), :admin)
+    assert_equal expected, sanitized
+  end
+
   def test_attributes_protected_by_default
     firm = Firm.new
     expected = { }
