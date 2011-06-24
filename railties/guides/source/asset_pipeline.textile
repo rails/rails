@@ -94,7 +94,7 @@ h4. Compressing Assets
 
 The default Gemfile also includes the "uglifier":https://github.com/lautis/uglifier gem. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your if and else statements to ternary operators when possible. 
 
-Sprockets also turns on "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) when possible (by checking the user's headers). Gzip is a file compression technique, much like the ever so popular "zip" file, except it's more open source friendly. Gzip should not modify the contents of the file, but simply the size of the file.
+Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) of your assets. This prevents your server from contently compressing your assets for each request. You must configure your server to use GZip compression and serve the compressed assets in {location}. {Give Apache and NGINX examples since those are what's cool}
 
 h4. Adding Assets to Your Gems
 
