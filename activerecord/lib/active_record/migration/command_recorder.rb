@@ -93,11 +93,11 @@ module ActiveRecord
         [:remove_timestamps, args]
       end
 
-      # Forwards any missing method call to the \target.
+      # Record all the methods called in the +change+ method of a migration.
+      # This will ensure that IrreversibleMigration is raised when the corresponding
+      # invert_method does not exist while the migration is rolled back.
       def method_missing(method, *args, &block)
-        @delegate.send(method, *args, &block)
-      rescue NoMethodError => e
-        raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
+        record(method, args)
       end
 
     end
