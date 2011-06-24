@@ -4,7 +4,7 @@ module ActionView
   # Provides functionality so that Rails can output logs from Action View.
   class LogSubscriber < ActiveSupport::LogSubscriber
     def render_template(event)
-      message = "Rendered #{from_rails_root(event.payload[:identifier])}"
+      message = "  Rendered #{from_rails_root(event.payload[:identifier])}"
       message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
       message << (" (%.1fms)" % event.duration)
       info(message)
