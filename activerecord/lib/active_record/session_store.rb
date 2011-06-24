@@ -119,7 +119,7 @@ module ActiveRecord
               class << self; remove_method :find_by_session_id; end
 
               def self.find_by_session_id(session_id)
-                find :first, :conditions => {:session_id=>session_id}
+                first :conditions => {:session_id=>session_id}
               end
             end
           end
