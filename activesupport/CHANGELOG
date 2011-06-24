@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* The inflector understands acronyms. [dlee]
+
 * Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim] 
 
 * Added Time#all_day/week/quarter/year as a way of generating ranges (example: Event.where(created_at: Time.now.all_week)) [DHH]
