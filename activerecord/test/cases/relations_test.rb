@@ -176,6 +176,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal entrants(:first).name, entrants.first.name
   end
 
+  def test_finding_with_cross_table_order_and_limit
+    tags = Tag.includes(:taggings) \
+              .order("tags.name asc, taggings.taggable_id asc, REPLACE('abc', taggings.taggable_type, taggings.taggable_type)") \
+              .limit(1).to_a
+    assert_equal 1, tags.length
+  end
+
   def test_finding_with_complex_order_and_limit
     tags = Tag.includes(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
     assert_equal 1, tags.length
