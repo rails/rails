@@ -7,11 +7,12 @@ source 'http://rubygems.org'
 <%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
 
+gem 'sprockets-rails'
+
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do
   gem 'sass-rails', "~> 3.1.0.rc"
-  gem 'sprockets-rails'
   gem 'coffee-script'
   gem 'uglifier'
 end
