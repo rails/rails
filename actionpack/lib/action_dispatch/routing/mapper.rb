@@ -469,7 +469,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # get 'bacon', :to => 'food#bacon'
+        #   get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, *args, &block)
         end
@@ -479,7 +479,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # post 'bacon', :to => 'food#bacon'
+        #   post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
           map_method(:post, *args, &block)
         end
@@ -489,7 +489,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # patch 'bacon', :to => 'food#bacon'
+        #   patch 'bacon', :to => 'food#bacon'
         def patch(*args, &block)
           map_method(:patch, *args, &block)
         end
@@ -499,7 +499,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # put 'bacon', :to => 'food#bacon'
+        #   put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
           map_method(:put, *args, &block)
         end
@@ -509,7 +509,7 @@ module ActionDispatch
         #
         # Example:
         #
-        # delete 'broccoli', :to => 'food#broccoli'
+        #   delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, *args, &block)
         end
