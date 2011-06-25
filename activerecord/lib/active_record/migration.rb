@@ -181,7 +181,7 @@ module ActiveRecord
   #
   #   class RemoveEmptyTags < ActiveRecord::Migration
   #     def up
-  #       Tag.find(:all).each { |tag| tag.destroy if tag.pages.empty? }
+  #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
   #
   #     def down
@@ -227,7 +227,7 @@ module ActiveRecord
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
-  #       Person.find(:all).each do |p|
+  #       Person.all.each do |p|
   #         p.update_attribute :salary, SalaryCalculator.compute(p)
   #       end
   #     end
@@ -247,7 +247,7 @@ module ActiveRecord
   #   def up
   #     ...
   #     say_with_time "Updating salaries..." do
-  #       Person.find(:all).each do |p|
+  #       Person.all.each do |p|
   #         p.update_attribute :salary, SalaryCalculator.compute(p)
   #       end
   #     end
