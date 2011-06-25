@@ -6,7 +6,7 @@ namespace :assets do
       Kernel.exec $0, *ARGV
     else
       Rake::Task["environment"].invoke
-      Sprockets::Helpers::RailsHelper
+      Sprockets::Rails::Helpers::AssetTagHelper
 
       assets = Rails.application.config.assets.precompile
       Rails.application.assets.precompile(*assets)
