@@ -1825,6 +1825,11 @@ MSG
         @attributes.frozen?
       end
 
+      # Allows sort on objects
+      def <=>(other_object)
+        self.to_key <=> other_object.to_key
+      end
+
       # Backport dup from 1.9 so that initialize_dup() gets called
       unless Object.respond_to?(:initialize_dup)
         def dup # :nodoc:
