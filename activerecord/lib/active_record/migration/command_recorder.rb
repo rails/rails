@@ -6,11 +6,8 @@ module ActiveRecord
     #
     # * add_column
     # * add_index
-    # * add_timestamps
-    # * change_column
-    # * change_column_default
+    # * add_timestamp
     # * create_table
-    # * remove_column
     # * remove_timestamps
     # * rename_column
     # * rename_index
