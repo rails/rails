@@ -102,6 +102,18 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "4.3 cm", number_to_human(0.0432, :locale => 'ts', :units => :custom_units_for_number_to_human)
   end
 
+  def test_number_helpers_with_locale_fallback
+    I18n::Backend::Simple.send(:include, I18n::Backend::Fallbacks)
+    I18n.fallbacks.map(:tq => :ts)
+
+    assert_equal "&$ - 10.00", number_to_currency(10, :locale => 'tq')
+    assert_equal "12434%", number_to_percentage(12434, :locale => 'tq')
+    assert_equal "1,000,000.234", number_with_delimiter(1000000.234, :locale => 'tq')
+    assert_equal "10000", number_with_precision(10000, :locale => 'tq')
+    assert_equal "1.2 k", number_to_human_size(1184, :locale => 'tq')
+    assert_equal "1.3 Tenth", number_to_human(0.134, :locale => 'tq')
+  end
+
   private
     def clean_i18n
       load_path = I18n.load_path.dup
