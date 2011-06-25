@@ -168,7 +168,7 @@ module InflectorTestCases
 
   StringToParameterizeWithNoSeparator = {
     "Donald E. Knuth"                     => "donaldeknuth",
-    "With-some-dashes"                    => "withsomedashes",
+    "With-some-dashes"                    => "with-some-dashes",
     "Random text with *(bad)* characters" => "randomtextwithbadcharacters",
     "Trailing bad characters!@#"          => "trailingbadcharacters",
     "!@#Leading bad characters"           => "leadingbadcharacters",
