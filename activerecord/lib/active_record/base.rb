@@ -1806,7 +1806,11 @@ MSG
 
       # Allows sort on objects
       def <=>(other_object)
-        self.to_key <=> other_object.to_key
+        if other_object.is_a?(self.class)
+          self.to_key <=> other_object.to_key
+        else
+          nil
+        end
       end
 
       # Backport dup from 1.9 so that initialize_dup() gets called
