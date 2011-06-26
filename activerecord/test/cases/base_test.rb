@@ -486,6 +486,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [topic_2, topic_1].sort, [topic_1, topic_2]
   end
 
+  def test_comparison_with_different_objects
+    topic = Topic.create
+    category = Category.create(:name => "comparison")
+    assert_nil topic <=> category
+  end
+
   def test_readonly_attributes
     assert_equal Set.new([ 'title' , 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
 
