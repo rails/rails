@@ -133,8 +133,8 @@ module ActionController #:nodoc:
         end
       end
 
-      # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of response.body is used
-      # If no options are provided, the requested url is used. Example:
+      # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of response.body is used.
+      # If no options are provided, the url of the current request being handled is used. Example:
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = nil)
         return unless self.class.perform_caching && caching_allowed?
