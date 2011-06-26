@@ -970,14 +970,14 @@ h4. Working with scopes
 Where a relational object is required, the +scoped+ method may come in handy. This will return an +ActiveRecord::Relation+ object which can have further scoping applied to it afterwards. A place where this may come in handy is on associations
 
 <ruby>
-  client = Client.find_by_first_name("Ryan")
-  orders = client.orders.scoped
+client = Client.find_by_first_name("Ryan")
+orders = client.orders.scoped
 </ruby>
 
 With this new +orders+ object, we are able to ascertain that this object can have more scopes applied to it. For instance, if we wanted to return orders only in the last 30 days at a later point.
 
 <ruby>
-  orders.where("created_at > ?", 30.days.ago)
+orders.where("created_at > ?", 30.days.ago)
 </ruby>
 
 h4. Applying a default scope
@@ -985,23 +985,23 @@ h4. Applying a default scope
 If we wish for a scope to be applied across all queries to the model we can use the +default_scope+ method within the model itself.
 
 <ruby>
-  class Client < ActiveRecord::Base
-    default_scope where("removed_at IS NULL")
-  end
+class Client < ActiveRecord::Base
+  default_scope where("removed_at IS NULL")
+end
 </ruby>
 
 When queries are executed on this model, the SQL query will now look something like this:
 
-<ruby>
-  SELECT * FROM clients WHERE removed_at IS NULL
-</ruby>
+<sql>
+SELECT * FROM clients WHERE removed_at IS NULL
+</sql>
 
 h4. Removing all scoping
 
 If we wish to remove scoping for any reason we can use the +unscoped+ method. This is especially useful if a +default_scope+ is specified in the model and should not be applied for this particular query.
 
 <ruby>
-  Client.unscoped.all
+Client.unscoped.all
 </ruby>
 
 This method removes all scoping and will do a normal query on the table.
