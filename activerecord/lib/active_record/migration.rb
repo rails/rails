@@ -66,9 +66,9 @@ module ActiveRecord
   #       create_table :system_settings do |t|
   #         t.string  :name
   #         t.string  :label
-  #         t.text  :value
+  #         t.text    :value
   #         t.string  :type
-  #         t.integer  :position
+  #         t.integer :position
   #       end
   #
   #       SystemSetting.create  :name => "notice",
