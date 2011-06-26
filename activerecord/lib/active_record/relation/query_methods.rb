@@ -308,7 +308,13 @@ module ActiveRecord
       order_query.map do |o|
         case o
         when Arel::Nodes::Ordering
-          o.reverse
+          #this is a Kludge. Something like this should probably happen when ActiveRecord is lazy loaded
+          begin
+            o.reverse
+          rescue NoMethodError
+            Arel::Nodes::Ordering.send :define_method, :reverse, lambda { direction = direction == :asc ? :desc : :asc }
+            o.reverse
+          end
         when String, Symbol
           o.to_s.split(',').collect do |s|
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
