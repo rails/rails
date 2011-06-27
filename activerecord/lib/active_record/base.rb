@@ -1527,6 +1527,7 @@ MSG
         @marked_for_destruction = false
         @previously_changed = {}
         @changed_attributes = {}
+        @relation = nil
 
         ensure_proper_type
         set_serialized_attributes
@@ -1568,6 +1569,7 @@ MSG
       #   post.title # => 'hello world'
       def init_with(coder)
         @attributes = coder['attributes']
+        @relation = nil
 
         set_serialized_attributes
 
