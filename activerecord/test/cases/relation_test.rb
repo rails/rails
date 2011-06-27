@@ -20,7 +20,7 @@ module ActiveRecord
     end
 
     def test_single_values
-      assert_equal [:limit, :offset, :lock, :readonly, :create_with, :from, :reorder, :reverse_order].map(&:to_s).sort,
+      assert_equal [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order].map(&:to_s).sort,
         Relation::SINGLE_VALUE_METHODS.map(&:to_s).sort
     end
 
@@ -103,6 +103,7 @@ module ActiveRecord
       relation = Relation.new Post, Post.arel_table
       hash = { :hello => 'world' }
       relation.create_with_value = hash
+      p relation.method(:create_with_value).source_location
       assert_equal hash, relation.scope_for_create
     end
 

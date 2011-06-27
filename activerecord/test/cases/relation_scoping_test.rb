@@ -472,6 +472,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 'Jamis', jamis.name
   end
 
+  # FIXME: I don't know if this is *desired* behavior, but it is *today's*
+  # behavior.
+  def test_create_with_empty_hash_will_not_reset
+    jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with({}).new
+    assert_equal 'Aaron', jamis.name
+  end
+
   def test_unscoped_with_named_scope_should_not_have_default_scope
     assert_equal [DeveloperCalledJamis.find(developers(:poor_jamis).id)], DeveloperCalledJamis.poor
 

@@ -137,7 +137,7 @@ module ActiveRecord
 
     def create_with(value)
       relation = clone
-      relation.create_with_value = value && (@create_with_value || {}).merge(value)
+      relation.create_with_value = value ? create_with_value.merge(value) : {}
       relation
     end
 
