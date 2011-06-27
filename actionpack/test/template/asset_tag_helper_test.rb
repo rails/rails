@@ -1115,14 +1115,14 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png'))
   end
 
-  def test_asset_host_without_protocol_should_use_request_protocol
+  def test_asset_host_without_protocol_should_be_protocol_relative
     @controller.config.asset_host = 'a.example.com'
-    assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
+    assert_equal '//a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
   end
 
-  def test_asset_host_without_protocol_should_use_request_protocol_even_if_path_present
+  def test_asset_host_without_protocol_should_be_protocol_relative_even_if_path_present
     @controller.config.asset_host = 'a.example.com/files/go/here'
-    assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
+    assert_equal '//a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
   end
 
   def test_assert_css_and_js_of_the_same_name_return_correct_extension

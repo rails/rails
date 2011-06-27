@@ -4,7 +4,7 @@ module ActionView
   class AssetPaths #:nodoc:
     attr_reader :config, :controller
 
-    def initialize(config, controller)
+    def initialize(config, controller = nil)
       @config = config
       @controller = controller
     end
@@ -19,13 +19,15 @@ module ActionView
 
       source = rewrite_extension(source, dir, ext) if ext
       source = rewrite_asset_path(source, dir)
-
-      if controller && include_host
-        has_request = controller.respond_to?(:request)
-        source = rewrite_host_and_protocol(source, has_request)
-      end
-
+      source = rewrite_relative_url_root(source, relative_url_root) if has_request?
+      source = rewrite_host_and_protocol(source) if include_host
       source
+    end
+
+    # Return the filesystem path for the source
+    def compute_source_path(source, dir, ext)
+      source = rewrite_extension(source, dir, ext) if ext
+      File.join(config.assets_dir, dir, source)
     end
 
     def is_uri?(path)
@@ -46,13 +48,14 @@ module ActionView
       relative_url_root && !source.starts_with?("#{relative_url_root}/") ? "#{relative_url_root}#{source}" : source
     end
 
-    def rewrite_host_and_protocol(source, has_request)
-      source = rewrite_relative_url_root(source, controller.config.relative_url_root) if has_request
+    def has_request?
+      controller.respond_to?(:request)
+    end
+
+    def rewrite_host_and_protocol(source)
       host = compute_asset_host(source)
-      if has_request && host && !is_uri?(host)
-        host = "#{controller.request.protocol}#{host}"
-      end
-      "#{host}#{source}"
+      host = "//#{host}" if host && !is_uri?(host)
+      host.nil? ? source : "#{host}#{source}"
     end
 
     # Pick an asset host for this source. Returns +nil+ if no host is set,
@@ -61,19 +64,48 @@ module ActionView
     # or the value returned from invoking call on an object responding to call
     # (proc or otherwise).
     def compute_asset_host(source)
-      if host = config.asset_host
+      if host = asset_host_config
         if host.respond_to?(:call)
-          case host.is_a?(Proc) ? host.arity : host.method(:call).arity
-          when 2
-            request = controller.respond_to?(:request) && controller.request
-            host.call(source, request)
-          else
-            host.call(source)
+          args = [source]
+          arity = arity_of(host)
+          if arity > 1 && !has_request?
+            raise ActionController::RoutingError, "This asset host cannot be computed without a request in scope. Remove the second argument to your asset_host Proc if you do not need the request."
           end
+          args << current_request if (arity > 1 || arity < 0) && has_request?
+          host.call(*args)
         else
           (host =~ /%d/) ? host % (source.hash % 4) : host
         end
       end
     end
+
+    def relative_url_root
+      if controller.respond_to?(:config) && controller.config
+        controller.config.relative_url_root
+      elsif config.respond_to?(:action_controller) && config.action_controller
+        config.action_controller.relative_url_root
+      elsif Rails.respond_to?(:application) && Rails.application.config
+        Rails.application.config.action_controller.relative_url_root
+      end
+    end
+
+    def asset_host_config
+      if config.respond_to?(:asset_host)
+        config.asset_host
+      elsif Rails.respond_to?(:application)
+        Rails.application.config.action_controller.asset_host
+      end
+    end
+
+    # Returns the current request if one exists.
+    def current_request
+      controller.request if has_request?
+    end
+
+    # Returns the arity of a callable
+    def arity_of(callable)
+      callable.respond_to?(:arity) ? callable.arity : callable.method(:call).arity
+    end
+
   end
 end
