@@ -88,6 +88,7 @@ module Rails
     def lib
       empty_directory "lib"
       empty_directory_with_gitkeep "lib/tasks"
+      empty_directory_with_gitkeep "lib/assets"
     end
 
     def log
