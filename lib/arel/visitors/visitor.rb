@@ -11,15 +11,19 @@ module Arel
         hash[klass] = "visit_#{(klass.name || '').gsub('::', '_')}"
       end
 
+      def dispatch
+        DISPATCH
+      end
+
       def visit object
-        send DISPATCH[object.class], object
+        send dispatch[object.class], object
       rescue NoMethodError => e
-        raise e if respond_to?(DISPATCH[object.class], true)
+        raise e if respond_to?(dispatch[object.class], true)
         superklass = object.class.ancestors.find { |klass|
-          respond_to?(DISPATCH[klass], true)
+          respond_to?(dispatch[klass], true)
         }
         raise(TypeError, "Cannot visit #{object.class}") unless superklass
-        DISPATCH[object.class] = DISPATCH[superklass]
+        dispatch[object.class] = dispatch[superklass]
         retry
       end
     end

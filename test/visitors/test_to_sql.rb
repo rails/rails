@@ -13,6 +13,22 @@ module Arel
         @attr = @table[:id]
       end
 
+      it 'can define a dispatch method' do
+        visited = false
+        viz = Class.new(Arel::Visitors::Visitor) {
+          define_method(:hello) do |node|
+            visited = true
+          end
+
+          def dispatch
+            { Arel::Table => 'hello' }
+          end
+        }.new
+
+        viz.accept(@table)
+        assert visited, 'hello method was called'
+      end
+
       it "should be thread safe around usage of last_column" do
         visit_integer_column = Thread.new do
           Thread.stop

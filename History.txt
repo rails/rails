@@ -1,3 +1,10 @@
+== 2.1.2 / Unreleased
+
+* Bug Fixes
+
+  * Visitors can define their own cache strategey so caches are not shared.
+    Fixes #57
+
 == 2.1.1 / 2011/05/14
 
 * Bug fixes
