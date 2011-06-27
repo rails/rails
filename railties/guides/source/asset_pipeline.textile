@@ -49,7 +49,12 @@ Providing that assets are enabled within our application (+config.assets.enabled
 
 Otherwise, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
 
-Sprockets does not add any new methods to require your assets, we still use the familiar +javascript_include_tag+ and +stylesheet_link_tag+. You can use it to include from the normal public directory or the assets directory.
+Sprockets does not add any new methods to require your assets, we still use the familiar +javascript_include_tag+ and +stylesheet_link_tag+.
+
+<erb>
+  <%= stylesheet_link_tag "application" %>
+  <%= javascript_include_tag "application" %>
+</erb>
 
 h4. Manifest Files and Directives
 
