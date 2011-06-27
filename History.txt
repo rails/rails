@@ -1,4 +1,10 @@
-== 2.1.2 / Unreleased
+== 2.1.3 / 2011-06-27
+
+* Bug Fixues
+
+  * Fixed broken gem build.
+
+== 2.1.2 / 2011-06-27
 
 * Bug Fixes
 
