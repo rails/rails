@@ -21,9 +21,11 @@ lib/arel/insert_manager.rb
 lib/arel/math.rb
 lib/arel/nodes.rb
 lib/arel/nodes/and.rb
+lib/arel/nodes/ascending.rb
 lib/arel/nodes/binary.rb
 lib/arel/nodes/count.rb
 lib/arel/nodes/delete_statement.rb
+lib/arel/nodes/descending.rb
 lib/arel/nodes/equality.rb
 lib/arel/nodes/function.rb
 lib/arel/nodes/in.rb
@@ -59,6 +61,7 @@ lib/arel/visitors.rb
 lib/arel/visitors/depth_first.rb
 lib/arel/visitors/dot.rb
 lib/arel/visitors/ibm_db.rb
+lib/arel/visitors/informix.rb
 lib/arel/visitors/join_sql.rb
 lib/arel/visitors/mssql.rb
 lib/arel/visitors/mysql.rb
@@ -72,10 +75,13 @@ lib/arel/visitors/where_sql.rb
 test/attributes/test_attribute.rb
 test/helper.rb
 test/nodes/test_as.rb
+test/nodes/test_ascending.rb
 test/nodes/test_bin.rb
 test/nodes/test_count.rb
 test/nodes/test_delete_statement.rb
+test/nodes/test_descending.rb
 test/nodes/test_equality.rb
+test/nodes/test_infix_operation.rb
 test/nodes/test_insert_statement.rb
 test/nodes/test_named_function.rb
 test/nodes/test_node.rb
@@ -99,6 +105,7 @@ test/test_update_manager.rb
 test/visitors/test_depth_first.rb
 test/visitors/test_dot.rb
 test/visitors/test_ibm_db.rb
+test/visitors/test_informix.rb
 test/visitors/test_join_sql.rb
 test/visitors/test_mssql.rb
 test/visitors/test_mysql.rb
