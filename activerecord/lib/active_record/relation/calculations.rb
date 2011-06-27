@@ -146,10 +146,16 @@ module ActiveRecord
       if options.except(:distinct).present?
         apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
       else
-        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
-          construct_relation_for_association_calculations.calculate(operation, column_name, options)
+        relation = with_default_scope
+
+        if relation.equal?(self)
+          if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+            construct_relation_for_association_calculations.calculate(operation, column_name, options)
+          else
+            perform_calculation(operation, column_name, options)
+          end
         else
-          perform_calculation(operation, column_name, options)
+          relation.calculate(operation, column_name, options)
         end
       end
     rescue ThrowResult
@@ -196,7 +202,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = with_default_scope.reorder(nil)
+      relation = reorder(nil)
 
       if operation == "count" && (relation.limit_value || relation.offset_value)
         # Shortcut when limit is zero.
@@ -245,7 +251,7 @@ module ActiveRecord
         "#{field} AS #{aliaz}"
       }
 
-      relation = with_default_scope.except(:group).group(group.join(','))
+      relation = except(:group).group(group.join(','))
       relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation.to_sql)

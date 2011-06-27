@@ -39,6 +39,21 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "Rails.groups returns available groups" do
+      require "rails"
+
+      Rails.env = "development"
+      assert_equal [:default, "development"], Rails.groups
+      assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
+      assert_equal [:default, "development", :assets], Rails.groups(:assets => %w(development))
+
+      Rails.env = "test"
+      assert_equal [:default, "test"], Rails.groups(:assets => [:development])
+
+      ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
+      assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
+    end
+
     test "Rails.application is nil until app is initialized" do
       require 'rails'
       assert_nil Rails.application

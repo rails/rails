@@ -10,7 +10,7 @@ end
 
 gem "coffee-script"
 gem "sass"
-gem "uglifier", :git => "git://github.com/lautis/uglifier.git"
+gem "uglifier", ">= 1.0.0"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
@@ -26,9 +26,6 @@ gem "memcache-client", ">= 1.8.5"
 
 platforms :mri_18 do
   gem "system_timer"
-  # ruby-debug requires linecache which depends on require_relative but doesn't explicitly
-  # declare this in its gemspec
-  gem "require_relative"
   gem "ruby-debug", ">= 0.10.3"
   gem "json"
 end

@@ -777,7 +777,7 @@ If you need to post some data to an external resource it is still great to build
 Sometimes when you submit data to an external resource, like payment gateway, fields you can use in your form are limited by an external API. So you may want not to generate an +authenticity_token+ hidden field at all. For doing this just pass +false+ to the +:authenticity_token+ option:
 
 <erb>
-<%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
+<%= form_tag 'http://farfar.away/form', :authenticity_token => false) do %>
   Form contents
 <% end %>
 </erb>

@@ -61,6 +61,7 @@ module ActionController #:nodoc:
         end
 
         def after(controller)
+          self.controller = controller
           callback(:after) if controller.perform_caching
           # Clean up, so that the controller can be collected after this request
           self.controller = nil

@@ -61,6 +61,9 @@ RDoc::Task.new do |rdoc|
   # The temporary solution is to have a README.rdoc without backslashes for
   # GitHub, and gsub it to generate the main page of the API.
   #
+  # Also, relative links in GitHub have to point to blobs, whereas in the API
+  # they need to point to files.
+  #
   # The idea for the future is to have totally different files, since the
   # API is no longer a generic entry point to Rails and deserves a
   # dedicated main page specifically thought as an API entry point.
@@ -71,6 +74,7 @@ RDoc::Task.new do |rdoc|
     # since no autolinking happens there and RDoc displays the backslash
     # otherwise.
     rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
+    rdoc_main.gsub!(%r{link:blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
 
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)
