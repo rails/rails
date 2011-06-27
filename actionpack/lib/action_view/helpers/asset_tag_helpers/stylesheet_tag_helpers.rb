@@ -16,7 +16,8 @@ module ActionView
         end
 
         def asset_tag(source, options)
-          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_asset(source)) }.merge(options), false, false)
+          # We force the :request protocol here to avoid a double-download bug in IE7 and IE8
+          tag("link", { "rel" => "stylesheet", "type" => Mime::CSS, "media" => "screen", "href" => ERB::Util.html_escape(path_to_asset(source, true, :request)) }.merge(options), false, false)
         end
 
         def custom_dir
@@ -52,7 +53,7 @@ module ActionView
         # If the +source+ filename has no extension, <tt>.css</tt> will be appended (except for explicit URIs).
         # Full paths from the document root will be passed through.
         # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
-        #
+        # 
         # ==== Examples
         #   stylesheet_path "style"                                  # => /stylesheets/style.css
         #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
@@ -60,7 +61,7 @@ module ActionView
         #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
         #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
         def stylesheet_path(source)
-          asset_paths.compute_public_path(source, 'stylesheets', 'css')
+          asset_paths.compute_public_path(source, 'stylesheets', 'css', true, :request)
         end
         alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 

@@ -36,6 +36,10 @@ module ActiveSupport #:nodoc:
         self[name]
       end
     end
+
+    def respond_to?(name)
+      true
+    end
   end
 
   class InheritableOptions < OrderedOptions
