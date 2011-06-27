@@ -103,7 +103,6 @@ module ActiveRecord
       relation = Relation.new Post, Post.arel_table
       hash = { :hello => 'world' }
       relation.create_with_value = hash
-      p relation.method(:create_with_value).source_location
       assert_equal hash, relation.scope_for_create
     end
 
