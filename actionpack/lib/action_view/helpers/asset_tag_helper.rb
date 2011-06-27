@@ -347,7 +347,7 @@ module ActionView
         src = options[:src] = path_to_image(source)
 
         unless src =~ /^cid:/
-          options[:alt] = options.fetch(:alt){ File.basename(src, '.*').capitalize }
+          options[:alt] = options.fetch(:alt){ image_alt(src) }
         end
 
         if size = options.delete(:size)
@@ -360,6 +360,10 @@ module ActionView
         end
 
         tag("img", options)
+      end
+
+      def image_alt(src)
+        File.basename(src, '.*').gsub(/-[[:xdigit:]]{32}\z/, '').capitalize
       end
 
       # Returns an html video tag for the +sources+. If +sources+ is a string,

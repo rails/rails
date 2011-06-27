@@ -424,6 +424,14 @@ class AssetTagHelperTest < ActionView::TestCase
     PathToImageToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_image_alt
+    [nil, '/', '/foo/bar/', 'foo/bar/'].each do |prefix|
+      assert_equal 'Rails', image_alt("#{prefix}rails.png")
+      assert_equal 'Rails', image_alt("#{prefix}rails-9c0a079bdd7701d7e729bd956823d153.png")
+      assert_equal 'Avatar-0000', image_alt("#{prefix}avatar-0000.png")
+    end
+  end
+
   def test_image_tag
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
