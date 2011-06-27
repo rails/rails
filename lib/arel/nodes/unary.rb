@@ -18,6 +18,7 @@ module Arel
       Not
       Offset
       On
+      Ordering
       Top
       Lock
       DistinctOn

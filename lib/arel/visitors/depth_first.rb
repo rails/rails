@@ -22,6 +22,7 @@ module Arel
       alias :visit_Arel_Nodes_Not               :unary
       alias :visit_Arel_Nodes_Offset            :unary
       alias :visit_Arel_Nodes_On                :unary
+      alias :visit_Arel_Nodes_Ordering          :unary
       alias :visit_Arel_Nodes_Top               :unary
       alias :visit_Arel_Nodes_UnqualifiedColumn :unary
 
@@ -75,7 +76,6 @@ module Arel
       alias :visit_Arel_Nodes_NotEqual           :binary
       alias :visit_Arel_Nodes_NotIn              :binary
       alias :visit_Arel_Nodes_Or                 :binary
-      alias :visit_Arel_Nodes_Ordering           :binary
       alias :visit_Arel_Nodes_OuterJoin          :binary
       alias :visit_Arel_Nodes_TableAlias         :binary
       alias :visit_Arel_Nodes_Values             :binary

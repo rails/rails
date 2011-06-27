@@ -203,8 +203,12 @@ key on UpdateManager using UpdateManager#key=
         "(#{visit o.expr})"
       end
 
-      def visit_Arel_Nodes_Ordering o
-        "#{visit o.expr} #{o.descending? ? 'DESC' : 'ASC'}"
+      def visit_Arel_Nodes_Ascending o
+        "#{visit o.expr} ASC"
+      end
+
+      def visit_Arel_Nodes_Descending o
+        "#{visit o.expr} DESC"
       end
 
       def visit_Arel_Nodes_Group o
@@ -416,7 +420,8 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def quote_table_name name
-        @quoted_tables[name] ||= Arel::Nodes::SqlLiteral === name ? name : @connection.quote_table_name(name)
+        return name if Arel::Nodes::SqlLiteral === name
+        @quoted_tables[name] ||= @connection.quote_table_name(name)
       end
 
       def quote_column_name name

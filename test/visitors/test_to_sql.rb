@@ -1,7 +1,7 @@
 require 'helper'
 
 class Arel::Visitors::ToSql
-  def last_column; Thread.current[:arel_visitors_to_sql_last_column] || @last_column; end
+  def last_column; Thread.current[:arel_visitors_to_sql_last_column]; end
 end
 
 module Arel
@@ -13,12 +13,29 @@ module Arel
         @attr = @table[:id]
       end
 
+      it 'can define a dispatch method' do
+        visited = false
+        viz = Class.new(Arel::Visitors::Visitor) {
+          define_method(:hello) do |node|
+            visited = true
+          end
+
+          def dispatch
+            { Arel::Table => 'hello' }
+          end
+        }.new
+
+        viz.accept(@table)
+        assert visited, 'hello method was called'
+      end
+
       it "should be thread safe around usage of last_column" do
         visit_integer_column = Thread.new do
           Thread.stop
           @visitor.send(:visit_Arel_Attributes_Attribute, @attr)
         end
 
+        sleep 0.2
         @visitor.accept(@table[:name])
         assert_equal(:string, @visitor.last_column.type)
         visit_integer_column.run
