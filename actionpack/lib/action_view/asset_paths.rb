@@ -13,14 +13,20 @@ module ActionView
     # Prefix with <tt>/dir/</tt> if lacking a leading +/+. Account for relative URL
     # roots. Rewrite the asset path for cache-busting asset ids. Include
     # asset host, if configured, with the correct request protocol.
-    def compute_public_path(source, dir, ext = nil, include_host = true)
+    #
+    # When include_host is true and the asset host does not specify the protocol
+    # the protocol parameter specifies how the protocol will be added.
+    # When :relative (default), the protocol will be determined by the client using current protocol
+    # When :request, the protocol will be the request protocol
+    # Otherwise, the protocol is used (E.g. :http, :https, etc)
+    def compute_public_path(source, dir, ext = nil, include_host = true, protocol = :relative)
       source = source.to_s
       return source if is_uri?(source)
 
       source = rewrite_extension(source, dir, ext) if ext
       source = rewrite_asset_path(source, dir)
       source = rewrite_relative_url_root(source, relative_url_root) if has_request?
-      source = rewrite_host_and_protocol(source) if include_host
+      source = rewrite_host_and_protocol(source, protocol) if include_host
       source
     end
 
@@ -52,10 +58,31 @@ module ActionView
       controller.respond_to?(:request)
     end
 
-    def rewrite_host_and_protocol(source)
+    def rewrite_host_and_protocol(source, protocol = :relative)
       host = compute_asset_host(source)
-      host = "//#{host}" if host && !is_uri?(host)
+      if host && !is_uri?(host)
+        host = "#{compute_protocol(protocol)}#{host}"
+      end
       host.nil? ? source : "#{host}#{source}"
+    end
+
+    def compute_protocol(protocol)
+      protocol ||= :relative
+      case protocol
+      when :relative
+        "//"
+      when :request
+        unless @controller
+          invalid_asset_host!("The protocol requested was :request. Consider using :relative instead.")
+        end
+        @controller.request.protocol
+      else
+        "#{protocol}://"
+      end
+    end
+
+    def invalid_asset_host!(help_message)
+      raise ActionController::RoutingError, "This asset host cannot be computed without a request in scope. #{help_message}"
     end
 
     # Pick an asset host for this source. Returns +nil+ if no host is set,
@@ -69,7 +96,7 @@ module ActionView
           args = [source]
           arity = arity_of(host)
           if arity > 1 && !has_request?
-            raise ActionController::RoutingError, "This asset host cannot be computed without a request in scope. Remove the second argument to your asset_host Proc if you do not need the request."
+            invalid_asset_host!("Remove the second argument to your asset_host Proc if you do not need the request.")
           end
           args << current_request if (arity > 1 || arity < 0) && has_request?
           host.call(*args)

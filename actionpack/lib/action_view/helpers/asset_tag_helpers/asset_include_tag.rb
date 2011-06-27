@@ -60,8 +60,8 @@ module ActionView
 
         private
 
-          def path_to_asset(source)
-            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension)
+          def path_to_asset(source, protocol = :relative)
+            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension, true, protocol)
           end
 
           def path_to_asset_source(source)

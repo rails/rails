@@ -50,7 +50,7 @@ module Sprockets
               'rel'   => "stylesheet",
               'type'  => "text/css",
               'media' => "screen",
-              'href'  => asset_path(source, 'css', body)
+              'href'  => asset_path(source, 'css', body, :request)
             }.merge(options.stringify_keys)
 
             tag 'link', tag_options
@@ -58,9 +58,9 @@ module Sprockets
         end.join("\n").html_safe
       end
 
-      def asset_path(source, default_ext = nil, body = false)
+      def asset_path(source, default_ext = nil, body = false, protocol = :relative)
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', default_ext)
+        path = asset_paths.compute_public_path(source, 'assets', default_ext, protocol)
         body ? "#{path}?body=1" : path
       end
 
@@ -71,8 +71,8 @@ module Sprockets
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        def compute_public_path(source, dir, ext=nil, include_host=true)
-          super(source, Rails.application.config.assets.prefix, ext, include_host)
+        def compute_public_path(source, dir, ext=nil, include_host=true, protocol = :relative)
+          super(source, Rails.application.config.assets.prefix, ext, include_host, protocol)
         end
 
         # Return the filesystem path for the source
