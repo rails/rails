@@ -94,17 +94,17 @@ In addition to this single layer of pre-processing, we can also put on additiona
 
 Keep in mind that the order of these pre-processors is important. For example, if we called our JavaScript file +app/assets/javascripts/projects.js.erb.coffee+ then it would be processed with the CoffeeScript interpreter first, which wouldn't understand ERB and therefore we would run into problems.
 
-h4. Compressing Assets
+h3. Compressing Assets
 
 The default Gemfile also includes the "uglifier":https://github.com/lautis/uglifier gem. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your if and else statements to ternary operators when possible. 
 
 Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) of your assets. This prevents your server from contently compressing your assets for each request. You must configure your server to use GZip compression and serve the compressed assets in {location}. {Give Apache and NGINX examples since those are what's cool}
 
-h4. Adding Assets to Your Gems
+h3. Adding Assets to Your Gems
 
 To include your assets inside of a gem, simple package it in +lib/assets+ as you would in +app/assets+. You should append or prepend the name of your gem though, this should help avoid name conflicts with other gems or the user's application.
 
-h4. Making Your Library or Gem a Pre-Processor
+h3. Making Your Library or Gem a Pre-Processor
 
 "You should be able to register [your gems] on Tilt and Sprockets will find them." - Josh 
 Tilt: https://github.com/rtomayko/tilt
