@@ -49,7 +49,7 @@ To serve assets, we can use the same tags that we are generally familiar with:
   <%= image_tag "rails.png" %>
 </erb>
 
-Providing that assets are enabled within our application (+config.assets.enabled+ in your environment is set to +true+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served. Alternatively, a file with an MD5 hash after its name such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ will also be picked up by Sprockets.
+Providing that assets are enabled within our application (+config.assets.enabled+ in your environment is set to +true+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served. Alternatively, a file with an MD5 hash after its name such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ will also be picked up by Sprockets. How these hashes are generated is covered in the "Production Assets":#production_assets section later on in this guide.
 
 Otherwise, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
 
