@@ -62,9 +62,16 @@ class SprocketsHelperTest < ActionView::TestCase
       asset_path("http://www.example.com/video/play.mp4")
   end
 
-  test "with a simple asset host the url should be protocol relative" do
+  test "with a simple asset host the url should default to protocol relative" do
     @controller.config.asset_host = "assets-%d.example.com"
     assert_match %r{//assets-\d.example.com/assets/logo-[0-9a-f]+.png},
+      asset_path("logo.png")
+  end
+
+  test "with a simple asset host the url can be changed to use the request protocol" do
+    @controller.config.asset_host = "assets-%d.example.com"
+    @controller.config.default_asset_host_protocol = :request
+    assert_match %r{http://assets-\d.example.com/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
   end
   
@@ -101,6 +108,16 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_raises ActionController::RoutingError do
       asset_path("logo.png")
     end
+  end
+
+  test "stylesheets served without a controller in do not use asset hosts when the default protocol is :request" do
+    remove_instance_variable("@controller")
+    @config.action_controller.asset_host = "assets-%d.example.com"
+    @config.action_controller.default_asset_host_protocol = :request
+    @config.action_controller.perform_caching = true
+
+    assert_equal "/assets/logo-9c0a079bdd7701d7e729bd956823d153.png",
+      asset_path("logo.png")
   end
 
   test "asset path with relative url root" do
