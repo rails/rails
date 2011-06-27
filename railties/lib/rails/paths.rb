@@ -7,8 +7,8 @@ module Rails
         match = id.to_s.match(/^(.*)=$/)
         full  = [@current, $1 || id].compact.join("/")
 
-        ActiveSupport::Deprecation.warn 'config.paths.app.controller API is deprecated in ' <<
-          'favor of config.paths["app/controller"] API.'
+        ActiveSupport::Deprecation.warn 'Accessing paths using dot style as in `config.paths.app.controller` is deprecated. Please use ' <<
+          '`config.paths["app/controller"]` style instead.'
 
         if match || args.any?
           @root[full] = Path.new(@root, full, *args)
