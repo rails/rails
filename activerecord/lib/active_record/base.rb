@@ -2074,7 +2074,7 @@ MSG
       end
 
       def populate_with_current_scope_attributes
-        self.class.scoped.scope_for_create.each do |att,value|
+        self.class.scope_attributes.each do |att,value|
           respond_to?("#{att}=") && send("#{att}=", value)
         end
       end
