@@ -6,7 +6,7 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from, :reorder, :reverse_order]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
@@ -29,6 +29,7 @@ module ActiveRecord
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
       @extensions = []
+      @create_with_value = {}
     end
 
     def insert(values)
@@ -403,7 +404,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(@create_with_value || {})
+      @scope_for_create ||= where_values_hash.merge(create_with_value)
     end
 
     def eager_loading?
