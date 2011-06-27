@@ -37,10 +37,6 @@ Assets can be placed inside an application in one of three locations: +app/asset
 
 Any subdirectory that exists within these three locations will be added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths will be looked through to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and then served up.
 
-h4. External Assets
-
-Assets can also come from external sources such as engines. A good example of this is the +jquery-rails+ gem which comes with Rails as the standard JavaScript library gem. This gem contains an engine class which inherits from +Rails::Engine+. By doing this, Rails is informed that the directory for this gem may contain assets and the +app/assets+, +lib/assets+ and +vendor/assets+ directories of this engine are added to the search path of Sprockets.
-
 h4. Serving Assets
 
 To serve assets, we can use the same tags that we are generally familiar with:
@@ -102,7 +98,9 @@ Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) of your 
 
 h3. Adding Assets to Your Gems
 
-To include your assets inside of a gem, simple package it in +lib/assets+ as you would in +app/assets+. You should append or prepend the name of your gem though, this should help avoid name conflicts with other gems or the user's application.
+Assets can also come from external sources in the form of gems.
+
+A good example of this is the +jquery-rails+ gem which comes with Rails as the standard JavaScript library gem. This gem contains an engine class which inherits from +Rails::Engine+. By doing this, Rails is informed that the directory for this gem may contain assets and the +app/assets+, +lib/assets+ and +vendor/assets+ directories of this engine are added to the search path of Sprockets.
 
 h3. Making Your Library or Gem a Pre-Processor
 
