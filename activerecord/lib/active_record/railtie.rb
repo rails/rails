@@ -112,7 +112,7 @@ module ActiveRecord
       lookup = I18n.t(container, :default => {})
       if lookup.is_a?(Hash)
         lookup.each do |key, value|
-          if value.is_a?(Hash)
+          if value.is_a?(Hash) && !value.key?(:one)
             $stderr.puts "[DEPRECATION WARNING] Nested I18n namespace lookup under \"#{container}.#{key}\" is no longer supported"
           end
         end
