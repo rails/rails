@@ -4,6 +4,9 @@
 
   * Visitors can define their own cache strategey so caches are not shared.
     Fixes #57
+  * Informix support fixed.  Thanks Khronos.
+  * Ordering nodes broken to subclasses.  Thanks Ernie Miller!
+  * Reversal supported in ordering nodes.  Thanks Ernie Miller!
 
 == 2.1.1 / 2011/05/14
 
