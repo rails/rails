@@ -53,7 +53,7 @@ module Rails
         :helper => true,
         :integration_tool => nil,
         :javascripts => true,
-        :javascript_engine => nil,
+        :javascript_engine => :js,
         :orm => false,
         :performance_tool => nil,
         :resource_controller => :controller,
