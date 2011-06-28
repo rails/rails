@@ -466,7 +466,7 @@ To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the
 For example, if you want to find a collection of the dates orders were created on:
 
 <ruby>
-Order.group("date(created_at)").order("created_at")
+Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
 </ruby>
 
 And this will give you a single +Order+ object for each date where there are orders in the database.
@@ -474,7 +474,7 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at) ORDER BY created_at
+SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at)
 </sql>
 
 h3. Having
