@@ -226,16 +226,41 @@ module ActiveRecord
     end
 
     def apply_join_dependency(relation, join_dependency)
-      join_dependency.join_associations.each do |association|
-        relation = association.join_relation(relation)
-      end
-
       limitable_reflections = using_limitable_reflections?(join_dependency.reflections)
 
       if !limitable_reflections && relation.limit_value
-        limited_id_condition = construct_limited_ids_condition(relation.except(:select))
+		# Determine which tables are actually used to limit/sort the result set
+		order_tables = tables_in_string(relation.order_values.join(', ')).map {|t| t.strip if t.respond_to?(:strip)}
+		where_tables = tables_in_string(relation.arel.where_sql).map {|t| t.strip if t.respond_to?(:strip)}
+		all_tables = (order_tables + where_tables)
+		all_tables.uniq!
+
+		# Create a separate relation for use in the DISTINCT query
+		clean_relation = relation.dup
+		
+		to_join = []
+		for association in join_dependency.join_associations
+		  if all_tables.include?(association.aliased_table_name)
+			# If you're querying on a second-level association (e.g foo.include({:bar => :baz}).where('bars_bazes...'))
+			# we need to join all the intermediate tables too.
+			node = association
+			while (node.is_a?(ActiveRecord::Associations::JoinDependency::JoinAssociation))
+			  to_join.unshift node
+			  node = node.parent
+			end
+		  end
+		  relation = association.join_relation(relation) 
+		end
+		to_join.uniq!
+		to_join.each {|ja| clean_relation = ja.join_relation(clean_relation) }
+		
+        limited_id_condition = construct_limited_ids_condition(clean_relation.except(:select))
         relation = relation.where(limited_id_condition)
-      end
+	  else
+		join_dependency.join_associations.each do |association|
+		  relation = association.join_relation(relation)
+		end
+	  end
 
       relation = relation.except(:limit, :offset) unless limitable_reflections
 
