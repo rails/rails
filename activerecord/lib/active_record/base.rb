@@ -1893,9 +1893,10 @@ MSG
     private
 
       def set_serialized_attributes
-        (@attributes.keys & self.class.serialized_attributes.keys).each do |key|
-          coder = self.class.serialized_attributes[key]
-          @attributes[key] = coder.load @attributes[key]
+        sattrs = self.class.serialized_attributes
+
+        sattrs.each do |key, coder|
+          @attributes[key] = coder.load @attributes[key] if @attributes.key?(key)
         end
       end
 
