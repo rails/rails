@@ -5,7 +5,7 @@ gemspec
 if ENV['AREL']
   gem "arel", :path => ENV['AREL']
 else
-  gem "arel", '~> 2.1.0'
+  gem "arel", '~> 2.1.3'
 end
 
 gem "coffee-script"
