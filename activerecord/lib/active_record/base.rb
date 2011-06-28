@@ -709,6 +709,12 @@ module ActiveRecord #:nodoc:
         connection_pool.columns_hash[table_name]
       end
 
+      # Returns a hash where the keys are column names and the values are
+      # default values when instantiating the AR object for this table.
+      def column_defaults
+        connection_pool.column_defaults[table_name]
+      end
+
       # Returns an array of column names as strings.
       def column_names
         @column_names ||= columns.map { |column| column.name }

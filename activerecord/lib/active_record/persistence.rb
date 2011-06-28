@@ -319,9 +319,7 @@ module ActiveRecord
     # that a new instance, or one populated from a passed-in Hash, still has all the attributes
     # that instances loaded from the database would.
     def attributes_from_column_definition
-      Hash[self.class.columns.map do |column|
-        [column.name, column.default]
-      end]
+      self.class.column_defaults.dup
     end
   end
 end
