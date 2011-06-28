@@ -1542,9 +1542,8 @@ MSG
 
         assign_attributes(attributes, options) if attributes
 
-        result = yield self if block_given?
+        yield self if block_given?
         run_callbacks :initialize
-        result
       end
 
       # Populate +coder+ with attributes about this record that should be
