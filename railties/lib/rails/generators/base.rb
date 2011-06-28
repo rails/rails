@@ -263,6 +263,10 @@ module Rails
               break unless last_module.const_defined?(nest, *extra)
               last_module.const_get(nest)
             end
+            
+            if class_name =~ /(Rails|Properties|Assets)Controller/
+              raise Error, "The name '#{class_name}' is reserved for use by Rails"
+            end
 
             if last && last.const_defined?(last_name.camelize, *extra)
               raise Error, "The name '#{class_name}' is either already used in your application " <<

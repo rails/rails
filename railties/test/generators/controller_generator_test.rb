@@ -24,6 +24,15 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   ensure
     Object.send :remove_const, :ObjectController
   end
+  
+  def test_reserved_controller_names_are_prevented
+    content = capture(:stderr){ run_generator ["rails"] }
+    assert_match(/The name 'RailsController' is reserved for use by Rails/, content)
+    content = capture(:stderr){ run_generator ["assets"] }
+    assert_match(/The name 'AssetsController' is reserved for use by Rails/, content)
+    content = capture(:stderr){ run_generator ["my_assets"] }
+    assert_match("", content)
+  end
 
   def test_invokes_helper
     run_generator
