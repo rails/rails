@@ -2092,6 +2092,8 @@ MSG
       end
 
       def populate_with_current_scope_attributes
+        return unless self.class.scope_attributes?
+
         self.class.scope_attributes.each do |att,value|
           send("#{att}=", value) if respond_to?("#{att}=")
         end
