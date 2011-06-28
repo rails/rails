@@ -92,17 +92,17 @@ module Rails
   # The available paths in an engine are:
   #
   #   class MyEngine < Rails::Engine
-  #     paths["app"]                 #=> ["app"]
-  #     paths["app/controllers"]     #=> ["app/controllers"]
-  #     paths["app/helpers"]         #=> ["app/helpers"]
-  #     paths["app/models"]          #=> ["app/models"]
-  #     paths["app/views"]           #=> ["app/views"]
-  #     paths["lib"]                 #=> ["lib"]
-  #     paths["lib/tasks"]           #=> ["lib/tasks"]
-  #     paths["config"]              #=> ["config"]
-  #     paths["config/initializers"] #=> ["config/initializers"]
-  #     paths["config/locales"]      #=> ["config/locales"]
-  #     paths["config/routes"]       #=> ["config/routes.rb"]
+  #     paths["app"]                 # => ["app"]
+  #     paths["app/controllers"]     # => ["app/controllers"]
+  #     paths["app/helpers"]         # => ["app/helpers"]
+  #     paths["app/models"]          # => ["app/models"]
+  #     paths["app/views"]           # => ["app/views"]
+  #     paths["lib"]                 # => ["lib"]
+  #     paths["lib/tasks"]           # => ["lib/tasks"]
+  #     paths["config"]              # => ["config"]
+  #     paths["config/initializers"] # => ["config/initializers"]
+  #     paths["config/locales"]      # => ["config/locales"]
+  #     paths["config/routes"]       # => ["config/routes.rb"]
   #   end
   #
   # Your <tt>Application</tt> class adds a couple more paths to this set. And as in your
@@ -180,7 +180,7 @@ module Rails
   #   <tt>my_engine:install:assets</tt>
   #
   # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
-  # <tt>my_engine_engine</tt>. You can change it manually it manually using the <tt>engine_name</tt> method:
+  # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -234,14 +234,14 @@ module Rails
   # use the prefix "my_engine". In an isolated engine, the prefix will be omitted in url helpers and
   # form fields for convenience.
   #
-  #   polymorphic_url(MyEngine::Article.new) #=> "articles_path"
+  #   polymorphic_url(MyEngine::Article.new) # => "articles_path"
   #
   #   form_for(MyEngine::Article.new) do
-  #     text_field :title #=> <input type="text" name="article[title]" id="article_title" />
+  #     text_field :title # => <input type="text" name="article[title]" id="article_title" />
   #   end
   #
-  # Additionally isolated engine will set its name according to namespace, so
-  # MyEngine::Engine.engine_name #=> "my_engine". It will also set MyEngine.table_name_prefix
+  # Additionally an isolated engine will set its name according to namespace, so
+  # MyEngine::Engine.engine_name will be "my_engine". It will also set MyEngine.table_name_prefix
   # to "my_engine_", changing MyEngine::Article model to use my_engine_article table.
   #
   # == Using Engine's routes outside Engine
@@ -250,7 +250,7 @@ module Rails
   # <tt>url_helpers</tt> inside +Application+. When you mount an engine in an application's routes, a special helper is
   # created to allow you to do that. Consider such a scenario:
   #
-  #   # APP/config/routes.rb
+  #   # config/routes.rb
   #   MyApplication::Application.routes.draw do
   #     mount MyEngine::Engine => "/my_engine", :as => "my_engine"
   #     match "/foo" => "foo#index"
@@ -296,7 +296,7 @@ module Rails
   #   helper MyEngine::SharedEngineHelper
   # end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on egine's
+  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
   # instance:
   #
   # class ApplicationController < ActionController::Base
@@ -305,7 +305,7 @@ module Rails
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
-  # only helpers defined in helpers directory will be included.
+  # only helpers defined in the helpers directory will be included.
   #
   # == Migrations & seed data
   #
@@ -329,6 +329,14 @@ module Rails
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
+
+    def load_generators(app=self)
+      initialize_generators
+      railties.all { |r| r.load_generators(app) }
+      Rails::Generators.configure!(app.config.generators)
+      super
+      self
+    end
 
     class << self
       attr_accessor :called_from, :isolated
@@ -387,12 +395,20 @@ module Rails
     delegate :middleware, :root, :paths, :to => :config
     delegate :engine_name, :isolated?, :to => "self.class"
 
-    def load_tasks
+    def load_tasks(app=self)
+      railties.all { |r| r.load_tasks(app) }
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
-
+    
+    def load_console(app=self)
+      railties.all { |r| r.load_console(app) }
+      super
+    end
+    
     def eager_load!
+      railties.all(&:eager_load!)
+      
       config.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
@@ -522,8 +538,9 @@ module Rails
     end
 
     initializer :append_assets_path do |app|
-      app.config.assets.paths.unshift *paths["vendor/assets"].existent
-      app.config.assets.paths.unshift *paths["app/assets"].existent
+      app.config.assets.paths.unshift(*paths["vendor/assets"].existent)
+      app.config.assets.paths.unshift(*paths["lib/assets"].existent)
+      app.config.assets.paths.unshift(*paths["app/assets"].existent)
     end
 
     initializer :prepend_helpers_path do |app|
@@ -559,6 +576,10 @@ module Rails
     end
 
   protected
+
+    def initialize_generators
+      require "rails/generators"
+    end
 
     def routes?
       defined?(@routes)

@@ -17,7 +17,7 @@ module ActiveRecord
       #   posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
       #
       #   fruits = Fruit.scoped
-      #   fruits = fruits.where(:colour => 'red') if options[:red_only]
+      #   fruits = fruits.where(:color => 'red') if options[:red_only]
       #   fruits = fruits.limit(10) if limited?
       #
       # Anonymous \scopes tend to be useful when procedurally generating complex
@@ -37,6 +37,22 @@ module ActiveRecord
             scope.default_scoped = true
             scope
           end
+        end
+      end
+
+      ##
+      # Collects attributes from scopes that should be applied when creating
+      # an AR instance for the particular class this is called on.
+      def scope_attributes # :nodoc:
+        if current_scope
+          current_scope.scope_for_create
+        else
+          # Return an empty hash in the simple case
+          return {} unless default_scopes.any?
+
+          scope = relation.clone
+          scope.default_scoped = true
+          scope.scope_for_create
         end
       end
 

@@ -215,6 +215,30 @@ class TestJSONEncoding < Test::Unit::TestCase
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
 
+  def test_enumerable_should_pass_encoding_options_to_children_in_as_json
+    people = [
+      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+    ]
+    json = people.each.as_json :only => [:address, :city]
+    expected = [
+      { 'address' => { 'city' => 'London' }},
+      { 'address' => { 'city' => 'Paris' }}
+    ]
+
+    assert_equal(expected, json)
+  end
+
+  def test_enumerable_should_pass_encoding_options_to_children_in_to_json
+    people = [
+      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+    ]
+    json = people.each.to_json :only => [:address, :city]
+
+    assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
+  end
+
   def test_struct_encoding
     Struct.new('UserNameAndEmail', :name, :email)
     Struct.new('UserNameAndDate', :name, :date)
@@ -258,13 +282,4 @@ class TestJSONEncoding < Test::Unit::TestCase
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
-end
-
-class JsonOptionsTests < Test::Unit::TestCase
-  def test_enumerable_should_passthrough_options_to_elements
-    value, options = Object.new, Object.new
-    def value.as_json(options) options end
-    def options.encode_json(encoder) self end
-    assert_equal options, ActiveSupport::JSON.encode(value, options)
-  end
 end

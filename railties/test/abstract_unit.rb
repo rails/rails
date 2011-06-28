@@ -10,7 +10,6 @@ require 'active_support/core_ext/logger'
 require 'action_controller'
 require 'rails/all'
 
-# TODO: Remove these hacks
 module TestApp
   class Application < Rails::Application
     config.root = File.dirname(__FILE__)

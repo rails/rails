@@ -1,6 +1,7 @@
 require 'date'
 require 'active_support/inflector/methods'
 require 'active_support/core_ext/date/zones'
+require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
@@ -13,10 +14,10 @@ class Date
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
-  remove_method :to_time if method_defined?(:to_time)
+  remove_possible_method :to_time
 
   # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
-  remove_method :xmlschema if method_defined?(:xmlschema)
+  remove_possible_method :xmlschema
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #

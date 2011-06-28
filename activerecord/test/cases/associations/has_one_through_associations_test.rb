@@ -310,4 +310,8 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal dashboard, minivan.dashboard
     assert_equal dashboard, minivan.speedometer.dashboard
   end
+
+  def test_has_one_through_with_custom_select_on_join_model_default_scope
+    assert_equal clubs(:boring_club), members(:groucho).selected_club
+  end
 end

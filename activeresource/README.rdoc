@@ -20,6 +20,16 @@ Model classes are mapped to remote REST resources by Active Resource much the sa
 tables.  When a request is made to a remote resource, a REST XML request is generated, transmitted, and the result
 received and serialized into a usable Ruby object.
 
+== Download and installation
+
+The latest version of Active Support can be installed with Rubygems:
+
+  % [sudo] gem install activeresource
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/activeresource/
+
 === Configuration and Usage
 
 Putting Active Resource to use is very similar to Active Record.  It's as simple as creating a model class
@@ -160,6 +170,18 @@ Destruction of a resource can be invoked as a class and instance method of the r
   Person.delete(2)  # => true
   Person.exists?(2) # => false
 
+== License
+
+Active Support is released under the MIT license.
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.org
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
 
 You can find more usage information in the ActiveResource::Base documentation.
-

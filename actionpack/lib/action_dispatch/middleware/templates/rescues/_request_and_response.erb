@@ -24,7 +24,7 @@
 <div id="session_dump" style="display:none"><pre><%= debug_hash @request.session %></pre></div>
 
 <p><a href="#" onclick="document.getElementById('env_dump').style.display='block'; return false;">Show env dump</a></p>
-<div id="env_dump" style="display:none"><pre><%= debug_hash @request.env %></pre></div>
+<div id="env_dump" style="display:none"><pre><%= debug_hash @request.env.slice(*@request.class::ENV_METHODS) %></pre></div>
 
 
 <h2 style="margin-top: 30px">Response</h2>

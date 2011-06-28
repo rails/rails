@@ -2,6 +2,7 @@ require 'active_support/concern'
 require 'active_support/ordered_options'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
   # Configurable provides a <tt>config</tt> method to store and retrieve
@@ -51,14 +52,16 @@ module ActiveSupport
       #   user.allowed_access # => true
       #
       def config_accessor(*names)
-        names.each do |name|
-          code, line = <<-RUBY, __LINE__ + 1
-            def #{name}; config.#{name}; end
-            def #{name}=(value); config.#{name} = value; end
-          RUBY
+        options = names.extract_options!
 
-          singleton_class.class_eval code, __FILE__, line
-          class_eval code, __FILE__, line
+        names.each do |name|
+          reader, line = "def #{name}; config.#{name}; end", __LINE__
+          writer, line = "def #{name}=(value); config.#{name} = value; end", __LINE__
+
+          singleton_class.class_eval reader, __FILE__, line
+          singleton_class.class_eval writer, __FILE__, line
+          class_eval reader, __FILE__, line unless options[:instance_reader] == false
+          class_eval writer, __FILE__, line unless options[:instance_writer] == false
         end
       end
     end

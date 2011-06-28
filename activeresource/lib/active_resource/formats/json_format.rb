@@ -18,7 +18,7 @@ module ActiveResource
       end
 
       def decode(json)
-        ActiveSupport::JSON.decode(json)
+        Formats.remove_root(ActiveSupport::JSON.decode(json))
       end
     end
   end

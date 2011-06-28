@@ -33,7 +33,11 @@ module ActiveRecord
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
     # details.
     def save(*)
-      create_or_update
+      begin
+        create_or_update
+      rescue ActiveRecord::RecordInvalid
+        false
+      end
     end
 
     # Saves the model.
@@ -133,6 +137,8 @@ module ActiveRecord
     # * Callbacks are skipped.
     # * updated_at/updated_on column is not updated if that column is available.
     #
+    # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
+    # attribute is marked as readonly.
     def update_column(name, value)
       name = name.to_s
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
@@ -146,7 +152,7 @@ module ActiveRecord
     # will fail and false will be returned.
     #
     # When updating model attributes, mass-assignment security protection is respected.
-    # If no +:as+ option is supplied then the +:default+ scope will be used.
+    # If no +:as+ option is supplied then the +:default+ role will be used.
     # If you want to bypass the protection given by +attr_protected+ and
     # +attr_accessible+ then you can do so using the +:without_protection+ option.
     def update_attributes(attributes, options = {})
@@ -273,7 +279,7 @@ module ActiveRecord
 
         @changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
-        self.class.update_all(changes, { primary_key => self[primary_key] }) == 1
+        self.class.unscoped.update_all(changes, { primary_key => self[primary_key] }) == 1
       end
     end
 
@@ -313,9 +319,7 @@ module ActiveRecord
     # that a new instance, or one populated from a passed-in Hash, still has all the attributes
     # that instances loaded from the database would.
     def attributes_from_column_definition
-      Hash[self.class.columns.map do |column|
-        [column.name, column.default]
-      end]
+      self.class.column_defaults.dup
     end
   end
 end

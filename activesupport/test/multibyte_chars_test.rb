@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'abstract_unit'
 require 'multibyte_test_helpers'
+require 'active_support/core_ext/string/multibyte'
 
 class String
   def __method_for_multibyte_testing_with_integer_result; 1; end

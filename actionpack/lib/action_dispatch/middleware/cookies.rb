@@ -1,4 +1,5 @@
-require "active_support/core_ext/object/blank"
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/keys'
 
 module ActionDispatch
   class Request
@@ -59,7 +60,7 @@ module ActionDispatch
   # The option symbols for setting cookies are:
   #
   # * <tt>:value</tt> - The cookie's value or list of values (as an array).
-  # * <tt>:path</tt> - The path for which this cookie applies.  Defaults to the root
+  # * <tt>:path</tt> - The path for which this cookie applies. Defaults to the root
   #   of the application.
   # * <tt>:domain</tt> - The domain for which this cookie applies so you can
   #   restrict to the domain level. If you use a schema like www.example.com
@@ -129,7 +130,7 @@ module ActionDispatch
       end
 
       def update(other_hash)
-        @cookies.update other_hash
+        @cookies.update other_hash.stringify_keys
         self
       end
 
@@ -167,8 +168,8 @@ module ActionDispatch
 
         handle_options(options)
 
-        @set_cookies[key] = options
-        @delete_cookies.delete(key)
+        @set_cookies[key.to_s] = options
+        @delete_cookies.delete(key.to_s)
         value
       end
 
@@ -181,8 +182,13 @@ module ActionDispatch
         handle_options(options)
 
         value = @cookies.delete(key.to_s)
-        @delete_cookies[key] = options
+        @delete_cookies[key.to_s] = options
         value
+      end
+
+      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
+      def clear(options = {})
+        @cookies.each_key{ |k| delete(k, options) }
       end
 
       # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
@@ -220,6 +226,11 @@ module ActionDispatch
       def write(headers)
         @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
+      end
+
+      def recycle! #:nodoc:
+        @set_cookies.clear
+        @delete_cookies.clear
       end
 
       private
@@ -305,7 +316,7 @@ module ActionDispatch
 
         if secret.length < SECRET_MIN_LENGTH
           raise ArgumentError, "Secret should be something secure, " +
-            "like \"#{ActiveSupport::SecureRandom.hex(16)}\".  The value you " +
+            "like \"#{SecureRandom.hex(16)}\". The value you " +
             "provided, \"#{secret}\", is shorter than the minimum length " +
             "of #{SECRET_MIN_LENGTH} characters"
         end

@@ -77,7 +77,7 @@ class HelperTest < ActiveSupport::TestCase
     self.test_helper = LocalAbcHelper
   end
 
-  def test_deprecated_helper
+  def test_helper
     assert_equal expected_helper_methods, missing_methods
     assert_nothing_raised { @controller_class.helper TestHelper }
     assert_equal [], missing_methods

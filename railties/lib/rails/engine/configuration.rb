@@ -47,6 +47,7 @@ module Rails
           paths.add "app/mailers",         :eager_load => true
           paths.add "app/views"
           paths.add "lib",                 :load_path => true
+          paths.add "lib/assets",          :glob => "*"
           paths.add "lib/tasks",           :glob => "**/*.rake"
           paths.add "config"
           paths.add "config/environments", :glob => "#{Rails.env}.rb"

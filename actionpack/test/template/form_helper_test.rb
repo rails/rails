@@ -696,13 +696,13 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit('Edit post')
     end
 
-    expected =
-      "<form accept-charset='UTF-8' action='/posts/44' method='post'>" +
-      snowman +
-      "<label for='post_title'>The Title</label>" +
+    expected = whole_form("/posts/44", "edit_post_44" , "edit_post", :method => "put") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
-      "<input name='commit' id='post_submit' type='submit' value='Edit post' />" +
+      "<input name='commit' type='submit' value='Edit post' />" +
       "</form>"
+    end
+
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_symbol_object_name
@@ -974,6 +974,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_index_with_index_and_parent_fields
+    form_for(@post, :index => 1) do |c|
+      concat c.text_field(:title)
+      concat c.fields_for_with_index('comment', @comment, :index => 1) { |r, comment_index|
+        concat r.text_field(:name, "data-index" => comment_index)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', 'put') do
+      "<input name='post[1][title]' size='30' type='text' id='post_1_title' value='Hello World' />" +
+      "<input name='post[1][comment][1][name]' size='30' type='text' id='post_1_comment_1_name' value='new comment' data-index='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_index_and_nested_fields_for
     output_buffer = form_for(@post, :index => 1) do |f|
       concat f.fields_for(:comment, @post) { |c|
@@ -1025,6 +1041,20 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', 'put') do
       "<input name='post[comment][5][title]' type='radio' id='post_comment_5_title_hello' value='hello' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index_with_index_radio_button
+    form_for(@post) do |f|
+      concat f.fields_for_with_index(:comment, @post, :index => 5) { |c, index|
+        concat c.radio_button(:title, "hello", "data-index" => index)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', 'put') do
+      "<input name='post[comment][5][title]' type='radio' id='post_comment_5_title_hello' value='hello' data-index='5' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1229,6 +1259,29 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_index_with_existing_records_on_a_nested_attributes_collection_association
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        concat f.fields_for_with_index(:comments, comment) { |cf, index|
+          concat cf.text_field(:name, "data-index" => index)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #1" data-index="0" />' +
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="1" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" data-index="1" />' +
+      '<input id="post_comments_attributes_1_id" name="post[comments_attributes][1][id]" type="hidden" value="2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
     @post.author = Author.new(321)
@@ -1251,6 +1304,33 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' +
       '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #1" />' +
       '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_index_with_existing_records_on_a_nested_attributes_collection_association_with_disabled_hidden_id
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+    @post.author = Author.new(321)
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:author) { |af|
+        concat af.text_field(:name)
+      }
+      @post.comments.each do |comment|
+        concat f.fields_for_with_index(:comments, comment, :include_id => false) { |cf, index|
+          concat cf.text_field(:name, 'data-index' => index)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="author #321" />' +
+      '<input id="post_author_attributes_id" name="post[author_attributes][id]" type="hidden" value="321" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #1" data-index="0" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="comment #2" data-index="1" />'
     end
 
     assert_dom_equal expected, output_buffer
@@ -1377,6 +1457,28 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_index_with_new_records_on_a_nested_attributes_collection_association
+    @post.comments = [Comment.new, Comment.new]
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        concat f.fields_for_with_index(:comments, comment) { |cf, index|
+          concat cf.text_field(:name, "data-index" => index)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="new comment" data-index="0" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="new comment" data-index="1" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+
   def test_nested_fields_for_with_existing_and_new_records_on_a_nested_attributes_collection_association
     @post.comments = [Comment.new(321), Comment.new]
 
@@ -1398,6 +1500,29 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, output_buffer
   end
+
+  def test_nested_fields_for_with_index_with_existing_and_new_records_on_a_nested_attributes_collection_association
+    @post.comments = [Comment.new(321), Comment.new]
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        concat f.fields_for_with_index(:comments, comment) { |cf, index|
+          concat cf.text_field(:name, "data-index" => index)
+        }
+      end
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input name="post[title]" size="30" type="text" id="post_title" value="Hello World" />' +
+      '<input id="post_comments_attributes_0_name" name="post[comments_attributes][0][name]" size="30" type="text" value="comment #321" data-index="0" />' +
+      '<input id="post_comments_attributes_0_id" name="post[comments_attributes][0][id]" type="hidden" value="321" />' +
+      '<input id="post_comments_attributes_1_name" name="post[comments_attributes][1][name]" size="30" type="text" value="new comment" data-index="1" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
 
   def test_nested_fields_for_with_an_empty_supplied_attributes_collection
     form_for(@post) do |f|
@@ -1564,6 +1689,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_hash_like_model
+    @author = HashBackedAuthor.new
+
+    form_for(@post) do |f|
+      concat f.fields_for(:author, @author) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="hash backed author" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_fields_for
     output_buffer = fields_for(:post, @post) do |f|
       concat f.text_field(:title)
@@ -1725,6 +1866,20 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_and_fields_for_with_non_nested_association_and_without_object
+    form_for(@post) do |f|
+      concat f.fields_for(:category) { |c|
+        concat c.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', 'put') do
+      "<input name='post[category][name]' type='text' size='30' id='post_category_name' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
@@ -1751,7 +1906,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def snowman(method = nil)
+  def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
     if method && !method.to_s.in?(['get', 'post'])
@@ -1779,7 +1934,7 @@ class FormHelperTest < ActionView::TestCase
       method = options
     end
 
-    form_text(action, id, html_class, remote, multipart, method) + snowman(method) + contents + "</form>"
+    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
   end
 
   def test_default_form_builder

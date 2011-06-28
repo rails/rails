@@ -11,6 +11,10 @@ module ApplicationTests
       require "rails/all"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def load_app
       require "#{app_path}/config/environment"
     end
@@ -48,7 +52,7 @@ module ApplicationTests
     end
 
     test "locale files should be added to the load path" do
-      app_file "config/another_locale.yml", ""
+      app_file "config/another_locale.yml", "en:\nfoo: ~"
 
       add_to_config <<-RUBY
         config.i18n.load_path << config.root.join("config/another_locale.yml").to_s
@@ -127,7 +131,7 @@ en:
 
     # Fallbacks
     test "not using config.i18n.fallbacks does not initialize I18n.fallbacks" do
-      I18n.backend = Class.new { include I18n::Backend::Base }.new
+      I18n.backend = Class.new(I18n::Backend::Simple).new
       load_app
       assert_no_fallbacks
     end
@@ -141,7 +145,7 @@ en:
 
     test "config.i18n.fallbacks = true initializes I18n.fallbacks with default settings even when backend changes" do
       I18n::Railtie.config.i18n.fallbacks = true
-      I18n::Railtie.config.i18n.backend = Class.new { include I18n::Backend::Base }.new
+      I18n::Railtie.config.i18n.backend = Class.new(I18n::Backend::Simple).new
       load_app
       assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
       assert_fallbacks :de => [:de, :en]

@@ -6,7 +6,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, 'SHA1')
-  SignedBar = Verifier.generate(:foo => "bar", :session_id => ActiveSupport::SecureRandom.hex(16))
+  SignedBar = Verifier.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
 
   class TestController < ActionController::Base
     def no_session_access
@@ -48,6 +48,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     def change_session_id
       request.session_options[:id] = nil
       get_session_id
+    end
+
+    def renew_session_id
+      request.session_options[:renew] = true
+      head :ok
     end
 
     def rescue_action(e) raise end
@@ -99,6 +104,17 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get '/set_session_value'
       assert_response :success
       assert_equal nil, headers['Set-Cookie']
+    end
+  end
+
+  def test_properly_renew_cookies
+    with_test_route_set do
+      get '/set_session_value'
+      get '/persistent_session_id'
+      session_id = response.body
+      get '/renew_session_id'
+      get '/persistent_session_id'
+      assert_not_equal response.body, session_id
     end
   end
 

@@ -23,7 +23,8 @@ module Rails
         opt.parse!(ARGV)
       end
 
-      @app.load_console(options[:sandbox])
+      @app.sandbox = options[:sandbox]
+      @app.load_console
 
       if options[:debugger]
         begin
@@ -33,10 +34,6 @@ module Rails
           puts "You need to install ruby-debug to run the console in debugging mode. With gems, use 'gem install ruby-debug'"
           exit
         end
-      end
-      
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.logger = Logger.new(STDERR)
       end
 
       if options[:sandbox]

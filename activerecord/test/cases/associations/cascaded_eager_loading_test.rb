@@ -8,10 +8,12 @@ require 'models/company'
 require 'models/topic'
 require 'models/reply'
 require 'models/person'
+require 'models/vertex'
+require 'models/edge'
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
   fixtures :authors, :mixins, :companies, :posts, :topics, :accounts, :comments,
-           :categorizations, :people, :categories
+           :categorizations, :people, :categories, :edges, :vertices
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
@@ -51,7 +53,9 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     categories = Category.joins(:categorizations).includes([{:posts=>:comments}, :authors])
 
     assert_nothing_raised do
-      assert_equal 3, categories.count
+      assert_equal 4, categories.count
+      assert_equal 4, categories.all.count
+      assert_equal 3, categories.count(:distinct => true)
       assert_equal 3, categories.all.uniq.size # Must uniq since instantiating with inner joins will get dupes
     end
   end
@@ -162,12 +166,6 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
       authors[2].post_about_thinking.comments.first
     end
   end
-end
-
-require 'models/vertex'
-require 'models/edge'
-class CascadedEagerLoadingTest < ActiveRecord::TestCase
-  fixtures :edges, :vertices
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
     source = Vertex.find(:first, :include=>{:sinks=>{:sinks=>{:sinks=>:sinks}}}, :order => 'vertices.id')

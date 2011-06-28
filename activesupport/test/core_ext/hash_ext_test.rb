@@ -16,6 +16,12 @@ class HashExtTest < Test::Unit::TestCase
   class SubclassingHash < Hash
   end
 
+  class NonIndifferentHash < Hash
+    def nested_under_indifferent_access
+      self
+    end
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
@@ -109,9 +115,12 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @strings, @mixed.with_indifferent_access.dup.stringify_keys!
   end
 
-  def test_hash_subclass
-    flash = { "foo" => SubclassingHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
-    assert_kind_of SubclassingHash, flash["foo"]
+  def test_nested_under_indifferent_access
+    foo = { "foo" => SubclassingHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of ActiveSupport::HashWithIndifferentAccess, foo["foo"]
+
+    foo = { "foo" => NonIndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of NonIndifferentHash, foo["foo"]
   end
 
   def test_indifferent_assorted
@@ -897,7 +906,13 @@ class HashToXmlTest < Test::Unit::TestCase
     hash = Hash.from_xml(xml)
     assert_equal "bacon is the best", hash['blog']['name']
   end
-
+  
+  def test_empty_cdata_from_xml
+    xml = "<data><![CDATA[]]></data>"
+    
+    assert_equal "", Hash.from_xml(xml)["data"]
+  end
+  
   def test_xsd_like_types_from_xml
     bacon_xml = <<-EOT
     <bacon>
@@ -940,7 +955,7 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
-
+  
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia[:new_key]
@@ -954,6 +969,12 @@ class HashToXmlTest < Test::Unit::TestCase
   def test_should_nil_if_no_default_value_is_supplied
     hash_wia = HashWithIndifferentAccess.new
     assert_nil hash_wia.default
+  end
+
+  def test_should_return_dup_for_with_indifferent_access
+    hash_wia = HashWithIndifferentAccess.new
+    assert_equal hash_wia, hash_wia.with_indifferent_access
+    assert_not_same hash_wia, hash_wia.with_indifferent_access
   end
 
   def test_should_copy_the_default_value_when_converting_to_hash_with_indifferent_access

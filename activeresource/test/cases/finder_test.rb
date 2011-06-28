@@ -95,28 +95,28 @@ class FinderTest < Test::Unit::TestCase
 
   def test_find_all_sub_objects_not_found
     assert_nothing_raised do
-      addys = StreetAddress.find(:all, :params => { :person_id => 2 })
+      StreetAddress.find(:all, :params => { :person_id => 2 })
     end
   end
 
   def test_find_all_by_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, @people_david }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.json", {}, @people_david }
 
-    people = Person.find(:all, :from => "/companies/1/people.xml")
+    people = Person.find(:all, :from => "/companies/1/people.json")
     assert_equal 1, people.size
     assert_equal "David", people.first.name
   end
 
   def test_find_all_by_from_with_options
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.xml", {}, @people_david }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/people.json", {}, @people_david }
 
-    people = Person.find(:all, :from => "/companies/1/people.xml")
+    people = Person.find(:all, :from => "/companies/1/people.json")
     assert_equal 1, people.size
     assert_equal "David", people.first.name
   end
 
   def test_find_all_by_symbol_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/people/managers.xml", {}, @people_david }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/people/managers.json", {}, @people_david }
 
     people = Person.find(:all, :from => :managers)
     assert_equal 1, people.size
@@ -124,14 +124,14 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_single_by_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/manager.xml", {}, @david }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/companies/1/manager.json", {}, @david }
 
-    david = Person.find(:one, :from => "/companies/1/manager.xml")
+    david = Person.find(:one, :from => "/companies/1/manager.json")
     assert_equal "David", david.name
   end
 
   def test_find_single_by_symbol_from
-    ActiveResource::HttpMock.respond_to { |m| m.get "/people/leader.xml", {}, @david }
+    ActiveResource::HttpMock.respond_to { |m| m.get "/people/leader.json", {}, @david }
 
     david = Person.find(:one, :from => :leader)
     assert_equal "David", david.name

@@ -51,25 +51,25 @@ class DateTime
     utc? && alternate_utc_string || ActiveSupport::TimeZone.seconds_to_utc_offset(utc_offset, colon)
   end
 
-  # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005 14:30:00 +0000"
+  # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005 14:30:00 +0000".
   def readable_inspect
     to_s(:rfc822)
   end
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
 
-  # Converts self to a Ruby Date object; time portion is discarded
+  # Converts self to a Ruby Date object; time portion is discarded.
   def to_date
     ::Date.new(year, month, day)
   end unless instance_methods(false).include?(:to_date)
 
-  # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class
-  # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time
+  # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class.
+  # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time.
   def to_time
     self.offset == 0 ? ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * (RUBY_VERSION < '1.9' ? 86400000000 : 1000000)) : self
   end
 
-  # To be able to keep Times, Dates and DateTimes interchangeable on conversions
+  # To be able to keep Times, Dates and DateTimes interchangeable on conversions.
   def to_datetime
     self
   end unless instance_methods(false).include?(:to_datetime)
@@ -79,17 +79,17 @@ class DateTime
     civil(year, month, day, hour, min, sec, offset)
   end
 
-  # Converts datetime to an appropriate format for use in XML
+  # Converts datetime to an appropriate format for use in XML.
   def xmlschema
     strftime("%Y-%m-%dT%H:%M:%S%Z")
   end unless instance_methods(false).include?(:xmlschema)
 
-  # Converts self to a floating-point number of seconds since the Unix epoch
+  # Converts self to a floating-point number of seconds since the Unix epoch.
   def to_f
     seconds_since_unix_epoch.to_f
   end
 
-  # Converts self to an integer number of seconds since the Unix epoch
+  # Converts self to an integer number of seconds since the Unix epoch.
   def to_i
     seconds_since_unix_epoch.to_i
   end

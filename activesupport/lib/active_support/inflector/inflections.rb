@@ -20,10 +20,61 @@ module ActiveSupport
         @__instance__ ||= new
       end
 
-      attr_reader :plurals, :singulars, :uncountables, :humans
+      attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
 
       def initialize
-        @plurals, @singulars, @uncountables, @humans = [], [], [], []
+        @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], [], [], {}, /(?=a)b/
+      end
+
+      # Specifies a new acronym. An acronym must be specified as it will appear in a camelized string.  An underscore
+      # string that contains the acronym will retain the acronym when passed to `camelize`, `humanize`, or `titleize`.
+      # A camelized string that contains the acronym will maintain the acronym when titleized or humanized, and will
+      # convert the acronym into a non-delimited single lowercase word when passed to +underscore+.
+      #
+      # Examples:
+      #   acronym 'HTML'
+      #   titleize 'html' #=> 'HTML'
+      #   camelize 'html' #=> 'HTML'
+      #   underscore 'MyHTML' #=> 'my_html'
+      #
+      # The acronym, however, must occur as a delimited unit and not be part of another word for conversions to recognize it:
+      #
+      #   acronym 'HTTP'
+      #   camelize 'my_http_delimited' #=> 'MyHTTPDelimited'
+      #   camelize 'https' #=> 'Https', not 'HTTPs'
+      #   underscore 'HTTPS' #=> 'http_s', not 'https'
+      #
+      #   acronym 'HTTPS'
+      #   camelize 'https' #=> 'HTTPS'
+      #   underscore 'HTTPS' #=> 'https'
+      #
+      # Note: Acronyms that are passed to `pluralize` will no longer be recognized, since the acronym will not occur as
+      # a delimited unit in the pluralized result. To work around this, you must specify the pluralized form as an
+      # acronym as well:
+      #
+      #    acronym 'API'
+      #    camelize(pluralize('api')) #=> 'Apis'
+      #
+      #    acronym 'APIs'
+      #    camelize(pluralize('api')) #=> 'APIs'
+      #
+      # `acronym` may be used to specify any word that contains an acronym or otherwise needs to maintain a non-standard
+      # capitalization. The only restriction is that the word must begin with a capital letter.
+      #
+      # Examples:
+      #   acronym 'RESTful'
+      #   underscore 'RESTful' #=> 'restful'
+      #   underscore 'RESTfulController' #=> 'restful_controller'
+      #   titleize 'RESTfulController' #=> 'RESTful Controller'
+      #   camelize 'restful' #=> 'RESTful'
+      #   camelize 'restful_controller' #=> 'RESTfulController'
+      #
+      #   acronym 'McDonald'
+      #   underscore 'McDonald' #=> 'mcdonald'
+      #   camelize 'mcdonald' #=> 'McDonald'
+      def acronym(word)
+        @acronyms[word.downcase] = word
+        @acronym_regex = /#{@acronyms.values.join("|")}/
       end
 
       # Specifies a new pluralization rule and its replacement. The rule can either be a string or a regular expression.
@@ -116,96 +167,6 @@ module ActiveSupport
       else
         Inflections.instance
       end
-    end
-
-    # Returns the plural form of the word in the string.
-    #
-    # Examples:
-    #   "post".pluralize             # => "posts"
-    #   "octopus".pluralize          # => "octopi"
-    #   "sheep".pluralize            # => "sheep"
-    #   "words".pluralize            # => "words"
-    #   "CamelOctopus".pluralize     # => "CamelOctopi"
-    def pluralize(word)
-      result = word.to_s.dup
-
-      if word.empty? || inflections.uncountables.include?(result.downcase)
-        result
-      else
-        inflections.plurals.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
-    end
-
-    # The reverse of +pluralize+, returns the singular form of a word in a string.
-    #
-    # Examples:
-    #   "posts".singularize            # => "post"
-    #   "octopi".singularize           # => "octopus"
-    #   "sheep".singularize            # => "sheep"
-    #   "word".singularize             # => "word"
-    #   "CamelOctopi".singularize      # => "CamelOctopus"
-    def singularize(word)
-      result = word.to_s.dup
-
-      if inflections.uncountables.any? { |inflection| result =~ /\b(#{inflection})\Z/i }
-        result
-      else
-        inflections.singulars.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
-    end
-
-    # Capitalizes the first word and turns underscores into spaces and strips a
-    # trailing "_id", if any. Like +titleize+, this is meant for creating pretty output.
-    #
-    # Examples:
-    #   "employee_salary" # => "Employee salary"
-    #   "author_id"       # => "Author"
-    def humanize(lower_case_and_underscored_word)
-      result = lower_case_and_underscored_word.to_s.dup
-
-      inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-      result.gsub(/_id$/, "").gsub(/_/, " ").capitalize
-    end
-
-    # Capitalizes all the words and replaces some characters in the string to create
-    # a nicer looking title. +titleize+ is meant for creating pretty output. It is not
-    # used in the Rails internals.
-    #
-    # +titleize+ is also aliased as as +titlecase+.
-    #
-    # Examples:
-    #   "man from the boondocks".titleize # => "Man From The Boondocks"
-    #   "x-men: the last stand".titleize  # => "X Men: The Last Stand"
-    def titleize(word)
-      humanize(underscore(word)).gsub(/\b('?[a-z])/) { $1.capitalize }
-    end
-
-    # Create the name of a table like Rails does for models to table names. This method
-    # uses the +pluralize+ method on the last word in the string.
-    #
-    # Examples
-    #   "RawScaledScorer".tableize # => "raw_scaled_scorers"
-    #   "egg_and_ham".tableize     # => "egg_and_hams"
-    #   "fancyCategory".tableize   # => "fancy_categories"
-    def tableize(class_name)
-      pluralize(underscore(class_name))
-    end
-
-    # Create a class name from a plural table name like Rails does for table names to models.
-    # Note that this returns a string and not a Class. (To convert to an actual class
-    # follow +classify+ with +constantize+.)
-    #
-    # Examples:
-    #   "egg_and_hams".classify # => "EggAndHam"
-    #   "posts".classify        # => "Post"
-    #
-    # Singular names are not handled correctly:
-    #   "business".classify     # => "Busines"
-    def classify(table_name)
-      # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, '')))
     end
   end
 end

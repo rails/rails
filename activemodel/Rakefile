@@ -20,11 +20,11 @@ namespace :test do
 end
 
 require 'rake/packagetask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 
 spec = eval(File.read("#{dir}/activemodel.gemspec"))
 
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 

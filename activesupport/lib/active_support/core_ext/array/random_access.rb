@@ -7,7 +7,7 @@ class Array
   #
   #   [1,2,3,4,5,6].sample     # => 4
   #   [1,2,3,4,5,6].sample(3)  # => [2, 4, 5]
-  #   [1,2,3,4,5,6].sample(-3) # => ArgumentError: negative sample number
+  #   [1,2,3,4,5,6].sample(-3) # => ArgumentError: negative array size
   #              [].sample     # => nil
   #              [].sample(3)  # => []
   def sample(n=nil)

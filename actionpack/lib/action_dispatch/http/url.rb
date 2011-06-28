@@ -162,10 +162,10 @@ module ActionDispatch
 
       # Returns all the \subdomains as a string, so <tt>"dev.www"</tt> would be
       # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
-      # such as 2 to catch <tt>["www"]</tt> instead of <tt>"www.rubyonrails"</tt>
+      # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
-        subdomains(tld_length)
+        subdomains(tld_length).join(".")
       end
     end
   end

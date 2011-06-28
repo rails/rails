@@ -66,7 +66,7 @@ module ActiveRecord
       calculate(:average, column_name, options)
     end
 
-    # Calculates the minimum value on a given column.  The value is returned
+    # Calculates the minimum value on a given column. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
     # +calculate+ for examples with options.
     #
@@ -93,7 +93,7 @@ module ActiveRecord
       calculate(:sum, column_name, options)
     end
 
-    # This calculates aggregate values in the given column.  Methods for count, sum, average,
+    # This calculates aggregate values in the given column. Methods for count, sum, average,
     # minimum, and maximum have been added as shortcuts. Options such as <tt>:conditions</tt>,
     # <tt>:order</tt>, <tt>:group</tt>, <tt>:having</tt>, and <tt>:joins</tt> can be passed to customize the query.
     #
@@ -101,7 +101,7 @@ module ActiveRecord
     #   * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float
     #     for AVG, and the given column's type for everything else.
     #   * Grouped values: This returns an ordered hash of the values and groups them by the
-    #     <tt>:group</tt> option.  It takes either a column name, or the name of a belongs_to association.
+    #     <tt>:group</tt> option. It takes either a column name, or the name of a belongs_to association.
     #
     #       values = Person.maximum(:age, :group => 'last_name')
     #       puts values["Drake"]
@@ -119,7 +119,7 @@ module ActiveRecord
     # Options:
     # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
     #   See conditions in the intro to ActiveRecord::Base.
-    # * <tt>:include</tt>: Eager loading, see Associations for details.  Since calculations don't load anything,
+    # * <tt>:include</tt>: Eager loading, see Associations for details. Since calculations don't load anything,
     #   the purpose of this is to access fields on joined tables in your conditions, order, or group clauses.
     # * <tt>:joins</tt> - An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id".
     #   (Rarely needed).
@@ -146,10 +146,16 @@ module ActiveRecord
       if options.except(:distinct).present?
         apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
       else
-        if eager_loading? || includes_values.present?
-          construct_relation_for_association_calculations.calculate(operation, column_name, options)
+        relation = with_default_scope
+
+        if relation.equal?(self)
+          if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+            construct_relation_for_association_calculations.calculate(operation, column_name, options)
+          else
+            perform_calculation(operation, column_name, options)
+          end
         else
-          perform_calculation(operation, column_name, options)
+          relation.calculate(operation, column_name, options)
         end
       end
     rescue ThrowResult
@@ -161,20 +167,19 @@ module ActiveRecord
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase
 
-      distinct = nil
+      distinct = options[:distinct]
 
       if operation == "count"
         column_name ||= (select_for_count || :all)
 
         unless arel.ast.grep(Arel::Nodes::OuterJoin).empty?
           distinct = true
-          column_name = primary_key if column_name == :all
         end
+
+        column_name = primary_key if column_name == :all && distinct
 
         distinct = nil if column_name =~ /\s*DISTINCT\s+/i
       end
-
-      distinct = options[:distinct] || distinct
 
       if @group_values.any?
         execute_grouped_calculation(operation, column_name, distinct)
@@ -197,7 +202,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = except(:order)
+      relation = reorder(nil)
 
       if operation == "count" && (relation.limit_value || relation.offset_value)
         # Shortcut when limit is zero.

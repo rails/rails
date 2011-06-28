@@ -1,10 +1,11 @@
 # encoding: utf-8
 
-gem 'mysql2', '~> 0.3.0'
+gem 'mysql2', '~> 0.3.6'
 require 'mysql2'
 
 module ActiveRecord
   class Base
+    # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql2_connection(config)
       config[:username] = 'root' if config[:username].nil?
 
@@ -183,6 +184,10 @@ module ActiveRecord
         QUOTED_FALSE
       end
 
+      def substitute_at(column, index)
+        Arel.sql "\0"
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity(&block) #:nodoc:
@@ -213,6 +218,8 @@ module ActiveRecord
         false
       end
 
+      # Disconnects from the database if already connected.
+      # Otherwise, this method does nothing.
       def disconnect!
         unless @connection.nil?
           @connection.close
@@ -273,7 +280,7 @@ module ActiveRecord
         end
       rescue ActiveRecord::StatementInvalid => exception
         if exception.message.split(":").first =~ /Packets out of order/
-          raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
+          raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information. If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
         else
           raise
         end
@@ -289,14 +296,14 @@ module ActiveRecord
         binds = binds.dup
 
         # Pretend to support bind parameters
-        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
       end
 
       def exec_delete(sql, name, binds)
         binds = binds.dup
 
         # Pretend to support bind parameters
-        execute sql.gsub('?') { quote(*binds.shift.reverse) }, name
+        execute sql.gsub("\0") { quote(*binds.shift.reverse) }, name
         @connection.affected_rows
       end
       alias :exec_update :exec_delete
@@ -340,19 +347,6 @@ module ActiveRecord
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 
-      def add_limit_offset!(sql, options)
-        limit, offset = options[:limit], options[:offset]
-        if limit && offset
-          sql << " LIMIT #{offset.to_i}, #{sanitize_limit(limit)}"
-        elsif limit
-          sql << " LIMIT #{sanitize_limit(limit)}"
-        elsif offset
-          sql << " OFFSET #{offset.to_i}"
-        end
-        sql
-      end
-      deprecate :add_limit_offset!
-
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump
@@ -368,6 +362,8 @@ module ActiveRecord
         end
       end
 
+      # Drops the database specified on the +name+ attribute
+      # and creates it again using the provided +options+.
       def recreate_database(name, options = {})
         drop_database(name)
         create_database(name, options)
@@ -429,10 +425,6 @@ module ActiveRecord
         end
 
         tables(nil, schema).include? table
-      end
-
-      def drop_table(table_name, options = {})
-        super(table_name, options)
       end
 
       # Returns an array of indexes for the given table.
@@ -551,6 +543,7 @@ module ActiveRecord
         end
       end
 
+      # SHOW VARIABLES LIKE 'name'.
       def show_variable(name)
         variables = select_all("SHOW VARIABLES LIKE '#{name}'")
         variables.first['Value'] unless variables.empty?
@@ -571,11 +564,6 @@ module ActiveRecord
         pk_and_sequence = pk_and_sequence_for(table)
         pk_and_sequence && pk_and_sequence.first
       end
-
-      def case_sensitive_equality_operator
-        "= BINARY"
-      end
-      deprecate :case_sensitive_equality_operator
 
       def case_sensitive_modifier(node)
         Arel::Nodes::Bin.new(node)
@@ -640,7 +628,8 @@ module ActiveRecord
         # Returns an array of record hashes with the column names as keys and
         # column values as values.
         def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds).to_a
+          binds = binds.dup
+          exec_query(sql.gsub("\0") { quote(*binds.shift.reverse) }, name).to_a
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
@@ -651,7 +640,7 @@ module ActiveRecord
               result = @connection.query(sql)
             rescue ActiveRecord::StatementInvalid => exception
               if exception.message.split(":").first =~ /Packets out of order/
-                raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
+                raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information. If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
               else
                 raise
               end

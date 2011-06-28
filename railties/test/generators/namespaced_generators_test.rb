@@ -7,15 +7,7 @@ require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   def setup
-    TestApp::Application.isolate_namespace(TestApp)
-  end
-
-  def teardown
-    if TestApp.respond_to?(:_railtie)
-      TestApp.singleton_class.send(:undef_method, :_railtie)
-      TestApp.singleton_class.send(:undef_method, :table_name_prefix)
-      TestApp::Application.isolated = false
-    end
+    Rails::Generators.namespace = TestApp
   end
 end
 
@@ -161,40 +153,44 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
   def test_mailer_skeleton_is_created
     run_generator
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
-      assert_match /module TestApp/, mailer
-      assert_match /class Notifier < ActionMailer::Base/, mailer
-      assert_match /default :from => "from@example.com"/, mailer
+      assert_match(/module TestApp/, mailer)
+      assert_match(/class Notifier < ActionMailer::Base/, mailer)
+      if RUBY_VERSION < "1.9"
+        assert_match(/default :from => "from@example.com"/, mailer)
+      else
+        assert_match(/default from: "from@example.com"/, mailer)
+      end
     end
   end
 
   def test_mailer_with_i18n_helper
     run_generator
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
-      assert_match /en\.notifier\.foo\.subject/, mailer
-      assert_match /en\.notifier\.bar\.subject/, mailer
+      assert_match(/en\.notifier\.foo\.subject/, mailer)
+      assert_match(/en\.notifier\.bar\.subject/, mailer)
     end
   end
 
   def test_invokes_default_test_framework
     run_generator
     assert_file "test/functional/test_app/notifier_test.rb" do |test|
-      assert_match /module TestApp/, test
-      assert_match /class NotifierTest < ActionMailer::TestCase/, test
-      assert_match /test "foo"/, test
-      assert_match /test "bar"/, test
+      assert_match(/module TestApp/, test)
+      assert_match(/class NotifierTest < ActionMailer::TestCase/, test)
+      assert_match(/test "foo"/, test)
+      assert_match(/test "bar"/, test)
     end
   end
 
   def test_invokes_default_template_engine
     run_generator
     assert_file "app/views/test_app/notifier/foo.text.erb" do |view|
-      assert_match %r(app/views/test_app/notifier/foo\.text\.erb), view
-      assert_match /<%= @greeting %>/, view
+      assert_match(%r(app/views/test_app/notifier/foo\.text\.erb), view)
+      assert_match(/<%= @greeting %>/, view)
     end
 
     assert_file "app/views/test_app/notifier/bar.text.erb" do |view|
-      assert_match %r(app/views/test_app/notifier/bar\.text\.erb), view
-      assert_match /<%= @greeting %>/, view
+      assert_match(%r(app/views/test_app/notifier/bar\.text\.erb), view)
+      assert_match(/<%= @greeting %>/, view)
     end
   end
 
@@ -248,7 +244,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_on_revoke
@@ -279,7 +275,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_no_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets (should not be removed)
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_namespace_on_invoke
@@ -320,7 +316,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_namespace_on_revoke
@@ -352,6 +348,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_no_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 end

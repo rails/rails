@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'multibyte_test_helpers'
 require 'stringio'
 require 'fileutils'
+require 'tempfile'
 require 'active_support/buffered_logger'
 
 class BufferedLoggerTest < Test::Unit::TestCase
@@ -14,6 +15,44 @@ class BufferedLoggerTest < Test::Unit::TestCase
     @integer_message = 12345
     @output  = StringIO.new
     @logger  = Logger.new(@output)
+  end
+
+  def test_write_binary_data_to_existing_file
+    t = Tempfile.new ['development', 'log']
+    t.binmode
+    t.write 'hi mom!'
+    t.close
+
+    logger = Logger.new t.path
+    logger.level = Logger::DEBUG
+
+    str = "\x80"
+    if str.respond_to?(:force_encoding)
+      str.force_encoding("ASCII-8BIT")
+    end
+
+    logger.add Logger::DEBUG, str
+    logger.flush
+  ensure
+    logger.close
+    t.close true
+  end
+
+  def test_write_binary_data_create_file
+    fname = File.join Dir.tmpdir, 'lol', 'rofl.log'
+    logger = Logger.new fname
+    logger.level = Logger::DEBUG
+
+    str = "\x80"
+    if str.respond_to?(:force_encoding)
+      str.force_encoding("ASCII-8BIT")
+    end
+
+    logger.add Logger::DEBUG, str
+    logger.flush
+  ensure
+    logger.close
+    File.unlink fname
   end
 
   def test_should_log_debugging_message_when_debugging

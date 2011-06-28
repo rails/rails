@@ -138,7 +138,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   private
   # custom fixture loader, uses Fixtures#create_fixtures and appends base_path to the current file's path
   def create_test_fixtures(*fixture_names)
-    Fixtures.create_fixtures(FIXTURES_ROOT + "/reserved_words", fixture_names)
+    ActiveRecord::Fixtures.create_fixtures(FIXTURES_ROOT + "/reserved_words", fixture_names)
   end
 
   # custom drop table, uses execute on connection to drop a table if it exists. note: escapes table_name

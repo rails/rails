@@ -51,6 +51,11 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal Mime::SET, @lookup_context.formats
   end
 
+  test "handles explicitly defined */* formats fallback to :js" do
+    @lookup_context.formats = [:js, Mime::ALL]
+    assert_equal [:js, *Mime::SET.symbols], @lookup_context.formats
+  end
+
   test "adds :html fallback to :js formats" do
     @lookup_context.formats = [:js]
     assert_equal [:js, :html], @lookup_context.formats
@@ -180,6 +185,12 @@ class LookupContextTest < ActiveSupport::TestCase
 
     assert_not_equal template, old_template
   end
+  
+  test "responds to #prefixes" do
+    assert_equal [], @lookup_context.prefixes
+    @lookup_context.prefixes = ["foo"]
+    assert_equal ["foo"], @lookup_context.prefixes
+  end
 end
 
 class LookupContextWithFalseCaching < ActiveSupport::TestCase
@@ -245,6 +256,15 @@ class TestMissingTemplate < ActiveSupport::TestCase
     end
     assert_match %r{Missing partial parent/foo, child/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
+
+  test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
+    e = assert_raise ActionView::MissingTemplate do
+      details = {:handlers=>[], :formats=>[], :locale=>[]}
+      @lookup_context.view_paths.find("foo", "parent", true, details)
+    end
+    assert_match %r{Missing partial parent/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+  end 
+  
 end
 
 class TestMissingTemplate < ActiveSupport::TestCase

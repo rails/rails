@@ -87,6 +87,29 @@ module Rails
       RAILS_CACHE
     end
 
+    # Returns all rails groups for loading based on:
+    #
+    # * The Rails environment;
+    # * The environment variable RAILS_GROUPS;
+    # * The optional hash given as argument with group dependencies;
+    #
+    # == Examples
+    #
+    #   groups :assets => [:development, :test]
+    #
+    #   # Returns
+    #   # => [:default, :development, :assets] for Rails.env == "development"
+    #   # => [:default, :production]           for Rails.env == "production"
+    #
+    def groups(hash={})
+      env = Rails.env
+      groups = [:default, env]
+      groups.concat ENV["RAILS_GROUPS"].to_s.split(",")
+      groups.concat hash.map { |k,v| k if v.map(&:to_s).include?(env) }
+      groups.compact!
+      groups
+    end
+
     def version
       VERSION::STRING
     end

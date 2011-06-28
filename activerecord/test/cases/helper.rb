@@ -1,8 +1,5 @@
 require File.expand_path('../../../../load_paths', __FILE__)
 
-lib = File.expand_path("#{File.dirname(__FILE__)}/../../lib")
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
-
 require 'config'
 
 require 'test/unit'
@@ -11,23 +8,23 @@ require 'mocha'
 
 require 'active_record'
 require 'active_support/dependencies'
-begin
-  require 'connection'
-rescue LoadError
-  # If we cannot load connection we assume that driver was not loaded for this test case, so we load sqlite3 as default one.
-  # This allows for running separate test cases by simply running test file.
-  connection_type = defined?(JRUBY_VERSION) ? 'jdbc' : 'native'
-  require "test/connections/#{connection_type}_sqlite3/connection"
-end
+
+require 'support/config'
+require 'support/connection'
+
+# TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
+# Enable Identity Map only when ENV['IM'] is set to "true"
+ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "true")
+
+# Connect to the database
+ARTest.connect
+
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
-
-# Enable Identity Map for testing
-ActiveRecord::IdentityMap.enabled = (ENV['IM'] == "false" ? false : true)
 
 def current_adapter?(*types)
   types.any? do |type|
@@ -61,15 +58,15 @@ end
 
 module ActiveRecord
   class SQLCounter
-    IGNORED_SQL = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/]
+    cattr_accessor :ignored_sql
+    self.ignored_sql = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
 
     # FIXME: this needs to be refactored so specific database can add their own
     # ignored SQL.  This ignored SQL is for Oracle.
-    IGNORED_SQL.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
+    ignored_sql.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
 
-    def initialize
-      $queries_executed = []
-    end
+    cattr_accessor :log
+    self.log = []
 
     def call(name, start, finish, message_id, values)
       sql = values[:sql]
@@ -77,10 +74,11 @@ module ActiveRecord
       # FIXME: this seems bad. we should probably have a better way to indicate
       # the query was cached
       unless 'CACHE' == values[:name]
-        $queries_executed << sql unless IGNORED_SQL.any? { |r| sql =~ r }
+        self.class.log << sql unless self.class.ignored_sql.any? { |r| sql =~ r }
       end
     end
   end
+
   ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
 
@@ -104,7 +102,7 @@ class ActiveSupport::TestCase
   self.use_transactional_fixtures = true
 
   def create_fixtures(*table_names, &block)
-    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
+    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
   end
 end
 

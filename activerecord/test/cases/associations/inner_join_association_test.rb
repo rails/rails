@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/author'
+require 'models/essay'
 require 'models/category'
 require 'models/categorization'
 require 'models/person'
@@ -9,7 +10,7 @@ require 'models/tagging'
 require 'models/tag'
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :comments, :categories, :categories_posts, :categorizations,
+  fixtures :authors, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
            :taggings, :tags
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
@@ -32,6 +33,17 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   def test_construct_finder_sql_ignores_empty_joins_array
     sql = Author.joins([]).to_sql
     assert_no_match(/JOIN/i, sql)
+  end
+
+  def test_join_conditions_added_to_join_clause
+    sql = Author.joins(:essays).to_sql
+    assert_match(/writer_type.*?=.*?Author/i, sql)
+    assert_no_match(/WHERE/i, sql)
+  end
+
+  def test_join_conditions_allow_nil_associations
+    authors = Author.includes(:essays).where(:essays => {:id => nil})
+    assert_equal 2, authors.count
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_without_select

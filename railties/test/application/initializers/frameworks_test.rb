@@ -10,6 +10,10 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def teardown
+      teardown_app
+    end
+
     # AC & AM
     test "set load paths set only if action controller or action mailer are in use" do
       assert_nothing_raised NameError do
@@ -166,7 +170,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      expects = [ActiveRecord::IdentityMap::Middleware, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
+      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
       middleware = Rails.application.config.middleware.map { |m| m.klass }
       assert_equal expects, middleware & expects
     end

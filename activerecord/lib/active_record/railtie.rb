@@ -26,10 +26,12 @@ module ActiveRecord
       load "active_record/railties/databases.rake"
     end
 
-    # When loading console, force ActiveRecord to be loaded to avoid cross
-    # references when loading a constant for the first time.
-    console do
-      ActiveRecord::Base
+    # When loading console, force ActiveRecord::Base to be loaded
+    # to avoid cross references when loading a constant for the
+    # first time. Also, make it output to STDERR.
+    console do |app|
+      require "active_record/railties/console_sandbox" if app.sandbox?
+      ActiveRecord::Base.logger = Logger.new(STDERR)
     end
 
     initializer "active_record.initialize_timezone" do

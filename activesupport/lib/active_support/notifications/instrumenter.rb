@@ -1,4 +1,3 @@
-require 'active_support/secure_random'
 require 'active_support/core_ext/module/delegation'
 
 module ActiveSupport

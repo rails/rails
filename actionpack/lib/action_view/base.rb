@@ -85,11 +85,11 @@ module ActionView #:nodoc:
   #
   # Here are some basic examples:
   #
-  #   xml.em("emphasized")                              # => <em>emphasized</em>
-  #   xml.em { xml.b("emph & bold") }                   # => <em><b>emph &amp; bold</b></em>
-  #   xml.a("A Link", "href"=>"http://onestepback.org") # => <a href="http://onestepback.org">A Link</a>
-  #   xml.target("name"=>"compile", "option"=>"fast")   # => <target option="fast" name="compile"\>
-  #                                                     # NOTE: order of attributes is not specified.
+  #   xml.em("emphasized")                                 # => <em>emphasized</em>
+  #   xml.em { xml.b("emph & bold") }                      # => <em><b>emph &amp; bold</b></em>
+  #   xml.a("A Link", "href" => "http://onestepback.org")  # => <a href="http://onestepback.org">A Link</a>
+  #   xml.target("name" => "compile", "option" => "fast")  # => <target option="fast" name="compile"\>
+  #                                                        # NOTE: order of attributes is not specified.
   #
   # Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
   #
@@ -156,41 +156,45 @@ module ActionView #:nodoc:
       def cache_template_loading=(value)
         ActionView::Resolver.caching = value
       end
+
+      def process_view_paths(value)
+        value.is_a?(PathSet) ?
+          value.dup : ActionView::PathSet.new(Array.wrap(value))
+      end
+
+      def xss_safe? #:nodoc:
+        true
+      end
+
+      # This method receives routes and helpers from the controller
+      # and return a subclass ready to be used as view context.
+      def prepare(routes, helpers) #:nodoc:
+        Class.new(self) do
+          if routes
+            include routes.url_helpers
+            include routes.mounted_helpers
+          end
+
+          if helpers
+            include helpers
+            self.helpers = helpers
+          end
+        end
+      end
     end
 
     attr_accessor :view_renderer
-    attr_internal :request, :controller, :config, :assigns
+    attr_internal :config, :assigns
 
     delegate :lookup_context, :to => :view_renderer
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
-
-    delegate :request_forgery_protection_token, :params, :session, :cookies, :response, :headers,
-             :flash, :action_name, :controller_name, :to => :controller
-
-    delegate :logger, :to => :controller, :allow_nil => true
-
-    def self.xss_safe? #:nodoc:
-      true
-    end
-
-    def self.process_view_paths(value)
-      value.is_a?(PathSet) ?
-        value.dup : ActionView::PathSet.new(Array.wrap(value))
-    end
 
     def assign(new_assigns) # :nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
-    def initialize(context = nil, assigns_for_first_render = {}, controller = nil, formats = nil) #:nodoc:
-      assign(assigns_for_first_render)
-      self.helpers = Module.new unless self.class.helpers
-
+    def initialize(context = nil, assigns = {}, controller = nil, formats = nil) #:nodoc:
       @_config = {}
-      if @_controller = controller
-        @_request = controller.request if controller.respond_to?(:request)
-        @_config  = controller.config.inheritable_copy if controller.respond_to?(:config)
-      end
 
       # Handle all these for backwards compatibility.
       # TODO Provide a new API for AV::Base and deprecate this one.
@@ -199,16 +203,14 @@ module ActionView #:nodoc:
       elsif
         lookup_context = context.is_a?(ActionView::LookupContext) ?
           context : ActionView::LookupContext.new(context)
-        lookup_context.formats = formats if formats
-        @view_renderer = ActionView::Renderer.new(lookup_context, controller)
+        lookup_context.formats  = formats if formats
+        lookup_context.prefixes = controller._prefixes if controller
+        @view_renderer = ActionView::Renderer.new(lookup_context)
       end
 
+      assign(assigns)
+      assign_controller(controller)
       _prepare_context
-    end
-
-    # TODO Is this needed anywhere? Maybe deprecate it?
-    def controller_path
-      @controller_path ||= controller && controller.controller_path
     end
 
     ActiveSupport.run_load_hooks(:action_view, self)

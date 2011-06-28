@@ -11,7 +11,7 @@ module ActiveRecord
   #
   #   class CommentObserver < ActiveRecord::Observer
   #     def after_save(comment)
-  #       Notifications.deliver_comment("admin@do.com", "New comment was posted", comment)
+  #       Notifications.comment("admin@do.com", "New comment was posted", comment).deliver
   #     end
   #   end
   #
@@ -110,8 +110,8 @@ module ActiveRecord
           next unless respond_to?(callback)
           callback_meth = :"_notify_#{observer_name}_for_#{callback}"
           unless klass.respond_to?(callback_meth)
-            klass.send(:define_method, callback_meth) do
-              observer.send(callback, self)
+            klass.send(:define_method, callback_meth) do |&block|
+              observer.send(callback, self, &block)
             end
             klass.send(callback, callback_meth)
           end

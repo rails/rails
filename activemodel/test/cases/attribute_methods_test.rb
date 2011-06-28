@@ -78,7 +78,6 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
   test '#define_attribute_method generates attribute method with invalid identifier characters' do
     ModelWithWeirdNamesAttributes.define_attribute_method(:'a?b')
-    ModelWithWeirdNamesAttributes.define_attribute_method(:'a?b')
 
     assert_respond_to ModelWithWeirdNamesAttributes.new, :'a?b'
     assert_equal "value of a?b", ModelWithWeirdNamesAttributes.new.send('a?b')

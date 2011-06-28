@@ -1,6 +1,6 @@
 <p id="notice"><%%= notice %></p>
 
-<% for attribute in attributes -%>
+<% attributes.each do |attribute| -%>
 <p>
   <b><%= attribute.human_name %>:</b>
   <%%= @<%= singular_table_name %>.<%= attribute.name %> %>

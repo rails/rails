@@ -12,6 +12,10 @@ module ApplicationTests
       simple_controller
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "simple controller in production mode returns best standards" do
       get '/foo'
       assert_equal "IE=Edge,chrome=1", last_response.headers["X-UA-Compatible"]

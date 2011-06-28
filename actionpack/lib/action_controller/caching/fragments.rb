@@ -109,7 +109,6 @@ module ActionController #:nodoc:
       def expire_fragment(key, options = nil)
         return unless cache_configured?
         key = fragment_cache_key(key) unless key.is_a?(Regexp)
-        message = nil
 
         instrument_fragment_cache :expire_fragment, key do
           if key.is_a?(Regexp)

@@ -7,14 +7,20 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_help_shows_invoked_generators_options
     content = run_generator ["--help"]
-    assert_match /ActiveRecord options:/, content
-    assert_match /TestUnit options:/, content
+    assert_match(/ActiveRecord options:/, content)
+    assert_match(/TestUnit options:/, content)
   end
 
   def test_model_with_missing_attribute_type
-    content = capture(:stderr) { run_generator ["post", "title:string", "body"] }
-    assert_match /Missing type for attribute 'body'/, content
-    assert_match /Example: 'body:string' where string is the type/, content
+    run_generator ["post", "title", "body:text", "author"]
+
+    assert_migration "db/migrate/create_posts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.string :title/, up)
+        assert_match(/t\.text :body/, up)
+        assert_match(/t\.string :author/, up)
+      end
+    end
   end
 
   def test_invokes_default_orm
@@ -100,9 +106,9 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_products.rb" do |m|
       assert_method :change, m do |up|
-        assert_match /create_table :products/, up
-        assert_match /t\.string :name/, up
-        assert_match /t\.integer :supplier_id/, up
+        assert_match(/create_table :products/, up)
+        assert_match(/t\.string :name/, up)
+        assert_match(/t\.integer :supplier_id/, up)
       end
     end
   end
@@ -138,7 +144,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match /t.timestamps/, up
+        assert_no_match(/t.timestamps/, up)
       end
     end
   end
@@ -164,7 +170,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_error_is_not_shown_on_revoke
     run_generator
     error = capture(:stderr){ run_generator ["Account"], :behavior => :revoke }
-    assert_no_match /Another migration is already named create_accounts/, error
+    assert_no_match(/Another migration is already named create_accounts/, error)
   end
 
   def test_migration_is_removed_on_revoke
@@ -177,7 +183,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     old_migration = Dir["#{destination_root}/db/migrate/*_create_accounts.rb"].first
     error = capture(:stderr) { run_generator ["Account", "--force"] }
-    assert_no_match /Another migration is already named create_accounts/, error
+    assert_no_match(/Another migration is already named create_accounts/, error)
     assert_no_file old_migration
     assert_migration 'db/migrate/create_accounts.rb'
   end
@@ -195,13 +201,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_fixture_is_skipped_if_fixture_replacement_is_given
     content = run_generator ["account", "-r", "factory_girl"]
-    assert_match /factory_girl \[not found\]/, content
+    assert_match(/factory_girl \[not found\]/, content)
     assert_no_file "test/fixtures/accounts.yml"
   end
 
   def test_check_class_collision
     content = capture(:stderr){ run_generator ["object"] }
-    assert_match /The name 'Object' is either already used in your application or reserved/, content
+    assert_match(/The name 'Object' is either already used in your application or reserved/, content)
   end
 
   def test_index_is_added_for_belongs_to_association
@@ -209,7 +215,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match /add_index/, up
+        assert_match(/add_index/, up)
       end
     end
   end
@@ -219,7 +225,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match /add_index/, up
+        assert_match(/add_index/, up)
       end
     end
   end
@@ -229,7 +235,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match /add_index/, up
+        assert_no_match(/add_index/, up)
       end
     end
   end
@@ -239,9 +245,8 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match /add_index/, up
+        assert_no_match(/add_index/, up)
       end
     end
   end
-
 end

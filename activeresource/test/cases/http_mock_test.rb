@@ -11,10 +11,10 @@ class HttpMockTest < ActiveSupport::TestCase
   [:post, :put, :get, :delete, :head].each do |method|
     test "responds to simple #{method} request" do
       ActiveResource::HttpMock.respond_to do |mock|
-        mock.send(method, "/people/1", {FORMAT_HEADER[method] => "application/xml"}, "Response")
+        mock.send(method, "/people/1", { FORMAT_HEADER[method] => "application/json" }, "Response")
       end
 
-      assert_equal "Response", request(method, "/people/1", FORMAT_HEADER[method] => "application/xml").body
+      assert_equal "Response", request(method, "/people/1", FORMAT_HEADER[method] => "application/json").body
     end
 
     test "adds format header by default to #{method} request" do
@@ -22,7 +22,7 @@ class HttpMockTest < ActiveSupport::TestCase
         mock.send(method, "/people/1", {}, "Response")
       end
 
-      assert_equal "Response", request(method, "/people/1", FORMAT_HEADER[method] => "application/xml").body
+      assert_equal "Response", request(method, "/people/1", FORMAT_HEADER[method] => "application/json").body
     end
 
     test "respond only when headers match header by default to #{method} request" do
@@ -53,8 +53,8 @@ class HttpMockTest < ActiveSupport::TestCase
 
     test "responds correctly when format header is given to #{method} request" do
       ActiveResource::HttpMock.respond_to do |mock|
-        mock.send(method, "/people/1", {FORMAT_HEADER[method] => "application/xml"}, "XML")
-        mock.send(method, "/people/1", {FORMAT_HEADER[method] => "application/json"}, "Json")
+        mock.send(method, "/people/1", { FORMAT_HEADER[method] => "application/xml" }, "XML")
+        mock.send(method, "/people/1", { FORMAT_HEADER[method] => "application/json" }, "Json")
       end
 
       assert_equal "XML", request(method, "/people/1", FORMAT_HEADER[method] => "application/xml").body
@@ -63,22 +63,22 @@ class HttpMockTest < ActiveSupport::TestCase
 
     test "raises InvalidRequestError if no response found for the #{method} request" do
       ActiveResource::HttpMock.respond_to do |mock|
-        mock.send(method, "/people/1", {FORMAT_HEADER[method] => "application/xml"}, "XML")
+        mock.send(method, "/people/1", { FORMAT_HEADER[method] => "application/json" }, "json")
       end
 
       assert_raise(::ActiveResource::InvalidRequestError) do
-        request(method, "/people/1", FORMAT_HEADER[method] => "application/json")
+        request(method, "/people/1", FORMAT_HEADER[method] => "application/xml")
       end
     end
 
   end
 
   test "allows you to send in pairs directly to the respond_to method" do
-    matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
 
-    create_matz = ActiveResource::Request.new(:post, '/people.xml', matz, {})
-    created_response = ActiveResource::Response.new("", 201, {"Location" => "/people/1.xml"})
-    get_matz = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+    create_matz = ActiveResource::Request.new(:post, '/people.json', matz, {})
+    created_response = ActiveResource::Response.new("", 201, { "Location" => "/people/1.json" })
+    get_matz = ActiveResource::Request.new(:get, '/people/1.json', nil)
     ok_response = ActiveResource::Response.new(matz, 200, {})
 
     pairs = {create_matz => created_response, get_matz => ok_response}
@@ -91,24 +91,24 @@ class HttpMockTest < ActiveSupport::TestCase
 
   test "resets all mocked responses on each call to respond_to with a block by default" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/2", {}, "XML2")
+      mock.send(:get, "/people/2", {}, "JSON2")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
   end
 
   test "resets all mocked responses on each call to respond_to by passing pairs by default" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
-    matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
-    get_matz = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+    get_matz = ActiveResource::Request.new(:get, '/people/1.json', nil)
     ok_response = ActiveResource::Response.new(matz, 200, {})
     ActiveResource::HttpMock.respond_to({get_matz => ok_response})
 
@@ -117,24 +117,24 @@ class HttpMockTest < ActiveSupport::TestCase
 
   test "allows you to add new responses to the existing responses by calling a block" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.send(:get, "/people/2", {}, "XML2")
+      mock.send(:get, "/people/2", {}, "JSON2")
     end
     assert_equal 2, ActiveResource::HttpMock.responses.length
   end
 
   test "allows you to add new responses to the existing responses by passing pairs" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
-    matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
-    get_matz = ActiveResource::Request.new(:get, '/people/1.xml', nil)
+    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
+    get_matz = ActiveResource::Request.new(:get, '/people/1.json', nil)
     ok_response = ActiveResource::Response.new(matz, 200, {})
     ActiveResource::HttpMock.respond_to({get_matz => ok_response}, false)
 
@@ -143,23 +143,23 @@ class HttpMockTest < ActiveSupport::TestCase
 
   test "allows you to replace the existing reponse with the same request by calling a block" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.send(:get, "/people/1", {}, "XML2")
+      mock.send(:get, "/people/1", {}, "JSON2")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
   end
 
   test "allows you to replace the existing reponse with the same request by passing pairs" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
-    matz  = { :id => 1, :name => "Matz" }.to_xml(:root => "person")
+    matz  = { :person => { :id => 1, :name => "Matz" } }.to_json
     get_matz = ActiveResource::Request.new(:get, '/people/1', nil)
     ok_response = ActiveResource::Response.new(matz, 200, {})
 
@@ -169,19 +169,19 @@ class HttpMockTest < ActiveSupport::TestCase
 
   test "do not replace the response with the same path but different method by calling a block" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.send(:put, "/people/1", {}, "XML2")
+      mock.send(:put, "/people/1", {}, "JSON2")
     end
     assert_equal 2, ActiveResource::HttpMock.responses.length
   end
 
   test "do not replace the response with the same path but different method by passing pairs" do
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.send(:get, "/people/1", {}, "XML1")
+      mock.send(:get, "/people/1", {}, "JSON1")
     end
     assert_equal 1, ActiveResource::HttpMock.responses.length
 

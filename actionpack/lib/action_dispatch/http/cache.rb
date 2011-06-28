@@ -42,20 +42,6 @@ module ActionDispatch
         attr_reader :cache_control, :etag
         alias :etag? :etag
 
-        def initialize(*)
-          super
-
-          @cache_control = {}
-          @etag = self["ETag"]
-
-          if cache_control = self["Cache-Control"]
-            cache_control.split(/,\s*/).each do |segment|
-              first, last = segment.split("=")
-              @cache_control[first.to_sym] = last || true
-            end
-          end
-        end
-
         def last_modified
           if last = headers['Last-Modified']
             Time.httpdate(last)
@@ -76,6 +62,18 @@ module ActionDispatch
         end
 
       private
+
+        def prepare_cache_control!
+          @cache_control = {}
+          @etag = self["ETag"]
+
+          if cache_control = self["Cache-Control"]
+            cache_control.split(/,\s*/).each do |segment|
+              first, last = segment.split("=")
+              @cache_control[first.to_sym] = last || true
+            end
+          end
+        end
 
         def handle_conditional_get!
           if etag? || last_modified? || !@cache_control.empty?

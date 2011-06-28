@@ -1,7 +1,7 @@
 module ActiveRecord
   # = Active Record Session Store
   #
-  # A session store backed by an Active Record class.  A default class is
+  # A session store backed by an Active Record class. A default class is
   # provided, but any object duck-typing to an Active Record Session class
   # with text +session_id+ and +data+ attributes is sufficient.
   #
@@ -23,7 +23,7 @@ module ActiveRecord
   #   ActiveRecord::SessionStore::Session.data_column_name = 'legacy_session_data'
   #
   # Note that setting the primary key to the +session_id+ frees you from
-  # having a separate +id+ column if you don't want it.  However, you must
+  # having a separate +id+ column if you don't want it. However, you must
   # set <tt>session.model.id = session.session_id</tt> by hand!  A before filter
   # on ApplicationController is a good place.
   #
@@ -40,13 +40,13 @@ module ActiveRecord
   # You must implement these methods:
   #
   #   self.find_by_session_id(session_id)
-  #   initialize(hash_of_session_id_and_data)
+  #   initialize(hash_of_session_id_and_data, options_hash = {})
   #   attr_reader :session_id
   #   attr_accessor :data
   #   save
   #   destroy
   #
-  # The example SqlBypass class is a generic SQL session store.  You may
+  # The example SqlBypass class is a generic SQL session store. You may
   # use it as a basis for high-performance database-specific stores.
   class SessionStore < ActionDispatch::Session::AbstractStore
     module ClassMethods # :nodoc:
@@ -79,9 +79,11 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Customizable data column name.  Defaults to 'data'.
+      # Customizable data column name. Defaults to 'data'.
       cattr_accessor :data_column_name
       self.data_column_name = 'data'
+
+      attr_accessible :session_id, :data, :marshaled_data
 
       before_save :marshal_data!
       before_save :raise_on_session_data_overflow!
@@ -123,7 +125,7 @@ module ActiveRecord
           end
       end
 
-      def initialize(attributes = nil)
+      def initialize(attributes = nil, options = {})
         @data = nil
         super
       end
@@ -159,12 +161,12 @@ module ActiveRecord
     end
 
     # A barebones session store which duck-types with the default session
-    # store but bypasses Active Record and issues SQL directly.  This is
+    # store but bypasses Active Record and issues SQL directly. This is
     # an example session model class meant as a basis for your own classes.
     #
     # The database connection, table name, and session id and data columns
-    # are configurable class attributes.  Marshaling and unmarshaling
-    # are implemented as class methods that you may override.  By default,
+    # are configurable class attributes. Marshaling and unmarshaling
+    # are implemented as class methods that you may override. By default,
     # marshaling data is
     #
     #   ActiveSupport::Base64.encode64(Marshal.dump(data))
@@ -174,7 +176,7 @@ module ActiveRecord
     #   Marshal.load(ActiveSupport::Base64.decode64(data))
     #
     # This marshaling behavior is intended to store the widest range of
-    # binary session data in a +text+ column.  For higher performance,
+    # binary session data in a +text+ column. For higher performance,
     # store in a +blob+ column instead and forgo the Base64 encoding.
     class SqlBypass
       extend ClassMethods
@@ -284,7 +286,7 @@ module ActiveRecord
       end
     end
 
-    # The class used for session storage.  Defaults to
+    # The class used for session storage. Defaults to
     # ActiveRecord::SessionStore::Session
     cattr_accessor :session_class
     self.session_class = Session

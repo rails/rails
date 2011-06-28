@@ -545,7 +545,7 @@ NOTE: In many cases the built-in date pickers are clumsy as they do not aid the 
 
 h4. Individual Components
 
-Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component +select_year+, +select_month+, +select_day+, +select_hour+, +select_minute+, +select_second+. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for +select_year+, "month" for +select_month+ etc.) although this can be overriden with the  +:field_name+ option. The +:prefix+ option works in the same way that it does for +select_date+ and +select_time+ and has the same default value.
+Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component +select_year+, +select_month+, +select_day+, +select_hour+, +select_minute+, +select_second+. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for +select_year+, "month" for +select_month+ etc.) although this can be overridden with the  +:field_name+ option. The +:prefix+ option works in the same way that it does for +select_date+ and +select_time+ and has the same default value.
 
 The first parameter specifies which value should be selected and can either be an instance of a Date, Time or DateTime, in which case the relevant component will be extracted, or a numerical value. For example
 
@@ -712,7 +712,7 @@ You might want to render a form with a set of edit fields for each of a person's
 <erb>
 <%= form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
-  <% for address in @person.addresses %>
+  <% @person.addresses.each do |address| %>
     <%= person_form.fields_for address, :index => address do |address_form|%>
       <%= address_form.text_field :city %>
     <% end %>
@@ -777,7 +777,7 @@ If you need to post some data to an external resource it is still great to build
 Sometimes when you submit data to an external resource, like payment gateway, fields you can use in your form are limited by an external API. So you may want not to generate an +authenticity_token+ hidden field at all. For doing this just pass +false+ to the +:authenticity_token+ option:
 
 <erb>
-<%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
+<%= form_tag 'http://farfar.away/form', :authenticity_token => false) do %>
   Form contents
 <% end %>
 </erb>

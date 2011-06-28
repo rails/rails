@@ -10,9 +10,9 @@ class LogSubscriberTest < ActiveSupport::TestCase
   def setup
     super
 
-    @matz = { :id => 1, :name => 'Matz' }.to_xml(:root => 'person')
+    @matz = { :person => { :id => 1, :name => 'Matz' } }.to_json
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get "/people/1.xml", {}, @matz
+      mock.get "/people/1.json", {}, @matz
     end
 
     ActiveResource::LogSubscriber.attach_to :active_resource
@@ -23,10 +23,10 @@ class LogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_request_notification
-    matz = Person.find(1)
+    Person.find(1)
     wait
     assert_equal 2, @logger.logged(:info).size
-    assert_equal "GET http://37s.sunrise.i:3000/people/1.xml", @logger.logged(:info)[0]
-    assert_match(/\-\-\> 200 200 106/, @logger.logged(:info)[1])
+    assert_equal "GET http://37s.sunrise.i:3000/people/1.json", @logger.logged(:info)[0]
+    assert_match(/\-\-\> 200 200 33/, @logger.logged(:info)[1])
   end
 end

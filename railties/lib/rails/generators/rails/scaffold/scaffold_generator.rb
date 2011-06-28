@@ -6,26 +6,17 @@ module Rails
       remove_hook_for :resource_controller
       remove_class_option :actions
 
-      class_option :stylesheets, :type => :boolean, :desc => "Generate stylesheets"
-      class_option :stylesheet_engine, :desc => "Engine for stylesheets"
+      class_option :stylesheets, :type => :boolean, :desc => "Generate Stylesheets"
+      class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
 
       hook_for :scaffold_controller, :required => true
-
-      def copy_stylesheets_file
-        if behavior == :invoke && options.stylesheets?
-          template "scaffold.#{stylesheet_extension}", "app/assets/stylesheets/scaffold.#{stylesheet_extension}"
-        end
-      end
 
       hook_for :assets do |assets|
         invoke assets, [controller_name]
       end
 
-      private
-
-      def stylesheet_extension
-        options.stylesheet_engine.present? ?
-          "css.#{options.stylesheet_engine}" : "css"
+      hook_for :stylesheet_engine do |stylesheet_engine|
+        invoke stylesheet_engine, [controller_name] if options[:stylesheets] && behavior == :invoke
       end
     end
   end

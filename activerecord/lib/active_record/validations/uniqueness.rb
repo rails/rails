@@ -83,7 +83,7 @@ module ActiveRecord
       #     validates_uniqueness_of :user_name, :scope => :account_id
       #   end 
       #
-      # Or even multiple scope parameters.  For example, making sure that a teacher can only be on the schedule once
+      # Or even multiple scope parameters. For example, making sure that a teacher can only be on the schedule once
       # per semester for a particular class.
       #
       #   class TeacherSchedule < ActiveRecord::Base
@@ -105,7 +105,7 @@ module ActiveRecord
       #   The method, proc or string should return or evaluate to a true or false value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).  The method, proc or string should
+      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The method, proc or string should
       #   return or evaluate to a true or false value.
       #
       # === Concurrency and integrity

@@ -36,10 +36,10 @@ class BaseLoadTest < Test::Unit::TestCase
   def setup
     @matz  = { :id => 1, :name => 'Matz' }
 
-    @first_address = { :id => 1, :street => '12345 Street' }
-    @addresses = [@first_address, { :id => 2, :street => '67890 Street' }]
-    @addresses_from_xml = { :street_addresses => @addresses }
-    @addresses_from_xml_single = { :street_addresses => [ @first_address ] }
+    @first_address = { :address => { :id => 1, :street => '12345 Street' } }
+    @addresses = [@first_address, { :address => { :id => 2, :street => '67890 Street' } }]
+    @addresses_from_json = { :street_addresses => @addresses }
+    @addresses_from_json_single = { :street_addresses => [ @first_address ] }
 
     @deep  = { :id => 1, :street => {
       :id => 1, :state => { :id => 1, :name => 'Oregon',
@@ -78,22 +78,22 @@ class BaseLoadTest < Test::Unit::TestCase
   end
 
   def test_load_one_with_existing_resource
-    address = @person.load(:street_address => @first_address).street_address
+    address = @person.load(:street_address => @first_address.values.first).street_address
     assert_kind_of StreetAddress, address
-    assert_equal @first_address.stringify_keys, address.attributes
+    assert_equal @first_address.values.first.stringify_keys, address.attributes
   end
 
   def test_load_one_with_unknown_resource
-    address = silence_warnings { @person.load(:address => @first_address).address }
+    address = silence_warnings { @person.load(@first_address).address }
     assert_kind_of Person::Address, address
-    assert_equal @first_address.stringify_keys, address.attributes
+    assert_equal @first_address.values.first.stringify_keys, address.attributes
   end
 
   def test_load_collection_with_existing_resource
-    addresses = @person.load(@addresses_from_xml).street_addresses
+    addresses = @person.load(@addresses_from_json).street_addresses
     assert_kind_of Array, addresses
     addresses.each { |address| assert_kind_of StreetAddress, address }
-    assert_equal @addresses.map(&:stringify_keys), addresses.map(&:attributes)
+    assert_equal @addresses.map { |a| a[:address].stringify_keys }, addresses.map(&:attributes)
   end
 
   def test_load_collection_with_unknown_resource
@@ -102,14 +102,14 @@ class BaseLoadTest < Test::Unit::TestCase
     addresses = silence_warnings { @person.load(:addresses => @addresses).addresses }
     assert Person.const_defined?(:Address), "Address should have been autocreated"
     addresses.each { |address| assert_kind_of Person::Address, address }
-    assert_equal @addresses.map(&:stringify_keys), addresses.map(&:attributes)
+    assert_equal @addresses.map { |a| a[:address].stringify_keys }, addresses.map(&:attributes)
   end
 
   def test_load_collection_with_single_existing_resource
-    addresses = @person.load(@addresses_from_xml_single).street_addresses
+    addresses = @person.load(@addresses_from_json_single).street_addresses
     assert_kind_of Array, addresses
     addresses.each { |address| assert_kind_of StreetAddress, address }
-    assert_equal [ @first_address ].map(&:stringify_keys), addresses.map(&:attributes)
+    assert_equal [ @first_address.values.first ].map(&:stringify_keys), addresses.map(&:attributes)
   end
 
   def test_load_collection_with_single_unknown_resource
@@ -118,7 +118,7 @@ class BaseLoadTest < Test::Unit::TestCase
     addresses = silence_warnings { @person.load(:addresses => [ @first_address ]).addresses }
     assert Person.const_defined?(:Address), "Address should have been autocreated"
     addresses.each { |address| assert_kind_of Person::Address, address }
-    assert_equal [ @first_address ].map(&:stringify_keys), addresses.map(&:attributes)
+    assert_equal [ @first_address.values.first ].map(&:stringify_keys), addresses.map(&:attributes)
   end
 
   def test_recursively_loaded_collections
@@ -164,7 +164,7 @@ class BaseLoadTest < Test::Unit::TestCase
   end
 
   def test_nested_collections_within_the_same_namespace
-    n = Highrise::Note.new(:comments => [{ :name => "1" }])
+    n = Highrise::Note.new(:comments => [{ :comment => { :name => "1" } }])
     assert_kind_of Highrise::Comment, n.comments.first
   end
 

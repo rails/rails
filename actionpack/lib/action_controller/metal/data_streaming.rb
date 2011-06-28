@@ -26,8 +26,11 @@ module ActionController #:nodoc:
       # Options:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       #   Defaults to <tt>File.basename(path)</tt>.
-      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'. You can specify
-      #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
+      # * <tt>:type</tt> - specifies an HTTP content type.
+      #   You can specify either a string or a symbol for a registered type register with
+      #   <tt>Mime::Type.register</tt>, for example :json
+      #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
+      #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
@@ -37,7 +40,7 @@ module ActionController #:nodoc:
       #
       # The default Content-Type and Content-Disposition headers are
       # set to download arbitrary binary files in as many browsers as
-      # possible.  IE versions 4, 5, 5.5, and 6 are all known to have
+      # possible. IE versions 4, 5, 5.5, and 6 are all known to have
       # a variety of quirks (especially when downloading over SSL).
       #
       # Simple download:
@@ -58,8 +61,8 @@ module ActionController #:nodoc:
       #
       # Also be aware that the document may be cached by proxies and browsers.
       # The Pragma and Cache-Control headers declare how the file may be cached
-      # by intermediaries.  They default to require clients to validate with
-      # the server before releasing cached responses.  See
+      # by intermediaries. They default to require clients to validate with
+      # the server before releasing cached responses. See
       # http://www.mnot.net/cache_docs/ for an overview of web caching and
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
@@ -84,6 +87,8 @@ module ActionController #:nodoc:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'. You can specify
       #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
+      #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
+      #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
@@ -108,6 +113,8 @@ module ActionController #:nodoc:
 
     private
       def send_file_headers!(options)
+        type_provided = options.has_key?(:type)
+        
         options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
         [:type, :disposition].each do |arg|
           raise ArgumentError, ":#{arg} option required" if options[arg].nil?
@@ -123,6 +130,10 @@ module ActionController #:nodoc:
           raise ArgumentError, "Unknown MIME type #{options[:type]}" unless extension
           self.content_type = extension
         else
+          if !type_provided && options[:filename]
+            # If type wasn't provided, try guessing from file extension.
+            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.tr('.','')) || content_type
+          end
           self.content_type = content_type
         end
 

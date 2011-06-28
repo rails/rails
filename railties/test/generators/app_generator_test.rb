@@ -10,6 +10,7 @@ DEFAULT_APP_FILES = %w(
   config.ru
   app/assets/javascripts
   app/assets/stylesheets
+  app/assets/images
   app/controllers
   app/helpers
   app/mailers
@@ -22,8 +23,8 @@ DEFAULT_APP_FILES = %w(
   doc
   lib
   lib/tasks
+  lib/assets
   log
-  app/assets/images
   script/rails
   test/fixtures
   test/functional
@@ -39,6 +40,8 @@ DEFAULT_APP_FILES = %w(
 class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments [destination_root]
+
+  # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
   def default_files
@@ -64,8 +67,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
-    # TODO: Suppress the output of this (it's because of a Thor::Error)
-    `rails new test`
+    quietly { system 'rails new test' }
     assert_equal false, $?.success?
   end
 
@@ -95,7 +97,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
                                                                :destination_root => app_moved_root, :shell => @shell
     generator.send(:app_const)
-    silence(:stdout){ generator.send(:create_config_files) }
+    quietly { generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
     assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
   end
@@ -110,7 +112,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true }, :destination_root => app_root, :shell => @shell
     generator.send(:app_const)
-    silence(:stdout){ generator.send(:create_config_files) }
+    quietly { generator.send(:create_config_files) }
     assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
   end
 
@@ -133,27 +135,45 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_config_jdbcmysql_database
     run_generator([destination_root, "-d", "jdbcmysql"])
-    assert_file "config/database.yml", /jdbcmysql/
+    assert_file "config/database.yml", /mysql/
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+    # TODO: When the JRuby guys merge jruby-openssl in
+    # jruby this will be removed
+    assert_file "Gemfile", /^gem\s+["']jruby-openssl["']$/ if defined?(JRUBY_VERSION)
   end
 
   def test_config_jdbcsqlite3_database
     run_generator([destination_root, "-d", "jdbcsqlite3"])
-    assert_file "config/database.yml", /jdbcsqlite3/
+    assert_file "config/database.yml", /sqlite3/
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
   end
 
   def test_config_jdbcpostgresql_database
     run_generator([destination_root, "-d", "jdbcpostgresql"])
-    assert_file "config/database.yml", /jdbcpostgresql/
+    assert_file "config/database.yml", /postgresql/
     assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
+  end
+
+  def test_config_jdbc_database
+    run_generator([destination_root, "-d", "jdbc"])
+    assert_file "config/database.yml", /jdbc/
+    assert_file "config/database.yml", /mssql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbc-adapter["']$/
+  end
+
+  def test_config_jdbc_database_when_no_option_given
+    if defined?(JRUBY_VERSION)
+      run_generator([destination_root])
+      assert_file "config/database.yml", /sqlite3/
+      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+    end
   end
 
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
     assert_file "test/test_helper.rb" do |helper_content|
-      assert_no_match /fixtures :all/, helper_content
+      assert_no_match(/fixtures :all/, helper_content)
     end
     assert_file "test/performance/browsing_test.rb"
   end
@@ -163,26 +183,72 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
-  def test_jquery_and_test_unit_are_added_by_default
+  def test_creation_of_a_test_directory
     run_generator
-    assert_file "config/application.rb", /#\s+config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(prototype effects dragdrop controls rails\)/
-    assert_file "app/assets/javascripts/application.js"
-    assert_file "vendor/assets/javascripts/jquery.js"
-    assert_file "vendor/assets/javascripts/jquery_ujs.js"
-    assert_file "test"
+    assert_file 'test'
+  end
+
+  def test_jquery_is_the_default_javascript_library
+    run_generator
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require jquery}, contents
+      assert_match %r{^//= require jquery_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match(/^gem 'jquery-rails'/, contents)
+    end
+  end
+
+  def test_other_javascript_libraries
+    run_generator [destination_root, '-j', 'prototype']
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_match %r{^//= require prototype}, contents
+      assert_match %r{^//= require prototype_ujs}, contents
+    end
+    assert_file 'Gemfile' do |contents|
+      assert_match(/^gem 'prototype-rails'/, contents)
+    end
   end
 
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
-    assert_file "config/application.rb", /^\s+# config\.action_view\.javascript_expansions\[:defaults\]\s+=\s+%w\(\)/
-    assert_file "app/assets/javascripts/application.js"
-    assert_no_file "vendor/assets/javascripts/jquery.js"
-    assert_no_file "vendor/assets/javascripts/jquery_ujs.js"
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_no_match %r{^//=\s+require\s}, contents
+    end
+  end
+
+  def test_inclusion_of_turn_gem_in_gemfile
+    run_generator
+    assert_file "Gemfile" do |contents|
+      assert_match(/gem 'turn'/, contents) unless RUBY_VERSION < '1.9.2'
+      assert_no_match(/gem 'turn'/, contents) if RUBY_VERSION < '1.9.2'
+    end
+  end
+
+  def test_turn_gem_is_not_included_in_gemfile_if_skipping_test_unit
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/gem 'turn'/, contents) unless RUBY_VERSION < '1.9.2'
+    end
+  end
+
+  def test_inclusion_of_ruby_debug
+    run_generator
+    assert_file "Gemfile" do |contents|
+      assert_match(/gem 'ruby-debug'/, contents) if RUBY_VERSION < '1.9'
+    end
+  end
+
+  def test_inclusion_of_ruby_debug19_if_ruby19
+    run_generator
+    assert_file "Gemfile" do |contents|
+      assert_match(/gem 'ruby-debug19', :require => 'ruby-debug'/, contents) unless RUBY_VERSION < '1.9'
+    end
   end
 
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
-    assert_match /It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"])
+    assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
   def test_usage_read_from_file
@@ -192,7 +258,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_default_usage
     File.expects(:exist?).returns(false)
-    assert_match /Create rails files for app generator/, Rails::Generators::AppGenerator.desc
+    assert_match(/Create rails files for app generator/, Rails::Generators::AppGenerator.desc)
   end
 
   def test_default_namespace
@@ -206,18 +272,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_test_unit_is_removed_from_frameworks_if_skip_test_unit_is_given
     run_generator [destination_root, "--skip-test-unit"]
-    assert_file "config/application.rb" do |file|
-      assert_match /config.generators.test_framework = false/, file
-    end
+    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+  end
+
+  def test_no_active_record_or_test_unit_if_skips_given
+    run_generator [destination_root, "--skip-test-unit", "--skip-active-record"]
+    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
   end
 
   def test_new_hash_style
     run_generator [destination_root]
     assert_file "config/initializers/session_store.rb" do |file|
       if RUBY_VERSION < "1.9"
-        assert_match /config.session_store :cookie_store, :key => '_.+_session'/, file
+        assert_match(/config.session_store :cookie_store, :key => '_.+_session'/, file)
       else
-        assert_match /config.session_store :cookie_store, key: '_.+_session'/, file
+        assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
       end
     end
   end
@@ -225,14 +295,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_force_old_style_hash
     run_generator [destination_root, "--old-style-hash"]
     assert_file "config/initializers/session_store.rb" do |file|
-      assert_match /config.session_store :cookie_store, :key => '_.+_session'/, file
+      assert_match(/config.session_store :cookie_store, :key => '_.+_session'/, file)
     end
   end
 
 protected
 
   def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
+    silence(:stdout) { generator.send(*args, &block) }
   end
 
 end
@@ -258,6 +328,6 @@ protected
   end
 
   def action(*args, &block)
-    silence(:stdout){ generator.send(*args, &block) }
+    silence(:stdout) { generator.send(*args, &block) }
   end
 end

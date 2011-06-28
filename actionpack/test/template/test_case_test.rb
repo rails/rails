@@ -73,6 +73,10 @@ module ActionView
       view.request.flash.expects(:alert).with("this message")
       view.alert("this message")
     end
+
+    test "uses controller lookup context" do
+      assert_equal self.lookup_context, @controller.lookup_context
+    end
   end
 
   class ClassMethodsTest < ActionView::TestCase
@@ -134,22 +138,6 @@ module ActionView
       @controller.class.helper_method :render_from_helper
 
       assert_equal 'controller_helper_method', some_method
-    end
-  end
-
-  class AssignsTest < ActionView::TestCase
-    setup do
-      ActiveSupport::Deprecation.stubs(:warn)
-    end
-
-    test "_assigns delegates to user_defined_ivars" do
-      self.expects(:view_assigns)
-      _assigns
-    end
-
-    test "_assigns is deprecated" do
-      ActiveSupport::Deprecation.expects(:warn)
-      _assigns
     end
   end
 

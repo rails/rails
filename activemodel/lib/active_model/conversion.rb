@@ -21,8 +21,8 @@ module ActiveModel
   #
   module Conversion
     # If your object is already designed to implement all of the Active Model
-    # you can use the default to_model implementation, which simply returns
-    # self.
+    # you can use the default <tt>:to_model</tt> implementation, which simply
+    # returns self.
     #
     # If your model does not act like an Active Model object, then you should
     # define <tt>:to_model</tt> yourself returning a proxy object that wraps
@@ -35,13 +35,13 @@ module ActiveModel
     # if the object is persisted or not.
     #
     # Note the default implementation uses persisted? just because all objects
-    # in Ruby 1.8.x responds to :id.
+    # in Ruby 1.8.x responds to <tt>:id</tt>.
     def to_key
       persisted? ? [id] : nil
     end
 
     # Returns a string representing the object's key suitable for use in URLs,
-    # or nil if persisted? is false
+    # or nil if <tt>persisted?</tt> is false.
     def to_param
       persisted? ? to_key.join('-') : nil
     end

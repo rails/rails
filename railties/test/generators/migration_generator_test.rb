@@ -35,8 +35,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |up|
-        assert_match /add_column :posts, :title, :string/, up
-        assert_match /add_column :posts, :body, :text/, up
+        assert_match(/add_column :posts, :title, :string/, up)
+        assert_match(/add_column :posts, :body, :text/, up)
       end
     end
   end
@@ -47,13 +47,13 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :up, content do |up|
-        assert_match /remove_column :posts, :title/, up
-        assert_match /remove_column :posts, :body/, up
+        assert_match(/remove_column :posts, :title/, up)
+        assert_match(/remove_column :posts, :body/, up)
       end
 
       assert_method :down, content do |down|
-        assert_match /add_column :posts, :title, :string/, down
-        assert_match /add_column :posts, :body, :text/, down
+        assert_match(/add_column :posts, :title, :string/, down)
+        assert_match(/add_column :posts, :body, :text/, down)
       end
     end
   end
@@ -64,11 +64,11 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :up, content do |up|
-        assert_match /^\s*$/, up
+        assert_match(/^\s*$/, up)
       end
 
       assert_method :down, content do |down|
-        assert_match /^\s*$/, down
+        assert_match(/^\s*$/, down)
       end
     end
   end

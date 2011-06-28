@@ -1,4 +1,25 @@
+*Rails 3.2.0 (unreleased)*
+
+* The inflector understands acronyms. [dlee]
+
+* Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim] 
+
+* Added Time#all_day/week/quarter/year as a way of generating ranges (example: Event.where(created_at: Time.now.all_week)) [DHH]
+
+* Added instance_accessor: false as an option to Class#cattr_accessor and friends [DHH]
+
+* Removed ActiveSupport::SecureRandom in favor of SecureRandom from the standard library [Jon Leighton]
+
+* ActiveSupport::OrderedHash now has different behavior for #each and
+#each_pair when given a block accepting its parameters with a splat. [Andrew Radev]
+
 *Rails 3.1.0 (unreleased)*
+
+* ActiveSupport::Dependencies now raises NameError if it finds an existing constant in load_missing_constant. This better reflects the nature of the error which is usually caused by calling constantize on a nested constant. [Andrew White]
+
+* Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
+
+* New reporting method Kernel#quietly. [fxn]
 
 * Add String#inquiry as a convenience method for turning a string into a StringInquirer object [DHH]
 
@@ -19,13 +40,43 @@ advantage of the new ClassCache.
 
 * Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! [Andrew White]
 
-*Rails 3.0.2 (unreleased)*
+* JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. [Josh Kalderimis]
+
+
+*Rails 3.0.7 (April 18, 2011)*
+
+* Hash.from_xml no longer loses attributes on tags containing only whitespace [André Arko]
+
+
+*Rails 3.0.6 (April 5, 2011)
+
+* No changes.
+
+
+*Rails 3.0.5 (February 26, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.4 (February 8, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.3 (November 16, 2010)*
+
+* No changes.
+
+
+*Rails 3.0.2 (November 15, 2010)*
 
 * Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! [Andrew White]
+
 
 *Rails 3.0.1 (October 15, 2010)*
 
 * No Changes, just a version bump.
+
 
 *Rails 3.0.0 (August 29, 2010)*
 

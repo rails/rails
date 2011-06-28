@@ -10,12 +10,12 @@ module ActiveRecord
 
         reflection.klass.transaction do
           if target && target != record
-            remove_target!(options[:dependent])
+            remove_target!(options[:dependent]) unless target.destroyed?
           end
 
           if record
-            set_inverse_instance(record)
             set_owner_attributes(record)
+            set_inverse_instance(record)
 
             if owner.persisted? && save && !record.save
               nullify_owner_attributes(record)

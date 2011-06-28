@@ -9,11 +9,20 @@ module Rails
       @options   = generator.options
     end
 
-  private
+    private
+      %w(template copy_file directory empty_directory inside
+         empty_directory_with_gitkeep create_file chmod shebang).each do |method|
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{method}(*args, &block)
+            @generator.send(:#{method}, *args, &block)
+          end
+        RUBY
+      end
 
-    def method_missing(meth, *args, &block)
-      @generator.send(meth, *args, &block)
-    end
+      # TODO: Remove once this is fully in place
+      def method_missing(meth, *args, &block)
+        @generator.send(meth, *args, &block)
+      end
   end
 
   # The application builder allows you to override elements of the application
@@ -21,7 +30,7 @@ module Rails
   # generator.
   #
   # This allows you to override entire operations, like the creation of the
-  # Gemfile, README, or javascript files, without needing to know exactly
+  # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
   class AppBuilder
     def rakefile
@@ -79,6 +88,7 @@ module Rails
     def lib
       empty_directory "lib"
       empty_directory_with_gitkeep "lib/tasks"
+      empty_directory_with_gitkeep "lib/assets"
     end
 
     def log
@@ -111,18 +121,8 @@ module Rails
     end
 
     def vendor
-      vendor_javascripts
       vendor_stylesheets
       vendor_plugins
-    end
-
-    def vendor_javascripts
-      if options[:skip_javascript]
-        empty_directory_with_gitkeep "vendor/assets/javascripts"
-      else
-        copy_file "vendor/assets/javascripts/jquery.js"
-        copy_file "vendor/assets/javascripts/jquery_ujs.js"
-      end
     end
 
     def vendor_stylesheets
@@ -225,7 +225,7 @@ module Rails
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :bundle_if_dev_or_edge
+      public_task :apply_rails_template, :run_bundle
 
     protected
 
@@ -273,7 +273,7 @@ module Rails
       end
 
       def app_secret
-        ActiveSupport::SecureRandom.hex(64)
+        SecureRandom.hex(64)
       end
 
       def mysql_socket

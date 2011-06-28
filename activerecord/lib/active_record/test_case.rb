@@ -13,6 +13,13 @@ module ActiveRecord
       ActiveRecord::IdentityMap.clear
     end
 
+    # Backport skip to Ruby 1.8. test/unit doesn't support it, so just
+    # make it a noop.
+    unless instance_methods.map(&:to_s).include?("skip")
+      def skip(message)
+      end
+    end
+
     def assert_date_from_db(expected, actual, message = nil)
       # SybaseAdapter doesn't have a separate column type just for dates,
       # so the time is in the string and incorrectly formatted
@@ -24,27 +31,30 @@ module ActiveRecord
     end
 
     def assert_sql(*patterns_to_match)
-      $queries_executed = []
+      ActiveRecord::SQLCounter.log = []
       yield
-      $queries_executed
+      ActiveRecord::SQLCounter.log
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless $queries_executed.any?{ |sql| pattern === sql }
+        failed_patterns << pattern unless ActiveRecord::SQLCounter.log.any?{ |sql| pattern === sql }
       end
-      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{$queries_executed.size == 0 ? '' : "\nQueries:\n#{$queries_executed.join("\n")}"}"
+      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{ActiveRecord::SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{ActiveRecord::SQLCounter.log.join("\n")}"}"
     end
 
     def assert_queries(num = 1)
-      $queries_executed = []
+      ActiveRecord::SQLCounter.log = []
       yield
     ensure
-      %w{ BEGIN COMMIT }.each { |x| $queries_executed.delete(x) }
-      assert_equal num, $queries_executed.size, "#{$queries_executed.size} instead of #{num} queries were executed.#{$queries_executed.size == 0 ? '' : "\nQueries:\n#{$queries_executed.join("\n")}"}"
+      assert_equal num, ActiveRecord::SQLCounter.log.size, "#{ActiveRecord::SQLCounter.log.size} instead of #{num} queries were executed.#{ActiveRecord::SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{ActiveRecord::SQLCounter.log.join("\n")}"}"
     end
 
     def assert_no_queries(&block)
+      prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
+      ActiveRecord::SQLCounter.ignored_sql = []
       assert_queries(0, &block)
+    ensure
+      ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
     end
 
     def with_kcode(kcode)

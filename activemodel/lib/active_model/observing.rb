@@ -40,7 +40,11 @@ module ActiveModel
         observers.replace(values.flatten)
       end
 
-      # Gets the current observers.
+      # Gets an array of observers observing this model.
+      # The array also provides +enable+ and +disable+ methods
+      # that allow you to selectively enable and disable observers.
+      # (see <tt>ActiveModel::ObserverArray.enable</tt> and
+      # <tt>ActiveModel::ObserverArray.disable</tt> for more on this)
       def observers
         @observers ||= ObserverArray.new(self)
       end
@@ -67,9 +71,7 @@ module ActiveModel
 
       # Notify list of observers of a change.
       def notify_observers(*arg)
-        for observer in observer_instances
-          observer.update(*arg)
-        end
+        observer_instances.each { |observer| observer.update(*arg) }
       end
 
       # Total number of observers.
@@ -123,7 +125,7 @@ module ActiveModel
   #
   #   class CommentObserver < ActiveModel::Observer
   #     def after_save(comment)
-  #       Notifications.deliver_comment("admin@do.com", "New comment was posted", comment)
+  #       Notifications.comment("admin@do.com", "New comment was posted", comment).deliver
   #     end
   #   end
   #
@@ -222,7 +224,8 @@ module ActiveModel
       self.class.observed_classes
     end
 
-    # Send observed_method(object) if the method exists.
+    # Send observed_method(object) if the method exists and
+    # the observer is enabled for the given object's class.
     def update(observed_method, object) #:nodoc:
       return unless respond_to?(observed_method)
       return if disabled_for?(object)

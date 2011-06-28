@@ -40,6 +40,10 @@ ActiveRecord::Schema.define do
     t.references :account
   end
 
+  create_table :aircraft, :force => true do |t|
+    t.string :name
+  end
+
   create_table :audit_logs, :force => true do |t|
     t.column :message, :string, :null=>false
     t.column :developer_id, :integer, :null=>false
@@ -89,6 +93,8 @@ ActiveRecord::Schema.define do
   create_table :bulbs, :force => true do |t|
     t.integer :car_id
     t.string  :name
+    t.boolean :frickinawesome
+    t.string :color
   end
 
   create_table "CamelCase", :force => true do |t|
@@ -541,6 +547,12 @@ ActiveRecord::Schema.define do
     t.integer :club_id
     t.integer :sponsorable_id
     t.string :sponsorable_type
+  end
+
+  create_table :string_key_objects, :id => false, :primary_key => :id, :force => true do |t|
+    t.string     :id
+    t.string     :name
+    t.integer    :lock_version, :null => false, :default => 0
   end
 
   create_table :students, :force => true do |t|

@@ -21,6 +21,12 @@ module ActiveRecord
         assert_equal 'sessions', Session.table_name
       end
 
+      def test_accessible_attributes
+        assert Session.accessible_attributes.include?(:session_id)
+        assert Session.accessible_attributes.include?(:data)
+        assert Session.accessible_attributes.include?(:marshaled_data)
+      end
+
       def test_create_table!
         assert !Session.table_exists?
         Session.create_table!

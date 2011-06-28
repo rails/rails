@@ -78,6 +78,10 @@ module Rails
       Rails::VERSION::STRING
     end
 
+    property 'JavaScript Runtime' do
+      ExecJS.runtime.name
+    end
+
     # Versions of each Rails framework (Active Record, Action Pack,
     # Active Resource, Action Mailer, and Active Support).
     frameworks.each do |framework|

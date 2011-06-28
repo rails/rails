@@ -4,14 +4,18 @@ source 'http://rubygems.org'
 
 <%= database_gemfile_entry -%>
 
-# Asset template engines
+<%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
-gem 'sass'
-gem 'coffee-script'
-gem 'uglifier'
 
-# Prototype, Scriptaculous, and RJS.
-# gem 'prototype-rails'
+# Gems used only for assets and not required
+# in production environments by default.
+group :assets do
+  gem 'sass-rails'
+  gem 'coffee-script'
+  gem 'uglifier'
+end
+
+<%= javascript_gemfile_entry %>
 
 # Use unicorn as the web server
 # gem 'unicorn'
@@ -20,6 +24,6 @@ gem 'uglifier'
 # gem 'capistrano'
 
 # To use debugger
-# <%= gem_for_ruby_debugger %>
+# <%= ruby_debugger_gemfile_entry %>
 
-<%= gem_for_turn -%>
+<%= turn_gemfile_entry -%>

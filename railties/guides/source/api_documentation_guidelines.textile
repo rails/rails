@@ -33,12 +33,16 @@ Spell names correctly: Arel, Test::Unit, RSpec, HTML, MySQL, JavaScript, ERB. Wh
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
+h3. English
+
+Please use American English (_color_, _center_, _modularize_, etc.). See "a list of American and British English spelling differences here":http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences.
+
 h3. Example Code
 
 Choose meaningful examples that depict and cover the basics as well as interesting points or gotchas.
 
-Use two spaces to indent chunks of code.—that is two spaces with respect to the left margin; the examples
-themselves should use "Rails code conventions":http://rails.lighthouseapp.com/projects/8994/source-style.
+Use two spaces to indent chunks of code--that is two spaces with respect to the left margin; the examples
+themselves should use "Rails coding conventions":contributing_to_ruby_on_rails.html#follow-the-coding-conventions.
 
 Short docs do not need an explicit "Examples" label to introduce snippets, they just follow paragraphs:
 

@@ -3,16 +3,17 @@ module ActiveRecord
     # == What is Optimistic Locking
     #
     # Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of
-    # conflicts with the data.  It does this by checking whether another process has made changes to a record since
-    # it was opened, an ActiveRecord::StaleObjectError is thrown if that has occurred and the update is ignored.
+    # conflicts with the data. It does this by checking whether another process has made changes to a record since
+    # it was opened, an <tt>ActiveRecord::StaleObjectError</tt> exception is thrown if that has occurred
+    # and the update is ignored.
     #
-    # Check out ActiveRecord::Locking::Pessimistic for an alternative.
+    # Check out <tt>ActiveRecord::Locking::Pessimistic</tt> for an alternative.
     #
     # == Usage
     #
-    # Active Records support optimistic locking if the field <tt>lock_version</tt> is present.  Each update to the
-    # record increments the lock_version column and the locking facilities ensure that records instantiated twice
-    # will let the last one saved raise a StaleObjectError if the first was also updated. Example:
+    # Active Records support optimistic locking if the field +lock_version+ is present. Each update to the
+    # record increments the +lock_version+ column and the locking facilities ensure that records instantiated twice
+    # will let the last one saved raise a +StaleObjectError+ if the first was also updated. Example:
     #
     #   p1 = Person.find(1)
     #   p2 = Person.find(1)
@@ -36,10 +37,10 @@ module ActiveRecord
     # You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging,
     # or otherwise apply the business logic needed to resolve the conflict.
     #
-    # You must ensure that your database schema defaults the lock_version column to 0.
+    # You must ensure that your database schema defaults the +lock_version+ column to 0.
     #
     # This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
-    # To override the name of the lock_version column, invoke the <tt>set_locking_column</tt> method.
+    # To override the name of the +lock_version+ column, invoke the <tt>set_locking_column</tt> method.
     # This method uses the same syntax as <tt>set_table_name</tt>
     module Optimistic
       extend ActiveSupport::Concern
@@ -68,9 +69,9 @@ module ActiveRecord
           result = super
 
           # If the locking column has no default value set,
-          # start the lock version at zero.  Note we can't use
-          # locking_enabled? at this point as @attributes may
-          # not have been initialized yet
+          # start the lock version at zero. Note we can't use
+          # <tt>locking_enabled?</tt> at this point as 
+          # <tt>@attributes</tt> may not have been initialized yet.
 
           if lock_optimistically && result.include?(self.class.locking_column)
             result[self.class.locking_column] ||= 0
@@ -94,7 +95,7 @@ module ActiveRecord
             relation = self.class.unscoped
 
             stmt = relation.where(
-              relation.table[self.class.primary_key].eq(quoted_id).and(
+              relation.table[self.class.primary_key].eq(id).and(
                 relation.table[lock_col].eq(quote_value(previous_lock_value))
               )
             ).arel.compile_update(arel_attributes_values(false, false, attribute_names))
@@ -137,10 +138,9 @@ module ActiveRecord
       module ClassMethods
         DEFAULT_LOCKING_COLUMN = 'lock_version'
 
-        # Is optimistic locking enabled for this table? Returns true if the
-        # +lock_optimistically+ flag is set to true (which it is, by default)
-        # and the table includes the +locking_column+ column (defaults to
-        # +lock_version+).
+        # Returns true if the +lock_optimistically+ flag is set to true
+        # (which it is, by default) and the table includes the
+        # +locking_column+ column (defaults to +lock_version+).
         def locking_enabled?
           lock_optimistically && columns_hash[locking_column]
         end

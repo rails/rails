@@ -137,30 +137,39 @@ class RequestTest < ActiveSupport::TestCase
   test "subdomains" do
     request = stub_request 'HTTP_HOST' => "www.rubyonrails.org"
     assert_equal %w( www ), request.subdomains
+    assert_equal "www", request.subdomain
 
     request = stub_request 'HTTP_HOST' => "www.rubyonrails.co.uk"
     assert_equal %w( www ), request.subdomains(2)
+    assert_equal "www", request.subdomain(2)
 
     request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk"
     assert_equal %w( dev www ), request.subdomains(2)
+    assert_equal "dev.www", request.subdomain(2)
 
     request = stub_request 'HTTP_HOST' => "dev.www.rubyonrails.co.uk", :tld_length => 2
     assert_equal %w( dev www ), request.subdomains
+    assert_equal "dev.www", request.subdomain
 
     request = stub_request 'HTTP_HOST' => "foobar.foobar.com"
     assert_equal %w( foobar ), request.subdomains
+    assert_equal "foobar", request.subdomain
 
     request = stub_request 'HTTP_HOST' => "192.168.1.200"
     assert_equal [], request.subdomains
+    assert_equal "", request.subdomain
 
     request = stub_request 'HTTP_HOST' => "foo.192.168.1.200"
     assert_equal [], request.subdomains
+    assert_equal "", request.subdomain
 
     request = stub_request 'HTTP_HOST' => "192.168.1.200.com"
     assert_equal %w( 192 168 1 ), request.subdomains
+    assert_equal "192.168.1", request.subdomain
 
     request = stub_request 'HTTP_HOST' => nil
     assert_equal [], request.subdomains
+    assert_equal "", request.subdomain
   end
 
   test "standard_port" do
@@ -347,6 +356,13 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "GET",  request.request_method
     assert request.get?
     assert request.head?
+  end
+
+  test "post masquerading as put" do
+    request = stub_request 'REQUEST_METHOD' => 'PUT', "rack.methodoverride.original_method" => "POST"
+    assert_equal "POST", request.method
+    assert_equal "PUT",  request.request_method
+    assert request.put?
   end
 
   test "xml format" do

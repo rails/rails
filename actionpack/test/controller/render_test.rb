@@ -1023,11 +1023,6 @@ class RenderTest < ActionController::TestCase
     assert_equal " ", @response.body
   end
 
-  def test_render_to_string_not_deprecated
-    assert_not_deprecated { get :hello_in_a_string }
-    assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
-  end
-
   def test_render_to_string_doesnt_break_assigns
     get :render_to_string_with_assigns
     assert_equal "i'm before the render", assigns(:before)
@@ -1106,7 +1101,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_yield_content_for
-    assert_not_deprecated { get :yield_content_for }
+    get :yield_content_for
     assert_equal "<title>Putting stuff in the title!</title>\nGreat stuff!\n", @response.body
   end
 

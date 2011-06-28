@@ -51,7 +51,8 @@ class ERB
     #   <%=j @person.to_json %>
     #
     def json_escape(s)
-      s.to_s.gsub(/[&"><]/) { |special| JSON_ESCAPE[special] }
+      result = s.to_s.gsub(/[&"><]/) { |special| JSON_ESCAPE[special] }
+      s.html_safe? ? result.html_safe : result
     end
 
     alias j json_escape
@@ -74,10 +75,34 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    alias safe_concat concat
+    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
+
+    alias_method :original_concat, :concat
+    private :original_concat
+
+    class SafeConcatError < StandardError
+      def initialize
+        super "Could not concatenate to the buffer because it is not html safe."
+      end
+    end
+
+    def safe_concat(value)
+      raise SafeConcatError if dirty?
+      original_concat(value)
+    end
+
+    def initialize(*)
+      @dirty = false
+      super
+    end
+
+    def initialize_copy(other)
+      super
+      @dirty = other.dirty?
+    end
 
     def concat(value)
-      if value.html_safe?
+      if dirty? || value.html_safe?
         super(value)
       else
         super(ERB::Util.h(value))
@@ -90,15 +115,15 @@ module ActiveSupport #:nodoc:
     end
 
     def html_safe?
-      true
-    end
-
-    def html_safe
-      self
+      !dirty?
     end
 
     def to_s
       self
+    end
+
+    def to_param
+      to_str
     end
 
     def encode_with(coder)
@@ -107,17 +132,31 @@ module ActiveSupport #:nodoc:
 
     def to_yaml(*args)
       return super() if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
-
       to_str.to_yaml(*args)
+    end
+
+    UNSAFE_STRING_METHODS.each do |unsafe_method|
+      class_eval <<-EOT, __FILE__, __LINE__
+        def #{unsafe_method}(*args, &block)
+          to_str.#{unsafe_method}(*args, &block)
+        end
+
+        def #{unsafe_method}!(*args)
+          @dirty = true
+          super
+        end
+      EOT
+    end
+
+    protected
+
+    def dirty?
+      @dirty
     end
   end
 end
 
 class String
-  def html_safe!
-    raise "You can't call html_safe! on a String"
-  end
-
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
   end

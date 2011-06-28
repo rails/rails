@@ -1,6 +1,7 @@
 require 'rails/initializable'
 require 'rails/configuration'
 require 'active_support/inflector'
+require 'active_support/core_ext/module/introspection'
 
 module Rails
   # Railtie is the core of the Rails framework and provides several hooks to extend
@@ -83,7 +84,7 @@ module Rails
   # == Loading rake tasks and generators
   #
   # If your railtie has rake tasks, you can tell Rails to load them through the method
-  # rake tasks:
+  # rake_tasks:
   #
   #   class MyRailtie < Rails::Railtie
   #     rake_tasks do
@@ -173,23 +174,28 @@ module Rails
     def eager_load!
     end
 
-    def load_console
-      self.class.console.each(&:call)
+    def load_console(app=self)
+      self.class.console.each { |block| block.call(app) }
     end
 
-    def load_tasks
-      self.class.rake_tasks.each(&:call)
+    def load_tasks(app=self)
+      extend Rake::DSL if defined? Rake::DSL
+      self.class.rake_tasks.each { |block| block.call(app) }
 
       # load also tasks from all superclasses
       klass = self.class.superclass
       while klass.respond_to?(:rake_tasks)
-        klass.rake_tasks.each { |t| self.instance_exec(&t) }
+        klass.rake_tasks.each { |t| self.instance_exec(app, &t) }
         klass = klass.superclass
       end
     end
 
-    def load_generators
-      self.class.generators.each(&:call)
+    def load_generators(app=self)
+      self.class.generators.each { |block| block.call(app) }
+    end
+
+    def railtie_namespace
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:_railtie) }
     end
   end
 end

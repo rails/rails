@@ -216,7 +216,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_conditions
     expected = [
       [{ :tags => { :name => 'Blue' } }],
-      [{ :taggings => { :comment => 'first' } }, { "taggable_type" => "Post" }],
+      [{ :taggings => { :comment => 'first' } }],
       [{ :posts => { :title => ['misc post by bob', 'misc post by mary'] } }]
     ]
     actual = Author.reflect_on_association(:misc_post_first_blue_tags).conditions
@@ -224,7 +224,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
     expected = [
       [{ :tags => { :name => 'Blue' } }, { :taggings => { :comment => 'first' } }, { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }],
-      [{ "taggable_type" => "Post" }],
+      [],
       []
     ]
     actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
@@ -302,13 +302,6 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_foreign_key
     assert_equal "author_id", Author.reflect_on_association(:posts).foreign_key.to_s
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
-  end
-
-  def test_primary_key_name
-    assert_deprecated do
-      assert_equal "author_id", Author.reflect_on_association(:posts).primary_key_name.to_s
-      assert_equal "category_id", Post.reflect_on_association(:categorizations).primary_key_name.to_s
-    end
   end
 
   private

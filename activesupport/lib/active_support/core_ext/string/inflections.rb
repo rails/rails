@@ -1,5 +1,4 @@
 require 'active_support/inflector/methods'
-require 'active_support/inflector/inflections'
 require 'active_support/inflector/transliterate'
 
 # String inflections define new methods on the String class to transform names for different purposes.

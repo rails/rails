@@ -11,6 +11,10 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app
       @app ||= Rails.application
     end
@@ -23,20 +27,19 @@ module ApplicationTests
         "Rack::Lock",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
-        "Rails::Rack::Logger",
+        "Rack::MethodOverride",
+        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
-        "ActiveRecord::IdentityMap::Middleware",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
-        "Rack::MethodOverride",
         "ActionDispatch::Head",
         "Rack::ConditionalGet",
         "Rack::ETag",
@@ -121,6 +124,7 @@ module ApplicationTests
     end
 
     test "identity map is inserted" do
+      add_to_config "config.active_record.identity_map = true"
       boot!
       assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
     end

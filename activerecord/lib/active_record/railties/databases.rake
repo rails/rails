@@ -27,7 +27,7 @@ db_namespace = namespace :db do
         #
         #  development:
         #    database: blog_development
-        #    <<: *defaults
+        #    *defaults
         next unless config['database']
         # Only connect to local databases
         local_database?(config) { create_database(config) }
@@ -203,18 +203,18 @@ db_namespace = namespace :db do
         # only files matching "20091231235959_some_name.rb" pattern
         if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
           status = db_list.delete(match_data[1]) ? 'up' : 'down'
-          file_list << [status, match_data[1], match_data[2]]
+          file_list << [status, match_data[1], match_data[2].humanize]
         end
+      end
+      db_list.map! do |version|
+        ['up', version, '********** NO FILE **********']
       end
       # output
       puts "\ndatabase: #{config['database']}\n\n"
       puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
       puts "-" * 50
-      file_list.each do |file|
-        puts "#{file[0].center(8)}  #{file[1].ljust(14)}  #{file[2].humanize}"
-      end
-      db_list.each do |version|
-        puts "#{'up'.center(8)}  #{version.ljust(14)}  *** NO FILE ***"
+      (db_list + file_list).sort_by {|migration| migration[1]}.each do |migration|
+        puts "#{migration[0].center(8)}  #{migration[1].ljust(14)}  #{migration[2]}"
       end
       puts
     end
@@ -296,7 +296,7 @@ db_namespace = namespace :db do
   end
 
   namespace :fixtures do
-    desc "Load fixtures into the current environment's database.  Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task :load => :environment do
       require 'active_record/fixtures'
 
@@ -305,7 +305,7 @@ db_namespace = namespace :db do
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
       (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.{yml,csv}"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
-        Fixtures.create_fixtures(fixtures_dir, fixture_file)
+        ActiveRecord::Fixtures.create_fixtures(fixtures_dir, fixture_file)
       end
     end
 
@@ -316,13 +316,13 @@ db_namespace = namespace :db do
       label, id = ENV['LABEL'], ENV['ID']
       raise 'LABEL or ID required' if label.blank? && id.blank?
 
-      puts %Q(The fixture ID for "#{label}" is #{Fixtures.identify(label)}.) if label
+      puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::Fixtures.identify(label)}.) if label
 
       base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
       Dir["#{base_dir}/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
           data.keys.each do |key|
-            key_id = Fixtures.identify(key)
+            key_id = ActiveRecord::Fixtures.identify(key)
 
             if key == label || key_id == id.to_i
               puts "#{file}: #{key} (#{key_id})"
@@ -338,6 +338,7 @@ db_namespace = namespace :db do
     task :dump => :load_config do
       require 'active_record/schema_dumper'
       File.open(ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb", "w") do |file|
+        ActiveRecord::Base.establish_connection(Rails.env)
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
       db_namespace['schema:dump'].reenable
@@ -368,7 +369,7 @@ db_namespace = namespace :db do
         ENV['PGPASSWORD'] = abcs[Rails.env]['password'].to_s if abcs[Rails.env]['password']
         search_path = abcs[Rails.env]['schema_search_path']
         unless search_path.blank?
-          search_path = search_path.split(",").map{|search_path| "--schema=#{search_path.strip}" }.join(" ")
+          search_path = search_path.split(",").map{|search_path_part| "--schema=#{search_path_part.strip}" }.join(" ")
         end
         `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
@@ -376,8 +377,7 @@ db_namespace = namespace :db do
         dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
         `sqlite3 #{dbfile} .schema > db/#{Rails.env}_structure.sql`
       when 'sqlserver'
-        `scptxfr /s #{abcs[Rails.env]['host']} /d #{abcs[Rails.env]['database']} /I /f db\\#{Rails.env}_structure.sql /q /A /r`
-        `scptxfr /s #{abcs[Rails.env]['host']} /d #{abcs[Rails.env]['database']} /I /F db\ /q /A /r`
+        `smoscript -s #{abcs[Rails.env]['host']} -d #{abcs[Rails.env]['database']} -u #{abcs[Rails.env]['username']} -p #{abcs[Rails.env]['password']} -f db\\#{Rails.env}_structure.sql -A -U`
       when "firebird"
         set_firebird_env(abcs[Rails.env])
         db_string = firebird_db_string(abcs[Rails.env])
@@ -422,7 +422,7 @@ db_namespace = namespace :db do
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         `sqlite3 #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
       when 'sqlserver'
-        `osql -E -S #{abcs['test']['host']} -d #{abcs['test']['database']} -i db\\#{Rails.env}_structure.sql`
+        `sqlcmd -S #{abcs['test']['host']} -d #{abcs['test']['database']} -U #{abcs['test']['username']} -P #{abcs['test']['password']} -i db\\#{Rails.env}_structure.sql`
       when 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(:test)
         IO.readlines("#{Rails.root}/db/#{Rails.env}_structure.sql").join.split(";\n\n").each do |ddl|
@@ -452,9 +452,11 @@ db_namespace = namespace :db do
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         File.delete(dbfile) if File.exist?(dbfile)
       when 'sqlserver'
-        dropfkscript = "#{abcs['test']['host']}.#{abcs['test']['database']}.DP1".gsub(/\\/,'-')
-        `osql -E -S #{abcs['test']['host']} -d #{abcs['test']['database']} -i db\\#{dropfkscript}`
-        `osql -E -S #{abcs['test']['host']} -d #{abcs['test']['database']} -i db\\#{Rails.env}_structure.sql`
+        test = abcs.deep_dup['test']
+        test_database = test['database']
+        test['database'] = 'master'
+        ActiveRecord::Base.establish_connection(test)
+        ActiveRecord::Base.connection.recreate_database!(test_database)
       when "oci", "oracle"
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.structure_drop.split(";\n\n").each do |ddl|
@@ -480,8 +482,7 @@ db_namespace = namespace :db do
     # desc "Creates a sessions migration for use with ActiveRecord::SessionStore"
     task :create => :environment do
       raise 'Task unavailable to this database (no migration support)' unless ActiveRecord::Base.connection.supports_migrations?
-      require 'rails/generators'
-      Rails::Generators.configure!
+      Rails.application.load_generators
       require 'rails/generators/rails/session_migration/session_migration_generator'
       Rails::Generators::SessionMigrationGenerator.start [ ENV['MIGRATION'] || 'add_sessions_table' ]
     end
@@ -498,7 +499,7 @@ namespace :railties do
     # desc "Copies missing migrations from Railties (e.g. plugins, engines). You can specify Railties to use with FROM=railtie1,railtie2"
     task :migrations => :'db:load_config' do
       to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
-      railties = {}
+      railties = ActiveSupport::OrderedHash.new
       Rails.application.railties.all do |railtie|
         next unless to_load == :all || to_load.include?(railtie.railtie_name)
 

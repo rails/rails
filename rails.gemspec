@@ -13,7 +13,6 @@ Gem::Specification.new do |s|
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
-  s.rubyforge_project = 'rails'
 
   s.bindir             = 'bin'
   s.executables        = ['rails']

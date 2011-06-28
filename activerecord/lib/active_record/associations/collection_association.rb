@@ -4,7 +4,7 @@ module ActiveRecord
   module Associations
     # = Active Record Association Collection
     #
-    # AssociationCollection is an abstract class that provides common stuff to
+    # CollectionAssociation is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
     # collections. See the class hierarchy in AssociationProxy.
     #
@@ -94,39 +94,33 @@ module ActiveRecord
       end
 
       def build(attributes = {}, options = {}, &block)
-        build_or_create(:build, attributes, options, &block)
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| build(attr, options, &block) }
+        else
+          add_to_target(build_record(attributes, options)) do |record|
+            yield(record) if block_given?
+          end
+        end
       end
 
       def create(attributes = {}, options = {}, &block)
-        unless owner.persisted?
-          raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
-        end
-
-        build_or_create(:create, attributes, options, &block)
+        create_record(attributes, options, &block)
       end
 
-      def create!(attrs = {}, options = {}, &block)
-        record = create(attrs, options, &block)
-        Array.wrap(record).each(&:save!)
-        record
+      def create!(attributes = {}, options = {}, &block)
+        create_record(attributes, options, true, &block)
       end
 
-      # Add +records+ to this association.  Returns +self+ so method calls may be chained.
+      # Add +records+ to this association. Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
-        result = true
         load_target if owner.new_record?
 
-        transaction do
-          records.flatten.each do |record|
-            raise_on_type_mismatch(record)
-            add_to_target(record) do |r|
-              result &&= insert_record(record) unless owner.new_record?
-            end
-          end
+        if owner.new_record?
+          concat_records(records)
+        else
+          transaction { concat_records(records) }
         end
-
-        result && records
       end
 
       # Starts a transaction in the association class's database connection.
@@ -295,14 +289,10 @@ module ActiveRecord
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
 
-        transaction do
-          delete(target - other_array)
-
-          unless concat(other_array - target)
-            @target = original_target
-            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
-                                  "new records could not be saved."
-          end
+        if owner.new_record?
+          replace_records(other_array, original_target)
+        else
+          transaction { replace_records(other_array, original_target) }
         end
       end
 
@@ -321,15 +311,7 @@ module ActiveRecord
 
       def load_target
         if find_target?
-          targets = []
-
-          begin
-            targets = find_target
-          rescue ActiveRecord::RecordNotFound
-            reset
-          end
-
-          @target = merge_target_lists(targets, target)
+          @target = merge_target_lists(find_target, target)
         end
 
         loaded!
@@ -337,19 +319,17 @@ module ActiveRecord
       end
 
       def add_to_target(record)
-        transaction do
-          callback(:before_add, record)
-          yield(record) if block_given?
+        callback(:before_add, record)
+        yield(record) if block_given?
 
-          if options[:uniq] && index = @target.index(record)
-            @target[index] = record
-          else
-            @target << record
-          end
-
-          callback(:after_add, record)
-          set_inverse_instance(record)
+        if options[:uniq] && index = @target.index(record)
+          @target[index] = record
+        else
+          @target << record
         end
+
+        callback(:after_add, record)
+        set_inverse_instance(record)
 
         record
       end
@@ -374,7 +354,7 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              find(:all)
+              scoped.all
             end
 
           records = options[:uniq] ? uniq(records) : records
@@ -382,47 +362,71 @@ module ActiveRecord
           records
         end
 
-        def merge_target_lists(loaded, existing)
-          return loaded if existing.empty?
-          return existing if loaded.empty?
+        # We have some records loaded from the database (persisted) and some that are
+        # in-memory (memory). The same record may be represented in the persisted array
+        # and in the memory array.
+        #
+        # So the task of this method is to merge them according to the following rules:
+        #
+        #   * The final array must not have duplicates
+        #   * The order of the persisted array is to be preserved
+        #   * Any changes made to attributes on objects in the memory array are to be preserved
+        #   * Otherwise, attributes should have the value found in the database
+        def merge_target_lists(persisted, memory)
+          return persisted if memory.empty?
+          return memory    if persisted.empty?
 
-          loaded.map do |f|
-            i = existing.index(f)
-            if i
-              existing.delete_at(i).tap do |t|
-                keys = ["id"] + t.changes.keys + (f.attribute_names - t.attribute_names)
-                # FIXME: this call to attributes causes many NoMethodErrors
-                attributes = f.attributes
-                (attributes.keys - keys).each do |k|
-                  t.send("#{k}=", attributes[k])
-                end
+          persisted.map! do |record|
+            # Unfortunately we cannot simply do memory.delete(record) since on 1.8 this returns
+            # record rather than memory.at(memory.index(record)). The behaviour is fixed in 1.9.
+            mem_index = memory.index(record)
+
+            if mem_index
+              mem_record = memory.delete_at(mem_index)
+
+              (record.attribute_names - mem_record.changes.keys).each do |name|
+                mem_record[name] = record[name]
               end
+
+              mem_record
             else
-              f
-            end
-          end + existing
-        end
-
-        def build_or_create(method, attributes, options)
-          records = Array.wrap(attributes).map do |attrs|
-            record = build_record(attrs, options)
-
-            add_to_target(record) do
-              yield(record) if block_given?
-              insert_record(record) if method == :create
+              record
             end
           end
 
-          attributes.is_a?(Array) ? records : records.first
+          persisted + memory
+        end
+
+        def create_record(attributes, options, raise = false, &block)
+          unless owner.persisted?
+            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+          end
+
+          if attributes.is_a?(Array)
+            attributes.collect { |attr| create_record(attr, options, raise, &block) }
+          else
+            transaction do
+              add_to_target(build_record(attributes, options)) do |record|
+                yield(record) if block_given?
+                insert_record(record, true, raise)
+              end
+            end
+          end
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
-        def insert_record(record, validate = true)
+        def insert_record(record, validate = true, raise = false)
           raise NotImplementedError
         end
 
+        def create_scope
+          scoped.scope_for_create.stringify_keys
+        end
+
         def build_record(attributes, options)
-          reflection.build_association(scoped.scope_for_create.merge(attributes), options)
+          record = reflection.build_association(attributes, options)
+          record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
+          record
         end
 
         def delete_or_destroy(records, method)
@@ -430,20 +434,49 @@ module ActiveRecord
           records.each { |record| raise_on_type_mismatch(record) }
           existing_records = records.reject { |r| r.new_record? }
 
-          transaction do
-            records.each { |record| callback(:before_remove, record) }
-
-            delete_records(existing_records, method) if existing_records.any?
-            records.each { |record| target.delete(record) }
-
-            records.each { |record| callback(:after_remove, record) }
+          if existing_records.empty?
+            remove_records(existing_records, records, method)
+          else
+            transaction { remove_records(existing_records, records, method) }
           end
+        end
+
+        def remove_records(existing_records, records, method)
+          records.each { |record| callback(:before_remove, record) }
+
+          delete_records(existing_records, method) if existing_records.any?
+          records.each { |record| target.delete(record) }
+
+          records.each { |record| callback(:after_remove, record) }
         end
 
         # Delete the given records from the association, using one of the methods :destroy,
         # :delete_all or :nullify (or nil, in which case a default is used).
         def delete_records(records, method)
           raise NotImplementedError
+        end
+
+        def replace_records(new_target, original_target)
+          delete(target - new_target)
+
+          unless concat(new_target - target)
+            @target = original_target
+            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
+                                  "new records could not be saved."
+          end
+        end
+
+        def concat_records(records)
+          result = true
+
+          records.flatten.each do |record|
+            raise_on_type_mismatch(record)
+            add_to_target(record) do |r|
+              result &&= insert_record(record) unless owner.new_record?
+            end
+          end
+
+          result && records
         end
 
         def callback(method, record)

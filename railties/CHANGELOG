@@ -1,6 +1,31 @@
+*Rails 3.2.0 (unreleased)*
+
+* Attributes on scaffold and model generators default to string. This allows the following: "rails g scaffold Post title body:text author" [José Valim]
+
+* Removed old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command. [Guillermo Iguaran]
+
+* Removed old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API. [Guillermo Iguaran]
+
 *Rails 3.1.0 (unreleased)*
 
-* Application generation no longer supports the -j option. [fxn]
+* Added Rails.groups that automatically handles Rails.env and ENV["RAILS_GROUPS"] [José Valim]
+
+* The new rake task assets:clean removes precompiled assets. [fxn]
+
+* Application and plugin generation run bundle install unless --skip-gemfile or --skip-bundle. [fxn]
+
+* Fixed database tasks for jdbc* adapters #jruby [Rashmi Yadav]
+
+* Template generation for jdbcpostgresql  #jruby [Vishnu Atrai]
+
+* Template generation for jdbcmysql and jdbcsqlite3 #jruby [Arun Agrawal]
+
+* The -j option of the application generator accepts an arbitrary string. If passed "foo",
+the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest
+requires "foo" and "foo_ujs". As of this writing "prototype-rails" and "jquery-rails"
+exist and provide those files via the asset pipeline. Default is "jquery". [fxn]
+
+* jQuery is no longer vendored, it is provided from now on by the jquery-rails gem. [fxn]
 
 * Prototype and Scriptaculous are no longer vendored, they are provided from now on
 by the prototype-rails gem. [fxn]
@@ -11,7 +36,7 @@ by the prototype-rails gem. [fxn]
 
 * jQuery is the new default JavaScript library. [fxn]
 
-* Changed scaffold and app generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
+* Changed scaffold, application, and mailer generator to create Ruby 1.9 style hash when running on Ruby 1.9 [Prem Sichanugrist]
 
   So instead of creating something like:
 
@@ -57,9 +82,41 @@ by the prototype-rails gem. [fxn]
 
 * Include all helpers from plugins and shared engines in application [Piotr Sarnacki]
 
+
+*Rails 3.0.7 (April 18, 2011)*
+
+*No changes.
+
+
+*Rails 3.0.6 (April 5, 2011)
+
+* No changes.
+
+
+*Rails 3.0.5 (February 26, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.4 (February 8, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.3 (November 16, 2010)*
+
+* No changes.
+
+
+*Rails 3.0.2 (November 15, 2010)*
+
+* No changes.
+
+
 *Rails 3.0.1 (October 15, 2010)*
 
 * No Changes, just a version bump.
+
 
 *Rails 3.0.0 (August 29, 2010)*
 

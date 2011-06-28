@@ -3,7 +3,7 @@ module ActionView
   module Helpers
     module CacheHelper
       # This helper exposes a method for caching fragments of a view 
-      # rather than an entire action or page.  This technique is useful
+      # rather than an entire action or page. This technique is useful
       # caching pieces like menus, lists of newstopics, static HTML
       # fragments, and so on. This method takes a block that contains
       # the content you wish to cache. 
@@ -51,7 +51,11 @@ module ActionView
           # This dance is needed because Builder can't use capture
           pos = output_buffer.length
           yield
+          output_safe = output_buffer.html_safe?
           fragment = output_buffer.slice!(pos..-1)
+          if output_safe
+            self.output_buffer = output_buffer.html_safe
+          end
           controller.write_fragment(name, fragment, options)
         end
       end

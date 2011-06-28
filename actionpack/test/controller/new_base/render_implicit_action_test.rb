@@ -33,10 +33,10 @@ module RenderImplicitAction
       assert_status 200
     end
 
-    test "action_method? returns true for implicit actions" do
-      assert SimpleController.new.action_method?(:hello_world)
-      assert SimpleController.new.action_method?(:"hyphen-ated")
-      assert SimpleController.new.action_method?(:not_implemented)
+    test "available_action? returns true for implicit actions" do
+      assert SimpleController.new.available_action?(:hello_world)
+      assert SimpleController.new.available_action?(:"hyphen-ated")
+      assert SimpleController.new.available_action?(:not_implemented)
     end
   end
 end

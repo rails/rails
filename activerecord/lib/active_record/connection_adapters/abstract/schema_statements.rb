@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
       # Returns a Hash of mappings from the abstract data types to the native
-      # database types.  See TableDefinition#column for details on the recognized
+      # database types. See TableDefinition#column for details on the recognized
       # abstract data types.
       def native_database_types
         {}
@@ -78,7 +78,7 @@ module ActiveRecord
       # Creates a new table with the name +table_name+. +table_name+ may either
       # be a String or a Symbol.
       #
-      # There are two ways to work with +create_table+.  You can use the block
+      # There are two ways to work with +create_table+. You can use the block
       # form or the regular form, like this:
       #
       # === Block form
@@ -161,7 +161,7 @@ module ActiveRecord
         yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
-          drop_table(table_name, options)
+          drop_table(table_name)
         end
 
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
@@ -253,7 +253,7 @@ module ActiveRecord
       end
 
       # Drops a table from the database.
-      def drop_table(table_name, options = {})
+      def drop_table(table_name)
         execute "DROP TABLE #{quote_table_name(table_name)}"
       end
 
@@ -299,7 +299,7 @@ module ActiveRecord
         raise NotImplementedError, "rename_column is not implemented"
       end
 
-      # Adds a new index to the table.  +column_name+ can be a single Symbol, or
+      # Adds a new index to the table. +column_name+ can be a single Symbol, or
       # an Array of Symbols.
       #
       # The index will be named after the table and the first column name,
@@ -346,11 +346,11 @@ module ActiveRecord
 
       # Remove the given index from the table.
       #
-      # Remove the suppliers_name_index in the suppliers table.
-      #   remove_index :suppliers, :name
-      # Remove the index named accounts_branch_id_index in the accounts table.
+      # Remove the index_accounts_on_column in the accounts table.
+      #   remove_index :accounts, :column
+      # Remove the index named index_accounts_on_branch_id in the accounts table.
       #   remove_index :accounts, :column => :branch_id
-      # Remove the index named accounts_branch_id_party_id_index in the accounts table.
+      # Remove the index named index_accounts_on_branch_id_and_party_id in the accounts table.
       #   remove_index :accounts, :column => [:branch_id, :party_id]
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party
@@ -564,7 +564,7 @@ module ActiveRecord
         def columns_for_remove(table_name, *column_names)
           column_names = column_names.flatten
 
-          raise ArgumentError.new("You must specify at least one column name.  Example: remove_column(:people, :first_name)") if column_names.blank?
+          raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.blank?
           column_names.map {|column_name| quote_column_name(column_name) }
         end
 

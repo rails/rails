@@ -9,6 +9,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app_const
       @app_const ||= Class.new(Rails::Application)
     end
@@ -68,8 +72,7 @@ module ApplicationTests
 
       # Initialize the application
       require "#{app_path}/config/environment"
-      require "rails/generators"
-      Rails::Generators.configure!
+      Rails.application.load_generators
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
@@ -84,8 +87,7 @@ module ApplicationTests
 
       # Initialize the application
       require "#{app_path}/config/environment"
-      require "rails/generators"
-      Rails::Generators.configure!
+      Rails.application.load_generators
 
       assert_equal Thor::Base.shell, Thor::Shell::Basic
     end

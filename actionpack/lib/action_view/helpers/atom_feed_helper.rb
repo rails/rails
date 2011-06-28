@@ -34,7 +34,7 @@ module ActionView
       #       feed.title("My great blog!")
       #       feed.updated(@posts.first.created_at)
       #
-      #       for post in @posts
+      #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
       #           entry.content(post.body, :type => 'html')
@@ -66,7 +66,7 @@ module ActionView
       #       feed.updated((@posts.first.created_at))
       #       feed.tag!(openSearch:totalResults, 10)
       #
-      #       for post in @posts
+      #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
       #           entry.content(post.body, :type => 'html')
@@ -81,8 +81,8 @@ module ActionView
       #
       # The Atom spec defines five elements (content rights title subtitle
       # summary) which may directly contain xhtml content if :type => 'xhtml'
-      # is specified as an attribute.  If so, this helper will take care of
-      # the enclosing div and xhtml namespace declaration.  Example usage:
+      # is specified as an attribute. If so, this helper will take care of
+      # the enclosing div and xhtml namespace declaration. Example usage:
       #
       #    entry.summary :type => 'xhtml' do |xhtml|
       #      xhtml.p pluralize(order.line_items.count, "line item")
@@ -91,8 +91,8 @@ module ActionView
       #    end
       #
       #
-      # atom_feed yields an AtomFeedBuilder instance.  Nested elements yield
-      # an AtomBuilder instance.
+      # <tt>atom_feed</tt> yields an +AtomFeedBuilder+ instance. Nested elements yield
+      # an +AtomBuilder+ instance.
       def atom_feed(options = {}, &block)
         if options[:schema_date]
           options[:schema_date] = options[:schema_date].strftime("%Y-%m-%d") if options[:schema_date].respond_to?(:strftime)

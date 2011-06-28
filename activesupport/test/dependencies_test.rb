@@ -24,11 +24,13 @@ class DependenciesTest < Test::Unit::TestCase
     old_mechanism, ActiveSupport::Dependencies.mechanism = ActiveSupport::Dependencies.mechanism, :load
     this_dir = File.dirname(__FILE__)
     parent_dir = File.dirname(this_dir)
+    path_copy = $LOAD_PATH.dup
     $LOAD_PATH.unshift(parent_dir) unless $LOAD_PATH.include?(parent_dir)
     prior_autoload_paths = ActiveSupport::Dependencies.autoload_paths
     ActiveSupport::Dependencies.autoload_paths = from.collect { |f| "#{this_dir}/#{f}" }
     yield
   ensure
+    $LOAD_PATH.replace(path_copy)
     ActiveSupport::Dependencies.autoload_paths = prior_autoload_paths
     ActiveSupport::Dependencies.mechanism = old_mechanism
     ActiveSupport::Dependencies.explicitly_unloadable_constants = []
@@ -439,7 +441,7 @@ class DependenciesTest < Test::Unit::TestCase
     with_autoloading_fixtures do
       require_dependency '././counting_loader'
       assert_equal 1, $counting_loaded_times
-      assert_raise(ArgumentError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
+      assert_raise(NameError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
       assert_equal 1, $counting_loaded_times
     end
   end

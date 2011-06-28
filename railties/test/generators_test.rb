@@ -28,7 +28,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
     output = capture(:stdout){ Rails::Generators.invoke :model, [] }
-    assert_match /Description:/, output
+    assert_match(/Description:/, output)
   end
 
   def test_should_give_higher_preference_to_rails_generators
@@ -88,12 +88,6 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert Rails::Generators.find_by_namespace(:model)
   end
 
-  def test_find_by_namespace_show_warning_if_generator_cant_be_loaded
-    output = capture(:stderr) { Rails::Generators.find_by_namespace(:wrong) }
-    assert_match /\[WARNING\] Could not load generator/, output
-    assert_match /Rails 2\.x generator/, output
-  end
-
   def test_invoke_with_nested_namespaces
     model_generator = mock('ModelGenerator') do
       expects(:start).with(["Account"], {})
@@ -104,38 +98,38 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_rails_generators_help_with_builtin_information
     output = capture(:stdout){ Rails::Generators.help }
-    assert_match /Rails:/, output
-    assert_match /^  model$/, output
-    assert_match /^  scaffold_controller$/, output
-    assert_no_match /^  app$/, output
+    assert_match(/Rails:/, output)
+    assert_match(/^  model$/, output)
+    assert_match(/^  scaffold_controller$/, output)
+    assert_no_match(/^  app$/, output)
   end
 
   def test_rails_generators_help_does_not_include_app_nor_plugin_new
     output = capture(:stdout){ Rails::Generators.help }
-    assert_no_match /app/, output
-    assert_no_match /plugin_new/, output
+    assert_no_match(/app/, output)
+    assert_no_match(/plugin_new/, output)
   end
 
   def test_rails_generators_with_others_information
     output = capture(:stdout){ Rails::Generators.help }
-    assert_match /Fixjour:/, output
-    assert_match /^  fixjour$/, output
+    assert_match(/Fixjour:/, output)
+    assert_match(/^  fixjour$/, output)
   end
 
   def test_rails_generators_does_not_show_active_record_hooks
     output = capture(:stdout){ Rails::Generators.help }
-    assert_match /ActiveRecord:/, output
-    assert_match /^  active_record:fixjour$/, output
+    assert_match(/ActiveRecord:/, output)
+    assert_match(/^  active_record:fixjour$/, output)
   end
 
   def test_default_banner_should_show_generator_namespace
     klass = Rails::Generators.find_by_namespace(:foobar)
-    assert_match /^rails generate foobar:foobar/, klass.banner
+    assert_match(/^rails generate foobar:foobar/, klass.banner)
   end
 
   def test_default_banner_should_not_show_rails_generator_namespace
     klass = Rails::Generators.find_by_namespace(:model)
-    assert_match /^rails generate model/, klass.banner
+    assert_match(/^rails generate model/, klass.banner)
   end
 
   def test_no_color_sets_proper_shell
@@ -183,13 +177,6 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_equal false, WithOptionsGenerator.class_options[:generate].default
   ensure
     Rails::Generators.subclasses.delete(WithOptionsGenerator)
-  end
-
-  def test_load_generators_from_railties
-    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
-    Rails::Generators.send(:remove_instance_variable, :@generators_from_railties)
-    Rails.application.expects(:load_generators)
-    Rails::Generators.invoke("model", ["Account"])
   end
 
   def test_rails_root_templates

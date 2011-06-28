@@ -1,7 +1,7 @@
 module ActiveRecord
   # = Active Record RecordInvalid
   #
-  # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid.  Use the
+  # Raised by <tt>save!</tt> and <tt>create!</tt> when the record is invalid. Use the
   # +record+ method to retrieve the record which did not validate.
   #
   #   begin
@@ -32,11 +32,11 @@ module ActiveRecord
     module ClassMethods
       # Creates an object just like Base.create but calls <tt>save!</tt> instead of +save+
       # so an exception is raised if the record is invalid.
-      def create!(attributes = nil, &block)
+      def create!(attributes = nil, options = {}, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr, &block) }
+          attributes.collect { |attr| create!(attr, options, &block) }
         else
-          object = new(attributes)
+          object = new(attributes, options)
           yield(object) if block_given?
           object.save!
           object

@@ -1,4 +1,11 @@
+* Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior [Bogdan Gusiev]
+
 *Rails 3.1.0 (unreleased)*
+
+* Alternate I18n namespace lookup is no longer supported.
+  Instead of "activerecord.models.admins.post", do "activerecord.models.admins/post" instead [José Valim]
+
+* attr_accessible and friends now accepts :as as option to specify a role [Josh Kalderimis]
 
 * Add support for proc or lambda as an option for InclusionValidator,
   ExclusionValidator, and FormatValidator [Prem Sichanugrist]
@@ -13,8 +20,39 @@
 
 * ActiveModel::AttributeMethods allows attributes to be defined on demand [Alexander Uvarov]
 
+* Add support for selectively enabling/disabling observers [Myron Marston]
 
-*Rails 3.0.2 (unreleased)*
+
+*Rails 3.0.7 (April 18, 2011)*
+
+*No changes.
+
+
+*Rails 3.0.6 (April 5, 2011)
+
+* Fix when database column name has some symbolic characters (e.g. Oracle CASE# VARCHAR2(20)) #5818 #6850 [Robert Pankowecki, Santiago Pastorino]
+
+* Fix length validation for fixnums #6556 [Andriy Tyurnikov]
+
+* Fix i18n key collision with namespaced models #6448 [yves.senn]
+
+
+*Rails 3.0.5 (February 26, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.4 (February 8, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.3 (November 16, 2010)*
+
+* No changes.
+
+
+*Rails 3.0.2 (November 15, 2010)*
 
 * No changes
 

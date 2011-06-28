@@ -43,7 +43,7 @@ module Rails
     end
 
     def app
-      @app ||= super.instance
+      @app ||= super.respond_to?(:to_app) ? super.to_app : super
     end
 
     def opt_parser
@@ -55,8 +55,9 @@ module Rails
     end
 
     def start
+      url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
+      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
       puts "=> Call with -d to detach" unless options[:daemonize]
       trap(:INT) { exit }
       puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
@@ -77,6 +78,7 @@ module Rails
       middlewares = []
       middlewares << [Rails::Rack::LogTailer, log_path] unless options[:daemonize]
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
+      middlewares << [Rails::Rack::ContentLength]
       Hash.new(middlewares)
     end
 

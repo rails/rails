@@ -1,5 +1,8 @@
-require 'active_support/core_ext/class/attribute.rb'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/array/wrap'
 require 'active_model/mass_assignment_security/permission_set'
+require 'active_model/mass_assignment_security/sanitizer'
 
 module ActiveModel
   # = Active Model Mass-Assignment Security
@@ -10,6 +13,9 @@ module ActiveModel
       class_attribute :_accessible_attributes
       class_attribute :_protected_attributes
       class_attribute :_active_authorizer
+
+      class_attribute :_mass_assignment_sanitizer
+      self.mass_assignment_sanitizer = :logger
     end
 
     # Mass assignment security provides an interface for protecting attributes
@@ -35,17 +41,27 @@ module ActiveModel
     #     protected
     #
     #     def account_params
-    #       scope = admin ? :admin : :default
-    #       sanitize_for_mass_assignment(params[:account], scope)
+    #       role = admin ? :admin : :default
+    #       sanitize_for_mass_assignment(params[:account], role)
     #     end
     #
     #   end
     #
+    # = Configuration options
+    #
+    # * <tt>mass_assignment_sanitizer</tt> - Defines sanitize method. Possible values are:
+    #   * <tt>:logger</tt> (default) - writes filtered attributes to logger
+    #   * <tt>:strict</tt> - raise <tt>ActiveModel::MassAssignmentSecurity::Error</tt> on any protected attribute update
+    #
+    # You can specify your own sanitizer object eg. MySanitizer.new.
+    # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
+    #
+    # 
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
-      # whenever attributes are sanitized before assignment. A scope for the
-      # attributes is optional, if no scope is provided then :default is used.
-      # A scope can be defined by using the :as option.
+      # whenever attributes are sanitized before assignment. A role for the
+      # attributes is optional, if no role is provided then :default is used.
+      # A role can be defined by using the :as option.
       #
       # Mass-assignment to these attributes will simply be ignored, to assign
       # to them you can use direct writer methods. This is meant to protect
@@ -67,7 +83,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # When using a :default scope :
+      # When using the :default role :
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :default)
@@ -78,7 +94,7 @@ module ActiveModel
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       #
-      # And using the :admin scope :
+      # And using the :admin role :
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :admin)
@@ -93,10 +109,13 @@ module ActiveModel
       # to sanitize attributes won't provide sufficient protection.
       def attr_protected(*args)
         options = args.extract_options!
-        scope = options[:as] || :default
+        role = options[:as] || :default
 
-        self._protected_attributes        = protected_attributes_configs.dup
-        self._protected_attributes[scope] = self.protected_attributes(scope) + args
+        self._protected_attributes = protected_attributes_configs.dup
+
+        Array.wrap(role).each do |name|
+          self._protected_attributes[name] = self.protected_attributes(name) + args
+        end
 
         self._active_authorizer = self._protected_attributes
       end
@@ -104,8 +123,8 @@ module ActiveModel
       # Specifies a white list of model attributes that can be set via
       # mass-assignment.
       #
-      # Like +attr_protected+, a scope for the attributes is optional,
-      # if no scope is provided then :default is used. A scope can be defined by
+      # Like +attr_protected+, a role for the attributes is optional,
+      # if no role is provided then :default is used. A role can be defined by
       # using the :as option.
       #
       # This is the opposite of the +attr_protected+ macro: Mass-assignment
@@ -131,7 +150,7 @@ module ActiveModel
       #     end
       #   end
       #
-      # When using a :default scope :
+      # When using the :default role :
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :default)
@@ -141,7 +160,7 @@ module ActiveModel
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       #
-      # And using the :admin scope :
+      # And using the :admin role :
       #
       #   customer = Customer.new
       #   customer.assign_attributes({ "name" => "David", "credit_rating" => "Excellent", :last_login => 1.day.ago }, :as => :admin)
@@ -152,20 +171,23 @@ module ActiveModel
       # to sanitize attributes won't provide sufficient protection.
       def attr_accessible(*args)
         options = args.extract_options!
-        scope = options[:as] || :default
+        role = options[:as] || :default
 
-        self._accessible_attributes        = accessible_attributes_configs.dup
-        self._accessible_attributes[scope] = self.accessible_attributes(scope) + args
+        self._accessible_attributes = accessible_attributes_configs.dup
+
+        Array.wrap(role).each do |name|
+          self._accessible_attributes[name] = self.accessible_attributes(name) + args
+        end
 
         self._active_authorizer = self._accessible_attributes
       end
 
-      def protected_attributes(scope = :default)
-        protected_attributes_configs[scope]
+      def protected_attributes(role = :default)
+        protected_attributes_configs[role]
       end
 
-      def accessible_attributes(scope = :default)
-        accessible_attributes_configs[scope]
+      def accessible_attributes(role = :default)
+        accessible_attributes_configs[role]
       end
 
       def active_authorizers
@@ -177,33 +199,37 @@ module ActiveModel
         []
       end
 
+      def mass_assignment_sanitizer=(value)
+        self._mass_assignment_sanitizer = if value.is_a?(Symbol)
+          const_get(:"#{value.to_s.camelize}Sanitizer").new(self)
+        else
+          value
+        end
+      end
+
       private
 
       def protected_attributes_configs
         self._protected_attributes ||= begin
-          default_black_list = BlackList.new(attributes_protected_by_default).tap do |w|
-            w.logger = self.logger if self.respond_to?(:logger)
-          end
-          Hash.new(default_black_list)
+          Hash.new { |h,k| h[k] = BlackList.new(attributes_protected_by_default) }
         end
       end
 
       def accessible_attributes_configs
         self._accessible_attributes ||= begin
-          default_white_list = WhiteList.new.tap { |w| w.logger = self.logger if self.respond_to?(:logger) }
-          Hash.new(default_white_list)
+          Hash.new { |h,k| h[k] = WhiteList.new }
         end
       end
     end
 
   protected
 
-    def sanitize_for_mass_assignment(attributes, scope = :default)
-      mass_assignment_authorizer(scope).sanitize(attributes)
+    def sanitize_for_mass_assignment(attributes, role = :default)
+      _mass_assignment_sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
     end
 
-    def mass_assignment_authorizer(scope = :default)
-      self.class.active_authorizer[scope]
+    def mass_assignment_authorizer(role = :default)
+      self.class.active_authorizer[role]
     end
   end
 end

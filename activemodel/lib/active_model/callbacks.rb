@@ -59,7 +59,7 @@ module ActiveModel
     #   define_model_callbacks :initializer, :only => :after
     #
     # Note, the <tt>:only => <type></tt> hash will apply to all callbacks defined on
-    # that method call.  To get around this you can call the define_model_callbacks
+    # that method call. To get around this you can call the define_model_callbacks
     # method as many times as you need.
     #
     #   define_model_callbacks :create, :only => :after

@@ -8,9 +8,9 @@ module ActiveResource
   # Active Resource validation is reported to and from this object, which is used by Base#save
   # to determine whether the object in a valid state to be saved. See usage example in Validations.
   class Errors < ActiveModel::Errors
-    # Grabs errors from an array of messages (like ActiveRecord::Validations)
+    # Grabs errors from an array of messages (like ActiveRecord::Validations).
     # The second parameter directs the errors cache to be cleared (default)
-    # or not (by passing true)
+    # or not (by passing true).
     def from_array(messages, save_cache = false)
       clear unless save_cache
       humanized_attributes = Hash[@base.attributes.keys.map { |attr_name| [attr_name.humanize, attr_name] }]
@@ -73,7 +73,7 @@ module ActiveResource
 
       # clear the remote validations so they don't interfere with the local
       # ones. Otherwise we get an endless loop and can never change the
-      # fields so as to make the resource valid
+      # fields so as to make the resource valid.
       @remote_errors = nil
       if perform_validation && valid? || !perform_validation
         save_without_validation
@@ -84,7 +84,7 @@ module ActiveResource
     rescue ResourceInvalid => error
       # cache the remote errors because every call to <tt>valid?</tt> clears
       # all errors. We must keep a copy to add these back after local
-      # validations
+      # validations.
       @remote_errors = error
       load_remote_errors(@remote_errors, true)
       false
@@ -92,7 +92,7 @@ module ActiveResource
 
 
     # Loads the set of remote errors into the object's Errors based on the
-    # content-type of the error-block received
+    # content-type of the error-block received.
     def load_remote_errors(remote_errors, save_cache = false ) #:nodoc:
       case self.class.format
       when ActiveResource::Formats[:xml]

@@ -106,6 +106,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app
       @app ||= begin
         require "#{app_path}/config/environment"
@@ -116,7 +120,7 @@ module ApplicationTests
     def reset_script_name!
       Rails.application.routes.default_url_options = {}
     end
-    
+
     def script_name(script_name)
       Rails.application.routes.default_url_options = {:script_name => script_name}
     end
@@ -171,4 +175,3 @@ module ApplicationTests
     end
   end
 end
-

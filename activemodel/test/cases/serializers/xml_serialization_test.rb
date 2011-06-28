@@ -93,6 +93,10 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<name>aaron stack</name>}, @contact.to_xml
   end
 
+  test "should serialize nil" do
+    assert_match %r{<pseudonyms nil=\"true\"></pseudonyms>}, @contact.to_xml(:methods => :pseudonyms)
+  end
+
   test "should serialize integer" do
     assert_match %r{<age type="integer">25</age>}, @contact.to_xml
   end
@@ -127,5 +131,11 @@ class XmlSerializationTest < ActiveModel::TestCase
     proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
     xml = @contact.to_xml(:procs => [ proc ])
     assert_match %r{<name-reverse>kcats noraa</name-reverse>}, xml
+  end
+
+  test "should serialize string correctly when type passed" do
+    xml = @contact.to_xml :type => 'Contact'
+    assert_match %r{<contact type="Contact">}, xml
+    assert_match %r{<name>aaron stack</name>}, xml
   end
 end

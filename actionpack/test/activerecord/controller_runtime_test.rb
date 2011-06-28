@@ -11,6 +11,21 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     def show
       render :inline => "<%= Project.all %>"
     end
+
+    def zero
+      render :inline => "Zero DB runtime"
+    end
+    
+    def redirect
+      Project.all
+      redirect_to :action => 'show'
+    end
+
+    def db_after_render
+      render :inline => "Hello world"
+      Project.all
+      ActiveRecord::LogSubscriber.runtime += 100
+    end
   end
 
   include ActiveSupport::LogSubscriber::TestHelper
@@ -37,6 +52,30 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 2, @logger.logged(:info).size
-    assert_match(/\(Views: [\d.]+ms | ActiveRecord: [\d.]+ms\)/, @logger.logged(:info)[1])
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms\)/, @logger.logged(:info)[1])
+  end
+
+  def test_runtime_reset_before_requests
+    ActiveRecord::LogSubscriber.runtime += 12345
+    get :zero
+    wait
+
+    assert_equal 2, @logger.logged(:info).size
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: 0.0ms\)/, @logger.logged(:info)[1])
+  end
+  
+  def test_log_with_active_record_when_redirecting
+    get :redirect
+    wait
+    assert_equal 3, @logger.logged(:info).size
+    assert_match(/\(ActiveRecord: [\d.]+ms\)/, @logger.logged(:info)[2])
+  end
+  
+  def test_include_time_query_time_after_rendering
+    get :db_after_render
+    wait
+    
+    assert_equal 2, @logger.logged(:info).size
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: ([1-9][\d.]+)ms\)/, @logger.logged(:info)[1])
   end
 end

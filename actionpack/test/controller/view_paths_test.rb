@@ -32,17 +32,11 @@ class ViewLoadPathsTest < ActionController::TestCase
     @controller.send :assign_shortcuts, @request, @response
     @controller.send :initialize_template_class, @response
 
-    # Track the last warning.
-    @old_behavior = ActiveSupport::Deprecation.behavior
-    @last_message = nil
-    ActiveSupport::Deprecation.behavior = Proc.new { |message, callback| @last_message = message }
-
     @paths = TestController.view_paths
   end
 
   def teardown
     TestController.view_paths = @paths
-    ActiveSupport::Deprecation.behavior = @old_behavior
   end
 
   def expand(array)
@@ -178,5 +172,9 @@ class ViewLoadPathsTest < ActionController::TestCase
     C.view_paths = []
     assert_nothing_raised { C.append_view_path 'c/path' }
     assert_paths C, "c/path"
+  end
+
+  def test_lookup_context_accessor
+    assert_equal ["test"], TestController.new.lookup_context.prefixes
   end
 end

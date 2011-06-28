@@ -319,6 +319,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
   end
 
+  def test_should_not_perform_joined_include_by_default
+    assert_equal Account.count, Account.includes(:firm).count
+    queries = assert_sql { Account.includes(:firm).count }
+    assert_no_match(/join/i, queries.last)
+  end
+
+  def test_should_perform_joined_include_when_referencing_included_tables
+    joined_count = Account.includes(:firm).where(:companies => {:name => '37signals'}).count
+    assert_equal 1, joined_count
+  end
+
   def test_should_count_scoped_select
     Account.update_all("credit_limit = NULL")
     assert_equal 0, Account.scoped(:select => "credit_limit").count

@@ -60,7 +60,7 @@ module ActiveRecord
 
             scope = scope.joins(join(
               join_table,
-              table[reflection.active_record_primary_key].
+              table[reflection.association_primary_key].
                 eq(join_table[reflection.association_foreign_key])
             ))
 
@@ -75,10 +75,16 @@ module ActiveRecord
             foreign_key = reflection.active_record_primary_key
           end
 
+          conditions = self.conditions[i]
+
           if reflection == chain.last
             scope = scope.where(table[key].eq(owner[foreign_key]))
 
-            conditions[i].each do |condition|
+            if reflection.type
+              scope = scope.where(table[reflection.type].eq(owner.class.base_class.name))
+            end
+
+            conditions.each do |condition|
               if options[:through] && condition.is_a?(Hash)
                 condition = { table.name => condition }
               end
@@ -87,12 +93,16 @@ module ActiveRecord
             end
           else
             constraint = table[key].eq(foreign_table[foreign_key])
-            join       = join(foreign_table, constraint)
 
-            scope = scope.joins(join)
+            if reflection.type
+              type = chain[i + 1].klass.base_class.name
+              constraint = constraint.and(table[reflection.type].eq(type))
+            end
 
-            unless conditions[i].empty?
-              scope = scope.where(sanitize(conditions[i], table))
+            scope = scope.joins(join(foreign_table, constraint))
+
+            unless conditions.empty?
+              scope = scope.where(sanitize(conditions, table))
             end
           end
         end

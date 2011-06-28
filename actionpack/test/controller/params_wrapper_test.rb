@@ -2,7 +2,21 @@ require 'abstract_unit'
 
 module Admin; class User; end; end
 
+module ParamsWrapperTestHelp
+  def with_default_wrapper_options(&block)
+    @controller.class._wrapper_options = {:format => [:json]}
+    @controller.class.inherited(@controller.class)
+    yield
+  end
+
+  def assert_parameters(expected)
+    assert_equal expected, self.class.controller_class.last_parameters
+  end
+end
+
 class ParamsWrapperTest < ActionController::TestCase
+  include ParamsWrapperTestHelp
+
   class UsersController < ActionController::Base
     class << self
       attr_accessor :last_parameters
@@ -51,9 +65,9 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_specify_only_option
+  def test_specify_include_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :only => :username
+      UsersController.wrap_parameters :include => :username
 
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
@@ -61,9 +75,9 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_specify_except_option
+  def test_specify_exclude_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :except => :title
+      UsersController.wrap_parameters :exclude => :title
 
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
@@ -71,9 +85,9 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  def test_specify_both_wrapper_name_and_only_option
+  def test_specify_both_wrapper_name_and_include_option
     with_default_wrapper_options do
-      UsersController.wrap_parameters :person, :only => :username
+      UsersController.wrap_parameters :person, :include => :username
 
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
@@ -133,8 +147,8 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_matching_model
-    User.expects(:respond_to?).with(:column_names).returns(true)
-    User.expects(:column_names).returns(["username"])
+    User.expects(:respond_to?).with(:attribute_names).returns(true)
+    User.expects(:attribute_names).twice.returns(["username"])
 
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
@@ -145,8 +159,8 @@ class ParamsWrapperTest < ActionController::TestCase
 
   def test_derived_wrapped_keys_from_specified_model
     with_default_wrapper_options do
-      Person.expects(:respond_to?).with(:column_names).returns(true)
-      Person.expects(:column_names).returns(["username"])
+      Person.expects(:respond_to?).with(:attribute_names).returns(true)
+      Person.expects(:attribute_names).twice.returns(["username"])
 
       UsersController.wrap_parameters Person
 
@@ -156,42 +170,52 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
-  private
-    def with_default_wrapper_options(&block)
-      @controller.class._wrapper_options = {:format => [:json]}
-      @controller.class.inherited(@controller.class)
-      yield
-    end
+  def test_not_wrapping_abstract_model
+    User.expects(:respond_to?).with(:attribute_names).returns(true)
+    User.expects(:attribute_names).returns([])
 
-    def assert_parameters(expected)
-      assert_equal expected, UsersController.last_parameters
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu', 'title' => 'Developer' }})
     end
+  end
 end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase
-  module Admin
-    class UsersController < ActionController::Base
-      class << self
-        attr_accessor :last_parameters
-      end
+  include ParamsWrapperTestHelp
 
-      def parse
-        self.class.last_parameters = request.params.except(:controller, :action)
-        head :ok
+  module Admin
+    module Users
+      class UsersController < ActionController::Base;
+        class << self
+          attr_accessor :last_parameters
+        end
+
+        def parse
+          self.class.last_parameters = request.params.except(:controller, :action)
+          head :ok
+        end
       end
     end
   end
 
-  class Sample
-    def self.column_names
+  class SampleOne
+    def self.attribute_names
       ["username"]
     end
   end
 
-  tests Admin::UsersController
+  class SampleTwo
+    def self.attribute_names
+      ["title"]
+    end
+  end
+
+  tests Admin::Users::UsersController
 
   def teardown
-    Admin::UsersController.last_parameters = nil
+    Admin::Users::UsersController.last_parameters = nil
   end
 
   def test_derived_name_from_controller
@@ -203,7 +227,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
   end
 
   def test_namespace_lookup_from_model
-    Admin.const_set(:User, Class.new(Sample))
+    Admin.const_set(:User, Class.new(SampleOne))
     begin
       with_default_wrapper_options do
         @request.env['CONTENT_TYPE'] = 'application/json'
@@ -216,31 +240,48 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
   end
 
   def test_hierarchy_namespace_lookup_from_model
-    # Make sure that we cleanup ::Admin::User
-    admin_user_constant = ::Admin::User
-    ::Admin.send :remove_const, :User
-
-    Object.const_set(:User, Class.new(Sample))
+    Object.const_set(:User, Class.new(SampleTwo))
     begin
       with_default_wrapper_options do
         @request.env['CONTENT_TYPE'] = 'application/json'
         post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
-        assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu' }})
+        assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'title' => 'Developer' }})
       end
     ensure
       Object.send :remove_const, :User
-      ::Admin.const_set(:User, admin_user_constant)
     end
   end
 
-  private
-    def with_default_wrapper_options(&block)
-      @controller.class._wrapper_options = {:format => [:json]}
-      @controller.class.inherited(@controller.class)
-      yield
+end
+
+class AnonymousControllerParamsWrapperTest < ActionController::TestCase
+  include ParamsWrapperTestHelp
+
+  tests(Class.new(ActionController::Base) do
+    class << self
+      attr_accessor :last_parameters
     end
 
-    def assert_parameters(expected)
-      assert_equal expected, Admin::UsersController.last_parameters
+    def parse
+      self.class.last_parameters = request.params.except(:controller, :action)
+      head :ok
     end
+  end)
+
+  def test_does_not_implicitly_wrap_params
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu' }
+      assert_parameters({ 'username' => 'sikachu' })
+    end
+  end
+
+  def test_does_wrap_params_if_name_provided
+    with_default_wrapper_options do
+      @controller.class.wrap_parameters(:name => "guest")
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu' }
+      assert_parameters({ 'username' => 'sikachu', 'guest' => { 'username' => 'sikachu' }})
+    end
+  end
 end

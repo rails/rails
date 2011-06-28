@@ -49,8 +49,8 @@ module ActiveModel
   #
   # The last three methods are required in your object for Errors to be
   # able to generate error messages correctly and also handle multiple
-  # languages.  Of course, if you extend your object with ActiveModel::Translations
-  # you will not need to implement the last two.  Likewise, using
+  # languages. Of course, if you extend your object with ActiveModel::Translations
+  # you will not need to implement the last two. Likewise, using
   # ActiveModel::Validations will handle the validation related methods
   # for you.
   #
@@ -117,7 +117,7 @@ module ActiveModel
     end
 
     # Iterates through each error key, value pair in the error messages hash.
-    # Yields the attribute and the error for that attribute.  If the attribute
+    # Yields the attribute and the error for that attribute. If the attribute
     # has more than one error message, yields once for each error message.
     #
     #   p.errors.add(:name, "can't be blank")
@@ -248,7 +248,7 @@ module ActiveModel
     #
     #   company = Company.create(:address => '123 First St.')
     #   company.errors.full_messages # =>
-    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Address can't be blank"]
+    #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
       map { |attribute, message|
         if attribute == :base

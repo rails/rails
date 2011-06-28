@@ -1,4 +1,75 @@
+*Rails 3.2.0 (unreleased)*
+
+* send_file now guess the mime type [Esad Hajdarevic]
+
+* Mime type entries for PDF, ZIP and other formats were added [Esad Hajdarevic]
+
+* Generate hidden input before select with :multiple option set to true.
+  This is useful when you rely on the fact that when no options is set,
+  the state of select will be sent to rails application. Without hidden field
+  nothing is sent according to HTML spec [Bogdan Gusiev]
+
+* Refactor ActionController::TestCase cookies [Andrew White]
+
+  Assigning cookies for test cases should now use cookies[], e.g:
+
+    cookies[:email] = 'user@example.com'
+    get :index
+    assert_equal 'user@example.com', cookies[:email]
+
+  To clear the cookies, use clear, e.g:
+
+    cookies.clear
+    get :index
+    assert_nil cookies[:email]
+
+  We now no longer write out HTTP_COOKIE and the cookie jar is
+  persistent between requests so if you need to manipulate the environment
+  for your test you need to do it before the cookie jar is created.
+
+
 *Rails 3.1.0 (unreleased)*
+
+* json_escape will now return a SafeBuffer string if it receives SafeBuffer string [tenderlove]
+
+* Make sure escape_js returns SafeBuffer string if it receives SafeBuffer string [Prem Sichanugrist]
+
+* Fix escape_js to work correctly with the new SafeBuffer restriction [Paul Gallagher]
+
+* Brought back alternative convention for namespaced models in i18n [thoefer]
+
+  Now the key can be either "namespace.model" or "namespace/model" until further deprecation.
+
+* It is prohibited to perform a in-place SafeBuffer mutation [tenderlove]
+
+  The old behavior of SafeBuffer allowed you to mutate string in place via
+  method like `sub!`. These methods can add unsafe strings to a safe buffer,
+  and the safe buffer will continue to be marked as safe.
+
+  An example problem would be something like this:
+
+    <%= link_to('hello world', @user).sub!(/hello/, params[:xss])  %>
+
+  In the above example, an untrusted string (`params[:xss]`) is added to the
+  safe buffer returned by `link_to`, and the untrusted content is successfully
+  sent to the client without being escaped.  To prevent this from happening
+  `sub!` and other similar methods will now raise an exception when they are called on a safe buffer.
+
+  In addition to the in-place versions, some of the versions of these methods which return a copy of the string will incorrectly mark strings as safe. For example:
+
+     <%= link_to('hello world', @user).sub(/hello/, params[:xss]) %>
+
+  The new versions will now ensure that *all* strings returned by these methods on safe buffers are marked unsafe.
+
+  You can read more about this change in http://groups.google.com/group/rubyonrails-security/browse_thread/thread/2e516e7acc96c4fb
+
+* Added 'ActionView::Helpers::FormHelper.fields_for_with_index', similar to fields_for but allows to have access to the current iteration index [Jorge Bejar]
+
+* Warn if we cannot verify CSRF token authenticity [José Valim]
+
+* Allow AM/PM format in datetime selectors [Aditya Sanghi]
+
+* Only show dump of regular env methods on exception screen (not all the rack crap) [DHH]
 
 * auto_link has been removed with no replacement.  If you still use auto_link
   please install the rails_autolink gem:
@@ -11,7 +82,7 @@
     class PostsController < ActionController::Base
       stream :only => :index
     end
-  
+
   Please read the docs at `ActionController::Streaming` for more information.
 
 * Added `ActionDispatch::Request.ignore_accept_header` to ignore accept headers and only consider the format given as parameter [José Valim]
@@ -112,8 +183,6 @@ tested.
 
   Keys are dasherized. Values are JSON-encoded, except for strings and symbols. [Stephen Celis]
 
-* Added render :once. You can pass either a string or an array of strings and Rails will ensure they each of them are rendered just once. [José Valim]
-
 * Deprecate old template handler API. The new API simply requires a template handler to respond to call. [José Valim]
 
 * :rhtml and :rxml were finally removed as template handlers. [José Valim]
@@ -129,7 +198,58 @@ tested.
 * Add Rack::Cache to the default stack. Create a Rails store that delegates to the Rails cache, so by default, whatever caching layer you are using will be used for HTTP caching. Note that Rack::Cache will be used if you use #expires_in, #fresh_when or #stale with :public => true. Otherwise, the caching rules will apply to the browser only. [Yehuda Katz, Carl Lerche]
 
 
-*Rails 3.0.2 (unreleased)*
+*Rails 3.0.7 (April 18, 2011)*
+
+*No changes.
+
+
+*Rails 3.0.6 (April 5, 2011)
+
+* Fixed XSS vulnerability in `auto_link`.  `auto_link` no longer marks input as
+  html safe.  Please make sure that calls to auto_link() are wrapped in a
+  sanitize(), or a raw() depending on the type of input passed to auto_link().
+  For example:
+
+    <%= sanitize(auto_link(some_user_input)) %>
+
+  Thanks to Torben Schulz for reporting this.  The fix can be found here:
+  61ee3449674c591747db95f9b3472c5c3bd9e84d
+
+* Fixes the output of `rake routes` to be correctly match to the behavior of the application, as the regular expression used to match the path is greedy and won't capture the format part by default [Prem Sichanugrist]
+
+* Fixes an issue with number_to_human when converting values which are less than 1 but greater than -1 [Josh Kalderimis]
+
+* Sensitive query string parameters (specified in config.filter_parameters) will now be filtered out from the request paths in the log file. [Prem Sichanugrist, fxn]
+
+* URL parameters which return nil for to_param are now removed from the query string [Andrew White]
+
+* Don't allow i18n to change the minor version, version now set to ~> 0.5.0 [Santiago Pastorino]
+
+* Make TranslationHelper#translate use the :rescue_format option in I18n 0.5.0 [Sven Fuchs]
+
+* Fix regression: javascript_include_tag shouldn't raise if you register an expansion key with nil or [] value [Santiago Pastorino]
+
+* Fix Action caching bug where an action that has a non-cacheable response always renders a nil response body. It now correctly renders the response body. [Cheah Chu Yeow]
+
+
+*Rails 3.0.5 (February 26, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.4 (February 8, 2011)*
+
+* No changes.
+
+
+*Rails 3.0.3 (November 16, 2010)*
+
+* When ActiveRecord::Base objects are sent to predicate methods, the id of the object should be sent to ARel, not the ActiveRecord::Base object.
+
+* :constraints routing should only do sanity checks against regular expressions.  String arguments are OK.
+
+
+*Rails 3.0.2 (November 15, 2010)*
 
 * The helper number_to_currency accepts a new :negative_format option to be able to configure how to render negative amounts. [Don Wilson]
 

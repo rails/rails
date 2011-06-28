@@ -1,5 +1,4 @@
 require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
@@ -202,17 +201,12 @@ module ActiveRecord
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
 
-      def primary_key_name
-        foreign_key
-      end
-      deprecate :primary_key_name => :foreign_key
-
       def foreign_type
         @foreign_type ||= options[:foreign_type] || "#{name}_type"
       end
 
       def type
-        @type ||= "#{options[:as]}_type"
+        @type ||= options[:as] && "#{options[:as]}_type"
       end
 
       def primary_key_column
@@ -280,9 +274,7 @@ module ActiveRecord
       # in the #chain. The inside arrays are simply conditions (and each condition may itself be
       # a hash, array, arel predicate, etc...)
       def conditions
-        conditions = [options[:conditions]].compact
-        conditions << { type => active_record.base_class.name } if options[:as]
-        [conditions]
+        [[options[:conditions]].compact]
       end
 
       alias :source_macro :macro
@@ -378,9 +370,10 @@ module ActiveRecord
     # Holds all the meta-data about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
-      delegate :foreign_key, :foreign_type, :association_foreign_key, :active_record_primary_key, :to => :source_reflection
+      delegate :foreign_key, :foreign_type, :association_foreign_key,
+               :active_record_primary_key, :type, :to => :source_reflection
 
-      # Gets the source of the through reflection.  It checks both a singularized
+      # Gets the source of the through reflection. It checks both a singularized
       # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
       #
       #   class Post < ActiveRecord::Base

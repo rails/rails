@@ -9,6 +9,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "truth" do
       app_file 'test/unit/foo_test.rb', <<-RUBY
         require 'test_helper'
@@ -63,6 +67,31 @@ module ApplicationTests
       RUBY
 
       run_test 'integration/posts_test.rb'
+    end
+
+    test "performance test" do
+      controller 'posts', <<-RUBY
+        class PostsController < ActionController::Base
+        end
+      RUBY
+
+      app_file 'app/views/posts/index.html.erb', <<-HTML
+        Posts#index
+      HTML
+
+      app_file 'test/performance/posts_test.rb', <<-RUBY
+        require 'test_helper'
+        require 'rails/performance_test_help'
+
+        class PostsTest < ActionDispatch::PerformanceTest
+          def test_index
+            get '/posts'
+            assert_response :success
+          end
+        end
+      RUBY
+
+      run_test 'performance/posts_test.rb'
     end
 
     private

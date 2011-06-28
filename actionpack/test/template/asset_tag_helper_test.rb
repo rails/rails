@@ -424,6 +424,14 @@ class AssetTagHelperTest < ActionView::TestCase
     PathToImageToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_image_alt
+    [nil, '/', '/foo/bar/', 'foo/bar/'].each do |prefix|
+      assert_equal 'Rails', image_alt("#{prefix}rails.png")
+      assert_equal 'Rails', image_alt("#{prefix}rails-9c0a079bdd7701d7e729bd956823d153.png")
+      assert_equal 'Avatar-0000', image_alt("#{prefix}avatar-0000.png")
+    end
+  end
+
   def test_image_tag
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -854,7 +862,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on
     ENV["RAILS_ASSET_ID"] = ""
-    @controller.config.asset_host = 'http://a0.example.com'
+    @controller.config.asset_host = 'a0.example.com'
     config.perform_caching = true
 
     assert_dom_equal(
@@ -964,7 +972,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_caching_stylesheet_link_tag_when_caching_on_with_proc_asset_host
     ENV["RAILS_ASSET_ID"] = ""
-    @controller.config.asset_host = Proc.new { |source| "http://a#{source.length}.example.com" }
+    @controller.config.asset_host = Proc.new { |source| "a#{source.length}.example.com" }
     config.perform_caching = true
 
     assert_equal '/stylesheets/styles.css'.length, 23
@@ -1091,13 +1099,23 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_compute_proper_path_with_asset_host
-    @controller.config.asset_host = "http://assets.example.com"
+    @controller.config.asset_host = "assets.example.com"
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
-    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
-    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
-    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
-    assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='http://assets.example.com/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='http://assets.example.com/collaboration/hieraki/images/mouse.png'" src="http://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
-    assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='http://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='http://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="http://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
+    assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
+    assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
+  end
+
+  def test_should_compute_proper_path_with_asset_host_and_default_protocol
+    @controller.config.asset_host = "assets.example.com"
+    @controller.config.default_asset_host_protocol = :request
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
+    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
+    assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
+    assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse_over2.png'" onmouseout="this.src='gopher://assets.example.com/collaboration/hieraki/images/mouse2.png'" src="gopher://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
   end
 
   def test_should_ignore_asset_host_on_complete_url
@@ -1115,12 +1133,12 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png'))
   end
 
-  def test_asset_host_without_protocol_should_use_request_protocol
+  def test_asset_host_without_protocol_should_be_protocol_relative
     @controller.config.asset_host = 'a.example.com'
     assert_equal 'gopher://a.example.com/collaboration/hieraki/images/xml.png', image_path('xml.png')
   end
 
-  def test_asset_host_without_protocol_should_use_request_protocol_even_if_path_present
+  def test_asset_host_without_protocol_should_be_protocol_relative_even_if_path_present
     @controller.config.asset_host = 'a.example.com/files/go/here'
     assert_equal 'gopher://a.example.com/files/go/here/collaboration/hieraki/images/xml.png', image_path('xml.png')
   end

@@ -17,19 +17,27 @@ module ActiveRecord
         replace(record)
       end
 
-      def create(attributes = {}, options = {})
-        new_record(:create, attributes, options)
+      def create(attributes = {}, options = {}, &block)
+        build(attributes, options, &block).tap { |record| record.save }
       end
 
-      def create!(attributes = {}, options = {})
-        build(attributes, options).tap { |record| record.save! }
+      def create!(attributes = {}, options = {}, &block)
+        build(attributes, options, &block).tap { |record| record.save! }
       end
 
       def build(attributes = {}, options = {})
-        new_record(:build, attributes, options)
+        record = reflection.build_association(attributes, options)
+        record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
+        yield(record) if block_given?
+        set_new_record(record)
+        record
       end
 
       private
+
+        def create_scope
+          scoped.scope_for_create.stringify_keys.except(klass.primary_key)
+        end
 
         def find_target
           scoped.first.tap { |record| set_inverse_instance(record) }
@@ -42,13 +50,6 @@ module ActiveRecord
 
         def set_new_record(record)
           replace(record)
-        end
-
-        def new_record(method, attributes, options)
-          attributes = scoped.scope_for_create.merge(attributes || {})
-          record = reflection.send("#{method}_association", attributes, options)
-          set_new_record(record)
-          record
         end
     end
   end

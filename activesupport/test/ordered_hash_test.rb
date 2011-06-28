@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/json'
 require 'active_support/core_ext/object/to_json'
+require 'active_support/core_ext/hash/indifferent_access'
 
 class OrderedHashTest < Test::Unit::TestCase
   def setup
@@ -113,6 +114,9 @@ class OrderedHashTest < Test::Unit::TestCase
     end
     assert_equal @values, values
     assert_equal @keys, keys
+
+    expected_class = RUBY_VERSION < '1.9' ? Enumerable::Enumerator : Enumerator
+    assert_kind_of expected_class, @ordered_hash.each_pair
   end
 
   def test_find_all
@@ -243,12 +247,37 @@ class OrderedHashTest < Test::Unit::TestCase
     assert_equal @other_ordered_hash.keys, @ordered_hash.keys
   end
 
+  def test_nested_under_indifferent_access
+    flash = {:a => ActiveSupport::OrderedHash[:b, 1, :c, 2]}.with_indifferent_access
+    assert_kind_of ActiveSupport::OrderedHash, flash[:a]
+  end
+
   def test_each_after_yaml_serialization
     values = []
     @deserialized_ordered_hash = YAML.load(YAML.dump(@ordered_hash))
 
     @deserialized_ordered_hash.each {|key, value| values << value}
     assert_equal @values, values
+  end
+
+  def test_each_when_yielding_to_block_with_splat
+    hash_values         = []
+    ordered_hash_values = []
+
+    @hash.each         { |*v| hash_values         << v }
+    @ordered_hash.each { |*v| ordered_hash_values << v }
+
+    assert_equal hash_values.sort, ordered_hash_values.sort
+  end
+
+  def test_each_pair_when_yielding_to_block_with_splat
+    hash_values         = []
+    ordered_hash_values = []
+
+    @hash.each_pair         { |*v| hash_values         << v }
+    @ordered_hash.each_pair { |*v| ordered_hash_values << v }
+
+    assert_equal hash_values.sort, ordered_hash_values.sort
   end
 
   def test_order_after_yaml_serialization

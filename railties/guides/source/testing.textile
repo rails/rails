@@ -38,7 +38,7 @@ When you do end up destroying your testing database (and it will happen, trust m
 
 h4. Rails Sets up for Testing from the Word Go
 
-Rails creates a +test+ folder for you as soon as you create a Rails project using +rails _application_name_+. If you list the contents of this folder then you shall see:
+Rails creates a +test+ folder for you as soon as you create a Rails project using +rails new+ _application_name_. If you list the contents of this folder then you shall see:
 
 <shell>
 $ ls -F test/
@@ -54,7 +54,7 @@ For good tests, you'll need to give some thought to setting up test data. In Rai
 
 h5. What are Fixtures?
 
-_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume one of two formats: *YAML* or *CSV*. In this guide, we will use *YAML*, which is the preferred format.
+_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume a single format: *YAML*.
 
 You'll find fixtures under your +test/fixtures+ directory. When you run +rails generate model+ to create a new model, fixture stubs will be automatically created and placed in this directory.
 
@@ -81,7 +81,7 @@ Each fixture is given a name followed by an indented list of colon-separated key
 
 h5. ERB'in It Up
 
-ERB allows you to embed ruby code within templates. Both the YAML and CSV fixture formats are pre-processed with ERB when you load fixtures. This allows you to use Ruby to help you generate some sample data.
+ERB allows you to embed ruby code within templates. YAML fixture format is pre-processed with ERB when you load fixtures. This allows you to use Ruby to help you generate some sample data.
 
 <erb>
 <% earth_size = 20 %>
@@ -929,8 +929,8 @@ class UserControllerTest < ActionController::TestCase
     end
     invite_email = ActionMailer::Base.deliveries.first
 
-    assert_equal invite_email.subject, "You have been invited by me@example.com"
-    assert_equal invite_email.to[0], 'friend@example.com'
+    assert_equal "You have been invited by me@example.com", invite_email.subject
+    assert_equal 'friend@example.com', invite_email.to[0]
     assert_match /Hi friend@example.com/, invite_email.body
   end
 end
@@ -941,10 +941,10 @@ h3. Other Testing Approaches
 The built-in +test/unit+ based testing is not the only way to test Rails applications. Rails developers have come up with a wide variety of other approaches and aids for testing, including:
 
 * "NullDB":http://avdi.org/projects/nulldb/, a way to speed up testing by avoiding database use.
-* "Factory Girl":https://github.com/thoughtbot/factory_girl/tree/master, as replacement for fixtures.
+* "Factory Girl":https://github.com/thoughtbot/factory_girl/tree/master, a replacement for fixtures.
 * "Machinist":https://github.com/notahat/machinist/tree/master, another replacement for fixtures.
 * "Shoulda":http://www.thoughtbot.com/projects/shoulda, an extension to +test/unit+ with additional helpers, macros, and assertions.
-* "RSpec":http://rspec.info/, a behavior-driven development framework
+* "RSpec":http://relishapp.com/rspec, a behavior-driven development framework
 
 h3. Changelog
 

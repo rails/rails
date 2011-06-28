@@ -77,19 +77,7 @@ module ActiveSupport
         def read_entry(key, options)
           file_name = key_file_path(key)
           if File.exist?(file_name)
-            entry = File.open(file_name) { |f| Marshal.load(f) }
-            if entry && !entry.expired? && !entry.expires_in && !self.options[:expires_in]
-              # Check for deprecated use of +:expires_in+ option from versions < 3.0
-              deprecated_expires_in = options[:expires_in]
-              if deprecated_expires_in
-                ActiveSupport::Deprecation.warn('Setting :expires_in on read has been deprecated in favor of setting it on write.', caller)
-                if entry.created_at + deprecated_expires_in.to_f <= Time.now.to_f
-                  delete_entry(key, options)
-                  entry = nil
-                end
-              end
-            end
-            entry
+            File.open(file_name) { |f| Marshal.load(f) }
           end
         rescue
           nil

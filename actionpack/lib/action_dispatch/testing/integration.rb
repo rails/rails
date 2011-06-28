@@ -62,7 +62,7 @@ module ActionDispatch
       #
       # The request_method is +:get+, +:post+, +:put+, +:delete+ or +:head+; the
       # parameters are +nil+, a hash, or a url-encoded or multipart string;
-      # the headers are a hash.  Keys are automatically upcased and prefixed
+      # the headers are a hash. Keys are automatically upcased and prefixed
       # with 'HTTP_' if not already.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
@@ -207,9 +207,6 @@ module ActionDispatch
                            "*/*;q=0.5"
 
         unless defined? @named_routes_configured
-          # install the named routes in this session instance.
-          klass = singleton_class
-
           # the helpers are made protected by default--we make them public for
           # easier access during testing and troubleshooting.
           @named_routes_configured = true

@@ -31,7 +31,7 @@ module ActionController
   # "302 Moved" HTTP response that takes the user to the index action.
   #
   # These two methods represent the two basic action archetypes used in Action Controllers. Get-and-show and do-and-redirect.
-  # Most actions are variations of these themes.
+  # Most actions are variations on these themes.
   #
   # == Requests
   #
@@ -116,8 +116,8 @@ module ActionController
   #
   #   Title: <%= @post.title %>
   #
-  # You don't have to rely on the automated rendering. Especially actions that could result in the rendering of different templates will use
-  # the manual rendering methods:
+  # You don't have to rely on the automated rendering. For example, actions that could result in the rendering of different templates 
+  # will use the manual rendering methods:
   #
   #   def search
   #     @results = Search.find(params[:query])
@@ -132,9 +132,9 @@ module ActionController
   #
   # == Redirects
   #
-  # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to a database,
-  # we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're going to reuse (and redirect to)
-  # a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
+  # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to the
+  # database, we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're 
+  # going to reuse (and redirect to) a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
   #
   #   def create
   #     @entry = Entry.new(params[:entry])
@@ -146,7 +146,9 @@ module ActionController
   #     end
   #   end
   #
-  # In this case, after saving our new entry to the database, the user is redirected to the <tt>show</tt> method which is then executed.
+  # In this case, after saving our new entry to the database, the user is redirected to the <tt>show</tt> method, which is then executed.
+  # Note that this is an external HTTP-level redirection which will cause the browser to make a second request (a GET to the show action),
+  # and not some internal re-routing which calls both "create" and then "show" within one request.
   #
   # Learn more about <tt>redirect_to</tt> and what options you have in ActionController::Redirecting.
   #

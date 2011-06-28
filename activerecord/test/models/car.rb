@@ -2,6 +2,11 @@ class Car < ActiveRecord::Base
 
   has_many :bulbs
   has_many :foo_bulbs, :class_name => "Bulb", :conditions => { :name => 'foo' }
+  has_many :frickinawesome_bulbs, :class_name => "Bulb", :conditions => { :frickinawesome => true }
+
+  has_one :bulb
+  has_one :frickinawesome_bulb, :class_name => "Bulb", :conditions => { :frickinawesome => true }
+
   has_many :tyres
   has_many :engines
   has_many :wheels, :as => :wheelable

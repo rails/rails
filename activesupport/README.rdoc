@@ -26,8 +26,8 @@ Active Support is released under the MIT license.
 
 API documentation is at
 
-* http://api.rubyonrails.com
+* http://api.rubyonrails.org
 
 Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
 
-* https://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets
+* https://github.com/rails/rails/issues

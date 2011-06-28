@@ -336,6 +336,10 @@ class PersistencesTest < ActiveRecord::TestCase
     assert !Topic.find(1).approved?
   end
 
+  def test_update_attribute_does_not_choke_on_nil
+    assert Topic.find(1).update_attributes(nil)
+  end
+
   def test_update_attribute_for_readonly_attribute
     minivan = Minivan.find('m1')
     assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }

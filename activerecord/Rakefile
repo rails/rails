@@ -1,11 +1,10 @@
 #!/usr/bin/env rake
 require 'rake/testtask'
 require 'rake/packagetask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
-
-MYSQL_DB_USER = 'rails'
+require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
 
 def run_without_aborting(*tasks)
   errors = []
@@ -43,9 +42,8 @@ end
 
 %w( mysql mysql2 postgresql sqlite3 sqlite3_mem firebird db2 oracle sybase openbase frontbase jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") { |t|
-    connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
-    t.libs << "test" << connection_path
+    t.libs << 'test'
     t.test_files = (Dir.glob( "test/cases/**/*_test.rb" ).reject {
       |x| x =~ /\/adapters\//
     } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb")).sort
@@ -55,21 +53,27 @@ end
   }
 
   task "isolated_test_#{adapter}" do
-    connection_path = "test/connections/#{adapter =~ /jdbc/ ? 'jdbc' : 'native'}_#{adapter}"
     adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
-    puts [adapter, adapter_short, connection_path].inspect
+    puts [adapter, adapter_short].inspect
     ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     (Dir["test/cases/**/*_test.rb"].reject {
       |x| x =~ /\/adapters\//
     } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-      sh(ruby, "-Ilib:test:#{connection_path}", file)
+      sh(ruby, "-Itest", file)
     end or raise "Failures"
   end
 
   namespace adapter do
     task :test => "test_#{adapter}"
     task :isolated_test => "isolated_test_#{adapter}"
+
+    # Set the connection environment for the adapter
+    task(:env) { ENV['ARCONN'] = adapter }
   end
+
+  # Make sure the adapter test evaluates the env setting task
+  task "test_#{adapter}" => "#{adapter}:env"
+  task "isolated_test_#{adapter}" => "#{adapter}:env"
 end
 
 rule '.sqlite3' do |t|
@@ -84,14 +88,16 @@ task :test_sqlite3 => [
 namespace :mysql do
   desc 'Build the MySQL test databases'
   task :build_databases do
-    %x( mysql --user=#{MYSQL_DB_USER} -e "create DATABASE activerecord_unittest DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-    %x( mysql --user=#{MYSQL_DB_USER} -e "create DATABASE activerecord_unittest2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+    config = ARTest.config['connections']['mysql']
+    %x( mysql --user=#{config['arunit']['username']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+    %x( mysql --user=#{config['arunit2']['username']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
   end
 
   desc 'Drop the MySQL test databases'
   task :drop_databases do
-    %x( mysqladmin --user=#{MYSQL_DB_USER} -f drop activerecord_unittest )
-    %x( mysqladmin --user=#{MYSQL_DB_USER} -f drop activerecord_unittest2 )
+    config = ARTest.config['connections']['mysql']
+    %x( mysqladmin --user=#{config['arunit']['username']} -f drop #{config['arunit']['database']} )
+    %x( mysqladmin --user=#{config['arunit2']['username']} -f drop #{config['arunit2']['database']} )
   end
 
   desc 'Rebuild the MySQL test databases'
@@ -106,14 +112,16 @@ task :rebuild_mysql_databases => 'mysql:rebuild_databases'
 namespace :postgresql do
   desc 'Build the PostgreSQL test databases'
   task :build_databases do
-    %x( createdb -E UTF8 activerecord_unittest )
-    %x( createdb -E UTF8 activerecord_unittest2 )
+    config = ARTest.config['connections']['postgresql']
+    %x( createdb -E UTF8 #{config['arunit']['database']} )
+    %x( createdb -E UTF8 #{config['arunit2']['database']} )
   end
 
   desc 'Drop the PostgreSQL test databases'
   task :drop_databases do
-    %x( dropdb activerecord_unittest )
-    %x( dropdb activerecord_unittest2 )
+    config = ARTest.config['connections']['postgresql']
+    %x( dropdb #{config['arunit']['database']} )
+    %x( dropdb #{config['arunit2']['database']} )
   end
 
   desc 'Rebuild the PostgreSQL test databases'
@@ -152,8 +160,9 @@ namespace :frontbase do
         DISCONNECT ALL;
       )
     end
-    create_activerecord_unittest  = build_frontbase_database['activerecord_unittest',  File.join(SCHEMA_ROOT, 'frontbase.sql')]
-    create_activerecord_unittest2 = build_frontbase_database['activerecord_unittest2', File.join(SCHEMA_ROOT, 'frontbase2.sql')]
+    config = ARTest.config['connections']['frontbase']
+    create_activerecord_unittest  = build_frontbase_database[config['arunit']['database'],  File.join(SCHEMA_ROOT, 'frontbase.sql')]
+    create_activerecord_unittest2 = build_frontbase_database[config['arunit2']['database'], File.join(SCHEMA_ROOT, 'frontbase2.sql')]
     execute_frontbase_sql = Proc.new do |sql|
       system(<<-SHELL)
       /Library/FrontBase/bin/sql92 <<-SQL
@@ -171,7 +180,7 @@ task :rebuild_frontbase_databases => 'frontbase:rebuild_databases'
 
 spec = eval(File.read('activerecord.gemspec'))
 
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 

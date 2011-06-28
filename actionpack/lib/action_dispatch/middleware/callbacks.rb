@@ -19,8 +19,7 @@ module ActionDispatch
       set_callback(:call, :after, *args, &block)
     end
 
-    def initialize(app, unused = nil)
-      ActiveSupport::Deprecation.warn "Passing a second argument to ActionDispatch::Callbacks.new is deprecated." unless unused.nil?
+    def initialize(app)
       @app = app
     end
 

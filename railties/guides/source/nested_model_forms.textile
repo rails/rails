@@ -90,7 +90,7 @@ h3. Views
 
 h4. Controller code
 
-A nested model form will _only_ be build if the associated object(s) exist. This means that for a new model instance you would probably want to build the associated object(s) first.
+A nested model form will _only_ be built if the associated object(s) exist. This means that for a new model instance you would probably want to build the associated object(s) first.
 
 Consider the following typical RESTful controller which will prepare a new Person instance and its +address+ and +projects+ associations before rendering the +new+ template:
 
@@ -144,7 +144,7 @@ Now add a nested form for the +address+ association:
   <%= f.text_field :name %>
 
   <%= f.fields_for :address do |af| %>
-    <%= f.text_field :street %>
+    <%= af.text_field :street %>
   <% end %>
 <% end %>
 </erb>
@@ -159,7 +159,7 @@ This generates:
 </form>
 </html>
 
-Notice that +fields_for+ recognized the +address+ as an association for which a nested model form should be build by the way it has namespaced the +name+ attribute.
+Notice that +fields_for+ recognized the +address+ as an association for which a nested model form should be built by the way it has namespaced the +name+ attribute.
 
 When this form is posted the Rails parameter parser will construct a hash like the following:
 
@@ -185,7 +185,7 @@ The form code for an association collection is pretty similar to that of a singl
   <%= f.text_field :name %>
 
   <%= f.fields_for :projects do |pf| %>
-    <%= f.text_field :name %>
+    <%= pf.text_field :name %>
   <% end %>
 <% end %>
 </erb>
@@ -201,7 +201,7 @@ Which generates:
 </form>
 </html>
 
-As you can see it has generated 2 +project name+ inputs, one for each new +project+ that’s build in the controllers +new+ action. Only this time the +name+ attribute of the input contains a digit as an extra namespace. This will be parsed by the Rails parameter parser as:
+As you can see it has generated 2 +project name+ inputs, one for each new +project+ that was built in the controller's +new+ action. Only this time the +name+ attribute of the input contains a digit as an extra namespace. This will be parsed by the Rails parameter parser as:
 
 <ruby>
 {
@@ -215,7 +215,7 @@ As you can see it has generated 2 +project name+ inputs, one for each new +proje
 }
 </ruby>
 
-You can basically see the +projects_attributes+ hash as an array of attribute hashes. One for each model instance.
+You can basically see the +projects_attributes+ hash as an array of attribute hashes, one for each model instance.
 
 NOTE: The reason that +fields_for+ constructed a form which would result in a hash instead of an array is that it won't work for any forms nested deeper than one level deep.
 

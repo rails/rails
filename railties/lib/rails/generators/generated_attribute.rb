@@ -7,18 +7,19 @@ module Rails
       attr_accessor :name, :type
 
       def initialize(name, type)
-        raise Thor::Error, "Missing type for attribute '#{name}'.\nExample: '#{name}:string' where string is the type." if type.blank?
+        type = :string if type.blank?
         @name, @type = name, type.to_sym
       end
 
       def field_type
         @field_type ||= case type
-          when :integer, :float, :decimal then :text_field
-          when :time                      then :time_select
-          when :datetime, :timestamp      then :datetime_select
-          when :date                      then :date_select
-          when :text                      then :text_area
-          when :boolean                   then :check_box
+          when :integer              then :number_field
+          when :float, :decimal      then :text_field
+          when :time                 then :time_select
+          when :datetime, :timestamp then :datetime_select
+          when :date                 then :date_select
+          when :text                 then :text_area
+          when :boolean              then :check_box
           else
             :text_field
         end

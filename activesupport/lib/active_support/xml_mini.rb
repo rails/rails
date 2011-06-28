@@ -1,4 +1,6 @@
+require 'time'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
   # = XmlMini
@@ -50,13 +52,12 @@ module ActiveSupport
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
     } unless defined?(FORMATTING)
 
-    # TODO: use Time.xmlschema instead of Time.parse;
-    #       use regexp instead of Date.parse
+    # TODO use regexp instead of Date.parse
     unless defined?(PARSING)
       PARSING = {
         "symbol"       => Proc.new { |symbol|  symbol.to_sym },
         "date"         => Proc.new { |date|    ::Date.parse(date) },
-        "datetime"     => Proc.new { |time|    ::Time.parse(time).utc rescue ::DateTime.parse(time).utc },
+        "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new { |number|  BigDecimal(number) },
@@ -138,7 +139,9 @@ module ActiveSupport
     protected
 
     def _dasherize(key)
-      key.gsub(/(?!^[_]*)_(?![_]*$)/, '-')
+      # $2 must be a non-greedy regex for this to work
+      left, middle, right = /\A(_*)(.*?)(_*)\Z/.match(key.strip)[1,3]
+      "#{left}#{middle.tr('_ ', '--')}#{right}"
     end
 
 	  # TODO: Add support for other encodings

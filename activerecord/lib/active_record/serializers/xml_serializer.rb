@@ -75,7 +75,7 @@ module ActiveRecord #:nodoc:
     #   </firm>
     #
     # Additionally, the record being serialized will be passed to a Proc's second
-    # parameter.  This allows for ad hoc additions to the resultant document that
+    # parameter. This allows for ad hoc additions to the resultant document that
     # incorporate the context of the record being serialized. And by leveraging the
     # closure created by a Proc, to_xml can be used to add elements that normally fall
     # outside of the scope of the model -- for example, generating and appending URLs

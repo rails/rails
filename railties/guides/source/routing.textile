@@ -288,7 +288,7 @@ When using +magazine_ad_path+, you can pass in instances of +Magazine+ and +Ad+ 
 You can also use +url_for+ with a set of objects, and Rails will automatically determine which route you want:
 
 <erb>
-<%= link_to "Ad details", url_for(@magazine, @ad) %>
+<%= link_to "Ad details", url_for([@magazine, @ad]) %>
 </erb>
 
 In this case, Rails will see that +@magazine+ is a +Magazine+ and +@ad+ is an +Ad+ and will therefore use the +magazine_ad_path+ helper. In helpers like +link_to+, you can specify just the object in place of the full +url_for+ call:
@@ -880,7 +880,7 @@ h3. Changelog
 
 * April 10, 2010: Updated guide to remove outdated and superfluous information, and to provide information about new features, by "Yehuda Katz":http://www.yehudakatz.com
 * April 2, 2010: Updated guide to match new Routing DSL in Rails 3, by "Rizwan Reza":http://www.rizwanreza.com/
-* Febuary 1, 2010: Modifies the routing documentation to match new routing DSL in Rails 3, by Prem Sichanugrist
+* February 1, 2010: Modifies the routing documentation to match new routing DSL in Rails 3, by Prem Sichanugrist
 * October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes, by "Mike Gunderloy":credits.html#mgunderloy
 * September 23, 2008: Added section on namespaced controllers and routing, by "Mike Gunderloy":credits.html#mgunderloy
 * September 10, 2008: initial version by "Mike Gunderloy":credits.html#mgunderloy

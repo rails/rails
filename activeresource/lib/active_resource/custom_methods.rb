@@ -11,10 +11,10 @@ module ActiveResource
   #
   #  This route set creates routes for the following HTTP requests:
   #
-  #    POST    /people/new/register.xml # PeopleController.register
-  #    PUT     /people/1/promote.xml    # PeopleController.promote with :id => 1
-  #    DELETE  /people/1/deactivate.xml # PeopleController.deactivate with :id => 1
-  #    GET     /people/active.xml       # PeopleController.active
+  #    POST    /people/new/register.json # PeopleController.register
+  #    PUT     /people/1/promote.json    # PeopleController.promote with :id => 1
+  #    DELETE  /people/1/deactivate.json # PeopleController.deactivate with :id => 1
+  #    GET     /people/active.json       # PeopleController.active
   #
   # Using this module, Active Resource can use these custom REST methods just like the
   # standard methods.
@@ -23,13 +23,13 @@ module ActiveResource
   #     self.site = "http://37s.sunrise.i:3000"
   #   end
   #
-  #   Person.new(:name => 'Ryan).post(:register)  # POST /people/new/register.xml
+  #   Person.new(:name => 'Ryan).post(:register)  # POST /people/new/register.json
   #   # => { :id => 1, :name => 'Ryan' }
   #
-  #   Person.find(1).put(:promote, :position => 'Manager') # PUT /people/1/promote.xml
-  #   Person.find(1).delete(:deactivate) # DELETE /people/1/deactivate.xml
+  #   Person.find(1).put(:promote, :position => 'Manager') # PUT /people/1/promote.json
+  #   Person.find(1).delete(:deactivate) # DELETE /people/1/deactivate.json
   #
-  #   Person.get(:active)  # GET /people/active.xml
+  #   Person.get(:active)  # GET /people/active.json
   #   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
   #
   module CustomMethods
@@ -41,10 +41,10 @@ module ActiveResource
 
         # Invokes a GET to a given custom REST method. For example:
         #
-        #   Person.get(:active)  # GET /people/active.xml
+        #   Person.get(:active)  # GET /people/active.json
         #   # => [{:id => 1, :name => 'Ryan'}, {:id => 2, :name => 'Joe'}]
         #
-        #   Person.get(:active, :awesome => true)  # GET /people/active.xml?awesome=true
+        #   Person.get(:active, :awesome => true)  # GET /people/active.json?awesome=true
         #   # => [{:id => 1, :name => 'Ryan'}]
         #
         # Note: the objects returned from this method are not automatically converted
@@ -54,7 +54,9 @@ module ActiveResource
         #
         #   Person.find(:all, :from => :active)
         def get(custom_method_name, options = {})
-          format.decode(connection.get(custom_method_collection_url(custom_method_name, options), headers).body)
+          hashified = format.decode(connection.get(custom_method_collection_url(custom_method_name, options), headers).body)
+          derooted  = Formats.remove_root(hashified)
+          derooted.is_a?(Array) ? derooted.map { |e| Formats.remove_root(e) } : derooted
         end
 
         def post(custom_method_name, options = {}, body = '')

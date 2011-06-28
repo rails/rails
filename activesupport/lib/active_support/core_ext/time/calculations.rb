@@ -1,4 +1,5 @@
 require 'active_support/duration'
+require 'active_support/core_ext/time/zones'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -187,7 +188,7 @@ class Time
   # Returns a new Time representing the start of the day (0:00)
   def beginning_of_day
     #(self - seconds_since_midnight).change(:usec => 0)
-    change(:hour => 0, :min => 0, :sec => 0, :usec => 0)
+    change(:hour => 0)
   end
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
@@ -201,7 +202,7 @@ class Time
   # Returns a new Time representing the start of the month (1st of the month, 0:00)
   def beginning_of_month
     #self - ((self.mday-1).days + self.seconds_since_midnight)
-    change(:day => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)
+    change(:day => 1, :hour => 0)
   end
   alias :at_beginning_of_month :beginning_of_month
 
@@ -225,9 +226,9 @@ class Time
   end
   alias :at_end_of_quarter :end_of_quarter
 
-  # Returns  a new Time representing the start of the year (1st of january, 0:00)
+  # Returns a new Time representing the start of the year (1st of january, 0:00)
   def beginning_of_year
-    change(:month => 1, :day => 1, :hour => 0, :min => 0, :sec => 0, :usec => 0)
+    change(:month => 1, :day => 1, :hour => 0)
   end
   alias :at_beginning_of_year :beginning_of_year
 
@@ -245,6 +246,31 @@ class Time
   # Convenience method which returns a new Time representing the time 1 day since the instance time
   def tomorrow
     advance(:days => 1)
+  end
+
+  # Returns a Range representing the whole day of the current time.
+  def all_day
+    beginning_of_day..end_of_day
+  end
+
+  # Returns a Range representing the whole week of the current time.
+  def all_week
+    beginning_of_week..end_of_week
+  end
+
+  # Returns a Range representing the whole month of the current time.
+  def all_month
+    beginning_of_month..end_of_month
+  end
+
+  # Returns a Range representing the whole quarter of the current time.
+  def all_quarter
+    beginning_of_quarter..end_of_quarter
+  end
+
+  # Returns a Range representing the whole year of the current time.
+  def all_year
+    beginning_of_year..end_of_year
   end
 
   def plus_with_duration(other) #:nodoc:

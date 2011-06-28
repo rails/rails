@@ -80,9 +80,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/unit/helpers/product_lines_helper_test.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
     assert_file "app/assets/javascripts/product_lines.js.coffee"
-    assert_file "app/assets/stylesheets/product_lines.css.scss"
+    assert_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_scaffold_on_revoke
@@ -113,9 +113,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/unit/helpers/product_lines_helper_test.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css.scss", /&:visited/
+    assert_file "app/assets/stylesheets/scaffold.css", /:visited/
     assert_no_file "app/assets/javascripts/product_lines.js.coffee"
-    assert_no_file "app/assets/stylesheets/product_lines.css.scss"
+    assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
   def test_scaffold_with_namespace_on_invoke
@@ -189,9 +189,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/unit/helpers/admin/roles_helper_test.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css.scss", /&:visited/
+    assert_file "app/assets/stylesheets/scaffold.css", /:visited/
     assert_file "app/assets/javascripts/admin/roles.js.coffee"
-    assert_file "app/assets/stylesheets/admin/roles.css.scss"
+    assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
   def test_scaffold_with_namespace_on_revoke
@@ -223,9 +223,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/unit/helpers/admin/roles_helper_test.rb"
 
     # Assets
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/admin/roles.js.coffee"
-    assert_no_file "app/assets/stylesheets/admin/roles.css.scss"
+    assert_no_file "app/assets/stylesheets/admin/roles.css"
   end
 
   def test_scaffold_generator_on_revoke_does_not_mutilate_legacy_map_parameter
@@ -245,35 +245,41 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
   def test_scaffold_generator_no_assets
     run_generator [ "posts", "--no-assets" ]
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/posts.js.coffee"
-    assert_no_file "app/assets/stylesheets/posts.css.scss"
+    assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_stylesheets
     run_generator [ "posts", "--no-stylesheets" ]
-    assert_no_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_no_file "app/assets/stylesheets/scaffold.css"
     assert_file "app/assets/javascripts/posts.js.coffee"
-    assert_no_file "app/assets/stylesheets/posts.css.scss"
+    assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_javascripts
     run_generator [ "posts", "--no-javascripts" ]
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
     assert_no_file "app/assets/javascripts/posts.js.coffee"
-    assert_file "app/assets/stylesheets/posts.css.scss"
+    assert_file "app/assets/stylesheets/posts.css"
   end
 
-  def test_scaffold_generator_no_negines
-    run_generator [ "posts", "--no-javascript-engine", "--no-stylesheet-engine" ]
+  def test_scaffold_generator_no_engines
+    run_generator [ "posts", "--no-javascript-engine" ]
     assert_file "app/assets/stylesheets/scaffold.css"
     assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
-    content = capture(:stderr) { run_generator ["post", "title:string", "body"]}
-    assert_match(/Missing type for attribute 'body'/, content)
-    assert_match(/Example: 'body:string' where string is the type/, content)
+    run_generator ["post", "title", "body:text", "author"]
+
+    assert_migration "db/migrate/create_posts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.string :title/, up)
+        assert_match(/t\.text :body/, up)
+        assert_match(/t\.string :author/, up)
+      end
+    end
   end
 end

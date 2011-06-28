@@ -10,5 +10,13 @@ module ActiveResource
     def self.[](mime_type_reference)
       ActiveResource::Formats.const_get(ActiveSupport::Inflector.camelize(mime_type_reference.to_s) + "Format")
     end
+
+    def self.remove_root(data)
+      if data.is_a?(Hash) && data.keys.size == 1
+        data.values.first
+      else
+        data
+      end
+    end
   end
 end

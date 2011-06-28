@@ -2,12 +2,12 @@
 
 <% unless attributes.empty? -%>
 one:
-<% for attribute in attributes -%>
+<% attributes.each do |attribute| -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
 
 two:
-<% for attribute in attributes -%>
+<% attributes.each do |attribute| -%>
   <%= attribute.name %>: <%= attribute.default %>
 <% end -%>
 <% else -%>

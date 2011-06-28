@@ -15,7 +15,7 @@ module RailtiesTest
 
       @plugin = engine "bukkits" do |plugin|
         plugin.write "lib/bukkits.rb", <<-RUBY
-          class Bukkits
+          module Bukkits
             class Engine < ::Rails::Engine
               railtie_name "bukkits"
             end
@@ -25,6 +25,10 @@ module RailtiesTest
       end
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "Rails::Engine itself does not respond to config" do
       boot_rails
       assert !Rails::Engine.respond_to?(:config)
@@ -32,7 +36,7 @@ module RailtiesTest
 
     test "initializers are executed after application configuration initializers" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
             initializer "dummy_initializer" do
             end
@@ -73,7 +77,7 @@ module RailtiesTest
       add_to_config("config.action_dispatch.show_exceptions = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
             endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, ['Hello World']] }
             config.middleware.use ::RailtiesTest::EngineTest::Upcaser
@@ -93,9 +97,37 @@ module RailtiesTest
       assert_equal "HELLO WORLD", last_response.body
     end
 
+    test "pass the value of the segment" do
+      controller "foo", <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            render :text => params[:username]
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          root :to => "foo#index"
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount(Bukkits::Engine => "/:username")
+        end
+      RUBY
+
+      boot_rails
+
+      get("/arunagw")
+      assert_equal "arunagw", last_response.body
+
+    end
+
     test "it provides routes as default endpoint" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -121,7 +153,7 @@ module RailtiesTest
 
     test "engine can load its own plugins" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -138,7 +170,7 @@ module RailtiesTest
 
     test "engine does not load plugins that already exists in application" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -161,7 +193,7 @@ module RailtiesTest
 
     test "it loads its environment file" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
           end
         end
@@ -180,7 +212,7 @@ module RailtiesTest
 
     test "it passes router in env" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
-        class Bukkits
+        module Bukkits
           class Engine < ::Rails::Engine
             endpoint lambda { |env| [200, {'Content-Type' => 'text/html'}, 'hello'] }
           end

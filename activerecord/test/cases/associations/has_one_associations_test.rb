@@ -4,6 +4,7 @@ require 'models/project'
 require 'models/company'
 require 'models/ship'
 require 'models/pirate'
+require 'models/car'
 require 'models/bulb'
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
@@ -93,6 +94,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.account = Account.new(:credit_limit => 5)
     # account is dependent with nullify, therefore its firm_id should be nil
     assert_nil Account.find(old_account_id).firm_id
+  end
+
+  def test_natural_assignment_to_nil_after_destroy
+    firm = companies(:rails_core)
+    old_account_id = firm.account.id
+    firm.account.destroy
+    firm.account = nil
+    assert_nil companies(:rails_core).account
+    assert_raise(ActiveRecord::RecordNotFound) { Account.find(old_account_id) }
   end
 
   def test_association_change_calls_delete
@@ -358,5 +368,74 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal pirate.id, pirate.ship.pirate_id
     assert_equal pirate.id, ships(:black_pearl).reload.pirate_id
     assert_nil new_ship.pirate_id
+  end
+
+  def test_association_keys_bypass_attribute_protection
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_bulb
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.build_bulb :car_id => car.id + 1
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.create_bulb
+    assert_equal car.id, bulb.car_id
+
+    bulb = car.create_bulb :car_id => car.id + 1
+    assert_equal car.id, bulb.car_id
+  end
+
+  def test_association_conditions_bypass_attribute_protection
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_frickinawesome_bulb
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.build_frickinawesome_bulb(:frickinawesome => false)
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.create_frickinawesome_bulb
+    assert_equal true, bulb.frickinawesome?
+
+    bulb = car.create_frickinawesome_bulb(:frickinawesome => false)
+    assert_equal true, bulb.frickinawesome?
+  end
+
+  def test_new_is_called_with_attributes_and_options
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_bulb
+    assert_equal Bulb, bulb.class
+
+    bulb = car.build_bulb
+    assert_equal Bulb, bulb.class
+
+    bulb = car.build_bulb(:bulb_type => :custom)
+    assert_equal Bulb, bulb.class
+
+    bulb = car.build_bulb({ :bulb_type => :custom }, :as => :admin)
+    assert_equal CustomBulb, bulb.class
+  end
+
+  def test_build_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.build_bulb{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
+  end
+
+  def test_create_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.create_bulb{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
+  end
+
+  def test_create_bang_with_block
+    car = Car.create(:name => 'honda')
+
+    bulb = car.create_bulb!{ |b| b.color = 'Red' }
+    assert_equal 'RED!', bulb.color
   end
 end

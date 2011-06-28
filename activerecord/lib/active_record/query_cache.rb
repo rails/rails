@@ -33,6 +33,14 @@ module ActiveRecord
         @target               = target
       end
 
+      def method_missing(method_sym, *arguments, &block)
+        @target.send(method_sym, *arguments, &block)
+      end
+
+      def respond_to?(method_sym, include_private = false)
+        super || @target.respond_to?(method_sym)
+      end
+
       def each(&block)
         @target.each(&block)
       end
@@ -40,6 +48,7 @@ module ActiveRecord
       def close
         @target.close if @target.respond_to?(:close)
       ensure
+        ActiveRecord::Base.connection.clear_query_cache
         unless @original_cache_value
           ActiveRecord::Base.connection.disable_query_cache!
         end

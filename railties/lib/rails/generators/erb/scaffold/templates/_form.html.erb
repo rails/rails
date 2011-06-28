@@ -11,7 +11,7 @@
     </div>
   <%% end %>
 
-<% for attribute in attributes -%>
+<% attributes.each do |attribute| -%>
   <div class="field">
     <%%= f.label :<%= attribute.name %> %><br />
     <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>

@@ -33,7 +33,8 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response
-    attr_accessor :request, :header, :status
+    attr_accessor :request, :header
+    attr_reader :status
     attr_writer :sending_file
 
     alias_method :headers=, :header=
@@ -56,26 +57,25 @@ module ActionDispatch # :nodoc:
 
     cattr_accessor(:default_charset) { "utf-8" }
 
-    module Setup
-      def initialize(status = 200, header = {}, body = [])
-        self.body, self.header, self.status = body, header, status
-
-        @sending_file = false
-        @blank = false
-
-        if content_type = self["Content-Type"]
-          type, charset = content_type.split(/;\s*charset=/)
-          @content_type = Mime::Type.lookup(type)
-          @charset = charset || "UTF-8"
-        end
-
-        yield self if block_given?
-      end
-    end
-
     include Rack::Response::Helpers
-    include Setup
     include ActionDispatch::Http::Cache::Response
+
+    def initialize(status = 200, header = {}, body = [])
+      self.body, self.header, self.status = body, header, status
+
+      @sending_file = false
+      @blank = false
+
+      if content_type = self["Content-Type"]
+        type, charset = content_type.split(/;\s*charset=/)
+        @content_type = Mime::Type.lookup(type)
+        @charset = charset || "UTF-8"
+      end
+
+      prepare_cache_control!
+
+      yield self if block_given?
+    end
 
     def status=(status)
       @status = Rack::Utils.status_code(status)
@@ -148,6 +148,10 @@ module ActionDispatch # :nodoc:
 
     def location=(url)
       headers['Location'] = url
+    end
+
+    def close
+      @body.close if @body.respond_to?(:close)
     end
 
     def to_a

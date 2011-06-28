@@ -12,10 +12,36 @@ module ActiveRecord
   # In order to enable IdentityMap, set <tt>config.active_record.identity_map = true</tt>
   # in your <tt>config/application.rb</tt> file.
   #
-  # IdentityMap is disabled by default.
+  # IdentityMap is disabled by default and still in development (i.e. use it with care).
+  #
+  # == Associations
+  #
+  # Active Record Identity Map does not track associations yet. For example:
+  #
+  #   comment = @post.comments.first
+  #   comment.post = nil
+  #   @post.comments.include?(comment) #=> true
+  #
+  # Ideally, the example above would return false, removing the comment object from the
+  # post association when the association is nullified. This may cause side effects, as
+  # in the situation below, if Identity Map is enabled:
+  #
+  #   Post.has_many :comments, :dependent => :destroy
+  #
+  #   comment = @post.comments.first
+  #   comment.post = nil
+  #   comment.save
+  #   Post.destroy(@post.id)
+  #
+  # Without using Identity Map, the code above will destroy the @post object leaving
+  # the comment object intact. However, once we enable Identity Map, the post loaded
+  # by Post.destroy is exactly the same object as the object @post. As the object @post
+  # still has the comment object in @post.comments, once Identity Map is enabled, the
+  # comment object will be accidently removed.
+  #
+  # This inconsistency is meant to be fixed in future Rails releases.
   #
   module IdentityMap
-    extend ActiveSupport::Concern
 
     class << self
       def enabled=(flag)
@@ -49,11 +75,11 @@ module ActiveRecord
       end
 
       def get(klass, primary_key)
-        record = repository[klass.symbolized_base_class][primary_key]
+        record = repository[klass.symbolized_sti_name][primary_key]
 
         if record.is_a?(klass)
           ActiveSupport::Notifications.instrument("identity.active_record",
-            :line => "From Identity Map (id: #{primary_key})", 
+            :line => "From Identity Map (id: #{primary_key})",
             :name => "#{klass} Loaded",
             :connection_id => object_id)
 
@@ -64,15 +90,15 @@ module ActiveRecord
       end
 
       def add(record)
-        repository[record.class.symbolized_base_class][record.id] = record
+        repository[record.class.symbolized_sti_name][record.id] = record
       end
 
       def remove(record)
-        repository[record.class.symbolized_base_class].delete(record.id)
+        repository[record.class.symbolized_sti_name].delete(record.id)
       end
 
-      def remove_by_id(symbolized_base_class, id)
-        repository[symbolized_base_class].delete(id)
+      def remove_by_id(symbolized_sti_name, id)
+        repository[symbolized_sti_name].delete(id)
       end
 
       def clear

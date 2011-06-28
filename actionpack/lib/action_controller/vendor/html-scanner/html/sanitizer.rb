@@ -33,7 +33,7 @@ module HTML
       result = super
       # strip any comments, and if they have a newline at the end (ie. line with
       # only a comment) strip that too
-      result.gsub!(/<!--(.*?)-->[\n]?/m, "") if result
+      result = result.gsub(/<!--(.*?)-->[\n]?/m, "") if (result && result =~ /<!--(.*?)-->[\n]?/m)
       # Recurse - handle all dirty nested tags
       result == text ? result : sanitize(result, options)
     end
@@ -103,7 +103,7 @@ module HTML
     # Specifies the default Set of allowed shorthand css properties for the #sanitize and #sanitize_css helpers.
     self.shorthand_css_properties = Set.new(%w(background border margin padding))
 
-    # Sanitizes a block of css code.  Used by #sanitize when it comes across a style attribute
+    # Sanitizes a block of css code. Used by #sanitize when it comes across a style attribute
     def sanitize_css(style)
       # disallow urls
       style = style.to_s.gsub(/url\s*\(\s*[^\s)]+?\s*\)\s*/, ' ')

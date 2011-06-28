@@ -6,7 +6,7 @@ module ActiveSupport
     # Allows you to measure the execution time of a block
     # in a template and records the result to the log. Wrap this block around
     # expensive operations or possible bottlenecks to get a time reading
-    # for the operation.  For example, let's say you thought your file
+    # for the operation. For example, let's say you thought your file
     # processing method was taking too long; you could wrap it in a benchmark block.
     #
     #  <% benchmark "Process data files" do %>
@@ -31,13 +31,8 @@ module ActiveSupport
     #  <% end %>
     def benchmark(message = "Benchmarking", options = {})
       if logger
-        if options.is_a?(Symbol)
-          ActiveSupport::Deprecation.warn("use benchmark('#{message}', :level => :#{options}) instead", caller)
-          options = { :level => options, :silence => false }
-        else
-          options.assert_valid_keys(:level, :silence)
-          options[:level] ||= :info
-        end
+        options.assert_valid_keys(:level, :silence)
+        options[:level] ||= :info
 
         result = nil
         ms = Benchmark.ms { result = options[:silence] ? logger.silence { yield } : yield }

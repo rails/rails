@@ -65,6 +65,17 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
   end
 
+  def test_cache_clear_after_close
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      Post.find(:first)
+    }
+    body = mw.call({}).last
+
+    assert !ActiveRecord::Base.connection.query_cache.empty?, 'cache not empty'
+    body.close
+    assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
+  end
+
   def test_find_queries
     assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) { Task.find(1); Task.find(1) }
   end
@@ -191,4 +202,15 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
       p.categories.delete_all
     end
   end
+end
+
+class QueryCacheBodyProxyTest < ActiveRecord::TestCase
+
+  test "is polite to it's body and responds to it" do
+    body = Class.new(String) { def to_path; "/path"; end }.new
+    proxy = ActiveRecord::QueryCache::BodyProxy.new(nil, body)
+    assert proxy.respond_to?(:to_path)
+    assert_equal proxy.to_path, "/path"
+  end
+
 end

@@ -11,12 +11,16 @@ module ApplicationTests
       extend Rack::Test::Methods
     end
 
+    def teardown
+      teardown_app
+    end
+
     def simple_controller
       controller :expires, <<-RUBY
         class ExpiresController < ApplicationController
           def expires_header
             expires_in 10, :public => !params[:private]
-            render :text => ActiveSupport::SecureRandom.hex(16)
+            render :text => SecureRandom.hex(16)
           end
 
           def expires_etag
@@ -30,7 +34,7 @@ module ApplicationTests
         private
           def render_conditionally(headers)
             if stale?(headers.merge(:public => !params[:private]))
-              render :text => ActiveSupport::SecureRandom.hex(16)
+              render :text => SecureRandom.hex(16)
             end
           end
         end

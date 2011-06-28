@@ -1,15 +1,20 @@
 require 'isolation/abstract_unit'
 
 class ConsoleTest < Test::Unit::TestCase
-  include ActiveSupport::Testing::Isolation  
+  include ActiveSupport::Testing::Isolation
 
   def setup
     build_app
     boot_rails
   end
 
-  def load_environment
+  def teardown
+    teardown_app
+  end
+
+  def load_environment(sandbox = false)
     require "#{rails_root}/config/environment"
+    Rails.application.sandbox = sandbox
     Rails.application.load_console
   end
 
@@ -71,6 +76,20 @@ class ConsoleTest < Test::Unit::TestCase
     assert_instance_of ActionView::Base, helper
     assert_equal 'Once upon a time in a world...',
       helper.truncate('Once upon a time in a world far far away')
+  end
+
+  def test_with_sandbox
+    require 'rails/all'
+    value = false
+
+    Class.new(Rails::Railtie) do
+      console do |app|
+        value = app.sandbox?
+      end
+    end
+
+    load_environment(true)
+    assert value
   end
 
   def test_active_record_does_not_panic_when_referencing_an_observed_constant

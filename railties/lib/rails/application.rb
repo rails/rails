@@ -50,7 +50,9 @@ module Rails
       end
     end
 
-    attr_accessor :assets
+    attr_accessor :assets, :sandbox
+    alias_method :sandbox?, :sandbox
+
     delegate :default_url_options, :default_url_options=, :to => :routes
 
     # This method is called just after an application inherits from Rails::Application,
@@ -76,10 +78,6 @@ module Rails
       require environment if environment
     end
 
-    def eager_load! #:nodoc:
-      railties.all(&:eager_load!)
-      super
-    end
 
     def reload_routes!
       routes_reloader.reload!
@@ -96,24 +94,15 @@ module Rails
       self
     end
 
-    def load_tasks
+    def load_tasks(app=self)
       initialize_tasks
-      railties.all { |r| r.load_tasks }
       super
       self
     end
 
-    def load_generators
-      initialize_generators
-      railties.all { |r| r.load_generators }
+    def load_console(app=self)
+      initialize_console
       super
-      self
-    end
-
-    def load_console(sandbox=false)
-      initialize_console(sandbox)
-      railties.all { |r| r.load_console }
-      super()
       self
     end
 
@@ -133,6 +122,10 @@ module Rails
 
     def config
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+    end
+
+    def to_app
+      self
     end
 
   protected
@@ -157,7 +150,8 @@ module Rails
 
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
-        middleware.use ::Rails::Rack::Logger
+        middleware.use ::Rack::MethodOverride
+        middleware.use ::Rails::Rack::Logger # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
         middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
@@ -171,7 +165,6 @@ module Rails
         end
 
         middleware.use ::ActionDispatch::ParamsParser
-        middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::Head
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
@@ -183,20 +176,18 @@ module Rails
     end
 
     def initialize_tasks
-      require "rails/tasks"
-      task :environment do
-        $rails_rake_task = true
-        require_environment!
+      self.class.rake_tasks do
+        require "rails/tasks"
+        task :environment do
+          $rails_rake_task = true
+          require_environment!
+        end
       end
     end
 
-    def initialize_generators
-      require "rails/generators"
-    end
-
-    def initialize_console(sandbox=false)
+    def initialize_console
+      require "pp"
       require "rails/console/app"
-      require "rails/console/sandbox" if sandbox
       require "rails/console/helpers"
     end
   end

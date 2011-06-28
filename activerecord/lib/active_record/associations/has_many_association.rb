@@ -7,9 +7,14 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < CollectionAssociation #:nodoc:
 
-      def insert_record(record, validate = true)
+      def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
-        record.save(:validate => validate)
+
+        if raise
+          record.save!(:validate => validate)
+        else
+          record.save(:validate => validate)
+        end
       end
 
       private
@@ -18,7 +23,7 @@ module ActiveRecord
         #
         # If the association has a counter cache it gets that value. Otherwise
         # it will attempt to do a count via SQL, bounded to <tt>:limit</tt> if
-        # there's one.  Some configuration options like :group make it impossible
+        # there's one. Some configuration options like :group make it impossible
         # to do an SQL count, in those cases the array count will be used.
         #
         # That does not depend on whether the collection has already been loaded

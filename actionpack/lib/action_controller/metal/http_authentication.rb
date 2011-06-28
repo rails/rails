@@ -106,7 +106,7 @@ module ActionController
 
       module ControllerMethods
         extend ActiveSupport::Concern
-        
+
         module ClassMethods
           def http_basic_authenticate_with(options = {})
             before_filter(options.except(:name, :password, :realm)) do
@@ -116,7 +116,7 @@ module ActionController
             end
           end
         end
-        
+
         def authenticate_or_request_with_http_basic(realm = "Application", &login_procedure)
           authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm)
         end
@@ -400,7 +400,7 @@ module ActionController
       # the present token and options.
       #
       # controller      - ActionController::Base instance for the current request.
-      # login_procedure - Proc to call if a token is present.  The Proc should
+      # login_procedure - Proc to call if a token is present. The Proc should
       #                   take 2 arguments:
       #                     authenticate(controller) { |token, options| ... }
       #
@@ -413,7 +413,7 @@ module ActionController
         end
       end
 
-      # Parses the token and options out of the token authorization header.  If
+      # Parses the token and options out of the token authorization header. If
       # the header looks like this:
       #   Authorization: Token token="abc", nonce="def"
       # Then the returned token is "abc", and the options is {:nonce => "def"}
@@ -423,7 +423,7 @@ module ActionController
       # Returns an Array of [String, Hash] if a token is present.
       # Returns nil if no token is found.
       def token_and_options(request)
-        if header = request.authorization.to_s[/^Token (.*)/]
+        if request.authorization.to_s[/^Token (.*)/]
           values = Hash[$1.split(',').map do |value|
             value.strip!                      # remove any spaces between commas and values
             key, value = value.split(/\=\"?/) # split key=value pairs

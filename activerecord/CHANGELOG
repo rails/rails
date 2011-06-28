@@ -1,5 +1,44 @@
 *Rails 3.1.0 (unreleased)*
 
+* AR#pluralize_table_names can be used to singularize/pluralize table name of an individual model:
+
+    class User < ActiveRecord::Base
+      self.pluralize_table_names = false
+    end
+
+  Previously this could only be set globally for all models through ActiveRecord::Base.pluralize_table_names. [Guillermo Iguaran]
+
+* Add block setting of attributes to singular associations:
+
+    class User < ActiveRecord::Base
+      has_one :account
+    end
+
+    user.build_account{ |a| a.credit_limit => 100.0 }
+
+  The block is called after the instance has been initialized. [Andrew White]
+
+* Add ActiveRecord::Base.attribute_names to return a list of attribute names. This will return an empty array if the model is abstract or table does not exists. [Prem Sichanugrist]
+
+* CSV Fixtures are deprecated and support will be removed in Rails 3.2.0
+
+* AR#new, AR#create, AR#create!, AR#update_attributes and AR#update_attributes! all accept a second hash as option that allows you
+  to specify which role to consider when assigning attributes. This is built on top of ActiveModel's
+  new mass assignment capabilities:
+
+    class Post < ActiveRecord::Base
+      attr_accessible :title
+      attr_accessible :title, :published_at, :as => :admin
+    end
+
+    Post.new(params[:post], :as => :admin)
+
+  assign_attributes() with similar API was also added and attributes=(params, guard) was deprecated.
+
+  Please note that this changes the method signatures for AR#new, AR#create, AR#create!, AR#update_attributes and AR#update_attributes!. If you have overwritten these methods you should update them accordingly.
+
+  [Josh Kalderimis]
+
 * default_scope can take a block, lambda, or any other object which responds to `call` for lazy
   evaluation:
 
@@ -22,25 +61,7 @@
 
   [Jon Leighton]
 
-* Calling 'default_scope' multiple times in a class (including when a superclass calls
-  'default_scope') is deprecated. The current behavior is that this will merge the default
-  scopes together:
-
-    class Post < ActiveRecord::Base # Rails 3.1
-      default_scope where(:published => true)
-      default_scope where(:hidden => false)
-      # The default scope is now: where(:published => true, :hidden => false)
-    end
-
-  In Rails 3.2, the behavior will be changed to overwrite previous scopes:
-
-    class Post < ActiveRecord::Base # Rails 3.2
-      default_scope where(:published => true)
-      default_scope where(:hidden => false)
-      # The default scope is now: where(:hidden => false)
-    end
-
-  If you wish to merge default scopes in special ways, it is recommended to define your default
+* If you wish to merge default scopes in special ways, it is recommended to define your default
   scope as a class method and use the standard techniques for sharing code (inheritance, mixins,
   etc.):
 
@@ -219,7 +240,6 @@
       def up
         create_table :posts do |t|
           t.belongs_to :user
-
           t.timestamps
         end
 
@@ -293,6 +313,84 @@ IrreversibleMigration exception will be raised when going down.
   [Aaron Patterson]
 
 
+*Rails 3.0.7 (April 18, 2011)*
+
+* Destroying records via nested attributes works independent of reject_if LH #6006 [Durran Jordan]
+
+* Delegate any? and many? to Model.scoped for consistency [Andrew White]
+
+* Quote the ORDER BY clause in batched finds - fixes #6620 [Andrew White]
+
+* Change exists? so records are not instantiated - fixes #6127. This prevents after_find
+  and after_initialize callbacks being triggered when checking for record existence.
+  [Andrew White]
+
+* Fix performance bug with attribute accessors which only occurred on Ruby 1.8.7, and ensure we
+  cache type-casted values when the column returned from the db contains non-standard chars.
+  [Jon Leighton]
+
+* Fix a performance regression introduced here 86acbf1cc050c8fa8c74a10c735e467fb6fd7df8
+  related to read_attribute method [Stian Grytøyr]
+
+
+*Rails 3.0.6 (April 5, 2011)*
+
+* Un-deprecate reorder method [Sebastian Martinez]
+
+* Extensions are applied when calling +except+ or +only+ on relations.
+  Thanks to Iain Hecker.
+
+* Schemas set in set_table_name are respected by the mysql adapter. LH #5322
+
+* Fixed a bug when empty? was called on a grouped Relation that wasn't loaded.
+  LH #5829
+
+* Reapply extensions when using except and only. Thanks Iain Hecker.
+
+* Binary data is escaped when being inserted to SQLite3 Databases. Thanks
+  Naruse!
+
+
+*Rails 3.0.5 (February 26, 2011)*
+
+* Model.where(:column => 1).where(:column => 2) will always produce an AND
+query.
+
+  [Aaron Patterson]
+
+* Deprecated support for interpolated association conditions in the form of :conditions => 'foo = #{bar}'.
+
+  Instead, you should use a proc, like so:
+
+  Before:
+
+    has_many :things, :conditions => 'foo = #{bar}'
+
+  After:
+
+    has_many :things, :conditions => proc { "foo = #{bar}" }
+
+  Inside the proc, 'self' is the object which is the owner of the association, unless you are
+  eager loading the association, in which case 'self' is the class which the association is within.
+
+  You can have any "normal" conditions inside the proc, so the following will work too:
+
+    has_many :things, :conditions => proc { ["foo = ?", bar] }
+
+  Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call
+  'record' to get the record being inserted or deleted. This is now passed as an argument to
+  the proc.
+
+  [Jon Leighton]
+
+
+*Rails 3.0.4 (February 8, 2011)*
+
+* Added deprecation warning for has_and_belongs_to_many associations where the join table has
+  additional attributes other than the keys. Access to these attributes is removed in 3.1.
+  Please use has_many :through instead. [Jon Leighton]
+
+
 *Rails 3.0.3 (November 16, 2010)*
 
 * Support find by class like this: Post.where(:name => Post)
@@ -329,9 +427,11 @@ IrreversibleMigration exception will be raised when going down.
 
   [Aaron Patterson]
 
+
 *Rails 3.0.1 (October 15, 2010)*
 
 * Introduce a fix for CVE-2010-3993
+
 
 *Rails 3.0.0 (August 29, 2010)*
 
@@ -532,12 +632,12 @@ IrreversibleMigration exception will be raised when going down.
 
 * Add Support for updating deeply nested models from a single form. #1202 [Eloy Duran]
 
-	class Book < ActiveRecord::Base
-	  has_one :author
-	  has_many :pages
+  class Book < ActiveRecord::Base
+    has_one :author
+    has_many :pages
 
-	  accepts_nested_attributes_for :author, :pages
-	end
+    accepts_nested_attributes_for :author, :pages
+  end
 
 * Make after_save callbacks fire only if the record was successfully saved.  #1735 [Michael Lovitt]
 
@@ -957,7 +1057,7 @@ so newlines etc are escaped #10385 [Norbert Crombach]
   "foo.bar" => "`foo`.`bar`"
 
 * Complete the assimilation of Sexy Migrations from ErrFree [Chris Wanstrath, PJ Hyett]
-	http://errtheblog.com/post/2381
+  http://errtheblog.com/post/2381
 
 * Qualified column names work in hash conditions, like :conditions => { 'comments.created_at' => ... }.  #9733 [Jack Danger Canty]
 
@@ -1073,7 +1173,7 @@ single-table inheritance.  #3833, #9886 [Gabriel Gironda, rramdas, François Bea
 
 * Improve performance and functionality of the postgresql adapter.  Closes #8049 [roderickvd]
 
-	For more information see: http://dev.rubyonrails.org/ticket/8049
+  For more information see: http://dev.rubyonrails.org/ticket/8049
 
 * Don't clobber includes passed to has_many.count [Jack Danger Canty]
 
@@ -1583,8 +1683,8 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 * Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
     assert (Topic.exists?(:author_name => "David"))
- 	  assert (Topic.exists?(:author_name => "Mary", :approved => true))
- 	  assert (Topic.exists?(["parent_id = ?", 1]))
+     assert (Topic.exists?(:author_name => "Mary", :approved => true))
+     assert (Topic.exists?(["parent_id = ?", 1]))
 
 * Schema dumper quotes date :default values. [Dave Thomas]
 
@@ -2040,8 +2140,8 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
 * Added support for conditions on Base.exists? #5689 [Josh Peek]. Examples:
 
     assert (Topic.exists?(:author_name => "David"))
- 	  assert (Topic.exists?(:author_name => "Mary", :approved => true))
- 	  assert (Topic.exists?(["parent_id = ?", 1]))
+     assert (Topic.exists?(:author_name => "Mary", :approved => true))
+     assert (Topic.exists?(["parent_id = ?", 1]))
 
 * Schema dumper quotes date :default values. [Dave Thomas]
 
