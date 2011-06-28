@@ -48,7 +48,7 @@ module ActiveRecord
           current_scope.scope_for_create
         else
           # Return an empty hash in the simple case
-          return {} unless finder_needs_type_condition? || default_scopes.any?
+          return {} unless default_scopes.any?
 
           scope = relation.clone
           scope.default_scoped = true
