@@ -33,9 +33,7 @@ module ActiveRecord
           if current_scope
             current_scope.clone
           else
-            scope = relation.clone
-            scope.default_scoped = true
-            scope
+            relation.clone.tap { |scope| scope.default_scoped = true }
           end
         end
       end
