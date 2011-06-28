@@ -1906,8 +1906,9 @@ MSG
       # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself.
       # No such attribute would be set for objects of the Message class in that example.
       def ensure_proper_type
-        unless self.class.descends_from_active_record?
-          write_attribute(self.class.inheritance_column, self.class.sti_name)
+        klass = self.class
+        if klass.finder_needs_type_condition?
+          write_attribute(klass.inheritance_column, klass.sti_name)
         end
       end
 
