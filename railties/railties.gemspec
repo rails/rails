@@ -15,6 +15,9 @@ Gem::Specification.new do |s|
   s.files              = Dir['CHANGELOG', 'README.rdoc', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
   s.require_path       = 'lib'
 
+  s.bindir             = 'bin'
+  s.executables        = ['rails']
+
   s.rdoc_options << '--exclude' << '.'
 
   s.add_dependency('rake',          '>= 0.8.7')
