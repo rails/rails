@@ -46,6 +46,12 @@ module ActiveRecord
     #     "database"  => "path/to/dbfile"
     #   )
     #
+    # Or a URL:
+    #
+    #   ActiverRecord::Base.establish_connection(
+    #     "postgres://myuser:mypass@localhost/somedatabase"
+    #   )
+    #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
     def self.establish_connection(spec = nil)
