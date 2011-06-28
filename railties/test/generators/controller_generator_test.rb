@@ -39,7 +39,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_assets
     run_generator
-    assert_file "app/assets/javascripts/account.js.coffee"
+    assert_file "app/assets/javascripts/account.js"
     assert_file "app/assets/stylesheets/account.css"
   end
 
