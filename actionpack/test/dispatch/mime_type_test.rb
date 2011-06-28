@@ -52,7 +52,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse application with trailing star" do
     accept = "application/*"
-    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::RSS, Mime::ATOM, Mime::YAML, Mime::URL_ENCODED_FORM, Mime::JSON, Mime::PDF]
+    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::RSS, Mime::ATOM, Mime::YAML, Mime::URL_ENCODED_FORM, Mime::JSON, Mime::PDF, Mime::ZIP]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
