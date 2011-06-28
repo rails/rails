@@ -478,6 +478,19 @@ class BasicsTest < ActiveRecord::TestCase
   def test_hashing
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
+  
+  def test_comparison
+    topic_1 = Topic.create!
+    topic_2 = Topic.create!
+    
+    assert_equal [topic_2, topic_1].sort, [topic_1, topic_2]
+  end
+
+  def test_comparison_with_different_objects
+    topic = Topic.create
+    category = Category.create(:name => "comparison")
+    assert_nil topic <=> category
+  end
 
   def test_readonly_attributes
     assert_equal Set.new([ 'title' , 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
