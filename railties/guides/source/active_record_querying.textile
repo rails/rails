@@ -484,16 +484,16 @@ SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You
 For example:
 
 <ruby>
-Order.group("date(created_at)").having("created_at < ?", 1.month.ago)
+Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)").having("sum(price) > ?", 100)
 </ruby>
 
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at) HAVING created_at < '2011-04-27'
+SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) HAVING sum(price) > 100
 </sql>
 
-This will return single order objects for each day, but only those that are at least one month old.
+This will return single order objects for each day, but only those that are ordered more than $100 in a day.
 
 h3. Overriding Conditions
 
