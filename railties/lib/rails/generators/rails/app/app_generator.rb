@@ -155,6 +155,8 @@ module Rails
 
     class AppGenerator < Base
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
+      DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -204,6 +206,7 @@ module Rails
         @original_wd = Dir.pwd
 
         super
+        convert_database_option_for_jruby
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
@@ -394,14 +397,29 @@ module Rails
       end
 
       def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql jdbcsqlite3 jdbcpostgresql)
         case options[:database]
         when "oracle"     then "ruby-oci8"
         when "postgresql" then "pg"
         when "sqlite3"    then "sqlite3"
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
+        when "jdbcmysql"  then "activerecord-jdbcmysql-adapter"
+        when "jdbcsqlite3"  then "activerecord-jdbcsqlite3-adapter"
+        when "jdbcpostgresql"  then "activerecord-jdbcpostgresql-adapter"
+        when "jdbc"           then "activerecord-jdbc-adapter"
         else options[:database]
+        end
+      end
+
+      def convert_database_option_for_jruby
+        if defined?(JRUBY_VERSION)
+          case options[:database]
+          when "oracle"     then options[:database].replace "jdbc"
+          when "postgresql" then options[:database].replace "jdbcpostgresql"
+          when "mysql"      then options[:database].replace "jdbcmysql"
+          when "sqlite3"    then options[:database].replace "jdbcsqlite3"
+          end
         end
       end
 

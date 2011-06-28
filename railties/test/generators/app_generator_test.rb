@@ -165,6 +165,42 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^gem\s+["']mysql2["'],\s*'~> 0.2.11'$/
   end
 
+  def test_config_jdbcmysql_database
+    run_generator([destination_root, "-d", "jdbcmysql"])
+    assert_file "config/database.yml", /mysql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+    # TODO: When the JRuby guys merge jruby-openssl in
+    # jruby this will be removed
+    assert_file "Gemfile", /^gem\s+["']jruby-openssl["']$/ if defined?(JRUBY_VERSION)
+  end
+
+  def test_config_jdbcsqlite3_database
+    run_generator([destination_root, "-d", "jdbcsqlite3"])
+    assert_file "config/database.yml", /sqlite3/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+  end
+
+  def test_config_jdbcpostgresql_database
+    run_generator([destination_root, "-d", "jdbcpostgresql"])
+    assert_file "config/database.yml", /postgresql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
+  end
+
+  def test_config_jdbc_database
+    run_generator([destination_root, "-d", "jdbc"])
+    assert_file "config/database.yml", /jdbc/
+    assert_file "config/database.yml", /mssql/
+    assert_file "Gemfile", /^gem\s+["']activerecord-jdbc-adapter["']$/
+  end
+
+  def test_config_jdbc_database_when_no_option_given
+    if defined?(JRUBY_VERSION)
+      run_generator([destination_root])
+      assert_file "config/database.yml", /sqlite3/
+      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+    end
+  end
+
   def test_config_database_is_not_added_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
