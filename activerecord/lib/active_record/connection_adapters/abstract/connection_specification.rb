@@ -95,7 +95,7 @@ module ActiveRecord
                :host     => config.host }
       spec.reject!{ |key,value| value.nil? }
       if config.query
-        options = Hash[query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
+        options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
         spec.merge!(options)
       end
       spec
