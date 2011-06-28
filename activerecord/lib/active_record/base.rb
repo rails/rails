@@ -1210,11 +1210,11 @@ MSG
         end
 
         def current_scope #:nodoc:
-          Thread.current[:"#{self}_current_scope"]
+          Thread.current["#{self}_current_scope"]
         end
 
         def current_scope=(scope) #:nodoc:
-          Thread.current[:"#{self}_current_scope"] = scope
+          Thread.current["#{self}_current_scope"] = scope
         end
 
         # Use this macro in your model to set a default scope for all operations on
