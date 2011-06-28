@@ -138,6 +138,25 @@ class SendFileTest < ActionController::TestCase
     @controller.headers = {}
     assert_raise(ArgumentError){ @controller.send(:send_file_headers!, options) }
   end
+  
+  def test_send_file_headers_guess_type_from_extension
+    {
+      'image.png' => 'image/png',
+      'image.jpeg' => 'image/jpeg',
+      'image.jpg' => 'image/jpeg',
+      'image.tif' => 'image/tiff',
+      'image.gif' => 'image/gif',
+      'movie.mpg' => 'video/mpeg',
+      'file.zip' => 'application/zip',
+      'file.unk' => 'application/octet-stream',
+      'zip' => 'application/octet-stream'
+    }.each do |filename,expected_type|
+      options = { :filename => filename }
+      @controller.headers = {}
+      @controller.send(:send_file_headers!, options)
+      assert_equal expected_type, @controller.content_type
+    end
+  end
 
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
