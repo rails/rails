@@ -58,6 +58,8 @@ module ActiveRecord
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
+          elsif spec.is_a?(String) && hash = connection_url_to_hash(spec)
+            establish_connection(hash)
           else
             raise AdapterNotSpecified, "#{spec} database is not configured"
           end
@@ -79,6 +81,26 @@ module ActiveRecord
           remove_connection
           establish_connection(ConnectionSpecification.new(spec, adapter_method))
       end
+    end
+
+    def self.connection_url_to_hash(url)
+      config = URI.parse(url)
+      adapter = config.scheme
+      adapter = "postgresql" if adapter == "postgres"
+      spec = { :adapter  => adapter,
+               :username => config.user,
+               :password => config.password,
+               :port     => config.port,
+               :database => config.path.sub(%r{^/},""),
+               :host     => config.host }
+      spec.reject!{ |key,value| value.nil? }
+      if config.query
+        options = Hash[query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
+        spec.merge!(options)
+      end
+      spec
+    rescue URI::InvalidURIError
+      return nil
     end
 
     class << self

@@ -60,6 +60,17 @@ class AdapterTest < ActiveRecord::TestCase
       assert_equal @connection.show_variable('collation_database'), @connection.collation
     end
 
+    def test_connect_with_url
+      begin
+        ar_config = ARTest.connection_config['arunit']
+        url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
+        ActiveRecord::Base.establish_connection(url)
+        assert_equal ar_config['database'], ActiveRecord::Base.connection.current_database
+      ensure
+        ActiveRecord::Base.establish_connection 'arunit'
+      end
+    end
+
     def test_show_nonexistent_variable_returns_nil
       assert_nil @connection.show_variable('foo_bar_baz')
     end
