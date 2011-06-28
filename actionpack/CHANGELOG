@@ -1,5 +1,9 @@
 *Rails 3.2.0 (unreleased)*
 
+* send_file now guess the mime type [Esad Hajdarevic]
+
+* Mime type entries for PDF, ZIP and other formats were added [Esad Hajdarevic]
+
 * Generate hidden input before select with :multiple option set to true.
   This is useful when you rely on the fact that when no options is set,
   the state of select will be sent to rails application. Without hidden field
