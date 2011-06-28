@@ -2082,7 +2082,7 @@ MSG
 
       def populate_with_current_scope_attributes
         self.class.scope_attributes.each do |att,value|
-          respond_to?("#{att}=") && send("#{att}=", value)
+          send("#{att}=", value) if respond_to?("#{att}=")
         end
       end
 
