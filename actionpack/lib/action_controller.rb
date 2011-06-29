@@ -47,21 +47,6 @@ module ActionController
 
   eager_autoload do
     autoload :RecordIdentifier
-
-    # TODO: Don't autoload exceptions, setup explicit
-    # requires for files that need them
-    autoload_at "action_controller/metal/exceptions" do
-      autoload :ActionControllerError
-      autoload :RenderError
-      autoload :RoutingError
-      autoload :MethodNotAllowed
-      autoload :NotImplemented
-      autoload :UnknownController
-      autoload :MissingFile
-      autoload :RenderError
-      autoload :SessionOverflowError
-      autoload :UnknownHttpMethod
-    end
   end
 end
 

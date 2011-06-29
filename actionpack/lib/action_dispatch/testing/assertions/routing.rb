@@ -1,6 +1,7 @@
 require 'uri'
 require 'active_support/core_ext/hash/diff'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'action_controller/metal/exceptions'
 
 module ActionDispatch
   module Assertions
