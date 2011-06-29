@@ -412,6 +412,15 @@ module Arel
         ast = mgr.ast
         mgr.visitor.accept(ast).must_equal mgr.to_sql
       end
+      it 'should allow orders to work when the ast is grepped' do
+        table   = Table.new :users
+        mgr = table.from table
+        mgr.project Arel.sql '*'
+        mgr.from table
+        mgr.orders << Arel::Nodes::Ascending.new(Arel.sql('foo'))
+        mgr.ast.grep(Arel::Nodes::OuterJoin)
+        mgr.to_sql.must_be_like %{ SELECT * FROM "users" ORDER BY foo ASC }
+      end
     end
 
     describe 'taken' do
