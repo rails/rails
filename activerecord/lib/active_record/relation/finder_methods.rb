@@ -237,22 +237,20 @@ module ActiveRecord
 
 		# Create a separate relation for use in the DISTINCT query
 		clean_relation = relation.dup
-		
-		to_join = []
 		for association in join_dependency.join_associations
-		  if all_tables.include?(association.aliased_table_name)
+		  if all_tables.include?(association.aliased_table_name) || (node = association.find_parent_in(join_dependency))
 			# If you're querying on a second-level association (e.g foo.include({:bar => :baz}).where('bars_bazes...'))
 			# we need to join all the intermediate tables too.
-			node = association
-			while (node.is_a?(ActiveRecord::Associations::JoinDependency::JoinAssociation))
-			  to_join.unshift node
-			  node = node.parent
+			clean_relation = association.join_relation(clean_relation)
+			if node === ActiveRecord::Associations::JoinDependency::JoinAssociation
+			  while node.find_parent_in(join_dependency).class == ActiveRecord::Associations::JoinDependency::JoinAssociation
+				clean_relation = node.join_relation(clean_relation)
+				node = node.parent
+			  end
 			end
 		  end
 		  relation = association.join_relation(relation) 
 		end
-		to_join.uniq!
-		to_join.each {|ja| clean_relation = ja.join_relation(clean_relation) }
 		
         limited_id_condition = construct_limited_ids_condition(clean_relation.except(:select))
         relation = relation.where(limited_id_condition)
