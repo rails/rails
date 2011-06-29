@@ -124,13 +124,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    assert_file "Gemfile", /^gem\s+["']sqlite3["']$/
+    unless defined?(JRUBY_VERSION)
+      assert_file "Gemfile", /^gem\s+["']sqlite3["']$/
+    else
+      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcsqlite3-adapter["']$/
+    end
   end
 
   def test_config_another_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
-    assert_file "Gemfile", /^gem\s+["']mysql2["']$/
+    unless defined?(JRUBY_VERSION)
+      assert_file "Gemfile", /^gem\s+["']mysql2["']$/
+    else
+      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
+    end
   end
 
   def test_config_jdbcmysql_database
