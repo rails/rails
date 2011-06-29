@@ -1,6 +1,7 @@
 module Sprockets
   autoload :Helpers, "sprockets/helpers"
 
+  # TODO: Get rid of config.assets.enabled
   class Railtie < ::Rails::Railtie
     def self.using_coffee?
       require 'coffee-script'
@@ -10,6 +11,10 @@ module Sprockets
     end
 
     config.app_generators.javascript_engine :coffee if using_coffee?
+
+    rake_tasks do
+      load "sprockets/assets.rake"
+    end
 
     # Configure ActionController to use sprockets.
     initializer "sprockets.set_configs", :after => "action_controller.set_configs" do |app|

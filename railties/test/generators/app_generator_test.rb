@@ -48,11 +48,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     ::DEFAULT_APP_FILES
   end
 
-  def test_application_controller_and_layout_files
+  def test_assets
     run_generator
     assert_file "app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application"/
     assert_file "app/views/layouts/application.html.erb", /javascript_include_tag\s+"application"/
     assert_file "app/assets/stylesheets/application.css"
+    assert_file "config/application.rb", /config\.assets\.enabled = true/
   end
 
   def test_invalid_application_name_raises_an_error
@@ -180,15 +181,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
+    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
     assert_file "test/performance/browsing_test.rb"
   end
 
-  def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+  def test_generator_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-sprockets"]
+    assert_file "config/application.rb" do |content|
+      assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
+      assert_no_match(/config\.assets\.enabled = true/, content)
+    end
+    assert_file "test/performance/browsing_test.rb"
   end
 
   def test_creation_of_a_test_directory
