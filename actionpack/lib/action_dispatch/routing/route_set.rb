@@ -4,7 +4,6 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
-require "action_controller/metal/exceptions"
 
 module ActionDispatch
   module Routing
