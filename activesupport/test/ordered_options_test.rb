@@ -76,4 +76,9 @@ class OrderedOptionsTest < Test::Unit::TestCase
     assert copy.kind_of?(original.class)
     assert_not_equal copy.object_id, original.object_id
   end
+  
+  def test_respond_to_should_be_true
+    object = ActiveSupport::OrderedOptions.new
+    assert object.respond_to?(:foo)
+  end
 end

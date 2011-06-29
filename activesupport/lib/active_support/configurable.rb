@@ -23,6 +23,10 @@ module ActiveSupport
           RUBY
         end
       end
+      
+      def respond_to_missing?(name, include_private=false)
+        false
+      end
     end
 
     module ClassMethods
