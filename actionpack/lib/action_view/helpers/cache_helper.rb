@@ -46,8 +46,8 @@ module ActionView
     private
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        if controller.fragment_exist?(name, options)
-          controller.read_fragment(name, options)
+        if fragment = controller.read_fragment(name, options)
+          fragment
         else
           # VIEW TODO: Make #capture usable outside of ERB
           # This dance is needed because Builder can't use capture
