@@ -1,5 +1,4 @@
 require 'active_support/core_ext/class/attribute'
-require "action_controller/metal/exceptions"
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
