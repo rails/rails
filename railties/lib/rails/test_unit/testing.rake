@@ -79,10 +79,14 @@ task :test do
       Rake::Task[task].invoke
       nil
     rescue => e
-      task
+      { :task => task, :exception => e }
     end
   end.compact
-  abort "Errors running #{errors * ', '}!" if errors.any?
+  
+  if errors.any?
+    puts errors.map { |e| "Errors running #{e[:task]}! #{e[:exception].inspect}" }.join("\n")
+    abort
+  end
 end
 
 namespace :test do
