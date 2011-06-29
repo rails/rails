@@ -8,6 +8,7 @@ require 'rails/all'
 require "action_controller/railtie"
 require "action_mailer/railtie"
 require "active_resource/railtie"
+<%= comment_if :skip_sprockets %> require "sprockets/railtie"
 <%= comment_if :skip_test_unit %> require "rails/test_unit/railtie"
 <% end -%>
 
@@ -46,7 +47,9 @@ module <%= app_const_base %>
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
 
+    <% unless options.skip_sprockets? %>
     # Enable the asset pipeline
     config.assets.enabled = true
+    <% end %>
   end
 end
