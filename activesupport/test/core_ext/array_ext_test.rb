@@ -456,8 +456,9 @@ class ArrayWrapperTests < Test::Unit::TestCase
     assert_equal [o], Array.wrap(o)
   end
 
-  def test_wrap_returns_nil_if_to_ary_returns_nil
-    assert_nil Array.wrap(NilToAry.new)
+  def test_wrap_returns_wrapped_if_to_ary_returns_nil
+    o = NilToAry.new
+    assert_equal [o], Array.wrap(o)
   end
 
   def test_wrap_does_not_complain_if_to_ary_does_not_return_an_array
