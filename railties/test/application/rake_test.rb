@@ -59,6 +59,32 @@ module ApplicationTests
         Dir.chdir(app_path){ `rake stats` }
     end
 
+    def test_rake_test_error_output
+      Dir.chdir(app_path){ `rake db:migrate` }
+      
+      app_file "config/database.yml", <<-RUBY
+        development:
+      RUBY
+      
+      app_file "test/unit/one_unit_test.rb", <<-RUBY
+      RUBY
+      
+      app_file "test/functional/one_functional_test.rb", <<-RUBY
+        raise RuntimeError
+      RUBY
+      
+      app_file "test/integration/one_integration_test.rb", <<-RUBY
+        raise RuntimeError
+      RUBY
+      
+      silence_stderr do
+        output = Dir.chdir(app_path){ `rake test` }
+        assert_match /Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output
+        assert_match /Errors running test:functionals! #<RuntimeError/, output
+        assert_match /Errors running test:integration! #<RuntimeError/, output
+      end
+    end
+
     def test_rake_routes_output_strips_anchors_from_http_verbs
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do

@@ -82,7 +82,11 @@ task :test do
       { :task => task, :exception => e }
     end
   end.compact
-  abort errors.map { |e| "Errors running #{e[:task]}! #{e[:exception].inspect}" }.join("\n") if errors.any?
+  
+  if errors.any?
+    puts errors.map { |e| "Errors running #{e[:task]}! #{e[:exception].inspect}" }.join("\n")
+    abort
+  end
 end
 
 namespace :test do
