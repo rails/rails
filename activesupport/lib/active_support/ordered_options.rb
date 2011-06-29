@@ -37,6 +37,11 @@ module ActiveSupport #:nodoc:
       end
     end
 
+    def respond_to?(name, include_private=false)
+      # Compatibility with 1.8, which does not support respond_to_missing?
+      super || respond_to_missing?(name, include_private)
+    end
+
     def respond_to_missing?(name, include_private=false)
       true
     end
