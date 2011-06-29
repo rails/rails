@@ -12,12 +12,12 @@ module ActiveSupport
 
     class Configuration < ActiveSupport::InheritableOptions
       def compile_methods!
-        self.class.compile_methods!(keys.reject {|key| respond_to?(key)})
+        self.class.compile_methods!(keys)
       end
 
       # compiles reader methods so we don't have to go through method_missing
       def self.compile_methods!(keys)
-        keys.each do |key|
+        keys.reject { |m| method_defined?(m) }.each do |key|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{key}; _get(#{key.inspect}); end
           RUBY
