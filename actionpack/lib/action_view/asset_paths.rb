@@ -1,5 +1,4 @@
 require 'active_support/core_ext/file'
-require "action_controller/metal/exceptions"
 
 module ActionView
   class AssetPaths #:nodoc:
