@@ -73,6 +73,8 @@ module ActionDispatch
     class FlashHash
       include Enumerable
 
+      delegate :[], :keys, :key?, :empty?, :clear, :each, :to => :@flashes
+
       def initialize #:nodoc:
         @used    = Set.new
         @closed  = false
@@ -94,22 +96,10 @@ module ActionDispatch
         @flashes[k] = v
       end
 
-      def [](k)
-        @flashes[k]
-      end
-
       def update(h) #:nodoc:
         h.keys.each { |k| keep(k) }
         @flashes.update h
         self
-      end
-
-      def keys
-        @flashes.keys
-      end
-
-      def key?(name)
-        @flashes.key? name
       end
 
       def delete(key)
@@ -119,18 +109,6 @@ module ActionDispatch
 
       def to_hash
         @flashes.dup
-      end
-
-      def empty?
-        @flashes.empty?
-      end
-
-      def clear
-        @flashes.clear
-      end
-
-      def each(&block)
-        @flashes.each(&block)
       end
 
       alias :merge! :update
