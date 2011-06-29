@@ -363,7 +363,7 @@ module ActionView
       end
 
       def image_alt(src)
-        File.basename(src, '.*').gsub(/-[[:xdigit:]]{32}\z/, '').capitalize
+        File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').capitalize
       end
 
       # Returns an html video tag for the +sources+. If +sources+ is a string,
