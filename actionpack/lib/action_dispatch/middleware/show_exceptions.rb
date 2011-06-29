@@ -1,5 +1,4 @@
 require 'active_support/core_ext/exception'
-require "action_controller/metal/exceptions"
 require 'active_support/notifications'
 require 'action_dispatch/http/request'
 
