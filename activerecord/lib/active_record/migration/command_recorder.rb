@@ -97,7 +97,11 @@ module ActiveRecord
       # This will ensure that IrreversibleMigration is raised when the corresponding
       # invert_method does not exist while the migration is rolled back.
       def method_missing(method, *args, &block)
-        record(method, args)
+        if delegate.respond_to?(method)
+          delegate.send(method, *args, &block)
+        else
+          record(method, args)
+        end
       end
 
     end
