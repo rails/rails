@@ -80,12 +80,6 @@ module ActiveRecord
     # Abstract base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
-      attr_reader :active_record
-
-      def initialize(macro, name, options, active_record)
-        @macro, @name, @options, @active_record = macro, name, options, active_record
-      end
-
       # Returns the name of the macro.
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt>
@@ -103,6 +97,19 @@ module ActiveRecord
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
       # <tt>has_many :clients</tt> returns +{}+
       attr_reader :options
+
+      attr_reader :active_record
+
+      attr_reader :plural_name # :nodoc:
+
+      def initialize(macro, name, options, active_record)
+        @macro         = macro
+        @name          = name
+        @options       = options
+        @active_record = active_record
+        @plural_name   = active_record.pluralize_table_names ?
+                            name.to_s.pluralize : name.to_s
+      end
 
       # Returns the class for the macro.
       #
