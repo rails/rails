@@ -11,7 +11,7 @@ source 'http://rubygems.org'
 # in production environments by default.
 group :assets do
   gem 'sass-rails'
-  gem 'coffee-rails'
+  gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails'
   gem 'uglifier'
 end
 
