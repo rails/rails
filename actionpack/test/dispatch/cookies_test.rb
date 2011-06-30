@@ -148,6 +148,15 @@ class CookiesTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  def test_key_methods
+    assert !request.cookie_jar.key?(:foo)
+    assert !request.cookie_jar.has_key?("foo")
+
+    request.cookie_jar[:foo] = :bar
+    assert request.cookie_jar.key?(:foo)
+    assert request.cookie_jar.has_key?("foo")
+  end
+
   def test_setting_cookie
     get :authenticate
     assert_cookie_header "user_name=david; path=/"

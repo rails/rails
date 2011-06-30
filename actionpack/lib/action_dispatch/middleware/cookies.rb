@@ -128,6 +128,11 @@ module ActionDispatch
         @cookies[name.to_s]
       end
 
+      def key?(name)
+        @cookies.key?(name.to_s)
+      end
+      alias :has_key? :key?
+
       def update(other_hash)
         @cookies.update other_hash
         self
