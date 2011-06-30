@@ -61,7 +61,7 @@ module ActiveRecord
       end
     end
 
-    def respond_to?(*args)
+    def respond_to?(name, include_private = false)
       self.class.define_attribute_methods unless self.class.attribute_methods_generated?
       super
     end
