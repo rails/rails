@@ -378,6 +378,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_without_multiple
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"></select>",
+      select(:post, :category, "", {}, :multiple => false)
+    )
+  end
+
   def test_select_with_boolean_method
     @post = Post.new
     @post.allow_comments = false
