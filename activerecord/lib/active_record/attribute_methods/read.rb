@@ -99,8 +99,9 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        if respond_to? "_#{attr_name}"
-          send "_#{attr_name}" if @attributes.has_key?(attr_name.to_s)
+        method = "_#{attr_name}"
+        if respond_to? method
+          send method if @attributes.has_key?(attr_name.to_s)
         else
           _read_attribute attr_name
         end
