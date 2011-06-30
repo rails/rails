@@ -10,6 +10,9 @@
 
   This change is necessary to fix https://github.com/rails/rails/issues/1842.
 
+  A deprecation warning and workaround has been added to 3.1, but authors will need to update
+  their code for it to work correctly in 3.2.
+
   [Jon Leighton]
 
 * AR#pluralize_table_names can be used to singularize/pluralize table name of an individual model:

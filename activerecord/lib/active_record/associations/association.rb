@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/inclusion'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module Associations
@@ -226,12 +227,48 @@ module ActiveRecord
         end
 
         def build_record(attributes, options)
-          reflection.build_association(attributes, options) do |record|
+          reflection.original_build_association_called = false
+
+          record = reflection.build_association(attributes, options) do |r|
+            r.assign_attributes(
+              create_scope.except(*r.changed),
+              :without_protection => true
+            )
+          end
+
+          if !reflection.original_build_association_called &&
+             (record.changed & create_scope.keys) != create_scope.keys
+            # We have detected that there is an overridden AssociationReflection#build_association
+            # method, but it looks like it has not passed through the block above. So try again and
+            # show a noisy deprecation warning.
+
             record.assign_attributes(
               create_scope.except(*record.changed),
               :without_protection => true
             )
+
+            method = reflection.method(:build_association)
+            if RUBY_VERSION >= '1.9.2'
+              source = method.source_location
+              debug_info = "It looks like the method is defined in #{source[0]} at line #{source[1]}."
+            else
+              debug_info = "This might help you find the method: #{method}. If you run this on Ruby 1.9.2 we can tell you exactly where the method is."
+            end
+
+            ActiveSupport::Deprecation.warn <<-WARN
+It looks like ActiveRecord::Reflection::AssociationReflection#build_association has been redefined, either by you or by a plugin or library that you are using. The signature of this method has changed.
+
+  Before: def build_association(*options)
+  After:  def build_association(*options, &block)
+
+The block argument now needs to be passed through to ActiveRecord::Base#new when this method is overridden, or else your associations will not function correctly in Rails 3.2.
+
+#{debug_info}
+
+            WARN
           end
+
+          record
         end
     end
   end

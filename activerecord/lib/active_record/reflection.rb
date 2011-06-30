@@ -174,9 +174,15 @@ module ActiveRecord
         @collection = macro.in?([:has_many, :has_and_belongs_to_many])
       end
 
+      # This is a hack so that we can tell if build_association was overridden, in order to
+      # provide an appropriate deprecation if the overridden method ignored the &block. Please
+      # see Association#build_record for details.
+      attr_accessor :original_build_association_called # :nodoc
+
       # Returns a new, unsaved instance of the associated class. +options+ will
       # be passed to the class's constructor.
       def build_association(*options, &block)
+        @original_build_association_called = true
         klass.new(*options, &block)
       end
 

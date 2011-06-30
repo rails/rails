@@ -1579,4 +1579,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
   end
+
+  def test_overriding_reflection_build_association_with_deprecated_method_signature
+    ActiveRecord::Reflection::AssociationReflection.class_eval do
+      alias_method :old_build_association, :build_association
+
+      def build_association(*options)
+        klass.new(*options)
+      end
+    end
+
+    car = Car.create(:name => 'honda')
+    bulb = assert_deprecated { car.bulbs.build }
+
+    assert_equal car, bulb.car
+  ensure
+    ActiveRecord::Reflection::AssociationReflection.class_eval do
+      alias_method :build_association, :old_build_association
+      undef_method :old_build_association
+    end
+  end
 end
