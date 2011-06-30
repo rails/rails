@@ -45,16 +45,16 @@ Configuration.dashboard_refresh_interval = 60.seconds
 
 # Site-wide setting for the email "from" field. This can also be set on per-project basis,
 # through project.email.notifier.from attribute
-Configuration.email_from = 'thewoolleyman+railsci@gmail.com'
+Configuration.email_from = 'rails-ci@wyeworks.com'
 
 # Root URL of the dashboard application. Setting this attribute allows various notifiers to include a link to the
 # build page in the notification message.
-Configuration.dashboard_url = 'http://ci.rubyonrails.org/'
+Configuration.dashboard_url = 'http://rails-ci.wyeworks.com/'
 
 # If you don't want to allow triggering builds through dashboard Build Now button. Useful when you host CC.rb as a
 # public web site (such as http://cruisecontrolrb.thoughtworks.com/projects - try clicking on Build Now button there
 # and see what happens):
-# Configuration.disable_build_now = true
+Configuration.disable_build_now = true
 
 # If you want to only allow one project to build at a time, uncomment this line
 # by default, cruise allows multiple projects to build at a time
