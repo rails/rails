@@ -1798,7 +1798,7 @@ MSG
       # Note also that destroying a record preserves its ID in the model instance, so deleted
       # models are still comparable.
       def ==(comparison_object)
-        comparison_object.equal?(self) ||
+        super ||
           comparison_object.instance_of?(self.class) &&
           id.present? &&
           comparison_object.id == id
