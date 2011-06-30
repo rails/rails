@@ -162,6 +162,11 @@ module ActionController #:nodoc:
       navigation_behavior(e)
     end
 
+    # to_js simply tries to render a template. If no template is found, raises the error.
+    def to_js
+      default_render
+    end
+
     # All other formats follow the procedure below. First we try to render a
     # template, if the template is not available, we verify if the resource
     # responds to :to_format and display it.
