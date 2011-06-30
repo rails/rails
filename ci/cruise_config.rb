@@ -1,5 +1,5 @@
 Project.configure do |project|
-  project.build_command = 'sudo gem update --system 1.6.2 && ruby ci/ci_build.rb'
+  project.build_command = 'sudo gem update --system && ruby ci/ci_build.rb'
   project.email_notifier.from = 'rails-ci@wyeworks.com'
 
   # project.campfire_notifier.account  = 'rails'
