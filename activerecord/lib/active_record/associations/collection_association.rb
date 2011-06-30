@@ -423,12 +423,6 @@ module ActiveRecord
           scoped.scope_for_create.stringify_keys
         end
 
-        def build_record(attributes, options)
-          record = reflection.build_association(attributes, options)
-          record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
-          record
-        end
-
         def delete_or_destroy(records, method)
           records = records.flatten
           records.each { |record| raise_on_type_mismatch(record) }

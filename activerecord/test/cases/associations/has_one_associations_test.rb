@@ -438,4 +438,11 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     bulb = car.create_bulb!{ |b| b.color = 'Red' }
     assert_equal 'RED!', bulb.color
   end
+
+  def test_association_attributes_are_available_to_after_initialize
+    car = Car.create(:name => 'honda')
+    bulb = car.create_bulb
+
+    assert_equal car.id, bulb.attributes_after_initialize['car_id']
+  end
 end

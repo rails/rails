@@ -1557,4 +1557,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, contract.hi_count
     assert_equal 1, contract.bye_count
   end
+
+  def test_association_attributes_are_available_to_after_initialize
+    car = Car.create(:name => 'honda')
+    bulb = car.bulbs.build
+
+    assert_equal car.id, bulb.attributes_after_initialize['car_id']
+  end
 end
