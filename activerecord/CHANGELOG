@@ -1,5 +1,17 @@
 *Rails 3.1.0 (unreleased)*
 
+* ActiveRecord::MacroReflection::AssociationReflection#build_record has a new method signature.
+
+  Before: def build_association(*options)
+  After:  def build_association(*options, &block)
+
+  Users who are redefining this method to extend functionality should ensure that the block is
+  passed through to ActiveRecord::Base#new.
+
+  This change is necessary to fix https://github.com/rails/rails/issues/1842.
+
+  [Jon Leighton]
+
 * AR#pluralize_table_names can be used to singularize/pluralize table name of an individual model:
 
     class User < ActiveRecord::Base
