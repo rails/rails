@@ -11,7 +11,6 @@ end
 gem "coffee-script"
 gem "sass"
 gem "uglifier", ">= 1.0.0"
-gem "w3c_validators"
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
