@@ -179,23 +179,6 @@ module ActiveRecord
         klass.new(*options, &block)
       end
 
-      # Creates a new instance of the associated class, and immediately saves it
-      # with ActiveRecord::Base#save. +options+ will be passed to the class's
-      # creation method. Returns the newly created object.
-      def create_association(*options)
-        klass.create(*options)
-      end
-
-      # Creates a new instance of the associated class, and immediately saves it
-      # with ActiveRecord::Base#save!. +options+ will be passed to the class's
-      # creation method. If the created record doesn't pass validations, then an
-      # exception will be raised.
-      #
-      # Returns the newly created object.
-      def create_association!(*options)
-        klass.create!(*options)
-      end
-
       def table_name
         @table_name ||= klass.table_name
       end
