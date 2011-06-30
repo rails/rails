@@ -58,10 +58,10 @@ module ActiveRecord
 
       alias_method :new, :build
 
-      def respond_to?(*args)
+      def respond_to?(name, include_private = false)
         super ||
-        (load_target && target.respond_to?(*args)) ||
-        @association.klass.respond_to?(*args)
+        (load_target && target.respond_to?(name, include_private)) ||
+        @association.klass.respond_to?(name, include_private)
       end
 
       def method_missing(method, *args, &block)
