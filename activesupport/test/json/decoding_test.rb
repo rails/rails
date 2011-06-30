@@ -49,8 +49,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
       [{'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'},
        {'d' => Date.new(1970, 1, 1), 's' => 'http://example.com'}],
     # tests escaping of "\n" char with Yaml backend
-    %q("\n")  => "\n",
-    %q("\u000a") => "\n",
+    %q({"a":"\n"})  => {"a"=>"\n"},
+    %q({"a":"\u000a"}) => {"a"=>"\n"},
     %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
   }
 
