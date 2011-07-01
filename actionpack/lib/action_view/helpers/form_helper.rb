@@ -1,5 +1,4 @@
 require 'cgi'
-require 'action_view/context'
 require 'action_view/helpers/date_helper'
 require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
