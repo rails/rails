@@ -1,4 +1,3 @@
-require "action_view/asset_paths"
 require "action_view/helpers"
 
 module Sprockets
