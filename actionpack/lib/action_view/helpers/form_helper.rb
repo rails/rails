@@ -567,18 +567,13 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # In addition, you may want to have access to the current iteration index.
-      # In that case, you can use a similar method called fields_for_with_index
-      # which receives a block with an extra parameter:
+      # When projects is already an association on Person you can use
+      # +accepts_nested_attributes_for+ to define the writer method for you:
       #
-      #   <%= form_for @person do |person_form| %>
-      #     ...
-      #     <%= person_form.fields_for_with_index :projects do |project_fields, index| %>
-      #       Position: <%= index %>
-      #       Name: <%= project_fields.text_field :name %>
-      #     <% end %>
-      #     ...
-      #   <% end %>
+      #   class Person < ActiveRecord::Base
+      #     has_many :projects
+      #     accepts_nested_attributes_for :projects
+      #   end
       #
       # If you want to destroy any of the associated models through the
       # form, you have to enable it first using the <tt>:allow_destroy</tt>
@@ -1231,13 +1226,6 @@ module ActionView
               objectify_options(options))        #     objectify_options(options))
           end                                    # end
         RUBY_EVAL
-      end
-
-      # Check +fields_for+ for docs and examples.
-      def fields_for_with_index(record_name, record_object = nil, fields_options = {}, &block)
-        index = fields_options[:index] || options[:child_index] || nested_child_index(@object_name)
-        block_with_index = Proc.new{ |obj| block.call(obj, index) }
-        fields_for(record_name, record_object, fields_options, &block_with_index)
       end
 
       def fields_for(record_name, record_object = nil, fields_options = {}, &block)

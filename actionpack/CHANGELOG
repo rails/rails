@@ -65,8 +65,6 @@
 
   You can read more about this change in http://groups.google.com/group/rubyonrails-security/browse_thread/thread/2e516e7acc96c4fb
 
-* Added 'ActionView::Helpers::FormHelper.fields_for_with_index', similar to fields_for but allows to have access to the current iteration index [Jorge Bejar]
-
 * Warn if we cannot verify CSRF token authenticity [José Valim]
 
 * Allow AM/PM format in datetime selectors [Aditya Sanghi]
