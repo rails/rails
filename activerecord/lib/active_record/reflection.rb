@@ -130,7 +130,11 @@ module ActiveRecord
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
       # and +other_aggregation+ has an options hash assigned to it.
       def ==(other_aggregation)
-        other_aggregation.kind_of?(self.class) && name == other_aggregation.name && other_aggregation.options && active_record == other_aggregation.active_record
+        super ||
+          other_aggregation.kind_of?(self.class) &&
+          name == other_aggregation.name &&
+          other_aggregation.options &&
+          active_record == other_aggregation.active_record
       end
 
       def sanitized_conditions #:nodoc:
