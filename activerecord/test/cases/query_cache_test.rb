@@ -136,6 +136,18 @@ class QueryCacheTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_cache_gets_cleared_after_migration
+    # warm the cache
+    Topic.find(1)
+
+    # change the column definition
+    Topic.connection.change_column :topics, :title, :string, :limit => 80
+    assert_nothing_raised { Topic.find(1) }
+
+    # restore the old definition
+    Topic.connection.change_column :topics, :title, :string
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
