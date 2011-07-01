@@ -1,3 +1,4 @@
+require 'thread'
 require 'active_support/core_ext/file'
 
 module ActionView
