@@ -3027,7 +3027,7 @@ during calendar reform.  #7649, #7724 [fedot, Geoff Buesing]
     person.first_name # => "David"
     person.last_name  # => "Heinemeier Hansson"
 
-  Note that the anoymous module must be declared using brackets, not do/end (due to order of evaluation).
+  Note that the anonymous module must be declared using brackets, not do/end (due to order of evaluation).
 
 * Omit internal dtproperties table from SQLServer table list.  #2729 [Ryan Tomayko]
 
