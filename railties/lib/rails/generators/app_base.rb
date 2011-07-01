@@ -198,6 +198,16 @@ module Rails
         end
       end
 
+      def assets_gemfile_entry
+        <<-GEMFILE.strip_heredoc
+          group :assets do
+            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails'
+            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails'
+            gem 'uglifier'
+          end
+        GEMFILE
+      end
+
       def javascript_gemfile_entry
         "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
       end
