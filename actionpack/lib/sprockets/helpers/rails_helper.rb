@@ -16,7 +16,10 @@ module Sprockets
           else
             config.default_asset_host_protocol ||= :relative
           end
-          RailsHelper::AssetPaths.new(config, controller)
+          paths = RailsHelper::AssetPaths.new(config, controller)
+          paths.asset_environment = asset_environment
+          paths.asset_prefix      = asset_prefix
+          paths
         end
       end
 
@@ -76,9 +79,19 @@ module Sprockets
           params[:debug_assets] == 'true'
       end
 
+      def asset_prefix
+        Rails.application.config.assets.prefix
+      end
+
+      def asset_environment
+        Rails.application.assets
+      end
+
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        def compute_public_path(source, dir, ext=nil, include_host=true, protocol = nil)
-          super(source, Rails.application.config.assets.prefix, ext, include_host, protocol)
+        attr_accessor :asset_environment, :asset_prefix
+
+        def compute_public_path(source, dir, ext=nil, include_host=true, protocol=nil)
+          super(source, asset_prefix, ext, include_host, protocol)
         end
 
         # Return the filesystem path for the source
@@ -90,14 +103,14 @@ module Sprockets
           source = source.to_s
           return nil if is_uri?(source)
           source = rewrite_extension(source, nil, ext)
-          assets[source]
+          asset_environment[source]
         end
 
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            assets.path(source, performing_caching?, dir)
+            asset_environment.path(source, performing_caching?, dir)
           end
         end
 
@@ -107,10 +120,6 @@ module Sprockets
           else
             source
           end
-        end
-
-        def assets
-          Rails.application.assets
         end
 
         # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available
