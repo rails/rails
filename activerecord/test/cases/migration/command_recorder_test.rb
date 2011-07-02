@@ -14,11 +14,9 @@ module ActiveRecord
         assert recorder.respond_to?(:america)
       end
 
-      def test_non_existing_method_records_and_raises_on_inversion
-        @recorder.send(:non_existing_method, :horses)
-        assert_equal 1, @recorder.commands.length
-        assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse
+      def test_send_calls_super
+        assert_raises(NoMethodError) do
+          @recorder.send(:non_existing_method, :horses)
         end
       end
 
