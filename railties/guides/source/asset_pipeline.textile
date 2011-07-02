@@ -60,11 +60,11 @@ This has several disadvantages:
 
 1. Not all caches will cache content with a query string
 
-"Steve Souders recoemends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that 5-20% of requests will not be cached.
+"Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that 5-20% of requests will not be cached.
 
-2. The filename can change between nodes in multi-server environtments.
+2. The filename can change between nodes in multi-server environments.
 
-The query string in Rails is based on the files mtime ( TODO: add explanation). When assets are deployed to a cluster, there is no garantee that the timestamps will be the same.
+The query string in Rails is based on the files mtime ( TODO: add explanation). When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same.
 
 
 
