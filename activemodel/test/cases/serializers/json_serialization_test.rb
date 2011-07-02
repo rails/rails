@@ -8,6 +8,12 @@ class Contact
   include ActiveModel::Serializers::JSON
   include ActiveModel::Validations
 
+  def attributes=(hash)
+    hash.each do |k, v|
+      instance_variable_set("@#{k}", v)
+    end
+  end
+
   def attributes
     instance_values
   end unless method_defined?(:attributes)
@@ -34,7 +40,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
-  test "should not include root in json" do
+  test "should not include root in json (class method)" do
     begin
       Contact.include_root_in_json = false
       json = @contact.to_json
@@ -48,6 +54,13 @@ class JsonSerializationTest < ActiveModel::TestCase
     ensure
       Contact.include_root_in_json = true
     end
+  end
+
+  test "should not include root in json (option)" do
+
+    json = @contact.to_json(:root => false)
+
+    assert_no_match %r{^\{"contact":\{}, json
   end
 
   test "should include custom root in json" do
@@ -132,6 +145,44 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_kind_of Hash, json['contact']
     %w(name age created_at awesome preferences).each do |field|
       assert_equal @contact.send(field), json['contact'][field]
+    end
+  end
+
+  test "from_json should set the object's attributes" do
+    json = @contact.to_json
+    result = Contact.new.from_json(json)
+
+    assert_equal result.name, @contact.name
+    assert_equal result.age, @contact.age
+    assert_equal Time.parse(result.created_at), @contact.created_at
+    assert_equal result.awesome, @contact.awesome
+    assert_equal result.preferences, @contact.preferences
+  end
+
+  test "from_json should work without a root (method parameter)" do
+    json = @contact.to_json(:root => false)
+    result = Contact.new.from_json(json, false)
+
+    assert_equal result.name, @contact.name
+    assert_equal result.age, @contact.age
+    assert_equal Time.parse(result.created_at), @contact.created_at
+    assert_equal result.awesome, @contact.awesome
+    assert_equal result.preferences, @contact.preferences
+  end
+
+  test "from_json should work without a root (class attribute)" do
+    begin
+      Contact.include_root_in_json = false
+      json = @contact.to_json
+      result = Contact.new.from_json(json)
+
+      assert_equal result.name, @contact.name
+      assert_equal result.age, @contact.age
+      assert_equal Time.parse(result.created_at), @contact.created_at
+      assert_equal result.awesome, @contact.awesome
+      assert_equal result.preferences, @contact.preferences
+    ensure
+      Contact.include_root_in_json = true
     end
   end
 
