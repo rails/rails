@@ -182,10 +182,12 @@ module ActionDispatch
 
           if record.is_a?(Symbol) || record.is_a?(String)
             route << record
-          else
+          elsif record
             route << ActiveModel::Naming.route_key(record)
             route = [route.join("_").singularize] if inflection == :singular
             route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
+          else
+            raise ArgumentError, "Nil location provided. Can't build URI."
           end
 
           route << routing_type(options)
