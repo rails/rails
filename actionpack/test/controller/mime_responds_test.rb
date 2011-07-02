@@ -659,6 +659,13 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal %Q[{"result":{"name":"david","id":13}}], @response.body
   end
 
+  def test_using_hash_resource_with_post
+    @request.accept = "application/json"
+    assert_raise ArgumentError, "Nil location provided. Can't build URI." do
+      post :using_hash_resource
+    end
+  end
+
   def test_using_resource_with_block
     @request.accept = "*/*"
     get :using_resource_with_block
