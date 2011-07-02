@@ -37,7 +37,7 @@ Use the +rails generate plugin+ command in your Rails root directory
  directory. See usage and options by asking for help:
 
 <shell>
-$ rails generate plugin new --help
+$ rails generate plugin --help
 </shell>
 
 h4. Or generate a gemified plugin.
