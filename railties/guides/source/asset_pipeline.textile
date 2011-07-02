@@ -32,13 +32,43 @@ h4. Main Features
 
 The first is to concatenate of assets. This is important in a production environment to reduce the number of requests that a client browser has to make to render a web page. While Rails already has a feature to concatenate these types of asset--by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+--, many people do not use it.
 
-The default behavior in 3.1 + is to concatenate all files into one master file each for JS and CSS, however you can separate files or groups of files if required (see below).
+The default behavior in 3.1 + is to concatenate all files into one master file each for JS and CSS, however you can separate files or groups of files if required (see below). In production an MD5 fingerprint is inserted into each filename.
 
 The second feature of the pipeline is to minify or compress. For CSS this usually involves removing whitespace and comments. For Javascript more complex processes can be applied.
 
 You can choose from a set of built in options or specify your own.
 
 The third feature is the ability to code these assets using another language, or language extension. These include SCSS or Sass for CSS, CoffeeScript for Javascript, and ERB for both.
+
+h4. What is fingerprinting and why should I care?
+
+Fingerprinting is a technique where the filenames of content that is static or infrequently updated is munged to be unique to the content contained in the file.
+
+When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep there own copy of the content.
+
+For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
+
+This is the strategy adopted by the Rails asset pipeline.
+
+Rails old strategy was to append a query string to every asset linked with a built-in helper. In the source the generated code looks like this:
+
+<plain>
+/stylesheets/global.css?1309495796  
+</plain>  
+
+This has several disadvantages:
+
+1. Not all caches will cache content with a query string
+
+"Steve Souders recoemends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that 5-20% of requests will not be cached.
+
+2. The filename can change between nodes in multi-server environtments.
+
+The query string in Rails is based on the files mtime ( TODO: add explanation). When assets are deployed to a cluster, there is no garantee that the timestamps will be the same.
+
+
+
+TODO: Link to resources, add more detail
 
 
 h3. How to Use the Asset Pipeline
