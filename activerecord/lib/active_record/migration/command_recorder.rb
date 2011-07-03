@@ -48,7 +48,7 @@ module ActiveRecord
         super || delegate.respond_to?(*args)
       end
 
-      [:create_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
+      [:create_table, :change_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args)          # def create_table(*args)
             record(:"#{method}", args)  #   record(:create_table, args)
@@ -93,15 +93,11 @@ module ActiveRecord
         [:remove_timestamps, args]
       end
 
-      # Record all the methods called in the +change+ method of a migration.
-      # This will ensure that IrreversibleMigration is raised when the corresponding
-      # invert_method does not exist while the migration is rolled back.
+      # Forwards any missing method call to the \target.
       def method_missing(method, *args, &block)
-        if delegate.respond_to?(method)
-          delegate.send(method, *args, &block)
-        else
-          record(method, args)
-        end
+        @delegate.send(method, *args, &block)
+      rescue NoMethodError => e
+        raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
       end
 
     end
