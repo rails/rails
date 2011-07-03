@@ -46,8 +46,7 @@ Fingerprinting is a technique where the filenames of content that is static or i
 
 When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep there own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
 
-The most common technique is to insert a hash of the content into the name, usually at the end. For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
-
+The most effective technique is to insert a hash of the content into the name, usually at the end. For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
 
 <plain>
 global.css => global-908e25f4bf641868d8683022a5b62f54.css
@@ -55,7 +54,7 @@ global.css => global-908e25f4bf641868d8683022a5b62f54.css
 
 This is the strategy adopted by the Rails asset pipeline.
 
-Rails old strategy was to append a query string to every asset linked with a built-in helper. In the source the generated code looks like this:
+Rails old strategy was to append a query string to every asset linked with a built-in helper. In the source the generated code looked like this:
 
 <plain>
 /stylesheets/global.css?1309495796  
