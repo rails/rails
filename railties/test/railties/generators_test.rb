@@ -1,7 +1,8 @@
 RAILS_ISOLATED_ENGINE = true
 require "isolation/abstract_unit"
 
-require "#{RAILS_FRAMEWORK_ROOT}/railties/lib/rails/generators/test_case"
+require 'generators/generators_test_helper'
+require "rails/generators/test_case"
 
 module RailtiesTests
   class GeneratorTest < Rails::Generators::TestCase
