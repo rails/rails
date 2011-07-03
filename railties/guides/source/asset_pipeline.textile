@@ -42,11 +42,16 @@ The third feature is the ability to code these assets using another language, or
 
 h4. What is fingerprinting and why should I care?
 
-Fingerprinting is a technique where the filenames of content that is static or infrequently updated is munged to be unique to the content contained in the file.
+Fingerprinting is a technique where the filenames of content that is static or infrequently updated is altered to be unique to the content contained in the file. 
 
-When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep there own copy of the content.
+When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep there own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
 
-For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
+The most common technique is to insert a hash of the content into the name, usually at the end. For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
+
+
+<plain>
+global.css => global-908e25f4bf641868d8683022a5b62f54.css
+</plain>
 
 This is the strategy adopted by the Rails asset pipeline.
 
@@ -60,15 +65,17 @@ This has several disadvantages:
 
 1. Not all caches will cache content with a query string
 
-"Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that 5-20% of requests will not be cached.
+"Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in these case 5-20% of requests will not be cached.
 
 2. The filename can change between nodes in multi-server environments.
 
-The query string in Rails is based on the files mtime ( TODO: add explanation). When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same.
+The query string in Rails is based on the files mtime (mtime is the file modification time). When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
 
+The other problems is that when static assets are deployed with each new release of code, the mtime of *all* these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
+Fingerprinting avoids all these problems be ensuring filenames are consistent based on the content.
 
-TODO: Link to resources, add more detail
+TODO: Link to resources
 
 
 h3. How to Use the Asset Pipeline
