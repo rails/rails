@@ -84,6 +84,15 @@ module RailtiesTest
       end
     end
 
+    def test_no_rake_task_without_migrations
+      boot_rails
+      require 'rake'
+      require 'rdoc/task'
+      require 'rake/testtask'
+      Rails.application.load_tasks
+      assert !Rake::Task.task_defined?('bukkits:install:migrations')
+    end
+
     def test_puts_its_lib_directory_on_load_path
       boot_rails
       require "another"
