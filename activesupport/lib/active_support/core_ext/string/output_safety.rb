@@ -67,7 +67,7 @@ class Object
   end
 end
 
-class Fixnum
+class Numeric
   def html_safe?
     true
   end
