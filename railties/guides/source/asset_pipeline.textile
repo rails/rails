@@ -246,24 +246,29 @@ The following line will enable SCSS in you project.
 config.assets.css_compressor = :scss
 </erb>
 
+This option is for compression only and does not relate to the SCSS language extensions that apply when using the +.scss+ file extension on CSS assets.
 
 h4. Javascript
 
-TODO: Talk about the options
+There are three options available to process javascript - uglifier, closure and yui.
+
+The default Gemfile includes "uglifier":https://github.com/lautis/uglifier. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your if and else statements to ternary operators when possible.
+
+TODO: Add detail about the other two
+
+The following line will invoke uglifier for Javascript compression.
 
 <erb>
 config.assets.js_compressor  = :uglifier
 </erb>
 
-Current options are uglifier, closure, yui
 
-The default Gemfile also includes the "uglifier":https://github.com/lautis/uglifier gem. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your if and else statements to ternary operators when possible.
 
 h4. Using your own compressor
 
-The config setting shown above will also take an Object.
+The compressor config settings for CSS and Javascript will also take an Object.
 
-This object must have a 'compress' method that takes a string as the sole argument and it must return a string.
+This object must have a +compress+ method that takes a string as the sole argument and it must return a string.
 
 <erb>
 class Transformer
@@ -273,20 +278,24 @@ class Transformer
 end
 </erb>
 
-And the config:
+To enable this pass a +new+ Object to the config option in +application.rb+:
 
 <erb>
 config.assets.css_compressor = Transformer.new
 </erb>
 
 
-h4. Changing the 'assets' path
+h4. Changing the _assets_ path
 
-The public path that Sprockets uses is +/assets+.
+The public path that Sprockets uses by default is +/assets+.
 
-This can be changed thus:
+This can be changed to something else:
 
-config.assets.prefix     = "/some_other_path"
+<erb>
+config.assets.prefix = "/some_other_path"
+</erb>
+
+This is a handy option if you have any existing project (pre Rails 3.1) that already uses this path.
 
 
 h3. Adding Assets to Your Gems
