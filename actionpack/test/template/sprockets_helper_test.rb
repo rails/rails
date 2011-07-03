@@ -197,4 +197,16 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_equal "<link href=\"/assets/style-d41d8cd98f00b204e9800998ecf8427e.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n<link href=\"/assets/extra-d41d8cd98f00b204e9800998ecf8427e.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />",
       stylesheet_link_tag("style", "extra")
   end
+
+  test "alternate asset prefix" do
+    stubs(:asset_prefix).returns("/themes/test")
+    assert_equal "/themes/test/style-d41d8cd98f00b204e9800998ecf8427e.css", asset_path("style", "css")
+  end
+
+  test "alternate asset environment" do
+    assets = Sprockets::Environment.new
+    assets.paths << FIXTURES.join("sprockets/alternate/stylesheets")
+    stubs(:asset_environment).returns(assets)
+    assert_equal "/assets/style-df0b97ad35a8e1f7f61097461f77c19a.css", asset_path("style", "css")
+  end
 end
