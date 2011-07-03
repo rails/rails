@@ -74,7 +74,10 @@ The other problems is that when static assets are deployed with each new release
 
 Fingerprinting avoids all these problems be ensuring filenames are consistent based on the content.
 
-TODO: Link to resources
+More reading:
+
+* "Optimize caching":http://code.google.com/speed/page-speed/docs/caching.html
+* "Revving Filenames: don’t use querystring":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/
 
 
 h3. How to Use the Asset Pipeline
@@ -185,7 +188,7 @@ h3. In Production
 
 In the production environment, assets are served slightly differently.
 
-On the first request the assets are compiled and cached as before, however the manifest names are altered to include an md5 hash. Files names will typically look like these:
+On the first request the assets are compiled and cached as described above, however the manifest names are altered to include an MD5 hash. Files names typically will look like these:
 
 <plain>
 /assets/application-908e25f4bf641868d8683022a5b62f54.js
@@ -199,17 +202,17 @@ Sprockets also sets the +Cache-Control+ http header to +max-age=31536000+. This 
 This behavior is controlled by the setting of +config.action_controller.perform_caching+ setting in Rails (which is +true+ for production, +false+ for everything else). This value is propagated to Sprockets during initialization for use when action_controller is not available.
 
 TODO:
+describe each and the differences between:
   * Sass-rails's handy +image_url+ helpers
-  * ERB pre-processing and +asset_url+
-
+  * ERB pre-processing and +asset_path+
 
 h4. Precompiling assets
 
-TODO: Complete this
-
 Even though assets are served by Rack::Cache with far-future headers, in high traffic sites this may not be fast enough.
 
-Rails comes bundled with a rake task to compile the manifest to a file on disc. These are located in the +public/assets+ directory where they will be served by your web server instead of the Rails application.
+Rails comes bundled with a rake task to compile the manifests to files on disc. These are located in the +public/assets+ directory where they will be served by your web server instead of the Rails application.
+
+TODO: Add section about image assets
 
 The rake task is:
 
@@ -235,13 +238,14 @@ h3. Customizing The Pipeline
 
 h4. CSS
 
-TODO: Talk about the options
+There is currently one option for processing CSS - SCSS. This Gem extends the CSS syntax and offers minification.
+
+The following line will enable SCSS in you project.
 
 <erb>
 config.assets.css_compressor = :scss
 </erb>
 
-current options are scss
 
 h4. Javascript
 
