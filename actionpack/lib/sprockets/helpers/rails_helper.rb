@@ -79,10 +79,19 @@ module Sprockets
           params[:debug_assets] == 'true'
       end
 
+      # Override to specify an alternative prefix for asset path generation.
+      # When combined with a custom +asset_environment+, this can be used to
+      # implement themes that can take advantage of the asset pipeline.
+      #
+      # If you only want to change where the assets are mounted, refer to
+      # +config.assets.prefix+ instead.
       def asset_prefix
         Rails.application.config.assets.prefix
       end
 
+      # Override to specify an alternative asset environment for asset
+      # path generation. The environment should already have been mounted
+      # at the prefix returned by +asset_prefix+.
       def asset_environment
         Rails.application.assets
       end
