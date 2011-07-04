@@ -262,7 +262,7 @@ module ActiveRecord
       def accepts_nested_attributes_for(*attr_names)
         options = { :allow_destroy => false, :update_only => false }
         options.update(attr_names.extract_options!)
-        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
+        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only, :without_protection)
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
@@ -369,6 +369,7 @@ module ActiveRecord
     #   ])
     def assign_nested_attributes_for_collection_association(association_name, attributes_collection, assignment_opts = {})
       options = self.nested_attributes_options[association_name]
+      options = options.merge(assignment_opts)
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
@@ -401,7 +402,7 @@ module ActiveRecord
 
         if attributes['id'].blank?
           unless reject_new_record?(association_name, attributes)
-            association.build(attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
+            association.build(attributes.except(*unassignable_keys(options)), options)
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
           unless association.loaded? || call_reject_if(association_name, attributes)
@@ -418,10 +419,10 @@ module ActiveRecord
           end
 
           if !call_reject_if(association_name, attributes)
-            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy], assignment_opts)
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy], options)
           end
-        elsif assignment_opts[:without_protection]
-          association.build(attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
+        elsif options[:without_protection]
+          association.build(attributes.except(*unassignable_keys(options)), options)
         else
           raise_nested_attributes_record_not_found(association_name, attributes['id'])
         end

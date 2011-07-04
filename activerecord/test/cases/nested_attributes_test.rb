@@ -139,6 +139,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert man.reload.interests.empty?
   end
 
+  def test_without_protection_id_assignment
+    Man.accepts_nested_attributes_for :interests, :reject_if => proc {|attributes| true }, :allow_destroy => true, :without_protection => false
+    assert_raises ActiveRecord::RecordNotFound do 
+      Man.create(:name => "Jon", :interests_attributes => { :topic => 'the ladies', :id => 2 } )
+    end
+    Man.accepts_nested_attributes_for :interests, :reject_if => proc {|attributes| true }, :allow_destroy => true, :without_protection => true
+    man = Man.create(:name => "Jon", :interests_attributes => { :topic => 'the ladies', :id => 2 } )
+    assert man.interests.map { |i| i.topic.include?('the ladies') } 
+    assert man.interests.find_by_id(2)
+  end
+
   def test_has_many_association_updating_a_single_record
     Man.accepts_nested_attributes_for(:interests)
     man = Man.create(:name => 'John')
