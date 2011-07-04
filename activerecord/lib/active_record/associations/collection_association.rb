@@ -78,7 +78,7 @@ module ActiveRecord
       end
 
       def find(*args, &block)
-        if block
+        if block_given?
           load_target.find(*args, &block)
         else
           if options[:finder_sql]
