@@ -77,11 +77,15 @@ module ActiveRecord
         end
       end
 
-      def find(*args)
-        if options[:finder_sql]
-          find_by_scan(*args)
+      def find(*args, &block)
+        if block
+          load_target.find(*args, &block)
         else
-          scoped.find(*args)
+          if options[:finder_sql]
+            find_by_scan(*args)
+          else
+            scoped.find(*args)
+          end
         end
       end
 
