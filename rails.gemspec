@@ -14,8 +14,9 @@ Gem::Specification.new do |s|
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
 
-  s.bindir             = 'bin'
-  s.executables        = ['rails']
+  s.bindir            = 'bin'
+  s.executables       = ['rails']
+  s.require_paths     = []
 
   s.add_dependency('activesupport',  version)
   s.add_dependency('actionpack',     version)
