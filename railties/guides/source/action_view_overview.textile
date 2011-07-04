@@ -615,7 +615,7 @@ atom_feed do |feed|
   feed.title("Posts Index")
   feed.updated((@posts.first.created_at))
 
-  for post in @posts
+  @posts.each do |post|
     feed.entry(post) do |entry|
       entry.title(post.title)
       entry.content(post.body, :type => 'html')

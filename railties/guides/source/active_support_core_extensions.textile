@@ -436,20 +436,6 @@ end
 
 NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
-h4. +require_library_or_gem+
-
-The convenience method +require_library_or_gem+ tries to load its argument with a regular +require+ first. If it fails loads +rubygems+ and tries again.
-
-If the first attempt is a failure and +rubygems+ can't be loaded the method raises +LoadError+. A +LoadError+ is also raised if +rubygems+ is available but the argument is not loadable as a gem.
-
-For example, that's the way the MySQL adapter loads the MySQL library:
-
-<ruby>
-require_library_or_gem('mysql')
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
-
 h4. +in?+
 
 The predicate +in?+ tests if an object is included in another object. An +ArgumentError+ exception will be raised if the argument passed does not respond to +include?+.
@@ -1510,7 +1496,15 @@ end
 
 That may be handy to compute method names in a language that follows that convention, for example JavaScript.
 
-INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
+INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>. To support cases such as this, Active Support allows you to specify acronyms in +config/initializers/inflections.rb+:
+
+<ruby>
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym 'SSL'
+end
+
+"SSLError".underscore.camelize #=> "SSLError"
+</ruby>
 
 +camelize+ is aliased to +camelcase+.
 
@@ -2255,8 +2249,8 @@ The method +Array.wrap+ wraps its argument in an array unless it is already an a
 Specifically:
 
 * If the argument is +nil+ an empty list is returned.
-* Otherwise, if the argument responds to +to_ary+ it is invoked, and its result returned.
-* Otherwise, returns an array with the argument as its single element.
+* Otherwise, if the argument responds to +to_ary+ it is invoked, and if the value of +to_ary+ is not +nil+, it is returned.
+* Otherwise, an array with the argument as its single element is returned.
 
 <ruby>
 Array.wrap(nil)       # => []

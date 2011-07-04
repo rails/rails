@@ -166,19 +166,19 @@ Each helper accepts an arbitrary number of attribute names, so with a single lin
 
 All of them accept the +:on+ and +:message+ options, which define when the validation should be run and what message should be added to the +errors+ collection if it fails, respectively. The +:on+ option takes one of the values +:save+ (the default), +:create+  or +:update+. There is a default error message for each one of the validation helpers. These messages are used when the +:message+ option isn't specified. Let's take a look at each one of the available helpers.
 
-h4. +validates_acceptance_of+
+h4. +acceptance+
 
 Validates that a checkbox on the user interface was checked when a form was submitted. This is typically used when the user needs to agree to your application's terms of service, confirm reading some text, or any similar concept. This validation is very specific to web applications and this 'acceptance' does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_acceptance_of :terms_of_service
+  validates :terms_of_service, :acceptance => true
 end
 </ruby>
 
-The default error message for +validates_acceptance_of+ is "_must be accepted_".
+The default error message for this helper is "_must be accepted_".
 
-+validates_acceptance_of+ can receive an +:accept+ option, which determines the value that will be considered acceptance. It defaults to "1", but you can change this.
+It can receive an +:accept+ option, which determines the value that will be considered acceptance. It defaults to "1" and can be easily changed.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -203,13 +203,13 @@ CAUTION: Don't use +validates_associated+ on both ends of your associations. The
 
 The default error message for +validates_associated+ is "_is invalid_". Note that each associated object will contain its own +errors+ collection; errors do not bubble up to the calling model.
 
-h4. +validates_confirmation_of+
+h4. +confirmation+
 
 You should use this helper when you have two text fields that should receive exactly the same content. For example, you may want to confirm an email address or a password. This validation creates a virtual attribute whose name is the name of the field that has to be confirmed with "_confirmation" appended.
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_confirmation_of :email
+  validates :email, :confirmation => true
 end
 </ruby>
 
@@ -220,70 +220,70 @@ In your view template you could use something like
 <%= text_field :person, :email_confirmation %>
 </erb>
 
-This check is performed only if +email_confirmation+ is not +nil+. To require confirmation, make sure to add a presence check for the confirmation attribute (we'll take a look at +validates_presence_of+ later on this guide):
+This check is performed only if +email_confirmation+ is not +nil+. To require confirmation, make sure to add a presence check for the confirmation attribute (we'll take a look at +presence+ later on this guide):
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_confirmation_of :email
-  validates_presence_of :email_confirmation
+  validates :email, :confirmation => true
+  validates :email_confirmation, :presence => true
 end
 </ruby>
 
-The default error message for +validates_confirmation_of+ is "_doesn't match confirmation_".
+The default error message for this helper is "_doesn't match confirmation_".
 
-h4. +validates_exclusion_of+
+h4. +exclusion+
 
 This helper validates that the attributes' values are not included in a given set. In fact, this set can be any enumerable object.
 
 <ruby>
 class Account < ActiveRecord::Base
-  validates_exclusion_of :subdomain, :in => %w(www us ca jp),
-    :message => "Subdomain %{value} is reserved."
+  validates :subdomain, :exclusion => { :in => %w(www us ca jp),
+    :message => "Subdomain %{value} is reserved." }
 end
 </ruby>
 
-The +validates_exclusion_of+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value.
+The +exclusion+ helper has an option +:in+ that receives the set of values that will not be accepted for the validated attributes. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. This example uses the +:message+ option to show how you can include the attribute's value.
 
-The default error message for +validates_exclusion_of+ is "_is reserved_".
+The default error message is "_is reserved_".
 
-h4. +validates_format_of+
+h4. +format+
 
 This helper validates the attributes' values by testing whether they match a given regular expression, which is specified using the +:with+ option.
 
 <ruby>
 class Product < ActiveRecord::Base
-  validates_format_of :legacy_code, :with => /\A[a-zA-Z]+\z/,
-    :message => "Only letters allowed"
+  validates :legacy_code, :format => { :with => /\A[a-zA-Z]+\z/,
+    :message => "Only letters allowed" }
 end
 </ruby>
 
-The default error message for +validates_format_of+ is "_is invalid_".
+The default error message is "_is invalid_".
 
-h4. +validates_inclusion_of+
+h4. +inclusion+
 
 This helper validates that the attributes' values are included in a given set. In fact, this set can be any enumerable object.
 
 <ruby>
 class Coffee < ActiveRecord::Base
-  validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "%{value} is not a valid size"
+  validates :size, :inclusion => { :in => %w(small medium large),
+    :message => "%{value} is not a valid size" }
 end
 </ruby>
 
-The +validates_inclusion_of+ helper has an option +:in+ that receives the set of values that will be accepted. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. The previous example uses the +:message+ option to show how you can include the attribute's value.
+The +inclusion+ helper has an option +:in+ that receives the set of values that will be accepted. The +:in+ option has an alias called +:within+ that you can use for the same purpose, if you'd like to. The previous example uses the +:message+ option to show how you can include the attribute's value.
 
-The default error message for +validates_inclusion_of+ is "_is not included in the list_".
+The default error message for this helper is "_is not included in the list_".
 
-h4. +validates_length_of+
+h4. +length+
 
 This helper validates the length of the attributes' values. It provides a variety of options, so you can specify length constraints in different ways:
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_length_of :name, :minimum => 2
-  validates_length_of :bio, :maximum => 500
-  validates_length_of :password, :in => 6..20
-  validates_length_of :registration_number, :is => 6
+  validates :name, :length => { :minimum => 2 }
+  validates :bio, :length => { :maximum => 500 }
+  validates :password, :length => { :in => 6..20 }
+  validates :registration_number, :length => { :is => 6 }
 end
 </ruby>
 
@@ -298,8 +298,8 @@ The default error messages depend on the type of length validation being perform
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_length_of :bio, :maximum => 1000,
-    :too_long => "%{count} characters is the maximum allowed"
+  validates :bio, :length => { :maximum => 1000,
+    :too_long => "%{count} characters is the maximum allowed" }
 end
 </ruby>
 
@@ -307,20 +307,21 @@ This helper counts characters by default, but you can split the value in a diffe
 
 <ruby>
 class Essay < ActiveRecord::Base
-  validates_length_of :content,
+  validates :content, :length => {
     :minimum   => 300,
     :maximum   => 400,
     :tokenizer => lambda { |str| str.scan(/\w+/) },
     :too_short => "must have at least %{count} words",
     :too_long  => "must have at most %{count} words"
+  }
 end
 </ruby>
 
-Note that the default error messages are plural (e.g., "is too short (minimum is %{count} characters)"). For this reason, when +:minimum+ is 1 you should provide a personalized message or use +validates_presence_of+ instead. When +:in+ or +:within+ have a lower limit of 1, you should either provide a personalized message or call +validates_presence_of+ prior to +validates_length_of+.
+Note that the default error messages are plural (e.g., "is too short (minimum is %{count} characters)"). For this reason, when +:minimum+ is 1 you should provide a personalized message or use +validates_presence_of+ instead. When +:in+ or +:within+ have a lower limit of 1, you should either provide a personalized message or call +presence+ prior to +length+.
 
-The +validates_size_of+ helper is an alias for +validates_length_of+.
+The +size+ helper is an alias for +length+.
 
-h4. +validates_numericality_of+
+h4. +numericality+
 
 This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by an integral or floating point number. To specify that only integral numbers are allowed set +:only_integer+ to true.
 
@@ -341,7 +342,7 @@ class Player < ActiveRecord::Base
 end
 </ruby>
 
-Besides +:only_integer+, the +validates_numericality_of+ helper also accepts the following options to add constraints to acceptable values:
+Besides +:only_integer+, this helper also accepts the following options to add constraints to acceptable values:
 
 * +:greater_than+ - Specifies the value must be greater than the supplied value. The default error message for this option is "_must be greater than %{count}_".
 * +:greater_than_or_equal_to+ - Specifies the value must be greater than or equal to the supplied value. The default error message for this option is "_must be greater than or equal to %{count}_".
@@ -351,9 +352,9 @@ Besides +:only_integer+, the +validates_numericality_of+ helper also accepts the
 * +:odd+ - Specifies the value must be an odd number if set to true. The default error message for this option is "_must be odd_".
 * +:even+ - Specifies the value must be an even number if set to true. The default error message for this option is "_must be even_".
 
-The default error message for +validates_numericality_of+ is "_is not a number_".
+The default error message is "_is not a number_".
 
-h4. +validates_presence_of+
+h4. +presence+
 
 This helper validates that the specified attributes are not empty. It uses the +blank?+ method to check if the value is either +nil+ or a blank string, that is, a string that is either empty or consists of whitespace.
 
@@ -368,21 +369,21 @@ If you want to be sure that an association is present, you'll need to test wheth
 <ruby>
 class LineItem < ActiveRecord::Base
   belongs_to :order
-  validates_presence_of :order_id
+  validates :order_id, :presence => true
 end
 </ruby>
 
-Since +false.blank?+ is true, if you want to validate the presence of a boolean field you should use +validates_inclusion_of :field_name, :in => [true, false]+.
+Since +false.blank?+ is true, if you want to validate the presence of a boolean field you should use <tt>validates :field_name, :inclusion => { :in => [true, false] }</tt>.
 
-The default error message for +validates_presence_of+ is "_can't be empty_".
+The default error message is "_can't be empty_".
 
-h4. +validates_uniqueness_of+
+h4. +uniqueness+
 
 This helper validates that the attribute's value is unique right before the object gets saved. It does not create a uniqueness constraint in the database, so it may happen that two different database connections create two records with the same value for a column that you intend to be unique. To avoid that, you must create a unique index in your database.
 
 <ruby>
 class Account < ActiveRecord::Base
-  validates_uniqueness_of :email
+  validates :email, :uniqueness => true
 end
 </ruby>
 
@@ -407,7 +408,7 @@ end
 
 WARNING. Note that some databases are configured to perform case-insensitive searches anyway.
 
-The default error message for +validates_uniqueness_of+ is "_has already been taken_".
+The default error message is "_has already been taken_".
 
 h4. +validates_with+
 
@@ -471,8 +472,8 @@ The +:allow_nil+ option skips the validation when the value being validated is +
 
 <ruby>
 class Coffee < ActiveRecord::Base
-  validates_inclusion_of :size, :in => %w(small medium large),
-    :message => "%{value} is not a valid size", :allow_nil => true
+  validates :size, :inclusion => { :in => %w(small medium large),
+    :message => "%{value} is not a valid size" }, :allow_nil => true
 end
 </ruby>
 
@@ -484,10 +485,10 @@ The +:allow_blank+ option is similar to the +:allow_nil+ option. This option wil
 
 <ruby>
 class Topic < ActiveRecord::Base
-  validates_length_of :title, :is => 5, :allow_blank => true
+  validates :title, :length => { :is => 5 }, :allow_blank => true
 end
 
-Topic.create("title" => "").valid? # => true
+Topic.create("title" => "").valid?  # => true
 Topic.create("title" => nil).valid? # => true
 </ruby>
 
@@ -504,10 +505,10 @@ The +:on+ option lets you specify when the validation should happen. The default
 <ruby>
 class Person < ActiveRecord::Base
   # it will be possible to update email with a duplicated value
-  validates_uniqueness_of :email, :on => :create
+  validates :email, :uniqueness => true, :on => :create
 
   # it will be possible to create the record with a non-numerical age
-  validates_numericality_of :age, :on => :update
+  validates :age, :numericality => true, :on => :update
 
   # the default (validates on both create and update)
   validates :name, :presence => true, :on => :save
@@ -524,7 +525,7 @@ You can associate the +:if+ and +:unless+ options with a symbol corresponding to
 
 <ruby>
 class Order < ActiveRecord::Base
-  validates_presence_of :card_number, :if => :paid_with_card?
+  validates :card_number, :presence => true, :if => :paid_with_card?
 
   def paid_with_card?
     payment_type == "card"
@@ -538,7 +539,7 @@ You can also use a string that will be evaluated using +eval+ and needs to conta
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_presence_of :surname, :if => "name.nil?"
+  validates :surname, :presence => true, :if => "name.nil?"
 end
 </ruby>
 
@@ -548,7 +549,7 @@ Finally, it's possible to associate +:if+ and +:unless+ with a +Proc+ object whi
 
 <ruby>
 class Account < ActiveRecord::Base
-  validates_confirmation_of :password,
+  validates :password, :confirmation => true,
     :unless => Proc.new { |a| a.password.blank? }
 end
 </ruby>
@@ -560,8 +561,8 @@ Sometimes it is useful to have multiple validations use one condition, it can be
 <ruby>
 class User < ActiveRecord::Base
   with_options :if => :is_admin? do |admin|
-    admin.validates_length_of :password, :minimum => 10
-    admin.validates_presence_of :email
+    admin.validates :password, :length => { :minimum => 10 }
+    admin.validates :email, :presence => true
   end
 end
 </ruby>
@@ -598,7 +599,7 @@ You can even create your own validation helpers and reuse them in several differ
 <ruby>
 ActiveRecord::Base.class_eval do
   def self.validates_as_choice(attr_name, n, options={})
-    validates_inclusion_of attr_name, {:in => 1..n}.merge(options)
+    validates attr_name, :inclusion => { {:in => 1..n}.merge(options) }
   end
 end
 </ruby>
@@ -623,8 +624,7 @@ Returns an OrderedHash with all errors. Each key is the attribute name and the v
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
-  validates_length_of :name, :minimum => 3
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new
@@ -643,8 +643,7 @@ h4(#working_with_validation_errors-errors-2). +errors[]+
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
-  validates_length_of :name, :minimum => 3
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new(:name => "John Doe")
@@ -719,8 +718,7 @@ The +clear+ method is used when you intentionally want to clear all the messages
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
-  validates_length_of :name, :minimum => 3
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new
@@ -743,9 +741,7 @@ The +size+ method returns the total number of error messages for the object.
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates :name, :presence => true
-  validates_length_of   :name, :minimum => 3
-  validates_presence_of :email
+  validates :name, :presence => true, :length => { :minimum => 3 }
 end
 
 person = Person.new
@@ -766,13 +762,14 @@ h4. Installing as a plugin
 $ rails plugin install git://github.com/joelmoss/dynamic_form.git
 </shell>
 
-h4 Installing as a Gem
-Add this line on your Gemfile:
+h4. Installing as a Gem
+
+Add this line in your Gemfile:
 <ruby>
 gem "dynamic_form"
 </ruby>
 
-Now you will have access to these two methods in your view templates:
+Now you will have access to these two methods in your view templates.
 
 h4. +error_messages+ and +error_messages_for+
 
@@ -780,8 +777,8 @@ When creating a form with the +form_for+ helper, you can use the +error_messages
 
 <ruby>
 class Product < ActiveRecord::Base
-  validates_presence_of :description, :value
-  validates_numericality_of :value, :allow_nil => true
+  validates :description, :value, :presence => true
+  validates :value, :numericality => true, :allow_nil => true
 end
 </ruby>
 
@@ -879,7 +876,7 @@ In order to use the available callbacks, you need to register them. You can do t
 
 <ruby>
 class User < ActiveRecord::Base
-  validates_presence_of :login, :email
+  validates :login, :email, :presence => true
 
   before_validation :ensure_login_has_a_value
 
@@ -896,7 +893,7 @@ The macro-style class methods can also receive a block. Consider using this styl
 
 <ruby>
 class User < ActiveRecord::Base
-  validates_presence_of :login, :email
+  validates :login, :email, :presence => true
 
   before_create do |user|
     user.name = user.login.capitalize if user.name.blank?

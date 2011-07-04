@@ -661,9 +661,9 @@ require 'active_support/inflections'
 require 'active_support/core_ext/string/inflections'
 </ruby>
 
-The +active_support/inflector/methods+ file has already been required by +active_support/autoload+ and so won't be loaded again here.
+The +active_support/inflector/methods+ file has already been required by +active_support/autoload+ and so won't be loaded again here. The +activesupport/lib/active_support/inflector/inflections.rb+ is required by +active_support/inflector/methods+.
 
-h4. +activesupport/lib/active_support/inflector/inflections.rb+
+h4. +active_support/inflections+
 
 This file references the +ActiveSupport::Inflector+ constant which isn't loaded by this point. But there were autoloads set up in +activesupport/lib/active_support.rb+ which will load the file which loads this constant and so then it will be defined. Then this file defines pluralization and singularization rules for words in Rails. This is how Rails knows how to pluralize "tomato" to "tomatoes".
 
@@ -866,7 +866,7 @@ def +(other)
 end
 </ruby>
 
-So this <tt>+</tt> method is overriden to return a new collection comprising of the existing collection as an array and then using the <tt>Array#+</tt> method combines these two collections, returning a "super" +Collection+ object. In this case, the only initializer that's going to be in this new +Collection+ object is the +i18n.callbacks+ initializer.
+So this <tt>+</tt> method is overridden to return a new collection comprising of the existing collection as an array and then using the <tt>Array#+</tt> method combines these two collections, returning a "super" +Collection+ object. In this case, the only initializer that's going to be in this new +Collection+ object is the +i18n.callbacks+ initializer.
 
 The next method to be called after this +initializer+ method is the +after_initialize+ method on the +config+ object, which is defined like this:
 
