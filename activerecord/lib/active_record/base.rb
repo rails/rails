@@ -1709,27 +1709,24 @@ MSG
         return unless new_attributes
 
         attributes = new_attributes.stringify_keys
-        role = options[:as] || :default
-
         multi_parameter_attributes = []
+        @mass_assignment_options = options
 
         unless options[:without_protection]
-          attributes = sanitize_for_mass_assignment(attributes, role)
+          attributes = sanitize_for_mass_assignment(attributes, mass_assignment_role)
         end
 
         attributes.each do |k, v|
           if k.include?("(")
             multi_parameter_attributes << [ k, v ]
+          elsif respond_to?("#{k}=")
+            send("#{k}=", v)
           else
-            method_name = "#{k}="
-            if respond_to?(method_name)
-              method(method_name).arity == -2 ? send(method_name, v, options) : send(method_name, v)
-            else
-              raise(UnknownAttributeError, "unknown attribute: #{k}")
-            end
+            raise(UnknownAttributeError, "unknown attribute: #{k}")
           end
         end
 
+        @mass_assignment_options = nil
         assign_multiparameter_attributes(multi_parameter_attributes)
       end
 
@@ -1892,6 +1889,14 @@ MSG
         value.duplicable? ? value.clone : value
       rescue TypeError, NoMethodError
         value
+      end
+
+      def mass_assignment_options
+        @mass_assignment_options ||= {}
+      end
+
+      def mass_assignment_role
+        mass_assignment_options[:as] || :default
       end
 
     private
