@@ -117,7 +117,7 @@ module ActiveSupport
     #
     # Keys are always translated into Strings and are case sensitive. When an
     # object is specified as a key and has a +cache_key+ method defined, this
-    # method will will be called to define the key.  Otherwise, the +to_param+
+    # method will be called to define the key.  Otherwise, the +to_param+
     # method will be called. Hashes and Arrays can also be used as keys. The
     # elements will be delimited by slashes, and the elements within a Hash
     # will be sorted by key so they are consistent.
