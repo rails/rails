@@ -20,14 +20,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
-
-
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-
-activemodel_path = File.expand_path('../../../activemodel/lib', __FILE__)
-$:.unshift(activemodel_path) if File.directory?(activemodel_path) && !$:.include?(activemodel_path)
-
+require File.expand_path("../../../load_paths.rb", __FILE__)
 require 'active_support'
 require 'active_support/i18n'
 require 'active_model'
