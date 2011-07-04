@@ -1,4 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
+require File.expand_path("../../../load_paths.rb", __FILE__)
 
 require 'test/unit'
 require 'rbconfig'

@@ -1,5 +1,4 @@
-activesupport_path = File.expand_path('../../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+require File.expand_path("../../../../load_paths.rb", __FILE__)
 
 require 'active_support'
 require 'active_support/core_ext/object/blank'
