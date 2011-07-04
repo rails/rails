@@ -466,7 +466,7 @@ To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the
 For example, if you want to find a collection of the dates orders were created on:
 
 <ruby>
-Order.group("date(created_at)").order("created_at")
+Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
 </ruby>
 
 And this will give you a single +Order+ object for each date where there are orders in the database.
@@ -474,7 +474,7 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at) ORDER BY created_at
+SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at)
 </sql>
 
 h3. Having
@@ -484,16 +484,16 @@ SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You
 For example:
 
 <ruby>
-Order.group("date(created_at)").having("created_at < ?", 1.month.ago)
+Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)").having("sum(price) > ?", 100)
 </ruby>
 
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT * FROM orders GROUP BY date(created_at) HAVING created_at < '2011-04-27'
+SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) HAVING sum(price) > 100
 </sql>
 
-This will return single order objects for each day, but only those that are at least one month old.
+This will return single order objects for each day, but only those that are ordered more than $100 in a day.
 
 h3. Overriding Conditions
 
@@ -965,6 +965,47 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.posts.1_week_before(time)
 </ruby>
 
+h4. Working with scopes
+
+Where a relational object is required, the +scoped+ method may come in handy. This will return an +ActiveRecord::Relation+ object which can have further scoping applied to it afterwards. A place where this may come in handy is on associations
+
+<ruby>
+client = Client.find_by_first_name("Ryan")
+orders = client.orders.scoped
+</ruby>
+
+With this new +orders+ object, we are able to ascertain that this object can have more scopes applied to it. For instance, if we wanted to return orders only in the last 30 days at a later point.
+
+<ruby>
+orders.where("created_at > ?", 30.days.ago)
+</ruby>
+
+h4. Applying a default scope
+
+If we wish for a scope to be applied across all queries to the model we can use the +default_scope+ method within the model itself.
+
+<ruby>
+class Client < ActiveRecord::Base
+  default_scope where("removed_at IS NULL")
+end
+</ruby>
+
+When queries are executed on this model, the SQL query will now look something like this:
+
+<sql>
+SELECT * FROM clients WHERE removed_at IS NULL
+</sql>
+
+h4. Removing all scoping
+
+If we wish to remove scoping for any reason we can use the +unscoped+ method. This is especially useful if a +default_scope+ is specified in the model and should not be applied for this particular query.
+
+<ruby>
+Client.unscoped.all
+</ruby>
+
+This method removes all scoping and will do a normal query on the table.
+
 h3. Dynamic Finders
 
 For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+ methods.
@@ -1146,7 +1187,8 @@ For options, please see the parent section, "Calculations":#calculations.
 
 h3. Changelog
 
-* December 23 2010: Add documentation for the +scope+ method. "Ryan Bigg":http://ryanbigg.com
+* June 26 2011: Added documentation for the +scoped+, +unscoped+ and +default+ methods. "Ryan Bigg":credits.html#radar
+* December 23 2010: Add documentation for the +scope+ method. "Ryan Bigg":credits.html#radar
 * April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * February 3, 2010: Update to Rails 3 by "James Miller":credits.html#bensie
 * February 7, 2009: Second version by "Pratik":credits.html#lifo
