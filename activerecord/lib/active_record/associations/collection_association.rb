@@ -77,9 +77,9 @@ module ActiveRecord
         end
       end
 
-      def find(*args, &block)
+      def find(*args)
         if block_given?
-          load_target.find(*args, &block)
+          load_target.find(*args) { |*block_args| yield(*block_args) }
         else
           if options[:finder_sql]
             find_by_scan(*args)
