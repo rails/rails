@@ -226,6 +226,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, Firm.find(:first, :order => "id").clients.length
   end
 
+  def test_finding_array_compatibility
+    assert_equal 2, Firm.order(:id).find{|f| f.id > 0}.clients.length
+  end
+
   def test_find_with_blank_conditions
     [[], {}, nil, ""].each do |blank|
       assert_equal 2, Firm.find(:first, :order => "id").clients.find(:all, :conditions => blank).size
