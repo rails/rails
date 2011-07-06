@@ -307,7 +307,7 @@ module ActiveRecord
 
       order_query.map do |o|
         case o
-        when Arel::Nodes::Ordering
+        when Arel::Nodes::Ascending, Arel::Nodes::Descending
           o.reverse
         when String, Symbol
           o.to_s.split(',').collect do |s|
