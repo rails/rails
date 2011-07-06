@@ -37,14 +37,17 @@ module ApplicationTests
 
     test "assets are compiled properly" do
       app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "app/assets/javascripts/foo/application.js", "alert();"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
       end
-
-      file = Dir["#{app_path}/public/assets/application-*.js"][0]
-      assert_not_nil file, "Expected application.js asset to be generated, but none found"
-      assert_equal "alert();\n", File.read(file)
+      files = Dir["#{app_path}/public/assets/application-*.js"]
+      files << Dir["#{app_path}/public/assets/foo/application-*.js"].first
+      files.each do |file|
+        assert_not_nil file, "Expected application.js asset to be generated, but none found"
+        assert_equal "alert();\n", File.read(file)
+      end
     end
 
     test "assets are cleaned up properly" do
