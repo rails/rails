@@ -397,6 +397,10 @@ class CalculationsTest < ActiveRecord::TestCase
         Account.sum(:credit_limit, :from => 'accounts', :conditions => "credit_limit > 50")
   end
 
+  def test_sum_array_compatibility
+    assert_equal Account.sum(:credit_limit), Account.sum(&:credit_limit)
+  end
+
   def test_average_with_from_option
     assert_equal Account.average(:credit_limit), Account.average(:credit_limit, :from => 'accounts')
     assert_equal Account.average(:credit_limit, :conditions => "credit_limit > 50"),
