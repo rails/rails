@@ -328,7 +328,7 @@ module ActiveRecord
       end
 
       # Checks to see if a column exists. See SchemaStatements#column_exists?
-      def column_exists?(column_name, type = nil, options = nil)
+      def column_exists?(column_name, type = nil, options = {})
         @base.column_exists?(@table_name, column_name, type, options)
       end
 
