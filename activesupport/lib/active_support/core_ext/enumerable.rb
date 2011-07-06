@@ -41,7 +41,7 @@ module Enumerable
   #
   # Examples:
   #
-  #   parents.group_by do |parent|
+  #   parents.count_by do |parent|
   #     parent.children.count
   #   end
   #   "1 -> 12"
@@ -49,7 +49,7 @@ module Enumerable
   #   "3 -> 10"
   #   "7 -> 1"
   #
-  #   users.group_by(&:status)
+  #   users.count_by(&:status)
   #   "active -> 37"
   #   "inactive -> 4"
   #   "blacklisted -> 2"
