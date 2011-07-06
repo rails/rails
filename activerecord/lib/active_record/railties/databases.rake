@@ -35,6 +35,12 @@ namespace :db do
     create_database(ActiveRecord::Base.configurations[Rails.env])
   end
 
+  def mysql_creation_options(config)
+    @charset   = ENV['CHARSET']   || 'utf8'
+    @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
+    {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
+  end
+
   def create_database(config)
     begin
       if config['adapter'] =~ /sqlite/
@@ -58,9 +64,6 @@ namespace :db do
     rescue
       case config['adapter']
       when /^(jdbc)?mysql/
-        @charset   = ENV['CHARSET']   || 'utf8'
-        @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
-        creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
         if config['adapter'] =~ /jdbc/
           #FIXME After Jdbcmysql gives this class
           require 'active_record/railties/jdbcmysql_error'
@@ -71,7 +74,7 @@ namespace :db do
         access_denied_error = 1045
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
-          ActiveRecord::Base.connection.create_database(config['database'], creation_options)
+          ActiveRecord::Base.connection.create_database(config['database'], mysql_creation_options(config))
           ActiveRecord::Base.establish_connection(config)
         rescue error_class => sqlerr
           if sqlerr.errno == access_denied_error
@@ -435,7 +438,7 @@ namespace :db do
       case abcs["test"]["adapter"]
       when /^(jdbc)?mysql/
         ActiveRecord::Base.establish_connection(:test)
-        ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"], abcs["test"])
+        ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"], mysql_creation_options(abcs["test"]))
       when /^(jdbc)?postgresql$/
         ActiveRecord::Base.clear_active_connections!
         drop_database(abcs['test'])
