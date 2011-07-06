@@ -289,6 +289,12 @@ module ActiveSupport
       Time.now.utc.in_time_zone(self)
     end
 
+    # Preload information prior to freezing
+    def freeze
+      tzinfo; utc_offset;
+      super
+    end
+
     # Return the current date in this time zone.
     def today
       tzinfo.now.to_date
