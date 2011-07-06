@@ -1058,7 +1058,7 @@ module ActiveRecord #:nodoc:
             if match.finder?
               options = arguments.extract_options!
               relation = options.any? ? scoped(options) : scoped
-              relation.send :find_by_attributes, match, attribute_names, *arguments
+              relation.send :find_by_attributes, match, attribute_names, *arguments, &block
             elsif match.instantiator?
               scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
             end
