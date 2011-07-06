@@ -35,6 +35,36 @@ module Enumerable
     assoc
   end unless [].respond_to?(:group_by)
 
+  # Return the counts of the objects in the enumerable matching the result of 
+  # the block. Useful, for example, for counting the parents by their number of 
+  # children or counting users by their status.
+  #
+  # Examples:
+  #
+  #   parents.count_by do |parent|
+  #     parent.children.count
+  #   end
+  #   "1 -> 12"
+  #   "2 -> 8"
+  #   "3 -> 10"
+  #   "7 -> 1"
+  #
+  #   users.count_by(&:status)
+  #   "active -> 37"
+  #   "inactive -> 4"
+  #   "blacklisted -> 2"
+  #   "pending -> 17"
+  def count_by(&block)
+    counts = {}
+
+    grouped = group_by(&block)
+    grouped.each do |key, vals|
+      counts[key] = vals.size
+    end
+
+    counts
+  end
+
   # Calculates a sum from the elements. Examples:
   #
   #  payments.sum { |p| p.price * p.tax_rate }

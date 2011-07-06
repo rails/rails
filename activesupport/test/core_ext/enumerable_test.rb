@@ -27,6 +27,26 @@ class EnumerableTests < Test::Unit::TestCase
     assert({}.merge(grouped), "Could not convert ActiveSupport::OrderedHash into Hash")
   end
 
+  def test_count_by
+    names = %w(alexander andy bob jacob janet joe mel peter susan)
+
+    length_counts = names.count_by(&:length)
+
+    assert_equal [3, 4, 5, 9], length_counts.keys.sort
+    assert_equal length_counts[3], 3
+    assert_equal length_counts[4], 1
+    assert_equal length_counts[5], 4
+    assert_equal length_counts[9], 1
+
+    letter_counts = names.count_by { |name| name.first }
+    assert_equal %w(a b j m p s), letter_counts.keys.sort
+    assert_equal letter_counts["a"], 2
+    assert_equal letter_counts["b"], 1
+    assert_equal letter_counts["j"], 3
+    assert_equal letter_counts["m"], 1
+    assert_equal letter_counts["s"], 1
+  end
+
   def test_sums
     assert_equal 30, [5, 15, 10].sum
     assert_equal 30, [5, 15, 10].sum { |i| i }
