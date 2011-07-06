@@ -1071,6 +1071,18 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
 
+    def test_column_exists_on_table_with_no_options_parameter_supplied
+      Person.connection.create_table :testings do |t|
+        t.string :foo
+      end
+      Person.connection.change_table :testings do |t|
+        assert t.column_exists?(:foo)
+        assert !(t.column_exists?(:bar))
+      end
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
     def test_add_table
       assert !Reminder.table_exists?
 
