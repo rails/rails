@@ -46,7 +46,7 @@ db_namespace = namespace :db do
 
   def create_database(config)
     begin
-      if config['adapter'] =~ /sqlite/
+      if config['adapter'] =~ /^(jdbc)?sqlite/
         if File.exist?(config['database'])
           $stderr.puts "#{config['database']} already exists"
         else
@@ -66,7 +66,7 @@ db_namespace = namespace :db do
       end
     rescue
       case config['adapter']
-      when /mysql/
+      when /^(jdbc)?mysql/
         @charset   = ENV['CHARSET']   || 'utf8'
         @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
         creation_options = {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
@@ -100,7 +100,7 @@ db_namespace = namespace :db do
             $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['charset']
           end
         end
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
@@ -241,13 +241,13 @@ db_namespace = namespace :db do
   task :charset => :environment do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     case config['adapter']
-    when /mysql/
+    when /^(jdbc)?mysql/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.charset
-    when /postgresql/
+    when /^(jdbc)?postgresql$/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
-    when /sqlite/
+    when /^(jdbc)?sqlite/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.encoding
     else
@@ -259,7 +259,7 @@ db_namespace = namespace :db do
   task :collation => :environment do
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     case config['adapter']
-    when /mysql/
+    when /^(jdbc)?mysql/
       ActiveRecord::Base.establish_connection(config)
       puts ActiveRecord::Base.connection.collation
     else
@@ -360,10 +360,10 @@ db_namespace = namespace :db do
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs[Rails.env]['adapter']
-      when /mysql/, 'oci', 'oracle'
+      when /^(jdbc)?mysql/, 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(abcs[Rails.env])
         File.open("#{Rails.root}/db/#{Rails.env}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         ENV['PGHOST']     = abcs[Rails.env]['host'] if abcs[Rails.env]['host']
         ENV['PGPORT']     = abcs[Rails.env]["port"].to_s if abcs[Rails.env]['port']
         ENV['PGPASSWORD'] = abcs[Rails.env]['password'].to_s if abcs[Rails.env]['password']
@@ -373,7 +373,7 @@ db_namespace = namespace :db do
         end
         `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
-      when /sqlite/
+      when /^(jdbc)?sqlite/
         dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
         `sqlite3 #{dbfile} .schema > db/#{Rails.env}_structure.sql`
       when 'sqlserver'
@@ -407,18 +407,18 @@ db_namespace = namespace :db do
     task :clone_structure => [ 'db:structure:dump', 'db:test:purge' ] do
       abcs = ActiveRecord::Base.configurations
       case abcs['test']['adapter']
-      when /mysql/
+      when /^(jdbc)?mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
         IO.readlines("#{Rails.root}/db/#{Rails.env}_structure.sql").join.split("\n\n").each do |table|
           ActiveRecord::Base.connection.execute(table)
         end
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         ENV['PGHOST']     = abcs['test']['host'] if abcs['test']['host']
         ENV['PGPORT']     = abcs['test']['port'].to_s if abcs['test']['port']
         ENV['PGPASSWORD'] = abcs['test']['password'].to_s if abcs['test']['password']
         `psql -U "#{abcs['test']['username']}" -f #{Rails.root}/db/#{Rails.env}_structure.sql #{abcs['test']['database']} #{abcs['test']['template']}`
-      when /sqlite/
+      when /^(jdbc)?sqlite/
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         `sqlite3 #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
       when 'sqlserver'
@@ -441,14 +441,14 @@ db_namespace = namespace :db do
     task :purge => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs['test']['adapter']
-      when /mysql/
+      when /^(jdbc)?mysql/
         ActiveRecord::Base.establish_connection(:test)
         ActiveRecord::Base.connection.recreate_database(abcs['test']['database'], abcs['test'])
-      when /postgresql/
+      when /^(jdbc)?postgresql$/
         ActiveRecord::Base.clear_active_connections!
         drop_database(abcs['test'])
         create_database(abcs['test'])
-      when /sqlite/
+      when /^(jdbc)?sqlite/
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         File.delete(dbfile) if File.exist?(dbfile)
       when 'sqlserver'
@@ -526,16 +526,16 @@ task 'test:prepare' => 'db:test:prepare'
 
 def drop_database(config)
   case config['adapter']
-  when /mysql/
+  when /^(jdbc)?mysql/
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.connection.drop_database config['database']
-  when /sqlite/
+  when /^(jdbc)?sqlite/
     require 'pathname'
     path = Pathname.new(config['database'])
     file = path.absolute? ? path.to_s : File.join(Rails.root, path)
 
     FileUtils.rm(file)
-  when /postgresql/
+  when /^(jdbc)?postgresql$/
     ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
     ActiveRecord::Base.connection.drop_database config['database']
   end
