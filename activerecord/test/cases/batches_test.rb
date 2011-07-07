@@ -17,6 +17,13 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_each_should_not_return_query_chain_and_execcute_only_one_query
+    assert_queries(1) do
+      result = Post.find_each(:batch_size => 100000){ }
+      assert_nil result
+    end
+  end
+
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(RuntimeError) do
       Post.find_each(:select => :title, :batch_size => 1) { |post| post }
