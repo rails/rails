@@ -669,7 +669,7 @@ module ActiveRecord
     # To iterate over these one hundred posts, we'll generate 201 database queries. Let's
     # first just optimize it for retrieving the author:
     #
-    #   Post.all(:include => :author).each do |post|
+    #   Post.includes(:author).each do |post|
     #
     # This references the name of the +belongs_to+ association that also used the <tt>:author</tt>
     # symbol. After loading the posts, find will collect the +author_id+ from each one and load
@@ -678,7 +678,7 @@ module ActiveRecord
     #
     # We can improve upon the situation further by referencing both associations in the finder with:
     #
-    #   Post.all(:include => [ :author, :comments ]).each do |post|
+    #   Post.includes(:author, :comments).each do |post|
     #
     # This will load all comments with a single query. This reduces the total number of queries
     # to 3. More generally the number of queries will be 1 plus the number of associations
@@ -686,7 +686,7 @@ module ActiveRecord
     #
     # To include a deep hierarchy of associations, use a hash:
     #
-    #   Post.all(:include => [ :author, { :comments => { :author => :gravatar } } ]).each do |post|
+    #   Post.includes(:author, {:comments => {:author => :gravatar}}).each do |post|
     #
     # That'll grab not only all the comments but all their authors and gravatar pictures.
     # You can mix and match symbols, arrays and hashes in any combination to describe the
@@ -714,13 +714,13 @@ module ActiveRecord
     # <tt>:order => "author.name DESC"</tt> will work but <tt>:order => "name DESC"</tt> will not.
     #
     # If you do want eager load only some members of an association it is usually more natural
-    # to <tt>:include</tt> an association which has conditions defined on it:
+    # to include an association which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
     #     has_many :approved_comments, :class_name => 'Comment', :conditions => ['approved = ?', true]
     #   end
     #
-    #   Post.all(:include => :approved_comments)
+    #   Post.includes(:approved_comments)
     #
     # This will load posts and eager load the +approved_comments+ association, which contains
     # only those comments that have been approved.
@@ -732,7 +732,7 @@ module ActiveRecord
     #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
     #   end
     #
-    #   Picture.first(:include => :most_recent_comments).most_recent_comments # => returns all associated comments.
+    #   Picture.includes(:most_recent_comments).first.most_recent_comments # => returns all associated comments.
     #
     # When eager loaded, conditions are interpolated in the context of the model class, not
     # the model instance. Conditions are lazily interpolated before the actual model exists.
@@ -745,7 +745,7 @@ module ActiveRecord
     #
     # A call that tries to eager load the addressable model
     #
-    #   Address.all(:include => :addressable)
+    #   Address.includes(:addressable)
     #
     # This will execute one query to load the addresses and load the addressables with one
     # query per addressable type.
