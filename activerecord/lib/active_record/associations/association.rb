@@ -30,7 +30,7 @@ module ActiveRecord
         @updated = false
 
         reset
-        construct_scope
+        reset_scope
       end
 
       # Returns the name of the table of the related class:
@@ -51,7 +51,7 @@ module ActiveRecord
       # Reloads the \target and returns +self+ on success.
       def reload
         reset
-        construct_scope
+        reset_scope
         load_target
         self unless target.nil?
       end
@@ -84,19 +84,23 @@ module ActiveRecord
       end
 
       def scoped
-        target_scope.merge(@association_scope)
+        target_scope.merge(association_scope)
       end
 
-      # Construct the scope for this association.
+      # The scope for this association.
       #
       # Note that the association_scope is merged into the target_scope only when the
       # scoped method is called. This is because at that point the call may be surrounded
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
-      def construct_scope
+      def association_scope
         if klass
-          @association_scope = AssociationScope.new(self).scope
+          @association_scope ||= AssociationScope.new(self).scope
         end
+      end
+
+      def reset_scope
+        @association_scope = nil
       end
 
       # Set the inverse association, if possible
