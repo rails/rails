@@ -1,3 +1,4 @@
+require 'zlib'
 require 'active_support/core_ext/file'
 
 module ActionView
@@ -111,8 +112,7 @@ module ActionView
           args << current_request if (arity > 1 || arity < 0) && has_request?
           host.call(*args)
         else
-          source_num = source.bytes.sum
-          (host =~ /%d/) ? host % (source_num % 4) : host
+          (host =~ /%d/) ? host % (Zlib.crc32(source) % 4) : host
         end
       end
     end
