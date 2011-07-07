@@ -8,6 +8,7 @@ else
   gem "arel", '~> 2.1.3'
 end
 
+gem "jquery-rails"
 gem "coffee-script"
 gem "sass"
 

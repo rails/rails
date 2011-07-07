@@ -61,22 +61,22 @@ module ApplicationTests
 
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
-      
+
       app_file "config/database.yml", <<-RUBY
         development:
       RUBY
-      
+
       app_file "test/unit/one_unit_test.rb", <<-RUBY
       RUBY
-      
+
       app_file "test/functional/one_functional_test.rb", <<-RUBY
         raise RuntimeError
       RUBY
-      
+
       app_file "test/integration/one_integration_test.rb", <<-RUBY
         raise RuntimeError
       RUBY
-      
+
       silence_stderr do
         output = Dir.chdir(app_path){ `rake test` }
         assert_match /Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output
@@ -150,6 +150,15 @@ module ApplicationTests
 
       assert_equal 2, ::AppTemplate::Application::Product.count
       assert_equal 0, ::AppTemplate::Application::User.count
+    end
+
+    def test_scaffold_tests_pass_by_default
+      content = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string password:string`
+        `bundle exec rake db:migrate db:test:clone test`
+      end
+
+      assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
     end
   end
 end
