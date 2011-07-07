@@ -191,7 +191,7 @@ module ActiveRecord
     # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
-    #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.find(:all, options),</tt>
+    #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.all(options),</tt>
     #   <tt>Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1)</tt>
@@ -669,7 +669,7 @@ module ActiveRecord
     # To iterate over these one hundred posts, we'll generate 201 database queries. Let's
     # first just optimize it for retrieving the author:
     #
-    #   Post.find(:all, :include => :author).each do |post|
+    #   Post.all(:include => :author).each do |post|
     #
     # This references the name of the +belongs_to+ association that also used the <tt>:author</tt>
     # symbol. After loading the posts, find will collect the +author_id+ from each one and load
@@ -678,7 +678,7 @@ module ActiveRecord
     #
     # We can improve upon the situation further by referencing both associations in the finder with:
     #
-    #   Post.find(:all, :include => [ :author, :comments ]).each do |post|
+    #   Post.all(:include => [ :author, :comments ]).each do |post|
     #
     # This will load all comments with a single query. This reduces the total number of queries
     # to 3. More generally the number of queries will be 1 plus the number of associations
@@ -686,7 +686,7 @@ module ActiveRecord
     #
     # To include a deep hierarchy of associations, use a hash:
     #
-    #   Post.find(:all, :include => [ :author, { :comments => { :author => :gravatar } } ]).each do |post|
+    #   Post.all(:include => [ :author, { :comments => { :author => :gravatar } } ]).each do |post|
     #
     # That'll grab not only all the comments but all their authors and gravatar pictures.
     # You can mix and match symbols, arrays and hashes in any combination to describe the
@@ -720,7 +720,7 @@ module ActiveRecord
     #     has_many :approved_comments, :class_name => 'Comment', :conditions => ['approved = ?', true]
     #   end
     #
-    #   Post.find(:all, :include => :approved_comments)
+    #   Post.all(:include => :approved_comments)
     #
     # This will load posts and eager load the +approved_comments+ association, which contains
     # only those comments that have been approved.
@@ -745,7 +745,7 @@ module ActiveRecord
     #
     # A call that tries to eager load the addressable model
     #
-    #   Address.find(:all, :include => :addressable)
+    #   Address.all(:include => :addressable)
     #
     # This will execute one query to load the addresses and load the addressables with one
     # query per addressable type.
@@ -763,33 +763,33 @@ module ActiveRecord
     # second time, the table is aliased as <tt>#{reflection_name}_#{parent_table_name}</tt>.
     # Indexes are appended for any more successive uses of the table name.
     #
-    #   Post.find :all, :joins => :comments
+    #   Post.all :joins => :comments
     #   # => SELECT ... FROM posts INNER JOIN comments ON ...
-    #   Post.find :all, :joins => :special_comments # STI
+    #   Post.all :joins => :special_comments # STI
     #   # => SELECT ... FROM posts INNER JOIN comments ON ... AND comments.type = 'SpecialComment'
-    #   Post.find :all, :joins => [:comments, :special_comments] # special_comments is the reflection name, posts is the parent table name
+    #   Post.all :joins => [:comments, :special_comments] # special_comments is the reflection name, posts is the parent table name
     #   # => SELECT ... FROM posts INNER JOIN comments ON ... INNER JOIN comments special_comments_posts
     #
     # Acts as tree example:
     #
-    #   TreeMixin.find :all, :joins => :children
+    #   TreeMixin.all :joins => :children
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
-    #   TreeMixin.find :all, :joins => {:children => :parent}
+    #   TreeMixin.all :joins => {:children => :parent}
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
-    #   TreeMixin.find :all, :joins => {:children => {:parent => :children}}
+    #   TreeMixin.all :joins => {:children => {:parent => :children}}
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
     #                               INNER JOIN mixins childrens_mixins_2
     #
     # Has and Belongs to Many join tables use the same idea, but add a <tt>_join</tt> suffix:
     #
-    #   Post.find :all, :joins => :categories
+    #   Post.all :joins => :categories
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
-    #   Post.find :all, :joins => {:categories => :posts}
+    #   Post.all :joins => {:categories => :posts}
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
-    #   Post.find :all, :joins => {:categories => {:posts => :categories}}
+    #   Post.all :joins => {:categories => {:posts => :categories}}
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
     #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
@@ -797,9 +797,9 @@ module ActiveRecord
     # If you wish to specify your own custom joins using a <tt>:joins</tt> option, those table
     # names will take precedence over the eager associations:
     #
-    #   Post.find :all, :joins => :comments, :joins => "inner join comments ..."
+    #   Post.all :joins => :comments, :joins => "inner join comments ..."
     #   # => SELECT ... FROM posts INNER JOIN comments_posts ON ... INNER JOIN comments ...
-    #   Post.find :all, :joins => [:comments, :special_comments], :joins => "inner join comments ..."
+    #   Post.all :joins => [:comments, :special_comments], :joins => "inner join comments ..."
     #   # => SELECT ... FROM posts INNER JOIN comments comments_posts ON ...
     #                              INNER JOIN comments special_comments_posts ...
     #                              INNER JOIN comments ...
@@ -1031,7 +1031,7 @@ module ActiveRecord
       # === Example
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => ["firm_id = ?", id]</tt>)
+      # * <tt>Firm#clients</tt> (similar to <tt>Clients.all :conditions => ["firm_id = ?", id]</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients=</tt>

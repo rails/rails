@@ -29,7 +29,7 @@ module ActionController
   #   class EventsController < ActionController::Base
   #     helper FormattedTimeHelper
   #     def index
-  #       @events = Event.find(:all)
+  #       @events = Event.all
   #     end
   #   end
   #
