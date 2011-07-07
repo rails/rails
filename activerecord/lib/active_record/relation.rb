@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
   # = Active Record Relation
