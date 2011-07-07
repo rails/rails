@@ -689,9 +689,9 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.config.asset_host = 'http://a%d.example.com'
     config.perform_caching = true
 
-    hash = '/javascripts/cache/money.js'.hash % 4
+    number = '/javascripts/cache/money.js'.bytes.sum % 4
     assert_dom_equal(
-      %(<script src="http://a#{hash}.example.com/javascripts/cache/money.js" type="text/javascript"></script>),
+      %(<script src="http://a#{number}.example.com/javascripts/cache/money.js" type="text/javascript"></script>),
       javascript_include_tag(:all, :cache => "cache/money")
     )
 
@@ -1129,6 +1129,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four
+    String.any_instance.expects(:hash).times(0)
     @controller.config.asset_host = 'http://a%d.example.com'
     assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path('xml.png'))
   end
