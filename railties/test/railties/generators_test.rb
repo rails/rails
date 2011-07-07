@@ -32,8 +32,8 @@ module RailtiesTests
     end
 
     def build_engine(is_mountable=false)
+      FileUtils.rm_rf(engine_path)
       FileUtils.mkdir_p(engine_path)
-      FileUtils.rm_r(engine_path)
 
       mountable = is_mountable ? "--mountable" : ""
 
