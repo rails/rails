@@ -10,7 +10,10 @@ end
 
 gem "coffee-script"
 gem "sass"
-gem "uglifier", ">= 1.0.0"
+
+# This needs to be with require false to avoid
+# it being automatically loaded by sprockets
+gem "uglifier", ">= 1.0.0", :require => false
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
