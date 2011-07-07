@@ -12,7 +12,7 @@ module ActiveRecord
     #     has_many :posts
     #   end
     #
-    #   blog = Blog.find(:first)
+    #   blog = Blog.first
     #
     # the association proxy in <tt>blog.posts</tt> has the object in +blog+ as
     # <tt>@owner</tt>, the collection of its posts as <tt>@target</tt>, and
