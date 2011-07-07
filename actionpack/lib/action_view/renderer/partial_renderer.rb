@@ -12,8 +12,7 @@ module ActionView
   #
   #  <%= render :partial => "account" %>
   #
-  # This would render "advertiser/_account.html.erb" and pass the instance variable @account in as a local variable
-  # +account+ to the template for display.
+  # This would render "advertiser/_account.html.erb".
   #
   # In another template for Advertiser#buy, we could have:
   #
@@ -28,32 +27,24 @@ module ActionView
   #
   # == The :as and :object options
   #
-  # By default <tt>ActionView::Partials::PartialRenderer</tt> has its object in a local variable with the same
-  # name as the template. So, given
-  #
-  #   <%= render :partial => "contract" %>
-  #
-  # within contract we'll get <tt>@contract</tt> in the local variable +contract+, as if we had written
-  #
-  #   <%= render :partial => "contract", :locals => { :contract  => @contract } %>
-  #
-  # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
-  # wanted it to be +agreement+ instead of +contract+ we'd do:
-  #
-  #   <%= render :partial => "contract", :as => 'agreement' %>
-  #
-  # The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial;
-  # useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
-  #
-  # Revisiting a previous example we could have written this code:
+  # By default <tt>ActionView::Partials::PartialRenderer</tt> doesn't have any local variables.
+  # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
   #
   #   <%= render :partial => "account", :object => @buyer %>
   #
-  #   <% @advertisements.each do |ad| %>
-  #     <%= render :partial => "ad", :object => ad %>
-  #   <% end %>
+  # would provide the +@buyer+ object to the partial, available under the local variable +account+ and is
+  # equivalent to:
   #
-  # The <tt>:object</tt> and <tt>:as</tt> options can be used together.
+  #   <%= render :partial => "account", :locals => { :account => @buyer } %>
+  #
+  # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
+  # wanted it to be +user+ instead of +account+ we'd do:
+  #
+  #   <%= render :partial => "account", :object => @buyer, :as => 'user' %>
+  #
+  # This is equivalent to
+  #
+  #   <%= render :partial => "account", :locals => { :user => @buyer } %>
   #
   # == Rendering a collection of partials
   #
