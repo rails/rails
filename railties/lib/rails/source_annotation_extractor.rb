@@ -28,9 +28,9 @@ class SourceAnnotationExtractor
     end
   end
 
-  # Prints all annotations with tag +tag+ under the root directories +app+, +lib+,
-  # and +test+ (recursively). Only filenames with extension +.builder+, +.rb+,
-  # +.rxml+, +.rhtml+, or +.erb+ are taken into account. The +options+
+  # Prints all annotations with tag +tag+ under the root directories +app+, +config+, +lib+,
+  # +script+, and +test+ (recursively). Only filenames with extension 
+  # +.builder+, +.rb+, +.rxml+, +.rhtml+, or +.erb+ are taken into account. The +options+
   # hash is passed to each annotation's +to_s+.
   #
   # This class method is the single entry point for the rake tasks.
@@ -49,7 +49,7 @@ class SourceAnnotationExtractor
   # with their annotations. Only files with annotations are included, and only
   # those with extension +.builder+, +.rb+, +.rxml+, +.rhtml+, and +.erb+
   # are taken into account.
-  def find(dirs=%w(app lib test))
+  def find(dirs=%w(app config lib script test))
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
