@@ -111,7 +111,8 @@ module ActionView
           args << current_request if (arity > 1 || arity < 0) && has_request?
           host.call(*args)
         else
-          (host =~ /%d/) ? host % (source.hash % 4) : host
+          source_num = source.bytes.sum
+          (host =~ /%d/) ? host % (source_num % 4) : host
         end
       end
     end
