@@ -426,7 +426,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   person = Account.find(:first).people.find_or_create_by_name("David Heinemeier Hansson")
+    #   person = Account.first.people.find_or_create_by_name("David Heinemeier Hansson")
     #   person.first_name # => "David"
     #   person.last_name  # => "Heinemeier Hansson"
     #
@@ -483,7 +483,7 @@ module ActiveRecord
     #     belongs_to :book
     #   end
     #
-    #   @author = Author.find :first
+    #   @author = Author.first
     #   @author.authorships.collect { |a| a.book } # selects all books that the author's authorships belong to
     #   @author.books                              # selects all books by using the Authorship join model
     #
@@ -503,7 +503,7 @@ module ActiveRecord
     #     belongs_to :client
     #   end
     #
-    #   @firm = Firm.find :first
+    #   @firm = Firm.first
     #   @firm.clients.collect { |c| c.invoices }.flatten # select all invoices for all clients of the firm
     #   @firm.invoices                                   # selects all invoices by going through the Client join model
     #
@@ -738,7 +738,7 @@ module ActiveRecord
     #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
     #   end
     #
-    #   Picture.find(:first, :include => :most_recent_comments).most_recent_comments # => returns all associated comments.
+    #   Picture.first(:include => :most_recent_comments).most_recent_comments # => returns all associated comments.
     #
     # When eager loaded, conditions are interpolated in the context of the model class, not
     # the model instance.  Conditions are lazily interpolated before the actual model exists.
@@ -1200,7 +1200,7 @@ module ActiveRecord
       # === Example
       #
       # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
-      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find(:first, :conditions => "account_id = #{id}")</tt>)
+      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.first(:conditions => "account_id = #{id}")</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
