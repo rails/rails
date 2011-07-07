@@ -62,7 +62,7 @@ module Sprockets
         env.logger = Rails.logger
 
         if env.respond_to?(:cache)
-          env.cache = Rails.cache
+          env.cache = assets.cache_store || Rails.cache
         end
 
         if assets.compress
