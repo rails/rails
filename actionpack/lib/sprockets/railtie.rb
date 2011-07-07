@@ -1,5 +1,7 @@
 module Sprockets
   autoload :Helpers, "sprockets/helpers"
+  autoload :LazyCompressor, "sprockets/compressors"
+  autoload :NullCompressor, "sprockets/compressors"
 
   # TODO: Get rid of config.assets.enabled
   class Railtie < ::Rails::Railtie
@@ -66,8 +68,8 @@ module Sprockets
         if assets.compress
           # temporarily hardcode default JS compressor to uglify. Soon, it will work
           # the same as SCSS, where a default plugin sets the default.
-          env.js_compressor  = expand_js_compressor(assets.js_compressor || :uglifier)
-          env.css_compressor = expand_css_compressor(assets.css_compressor)
+          env.js_compressor  = LazyCompressor.new { expand_js_compressor(assets.js_compressor || :uglifier) }
+          env.css_compressor = LazyCompressor.new { expand_css_compressor(assets.css_compressor) }
         end
 
         env

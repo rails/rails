@@ -35,6 +35,17 @@ module ApplicationTests
       assert_match "alert()", last_response.body
     end
 
+    test "assets do not require compressors until it is used" do
+      app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
+      ENV["RAILS_ENV"] = "production"
+      require "#{app_path}/config/environment"
+
+      assert !defined?(Uglifier)
+      get "/assets/demo.js"
+      assert_match "alert()", last_response.body
+      assert defined?(Uglifier)
+    end
+
     test "assets are compiled properly" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
