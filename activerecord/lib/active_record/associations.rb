@@ -763,43 +763,43 @@ module ActiveRecord
     # second time, the table is aliased as <tt>#{reflection_name}_#{parent_table_name}</tt>.
     # Indexes are appended for any more successive uses of the table name.
     #
-    #   Post.all :joins => :comments
+    #   Post.joins(:comments)
     #   # => SELECT ... FROM posts INNER JOIN comments ON ...
-    #   Post.all :joins => :special_comments # STI
+    #   Post.joins(:special_comments) # STI
     #   # => SELECT ... FROM posts INNER JOIN comments ON ... AND comments.type = 'SpecialComment'
-    #   Post.all :joins => [:comments, :special_comments] # special_comments is the reflection name, posts is the parent table name
+    #   Post.joins(:comments, :special_comments) # special_comments is the reflection name, posts is the parent table name
     #   # => SELECT ... FROM posts INNER JOIN comments ON ... INNER JOIN comments special_comments_posts
     #
     # Acts as tree example:
     #
-    #   TreeMixin.all :joins => :children
+    #   TreeMixin.joins(:children)
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
-    #   TreeMixin.all :joins => {:children => :parent}
+    #   TreeMixin.joins(:children => :parent)
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
-    #   TreeMixin.all :joins => {:children => {:parent => :children}}
+    #   TreeMixin.joins(:children => {:parent => :children})
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
     #                               INNER JOIN mixins childrens_mixins_2
     #
     # Has and Belongs to Many join tables use the same idea, but add a <tt>_join</tt> suffix:
     #
-    #   Post.all :joins => :categories
+    #   Post.joins(:categories)
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
-    #   Post.all :joins => {:categories => :posts}
+    #   Post.joins(:categories => :posts)
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
-    #   Post.all :joins => {:categories => {:posts => :categories}}
+    #   Post.joins(:categories => {:posts => :categories})
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
     #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
     #
-    # If you wish to specify your own custom joins using a <tt>:joins</tt> option, those table
+    # If you wish to specify your own custom joins using <tt>joins</tt> method, those table
     # names will take precedence over the eager associations:
     #
-    #   Post.all :joins => :comments, :joins => "inner join comments ..."
+    #   Post.joins(:comments).joins("inner join comments ...")
     #   # => SELECT ... FROM posts INNER JOIN comments_posts ON ... INNER JOIN comments ...
-    #   Post.all :joins => [:comments, :special_comments], :joins => "inner join comments ..."
+    #   Post.joins(:comments, :special_comments).joins("inner join comments ...")
     #   # => SELECT ... FROM posts INNER JOIN comments comments_posts ON ...
     #                              INNER JOIN comments special_comments_posts ...
     #                              INNER JOIN comments ...
