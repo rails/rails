@@ -178,11 +178,9 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nothing_raised do
       fixtures = ActiveRecord::Fixtures.new(Account.connection, 'categories', 'Category', FIXTURES_ROOT + "/categories_ordered")
 
-      i = 0
-      fixtures.each do |name, fixture|
+      fixtures.each.with_index do |(name, fixture), i|
         assert_equal "fixture_no_#{i}", name
         assert_equal "Category #{i}", fixture['name']
-        i += 1
       end
     end
   end
