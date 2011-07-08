@@ -1874,6 +1874,17 @@ class FormHelperTest < ActionView::TestCase
     assert_equal LabelledFormBuilder, klass
   end
 
+  def test_form_for_with_labelled_builder_path
+    path = nil
+
+    form_for(@post, :builder => LabelledFormBuilder) do |f|
+      path = f.to_path
+      ''
+    end
+
+    assert_equal 'labelled_form', path
+  end
+
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
 
   def test_form_for_with_labelled_builder_with_nested_fields_for_with_custom_builder
