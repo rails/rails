@@ -489,7 +489,7 @@ TIP: You can use ruby-debug while using +rails console+. Just remember to +requi
 
 <shell>
 $ rails console
-Loading development environment (Rails 2.1.0)
+Loading development environment (Rails 3.1.0)
 >> require "ruby-debug"
 => []
 >> author = Author.first
