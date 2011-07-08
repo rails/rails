@@ -90,7 +90,6 @@ When a scaffold or controller is generated for the application, Rails will also 
 
 For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +<%= javascript_include_tag params[:controller] %>+ or +<%= stylesheet_link_tag params[:controller] %>+.
 
-
 h4. Asset Organization
 
 Assets can be placed inside an application in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+.
@@ -183,6 +182,31 @@ TODO: Talk about: Rack::Cache's caching (used in dev and production. The only di
 In the development environment assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ cache-control http header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
 
 If any of the files in the manifest have changed between requests, the server will respond with a new compiled file.
+
+h4. Debugging Assets
+
+You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL and Sprockets will expand the lines which load the assets. For example, if we had an +app/assets/javascripts/application.js+ file containing these lines:
+
+<plain>
+//= require "projects"
+//= require "tickets"
+</plain>
+
+By default, this would only render this line when used with +<%= javascript_include_tag "application" %>+ in a view or layout:
+
+<html>
+  <script src='/assets/application.js'></script>
+</html>
+
+When the +debug_assets+ parameter is set, this line will be expanded out into three separate lines, separating out the combined file into their parts.
+
+<html>
+  <script src='/assets/application.js'></script>
+  <script src='/assets/projects.js'></script>
+  <script src='/assets/tickets.js'></script>
+</html>
+
+This allows the individual parts of an asset to be rendered and debugged separately.
 
 h3. In Production
 
