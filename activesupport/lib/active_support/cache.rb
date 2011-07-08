@@ -557,7 +557,7 @@ module ActiveSupport
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
         @created_at = Time.now.to_f
-        if value
+        if defined?(value)
           if should_compress?(value, options)
             @value = Zlib::Deflate.deflate(Marshal.dump(value))
             @compressed = true
@@ -576,7 +576,7 @@ module ActiveSupport
 
       # Get the value stored in the cache.
       def value
-        if @value
+        if defined?(@value)
           val = compressed? ? Marshal.load(Zlib::Inflate.inflate(@value)) : @value
           unless val.frozen?
             val.freeze rescue nil
