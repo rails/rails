@@ -88,7 +88,7 @@ This is not to say that assets can (or should) no longer be placed in +public+. 
 
 When a scaffold or controller is generated for the application, Rails will also generate a JavaScript file (or CoffeeScript if the +coffee-script+ gem is in the +Gemfile+) and a Cascading Style Sheet file (or SCSS if +sass-rails+ is in the +Gemfile+) file for that controller.
 
-For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You can put any JavaScript or CSS unique to a controller inside their respective asset files.
+For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +<%= javascript_include_tag params[:controller] %>+ or +<%= stylesheet_link_tag params[:controller] %>+.
 
 
 h4. Asset Organization
