@@ -188,6 +188,11 @@ module CacheStoreBehavior
     assert_equal nil, @cache.read('foo')
   end
 
+  def test_should_read_and_write_false
+    assert_equal true, @cache.write('foo', false)
+    assert_equal false, @cache.read('foo')
+  end
+
   def test_read_multi
     @cache.write('foo', 'bar')
     @cache.write('fu', 'baz')
