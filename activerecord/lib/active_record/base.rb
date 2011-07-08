@@ -1864,15 +1864,17 @@ MSG
 
       # Returns the contents of the record as a nicely formatted string.
       def inspect
-        inspection = if @attributes
-                       self.class.column_names.collect { |name|
-                         if has_attribute?(name)
-                           "#{name}: #{attribute_for_inspect(name)}"
-                         end
-                       }.compact.join(", ")
-                     else
-                       "not initialized"
-                     end
+        inspection = \
+        if defined?(@attributes) && @attributes
+          self.class.column_names.collect { |name|
+            if has_attribute?(name)
+              "#{name}: #{attribute_for_inspect(name)}"
+            end
+          }.compact.join(", ")
+        else
+          "not initialized"
+        end
+
         "#<#{self.class} #{inspection}>"
       end
 
