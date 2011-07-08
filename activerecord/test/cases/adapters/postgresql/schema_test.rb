@@ -229,8 +229,8 @@ class SchemaTest < ActiveRecord::TestCase
       %("schema"."table_name") => %w{schema table_name},
       %("even spaces".table)   => ['even spaces','table'],
       %(schema."table.name")   => ['schema', 'table.name']
-    }.each do |given,expect|
-      assert_equal expect, @connection.send(:extract_schema_and_table, given)
+    }.each do |given, expect|
+      assert_equal expect, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::Utils.extract_schema_and_table(given)
     end
   end
 
