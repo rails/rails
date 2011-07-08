@@ -667,4 +667,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     firm = client.create_firm!{ |f| f.name = 'Agency Company' }
     assert_equal 'Agency Company', firm.name
   end
+
+  def test_should_set_foreign_key_on_create_association
+    client = Client.create! :name => "fuu"
+
+    firm = client.create_firm :name => "baa"
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_should_set_foreign_key_on_create_association!
+    client = Client.create! :name => "fuu"
+
+    firm = client.create_firm! :name => "baa"
+    assert_equal firm.id, client.client_of
+  end
 end
