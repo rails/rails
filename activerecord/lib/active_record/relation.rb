@@ -250,8 +250,7 @@ module ActiveRecord
     #   Person.update(people.keys, people.values)
     def update(id, attributes)
       if id.is_a?(Array)
-        idx = -1
-        id.collect { |one_id| idx += 1; update(one_id, attributes[idx]) }
+        id.each.with_index.map {|one_id, idx| update(one_id, attributes[idx])}
       else
         object = find(id)
         object.update_attributes(attributes)
