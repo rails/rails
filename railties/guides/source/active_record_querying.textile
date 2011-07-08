@@ -256,7 +256,7 @@ The above will yield the supplied block with +1000+ invoices every time.
 
 h3. Conditions
 
-The +find+ method allows you to specify conditions to limit the records returned, representing the +WHERE+-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
+The +where+ method allows you to specify conditions to limit the records returned, representing the +WHERE+-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
 
 h4. Pure String Conditions
 
