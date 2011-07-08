@@ -670,7 +670,7 @@ module ActiveRecord
       # If the schema is not specified as part of +name+ then it will only find tables within
       # the current schema search path (regardless of permissions to access tables in other schemas)
       def table_exists?(name)
-        schema, table = extract_schema_and_table(name.to_s)
+        schema, table = Utils.extract_schema_and_table(name.to_s)
         return false unless table
 
         binds = [[nil, table]]
@@ -947,6 +947,23 @@ module ActiveRecord
         "DISTINCT #{columns}, #{order_columns * ', '}"
       end
 
+      module Utils
+        # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
+        # +schema_name+ is nil if not specified in +name+.
+        # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
+        # +name+ supports the range of schema/table references understood by PostgreSQL, for example:
+        #
+        # * <tt>table_name</tt>
+        # * <tt>"table.name"</tt>
+        # * <tt>schema_name.table_name</tt>
+        # * <tt>schema_name."table.name"</tt>
+        # * <tt>"schema.name"."table name"</tt>
+        def self.extract_schema_and_table(name)
+          table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
+          [schema, table]
+        end
+      end
+
       protected
         # Returns the version of the connected PostgreSQL server.
         def postgresql_version
@@ -1083,21 +1100,6 @@ module ActiveRecord
             rest = rest[1, rest.length] if rest.start_with? "."
             [match_data[1], (rest.length > 0 ? rest : nil)]
           end
-        end
-
-        # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
-        # +schema_name+ is nil if not specified in +name+.
-        # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
-        # +name+ supports the range of schema/table references understood by PostgreSQL, for example:
-        #
-        # * <tt>table_name</tt>
-        # * <tt>"table.name"</tt>
-        # * <tt>schema_name.table_name</tt>
-        # * <tt>schema_name."table.name"</tt>
-        # * <tt>"schema.name"."table name"</tt>
-        def extract_schema_and_table(name)
-          table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
-          [schema, table]
         end
 
         def extract_table_ref_from_insert_sql(sql)
