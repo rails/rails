@@ -127,7 +127,7 @@ When something is logged it's printed into the corresponding log if the log leve
 The available log levels are: +:debug+, +:info+, +:warn+, +:error+, and +:fatal+, corresponding to the log level numbers from 0 up to 4 respectively. To change the default log level, use
 
 <ruby>
-config.log_level = Logger::WARN # In any environment initializer, or
+config.log_level = :warn # In any environment initializer, or
 Rails.logger.level = 0 # at any time
 </ruby>
 
@@ -480,11 +480,7 @@ class Author < ActiveRecord::Base
 
   def find_recent_comments(limit = 10)
     debugger
-    @recent_comments ||= comments.find(
-      :all,
-      :conditions => ["created_at > ?", 1.week.ago],
-      :limit => limit
-    )
+    @recent_comments ||= comments.where("created_at > ?", 1.week.ago).limit(limit)
   end
 end
 </ruby>
@@ -493,7 +489,7 @@ TIP: You can use ruby-debug while using +rails console+. Just remember to +requi
 
 <shell>
 $ rails console
-Loading development environment (Rails 2.1.0)
+Loading development environment (Rails 3.1.0)
 >> require "ruby-debug"
 => []
 >> author = Author.first
@@ -507,15 +503,15 @@ With the code stopped, take a look around:
 
 <shell>
 (rdb:1) list
-[6, 15] in /PathTo/project/app/models/author.rb
+[2, 9] in /PathTo/project/app/models/author.rb
+   2    has_one :editorial
+   3    has_many :comments
+   4
+   5    def find_recent_comments(limit = 10)
    6      debugger
-   7      @recent_comments ||= comments.find(
-   8        :all,
-   9        :conditions => ["created_at > ?", 1.week.ago],
-   10        :limit => limit
-=> 11      )
-   12    end
-   13  end
+=> 7      @recent_comments ||= comments.where("created_at > ?", 1.week.ago).limit(limit)
+   8    end
+   9  end
 </shell>
 
 You are at the end of the line, but... was this line executed? You can inspect the instance variables.

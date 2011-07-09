@@ -12,13 +12,13 @@ module ActionController #:nodoc:
     #
     #   <% cache do %>
     #     All the topics in the system:
-    #     <%= render :partial => "topic", :collection => Topic.find(:all) %>
+    #     <%= render :partial => "topic", :collection => Topic.all %>
     #   <% end %>
     #
     # This cache will bind the name of the action that called it, so if
     # this code was part of the view for the topics/list action, you 
     # would be able to invalidate it using:
-    #   
+    #
     #   expire_fragment(:controller => "topics", :action => "list")
     #
     # This default behavior is limited if you need to cache multiple 

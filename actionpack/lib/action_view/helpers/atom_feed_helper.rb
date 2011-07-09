@@ -20,7 +20,7 @@ module ActionView
       #       # GET /posts.html
       #       # GET /posts.atom
       #       def index
-      #         @posts = Post.find(:all)
+      #         @posts = Post.all
       #
       #         respond_to do |format|
       #           format.html

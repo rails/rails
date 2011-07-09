@@ -32,7 +32,7 @@ h4. Main Features
 
 The first is to concatenate of assets. This is important in a production environment to reduce the number of requests that a client browser has to make to render a web page. While Rails already has a feature to concatenate these types of asset--by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+--, many people do not use it.
 
-The default behavior in 3.1 and onward is to concatenate all files into one master file each for JS and CSS, however you can separate files or groups of files if required (see below). In production an MD5 fingerprint is inserted into each filename.
+The default behavior in Rails 3.1 and onward is to concatenate all files into one master file each for JS and CSS, however you can separate files or groups of files if required (see below). In production an MD5 fingerprint is inserted into each filename.
 
 The second feature of the pipeline is to minify or compress. For CSS this usually involves removing whitespace and comments. For Javascript more complex processes can be applied.
 
@@ -42,7 +42,7 @@ The third feature is the ability to code these assets using another language, or
 
 h4. What is fingerprinting and why should I care?
 
-Fingerprinting is a technique where the filenames of content that is static or infrequently updated is altered to be unique to the content contained in the file. 
+Fingerprinting is a technique where the filenames of content that is static or infrequently updated is altered to be unique to the content contained in the file.
 
 When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep there own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
 
@@ -57,8 +57,8 @@ This is the strategy adopted by the Rails asset pipeline.
 Rails old strategy was to append a query string to every asset linked with a built-in helper. In the source the generated code looked like this:
 
 <plain>
-/stylesheets/global.css?1309495796  
-</plain>  
+/stylesheets/global.css?1309495796
+</plain>
 
 This has several disadvantages:
 
@@ -88,8 +88,7 @@ This is not to say that assets can (or should) no longer be placed in +public+. 
 
 When a scaffold or controller is generated for the application, Rails will also generate a JavaScript file (or CoffeeScript if the +coffee-script+ gem is in the +Gemfile+) and a Cascading Style Sheet file (or SCSS if +sass-rails+ is in the +Gemfile+) file for that controller.
 
-For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You can put any JavaScript or CSS unique to a controller inside their respective asset files.
-
+For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +<%= javascript_include_tag params[:controller] %>+ or +<%= stylesheet_link_tag params[:controller] %>+.
 
 h4. Asset Organization
 
@@ -183,6 +182,31 @@ TODO: Talk about: Rack::Cache's caching (used in dev and production. The only di
 In the development environment assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ cache-control http header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
 
 If any of the files in the manifest have changed between requests, the server will respond with a new compiled file.
+
+h4. Debugging Assets
+
+You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL and Sprockets will expand the lines which load the assets. For example, if we had an +app/assets/javascripts/application.js+ file containing these lines:
+
+<plain>
+//= require "projects"
+//= require "tickets"
+</plain>
+
+By default, this would only render this line when used with +<%= javascript_include_tag "application" %>+ in a view or layout:
+
+<html>
+  <script src='/assets/application.js'></script>
+</html>
+
+When the +debug_assets+ parameter is set, this line will be expanded out into three separate lines, separating out the combined file into their parts.
+
+<html>
+  <script src='/assets/application.js'></script>
+  <script src='/assets/projects.js'></script>
+  <script src='/assets/tickets.js'></script>
+</html>
+
+This allows the individual parts of an asset to be rendered and debugged separately.
 
 h3. In Production
 
@@ -308,3 +332,4 @@ h3. Making Your Library or Gem a Pre-Processor
 
 "You should be able to register [your gems] on Tilt and Sprockets will find them." - Josh
 Tilt: https://github.com/rtomayko/tilt
+

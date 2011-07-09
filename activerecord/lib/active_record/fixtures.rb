@@ -149,13 +149,13 @@ class FixturesFileNotFound < StandardError; end
 #     self.use_transactional_fixtures = true
 #
 #     test "godzilla" do
-#       assert !Foo.find(:all).empty?
+#       assert !Foo.all.empty?
 #       Foo.destroy_all
-#       assert Foo.find(:all).empty?
+#       assert Foo.all.empty?
 #     end
 #
 #     test "godzilla aftermath" do
-#       assert !Foo.find(:all).empty?
+#       assert !Foo.all.empty?
 #     end
 #   end
 #

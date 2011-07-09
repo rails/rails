@@ -9,7 +9,7 @@ module ActionController #:nodoc:
   #     respond_to :html, :xml, :json
   #
   #     def index
-  #       @people = Person.find(:all)
+  #       @people = Person.all
   #       respond_with(@people)
   #     end
   #   end

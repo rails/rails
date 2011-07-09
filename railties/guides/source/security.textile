@@ -649,7 +649,7 @@ h5(#sql-injection-introduction). Introduction
 SQL injection attacks aim at influencing database queries by manipulating web application parameters. A popular goal of SQL injection attacks is to bypass authorization. Another goal is to carry out data manipulation or reading arbitrary data. Here is an example of how not to use user input data in a query:
 
 <ruby>
-Project.all(:conditions => "name = '#{params[:name]}'")
+Project.where("name = '#{params[:name]}'")
 </ruby>
 
 This could be in a search action and the user may enter a project's name that he wants to find. If a malicious user enters ' OR 1 --, the resulting SQL query will be:
@@ -681,7 +681,7 @@ h5. Unauthorized Reading
 The UNION statement connects two SQL queries and returns the data in one set. An attacker can use it to read arbitrary data from the database. Let's take the example from above:
 
 <ruby>
-Project.all(:conditions => "name = '#{params[:name]}'")
+Project.where("name = '#{params[:name]}'")
 </ruby>
 
 And now let's inject another query using the UNION statement:
@@ -703,18 +703,18 @@ Also, the second query renames some columns with the AS statement so that the we
 
 h5(#sql-injection-countermeasures). Countermeasures
 
-Ruby on Rails has a built-in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using +Model.find(id)+ or +Model.find_by_some thing(something)+ automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (+:conditions => "..."+), the +connection.execute()+ or +Model.find_by_sql()+ methods, it has to be applied manually</em>.
+Ruby on Rails has a built-in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using +Model.find(id)+ or +Model.find_by_some thing(something)+ automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (+where("...")+), the +connection.execute()+ or +Model.find_by_sql()+ methods, it has to be applied manually</em>.
 
 Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
 
 <ruby>
-Model.first(:conditions => ["login = ? AND password = ?", entered_user_name, entered_password])
+Model.where("login = ? AND password = ?", entered_user_name, entered_password).first
 </ruby>
 
 As you can see, the first part of the array is an SQL fragment with question marks. The sanitized versions of the variables in the second part of the array replace the question marks. Or you can pass a hash for the same result:
 
 <ruby>
-Model.first(:conditions => {:login => entered_user_name, :password => entered_password})
+Model.where(:login => entered_user_name, :password => entered_password).first
 </ruby>
 
 The array or hash form is only available in model instances. You can try +sanitize_sql()+ elsewhere. _(highlight)Make it a habit to think about the security consequences when using an external string in SQL_.
