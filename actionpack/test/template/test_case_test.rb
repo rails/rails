@@ -45,6 +45,10 @@ module ActionView
       assert_same _view, view
     end
 
+    test "retrieve non existing config values" do
+      assert_equal nil, ActionView::Base.new.config.something_odd
+    end
+
     test "works without testing a helper module" do
       assert_equal 'Eloy', render('developers/developer', :developer => stub(:name => 'Eloy'))
     end
