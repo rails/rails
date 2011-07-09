@@ -63,7 +63,7 @@ class RangeTest < Test::Unit::TestCase
     assert_equal [1,3,5,7,9], array
   end
 
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     def test_cover
       assert((1..3).cover?(2))
       assert !(1..3).cover?(4)
@@ -75,3 +75,4 @@ class RangeTest < Test::Unit::TestCase
     end
   end
 end
+

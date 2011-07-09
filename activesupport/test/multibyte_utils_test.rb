@@ -57,7 +57,7 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
     end
   end
 
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     test "clean leaves ASCII strings intact" do
       with_encoding('None') do
         [
@@ -136,3 +136,4 @@ class MultibyteUtilsTest < ActiveSupport::TestCase
     alias with_encoding with_kcode
   end
 end
+

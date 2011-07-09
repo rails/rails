@@ -143,7 +143,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal 97, 'abc'.ord
   end
 
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     def test_getbyte
       assert_equal 97, 'a'.getbyte(0)
       assert_equal 99, 'abc'.getbyte(2)
@@ -270,7 +270,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
   end
 
-  if RUBY_VERSION < '1.9.0'
+  if Gem.ruby_version < '1.9.0'
     def test_truncate_multibyte
       with_kcode 'none' do
         assert_equal "\354\225\210\353\205\225\355...", "\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224".truncate(10)
@@ -309,7 +309,7 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
     assert !BYTE_STRING.is_utf8?
   end
 
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     def test_mb_chars_returns_self_when_kcode_not_set
       with_kcode('none') do
         assert_kind_of String, UNICODE_STRING.mb_chars
@@ -354,7 +354,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "A fixnum is safe by default" do
     assert 5.html_safe?
   end
-  
+
   test "a float is safe by default" do
     assert 5.7.html_safe?
   end
@@ -450,7 +450,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test 'knows whether it is encoding aware' do
-    if RUBY_VERSION >= "1.9"
+    if Gem.ruby_version >= "1.9"
       assert 'ruby'.encoding_aware?
     else
       assert !'ruby'.encoding_aware?
@@ -470,3 +470,4 @@ class StringExcludeTest < ActiveSupport::TestCase
     assert_equal true, 'foo'.exclude?('p')
   end
 end
+

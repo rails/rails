@@ -11,6 +11,8 @@ ensure
   $VERBOSE = old
 end
 
+require 'active_support/core_ext/rubygems'
+
 require 'active_support/core_ext/kernel/reporting'
 
 require 'active_support/core_ext/string/encoding'

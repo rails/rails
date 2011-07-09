@@ -67,7 +67,7 @@ class Date
   # In this case, it simply returns +self+.
   def to_date
     self
-  end if RUBY_VERSION < '1.9'
+  end if Gem.ruby_version < '1.9'
 
   # Converts a Date instance to a Time, where the time is set to the beginning of the day.
   # The timezone can be either :local or :utc (default :local).
@@ -92,15 +92,16 @@ class Date
   #   date.to_datetime               # => Sat, 10 Nov 2007 00:00:00 0000
   def to_datetime
     ::DateTime.civil(year, month, day, 0, 0, 0, 0)
-  end if RUBY_VERSION < '1.9'
+  end if Gem.ruby_version < '1.9'
 
   def iso8601
     strftime('%F')
-  end if RUBY_VERSION < '1.9'
+  end if Gem.ruby_version < '1.9'
 
-  alias_method :rfc3339, :iso8601 if RUBY_VERSION < '1.9'
+  alias_method :rfc3339, :iso8601 if Gem.ruby_version < '1.9'
 
   def xmlschema
     to_time_in_current_zone.xmlschema
   end
 end
+

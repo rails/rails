@@ -22,6 +22,7 @@ require 'models/person'
 require 'models/edge'
 require 'models/joke'
 require 'rexml/document'
+require 'active_support/core_ext/rubygems'
 require 'active_support/core_ext/exception'
 
 class Category < ActiveRecord::Base; end

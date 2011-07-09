@@ -9,7 +9,7 @@
 #
 # Ruby 1.9 uses a preinitialized instance variable so it's unaffected.
 # This hack is as close as we can get to feature detection:
-if RUBY_VERSION < '1.9'
+if Gem.ruby_version < '1.9'
   require 'date'
   begin
     ::Date.today.freeze.jd
@@ -31,3 +31,4 @@ if RUBY_VERSION < '1.9'
     end
   end
 end
+

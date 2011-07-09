@@ -374,7 +374,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     def test_rfc3339
       assert_equal('1980-02-28', Date.new(1980, 2, 28).rfc3339)
     end
@@ -461,3 +461,4 @@ class DateExtBehaviorTest < Test::Unit::TestCase
     end
   end
 end
+

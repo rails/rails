@@ -434,7 +434,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_ruby_19_weekday_name_query_methods
-    ruby_19_or_greater = RUBY_VERSION >= '1.9'
+    ruby_19_or_greater = Gem.ruby_version >= '1.9'
     %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
       assert_equal ruby_19_or_greater, @twz.respond_to?(name)
     end
@@ -917,3 +917,4 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
 end
+

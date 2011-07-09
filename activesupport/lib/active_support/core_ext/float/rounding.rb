@@ -16,4 +16,5 @@ class Float
       precisionless_round
     end
   end
-end if RUBY_VERSION < '1.9'
+end if Gem.ruby_version < '1.9'
+

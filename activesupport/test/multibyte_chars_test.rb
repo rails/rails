@@ -102,7 +102,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
   def setup
     @chars = UNICODE_STRING.dup.mb_chars
 
-    if RUBY_VERSION < '1.9'
+    if Gem.ruby_version < '1.9'
       # Multibyte support all kinds of whitespace (ie. NEWLINE, SPACE, EM SPACE)
       @whitespace = "\n\t#{[32, 8195].pack('U*')}"
     else
@@ -150,7 +150,7 @@ class MultibyteCharsUTF8BehaviourTest < Test::Unit::TestCase
     assert_not_equal original, proxy.to_s
   end
 
-  if RUBY_VERSION >= '1.9'
+  if Gem.ruby_version >= '1.9'
     def test_unicode_string_should_have_utf8_encoding
       assert_equal Encoding::UTF_8, UNICODE_STRING.encoding
     end
@@ -701,3 +701,4 @@ class MultibyteInternalsTest < ActiveSupport::TestCase
     end
   end
 end
+

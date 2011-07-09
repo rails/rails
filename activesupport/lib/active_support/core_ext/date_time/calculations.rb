@@ -1,4 +1,4 @@
-require 'rational' unless RUBY_VERSION >= '1.9.2'
+require 'rational' unless Gem.ruby_version >= '1.9.2'
 
 class DateTime
   class << self
@@ -130,3 +130,4 @@ class DateTime
     super other.to_datetime
   end
 end
+
