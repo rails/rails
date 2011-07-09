@@ -408,7 +408,17 @@ module ActiveRecord
     end
 
     def eager_loading?
-      @should_eager_load ||= (@eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?))
+      @should_eager_load ||=
+        @eager_load_values.any? ||
+        @includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
+    end
+
+    # Joins that are also marked for preloading. In which case we should just eager load them.
+    # Note that this is a naive implementation because we could have strings and symbols which
+    # represent the same association, but that aren't matched by this. Also, we could have
+    # nested hashes which partially match, e.g. { :a => :b } & { :a => [:b, :c] }
+    def joined_includes_values
+      @includes_values & @joins_values
     end
 
     def ==(other)
