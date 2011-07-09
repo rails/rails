@@ -1,3 +1,4 @@
 module ActiveSupport
-  FrozenObjectError = RUBY_VERSION < '1.9' ? TypeError : RuntimeError
+  FrozenObjectError = Gem.ruby_version < '1.9' ? TypeError : RuntimeError
 end
+

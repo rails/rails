@@ -7,7 +7,7 @@ require 'active_support/core_ext/time/zones'
 class Date
   DAYS_INTO_WEEK = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6 }
 
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     undef :>>
 
     # Backported from 1.9. The one in 1.8 leads to incorrect next_month and
@@ -251,3 +251,4 @@ class Date
     self + 1
   end
 end
+

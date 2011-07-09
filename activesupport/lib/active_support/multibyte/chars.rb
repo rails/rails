@@ -38,7 +38,7 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      if RUBY_VERSION >= "1.9"
+      if Gem.ruby_version >= "1.9"
         # Creates a new Chars instance by wrapping _string_.
         def initialize(string)
           @wrapped_string = string
@@ -94,7 +94,7 @@ module ActiveSupport #:nodoc:
         @wrapped_string <=> other.to_s
       end
 
-      if RUBY_VERSION < "1.9"
+      if Gem.ruby_version < "1.9"
         # Returns +true+ if the Chars class can and should act as a proxy for the string _string_. Returns
         # +false+ otherwise.
         def self.wants?(string)
@@ -475,3 +475,4 @@ module ActiveSupport #:nodoc:
     end
   end
 end
+

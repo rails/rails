@@ -12,6 +12,8 @@ $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
 ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
 
+require 'active_support/core_ext/rubygems'
+
 require 'active_support/core_ext/kernel/reporting'
 
 require 'active_support/core_ext/string/encoding'

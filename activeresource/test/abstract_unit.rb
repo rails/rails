@@ -6,6 +6,7 @@ $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 require 'test/unit'
 require 'active_resource'
 require 'active_support'
+require 'active_support/core_ext/rubygems'
 require 'active_support/test_case'
 
 require 'setter_trap'

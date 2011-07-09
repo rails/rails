@@ -57,7 +57,7 @@ class Module
     parents
   end
 
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     # Returns the constants that have been defined locally by this object and
     # not in an ancestor. This method is exact if running under Ruby 1.9. In
     # previous versions it may miss some constants if their definition in some
@@ -86,3 +86,4 @@ class Module
     local_constants.map { |c| c.to_s }
   end
 end
+

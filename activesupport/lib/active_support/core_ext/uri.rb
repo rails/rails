@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-if RUBY_VERSION >= '1.9'
+if Gem.ruby_version >= '1.9'
   require 'uri'
 
   str = "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E" # Ni-ho-nn-go in UTF-8, means Japanese.
@@ -28,3 +28,4 @@ module URI
     end
   end
 end
+

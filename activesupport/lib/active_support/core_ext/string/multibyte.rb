@@ -1,8 +1,9 @@
 # encoding: utf-8
+require 'active_support/core_ext/rubygems'
 require 'active_support/multibyte'
 
 class String
-  if RUBY_VERSION >= "1.9"
+  if Gem.ruby_version >= "1.9"
     # == Multibyte proxy
     #
     # +mb_chars+ is a multibyte safe proxy for string methods.
@@ -70,3 +71,4 @@ class String
     end
   end
 end
+

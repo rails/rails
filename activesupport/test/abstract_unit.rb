@@ -7,6 +7,8 @@ ensure
   $VERBOSE = old
 end
 
+require 'active_support/core_ext/rubygems'
+
 lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
 $:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
 
@@ -31,7 +33,7 @@ ENV['NO_RELOAD'] = '1'
 require 'active_support'
 
 # Include shims until we get off 1.8.6
-require 'active_support/ruby/shim' if RUBY_VERSION < '1.8.7'
+require 'active_support/ruby/shim' if Gem.ruby_version < '1.8.7'
 
 def uses_memcached(test_name)
   require 'memcache'
@@ -44,7 +46,7 @@ def uses_memcached(test_name)
 end
 
 def with_kcode(code)
-  if RUBY_VERSION < '1.9'
+  if Gem.ruby_version < '1.9'
     begin
       old_kcode, $KCODE = $KCODE, code
       yield
@@ -59,6 +61,7 @@ end
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-if RUBY_VERSION < '1.9'
+if Gem.ruby_version < '1.9'
   $KCODE = 'UTF8'
 end
+

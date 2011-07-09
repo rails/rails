@@ -4,6 +4,7 @@ rescue LoadError
 end
 
 require 'yaml'
+require 'active_support/core_ext/rubygems'
 
 YAML.add_builtin_type("omap") do |type, val|
   ActiveSupport::OrderedHash[val.map(&:to_a).map(&:first)]
@@ -48,7 +49,7 @@ module ActiveSupport
     end
 
     # Hash is ordered in Ruby 1.9!
-    if RUBY_VERSION < '1.9'
+    if Gem.ruby_version < '1.9'
 
       # In MRI the Hash class is core and written in C. In particular, methods are
       # programmed with explicit C function calls and polymorphism is not honored.
@@ -215,3 +216,4 @@ module ActiveSupport
     end
   end
 end
+
