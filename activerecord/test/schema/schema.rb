@@ -305,6 +305,8 @@ ActiveRecord::Schema.define do
     t.references :student
   end
 
+  create_table :lint_models, :force => true
+
   create_table :line_items, :force => true do |t|
     t.integer :invoice_id
     t.integer :amount
