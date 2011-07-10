@@ -45,7 +45,7 @@ module ApplicationTests
       Rails.env = "development"
       assert_equal [:default, "development"], Rails.groups
       assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
-      assert_equal [:default, "development", :assets], Rails.groups(:assets => %w(development))
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, :assets => %w(development))
 
       Rails.env = "test"
       assert_equal [:default, "test"], Rails.groups(:assets => [:development])
