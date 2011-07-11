@@ -3,6 +3,25 @@ module ActionDispatch
     class IpSpoofAttackError < StandardError ; end
 
     class RemoteIpGetter
+      # IP v4 and v6 (with compression) validation regexp
+      VALID_IP = %r{
+        (^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$)                                 | # ip v4
+        (^
+          ((([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})                                                                                         | # ip v6 not abbreviated
+          (([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})                                                                                         | # ip v6 with double colon in the end
+          (([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})                                                                     | # - ip addresses v6
+          (([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})                                                                 | # - with
+          (([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})                                                                 | # - double colon
+          (([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})                                                                 | # - in the middle
+          ([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})                                                                      | # - middle
+          (::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})                                                                                      | # ip v6 with double colon at the begining
+          (([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))     | # ip v6 with compatible to v4
+          (([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))  | # - ip v6 with double colon
+          (::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)) | # - and compatible to v4
+          (([0-9A-Fa-f]{1,4}:){1,7}:))                                                                                                        # ip v6 without ending
+        $)
+        }x
+
       def initialize(env, check_ip_spoofing, trusted_proxies)
         @env = env
         @check_ip_spoofing = check_ip_spoofing
@@ -12,7 +31,7 @@ module ActionDispatch
       def remote_addrs
         @remote_addrs ||= begin
           list = @env['REMOTE_ADDR'] ? @env['REMOTE_ADDR'].split(/[,\s]+/) : []
-          list.reject { |addr| addr =~ @trusted_proxies }
+          list.reject { |addr| addr =~ @trusted_proxies || addr !~ VALID_IP }
         end
       end
 
@@ -31,14 +50,14 @@ module ActionDispatch
           return client_ip
         end
 
-        return forwarded_ips.reject { |ip| ip =~ @trusted_proxies }.last || @env["REMOTE_ADDR"]
+        return forwarded_ips.reject { |ip| ip =~ @trusted_proxies || ip !~ VALID_IP }.last || @env["REMOTE_ADDR"]
       end
     end
 
     def initialize(app, check_ip_spoofing = true, trusted_proxies = nil)
       @app = app
       @check_ip_spoofing = check_ip_spoofing
-      regex = '(^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.)'
+      regex = '(^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.)|^(fc00::)|^(::1)$'
       regex << "|(#{trusted_proxies})" if trusted_proxies
       @trusted_proxies = Regexp.new(regex, "i")
     end
