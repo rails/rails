@@ -70,8 +70,13 @@ module Sprockets
         if assets.compress
           # temporarily hardcode default JS compressor to uglify. Soon, it will work
           # the same as SCSS, where a default plugin sets the default.
-          env.js_compressor  = LazyCompressor.new { expand_js_compressor(assets.js_compressor || :uglifier) }
-          env.css_compressor = LazyCompressor.new { expand_css_compressor(assets.css_compressor) }
+          unless assets.js_compressor == false
+            env.js_compressor  = LazyCompressor.new { expand_js_compressor(assets.js_compressor || :uglifier) }
+          end
+
+          unless assets.css_compressor == false
+            env.css_compressor = LazyCompressor.new { expand_css_compressor(assets.css_compressor) }
+          end
         end
 
         env
