@@ -157,7 +157,7 @@ module Rails
           path = File.expand_path(p, @root.path)
 
           if @glob
-            result.concat Dir[File.join(path, @glob)]
+            result.concat Dir[File.join(path, @glob)].sort
           else
             result << path
           end
