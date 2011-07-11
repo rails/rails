@@ -111,8 +111,12 @@ module ActionView
 
         options.symbolize_keys!
 
-        defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
+        begin
+          defaults  = I18n.translate(:'number.format', :locale => options[:locale], :raise => true)
+          currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :raise => true)
+        rescue I18n::MissingTranslationData
+          defaults = currency = {}
+        end
 
         defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
         defaults[:negative_format] = "-" + options[:format] if options[:format]
@@ -162,8 +166,12 @@ module ActionView
 
         options.symbolize_keys!
 
-        defaults   = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        percentage = I18n.translate(:'number.percentage.format', :locale => options[:locale], :default => {})
+        begin
+          defaults   = I18n.translate(:'number.format', :locale => options[:locale], :raise => true)
+          percentage = I18n.translate(:'number.percentage.format', :locale => options[:locale], :raise => true)
+        rescue I18n::MissingTranslationData
+          defaults = percentage = {}
+        end
         defaults  = defaults.merge(percentage)
 
         options = options.reverse_merge(defaults)
@@ -208,7 +216,11 @@ module ActionView
           end
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
+        begin
+          defaults = I18n.translate(:'number.format', :locale => options[:locale], :raise => true)
+        rescue I18n::MissingTranslationData
+          defaults = {}
+        end
         options = options.reverse_merge(defaults)
 
         parts = number.to_s.to_str.split('.')
@@ -256,8 +268,12 @@ module ActionView
           end
         end
 
-        defaults           = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale], :default => {})
+        begin
+          defaults           = I18n.translate(:'number.format', :locale => options[:locale], :raise => true)
+          precision_defaults = I18n.translate(:'number.precision.format', :locale => options[:locale], :raise => true)
+        rescue I18n::MissingTranslationData
+          defaults = precision_defaults = {}
+        end
         defaults           = defaults.merge(precision_defaults)
 
         options = options.reverse_merge(defaults)  # Allow the user to unset default values: Eg.: :significant => false
@@ -333,8 +349,12 @@ module ActionView
           end
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
+        begin
+          defaults = I18n.translate(:'number.format', :locale => options[:locale], :raise => true)
+          human    = I18n.translate(:'number.human.format', :locale => options[:locale], :raise => true)
+        rescue I18n::MissingTranslationData
+          defaults = human = {}
+        end
         defaults = defaults.merge(human)
 
         options = options.reverse_merge(defaults)
@@ -452,8 +472,12 @@ module ActionView
           end
         end
 
-        defaults = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
-        human    = I18n.translate(:'number.human.format', :locale => options[:locale], :default => {})
+        begin
+          defaults = I18n.translate(:'number.format', :locale => options[:locale], :raise => true)
+          human    = I18n.translate(:'number.human.format', :locale => options[:locale], :raise => true)
+        rescue I18n::MissingTranslationData
+          defaults = human = {}
+        end
         defaults = defaults.merge(human)
 
         options = options.reverse_merge(defaults)
