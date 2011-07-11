@@ -385,6 +385,42 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_grouped_collection_as_nested_array
+    @post = Post.new
+
+    countries_by_continent = [
+      ["<Africa>", [["<South Africa>", "<sa>"], ["Somalia", "so"]]],
+      ["Europe",   [["Denmark", "dk"], ["Ireland", "ie"]]],
+    ]
+
+    assert_dom_equal(
+      [
+        %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>},
+        %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
+        %Q{<option value="ie">Ireland</option></optgroup></select>},
+      ].join("\n"),
+      select("post", "origin", countries_by_continent)
+    )
+  end
+
+  def test_select_with_grouped_collection_as_hash
+    @post = Post.new
+
+    countries_by_continent = {
+      "<Africa>" => [["<South Africa>", "<sa>"], ["Somalia", "so"]],
+      "Europe"   => [["Denmark", "dk"], ["Ireland", "ie"]],
+    }
+
+    assert_dom_equal(
+      [
+        %Q{<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>},
+        %Q{<option value="so">Somalia</option></optgroup><optgroup label="Europe"><option value="dk">Denmark</option>},
+        %Q{<option value="ie">Ireland</option></optgroup></select>},
+      ].join("\n"),
+      select("post", "origin", countries_by_continent)
+    )
+  end
+
   def test_select_with_boolean_method
     @post = Post.new
     @post.allow_comments = false
