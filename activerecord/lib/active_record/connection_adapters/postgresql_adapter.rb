@@ -265,10 +265,28 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      # Deallocate a statement
+      def deallocate_statement!(key)
+        @connection.query "DEALLOCATE #{key}"
+      end
+
+      # Allocate a statement
+      def prepare_statement!(key,sql)
+        @connection.prepare key, sql
+      end
+
+      # Re-prepare the prepared statements
+      def reset_cache!
+        @statements.each_pair do |sql, key|
+          deallocate_statement! key
+          prepare_statement! key, sql
+        end
+      end
+
       # Clears the prepared statements cache.
       def clear_cache!
         @statements.each_value do |value|
-          @connection.query "DEALLOCATE #{value}"
+          deallocate_statement! value
         end
         @statements.clear
       end
@@ -885,6 +903,7 @@ module ActiveRecord
 
         change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
         change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+        reset_cache!
       end
 
       # Changes the default value of a table column.
@@ -989,7 +1008,7 @@ module ActiveRecord
         def exec_cache(sql, binds)
           unless @statements.key? sql
             nextkey = "a#{@statements.length + 1}"
-            @connection.prepare nextkey, sql
+            prepare_statement!(nextkey, sql)
             @statements[sql] = nextkey
           end
 
