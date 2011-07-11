@@ -105,7 +105,10 @@ module ActionView
 
       # Create a select tag and a series of contained option tags for the provided object and method.
       # The option currently held by the object will be selected, provided that the object is available.
-      # See options_for_select for the required format of the choices parameter.
+      #
+      # There are two possible formats for the choices parameter, corresponding to other helpers' output:
+      #   * A flat collection: see options_for_select
+      #   * A nested collection: see grouped_options_for_select
       #
       # Example with @post.person_id => 1:
       #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
@@ -575,7 +578,14 @@ module ActionView
 
       def to_select_tag(choices, options, html_options)
         selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
-        select_content_tag(options_for_select(choices, :selected => selected_value, :disabled => options[:disabled]), options, html_options)
+
+        if !choices.empty? && choices.try(:first).try(:second).respond_to?(:each)
+          option_tags = grouped_options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
+        else
+          option_tags = options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
+        end
+
+        select_content_tag(option_tags, options, html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
