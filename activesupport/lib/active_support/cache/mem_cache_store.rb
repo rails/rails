@@ -183,6 +183,14 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         protected
+          def read_entry(key, options)
+            entry = super
+            if options[:raw] && local_cache && entry
+               entry = deserialize_entry(entry.value)
+            end
+            entry
+          end
+
           def write_entry(key, entry, options) # :nodoc:
             retval = super
             if options[:raw] && local_cache && retval
