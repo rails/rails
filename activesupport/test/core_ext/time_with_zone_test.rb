@@ -111,6 +111,13 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "1999-12-31T19:00:00.123456-05:00", @twz.xmlschema(12)
   end
 
+  def test_xmlschema_with_fractional_seconds_lower_than_hundred_thousand
+    @twz += 0.001234 # advance the time by a fraction
+    assert_equal "1999-12-31T19:00:00.001-05:00", @twz.xmlschema(3)
+    assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(6)
+    assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(12)
+  end
+
   def test_to_yaml
     assert_match(/^--- 2000-01-01 00:00:00(\.0+)?\s*Z\n/, @twz.to_yaml)
   end
