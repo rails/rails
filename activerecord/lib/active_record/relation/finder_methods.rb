@@ -193,8 +193,8 @@ module ActiveRecord
       else
         relation = relation.where(table[primary_key].eq(id)) if id
       end
-
-      connection.select_value(relation.to_sql) ? true : false
+      
+      connection.select_value(relation.to_sql, "#{name} Exists") ? true : false
     end
 
     protected
