@@ -106,14 +106,6 @@ h4. Coding links to Assets
 
 To access assets, we can use the same tags that we are generally familiar with:
 
-<erb>
-  <%= image_tag "rails.png" %>
-</erb>
-
-Providing that assets are enabled within our application (+config.assets.enabled+ in the current environment's file is not set to +false+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served. Alternatively, a file with an MD5 hash after its name such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ will also be picked up by Sprockets. How these hashes are generated is covered in the "Production Assets":#production_assets section later on in this guide.
-
-Otherwise, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
-
 Sprockets does not add any new methods to require your assets, we still use the familiar +javascript_include_tag+ and +stylesheet_link_tag+.
 
 <erb>
@@ -121,7 +113,41 @@ Sprockets does not add any new methods to require your assets, we still use the 
   <%= javascript_include_tag "application" %>
 </erb>
 
-These helpers (when the pipeline is on) are providing links to the compiled manifest with the specified name (or names).
+In regular views you can access images in the +assets/images+ directory like this:
+
+<erb>
+  <%= image_tag "rails.png" %>
+</erb>
+
+Images can be organized into directories if required, and this Just Works.
+
+Providing that assets are enabled within our application (+config.assets.enabled+ in the current environment's file is not set to +false+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served.
+
+Alternatively, a file with an MD5 hash after its name such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ will also be picked up by Sprockets. How these hashes are generated is covered in the "Production Assets":#production_assets section later on in this guide.
+
+Otherwise, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
+
+h5. CSS and ERB
+
+If you add an erb extension to a css asset:
+
+<plain>
+application.css.erb
+</plain>
+
+then you can use the asset_path helper in your CSS rules:
+
+<css>
+.class{background-image:<%= asset_path 'image.png' %>}
+</css>
+
+This will write the path to any specified images in +/app/assets/images+ and its subdirectories.
+
+Note that the closing tag cannot be of the style '-%>'.
+
+h5. CSS and SCSS
+
+TODO: Sass-rails's handy +image_url+ helpers
 
 h4. Manifest Files and Directives
 
@@ -177,8 +203,6 @@ Keep in mind that the order of these pre-processors is important. For example, i
 
 h3. In Development
 
-TODO: Talk about: Rack::Cache's caching (used in dev and production. The only difference is hashing and headers).
-
 In the development environment assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ cache-control http header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
 
 If any of the files in the manifest have changed between requests, the server will respond with a new compiled file.
@@ -225,18 +249,11 @@ Sprockets also sets the +Cache-Control+ http header to +max-age=31536000+. This 
 
 This behavior is controlled by the setting of +config.action_controller.perform_caching+ setting in Rails (which is +true+ for production, +false+ for everything else). This value is propagated to Sprockets during initialization for use when action_controller is not available.
 
-TODO:
-describe each and the differences between:
-  * Sass-rails's handy +image_url+ helpers
-  * ERB pre-processing and +asset_path+
-
 h4. Precompiling assets
 
 Even though assets are served by Rack::Cache with far-future headers, in high traffic sites this may not be fast enough.
 
 Rails comes bundled with a rake task to compile the manifests to files on disc. These are located in the +public/assets+ directory where they will be served by your web server instead of the Rails application.
-
-TODO: Add section about image assets
 
 The rake task is:
 
@@ -246,16 +263,22 @@ rake assets:precompile
 
 TODO: explain where to use this with Capistrano
 
-TODO: talk about the +config.assets.precompile+ option and the default matcher for files:
+The default matcher for compiling files is rather broad:
 
 <erb>
-[ /\w+\.(?!js|css).+/, "application.js", "application.css" ]
+[ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
 </erb>
 
+In practice you may choose to narrow this to just the files that contain manifests:
 
-Sprockets also creates a "gzip":http://en.wikipedia.org/wiki/Gzip (.gz) of your assets. This prevents your server from contently compressing your assets for each request. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the public/assets folder. The following are some configuration blocks that you can use for common servers.
-NGINX & Apache examples?
+<erb>
+config.assets.precompile = ['application.js', 'application.css', 'admin.js', 'admin.css']
+</erb>
 
+When files are precompiled Sprockets also creates "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disc. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the public/assets folder. The following configuration options can be used:
+
+TODO: NGINX instructions
+TODO: Apache instructions
 
 
 h3. Customizing The Pipeline
@@ -321,6 +344,11 @@ config.assets.prefix = "/some_other_path"
 
 This is a handy option if you have any existing project (pre Rails 3.1) that already uses this path.
 
+h3. How caching works
+
+Sprockets uses the default rails cache store to cache assets in dev and production. The only difference is filenames are fingerprinted and get far-future headers in production.
+
+TODO: Add more about changing the default store.
 
 h3. Adding Assets to Your Gems
 
