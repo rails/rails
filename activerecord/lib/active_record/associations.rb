@@ -2145,6 +2145,7 @@ module ActiveRecord
               parent_table = Arel::Table.new(parent.table_name, :as      => parent.aliased_table_name,
                                                                 :engine  => arel_engine,
                                                                 :columns => parent.active_record.columns)
+              as_conditions = reflection.options[:conditions] && process_conditions(reflection.options[:conditions], aliased_table_name)
 
               @join = case reflection.macro
               when :has_and_belongs_to_many
@@ -2154,11 +2155,12 @@ module ActiveRecord
 
                 [
                   join_table[fk].eq(parent_table[reflection.active_record.primary_key]),
-                  aliased_table[klass.primary_key].eq(join_table[klass_fk])
+                  [aliased_table[klass.primary_key].eq(join_table[klass_fk]), as_conditions].reject{ |x| x.blank? }
                 ]
               when :has_many, :has_one
                 if reflection.options[:through]
                   join_table = Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => arel_engine)
+                  jt_as_conditions = through_reflection.options[:conditions] && process_conditions(through_reflection.options[:conditions], aliased_table_name)
                   jt_as_extra = jt_source_extra = jt_sti_extra = nil
                   first_key = second_key = as_extra = nil
 
@@ -2199,19 +2201,19 @@ module ActiveRecord
                   end
 
                   [
-                    [parent_table[jt_primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra].reject{|x| x.blank? },
-                    [aliased_table[first_key].eq(join_table[second_key]), as_extra].reject{ |x| x.blank? }
+                    [parent_table[jt_primary_key].eq(join_table[jt_foreign_key]), jt_as_extra, jt_source_extra, jt_sti_extra, jt_as_conditions].reject{|x| x.blank? },
+                    [aliased_table[first_key].eq(join_table[second_key]), as_extra, as_conditions].reject{ |x| x.blank? }
                   ]
                 elsif reflection.options[:as]
                   id_rel = aliased_table["#{reflection.options[:as]}_id"].eq(parent_table[parent.primary_key])
                   type_rel = aliased_table["#{reflection.options[:as]}_type"].eq(parent.active_record.base_class.name)
-                  [id_rel, type_rel]
+                  [id_rel, type_rel, as_conditions].reject{ |x| x.blank?}
                 else
                   foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
-                  [aliased_table[foreign_key].eq(parent_table[reflection.options[:primary_key] || parent.primary_key])]
+                  [aliased_table[foreign_key].eq(parent_table[reflection.options[:primary_key] || parent.primary_key]), as_conditions].reject{ |x| x.blank? }
                 end
               when :belongs_to
-                [aliased_table[options[:primary_key] || reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name])]
+                [aliased_table[options[:primary_key] || reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name]), as_conditions].reject{ |x| x.blank? }
               end
 
               unless klass.descends_from_active_record?
@@ -2220,12 +2222,6 @@ module ActiveRecord
                 klass.descendants.each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
 
                 @join << sti_condition
-              end
-
-              [through_reflection, reflection].each do |ref|
-                if ref && ref.options[:conditions]
-                  @join << process_conditions(ref.options[:conditions], aliased_table_name)
-                end
               end
 
               @join
