@@ -155,6 +155,7 @@ ActiveRecord::Schema.define do
     end
     t.string  :type
     t.integer :taggings_count, :default => 0
+    t.integer :children_count, :default => 0
   end
 
   create_table :companies, :force => true do |t|
