@@ -165,7 +165,7 @@ module ActionDispatch
       ^(10                          | # private IP 10.x.x.x
         172\.(1[6-9]|2[0-9]|3[0-1]) | # private IP in the range 172.16.0.0 .. 172.31.255.255
         192\.168                    | # private IP 192.168.x.x
-        fc00::                      | # private IP fc00
+        fc00::                        # private IP fc00
        )\.
     }x
 
