@@ -29,6 +29,19 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
   end
 
+  def test_time_zone_connection_configuration_option
+    connection_options = ActiveRecord::Base.configurations['arunit']
+    time_zones = ['Australia/Sydney', 'Europe/Prague']
+    run_without_connection do
+      # Set different time zones and expect different results.
+      time_zones.each do |time_zone|
+        ActiveRecord::Base.establish_connection(connection_options.merge({:time_zone => time_zone}))
+        result = ActiveRecord::Base.connection.execute("SELECT @@session.time_zone")
+        assert_equal(result.first.first, time_zone)
+      end
+    end
+  end
+
   private
 
   def run_without_connection

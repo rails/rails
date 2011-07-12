@@ -92,6 +92,9 @@ module ActiveRecord
         end
     end
 
+    # Options:
+    #
+    # * <tt>:time_zone</tt> - Optional, defaults to nothing. Sets the session time_zone by executing "SET @@time_zone = ..." after connection.
     class Mysql2Adapter < AbstractAdapter
       cattr_accessor :emulate_booleans
       self.emulate_booleans = true
@@ -621,6 +624,10 @@ module ActiveRecord
           wait_timeout = @config[:wait_timeout]
           wait_timeout = 2592000 unless wait_timeout.is_a?(Fixnum)
           variable_assignments << "@@wait_timeout = #{wait_timeout}"
+
+          # set time_zone
+          time_zone = @config[:time_zone]
+          variable_assignments << "@@time_zone = '#{time_zone}'" if time_zone
 
           execute("SET #{variable_assignments.join(', ')}", :skip_logging)
         end
