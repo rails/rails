@@ -11,7 +11,7 @@ module Rails
   # == Initialization
   #
   # Rails::Application is responsible for executing all railties, engines and plugin
-  # initializers. Besides, it also executed some bootstrap initializers (check
+  # initializers. It also executes some bootstrap initializers (check
   # Rails::Application::Bootstrap) and finishing initializers, after all the others
   # are executed (check Rails::Application::Finisher).
   #
