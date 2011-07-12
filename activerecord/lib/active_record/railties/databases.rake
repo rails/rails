@@ -374,7 +374,8 @@ db_namespace = namespace :db do
         unless search_path.blank?
           search_path = search_path.split(",").map{|search_path_part| "--schema=#{search_path_part.strip}" }.join(" ")
         end
-        `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
+        username = abcs[Rails.env]['username'] ? %Q{-U "#{abcs[Rails.env]['username']}"} : ""
+        `pg_dump -i #{username} -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
       when /sqlite/
         dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
@@ -420,7 +421,8 @@ db_namespace = namespace :db do
         ENV['PGHOST']     = abcs['test']['host'] if abcs['test']['host']
         ENV['PGPORT']     = abcs['test']['port'].to_s if abcs['test']['port']
         ENV['PGPASSWORD'] = abcs['test']['password'].to_s if abcs['test']['password']
-        `psql -U "#{abcs['test']['username']}" -f #{Rails.root}/db/#{Rails.env}_structure.sql #{abcs['test']['database']} #{abcs['test']['template']}`
+        username = abcs['test']['username'] ? %Q{-U "#{abcs['test']['username']}"} : ""
+        `psql #{username} -f #{Rails.root}/db/#{Rails.env}_structure.sql #{abcs['test']['database']} #{abcs['test']['template']}`
       when /sqlite/
         dbfile = abcs['test']['database'] || abcs['test']['dbfile']
         `sqlite3 #{dbfile} < #{Rails.root}/db/#{Rails.env}_structure.sql`
