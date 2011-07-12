@@ -49,8 +49,8 @@ module Rails
     #   root.add "config/routes", :with => "config/routes.rb"
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
-    # #add also accepts the following options as argument: eager_load, autoload,
-    # autoload_once and glob.
+    # The #add method accepts the following options as arguments:
+    # eager_load, autoload, autoload_once and glob.
     #
     # Finally, the Path object also provides a few helpers:
     #
