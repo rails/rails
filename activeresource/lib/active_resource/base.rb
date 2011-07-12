@@ -663,7 +663,7 @@ module ActiveResource
       #   Post.new_element_path
       #   # => /posts/new.json
       #
-      #   Comment.collection_path(:post_id => 5)
+      #   Comment.new_element_path(:post_id => 5)
       #   # => /posts/5/comments/new.json
       def new_element_path(prefix_options = {})
         "#{prefix(prefix_options)}#{collection_name}/new.#{format.extension}"
