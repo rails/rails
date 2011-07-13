@@ -261,7 +261,21 @@ The rake task is:
 rake assets:precompile
 </erb>
 
-TODO: explain where to use this with Capistrano
+You can run this as part of a Capistrano deployment:
+
+<erb>
+before "deploy:symlink", "deploy:precompile_assets"
+
+desc "Compile pipeline assets"
+task :precompile_assets do
+  run "#{release_path}; RAILS_ENV=#{rails_env} bundle exec rake assets:precompile"
+end
+</erb>
+
+If you are not precompiling your assets, and you are using the default cache file store (which is the filesystem), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure. This is so the cached file persist between deployments. 
+
+TODO: Extend above task to allow for this and add task to set it up (See commits 8f0e0b6 and 704ee0df).
+
 
 The default matcher for compiling files is rather broad:
 
