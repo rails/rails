@@ -34,6 +34,7 @@ DEFAULT_APP_FILES = %w(
   vendor
   vendor/assets
   vendor/plugins
+  tmp/assets_cache
   tmp/cache
 )
 
