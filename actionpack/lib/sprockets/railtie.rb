@@ -63,8 +63,8 @@ module Sprockets
 
         env.logger = Rails.logger
 
-        if env.respond_to?(:cache)
-          env.cache = assets.cache_store || Rails.cache
+        if env.respond_to?(:cache) && assets.cache_store != false
+          env.cache = ActiveSupport::Cache.lookup_store(assets.cache_store) || Rails.cache
         end
 
         if assets.compress
