@@ -17,7 +17,7 @@ endprologue.
 
 h3. Anatomy of a Migration
 
-Before I dive into the details of a migration, here are a few examples of the sorts of things you can do:
+Before we dive into the details of a migration, here are a few examples of the sorts of things you can do:
 
 <ruby>
 class CreateProducts < ActiveRecord::Migration
