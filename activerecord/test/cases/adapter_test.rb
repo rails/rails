@@ -100,7 +100,7 @@ class AdapterTest < ActiveRecord::TestCase
     def test_connect_with_url
       begin
         ar_config = ARTest.connection_config['arunit']
-        url = "postgres://#{ar_config["username"]}@localhost/#{ar_config["database"]}?encoding=utf8"
+        url = "postgres:///#{ar_config["database"]}?encoding=utf8"
         ActiveRecord::Base.establish_connection(url)
         connection = ActiveRecord::Base.connection
         assert_equal ar_config['database'], connection.current_database
