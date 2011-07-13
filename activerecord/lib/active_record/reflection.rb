@@ -80,12 +80,6 @@ module ActiveRecord
     # Abstract base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
-      attr_reader :active_record
-
-      def initialize(macro, name, options, active_record)
-        @macro, @name, @options, @active_record = macro, name, options, active_record
-      end
-
       # Returns the name of the macro.
       #
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt>
@@ -103,6 +97,19 @@ module ActiveRecord
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
       # <tt>has_many :clients</tt> returns +{}+
       attr_reader :options
+
+      attr_reader :active_record
+
+      attr_reader :plural_name # :nodoc:
+
+      def initialize(macro, name, options, active_record)
+        @macro         = macro
+        @name          = name
+        @options       = options
+        @active_record = active_record
+        @plural_name   = active_record.pluralize_table_names ?
+                            name.to_s.pluralize : name.to_s
+      end
 
       # Returns the class for the macro.
       #
@@ -123,7 +130,11 @@ module ActiveRecord
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
       # and +other_aggregation+ has an options hash assigned to it.
       def ==(other_aggregation)
-        other_aggregation.kind_of?(self.class) && name == other_aggregation.name && other_aggregation.options && active_record == other_aggregation.active_record
+        super ||
+          other_aggregation.kind_of?(self.class) &&
+          name == other_aggregation.name &&
+          other_aggregation.options &&
+          active_record == other_aggregation.active_record
       end
 
       def sanitized_conditions #:nodoc:
@@ -168,25 +179,8 @@ module ActiveRecord
 
       # Returns a new, unsaved instance of the associated class. +options+ will
       # be passed to the class's constructor.
-      def build_association(*options)
-        klass.new(*options)
-      end
-
-      # Creates a new instance of the associated class, and immediately saves it
-      # with ActiveRecord::Base#save. +options+ will be passed to the class's
-      # creation method. Returns the newly created object.
-      def create_association(*options)
-        klass.create(*options)
-      end
-
-      # Creates a new instance of the associated class, and immediately saves it
-      # with ActiveRecord::Base#save!. +options+ will be passed to the class's
-      # creation method. If the created record doesn't pass validations, then an
-      # exception will be raised.
-      #
-      # Returns the newly created object.
-      def create_association!(*options)
-        klass.create!(*options)
+      def build_association(*options, &block)
+        klass.new(*options, &block)
       end
 
       def table_name

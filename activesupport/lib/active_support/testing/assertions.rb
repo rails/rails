@@ -68,7 +68,7 @@ module ActiveSupport
       #
       # A error message can be specified.
       #
-      #   assert_no_difference 'Article.count', "An Article should not be destroyed" do
+      #   assert_no_difference 'Article.count', "An Article should not be created" do
       #     post :create, :article => invalid_attributes
       #   end
       def assert_no_difference(expression, message = nil, &block)

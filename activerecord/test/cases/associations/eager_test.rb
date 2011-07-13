@@ -1040,4 +1040,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
     assert_no_queries { assert_equal groucho, sponsor.thing }
   end
+
+  def test_joins_with_includes_should_preload_via_joins
+    post = assert_queries(1) { Post.includes(:comments).joins(:comments).order('posts.id desc').to_a.first }
+
+    assert_queries(0) do
+      assert_not_equal 0, post.comments.to_a.count
+    end
+  end
 end

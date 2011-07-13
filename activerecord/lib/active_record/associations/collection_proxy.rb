@@ -12,7 +12,7 @@ module ActiveRecord
     #     has_many :posts
     #   end
     #
-    #   blog = Blog.find(:first)
+    #   blog = Blog.first
     #
     # the association proxy in <tt>blog.posts</tt> has the object in +blog+ as
     # <tt>@owner</tt>, the collection of its posts as <tt>@target</tt>, and
@@ -58,10 +58,10 @@ module ActiveRecord
 
       alias_method :new, :build
 
-      def respond_to?(*args)
+      def respond_to?(name, include_private = false)
         super ||
-        (load_target && target.respond_to?(*args)) ||
-        @association.klass.respond_to?(*args)
+        (load_target && target.respond_to?(name, include_private)) ||
+        @association.klass.respond_to?(name, include_private)
       end
 
       def method_missing(method, *args, &block)

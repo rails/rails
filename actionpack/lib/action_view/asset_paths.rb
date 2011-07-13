@@ -1,4 +1,6 @@
+require 'zlib'
 require 'active_support/core_ext/file'
+require 'action_controller/metal/exceptions'
 
 module ActionView
   class AssetPaths #:nodoc:
@@ -111,7 +113,7 @@ module ActionView
           args << current_request if (arity > 1 || arity < 0) && has_request?
           host.call(*args)
         else
-          (host =~ /%d/) ? host % (source.hash % 4) : host
+          (host =~ /%d/) ? host % (Zlib.crc32(source) % 4) : host
         end
       end
     end

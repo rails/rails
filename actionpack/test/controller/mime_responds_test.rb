@@ -509,7 +509,7 @@ end
 class RespondWithController < ActionController::Base
   respond_to :html, :json
   respond_to :xml, :except => :using_resource_with_block
-  respond_to :js,  :only => [ :using_resource_with_block, :using_resource ]
+  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, :using_hash_resource ]
 
   def using_resource
     respond_with(resource)
@@ -575,11 +575,6 @@ protected
   def resource
     Customer.new("david", request.delete? ? nil : 13)
   end
-
-  def _render_js(js, options)
-    self.content_type ||= Mime::JS
-    self.response_body = js.respond_to?(:to_js) ? js.to_js : js
-  end
 end
 
 class InheritedRespondWithController < RespondWithController
@@ -638,6 +633,20 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
+  def test_using_resource_with_js_simply_tries_to_render_the_template
+    @request.accept = "text/javascript"
+    get :using_resource
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "alert(\"Hi\");", @response.body
+  end
+
+  def test_using_hash_resource_with_js_raises_an_error_if_template_cant_be_found
+    @request.accept = "text/javascript"
+    assert_raise ActionView::MissingTemplate do
+      get :using_hash_resource
+    end
+  end
+
   def test_using_hash_resource
     @request.accept = "application/xml"
     get :using_hash_resource
@@ -648,6 +657,13 @@ class RespondWithControllerTest < ActionController::TestCase
     get :using_hash_resource
     assert_equal "application/json", @response.content_type
     assert_equal %Q[{"result":{"name":"david","id":13}}], @response.body
+  end
+
+  def test_using_hash_resource_with_post
+    @request.accept = "application/json"
+    assert_raise ArgumentError, "Nil location provided. Can't build URI." do
+      post :using_hash_resource
+    end
   end
 
   def test_using_resource_with_block

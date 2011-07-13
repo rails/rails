@@ -37,6 +37,9 @@ module Rails
         class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
                                           :desc => "Skip Active Record files"
 
+        class_option :skip_sprockets,     :type => :boolean, :aliases => "-S", :default => false,
+                                          :desc => "Skip Sprockets files"
+
         class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
@@ -124,7 +127,7 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_test_unit]
+        !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
       end
 
       def comment_if(value)
@@ -193,6 +196,16 @@ module Rails
             end
           GEMFILE
         end
+      end
+
+      def assets_gemfile_entry
+        <<-GEMFILE.strip_heredoc
+          group :assets do
+            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails'
+            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails'
+            gem 'uglifier'
+          end
+        GEMFILE
       end
 
       def javascript_gemfile_entry

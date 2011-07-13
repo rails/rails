@@ -188,6 +188,11 @@ module CacheStoreBehavior
     assert_equal nil, @cache.read('foo')
   end
 
+  def test_should_read_and_write_false
+    assert_equal true, @cache.write('foo', false)
+    assert_equal false, @cache.read('foo')
+  end
+
   def test_read_multi
     @cache.write('foo', 'bar')
     @cache.write('fu', 'baz')
@@ -630,13 +635,29 @@ uses_memcached 'memcached backed store' do
       cache.write("foo", 2)
       assert_equal "2", cache.read("foo")
     end
-
+    
+    def test_raw_values_with_marshal
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+      cache.clear
+      cache.write("foo", Marshal.dump([]))
+      assert_equal [], cache.read("foo")      
+    end
+    
     def test_local_cache_raw_values
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
       cache.clear
       cache.with_local_cache do
         cache.write("foo", 2)
         assert_equal "2", cache.read("foo")
+      end
+    end
+
+    def test_local_cache_raw_values_with_marshal
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+      cache.clear
+      cache.with_local_cache do
+        cache.write("foo", Marshal.dump([]))
+        assert_equal [], cache.read("foo")
       end
     end
   end

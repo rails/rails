@@ -79,6 +79,8 @@ module ActiveRecord
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
     def destroy
+      destroy_associations
+
       if persisted?
         IdentityMap.remove(self) if IdentityMap.enabled?
         pk         = self.class.primary_key
@@ -284,6 +286,11 @@ module ActiveRecord
     end
 
   private
+
+    # A hook to be overriden by association modules.
+    def destroy_associations
+    end
+
     def create_or_update
       raise ReadOnlyRecord if readonly?
       result = new_record? ? create : update

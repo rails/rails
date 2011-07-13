@@ -29,7 +29,12 @@ module ActiveRecord
         assert_equal [[:create_table, [:horses]]], recorder.commands
       end
 
-      def test_unknown_commands_raise_exception
+      def test_unknown_commands_delegate
+        recorder = CommandRecorder.new(stub(:foo => 'bar'))
+        assert_equal 'bar', recorder.foo
+      end
+
+      def test_unknown_commands_raise_exception_if_they_cannot_delegate
         @recorder.record :execute, ['some sql']
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse

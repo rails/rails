@@ -8,9 +8,13 @@ else
   gem "arel", '~> 2.1.3'
 end
 
+gem "jquery-rails"
 gem "coffee-script"
 gem "sass"
-gem "uglifier", ">= 1.0.0"
+
+# This needs to be with require false to avoid
+# it being automatically loaded by sprockets
+gem "uglifier", ">= 1.0.0", :require => false
 
 gem "rake",  ">= 0.8.7"
 gem "mocha", ">= 0.9.8"
@@ -19,6 +23,7 @@ group :doc do
   gem "rdoc",  "~> 3.4"
   gem "horo",  "= 1.0.3"
   gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
+  gem "w3c_validators"
 end
 
 # AS

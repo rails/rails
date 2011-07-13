@@ -1,4 +1,4 @@
-# PostgreSQL. Versions 7.4 and 8.x are supported.
+# PostgreSQL. Versions 8.2 and up are supported.
 #
 # Install the pg driver:
 #   gem install pg

@@ -1,3 +1,4 @@
+require 'zlib'
 require 'abstract_unit'
 require 'active_support/ordered_options'
 
@@ -689,9 +690,9 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.config.asset_host = 'http://a%d.example.com'
     config.perform_caching = true
 
-    hash = '/javascripts/cache/money.js'.hash % 4
+    number = Zlib.crc32('/javascripts/cache/money.js') % 4
     assert_dom_equal(
-      %(<script src="http://a#{hash}.example.com/javascripts/cache/money.js" type="text/javascript"></script>),
+      %(<script src="http://a#{number}.example.com/javascripts/cache/money.js" type="text/javascript"></script>),
       javascript_include_tag(:all, :cache => "cache/money")
     )
 

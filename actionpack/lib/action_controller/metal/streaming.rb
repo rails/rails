@@ -24,20 +24,8 @@ module ActionController #:nodoc:
   #
   # == Examples
   #
-  # Streaming can be added to a controller easily, all you need to do is
-  # call +stream+ in the controller class:
-  #
-  #   class PostsController
-  #     stream
-  #   end
-  #
-  # The +stream+ method accepts the same options as +before_filter+ and friends:
-  #
-  #   class PostsController
-  #     stream :only => :index
-  #   end
-  #
-  # You can also selectively turn on streaming for specific actions:
+  # Streaming can be added to a given template easily, all you need to do is
+  # to pass the :stream option.
   #
   #   class PostsController
   #     def index
@@ -71,6 +59,9 @@ module ActionController #:nodoc:
   #     @articles = Article.scoped
   #     render :stream => true
   #   end
+  #
+  # Notice that :stream only works with templates. Rendering :json
+  # or :xml with :stream won't work.
   #
   # == Communication between layout and template
   #
@@ -209,32 +200,8 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     include AbstractController::Rendering
-    attr_internal :stream
-
-    module ClassMethods
-      # Render streaming templates. It accepts :only, :except, :if and :unless as options
-      # to specify when to stream, as in ActionController filters.
-      def stream(options={})
-        if defined?(Fiber)
-          before_filter :_stream_filter, options
-        else
-          raise "You cannot use streaming if Fiber is not available."
-        end
-      end
-    end
 
     protected
-
-    # Mark following render calls as streaming.
-    def _stream_filter #:nodoc:
-      self.stream = true
-    end
-
-    # Consider the stream option when normalazing options.
-    def _normalize_options(options) #:nodoc:
-      super
-      options[:stream] = self.stream unless options.key?(:stream)
-    end
 
     # Set proper cache control and transfer encoding when streaming
     def _process_options(options) #:nodoc:

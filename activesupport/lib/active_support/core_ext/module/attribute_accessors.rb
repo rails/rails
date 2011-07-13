@@ -12,7 +12,7 @@ class Module
         end
       EOS
 
-      unless options[:instance_reader] == false
+      unless options[:instance_reader] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}
             @@#{sym}
@@ -31,7 +31,7 @@ class Module
         end
       EOS
 
-      unless options[:instance_writer] == false
+      unless options[:instance_writer] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
             @@#{sym} = obj
@@ -53,6 +53,10 @@ class Module
   #  end
   #
   #  AppConfiguration.google_api_key = "overriding the api key!"
+  #
+  # To opt out of the instance writer method, pass :instance_writer => false.
+  # To opt out of the instance reader method, pass :instance_reader => false.
+  # To opt out of both instance methods, pass :instance_accessor => false.
   def mattr_accessor(*syms)
     mattr_reader(*syms)
     mattr_writer(*syms)

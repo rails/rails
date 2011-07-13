@@ -1,4 +1,4 @@
-require "action_view/helpers"
+require "action_view"
 
 module Sprockets
   module Helpers
@@ -9,14 +9,12 @@ module Sprockets
       def asset_paths
         @asset_paths ||= begin
           config     = self.config if respond_to?(:config)
+          config   ||= Rails.application.config
           controller = self.controller if respond_to?(:controller)
-          config ||= Rails.application.config
-          if config.action_controller.present?
-            config.action_controller.default_asset_host_protocol ||= :relative
-          else
-            config.default_asset_host_protocol ||= :relative
-          end
-          RailsHelper::AssetPaths.new(config, controller)
+          paths = RailsHelper::AssetPaths.new(config, controller)
+          paths.asset_environment = asset_environment
+          paths.asset_prefix      = asset_prefix
+          paths
         end
       end
 
@@ -76,9 +74,28 @@ module Sprockets
           params[:debug_assets] == 'true'
       end
 
+      # Override to specify an alternative prefix for asset path generation.
+      # When combined with a custom +asset_environment+, this can be used to
+      # implement themes that can take advantage of the asset pipeline.
+      #
+      # If you only want to change where the assets are mounted, refer to
+      # +config.assets.prefix+ instead.
+      def asset_prefix
+        Rails.application.config.assets.prefix
+      end
+
+      # Override to specify an alternative asset environment for asset
+      # path generation. The environment should already have been mounted
+      # at the prefix returned by +asset_prefix+.
+      def asset_environment
+        Rails.application.assets
+      end
+
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        def compute_public_path(source, dir, ext=nil, include_host=true, protocol = nil)
-          super(source, Rails.application.config.assets.prefix, ext, include_host, protocol)
+        attr_accessor :asset_environment, :asset_prefix
+
+        def compute_public_path(source, dir, ext=nil, include_host=true, protocol=nil)
+          super(source, asset_prefix, ext, include_host, protocol)
         end
 
         # Return the filesystem path for the source
@@ -90,14 +107,14 @@ module Sprockets
           source = source.to_s
           return nil if is_uri?(source)
           source = rewrite_extension(source, nil, ext)
-          assets[source]
+          asset_environment[source]
         end
 
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            assets.path(source, performing_caching?, dir)
+            asset_environment.path(source, performing_caching?, dir)
           end
         end
 
@@ -107,10 +124,6 @@ module Sprockets
           else
             source
           end
-        end
-
-        def assets
-          Rails.application.assets
         end
 
         # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available

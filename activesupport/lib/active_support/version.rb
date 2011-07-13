@@ -1,9 +1,9 @@
 module ActiveSupport
   module VERSION #:nodoc:
     MAJOR = 3
-    MINOR = 1
+    MINOR = 2
     TINY  = 0
-    PRE   = "rc1"
+    PRE   = "beta"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end

@@ -193,8 +193,8 @@ module ActiveRecord
       else
         relation = relation.where(table[primary_key].eq(id)) if id
       end
-
-      connection.select_value(relation.to_sql) ? true : false
+      
+      connection.select_value(relation.to_sql, "#{name} Exists") ? true : false
     end
 
     protected
@@ -259,6 +259,7 @@ module ActiveRecord
       if match.bang? && result.blank?
         raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
       else
+        yield(result) if block_given?
         result
       end
     end

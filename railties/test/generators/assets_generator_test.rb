@@ -8,19 +8,13 @@ class AssetsGeneratorTest < Rails::Generators::TestCase
 
   def test_assets
     run_generator
-    assert_file "app/assets/javascripts/posts.js.coffee"
+    assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_skipping_assets
     content = run_generator ["posts", "--no-stylesheets", "--no-javascripts"]
-    assert_no_file "app/assets/javascripts/posts.js.coffee"
+    assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_vanilla_assets
-    run_generator ["posts", "--no-javascript-engine"]
-    assert_file "app/assets/javascripts/posts.js"
-    assert_file "app/assets/stylesheets/posts.css"
   end
 end

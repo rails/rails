@@ -345,6 +345,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert orig_ship.destroyed?
   end
 
+  def test_creation_failure_due_to_new_record_should_raise_error
+    pirate = pirates(:redbeard)
+    new_ship = Ship.new
+
+    assert_raise(ActiveRecord::RecordNotSaved) do
+      pirate.ship = new_ship
+    end
+    assert_nil pirate.ship
+    assert_nil new_ship.pirate_id
+  end
+
   def test_replacement_failure_due_to_existing_record_should_raise_error
     pirate = pirates(:blackbeard)
     pirate.ship.name = nil
@@ -437,5 +448,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.create_bulb!{ |b| b.color = 'Red' }
     assert_equal 'RED!', bulb.color
+  end
+
+  def test_association_attributes_are_available_to_after_initialize
+    car = Car.create(:name => 'honda')
+    bulb = car.create_bulb
+
+    assert_equal car.id, bulb.attributes_after_initialize['car_id']
   end
 end

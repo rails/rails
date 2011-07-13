@@ -117,7 +117,8 @@ module Rails
     end
 
     def tmp
-      empty_directory_with_gitkeep "tmp/cache"
+      empty_directory "tmp/cache"
+      empty_directory "tmp/cache/assets"
     end
 
     def vendor

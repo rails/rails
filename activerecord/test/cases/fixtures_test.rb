@@ -178,11 +178,9 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nothing_raised do
       fixtures = ActiveRecord::Fixtures.new(Account.connection, 'categories', 'Category', FIXTURES_ROOT + "/categories_ordered")
 
-      i = 0
-      fixtures.each do |name, fixture|
+      fixtures.each.with_index do |(name, fixture), i|
         assert_equal "fixture_no_#{i}", name
         assert_equal "Category #{i}", fixture['name']
-        i += 1
       end
     end
   end
@@ -589,8 +587,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_preserves_existing_fixture_data
-    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).created_on.to_date)
-    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).updated_on.to_date)
+    assert_equal(2.weeks.ago.utc.to_date, pirates(:redbeard).created_on.utc.to_date)
+    assert_equal(2.weeks.ago.utc.to_date, pirates(:redbeard).updated_on.utc.to_date)
   end
 
   def test_generates_unique_ids

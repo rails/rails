@@ -667,4 +667,27 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     firm = client.create_firm!{ |f| f.name = 'Agency Company' }
     assert_equal 'Agency Company', firm.name
   end
+
+  def test_should_set_foreign_key_on_create_association
+    client = Client.create! :name => "fuu"
+
+    firm = client.create_firm :name => "baa"
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_should_set_foreign_key_on_create_association!
+    client = Client.create! :name => "fuu"
+
+    firm = client.create_firm! :name => "baa"
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_self_referential_belongs_to_with_counter_cache_assigning_nil
+    comment = Comment.create! :post => posts(:thinking), :body => "fuu"
+    comment.parent = nil
+    comment.save!
+
+    assert_equal nil, comment.reload.parent
+    assert_equal 0, comments(:greetings).reload.children_count
+  end
 end

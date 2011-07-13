@@ -10,9 +10,9 @@ module RenderStreaming
     )]
 
     layout "application"
-    stream :only => [:hello_world, :skip]
 
     def hello_world
+      render :stream => true
     end
 
     def layout_exception

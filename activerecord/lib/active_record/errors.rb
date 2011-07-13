@@ -87,7 +87,7 @@ module ActiveRecord
   #
   # For example, in
   #
-  #   Location.find :all, :conditions => ["lat = ? AND lng = ?", 53.7362]
+  #   Location.where("lat = ? AND lng = ?", 53.7362)
   #
   # two placeholders are given but only one variable to fill them.
   class PreparedStatementInvalid < ActiveRecordError

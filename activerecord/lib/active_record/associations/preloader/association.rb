@@ -68,7 +68,8 @@ module ActiveRecord
         private
 
         def associated_records_by_owner
-          owner_keys = owners.map { |owner| owner[owner_key_name] }.compact.uniq
+          owners_map = owners_by_key
+          owner_keys = owners_map.keys.compact
 
           if klass.nil? || owner_keys.empty?
             records = []
@@ -84,7 +85,7 @@ module ActiveRecord
           records.each do |record|
             owner_key = record[association_key_name].to_s
 
-            owners_by_key[owner_key].each do |owner|
+            owners_map[owner_key].each do |owner|
               records_by_owner[owner] << record
             end
           end

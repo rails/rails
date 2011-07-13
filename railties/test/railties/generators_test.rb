@@ -1,7 +1,8 @@
 RAILS_ISOLATED_ENGINE = true
 require "isolation/abstract_unit"
 
-require "#{RAILS_FRAMEWORK_ROOT}/railties/lib/rails/generators/test_case"
+require 'generators/generators_test_helper'
+require "rails/generators/test_case"
 
 module RailtiesTests
   class GeneratorTest < Rails::Generators::TestCase
@@ -31,8 +32,8 @@ module RailtiesTests
     end
 
     def build_engine(is_mountable=false)
+      FileUtils.rm_rf(engine_path)
       FileUtils.mkdir_p(engine_path)
-      FileUtils.rm_r(engine_path)
 
       mountable = is_mountable ? "--mountable" : ""
 

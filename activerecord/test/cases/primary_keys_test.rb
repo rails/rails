@@ -26,7 +26,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy
-    assert_equal [1], topic.to_key
+    assert_equal nil, topic.to_key
   end
 
   def test_integer_key

@@ -68,6 +68,11 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_default_value :string, 'MyString'
   end
 
+  def test_default_value_for_type
+    att = Rails::Generators::GeneratedAttribute.new("type", "string")
+    assert_equal("", att.default)
+  end
+
   def test_default_value_is_text
     assert_field_default_value :text, 'MyText'
   end

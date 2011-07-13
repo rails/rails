@@ -4,6 +4,7 @@ require 'pathname'
 
 require 'active_support'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/logger'
 
 require 'rails/application'
@@ -91,7 +92,7 @@ module Rails
     #
     # * The Rails environment;
     # * The environment variable RAILS_GROUPS;
-    # * The optional hash given as argument with group dependencies;
+    # * The optional envs given as argument and the hash with group dependencies;
     #
     # == Examples
     #
@@ -101,12 +102,14 @@ module Rails
     #   # => [:default, :development, :assets] for Rails.env == "development"
     #   # => [:default, :production]           for Rails.env == "production"
     #
-    def groups(hash={})
+    def groups(*groups)
+      hash = groups.extract_options!
       env = Rails.env
-      groups = [:default, env]
+      groups.unshift(:default, env)
       groups.concat ENV["RAILS_GROUPS"].to_s.split(",")
       groups.concat hash.map { |k,v| k if v.map(&:to_s).include?(env) }
       groups.compact!
+      groups.uniq!
       groups
     end
 

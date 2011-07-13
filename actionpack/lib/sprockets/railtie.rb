@@ -1,15 +1,15 @@
 module Sprockets
   autoload :Helpers, "sprockets/helpers"
+  autoload :LazyCompressor, "sprockets/compressors"
+  autoload :NullCompressor, "sprockets/compressors"
 
+  # TODO: Get rid of config.assets.enabled
   class Railtie < ::Rails::Railtie
-    def self.using_coffee?
-      require 'coffee-script'
-      defined?(CoffeeScript)
-    rescue LoadError
-      false
-    end
+    config.default_asset_host_protocol = :relative
 
-    config.app_generators.javascript_engine :coffee if using_coffee?
+    rake_tasks do
+      load "sprockets/assets.rake"
+    end
 
     # Configure ActionController to use sprockets.
     initializer "sprockets.set_configs", :after => "action_controller.set_configs" do |app|
@@ -63,15 +63,20 @@ module Sprockets
 
         env.logger = Rails.logger
 
-        if env.respond_to?(:cache)
-          env.cache = Rails.cache
+        if env.respond_to?(:cache) && assets.cache_store != false
+          env.cache = ActiveSupport::Cache.lookup_store(assets.cache_store) || Rails.cache
         end
 
         if assets.compress
           # temporarily hardcode default JS compressor to uglify. Soon, it will work
           # the same as SCSS, where a default plugin sets the default.
-          env.js_compressor  = expand_js_compressor(assets.js_compressor || :uglifier)
-          env.css_compressor = expand_css_compressor(assets.css_compressor)
+          unless assets.js_compressor == false
+            env.js_compressor  = LazyCompressor.new { expand_js_compressor(assets.js_compressor || :uglifier) }
+          end
+
+          unless assets.css_compressor == false
+            env.css_compressor = LazyCompressor.new { expand_css_compressor(assets.css_compressor) }
+          end
         end
 
         env

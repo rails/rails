@@ -7,21 +7,14 @@ module Rails
       class_option :javascript_engine, :desc => "Engine for JavaScripts"
       class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
 
-      def create_javascript_files
-        return unless options.javascripts?
-        copy_file "javascript.#{javascript_extension}",
-          File.join('app/assets/javascripts', class_path, "#{asset_name}.#{javascript_extension}")
-      end
-
       protected
 
       def asset_name
         file_name
       end
 
-      def javascript_extension
-        options.javascript_engine.present? ?
-          "js.#{options.javascript_engine}" : "js"
+      hook_for :javascript_engine do |javascript_engine|
+        invoke javascript_engine, [name] if options[:javascripts]
       end
 
       hook_for :stylesheet_engine do |stylesheet_engine|

@@ -7,7 +7,7 @@ module ActiveRecord
       # the record is not persisted? or has just been destroyed.
       def to_key
         key = send(self.class.primary_key)
-        [key] if key
+        persisted? && key ? [key] : nil
       end
 
       module ClassMethods

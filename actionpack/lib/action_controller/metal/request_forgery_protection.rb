@@ -1,4 +1,5 @@
 require 'active_support/core_ext/class/attribute'
+require 'action_controller/metal/exceptions'
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -7,17 +8,16 @@ module ActionController #:nodoc:
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
   # by including a token in the rendered html for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
-  # access. When a request reaches your application, \Rails then verifies the received
-  # token with the token in the session. Only HTML and javascript requests are checked,
+  # access. When a request reaches your application, \Rails verifies the received
+  # token with the token in the session. Only HTML and JavaScript requests are checked,
   # so this will not protect your XML API (presumably you'll have a different
   # authentication scheme there anyway). Also, GET requests are not protected as these
   # should be idempotent.
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
-  # which will check the token and raise an ActionController::InvalidAuthenticityToken
-  # if it doesn't match what was expected. A call to this method is generated for new
-  # \Rails applications by default. You can customize the error message by editing
-  # public/422.html.
+  # which checks the token and resets the session if it doesn't match what was expected.
+  # A call to this method is generated for new \Rails applications by default.
+  # You can customize the error message by editing public/422.html.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
@@ -79,6 +79,8 @@ module ActionController #:nodoc:
         end
       end
 
+      # This is the method that defines the application behaviour when a request is found to be unverified.
+      # By default, \Rails resets the session when it finds an unverified request.
       def handle_unverified_request
         reset_session
       end

@@ -586,7 +586,7 @@ module Rails
     end
 
     def has_migrations?
-      paths["db/migrate"].first.present?
+      paths["db/migrate"].existent.any?
     end
 
     def find_root_with_flag(flag, default=nil)

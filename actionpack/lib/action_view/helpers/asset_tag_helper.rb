@@ -1,6 +1,7 @@
 require 'action_view/helpers/asset_tag_helpers/javascript_tag_helpers'
 require 'action_view/helpers/asset_tag_helpers/stylesheet_tag_helpers'
 require 'action_view/helpers/asset_tag_helpers/asset_paths'
+require 'action_view/helpers/tag_helper'
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -191,6 +192,7 @@ module ActionView
     #   RewriteEngine On
     #   RewriteRule ^/release-\d+/(images|javascripts|stylesheets)/(.*)$ /$1/$2 [L]
     module AssetTagHelper
+      include TagHelper
       include JavascriptTagHelpers
       include StylesheetTagHelpers
       # Returns a link tag that browsers and news readers can use to auto-detect
@@ -363,7 +365,7 @@ module ActionView
       end
 
       def image_alt(src)
-        File.basename(src, '.*').gsub(/-[[:xdigit:]]{32}\z/, '').capitalize
+        File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').capitalize
       end
 
       # Returns an html video tag for the +sources+. If +sources+ is a string,

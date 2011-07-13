@@ -1058,7 +1058,7 @@ module ActiveRecord #:nodoc:
             if match.finder?
               options = arguments.extract_options!
               relation = options.any? ? scoped(options) : scoped
-              relation.send :find_by_attributes, match, attribute_names, *arguments
+              relation.send :find_by_attributes, match, attribute_names, *arguments, &block
             elsif match.instantiator?
               scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
             end
@@ -1542,9 +1542,8 @@ MSG
 
         assign_attributes(attributes, options) if attributes
 
-        result = yield self if block_given?
+        yield self if block_given?
         run_callbacks :initialize
-        result
       end
 
       # Populate +coder+ with attributes about this record that should be
@@ -1710,27 +1709,24 @@ MSG
         return unless new_attributes
 
         attributes = new_attributes.stringify_keys
-        role = options[:as] || :default
-
         multi_parameter_attributes = []
+        @mass_assignment_options = options
 
         unless options[:without_protection]
-          attributes = sanitize_for_mass_assignment(attributes, role)
+          attributes = sanitize_for_mass_assignment(attributes, mass_assignment_role)
         end
 
         attributes.each do |k, v|
           if k.include?("(")
             multi_parameter_attributes << [ k, v ]
+          elsif respond_to?("#{k}=")
+            send("#{k}=", v)
           else
-            method_name = "#{k}="
-            if respond_to?(method_name)
-              method(method_name).arity == -2 ? send(method_name, v, options) : send(method_name, v)
-            else
-              raise(UnknownAttributeError, "unknown attribute: #{k}")
-            end
+            raise(UnknownAttributeError, "unknown attribute: #{k}")
           end
         end
 
+        @mass_assignment_options = nil
         assign_multiparameter_attributes(multi_parameter_attributes)
       end
 
@@ -1785,16 +1781,12 @@ MSG
       # Note also that destroying a record preserves its ID in the model instance, so deleted
       # models are still comparable.
       def ==(comparison_object)
-        comparison_object.equal?(self) ||
+        super ||
           comparison_object.instance_of?(self.class) &&
           id.present? &&
           comparison_object.id == id
       end
-
-      # Delegates to ==
-      def eql?(comparison_object)
-        self == comparison_object
-      end
+      alias :eql? :==
 
       # Delegates to id in order to allow two records of the same type and id to work with something like:
       #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
@@ -1810,6 +1802,15 @@ MSG
       # Returns +true+ if the attributes hash has been frozen.
       def frozen?
         @attributes.frozen?
+      end
+
+      # Allows sort on objects
+      def <=>(other_object)
+        if other_object.is_a?(self.class)
+          self.to_key <=> other_object.to_key
+        else
+          nil
+        end
       end
 
       # Backport dup from 1.9 so that initialize_dup() gets called
@@ -1890,7 +1891,27 @@ MSG
         value
       end
 
+      def mass_assignment_options
+        @mass_assignment_options ||= {}
+      end
+
+      def mass_assignment_role
+        mass_assignment_options[:as] || :default
+      end
+
     private
+
+      # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
+      # of the array, and then rescues from the possible NoMethodError. If those elements are
+      # ActiveRecord::Base's, then this triggers the various method_missing's that we have,
+      # which significantly impacts upon performance.
+      #
+      # So we can avoid the method_missing hit by explicitly defining #to_ary as nil here.
+      #
+      # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary/
+      def to_ary # :nodoc:
+        nil
+      end
 
       def set_serialized_attributes
         sattrs = self.class.serialized_attributes
@@ -2082,6 +2103,8 @@ MSG
       end
 
       def populate_with_current_scope_attributes
+        return unless self.class.scope_attributes?
+
         self.class.scope_attributes.each do |att,value|
           send("#{att}=", value) if respond_to?("#{att}=")
         end

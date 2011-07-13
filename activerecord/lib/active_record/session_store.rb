@@ -183,11 +183,6 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Use the ActiveRecord::Base.connection by default.
-      cattr_accessor :connection
-
-      ##
-      # :singleton-method:
       # The table name defaults to 'sessions'.
       cattr_accessor :table_name
       @@table_name = 'sessions'
@@ -206,10 +201,19 @@ module ActiveRecord
 
       class << self
         alias :data_column_name :data_column
+        
+        # Use the ActiveRecord::Base.connection by default.
+        attr_writer :connection
+        
+        # Use the ActiveRecord::Base.connection_pool by default.
+        attr_writer :connection_pool
 
-        remove_method :connection
         def connection
-          @@connection ||= ActiveRecord::Base.connection
+          @connection ||= ActiveRecord::Base.connection
+        end
+
+        def connection_pool
+          @connection_pool ||= ActiveRecord::Base.connection_pool
         end
 
         # Look up a session by id and unmarshal its data if found.
@@ -219,6 +223,8 @@ module ActiveRecord
           end
         end
       end
+      
+      delegate :connection, :connection=, :connection_pool, :connection_pool=, :to => self
 
       attr_reader :session_id, :new_record
       alias :new_record? :new_record
@@ -297,8 +303,12 @@ module ActiveRecord
     private
       def get_session(env, sid)
         Base.silence do
-          sid ||= generate_sid
-          session = find_session(sid)
+          unless sid and session = @@session_class.find_by_session_id(sid)
+            # If the sid was nil or if there is no pre-existing session under the sid,
+            # force the generation of a new sid and associate a new session associated with the new sid
+            sid = generate_sid
+            session = @@session_class.new(:session_id => sid, :data => {})
+          end
           env[SESSION_RECORD_KEY] = session
           [sid, session.data]
         end

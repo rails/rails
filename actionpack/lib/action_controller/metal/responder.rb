@@ -9,7 +9,7 @@ module ActionController #:nodoc:
   #     respond_to :html, :xml, :json
   #
   #     def index
-  #       @people = Person.find(:all)
+  #       @people = Person.all
   #       respond_with(@people)
   #     end
   #   end
@@ -160,6 +160,11 @@ module ActionController #:nodoc:
       default_render
     rescue ActionView::MissingTemplate => e
       navigation_behavior(e)
+    end
+
+    # to_js simply tries to render a template. If no template is found, raises the error.
+    def to_js
+      default_render
     end
 
     # All other formats follow the procedure below. First we try to render a

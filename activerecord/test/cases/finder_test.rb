@@ -140,23 +140,30 @@ class FinderTest < ActiveRecord::TestCase
 
 
   def test_find_with_group
-    developers =  Developer.find(:all, :group => "salary", :select => "salary")
+    developers = Developer.find(:all, :group => "salary", :select => "salary")
     assert_equal 4, developers.size
     assert_equal 4, developers.map(&:salary).uniq.size
   end
 
   def test_find_with_group_and_having
-    developers =  Developer.find(:all, :group => "salary", :having => "sum(salary) >  10000", :select => "salary")
+    developers = Developer.find(:all, :group => "salary", :having => "sum(salary) > 10000", :select => "salary")
     assert_equal 3, developers.size
     assert_equal 3, developers.map(&:salary).uniq.size
-    assert developers.all? { |developer|  developer.salary > 10000 }
+    assert developers.all? { |developer| developer.salary > 10000 }
   end
 
   def test_find_with_group_and_sanitized_having
-    developers =  Developer.find(:all, :group => "salary", :having => ["sum(salary) > ?", 10000], :select => "salary")
+    developers = Developer.find(:all, :group => "salary", :having => ["sum(salary) > ?", 10000], :select => "salary")
     assert_equal 3, developers.size
     assert_equal 3, developers.map(&:salary).uniq.size
-    assert developers.all? { |developer|  developer.salary > 10000 }
+    assert developers.all? { |developer| developer.salary > 10000 }
+  end
+
+  def test_find_with_group_and_sanitized_having_method
+    developers = Developer.group(:salary).having("sum(salary) > ?", 10000).select('salary').all
+    assert_equal 3, developers.size
+    assert_equal 3, developers.map(&:salary).uniq.size
+    assert developers.all? { |developer| developer.salary > 10000 }
   end
 
   def test_find_with_entire_select_statement
