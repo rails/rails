@@ -118,7 +118,7 @@ module Rails
 
     def tmp
       empty_directory "tmp/cache"
-      empty_directory "tmp/assets_cache"
+      empty_directory "tmp/cache/assets"
     end
 
     def vendor
