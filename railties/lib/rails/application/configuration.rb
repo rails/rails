@@ -38,7 +38,7 @@ module Rails
         @assets.precompile = [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
         @assets.prefix     = "/assets"
 
-        @assets.cache_store    = [ :file_store, "#{root}/tmp/assets_cache/" ]
+        @assets.cache_store    = [ :file_store, "#{root}/tmp/cache/assets/" ]
         @assets.js_compressor  = nil
         @assets.css_compressor = nil
       end

@@ -4,7 +4,7 @@ namespace :tmp do
 
   desc "Creates tmp directories for sessions, cache, sockets, and pids"
   task :create do
-    FileUtils.mkdir_p(%w( tmp/sessions tmp/cache tmp/sockets tmp/pids tmp/assets_cache ))
+    FileUtils.mkdir_p(%w( tmp/sessions tmp/cache tmp/sockets tmp/pids tmp/cache/assets ))
   end
 
   namespace :sessions do
@@ -18,7 +18,6 @@ namespace :tmp do
     # desc "Clears all files and directories in tmp/cache"
     task :clear do
       FileUtils.rm_rf(Dir['tmp/cache/[^.]*'])
-      FileUtils.rm_rf(Dir['tmp/assets_cache/[^.]*'])
     end
   end
 
