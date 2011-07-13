@@ -301,6 +301,12 @@ module ActionView
         paths.map! { |path| retrieve_variable(path).unshift(path) }
       end
 
+      if String === partial && @variable !~ /^[a-z_][a-zA-Z_0-9]*$/
+        raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
+                                "make sure your partial name starts with a letter or underscore, " +
+                                "and is followed by any combinations of letters, numbers, or underscores.")
+      end
+
       self
     end
 

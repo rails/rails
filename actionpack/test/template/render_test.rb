@@ -90,6 +90,15 @@ module RenderTestCases
     assert_equal 'top level partial html', @view.render(:partial => '/top_level_partial')
   end
 
+  def test_render_partial_with_invalid_name
+    @view.render(:partial => "test/200")
+    flunk "Render did not raise ArgumentError"
+  rescue ArgumentError => e
+    assert_equal "The partial name (test/200) is not a valid Ruby identifier; " +
+                                "make sure your partial name starts with a letter or underscore, " +
+                                "and is followed by any combinations of letters, numbers, or underscores.", e.message
+  end
+
   def test_render_partial_with_locals
     assert_equal "5", @view.render(:partial => "test/counter", :locals => { :counter_counter => 5 })
   end
