@@ -100,4 +100,20 @@ class EachTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
+    not_a_post = "not a post"
+    not_a_post.stubs(:id).raises(StandardError, "not_a_post had #id called on it")
+
+    assert_nothing_raised do
+      Post.find_in_batches(:batch_size => 1) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+
+        batch.map! { not_a_post }
+      end
+    end
+
+  end
+
 end
