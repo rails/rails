@@ -6,7 +6,7 @@ require 'active_support/core_ext/numeric/time'
 class DuplicableTest < ActiveSupport::TestCase
   RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, 5.seconds]
   YES = ['1', Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
-  NO = []
+  NO = [Tempfile.new('temporary.txt')]
 
   begin
     bd = BigDecimal.new('4.56')
@@ -14,7 +14,6 @@ class DuplicableTest < ActiveSupport::TestCase
   rescue TypeError
     RAISE_DUP << bd
   end
-
 
   def test_duplicable
     (RAISE_DUP + NO).each do |v|

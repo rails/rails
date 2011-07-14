@@ -93,3 +93,15 @@ class BigDecimal
     # can't dup, so use superclass implementation
   end
 end
+
+require 'tempfile' unless defined?(Tempfile)
+class Tempfile
+  # Tempfiles are not duplicable:
+  #
+  #   t = Tempfile.new('foo.txt') # => #<File:0x101bf2438>
+  #   t.dup                       # => #<File:0x101bf2438>
+  #
+  def duplicable?
+    false
+  end
+end
