@@ -410,13 +410,16 @@ module ActiveModel
     private
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
+      @@match_attribute_method_cache = {}
       def match_attribute_method?(method_name)
+        cache = @@match_attribute_method_cache[self.class] ||= {}
+        return cache[method_name] if cache.key?(method_name)
         self.class.attribute_method_matchers.each do |method|
           if (match = method.match(method_name)) && attribute_method?(match.attr_name)
-            return match
+            return cache[method_name] = match
           end
         end
-        nil
+        cache[method_name] = nil
       end
 
       # prevent method_missing from calling private methods with #send
