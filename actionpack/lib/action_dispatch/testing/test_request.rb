@@ -83,7 +83,7 @@ module ActionDispatch
       end
 
       def escape_cookie(name, value)
-        "#{Rack::Utils.escape(name)}=#{Rack::Utils.escape(value)}"
+        "#{Rack::Utils.escape(name)}=#{Rack::Utils.escape(value.to_s)}"
       end
 
       def delete_nil_values!
