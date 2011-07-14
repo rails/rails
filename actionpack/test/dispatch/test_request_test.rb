@@ -41,5 +41,15 @@ class TestRequestTest < ActiveSupport::TestCase
     req.cookies["login"] = "XJ-122"
     assert_equal({"user_name" => "david", "login" => "XJ-122"}, req.cookies)
     assert_equal %w(login=XJ-122 user_name=david), req.env["HTTP_COOKIE"].split(/; /).sort
-  end
+
+		req.cookies["login"] = nil
+		assert_equal({"user_name" => "david", "login" => nil}, req.cookies)
+		assert_equal %w(login= user_name=david), req.env["HTTP_COOKIE"].split(/; /).sort
+		
+		# if <1.9 and KCODE is set to 'u', setting nil cookies fails (based on the backported implementation)
+		if RUBY_VERSION < "1.9"
+			$KCODE = 'u'
+			assert_equal %w(login= user_name=david), req.env["HTTP_COOKIE"].split(/; /).sort
+		end
+	end
 end
