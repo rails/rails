@@ -100,7 +100,7 @@ Assets can be placed inside an application in one of three locations: +app/asset
 
 +vendor/assets+ is for assets that are owned by outside entities, such as code for JavaScript plugins.
 
-All subdirectories that exists within these three locations will be added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths will be looked through to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and served.
+All subdirectories that exist within these three locations will be added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths will be looked through to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and served.
 
 h4. Coding links to Assets
 
