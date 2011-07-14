@@ -24,4 +24,10 @@ class IntegerExtTest < Test::Unit::TestCase
     assert_equal '8th', 8.ordinalize
     1000000000000000000000000000000000000000000000000000000000000000000000.ordinalize
   end
+
+  def test_ordinal
+    assert_equal 'st', 1.ordinal
+    assert_equal 'th', 8.ordinal
+    1000000000000000000000000000000000000000000000000000000000000000000000.ordinal
+  end
 end

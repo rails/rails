@@ -297,6 +297,12 @@ class InflectorTest < Test::Unit::TestCase
 
   def test_ordinal
     OrdinalNumbers.each do |number, ordinalized|
+      assert_equal(ordinalized, number + ActiveSupport::Inflector.ordinal(number))
+    end
+  end
+
+  def test_ordinalize
+    OrdinalNumbers.each do |number, ordinalized|
       assert_equal(ordinalized, ActiveSupport::Inflector.ordinalize(number))
     end
   end
