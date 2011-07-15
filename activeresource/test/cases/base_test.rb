@@ -711,6 +711,44 @@ class BaseTest < Test::Unit::TestCase
     assert_nil person.id
   end
 
+  def test_create_with_response
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post   "/people.json", {}, Person.new(:name=>'Rick', :other=>'stuff').to_json
+    end
+    person = Person.create(:name => 'Rick')
+    assert_equal 'Rick', person.name
+    assert_equal 'stuff', person.other
+  end
+
+  def test_create_with_204_response
+    person_json = Person.new(:name=>'Rick', :other=>'stuff').to_json
+    create_request  = ActiveResource::Request.new(:post, '/people.json', person_json, {})
+    create_response = ActiveResource::Response.new('', 204, {})
+    create_response.headers.delete('Content-Length')
+    ActiveResource::HttpMock.respond_to({create_request => create_response})
+
+    person = Person.create(:name => 'Rick')
+    assert_equal 'Rick', person.name
+    assert_equal false, person.persisted?
+  end
+
+  def test_create_with_chunked_response
+    person_json = Person.new(:name=>'Rick', :other=>'stuff').to_json
+    create_request  = ActiveResource::Request.new(:post, '/people.json', person_json, {})
+
+    # Simulate chunked transfer
+    create_response = ActiveResource::Response.new(person_json, 200, {})
+    create_response["Transfer-Encoding"] = "chunked"
+    create_response.headers.delete('Content-Length')
+
+    ActiveResource::HttpMock.respond_to({create_request => create_response})
+
+    person = Person.create(:name => 'Rick')
+    assert_equal 'Rick', person.name
+    assert_equal 'stuff', person.other
+  end
+
+
   def test_clone
     matz = Person.find(1)
     matz_c = matz.clone

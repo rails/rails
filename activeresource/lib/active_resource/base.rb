@@ -1357,7 +1357,11 @@ module ActiveResource
       end
 
       def load_attributes_from_response(response)
-        if !response['Content-Length'].blank? && response['Content-Length'] != "0" && !response.body.nil? && response.body.strip.size > 0
+        has_content_length = !response['Content-Length'].blank? && response['Content-Length'] != "0"
+        has_body = !response.body.nil? && response.body.strip.size > 0
+        is_chunked = response["Transfer-Encoding"] == "chunked"
+
+        if has_body && (has_content_length || is_chunked)
           load(self.class.format.decode(response.body), true)
           @persisted = true
         end
