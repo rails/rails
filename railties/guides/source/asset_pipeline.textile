@@ -127,6 +127,15 @@ Alternatively, a file with an MD5 hash after its name such as +public/assets/rai
 
 Otherwise, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
 
+If you want to use a "css data uri":http://en.wikipedia.org/wiki/Data_URI_scheme - a method of embedding the image data directly into the CSS file - you can use the +asset_data_uri+ helper.
+
+<css>
+  #logo { background: url(<%= asset_data_uri 'logo.png' %>)
+</css>
+
+This will insert a correctly formatted data uri into the CSS source.
+
+
 h5. CSS and ERB
 
 If you add an erb extension to a css asset:
@@ -272,7 +281,7 @@ task :precompile_assets do
 end
 </erb>
 
-If you are not precompiling your assets, and you are using the default cache file store (which is the filesystem), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure. This is so the cached file persist between deployments. 
+If you are not precompiling your assets, and you are using the default cache file store (which is the filesystem), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure. This is so the cached file persist between deployments.
 
 TODO: Extend above task to allow for this and add task to set it up (See commits 8f0e0b6 and 704ee0df).
 
