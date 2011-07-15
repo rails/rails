@@ -53,7 +53,7 @@ module ActionView
           # This dance is needed because Builder can't use capture
           pos = output_buffer.length
           yield
-          if output_buffer.is_a?(ActionView::OutputBuffer)
+          if output_buffer.html_safe?
             safe_output_buffer = output_buffer.to_str
             fragment = safe_output_buffer.slice!(pos..-1)
             self.output_buffer = ActionView::OutputBuffer.new(safe_output_buffer)
