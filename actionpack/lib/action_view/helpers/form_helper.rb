@@ -365,7 +365,7 @@ module ActionView
           apply_form_for_options!(record, options)
         end
 
-        options[:html][:remote] = options.delete(:remote)
+        options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
 
