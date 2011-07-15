@@ -2,6 +2,33 @@ require 'abstract_unit'
 require 'active_support/time'
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
+  def test_time_of_day
+    assert_equal :morning, Time.local(2011,12,31,0,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,1,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,2,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,3,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,4,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,5,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,6,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,7,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,8,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,9,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,10,0,0).time_of_day
+    assert_equal :morning, Time.local(2011,12,31,11,0,0).time_of_day
+    assert_equal :afternoon, Time.local(2011,12,31,12,0,0).time_of_day
+    assert_equal :afternoon, Time.local(2011,12,31,13,0,0).time_of_day
+    assert_equal :afternoon, Time.local(2011,12,31,14,0,0).time_of_day
+    assert_equal :afternoon, Time.local(2011,12,31,15,0,0).time_of_day
+    assert_equal :afternoon, Time.local(2011,12,31,16,0,0).time_of_day
+    assert_equal :evening, Time.local(2011,12,31,17,0,0).time_of_day
+    assert_equal :evening, Time.local(2011,12,31,18,0,0).time_of_day
+    assert_equal :evening, Time.local(2011,12,31,19,0,0).time_of_day
+    assert_equal :evening, Time.local(2011,12,31,20,0,0).time_of_day
+    assert_equal :evening, Time.local(2011,12,31,21,0,0).time_of_day
+    assert_equal :evening, Time.local(2011,12,31,22,0,0).time_of_day
+    assert_equal :evening, Time.local(2011,12,31,23,0,0).time_of_day
+  end
+  
   def test_seconds_since_midnight
     assert_equal 1,Time.local(2005,1,1,0,0,1).seconds_since_midnight
     assert_equal 60,Time.local(2005,1,1,0,1,0).seconds_since_midnight
