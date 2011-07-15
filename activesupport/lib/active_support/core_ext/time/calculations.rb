@@ -67,8 +67,7 @@ class Time
   
   # Current time of date. Returns following symbols: :monring, :afternoon and :evening
   def time_of_day
-    hour = ::Time.current.hour
-    hour >= 0 && hour < 12 ? :morning : hour >= 12 && hour < 17 ? :afternoon : hour >= 17 && h < 23 ? :evening : nil
+    self.hour >= 0 && self.hour < 12 ? :morning : self.hour >= 12 && self.hour < 17 ? :afternoon : self.hour >= 17 && self.hour <= 23 ? :evening : nil
   end
 
   # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
