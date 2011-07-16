@@ -274,7 +274,7 @@ end
 
 # load default environment and parse arguments
 require 'optparse'
-module Commands
+module RailsCommands
   class Plugin
     attr_reader :environment, :script_name
     def initialize
@@ -327,7 +327,7 @@ module Commands
 
       command = general.shift
       if command =~ /^(install|remove)$/
-        command = Commands.const_get(command.capitalize).new(self)
+        command = RailsCommands.const_get(command.capitalize).new(self)
         command.parse!(sub)
       else
         puts "Unknown command: #{command}" unless command.blank?
@@ -539,4 +539,4 @@ class RecursiveHTTPFetcher
   end
 end
 
-Commands::Plugin.parse!
+RailsCommands::Plugin.parse!
