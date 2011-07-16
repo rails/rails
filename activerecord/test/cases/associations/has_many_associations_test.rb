@@ -1599,4 +1599,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       undef_method :old_build_association
     end
   end
+
+  def test_AssociationCollection_deprecated
+    assert_deprecated do
+      ActiveRecord::Associations::AssociationCollection.class_eval do
+        def foo
+          "bar"
+        end
+      end
+    end
+
+    author = Author.new
+    assert_equal "bar", author.posts.foo
+  ensure
+    ActiveSupport::Deprecation.silence do
+      ActiveRecord::Associations::AssociationCollection.class_eval do
+        undef_method :foo
+      end
+    end
+  end
 end
