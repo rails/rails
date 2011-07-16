@@ -91,7 +91,7 @@ module ApplicationTests
           get '/cart', :to => 'cart#show'
         end
       RUBY
-      assert_match 'cart GET /cart(.:format)', Dir.chdir(app_path){ `rake routes` }
+      assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
     end
 
     def test_rake_routes_shows_custom_assets
@@ -100,7 +100,91 @@ module ApplicationTests
           get '/custom/assets', :to => 'custom_assets#show'
         end
       RUBY
-      assert_match 'custom_assets GET /custom/assets(.:format)', Dir.chdir(app_path){ `rake routes` }
+      assert_equal "custom_assets GET /custom/assets(.:format) custom_assets#show\n",
+        Dir.chdir(app_path){ `rake routes` }
+    end
+
+    def test_rake_routes_shows_resources_route
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          resources :articles
+        end
+      RUBY
+      expected =
+        "    articles GET    /articles(.:format)          articles#index\n" <<
+        "             POST   /articles(.:format)          articles#create\n" <<
+        " new_article GET    /articles/new(.:format)      articles#new\n" <<
+        "edit_article GET    /articles/:id/edit(.:format) articles#edit\n" <<
+        "     article GET    /articles/:id(.:format)      articles#show\n" <<
+        "             PUT    /articles/:id(.:format)      articles#update\n" <<
+        "             DELETE /articles/:id(.:format)      articles#destroy\n"
+      assert_equal expected, Dir.chdir(app_path){ `rake routes` }
+    end
+
+    def test_rake_routes_shows_root_route
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          root :to => 'pages#main'
+        end
+      RUBY
+      assert_equal "root  / pages#main\n", Dir.chdir(app_path){ `rake routes` }
+    end
+
+    def test_rake_routes_shows_controller_and_action_only_route
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match ':controller/:action'
+        end
+      RUBY
+      assert_equal "  /:controller/:action(.:format) \n", Dir.chdir(app_path){ `rake routes` }
+    end
+
+    def test_rake_routes_shows_controller_and_action_route_with_constraints
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match ':controller(/:action(/:id))', :id => /\\d+/
+        end
+      RUBY
+      assert_equal "  /:controller(/:action(/:id))(.:format) {:id=>/\\d+/}\n", Dir.chdir(app_path){ `rake routes` }
+    end
+
+    def test_rake_routes_shows_route_with_defaults
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
+        end
+      RUBY
+      assert_equal %Q[  /photos/:id(.:format) photos#show {:format=>"jpg"}\n], Dir.chdir(app_path){ `rake routes` }
+    end
+
+    def test_rake_routes_shows_route_with_constraints
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match 'photos/:id' => 'photos#show', :id => /[A-Z]\\d{5}/
+        end
+      RUBY
+      assert_equal "  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}\n", Dir.chdir(app_path){ `rake routes` }
+    end
+
+    def test_rake_routes_shows_route_with_rack_app
+      app_file "lib/rack_app.rb", <<-RUBY
+        class RackApp
+          class << self
+            def call(env)
+            end
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        require 'rack_app'
+
+        AppTemplate::Application.routes.draw do
+          match 'foo/:id' => RackApp, :id => /[A-Z]\\d{5}/
+        end
+      RUBY
+
+      assert_equal "  /foo/:id(.:format) RackApp {:id=>/[A-Z]\\d{5}/}\n", Dir.chdir(app_path){ `rake routes` }
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
