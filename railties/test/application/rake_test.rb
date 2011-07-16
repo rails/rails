@@ -166,6 +166,27 @@ module ApplicationTests
       assert_equal "  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}\n", Dir.chdir(app_path){ `rake routes` }
     end
 
+    def test_rake_routes_shows_route_with_rack_app
+      app_file "lib/rack_app.rb", <<-RUBY
+        class RackApp
+          class << self
+            def call(env)
+            end
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        require 'rack_app'
+
+        AppTemplate::Application.routes.draw do
+          match 'foo/:id' => RackApp, :id => /[A-Z]\\d{5}/
+        end
+      RUBY
+
+      assert_equal "  /foo/:id(.:format) RackApp {:id=>/[A-Z]\\d{5}/}\n", Dir.chdir(app_path){ `rake routes` }
+    end
+
     def test_logger_is_flushed_when_exiting_production_rake_tasks
       add_to_config <<-RUBY
         rake_tasks do
