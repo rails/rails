@@ -367,6 +367,20 @@ config.assets.prefix = "/some_other_path"
 
 This is a handy option if you have any existing project (pre Rails 3.1) that already uses this path.
 
+h4. X-Sendfile headers
+
+The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. In production Rails (via Sprockets) does not send the asset - just the location and a zero-length response - relying on the server to do work. Files are faster served by the webserver. Both Apache and nginx support this option.
+
+New applications contain this line in +production.rb+
+
+<erb>
+config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect' for nginx
+</erb>
+
+You should check that your server or hosting service actually supports this, otherwise comment it out.
+
+Gotcha: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+ ).
+
 h3. How caching works
 
 Sprockets uses the default rails cache store to cache assets in dev and production. The only difference is filenames are fingerprinted and get far-future headers in production.
