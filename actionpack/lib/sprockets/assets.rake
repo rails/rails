@@ -20,7 +20,6 @@ namespace :assets do
     file_list = FileList.new("#{public_asset_path}/**/*")
     file_list.each do |file|
       rm_rf file
-      rm_rf "#{file}.gz"
     end
   end
 end
