@@ -61,6 +61,9 @@ module ActiveModel
     included do
       class_attribute :attribute_method_matchers, :instance_writer => false
       self.attribute_method_matchers = []
+
+      class_attribute :attribute_method_matchers_cache, :instance_writer => false
+      self.attribute_method_matchers_cache = {}
     end
 
     module ClassMethods
@@ -314,6 +317,7 @@ module ActiveModel
             end
           end
         end
+        attribute_method_matchers_cache.clear
       end
 
       # Removes all the previously dynamically defined methods from the class
@@ -321,6 +325,7 @@ module ActiveModel
         generated_attribute_methods.module_eval do
           instance_methods.each { |m| undef_method(m) }
         end
+        attribute_method_matchers_cache.clear
       end
 
       # Returns true if the attribute methods defined have been generated.
@@ -338,6 +343,16 @@ module ActiveModel
         end
 
       private
+        def attribute_method_matcher(method_name)
+          if attribute_method_matchers_cache.key?(method_name)
+            attribute_method_matchers_cache[method_name]
+          else
+            match = nil
+            attribute_method_matchers.detect { |method| match = method.match(method_name) }
+            attribute_method_matchers_cache[method_name] = match
+          end
+        end
+
         class AttributeMethodMatcher
           attr_reader :prefix, :suffix, :method_missing_target
 
@@ -410,16 +425,9 @@ module ActiveModel
     private
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
-      @@match_attribute_method_cache = {}
       def match_attribute_method?(method_name)
-        cache = @@match_attribute_method_cache[self.class] ||= {}
-        return cache[method_name] if cache.key?(method_name)
-        self.class.attribute_method_matchers.each do |method|
-          if (match = method.match(method_name)) && attribute_method?(match.attr_name)
-            return cache[method_name] = match
-          end
-        end
-        cache[method_name] = nil
+        match = self.class.send(:attribute_method_matcher, method_name)
+        match && attribute_method?(match.attr_name) ? match : nil
       end
 
       # prevent method_missing from calling private methods with #send
