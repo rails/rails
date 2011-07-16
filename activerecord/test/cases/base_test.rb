@@ -1533,6 +1533,43 @@ class BasicsTest < ActiveRecord::TestCase
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end
 
+  def test_cache_key_for_existing_record_is_not_timezone_dependent
+    ActiveRecord::Base.time_zone_aware_attributes = true
+
+    Time.zone = "UTC"
+    utc_key = Developer.find(1).cache_key
+
+    Time.zone = "EST"
+    est_key = Developer.find(1).cache_key
+
+    assert_equal utc_key, est_key
+  end
+
+  def test_cache_key_for_existing_record_is_not_timezone_dependent
+    ActiveRecord::Base.time_zone_aware_attributes = true
+
+    Time.zone = "UTC"
+    utc_key = Developer.first.cache_key
+
+    Time.zone = "EST"
+    est_key = Developer.first.cache_key
+
+    assert_equal utc_key, est_key
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = false
+  end
+
+  def test_cache_key_format_for_existing_record_with_updated_at
+    dev = Developer.first
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+  end
+
+  def test_cache_key_format_for_existing_record_with_nil_updated_at
+    dev = Developer.first
+    dev.update_attribute(:updated_at, nil)
+    assert_match /\/#{dev.id}$/, dev.cache_key
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
