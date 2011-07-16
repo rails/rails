@@ -47,9 +47,9 @@ module <%= app_const_base %>
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
 
-    <% unless options.skip_sprockets? %>
+<% unless options.skip_sprockets? -%>
     # Enable the asset pipeline
     config.assets.enabled = true
-    <% end %>
+<% end -%>
   end
 end
