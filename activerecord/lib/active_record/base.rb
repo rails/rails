@@ -1497,7 +1497,8 @@ MSG
         when new_record?
           "#{self.class.model_name.cache_key}/new"
         when timestamp = self[:updated_at]
-          "#{self.class.model_name.cache_key}/#{id}-#{timestamp.to_s(:number)}"
+          timestamp = timestamp.utc.to_s(:number)
+          "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
         else
           "#{self.class.model_name.cache_key}/#{id}"
         end
