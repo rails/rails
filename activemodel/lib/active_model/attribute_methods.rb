@@ -61,9 +61,6 @@ module ActiveModel
     included do
       class_attribute :attribute_method_matchers, :instance_writer => false
       self.attribute_method_matchers = []
-
-      class_attribute :attribute_method_matchers_cache, :instance_writer => false
-      self.attribute_method_matchers_cache = {}
     end
 
     module ClassMethods
@@ -343,6 +340,19 @@ module ActiveModel
         end
 
       private
+        # The methods +method_missing+ and +respond_to?+ of this module are
+        # invoked often in a typical rails, both of which invoke the method
+        # +match_attribute_method?+. The latter method iterates through an
+        # array doing regular expression matches, which results in a lot of
+        # object creations. Most of the times it returns a +nil+ match. As the
+        # match result is always the same given a +method_name+, this cache is
+        # used to alleviate the GC, which ultimately also speeds up the app
+        # significantly (in our case our test suite finishes 10% faster with
+        # this cache).
+        def attribute_method_matchers_cache
+          @attribute_method_matchers_cache ||= {}
+        end
+
         def attribute_method_matcher(method_name)
           if attribute_method_matchers_cache.key?(method_name)
             attribute_method_matchers_cache[method_name]
