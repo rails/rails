@@ -461,8 +461,8 @@ module ActionView
       #   select_minute(14)
       #
       #   # Generates a select field for minutes that defaults to the minutes for the time in my_time
-      #   # that is named 'stride' rather than 'second'.
-      #   select_minute(my_time, :field_name => 'stride')
+      #   # that is named 'moment' rather than 'minute'.
+      #   select_minute(my_time, :field_name => 'moment')
       #
       #   # Generates a select field for minutes with a custom prompt. Use <tt>:prompt => true</tt> for a
       #   # generic prompt.
