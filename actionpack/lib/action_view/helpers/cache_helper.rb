@@ -56,7 +56,7 @@ module ActionView
           if output_buffer.html_safe?
             safe_output_buffer = output_buffer.to_str
             fragment = safe_output_buffer.slice!(pos..-1)
-            self.output_buffer = ActionView::OutputBuffer.new(safe_output_buffer)
+            self.output_buffer = output_buffer.class.new(safe_output_buffer)
           else
             fragment = output_buffer.slice!(pos..-1)
           end
