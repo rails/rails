@@ -1052,7 +1052,7 @@ module ActiveRecord #:nodoc:
         # Each dynamic finder using <tt>scoped_by_*</tt> is also defined in the class after it
         # is first invoked, so that future attempts to use it do not run through method_missing.
         def method_missing(method_id, *arguments, &block)
-          if match = DynamicFinderMatch.match(method_id)
+          if match = (DynamicFinderMatch.match(method_id) || DynamicScopeMatch.match(method_id))
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
             if arguments.size < attribute_names.size
@@ -1060,22 +1060,7 @@ module ActiveRecord #:nodoc:
               backtrace = [method_trace] + caller
               raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace
             end
-            if match.finder?
-              options = arguments.extract_options!
-              relation = options.any? ? scoped(options) : scoped
-              relation.send :find_by_attributes, match, attribute_names, *arguments, &block
-            elsif match.instantiator?
-              scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
-            end
-          elsif match = DynamicScopeMatch.match(method_id)
-            attribute_names = match.attribute_names
-            super unless all_attributes_exists?(attribute_names)
-            if arguments.size < attribute_names.size
-              method_trace = "#{__FILE__}:#{__LINE__}:in `#{method_id}'"
-              backtrace = [method_trace] + caller
-              raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace
-            end
-            if match.scope?
+            if match.respond_to?(:scope?) && match.scope?
               self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
                 def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
                   attributes = Hash[[:#{attribute_names.join(',:')}].zip(args)] #   attributes = Hash[[:user_name, :password].zip(args)]
@@ -1084,6 +1069,12 @@ module ActiveRecord #:nodoc:
                 end                                                             # end
               METHOD
               send(method_id, *arguments)
+            elsif match.finder?
+              options = arguments.extract_options!
+              relation = options.any? ? scoped(options) : scoped
+              relation.send :find_by_attributes, match, attribute_names, *arguments, &block
+            elsif match.instantiator?
+              scoped.send :find_or_instantiator_by_attributes, match, attribute_names, *arguments, &block
             end
           else
             super
