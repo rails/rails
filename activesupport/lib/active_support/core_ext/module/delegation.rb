@@ -127,10 +127,6 @@ class Module
         end
 
       module_eval(<<-EOS, file, line - 5)
-        if instance_methods(false).map(&:to_s).include?("#{prefix}#{method}")
-          remove_possible_method("#{prefix}#{method}")
-        end
-
         def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
           #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
         rescue NoMethodError                                # rescue NoMethodError
