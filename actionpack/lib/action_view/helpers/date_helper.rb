@@ -454,7 +454,7 @@ module ActionView
       # ==== Examples
       #   my_time = Time.now + 6.hours
       #
-      #   # Generates a select field for minutes that defaults to the minutes for the time in my_tiime.
+      #   # Generates a select field for minutes that defaults to the minutes for the time in my_time.
       #   select_minute(my_time)
       #
       #   # Generates a select field for minutes that defaults to the number given.
