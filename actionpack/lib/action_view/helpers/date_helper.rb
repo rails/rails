@@ -485,8 +485,8 @@ module ActionView
       #   # Generates a select field for hours that defaults to the number given.
       #   select_hour(13)
       #
-      #   # Generates a select field for hours that defaults to the minutes for the time in my_time
-      #   # that is named 'stride' rather than 'second'.
+      #   # Generates a select field for hours that defaults to the hour for the time in my_time
+      #   # that is named 'stride' rather than 'hour'.
       #   select_hour(my_time, :field_name => 'stride')
       #
       #   # Generates a select field for hours with a custom prompt. Use <tt>:prompt => true</tt> for a
