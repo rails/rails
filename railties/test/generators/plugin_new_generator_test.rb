@@ -206,7 +206,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_creating_gemspec
     run_generator
     assert_file "bukkits.gemspec", /s.name = "bukkits"/
-    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,lib\}\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.version = "0.0.1"/
   end
