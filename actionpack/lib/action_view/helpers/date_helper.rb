@@ -343,8 +343,8 @@ module ActionView
 
       # Returns a set of html select-tags (one for year, month, and day) pre-selected with the +date+.
       # It's possible to explicitly set the order of the tags using the <tt>:order</tt> option with an array of
-      # symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order. If you do not supply a Symbol,
-      # it will be appended onto the <tt>:order</tt> passed in.
+      # symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order. If you do not supply a symbol
+      # then all tags will be hidden.
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
