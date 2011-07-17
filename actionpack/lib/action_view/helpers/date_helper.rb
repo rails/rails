@@ -351,7 +351,7 @@ module ActionView
       # ==== Examples
       #   my_date = Time.today + 6.days
       #
-      #   # Generates a date select that defaults to the date in my_date (six days afteri today).
+      #   # Generates a date select that defaults to the date in my_date (six days after today).
       #   select_date(my_date)
       #
       #   # Generates a date select that defaults to today (no specified date).
