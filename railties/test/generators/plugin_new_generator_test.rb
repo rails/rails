@@ -12,7 +12,6 @@ DEFAULT_PLUGIN_FILES = %w(
   lib
   lib/bukkits.rb
   lib/tasks/bukkits_tasks.rake
-  script/rails
   test/bukkits_test.rb
   test/test_helper.rb
   test/dummy
@@ -253,7 +252,6 @@ class CustomPluginGeneratorTest < Rails::Generators::TestCase
     assert_file 'spec/dummy'
     assert_file 'Rakefile', /task :default => :spec/
     assert_file 'Rakefile', /# spec tasks in rakefile/
-    assert_file 'script/rails', %r{spec/dummy}
   end
 
 protected
