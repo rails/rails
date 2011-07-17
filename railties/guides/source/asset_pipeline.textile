@@ -326,25 +326,24 @@ TODO: Apache instructions
 
 h3. Customizing The Pipeline
 
-h4. CSS
 
-There is currently one option for processing CSS - SCSS. This Gem extends the CSS syntax and offers minification.
+h4. CSS Compression
 
-The following line will enable SCSS in you project.
+There is currently one option for compressing CSS - YUI. This Gem extends the CSS syntax and offers minification.
+
+The following line will enable YUI compression, and requires the +yui-compressor+ gem.
 
 <erb>
-config.assets.css_compressor = :scss
+config.assets.css_compressor = :yui
 </erb>
 
-This option is for compression only and does not relate to the SCSS language extensions that apply when using the +.scss+ file extension on CSS assets.
+The +config.assets.compress+ must be set to +true+ to enable CSS compression
 
 h4. Javascript
 
-There are three options available to process javascript - uglifier, closure and yui.
+Possible options for Javascript compression are +:closure+, +:uglifier+ and +:yui+. These require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems respectively.
 
 The default Gemfile includes "uglifier":https://github.com/lautis/uglifier. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your if and else statements to ternary operators when possible.
-
-TODO: Add detail about the other two
 
 The following line will invoke uglifier for Javascript compression.
 
@@ -352,7 +351,7 @@ The following line will invoke uglifier for Javascript compression.
 config.assets.js_compressor  = :uglifier
 </erb>
 
-
+The +config.assets.compress+ must be set to +true+ to enable Javascript compression
 
 h4. Using your own compressor
 
@@ -417,4 +416,5 @@ h3. Making Your Library or Gem a Pre-Processor
 
 "You should be able to register [your gems] on "Tilt":Tilt and Sprockets will find them." - Josh
 [Tilt]https://github.com/rtomayko/tilt
+
 
