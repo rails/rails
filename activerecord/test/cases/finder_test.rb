@@ -666,6 +666,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.find_by_title_and_author_name("The First Topic", "Mary")
   end
 
+  def test_find_by_two_attributes_but_passing_only_one
+    assert_deprecated { Topic.find_by_title_and_author_name("The First Topic") }
+  end
+
   def test_find_last_by_one_attribute
     assert_equal Topic.last, Topic.find_last_by_title(Topic.last.title)
     assert_nil Topic.find_last_by_title("A title with no matches")
@@ -857,6 +861,10 @@ class FinderTest < ActiveRecord::TestCase
     sig38 = Company.find_or_initialize_by_name("38signals")
     assert_equal "38signals", sig38.name
     assert !sig38.persisted?
+  end
+
+  def test_find_or_initialize_from_two_attributes_but_passing_only_one
+    assert_deprecated { Topic.find_or_initialize_by_title_and_author_name("Another topic") }
   end
 
   def test_find_or_initialize_from_one_aggregate_attribute
