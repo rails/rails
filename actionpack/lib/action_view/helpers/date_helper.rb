@@ -18,7 +18,7 @@ module ActionView
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
     #   of "date[month]".
     module DateHelper
-      # Reports the approximate distance in time between two Time or Date objects or integers as seconds.
+      # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
       # Set <tt>include_seconds</tt> to true if you want more detailed approximations when distance < 1 min, 29 secs.
       # Distances are reported based on the following table:
       #
