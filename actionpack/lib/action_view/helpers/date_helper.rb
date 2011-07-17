@@ -8,8 +8,8 @@ module ActionView
   module Helpers
     # = Action View Date Helpers
     #
-    # The Date Helper primarily creates select/option tags for different kinds of dates and date elements. All of the
-    # select-type methods share a number of common options that are as follows:
+    # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time 
+    # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
     # would give birthday[month] instead of date[month] if passed to the <tt>select_month</tt> method.
