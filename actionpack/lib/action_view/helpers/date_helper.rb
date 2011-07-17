@@ -440,7 +440,7 @@ module ActionView
       #
       #   # Generates a select field for seconds with a custom prompt. Use <tt>:prompt => true</tt> for a
       #   # generic prompt.
-      #   select_minute(14, :prompt => 'Choose seconds')
+      #   select_second(14, :prompt => 'Choose seconds')
       #
       def select_second(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_second
