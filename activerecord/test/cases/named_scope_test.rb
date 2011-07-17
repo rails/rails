@@ -497,6 +497,17 @@ end
 class DynamicScopeTest < ActiveRecord::TestCase
   fixtures :posts
 
+  def setup
+    # Ensure we start with a clean model with no generated class method
+    Post.methods.select{ |c| c =~ /scoped_by_/ }.each do |method_name|
+      Post.class_eval <<-RUBY
+        class << self
+          remove_method :#{method_name}
+        end
+      RUBY
+    end
+  end
+
   def test_dynamic_scope
     assert_equal Post.scoped_by_author_id(1).find(1), Post.find(1)
     assert_equal Post.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, Post.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
@@ -506,5 +517,9 @@ class DynamicScopeTest < ActiveRecord::TestCase
     assert_blank Developer.methods.grep(/scoped_by_created_at/)
     Developer.scoped_by_created_at(nil)
     assert_present Developer.methods.grep(/scoped_by_created_at/)
+  end
+
+  def test_dynamic_scope_with_less_number_of_arguments
+    assert_raise(ArgumentError){ Post.scoped_by_author_id_and_title(1) }
   end
 end

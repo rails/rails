@@ -1055,6 +1055,11 @@ module ActiveRecord #:nodoc:
           if match = DynamicFinderMatch.match(method_id)
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
+            if arguments.size < attribute_names.size
+              method_trace = "#{__FILE__}:#{__LINE__}:in `#{method_id}'"
+              backtrace = [method_trace] + caller
+              raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace
+            end
             if match.finder?
               options = arguments.extract_options!
               relation = options.any? ? scoped(options) : scoped
@@ -1065,6 +1070,11 @@ module ActiveRecord #:nodoc:
           elsif match = DynamicScopeMatch.match(method_id)
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
+            if arguments.size < attribute_names.size
+              method_trace = "#{__FILE__}:#{__LINE__}:in `#{method_id}'"
+              backtrace = [method_trace] + caller
+              raise ArgumentError, "wrong number of arguments (#{arguments.size} for #{attribute_names.size})", backtrace
+            end
             if match.scope?
               self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
                 def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
