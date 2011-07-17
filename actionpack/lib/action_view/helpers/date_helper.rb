@@ -176,37 +176,37 @@ module ActionView
       # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed.
       #
       # ==== Examples
-      #   # Generates a date select that when POSTed is stored in the post variable, in the written_on attribute.
-      #   date_select("post", "written_on")
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute.
+      #   date_select("article", "written_on")
       #
-      #   # Generates a date select that when POSTed is stored in the post variable, in the written_on attribute,
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute,
       #   # with the year in the year drop down box starting at 1995.
-      #   date_select("post", "written_on", :start_year => 1995)
+      #   date_select("article", "written_on", :start_year => 1995)
       #
-      #   # Generates a date select that when POSTed is stored in the post variable, in the written_on attribute,
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute,
       #   # with the year in the year drop down box starting at 1995, numbers used for months instead of words,
       #   # and without a day select box.
-      #   date_select("post", "written_on", :start_year => 1995, :use_month_numbers => true,
+      #   date_select("article", "written_on", :start_year => 1995, :use_month_numbers => true,
       #                                     :discard_day => true, :include_blank => true)
       #
-      #   # Generates a date select that when POSTed is stored in the post variable, in the written_on attribute
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
       #   # with the fields ordered as day, month, year rather than month, day, year.
-      #   date_select("post", "written_on", :order => [:day, :month, :year])
+      #   date_select("article", "written_on", :order => [:day, :month, :year])
       #
       #   # Generates a date select that when POSTed is stored in the user variable, in the birthday attribute
       #   # lacking a year field.
       #   date_select("user", "birthday", :order => [:month, :day])
       #
-      #   # Generates a date select that when POSTed is stored in the post variable, in the written_on attribute
+      #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
       #   # which is initially set to the date 3 days from the current date
-      #   date_select("post", "written_on", :default => 3.days.from_now)
+      #   date_select("article", "written_on", :default => 3.days.from_now)
       #
       #   # Generates a date select that when POSTed is stored in the credit_card variable, in the bill_due attribute
       #   # that will have a default day of 20.
       #   date_select("credit_card", "bill_due", :default => { :day => 20 })
       #
       #   # Generates a date select with custom prompts.
-      #   date_select("post", "written_on", :prompt => { :day => 'Select day', :month => 'Select month', :year => 'Select year' })
+      #   date_select("article", "written_on", :prompt => { :day => 'Select day', :month => 'Select month', :year => 'Select year' })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -228,20 +228,20 @@ module ActionView
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
       # ==== Examples
-      #   # Creates a time select tag that, when POSTed, will be stored in the post variable in the sunrise attribute.
-      #   time_select("post", "sunrise")
+      #   # Creates a time select tag that, when POSTed, will be stored in the article variable in the sunrise attribute.
+      #   time_select("article", "sunrise")
       #
-      #   # Creates a time select tag with a seconds field that, when POSTed, will be stored in the post variables in
+      #   # Creates a time select tag with a seconds field that, when POSTed, will be stored in the article variables in
       #   # the sunrise attribute.
-      #   time_select("post", "start_time", :include_seconds => true)
+      #   time_select("article", "start_time", :include_seconds => true)
       #
       #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30 and 45.
       #   time_select 'game', 'game_time', {:minute_step => 15}
       #
       #   # Creates a time select tag with a custom prompt. Use <tt>:prompt => true</tt> for generic prompts.
-      #   time_select("post", "written_on", :prompt => {:hour => 'Choose hour', :minute => 'Choose minute', :second => 'Choose seconds'})
-      #   time_select("post", "written_on", :prompt => {:hour => true}) # generic prompt for hours
-      #   time_select("post", "written_on", :prompt => true) # generic prompts for all
+      #   time_select("article", "written_on", :prompt => {:hour => 'Choose hour', :minute => 'Choose minute', :second => 'Choose seconds'})
+      #   time_select("article", "written_on", :prompt => {:hour => true}) # generic prompt for hours
+      #   time_select("article", "written_on", :prompt => true) # generic prompts for all
       #
       #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
       #   time_select 'game', 'game_time', {:ampm => true}
@@ -261,29 +261,29 @@ module ActionView
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
       # ==== Examples
-      #   # Generates a datetime select that, when POSTed, will be stored in the post variable in the written_on
+      #   # Generates a datetime select that, when POSTed, will be stored in the article variable in the written_on
       #   # attribute.
-      #   datetime_select("post", "written_on")
+      #   datetime_select("article", "written_on")
       #
       #   # Generates a datetime select with a year select that starts at 1995 that, when POSTed, will be stored in the
-      #   # post variable in the written_on attribute.
-      #   datetime_select("post", "written_on", :start_year => 1995)
+      #   # article variable in the written_on attribute.
+      #   datetime_select("article", "written_on", :start_year => 1995)
       #
       #   # Generates a datetime select with a default value of 3 days from the current time that, when POSTed, will
       #   # be stored in the trip variable in the departing attribute.
       #   datetime_select("trip", "departing", :default => 3.days.from_now)
       #
       #   # Generate a datetime select with hours in the AM/PM format
-      #   datetime_select("post", "written_on", :ampm => true)
+      #   datetime_select("article", "written_on", :ampm => true)
       #
-      #   # Generates a datetime select that discards the type that, when POSTed, will be stored in the post variable
+      #   # Generates a datetime select that discards the type that, when POSTed, will be stored in the article variable
       #   # as the written_on attribute.
-      #   datetime_select("post", "written_on", :discard_type => true)
+      #   datetime_select("article", "written_on", :discard_type => true)
       #
       #   # Generates a datetime select with a custom prompt. Use <tt>:prompt => true</tt> for generic prompts.
-      #   datetime_select("post", "written_on", :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
-      #   datetime_select("post", "written_on", :prompt => {:hour => true}) # generic prompt for hours
-      #   datetime_select("post", "written_on", :prompt => true) # generic prompts for all
+      #   datetime_select("article", "written_on", :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
+      #   datetime_select("article", "written_on", :prompt => {:hour => true}) # generic prompt for hours
+      #   datetime_select("article", "written_on", :prompt => true) # generic prompts for all
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def datetime_select(object_name, method, options = {}, html_options = {})
