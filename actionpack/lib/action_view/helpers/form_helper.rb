@@ -899,17 +899,29 @@ module ActionView
       end
 
       # Returns a text_field of type "tel".
+      #
+      #   telephone_field("user", "phone")  
+      #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
+
       def telephone_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("tel", options)
       end
       alias phone_field telephone_field
 
       # Returns a text_field of type "url".
+      #
+      #   url_field("user", "homepage")
+      #   # => <input id="user_homepage" size="30" name="user[homepage]" type="url" />
+
       def url_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("url", options)
       end
 
       # Returns a text_field of type "email".
+      #
+      #   email_field("user", "address")
+      #   # => <input id="user_address" size="30" name="user[address]" type="email" />
+      
       def email_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("email", options)
       end
