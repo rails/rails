@@ -273,11 +273,8 @@ rake assets:precompile
 You can run this as part of a Capistrano deployment:
 
 <erb>
-before "deploy:symlink", "deploy:precompile_assets"
-
-desc "Compile pipeline assets"
-task :precompile_assets do
-  run "#{release_path}; RAILS_ENV=#{rails_env} bundle exec rake assets:precompile"
+before 'deploy:symlink' do
+  run "cd #{release_path}; RAILS_ENV=#{rails_env} rake assets:precompile"
 end
 </erb>
 
