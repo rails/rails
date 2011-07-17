@@ -44,7 +44,7 @@ h4. What is fingerprinting and why should I care?
 
 Fingerprinting is a technique where the filenames of content that is static or infrequently updated is altered to be unique to the content contained in the file.
 
-When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep there own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
+When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep their own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
 
 The most effective technique is to insert a hash of the content into the name, usually at the end. For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
 
