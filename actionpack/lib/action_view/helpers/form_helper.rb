@@ -233,7 +233,7 @@ module ActionView
       #   <% end %>
       #
       # If your resource has associations defined, for example, you want to add comments
-      # to the post given that the routes are set correctly:
+      # to the document given that the routes are set correctly:
       #
       #   <%= form_for([@document, @comment]) do |f| %>
       #    ...
