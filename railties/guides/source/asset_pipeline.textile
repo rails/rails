@@ -283,24 +283,44 @@ end
 
 If you are not precompiling your assets, and you are using the default cache file store (which is the filesystem), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure. This is so the cached file persist between deployments.
 
-TODO: Extend above task to allow for this and add task to set it up (See commits 8f0e0b6 and 704ee0df).
+TODO: Extend above task to allow for this and add task to set it up (See commits 8f0e0b6 and 704ee0df). Note: Capistrano folks are working on a recipe - update this when it available (see https://github.com/capistrano/capistrano/pull/35).
 
-
-The default matcher for compiling files is rather broad:
+The default matcher for compiling files will include +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
 
 <erb>
 [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
 </erb>
 
-In practice you may choose to narrow this to just the files that contain manifests:
+If you have other manifests or individual stylesheet and javascript files to include, you can append them to the +precompile+ array:
 
 <erb>
-config.assets.precompile = ['application.js', 'application.css', 'admin.js', 'admin.css']
+config.assets.precompile << ['admin.js', 'admin.css', 'swfObject.js']
 </erb>
+
+Precompiled assets exist on the filesystem and are served directly by your webserver. They do not have far-future headers by default, so to get the benefit of fingerprinting you'll have to update your server configuration to add them.
+
+For Apache:
+
+<plain>
+<LocationMatch "^/assets/.*$">
+  # Some browsers still send conditional-GET requests if there's a
+  # Last-Modified header or an ETag header even if they haven't
+  # reached the expiry date sent in the Expires header.
+  Header unset Last-Modified
+  Header unset ETag
+  FileETag None
+  # RFC says only cache for 1 year
+  ExpiresActive On
+  ExpiresDefault "access plus 1 year"
+</LocationMatch>
+</plain>
+
+TODO: NGINX instructions
 
 When files are precompiled Sprockets also creates "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disc. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the public/assets folder. The following configuration options can be used:
 
 TODO: NGINX instructions
+
 TODO: Apache instructions
 
 
