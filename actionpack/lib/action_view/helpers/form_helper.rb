@@ -859,7 +859,28 @@ module ActionView
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_radio_button_tag(tag_value, options)
       end
 
-      # Returns a text_field of type "search".
+      # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). Inputs of type "search" may be styled differently by
+      # some browsers
+      #
+      # ==== Examples
+      #   
+      #   search_field(:user, :name)
+      #   # => <input id="user_name" name="user[name]" size="30" type="search" />
+      #   search_field(:user, :name, :autosave => false)
+      #   # => <input autosave="false" id="user_name" name="user[name]" size="30" type="search" />
+      #   search_field(:user, :name, :results => 3)
+      #   # => <input id="user_name" name="user[name]" results="3" size="30" type="search" />
+      #   #  Assume request.host returns "www.example.com"
+      #   search_field(:user, :name, :autosave => true)
+      #   # => <input autosave="com.example.www" id="user_name" name="user[name]" results="10" size="30" type="search" />
+      #   search_field(:user, :name, :onsearch => true)
+      #   # => <input id="user_name" incremental="true" name="user[name]" onsearch="true" size="30" type="search" />
+      #   search_field(:user, :name, :autosave => false, :onsearch => true)
+      #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" size="30" type="search" />
+      #   search_field(:user, :name, :autosave => true, :onsearch => true)
+      #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" size="30" type="search" />
+      
       def search_field(object_name, method, options = {})
         options = options.stringify_keys
 
