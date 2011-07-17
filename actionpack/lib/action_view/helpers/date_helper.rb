@@ -290,7 +290,7 @@ module ActionView
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_datetime_select_tag(options, html_options)
       end
 
-      # Returns a set of html select-tags (one for year, month, day, hour, and minute) pre-selected with the
+      # Returns a set of html select-tags (one for year, month, day, hour, minute and second) pre-selected with the
       # +datetime+. It's also possible to explicitly set the order of the tags using the <tt>:order</tt> option with
       # an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order. If you do not
       # supply a Symbol, it will be appended onto the <tt>:order</tt> passed in. You can also add
