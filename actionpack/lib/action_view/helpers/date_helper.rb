@@ -349,7 +349,7 @@ module ActionView
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
       # ==== Examples
-      #   my_date = Time.today + 6.days
+      #   my_date = Time.now + 6.days
       #
       #   # Generates a date select that defaults to the date in my_date (six days after today).
       #   select_date(my_date)
@@ -505,7 +505,7 @@ module ActionView
       # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
       #
       # ==== Examples
-      #   my_date = Time.today + 2.days
+      #   my_date = Time.now + 2.days
       #
       #   # Generates a select field for days that defaults to the day for the date in my_date.
       #   select_day(my_time)
