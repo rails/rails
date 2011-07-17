@@ -468,6 +468,12 @@ class RequestTest < ActiveSupport::TestCase
     assert request.formats.empty?
   end
 
+  test "formats with xhr request" do
+    request = stub_request 'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+    request.expects(:parameters).at_least_once.returns({})
+    assert_equal [Mime::JS], request.formats
+  end
+
   test "ignore_accept_header" do
     ActionDispatch::Request.ignore_accept_header = true
 
