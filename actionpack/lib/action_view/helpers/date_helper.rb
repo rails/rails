@@ -501,7 +501,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
-      # The <tt>date</tt> can also be substituted for a hour number.
+      # The <tt>date</tt> can also be substituted for a day number.
       # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
       #
       # ==== Examples
