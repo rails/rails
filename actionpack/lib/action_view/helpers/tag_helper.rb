@@ -85,12 +85,12 @@ module ActionView
       #     Hello world!
       #   <% end -%>
       #    # => <div class="strong">Hello world!</div>
-      def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
+      def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, newline_after_opening_tag = false, &block)
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
-          content_tag_string(name, capture(&block), options, escape)
+          content_tag_string(name, capture(&block), options, escape, newline_after_opening_tag)
         else
-          content_tag_string(name, content_or_options_with_block, options, escape)
+          content_tag_string(name, content_or_options_with_block, options, escape, newline_after_opening_tag)
         end
       end
 
@@ -123,9 +123,9 @@ module ActionView
 
       private
 
-        def content_tag_string(name, content, options, escape = true)
+        def content_tag_string(name, content, options, escape = true, newline_after_opening_tag = false)
           tag_options = tag_options(options, escape) if options
-          "<#{name}#{tag_options}>#{escape ? ERB::Util.h(content) : content}</#{name}>".html_safe
+          "<#{name}#{tag_options}>#{newline_after_opening_tag ? "\n" : ""}#{escape ? ERB::Util.h(content) : content}</#{name}>".html_safe
         end
 
         def tag_options(options, escape = true)
