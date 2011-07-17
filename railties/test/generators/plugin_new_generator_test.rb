@@ -195,6 +195,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_creating_gemspec
+    run_generator
+    assert_file "bukkits.gemspec", /s.name = "bukkits"/
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.version = "0.0.1"/
+  end
+
   def test_passing_dummy_path_as_a_parameter
     run_generator [destination_root, "--dummy_path", "spec/dummy"]
     assert_file "spec/dummy"
