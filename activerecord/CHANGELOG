@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* Active Record's dynamic finder will now show a deprecation warning if you passing in less number of arguments than what you call in method signature. This behavior will raise ArgumentError in the next version of Rails [Prem Sichanugrist]
+
 * Deprecated the AssociationCollection constant. CollectionProxy is now the appropriate constant
   to use, though be warned that this is not really a public API.
 
