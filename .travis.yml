@@ -1,0 +1,12 @@
+script: 'ci/travis.rb'
+notifications:
+  disabled: true
+rvm:
+  - 1.8.7
+  - 1.9.2
+env:
+  - "GEM=railties"
+  - "GEM=ap,am,amo,ares,as"
+  - "GEM=ar:mysql"
+  - "GEM=ar:mysql2"
+  - "GEM=ar:sqlite3"
