@@ -126,6 +126,8 @@ task :default => :test
     end
 
     def script(force = false)
+      return unless full?
+
       directory "script", :force => force do |content|
         "#{shebang}\n" + content
       end
@@ -202,7 +204,7 @@ task :default => :test
       end
 
       def create_test_dummy_files
-        return if options[:skip_test_unit]
+        return if options[:skip_test_unit] && options[:dummy_path] == 'test/dummy'
         create_dummy_app
       end
 
@@ -258,7 +260,7 @@ task :default => :test
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{name}. Please give a name which does not match one of the reserved rails words."
         elsif Object.const_defined?(camelized)
-          raise Error, "Invalid plugin name #{name}, constant #{camelized} is already in use. Please choose another application name."
+          raise Error, "Invalid plugin name #{name}, constant #{camelized} is already in use. Please choose another plugin name."
         end
       end
 

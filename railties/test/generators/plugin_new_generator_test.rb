@@ -12,7 +12,6 @@ DEFAULT_PLUGIN_FILES = %w(
   lib
   lib/bukkits.rb
   lib/tasks/bukkits_tasks.rake
-  script/rails
   test/bukkits_test.rb
   test/test_helper.rb
   test/dummy
@@ -195,11 +194,34 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_creating_gemspec
+    run_generator
+    assert_file "bukkits.gemspec", /s.name = "bukkits"/
+    assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
+    assert_file "bukkits.gemspec", /s.version = "0.0.1"/
+  end
+
   def test_passing_dummy_path_as_a_parameter
     run_generator [destination_root, "--dummy_path", "spec/dummy"]
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test/dummy"
+  end
+
+  def test_creating_dummy_without_tests_but_with_dummy_path
+    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
+    assert_file "spec/dummy"
+    assert_file "spec/dummy/config/application.rb"
+    assert_no_file "test"
+  end
+
+  def test_skipping_test_unit
+    run_generator [destination_root, "--skip-test-unit"]
+    assert_no_file "test"
+    assert_file "bukkits.gemspec" do |contents|
+      assert_no_match /s.test_files = Dir\["test\/\*\*\/\*"\]/, contents
+    end
   end
 
   def test_skipping_gemspec
@@ -230,7 +252,6 @@ class CustomPluginGeneratorTest < Rails::Generators::TestCase
     assert_file 'spec/dummy'
     assert_file 'Rakefile', /task :default => :spec/
     assert_file 'Rakefile', /# spec tasks in rakefile/
-    assert_file 'script/rails', %r{spec/dummy}
   end
 
 protected
