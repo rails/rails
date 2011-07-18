@@ -227,13 +227,13 @@ module RailsGuides
         end
 
         code_blocks.push(<<HTML)
-<notextile>
+&lt;notextile&gt;
 <div class="code_container">
 <pre class="brush: #{brush}; gutter: false; toolbar: false">
 #{ERB::Util.h($2).strip}
 </pre>
 </div>
-</notextile>
+&lt;/notextile&gt;
 HTML
         "\ndirty_workaround_for_notextile_#{code_blocks.size - 1}\n"
       end
@@ -280,3 +280,4 @@ HTML
     end
   end
 end
+
