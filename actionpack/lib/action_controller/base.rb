@@ -204,16 +204,16 @@ module ActionController
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
 
-      # Add instrumentations hooks at the bottom, to ensure they instrument
-      # all the methods properly.
-      Instrumentation,
-
       # Before callbacks should also be executed the earliest as possible, so
       # also include them at the bottom.
       AbstractController::Callbacks,
 
       # The same with rescue, append it at the end to wrap as much as possible.
-      Rescue
+      Rescue,
+
+      # Add instrumentations hooks at the bottom, to ensure they instrument
+      # all the methods properly.
+      Instrumentation
     ]
 
     MODULES.each do |mod|
