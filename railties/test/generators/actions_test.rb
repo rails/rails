@@ -109,6 +109,13 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'config/application.rb', /#{Regexp.escape(autoload_paths)}/
   end
 
+  def test_environment_should_include_data_in_environment_initializer_block_with_env_option
+    run_generator
+    autoload_paths = 'config.autoload_paths += %w["#{Rails.root}/app/extras"]'
+    action :environment, autoload_paths, :env => 'development'
+    assert_file "config/environments/development.rb", /Application\.configure do\n  #{Regexp.escape(autoload_paths)}/
+  end
+
   def test_environment_with_block_should_include_block_contents_in_environment_initializer_block
     run_generator
 
