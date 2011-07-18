@@ -498,28 +498,23 @@ class DynamicScopeTest < ActiveRecord::TestCase
   fixtures :posts
 
   def setup
-    # Ensure we start with a clean model with no generated class method
-    Post.methods.select{ |c| c =~ /scoped_by_/ }.each do |method_name|
-      Post.class_eval <<-RUBY
-        class << self
-          remove_method :#{method_name}
-        end
-      RUBY
+    @test_klass = Class.new(Post) do
+      def self.name; "Post"; end
     end
   end
 
   def test_dynamic_scope
-    assert_equal Post.scoped_by_author_id(1).find(1), Post.find(1)
-    assert_equal Post.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, Post.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
+    assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
+    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.find(:first, :conditions => { :author_id => 1, :title => "Welcome to the weblog"})
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing
-    assert_blank Developer.methods.grep(/scoped_by_created_at/)
-    Developer.scoped_by_created_at(nil)
-    assert_present Developer.methods.grep(/scoped_by_created_at/)
+    assert_blank @test_klass.methods.grep(/scoped_by_type/)
+    @test_klass.scoped_by_type(nil)
+    assert_present @test_klass.methods.grep(/scoped_by_type/)
   end
 
   def test_dynamic_scope_with_less_number_of_arguments
-    assert_raise(ArgumentError){ Post.scoped_by_author_id_and_title(1) }
+    assert_raise(ArgumentError){ @test_klass.scoped_by_author_id_and_title(1) }
   end
 end
