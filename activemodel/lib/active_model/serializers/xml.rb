@@ -101,6 +101,7 @@ module ActiveModel
 
           @builder.tag!(*args) do
             add_attributes_and_methods
+            add_includes
             add_extra_behavior
             add_procs
             yield @builder if block_given?
@@ -117,6 +118,45 @@ module ActiveModel
             key = ActiveSupport::XmlMini.rename_key(attribute.name, options)
             ActiveSupport::XmlMini.to_tag(key, attribute.value,
               options.merge(attribute.decorations))
+          end
+        end
+
+        def add_includes
+          @serializable.send(:serializable_add_includes, options) do |association, records, opts|
+            add_associations(association, records, opts)
+          end
+        end
+
+        # TODO This can likely be cleaned up to simple use ActiveSupport::XmlMini.to_tag as well.
+        def add_associations(association, records, opts)
+          merged_options = opts.merge(options.slice(:builder, :indent))
+          merged_options[:skip_instruct] = true
+
+          if records.is_a?(Enumerable)
+            tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
+            type = options[:skip_types] ? { } : {:type => "array"}
+            association_name = association.to_s.singularize
+            merged_options[:root] = association_name
+
+            if records.empty?
+              @builder.tag!(tag, type)
+            else
+              @builder.tag!(tag, type) do
+                records.each do |record|
+                  if options[:skip_types]
+                    record_type = {}
+                  else
+                    record_class = (record.class.to_s.underscore == association_name) ? nil : record.class.name
+                    record_type = {:type => record_class}
+                  end
+
+                  record.to_xml merged_options.merge(record_type)
+                end
+              end
+            end
+          else
+            merged_options[:root] = association.to_s
+            records.to_xml(merged_options)
           end
         end
 

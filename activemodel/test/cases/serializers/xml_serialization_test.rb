@@ -7,9 +7,11 @@ class Contact
   extend ActiveModel::Naming
   include ActiveModel::Serializers::Xml
 
+  attr_accessor :address, :friends
+
   def attributes
-    instance_values
-  end unless method_defined?(:attributes)
+    instance_values.except("address", "friends")
+  end
 end
 
 module Admin
@@ -18,6 +20,17 @@ module Admin
 end
 
 class Customer < Struct.new(:name)
+end
+
+class Address
+  extend ActiveModel::Naming
+  include ActiveModel::Serializers::Xml
+
+  attr_accessor :street, :city, :state, :zip
+
+  def attributes
+    instance_values
+  end
 end
 
 class XmlSerializationTest < ActiveModel::TestCase
@@ -30,6 +43,12 @@ class XmlSerializationTest < ActiveModel::TestCase
     customer = Customer.new
     customer.name = "John"
     @contact.preferences = customer
+    @contact.address = Address.new
+    @contact.address.street = "123 Lane"
+    @contact.address.city = "Springfield"
+    @contact.address.state = "CA"
+    @contact.address.zip = 11111
+    @contact.friends = [Contact.new, Contact.new]
   end
 
   test "should serialize default root" do
@@ -137,5 +156,34 @@ class XmlSerializationTest < ActiveModel::TestCase
     xml = @contact.to_xml :type => 'Contact'
     assert_match %r{<contact type="Contact">}, xml
     assert_match %r{<name>aaron stack</name>}, xml
+  end
+
+  test "include option with singular association" do
+    xml = @contact.to_xml :include => :address, :indent => 0
+    assert xml.include?(@contact.address.to_xml(:indent => 0, :skip_instruct => true))
+  end
+
+  test "include option with plural association" do
+    xml = @contact.to_xml :include => :friends, :indent => 0
+    assert_match %r{<friends type="array">}, xml
+    assert_match %r{<friend type="Contact">}, xml
+  end
+
+  test "multiple includes" do
+    xml = @contact.to_xml :indent => 0, :skip_instruct => true, :include => [ :address, :friends ]
+    assert xml.include?(@contact.address.to_xml(:indent => 0, :skip_instruct => true))
+    assert_match %r{<friends type="array">}, xml
+    assert_match %r{<friend type="Contact">}, xml
+  end
+
+  test "include with options" do
+    xml = @contact.to_xml :indent  => 0, :skip_instruct => true, :include => { :address => { :only => :city } }
+    assert xml.include?(%(><address><city>Springfield</city></address>))
+  end
+
+  test "propagates skip_types option to included associations" do
+    xml = @contact.to_xml :include => :friends, :indent => 0, :skip_types => true
+    assert_match %r{<friends>}, xml
+    assert_match %r{<friend>}, xml
   end
 end
