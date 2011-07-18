@@ -4,6 +4,14 @@ require "action_controller/log_subscriber"
 
 module Another
   class LogSubscribersController < ActionController::Base
+
+    class SpecialException < Exception
+    end
+
+    rescue_from SpecialException do
+      head :status => 406
+    end
+
     def show
       render :nothing => true
     end
@@ -36,7 +44,11 @@ module Another
     def with_exception
       raise Exception
     end
-    
+
+    def with_rescued_exception
+      raise SpecialException
+    end
+
   end
 end
 
@@ -179,6 +191,14 @@ class ACLogSubscriberTest < ActionController::TestCase
    end
    assert_equal 2, logs.size
    assert_match(/Completed 500/, logs.last)
+  end
+
+  def test_process_action_with_rescued_exception_includes_http_status_code
+    get :with_rescued_exception
+    wait
+
+    assert_equal 2, logs.size
+    assert_match(/Completed 406/, logs.last)
   end
 
   def logs
