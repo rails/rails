@@ -274,198 +274,200 @@ end
 
 # load default environment and parse arguments
 require 'optparse'
-module RailsCommands
-  class Plugin
-    attr_reader :environment, :script_name
-    def initialize
-      @environment = RailsEnvironment.default
-      @rails_root = RailsEnvironment.default.root
-      @script_name = File.basename($0)
-    end
+module Rails
+  module Commands
+    class Plugin
+      attr_reader :environment, :script_name
+      def initialize
+        @environment = RailsEnvironment.default
+        @rails_root = RailsEnvironment.default.root
+        @script_name = File.basename($0)
+      end
 
-    def environment=(value)
-      @environment = value
-      RailsEnvironment.default = value
-    end
+      def environment=(value)
+        @environment = value
+        RailsEnvironment.default = value
+      end
 
-    def options
-      OptionParser.new do |o|
-        o.set_summary_indent('  ')
-        o.banner =    "Usage: plugin [OPTIONS] command"
-        o.define_head "Rails plugin manager."
+      def options
+        OptionParser.new do |o|
+          o.set_summary_indent('  ')
+          o.banner =    "Usage: plugin [OPTIONS] command"
+          o.define_head "Rails plugin manager."
 
-        o.separator ""
-        o.separator "GENERAL OPTIONS"
+          o.separator ""
+          o.separator "GENERAL OPTIONS"
 
-        o.on("-r", "--root=DIR", String,
-             "Set an explicit rails app directory.",
-             "Default: #{@rails_root}") { |rails_root| @rails_root = rails_root; self.environment = RailsEnvironment.new(@rails_root) }
+          o.on("-r", "--root=DIR", String,
+               "Set an explicit rails app directory.",
+               "Default: #{@rails_root}") { |rails_root| @rails_root = rails_root; self.environment = RailsEnvironment.new(@rails_root) }
 
-        o.on("-v", "--verbose", "Turn on verbose output.") { |verbose| $verbose = verbose }
-        o.on("-h", "--help", "Show this help message.") { puts o; exit }
+          o.on("-v", "--verbose", "Turn on verbose output.") { |verbose| $verbose = verbose }
+          o.on("-h", "--help", "Show this help message.") { puts o; exit }
 
-        o.separator ""
-        o.separator "COMMANDS"
+          o.separator ""
+          o.separator "COMMANDS"
 
-        o.separator "  install    Install plugin(s) from known repositories or URLs."
-        o.separator "  remove     Uninstall plugins."
+          o.separator "  install    Install plugin(s) from known repositories or URLs."
+          o.separator "  remove     Uninstall plugins."
 
-        o.separator ""
-        o.separator "EXAMPLES"
-        o.separator "  Install a plugin from a subversion URL:"
-        o.separator "    #{@script_name} plugin install http://example.com/my_svn_plugin\n"
-        o.separator "  Install a plugin from a git URL:"
-        o.separator "    #{@script_name} plugin install git://github.com/SomeGuy/my_awesome_plugin.git\n"
-        o.separator "  Install a plugin and add a svn:externals entry to vendor/plugins"
-        o.separator "    #{@script_name} plugin install -x my_svn_plugin\n"
+          o.separator ""
+          o.separator "EXAMPLES"
+          o.separator "  Install a plugin from a subversion URL:"
+          o.separator "    #{@script_name} plugin install http://example.com/my_svn_plugin\n"
+          o.separator "  Install a plugin from a git URL:"
+          o.separator "    #{@script_name} plugin install git://github.com/SomeGuy/my_awesome_plugin.git\n"
+          o.separator "  Install a plugin and add a svn:externals entry to vendor/plugins"
+          o.separator "    #{@script_name} plugin install -x my_svn_plugin\n"
+        end
+      end
+
+      def parse!(args=ARGV)
+        general, sub = split_args(args)
+        options.parse!(general)
+
+        command = general.shift
+        if command =~ /^(install|remove)$/
+          command = Commands.const_get(command.capitalize).new(self)
+          command.parse!(sub)
+        else
+          puts "Unknown command: #{command}" unless command.blank?
+          puts options
+          exit 1
+        end
+      end
+
+      def split_args(args)
+        left = []
+        left << args.shift while args[0] and args[0] =~ /^-/
+        left << args.shift if args[0]
+        [left, args]
+      end
+
+      def self.parse!(args=ARGV)
+        Plugin.new.parse!(args)
       end
     end
 
-    def parse!(args=ARGV)
-      general, sub = split_args(args)
-      options.parse!(general)
+    class Install
+      def initialize(base_command)
+        @base_command = base_command
+        @method = :http
+        @options = { :quiet => false, :revision => nil, :force => false }
+      end
 
-      command = general.shift
-      if command =~ /^(install|remove)$/
-        command = RailsCommands.const_get(command.capitalize).new(self)
-        command.parse!(sub)
-      else
-        puts "Unknown command: #{command}" unless command.blank?
-        puts options
+      def options
+        OptionParser.new do |o|
+          o.set_summary_indent('  ')
+          o.banner =    "Usage: #{@base_command.script_name} install PLUGIN [PLUGIN [PLUGIN] ...]"
+          o.define_head "Install one or more plugins."
+          o.separator   ""
+          o.separator   "Options:"
+          o.on(         "-x", "--externals",
+                        "Use svn:externals to grab the plugin.",
+                        "Enables plugin updates and plugin versioning.") { |v| @method = :externals }
+          o.on(         "-o", "--checkout",
+                        "Use svn checkout to grab the plugin.",
+                        "Enables updating but does not add a svn:externals entry.") { |v| @method = :checkout }
+          o.on(         "-e", "--export",
+                        "Use svn export to grab the plugin.",
+                        "Exports the plugin, allowing you to check it into your local repository. Does not enable updates or add an svn:externals entry.") { |v| @method = :export }
+          o.on(         "-q", "--quiet",
+                        "Suppresses the output from installation.",
+                        "Ignored if -v is passed (rails plugin -v install ...)") { |v| @options[:quiet] = true }
+          o.on(         "-r REVISION", "--revision REVISION",
+                        "Checks out the given revision from subversion or git.",
+                        "Ignored if subversion/git is not used.") { |v| @options[:revision] = v }
+          o.on(         "-f", "--force",
+                        "Reinstalls a plugin if it's already installed.") { |v| @options[:force] = true }
+          o.separator   ""
+          o.separator   "You can specify plugin names as given in 'plugin list' output or absolute URLs to "
+          o.separator   "a plugin repository."
+        end
+      end
+
+      def determine_install_method
+        best = @base_command.environment.best_install_method
+        @method = :http if best == :http and @method == :export
+        case
+        when (best == :http and @method != :http)
+          msg = "Cannot install using subversion because `svn' cannot be found in your PATH"
+        when (best == :export and (@method != :export and @method != :http))
+          msg = "Cannot install using #{@method} because this project is not under subversion."
+        when (best != :externals and @method == :externals)
+          msg = "Cannot install using externals because vendor/plugins is not under subversion."
+        end
+        if msg
+          puts msg
+          exit 1
+        end
+        @method
+      end
+
+      def parse!(args)
+        options.parse!(args)
+        if args.blank?
+          puts options
+          exit 1
+        end
+        environment = @base_command.environment
+        install_method = determine_install_method
+        puts "Plugins will be installed using #{install_method}" if $verbose
+        args.each do |name|
+          ::Plugin.find(name).install(install_method, @options)
+        end
+      rescue StandardError => e
+        puts "Plugin not found: #{args.inspect}"
+        puts e.inspect if $verbose
         exit 1
       end
     end
 
-    def split_args(args)
-      left = []
-      left << args.shift while args[0] and args[0] =~ /^-/
-      left << args.shift if args[0]
-      [left, args]
-    end
+    class Remove
+      def initialize(base_command)
+        @base_command = base_command
+      end
 
-    def self.parse!(args=ARGV)
-      Plugin.new.parse!(args)
-    end
-  end
+      def options
+        OptionParser.new do |o|
+          o.set_summary_indent('  ')
+          o.banner =    "Usage: #{@base_command.script_name} remove name [name]..."
+          o.define_head "Remove plugins."
+        end
+      end
 
-  class Install
-    def initialize(base_command)
-      @base_command = base_command
-      @method = :http
-      @options = { :quiet => false, :revision => nil, :force => false }
-    end
-
-    def options
-      OptionParser.new do |o|
-        o.set_summary_indent('  ')
-        o.banner =    "Usage: #{@base_command.script_name} install PLUGIN [PLUGIN [PLUGIN] ...]"
-        o.define_head "Install one or more plugins."
-        o.separator   ""
-        o.separator   "Options:"
-        o.on(         "-x", "--externals",
-                      "Use svn:externals to grab the plugin.",
-                      "Enables plugin updates and plugin versioning.") { |v| @method = :externals }
-        o.on(         "-o", "--checkout",
-                      "Use svn checkout to grab the plugin.",
-                      "Enables updating but does not add a svn:externals entry.") { |v| @method = :checkout }
-        o.on(         "-e", "--export",
-                      "Use svn export to grab the plugin.",
-                      "Exports the plugin, allowing you to check it into your local repository. Does not enable updates or add an svn:externals entry.") { |v| @method = :export }
-        o.on(         "-q", "--quiet",
-                      "Suppresses the output from installation.",
-                      "Ignored if -v is passed (rails plugin -v install ...)") { |v| @options[:quiet] = true }
-        o.on(         "-r REVISION", "--revision REVISION",
-                      "Checks out the given revision from subversion or git.",
-                      "Ignored if subversion/git is not used.") { |v| @options[:revision] = v }
-        o.on(         "-f", "--force",
-                      "Reinstalls a plugin if it's already installed.") { |v| @options[:force] = true }
-        o.separator   ""
-        o.separator   "You can specify plugin names as given in 'plugin list' output or absolute URLs to "
-        o.separator   "a plugin repository."
+      def parse!(args)
+        options.parse!(args)
+        if args.blank?
+          puts options
+          exit 1
+        end
+        root = @base_command.environment.root
+        args.each do |name|
+          ::Plugin.new(name).uninstall
+        end
       end
     end
 
-    def determine_install_method
-      best = @base_command.environment.best_install_method
-      @method = :http if best == :http and @method == :export
-      case
-      when (best == :http and @method != :http)
-        msg = "Cannot install using subversion because `svn' cannot be found in your PATH"
-      when (best == :export and (@method != :export and @method != :http))
-        msg = "Cannot install using #{@method} because this project is not under subversion."
-      when (best != :externals and @method == :externals)
-        msg = "Cannot install using externals because vendor/plugins is not under subversion."
+    class Info
+      def initialize(base_command)
+        @base_command = base_command
       end
-      if msg
-        puts msg
-        exit 1
-      end
-      @method
-    end
 
-    def parse!(args)
-      options.parse!(args)
-      if args.blank?
-        puts options
-        exit 1
+      def options
+        OptionParser.new do |o|
+          o.set_summary_indent('  ')
+          o.banner =    "Usage: #{@base_command.script_name} info name [name]..."
+          o.define_head "Shows plugin info at {url}/about.yml."
+        end
       end
-      environment = @base_command.environment
-      install_method = determine_install_method
-      puts "Plugins will be installed using #{install_method}" if $verbose
-      args.each do |name|
-        ::Plugin.find(name).install(install_method, @options)
-      end
-    rescue StandardError => e
-      puts "Plugin not found: #{args.inspect}"
-      puts e.inspect if $verbose
-      exit 1
-    end
-  end
 
-  class Remove
-    def initialize(base_command)
-      @base_command = base_command
-    end
-
-    def options
-      OptionParser.new do |o|
-        o.set_summary_indent('  ')
-        o.banner =    "Usage: #{@base_command.script_name} remove name [name]..."
-        o.define_head "Remove plugins."
-      end
-    end
-
-    def parse!(args)
-      options.parse!(args)
-      if args.blank?
-        puts options
-        exit 1
-      end
-      root = @base_command.environment.root
-      args.each do |name|
-        ::Plugin.new(name).uninstall
-      end
-    end
-  end
-
-  class Info
-    def initialize(base_command)
-      @base_command = base_command
-    end
-
-    def options
-      OptionParser.new do |o|
-        o.set_summary_indent('  ')
-        o.banner =    "Usage: #{@base_command.script_name} info name [name]..."
-        o.define_head "Shows plugin info at {url}/about.yml."
-      end
-    end
-
-    def parse!(args)
-      options.parse!(args)
-      args.each do |name|
-        puts ::Plugin.find(name).info
-        puts
+      def parse!(args)
+        options.parse!(args)
+        args.each do |name|
+          puts ::Plugin.find(name).info
+          puts
+        end
       end
     end
   end
@@ -539,4 +541,4 @@ class RecursiveHTTPFetcher
   end
 end
 
-RailsCommands::Plugin.parse!
+Rails::Commands::Plugin.parse!
