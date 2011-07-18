@@ -1048,4 +1048,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_not_equal 0, post.comments.to_a.count
     end
   end
+
+  def test_join_eager_with_empty_order_should_generate_valid_sql
+    assert_nothing_raised(ActiveRecord::StatementInvalid) do
+      Post.includes(:comments).order("").where(:comments => {:body => "Thank you for the welcome"}).first
+    end
+  end
+
+  def test_join_eager_with_nil_order_should_generate_valid_sql
+    assert_nothing_raised(ActiveRecord::StatementInvalid) do
+      Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
+    end
+  end
 end
