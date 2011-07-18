@@ -139,7 +139,7 @@ module AbstractController
   #
   #   end
   #
-  # This will assign "weblog_standard" as the WeblogController's layout for all actions except for the +rss+ action, which will 
+  # This will assign "weblog_standard" as the WeblogController's layout for all actions except for the +rss+ action, which will
   # be rendered directly, without wrapping a layout around the rendered view.
   #
   # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so
@@ -167,6 +167,7 @@ module AbstractController
 
     included do
       class_attribute :_layout_conditions
+      remove_possible_method :_layout_conditions
       delegate :_layout_conditions, :to => :'self.class'
       self._layout_conditions = {}
       _write_layout_method
