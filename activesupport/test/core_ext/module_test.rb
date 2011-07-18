@@ -26,10 +26,20 @@ module Yz
   end
 end
 
-Somewhere = Struct.new(:street, :city)
+Somewhere = Struct.new(:street, :city) do
+  protected
+
+  def protected_method
+  end
+
+  private
+
+  def private_method
+  end
+end
 
 Someone   = Struct.new(:name, :place) do
-  delegate :street, :city, :to_f, :to => :place
+  delegate :street, :city, :to_f, :protected_method, :private_method, :to => :place
   delegate :upcase, :to => "place.city"
 end
 
@@ -67,6 +77,14 @@ class ModuleTest < Test::Unit::TestCase
   def test_delegation_to_methods
     assert_equal "Paulina", @david.street
     assert_equal "Chicago", @david.city
+  end
+
+  def test_delegation_to_protected_method
+    assert_raise(NoMethodError) { @david.protected_method }
+  end
+
+  def test_delegation_to_private_method
+    assert_raise(NoMethodError) { @david.private_method }
   end
 
   def test_delegation_down_hierarchy

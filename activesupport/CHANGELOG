@@ -1,11 +1,13 @@
 *Rails 3.2.0 (unreleased)*
 
+* Removed support for using Module#delegate to delegate to non-public methods [Jon Leighton]
+
 * The definition of blank string for Ruby 1.9 has been extended to Unicode whitespace.
 Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira Matsuda, Damien Mathieu]
 
 * The inflector understands acronyms. [dlee]
 
-* Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim] 
+* Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim]
 
 * Added Time#all_day/week/quarter/year as a way of generating ranges (example: Event.where(created_at: Time.now.all_week)) [DHH]
 

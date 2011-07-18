@@ -123,6 +123,9 @@ class Module
     line = line.to_i
 
     methods.each do |method|
+      method = method.to_s
+      call   = (method[-1..-1] == '=') ? "public_send(:#{method}, " : "#{method}("
+
       on_nil =
         if allow_nil
           'return'
@@ -132,7 +135,7 @@ class Module
 
       module_eval(<<-EOS, file, line - 5)
         def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
-          #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
+          #{to}.#{call}*args, &block)                       #   client.name(*args, &block)
         rescue NoMethodError                                # rescue NoMethodError
           if #{to}.nil?                                     #   if client.nil?
             #{on_nil}                                       #     return # depends on :allow_nil
