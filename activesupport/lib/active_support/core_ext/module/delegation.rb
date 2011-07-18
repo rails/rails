@@ -1,4 +1,6 @@
 require "active_support/core_ext/module/remove_method"
+require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/deprecation'
 
 class Module
   # Provides a delegate class method to easily expose contained objects' methods
@@ -127,15 +129,30 @@ class Module
         end
 
       module_eval(<<-EOS, file, line - 5)
-        def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
-          #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
-        rescue NoMethodError                                # rescue NoMethodError
-          if #{to}.nil?                                     #   if client.nil?
-            #{on_nil}                                       #     return # depends on :allow_nil
-          else                                              #   else
-            raise                                           #     raise
-          end                                               #   end
-        end                                                 # end
+        def #{prefix}#{method}(*args, &block)                                   # def customer_name(*args, &block)
+          to = #{to}                                                            #   to = client
+                                                                                #
+          begin                                                                 #   begin
+            result = to.__send__(#{method.inspect}, *args, &block)              #     result = to.__send__(:name, *args, &block)
+          rescue NoMethodError                                                  #   rescue NoMethodError
+            if to.nil?                                                          #     if to.nil?
+              #{on_nil}                                                         #       return # depends on :allow_nil
+            else                                                                #     else
+              raise                                                             #       raise
+            end                                                                 #     end
+          end                                                                   #   end
+                                                                                #
+          klass = to.singleton_methods.any? ? to.singleton_class : to.class     #   klass = to.singleton_methods.any? ? to.singleton_class : to.class
+          unless klass.public_method_defined?(#{method.inspect})                #   unless klass.public_method_defined?(:name)
+            ActiveSupport::Deprecation.warn(                                    #     ActiveSupport::Deprecation.warn(
+              "Using Module#delegate to delegate to non-public methods is " \   #       "..." \
+              "deprecated. Please declare your methods as public if they " \    #       "..." \
+              "are going to accessed from other classes."                       #       "..."
+            )                                                                   #     )
+          end                                                                   #   end
+                                                                                #
+          result                                                                #   result
+        end                                                                     # end
       EOS
     end
   end
