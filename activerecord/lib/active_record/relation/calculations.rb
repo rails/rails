@@ -66,7 +66,7 @@ module ActiveRecord
       calculate(:average, column_name, options)
     end
 
-    # Calculates the minimum value on a given column.  The value is returned
+    # Calculates the minimum value on a given column. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
     # +calculate+ for examples with options.
     #
@@ -89,11 +89,15 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.sum('age') # => 4562
-    def sum(column_name, options = {})
-      calculate(:sum, column_name, options)
+    def sum(*args)
+      if block_given?
+        self.to_a.sum(*args) {|*block_args| yield(*block_args)}
+      else
+        calculate(:sum, *args)
+      end
     end
 
-    # This calculates aggregate values in the given column.  Methods for count, sum, average,
+    # This calculates aggregate values in the given column. Methods for count, sum, average,
     # minimum, and maximum have been added as shortcuts. Options such as <tt>:conditions</tt>,
     # <tt>:order</tt>, <tt>:group</tt>, <tt>:having</tt>, and <tt>:joins</tt> can be passed to customize the query.
     #
@@ -101,7 +105,7 @@ module ActiveRecord
     #   * Single aggregate value: The single value is type cast to Fixnum for COUNT, Float
     #     for AVG, and the given column's type for everything else.
     #   * Grouped values: This returns an ordered hash of the values and groups them by the
-    #     <tt>:group</tt> option.  It takes either a column name, or the name of a belongs_to association.
+    #     <tt>:group</tt> option. It takes either a column name, or the name of a belongs_to association.
     #
     #       values = Person.maximum(:age, :group => 'last_name')
     #       puts values["Drake"]
@@ -119,7 +123,7 @@ module ActiveRecord
     # Options:
     # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ].
     #   See conditions in the intro to ActiveRecord::Base.
-    # * <tt>:include</tt>: Eager loading, see Associations for details.  Since calculations don't load anything,
+    # * <tt>:include</tt>: Eager loading, see Associations for details. Since calculations don't load anything,
     #   the purpose of this is to access fields on joined tables in your conditions, order, or group clauses.
     # * <tt>:joins</tt> - An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id".
     #   (Rarely needed).
@@ -146,10 +150,16 @@ module ActiveRecord
       if options.except(:distinct).present?
         apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
       else
-        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
-          construct_relation_for_association_calculations.calculate(operation, column_name, options)
+        relation = with_default_scope
+
+        if relation.equal?(self)
+          if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+            construct_relation_for_association_calculations.calculate(operation, column_name, options)
+          else
+            perform_calculation(operation, column_name, options)
+          end
         else
-          perform_calculation(operation, column_name, options)
+          relation.calculate(operation, column_name, options)
         end
       end
     rescue ThrowResult

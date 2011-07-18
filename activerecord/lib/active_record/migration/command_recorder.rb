@@ -1,12 +1,12 @@
 module ActiveRecord
   class Migration
-    # ActiveRecord::Migration::CommandRecorder records commands done during
-    # a migration and knows how to reverse those commands.  The CommandRecorder
+    # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during
+    # a migration and knows how to reverse those commands. The CommandRecorder
     # knows how to invert the following commands:
     #
     # * add_column
     # * add_index
-    # * add_timestamp
+    # * add_timestamps
     # * create_table
     # * remove_timestamps
     # * rename_column
@@ -20,21 +20,21 @@ module ActiveRecord
         @delegate = delegate
       end
 
-      # record +command+.  +command+ should be a method name and arguments.
+      # record +command+. +command+ should be a method name and arguments.
       # For example:
       #
-      #   recorder.record(:method_name, [:arg1, arg2])
+      #   recorder.record(:method_name, [:arg1, :arg2])
       def record(*command)
         @commands << command
       end
 
       # Returns a list that represents commands that are the inverse of the
-      # commands stored in +commands+.  For example:
+      # commands stored in +commands+. For example:
       #
       #   recorder.record(:rename_table, [:old, :new])
       #   recorder.inverse # => [:rename_table, [:new, :old]]
       #
-      # This method will raise an IrreversibleMigration exception if it cannot
+      # This method will raise an +IrreversibleMigration+ exception if it cannot
       # invert the +commands+.
       def inverse
         @commands.reverse.map { |name, args|
@@ -48,11 +48,11 @@ module ActiveRecord
         super || delegate.respond_to?(*args)
       end
 
-      [:create_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
+      [:create_table, :change_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args)
-            record(:"#{method}", args)
-          end
+          def #{method}(*args)          # def create_table(*args)
+            record(:"#{method}", args)  #   record(:create_table, args)
+          end                           # end
         EOV
       end
 
@@ -79,8 +79,10 @@ module ActiveRecord
       end
 
       def invert_add_index(args)
-        table, columns, _ = *args
-        [:remove_index, [table, {:column => columns}]]
+        table, columns, options = *args
+        index_name = options.try(:[], :name)
+        options_hash =  index_name ? {:name => index_name} : {:column => columns}
+        [:remove_index, [table, options_hash]]
       end
 
       def invert_remove_timestamps(args)

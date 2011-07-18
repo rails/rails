@@ -696,13 +696,13 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit('Edit post')
     end
 
-    expected =
-      "<form accept-charset='UTF-8' action='/posts/44' method='post'>" +
-      snowman +
-      "<label for='post_title'>The Title</label>" +
+    expected = whole_form("/posts/44", "edit_post_44" , "edit_post", :method => "put") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
-      "<input name='commit' id='post_submit' type='submit' value='Edit post' />" +
+      "<input name='commit' type='submit' value='Edit post' />" +
       "</form>"
+    end
+
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_symbol_object_name
@@ -1564,6 +1564,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_hash_like_model
+    @author = HashBackedAuthor.new
+
+    form_for(@post) do |f|
+      concat f.fields_for(:author, @author) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', :method => 'put') do
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" size="30" type="text" value="hash backed author" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_fields_for
     output_buffer = fields_for(:post, @post) do |f|
       concat f.text_field(:title)
@@ -1765,7 +1781,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def snowman(method = nil)
+  def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
     if method && !method.to_s.in?(['get', 'post'])
@@ -1793,7 +1809,7 @@ class FormHelperTest < ActionView::TestCase
       method = options
     end
 
-    form_text(action, id, html_class, remote, multipart, method) + snowman(method) + contents + "</form>"
+    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
   end
 
   def test_default_form_builder

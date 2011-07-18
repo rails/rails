@@ -9,6 +9,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "truth" do
       app_file 'test/unit/foo_test.rb', <<-RUBY
         require 'test_helper'

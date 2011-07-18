@@ -6,6 +6,9 @@ source "http://rubygems.org"
 <%= database_gemfile_entry -%>
 <% end -%>
 
-if RUBY_VERSION < '1.9'
-  gem "ruby-debug", ">= 0.10.3"
-end
+<% if mountable? -%>
+<%= javascript_gemfile_entry -%>
+<% end -%>
+
+# To use debugger
+# <%= ruby_debugger_gemfile_entry %>

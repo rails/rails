@@ -204,7 +204,7 @@ module ActionView
         text_field_tag(name, value, options.stringify_keys.update("type" => "hidden"))
       end
 
-      # Creates a file upload field.  If you are using file uploads then you will also need
+      # Creates a file upload field. If you are using file uploads then you will also need
       # to set the multipart option for the form tag:
       #
       #   <%= form_tag '/upload', :multipart => true do %>
@@ -597,6 +597,12 @@ module ActionView
         number_field_tag(name, value, options.stringify_keys.update("type" => "range"))
       end
 
+      # Creates the hidden UTF8 enforcer tag. Override this method in a helper
+      # to customize the tag.
+      def utf8_enforcer_tag
+        tag(:input, :type => "hidden", :name => "utf8", :value => "&#x2713;".html_safe)
+      end
+
       private
         def html_options_for_form(url_for_options, options, *parameters_for_url)
           options.stringify_keys.tap do |html_options|
@@ -611,9 +617,6 @@ module ActionView
         end
 
         def extra_tags_for_form(html_options)
-          snowman_tag = tag(:input, :type => "hidden",
-                            :name => "utf8", :value => "&#x2713;".html_safe)
-
           authenticity_token = html_options.delete("authenticity_token")
           method = html_options.delete("method").to_s
 
@@ -629,7 +632,7 @@ module ActionView
               tag(:input, :type => "hidden", :name => "_method", :value => method) + token_tag(authenticity_token)
           end
 
-          tags = snowman_tag << method_tag
+          tags = utf8_enforcer_tag << method_tag
           content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
         end
 

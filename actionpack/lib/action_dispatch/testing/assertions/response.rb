@@ -6,13 +6,6 @@ module ActionDispatch
     module ResponseAssertions
       extend ActiveSupport::Concern
 
-      included do
-        # TODO: Need to pull in AV::Template monkey patches that track which
-        # templates are rendered. assert_template should probably be part
-        # of AV instead of AD.
-        require 'action_view/test_case'
-      end
-
       # Asserts that the response is one of the following types:
       #
       # * <tt>:success</tt>   - Status code was 200
@@ -67,11 +60,11 @@ module ActionDispatch
         assert_response(:redirect, message)
         return true if options == @response.location
 
-        redirected_to_after_normalisation = normalize_argument_to_redirection(@response.location)
-        options_after_normalisation       = normalize_argument_to_redirection(options)
+        redirected_to_after_normalization = normalize_argument_to_redirection(@response.location)
+        options_after_normalization       = normalize_argument_to_redirection(options)
 
-        if redirected_to_after_normalisation != options_after_normalisation
-          flunk "Expected response to be a redirect to <#{options_after_normalisation}> but was a redirect to <#{redirected_to_after_normalisation}>"
+        if redirected_to_after_normalization != options_after_normalization
+          flunk "Expected response to be a redirect to <#{options_after_normalization}> but was a redirect to <#{redirected_to_after_normalization}>"
         end
       end
 

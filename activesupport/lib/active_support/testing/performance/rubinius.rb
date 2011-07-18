@@ -10,12 +10,12 @@ module ActiveSupport
           { :metrics => [:wall_time],
             :formats => [:flat, :graph] }
         end).freeze
-      
+
       protected
         def run_gc
           GC.run(true)
         end
-      
+
       class Performer; end
 
       class Profiler < Performer
@@ -23,35 +23,35 @@ module ActiveSupport
           super
           @supported = @metric.is_a?(Metrics::WallTime)
         end
-                
+
         def run
           return unless @supported
-          
+
           @profiler = Rubinius::Profiler::Instrumenter.new
-          
+
           @total = time_with_block do
             @profiler.profile(false) do
               full_profile_options[:runs].to_i.times { run_test(@metric, :profile) }
             end
           end
         end
-        
+
         def record
           return unless @supported
-          
+
           if(full_profile_options[:formats].include?(:flat))
             create_path_and_open_file(:flat) do |file|
               @profiler.show(file)
             end
           end
-          
+
           if(full_profile_options[:formats].include?(:graph))
             create_path_and_open_file(:graph) do |file|
               @profiler.show(file)
             end
           end
         end
-        
+
         protected
           def create_path_and_open_file(printer_name)
             fname = "#{output_filename}_#{printer_name}.txt"
@@ -62,10 +62,10 @@ module ActiveSupport
           end
       end
 
-      module Metrics        
+      module Metrics
         class Base
           attr_reader :loopback
-          
+
           def profile
             yield
           end

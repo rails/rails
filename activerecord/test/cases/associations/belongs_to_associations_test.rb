@@ -158,6 +158,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not_nil Company.find(3).firm_with_condition, "Microsoft should have a firm"
   end
 
+  def test_polymorphic_association_class
+    sponsor = Sponsor.new
+    assert_nil sponsor.association(:sponsorable).send(:klass)
+
+    sponsor.sponsorable_type = '' # the column doesn't have to be declared NOT NULL
+    assert_nil sponsor.association(:sponsorable).send(:klass)
+
+    sponsor.sponsorable = Member.new :name => "Bert"
+    assert_equal Member, sponsor.association(:sponsorable).send(:klass)
+  end
+
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create :name => "Bert"
@@ -282,6 +293,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
     topic.update_attributes(:title => "37signals")
+    assert_equal 1, Topic.find(topic.id)[:replies_count]
+  end
+
+  def test_belongs_to_counter_when_update_column
+    topic = Topic.create!(:title => "37s")
+    topic.replies.create!(:title => "re: 37s", :content => "rails")
+    assert_equal 1, Topic.find(topic.id)[:replies_count]
+
+    topic.update_column(:content, "rails is wonderfull")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
@@ -646,5 +666,28 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     firm = client.create_firm!{ |f| f.name = 'Agency Company' }
     assert_equal 'Agency Company', firm.name
+  end
+
+  def test_should_set_foreign_key_on_create_association
+    client = Client.create! :name => "fuu"
+
+    firm = client.create_firm :name => "baa"
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_should_set_foreign_key_on_create_association!
+    client = Client.create! :name => "fuu"
+
+    firm = client.create_firm! :name => "baa"
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_self_referential_belongs_to_with_counter_cache_assigning_nil
+    comment = Comment.create! :post => posts(:thinking), :body => "fuu"
+    comment.parent = nil
+    comment.save!
+
+    assert_equal nil, comment.reload.parent
+    assert_equal 0, comments(:greetings).reload.children_count
   end
 end

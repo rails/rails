@@ -63,9 +63,7 @@ module Rails
         end
 
         def namespace
-          @namespace ||= if defined?(Rails) && Rails.application
-            Rails.application.class.parents.detect { |n| n.respond_to?(:_railtie) }
-          end
+          Rails::Generators.namespace
         end
 
         def namespaced?

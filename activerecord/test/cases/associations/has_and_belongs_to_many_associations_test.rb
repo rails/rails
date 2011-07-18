@@ -101,6 +101,16 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 't1', record[1]
   end
 
+  def test_proper_usage_of_primary_keys_and_join_table
+    setup_data_for_habtm_case
+
+    assert_equal 'country_id', Country.primary_key
+    assert_equal 'treaty_id', Treaty.primary_key
+
+    country = Country.first
+    assert_equal 1, country.treaties.count
+  end
+
   def test_has_and_belongs_to_many
     david = Developer.find(1)
 
@@ -223,6 +233,21 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     devel = Developer.find(1)
     proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
+    assert !devel.projects.loaded?
+
+    assert_equal devel.projects.last, proj
+    assert devel.projects.loaded?
+
+    assert !proj.persisted?
+    devel.save
+    assert proj.persisted?
+    assert_equal devel.projects.last, proj
+    assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
+  end
+
+  def test_new_aliased_to_build
+    devel = Developer.find(1)
+    proj = assert_no_queries { devel.projects.new("name" => "Projekt") }
     assert !devel.projects.loaded?
 
     assert_equal devel.projects.last, proj

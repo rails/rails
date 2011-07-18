@@ -32,8 +32,7 @@ module ActiveRecord
       end
 
       def table_alias_for(reflection, join = false)
-        name = alias_tracker.pluralize(reflection.name)
-        name << "_#{alias_suffix}"
+        name = "#{reflection.plural_name}_#{alias_suffix}"
         name << "_join" if join
         name
       end

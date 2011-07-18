@@ -20,8 +20,6 @@ module ActiveRecord
       find_in_batches(options) do |records|
         records.each { |record| yield record }
       end
-
-      self
     end
 
     # Yields each batch of records that was found by the find +options+ as
@@ -68,11 +66,14 @@ module ActiveRecord
       records = relation.where(table[primary_key].gteq(start)).all
 
       while records.any?
+        records_size = records.size
+        primary_key_offset = records.last.id
+
         yield records
 
-        break if records.size < batch_size
+        break if records_size < batch_size
 
-        if primary_key_offset = records.last.id
+        if primary_key_offset
           records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
         else
           raise "Primary key not included in the custom select clause"

@@ -94,6 +94,88 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal('capital', ActiveSupport::Inflector.camelize('Capital', false))
   end
 
+  def test_camelize_with_underscores
+    assert_equal("CamelCase", ActiveSupport::Inflector.camelize('Camel_Case'))
+  end
+
+  def test_acronyms
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym("API")
+      inflect.acronym("HTML")
+      inflect.acronym("HTTP")
+      inflect.acronym("RESTful")
+      inflect.acronym("W3C")
+      inflect.acronym("PhD")
+      inflect.acronym("RoR")
+      inflect.acronym("SSL")
+    end
+
+    #  camelize             underscore            humanize              titleize
+    [
+      ["API",               "api",                "API",                "API"],
+      ["APIController",     "api_controller",     "API controller",     "API Controller"],
+      ["Nokogiri::HTML",    "nokogiri/html",      "Nokogiri/HTML",      "Nokogiri/HTML"],
+      ["HTTPAPI",           "http_api",           "HTTP API",           "HTTP API"],
+      ["HTTP::Get",         "http/get",           "HTTP/get",           "HTTP/Get"],
+      ["SSLError",          "ssl_error",          "SSL error",          "SSL Error"],
+      ["RESTful",           "restful",            "RESTful",            "RESTful"],
+      ["RESTfulController", "restful_controller", "RESTful controller", "RESTful Controller"],
+      ["IHeartW3C",         "i_heart_w3c",        "I heart W3C",        "I Heart W3C"],
+      ["PhDRequired",       "phd_required",       "PhD required",       "PhD Required"],
+      ["IRoRU",             "i_ror_u",            "I RoR u",            "I RoR U"],
+      ["RESTfulHTTPAPI",    "restful_http_api",   "RESTful HTTP API",   "RESTful HTTP API"],
+
+      # misdirection
+      ["Capistrano",        "capistrano",         "Capistrano",       "Capistrano"],
+      ["CapiController",    "capi_controller",    "Capi controller",  "Capi Controller"],
+      ["HttpsApis",         "https_apis",         "Https apis",       "Https Apis"],
+      ["Html5",             "html5",              "Html5",            "Html5"],
+      ["Restfully",         "restfully",          "Restfully",        "Restfully"],
+      ["RoRails",           "ro_rails",           "Ro rails",         "Ro Rails"]
+    ].each do |camel, under, human, title|
+      assert_equal(camel, ActiveSupport::Inflector.camelize(under))
+      assert_equal(camel, ActiveSupport::Inflector.camelize(camel))
+      assert_equal(under, ActiveSupport::Inflector.underscore(under))
+      assert_equal(under, ActiveSupport::Inflector.underscore(camel))
+      assert_equal(title, ActiveSupport::Inflector.titleize(under))
+      assert_equal(title, ActiveSupport::Inflector.titleize(camel))
+      assert_equal(human, ActiveSupport::Inflector.humanize(under))
+    end
+  end
+
+  def test_acronym_override
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym("API")
+      inflect.acronym("LegacyApi")
+    end
+
+    assert_equal("LegacyApi", ActiveSupport::Inflector.camelize("legacyapi"))
+    assert_equal("LegacyAPI", ActiveSupport::Inflector.camelize("legacy_api"))
+    assert_equal("SomeLegacyApi", ActiveSupport::Inflector.camelize("some_legacyapi"))
+    assert_equal("Nonlegacyapi", ActiveSupport::Inflector.camelize("nonlegacyapi"))
+  end
+
+  def test_acronyms_camelize_lower
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym("API")
+      inflect.acronym("HTML")
+    end
+
+    assert_equal("htmlAPI", ActiveSupport::Inflector.camelize("html_api", false))
+    assert_equal("htmlAPI", ActiveSupport::Inflector.camelize("htmlAPI", false))
+    assert_equal("htmlAPI", ActiveSupport::Inflector.camelize("HTMLAPI", false))
+  end
+
+  def test_underscore_acronym_sequence
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym("API")
+      inflect.acronym("HTML5")
+      inflect.acronym("HTML")
+    end
+
+    assert_equal("html5_html_api", ActiveSupport::Inflector.underscore("HTML5HTMLAPI"))
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
@@ -148,8 +230,8 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   def test_parameterize_with_custom_separator
-    StringToParameterized.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string.gsub('-', '_'), ActiveSupport::Inflector.parameterize(some_string, '_'))
+    StringToParameterizeWithUnderscore.each do |some_string, parameterized_string|
+      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, '_'))
     end
   end
 

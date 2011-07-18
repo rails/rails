@@ -7,7 +7,7 @@ module Rails
       attr_accessor :name, :type
 
       def initialize(name, type)
-        raise Thor::Error, "Missing type for attribute '#{name}'.\nExample: '#{name}:string' where string is the type." if type.blank?
+        type = :string if type.blank?
         @name, @type = name, type.to_sym
       end
 
@@ -32,7 +32,7 @@ module Rails
           when :decimal                     then "9.99"
           when :datetime, :timestamp, :time then Time.now.to_s(:db)
           when :date                        then Date.today.to_s(:db)
-          when :string                      then "MyString"
+          when :string                      then name == "type" ? "" : "MyString"
           when :text                        then "MyText"
           when :boolean                     then false
           when :references, :belongs_to     then nil

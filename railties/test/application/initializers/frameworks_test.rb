@@ -10,6 +10,10 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def teardown
+      teardown_app
+    end
+
     # AC & AM
     test "set load paths set only if action controller or action mailer are in use" do
       assert_nothing_raised NameError do

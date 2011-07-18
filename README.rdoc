@@ -1,30 +1,35 @@
 == Welcome to Rails
 
 Rails is a web-application framework that includes everything needed to create
-database-backed web applications according to the Model-View-Control pattern.
+database-backed web applications according to the {Model-View-Controller (MVC)}[http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller] pattern.
 
-This pattern splits the view (also called the presentation) into "dumb"
-templates that are primarily responsible for inserting pre-built data in between
-HTML tags. The model contains the "smart" domain objects (such as Account,
-Product, Person, Post) that holds all the business logic and knows how to
-persist themselves to a database. The controller handles the incoming requests
-(such as Save New Account, Update Product, Show Post) by manipulating the model
-and directing data to the view.
+Understanding the MVC pattern is key to understanding Rails.  MVC divides your application
+into three layers, each with a specific responsibility.
 
-In Rails, the model is handled by what's called an object-relational mapping
-layer entitled Active Record. This layer allows you to present the data from
-database rows as objects and embellish these data objects with business logic
-methods. You can read more about Active Record in its
-{README}[link:files/activerecord/README_rdoc.html].
+The View layer is composed of "templates" that are responsible for providing 
+appropriate representations of your application's resources.  Templates
+can come in a variety of formats, but most view templates are HTML with embedded Ruby 
+code (.erb files). 
 
-The controller and view are handled by the Action Pack, which handles both
-layers by its two parts: Action View and Action Controller. These two layers
-are bundled in a single package due to their heavy interdependence. This is
-unlike the relationship between the Active Record and Action Pack that is much
-more separate. Each of these packages can be used independently outside of
-Rails. You can read more about Action Pack in its
-{README}[link:files/actionpack/README_rdoc.html].
+The Model layer represents your domain model (such as Account, Product, Person, Post) 
+and encapsulates the business logic that is specific to your application. In Rails, 
+database-backed model classes are derived from ActiveRecord::Base. ActiveRecord allows
+you to present the data from database rows as objects and embellish these data objects 
+with business logic methods. Although most Rails models are backed by a database, models 
+can also be ordinary Ruby classes, or Ruby classes that implement a set of interfaces as
+provided by the ActiveModel module. You can read more about Active Record in its
+{README}[link:blob/master/activerecord/README.rdoc].
 
+The Controller layer is responsible for handling incoming HTTP requests and providing a 
+suitable response.  Usually this means returning HTML, but Rails controllers can also 
+generate XML, JSON, PDFs, mobile-specific views, and more. Controllers manipulate models 
+and render view templates in order to generate the appropriate HTTP response.
+
+In Rails, the Controller and View layers are handled together by Action Pack.
+These two layers are bundled in a single package due to their heavy interdependence. 
+This is unlike the relationship between the Active Record and Action Pack which are
+independent. Each of these packages can be used independently outside of Rails. You 
+can read more about Action Pack in its {README}[link:blob/master/actionpack/README.rdoc].
 
 == Getting Started
 
@@ -60,9 +65,10 @@ Rails. You can read more about Action Pack in its
 == Contributing
 
 We encourage you to contribute to Ruby on Rails! Please check out the {Contributing to Rails
-guide}[http://edgeguides.rubyonrails.org/contributing_to_rails.html] for guidelines about how
+guide}[http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how
 to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
 == License
 
 Ruby on Rails is released under the MIT license.
+

@@ -130,7 +130,7 @@ module ActionController
       super
 
       self.session = TestSession.new
-      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => ActiveSupport::SecureRandom.hex(16))
+      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
     end
 
     class Result < ::Array #:nodoc:
@@ -175,10 +175,6 @@ module ActionController
     end
 
     def recycle!
-      write_cookies!
-      @env.delete('HTTP_COOKIE') if @cookies.blank?
-      @env.delete('action_dispatch.cookies')
-      @cookies = nil
       @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
@@ -186,6 +182,14 @@ module ActionController
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = nil
       @env['action_dispatch.request.query_parameters'] = {}
+      @set_cookies ||= {}
+      @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
+      deleted_cookies = cookie_jar.instance_variable_get("@delete_cookies")
+      @set_cookies.reject!{ |k,v| deleted_cookies.include?(k) }
+      cookie_jar.update(rack_cookies)
+      cookie_jar.update(cookies)
+      cookie_jar.update(@set_cookies)
+      cookie_jar.recycle!
     end
   end
 
@@ -206,7 +210,7 @@ module ActionController
     DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS
 
     def initialize(session = {})
-      @env, @by = nil, nil
+      super(nil, nil)
       replace(session.stringify_keys)
       @loaded = true
     end
@@ -301,18 +305,17 @@ module ActionController
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.
   #
-  # == Manipulating the request collections
+  # == Manipulating session and cookie variables
   #
-  # The collections described above link to the response, so you can test if what the actions were expected to do happened. But
-  # sometimes you also want to manipulate these collections in the incoming request. This is really only relevant for sessions
-  # and cookies, though. For sessions, you just do:
+  # Sometimes you need to set up the session and cookie variables for a test.
+  # To do this just assign a value to the session or cookie collection:
   #
-  #   @request.session[:key] = "value"
-  #   @request.cookies[:key] = "value"
+  #   session[:key] = "value"
+  #   cookies[:key] = "value"
   #
-  # To clear the cookies for a test just clear the request's cookies hash:
+  # To clear the cookies for a test just clear the cookie collection:
   #
-  #   @request.cookies.clear
+  #   cookies.clear
   #
   # == \Testing named routes
   #
@@ -395,7 +398,26 @@ module ActionController
       end
       alias xhr :xml_http_request
 
+      def paramify_values(hash_or_array_or_value)
+        case hash_or_array_or_value
+        when Hash
+          hash_or_array_or_value.each do |key, value|
+            hash_or_array_or_value[key] = paramify_values(value)
+          end
+        when Array
+          hash_or_array_or_value.map {|i| paramify_values(i)}
+        when Rack::Test::UploadedFile
+          hash_or_array_or_value
+        else
+          hash_or_array_or_value.to_param
+        end
+      end
+
       def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
+        # Ensure that numbers and symbols passed as params are converted to
+        # proper params, as is the case when engaging rack.
+        paramify_values(parameters)
+
         # Sanity check for required instance variables so we can give an
         # understandable error message.
         %w(@routes @controller @request @response).each do |iv_name|
@@ -431,7 +453,6 @@ module ActionController
         @controller.process_with_new_base_test(@request, @response)
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?
-        @request.cookies.merge!(@response.cookies)
         @response
       end
 

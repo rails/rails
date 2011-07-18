@@ -138,6 +138,9 @@ class Author < ActiveRecord::Base
   has_many :misc_post_first_blue_tags_2, :through => :posts, :source => :first_blue_tags_2,
            :conditions => { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }
 
+  has_many :posts_with_default_include, :class_name => 'PostWithDefaultInclude'
+  has_many :comments_on_posts_with_default_include, :through => :posts_with_default_include, :source => :comments
+
   scope :relation_include_posts, includes(:posts)
   scope :relation_include_tags, includes(:tags)
 

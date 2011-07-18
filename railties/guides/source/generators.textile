@@ -46,7 +46,7 @@ class InitializerGenerator < Rails::Generators::Base
 end
 </ruby>
 
-NOTE: +create_file+ is a method provided by +Thor::Actions+ and the documentation for it and its brethren can be found at "rdoc.info":http://rdoc.info/github/wycats/thor/master/Thor/Actions.
+NOTE: +create_file+ is a method provided by +Thor::Actions+. Documentation for +create_file+ and other Thor methods can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
 
 Our new generator is quite simple: it inherits from +Rails::Generators::Base+ and has one method definition. Each public method in the generator is executed when a generator is invoked. Finally, we invoke the +create_file+ method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
 
@@ -131,7 +131,7 @@ And let's execute our generator:
 $ rails generate initializer core_extensions
 </shell>
 
-We can see that now a initializer named core_extensions was created at +config/initializers/core_extensions.rb+ with the contents of our template. That means that +copy_file+ copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
+We can see that now an initializer named core_extensions was created at +config/initializers/core_extensions.rb+ with the contents of our template. That means that +copy_file+ copied a file in our source root to the destination path we gave. The method +file_name+ is automatically created when we inherit from +Rails::Generators::NamedBase+.
 
 The methods that are available for generators are covered in the "final section":#generator-methods of this guide.
 
@@ -365,7 +365,7 @@ $ rails generate scaffold Comment body:text
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
 
-h3. Application templates
+h3. Application Templates
 
 Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template".
 

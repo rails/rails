@@ -51,7 +51,11 @@ module ActionView
           # This dance is needed because Builder can't use capture
           pos = output_buffer.length
           yield
+          output_safe = output_buffer.html_safe?
           fragment = output_buffer.slice!(pos..-1)
+          if output_safe
+            self.output_buffer = output_buffer.html_safe
+          end
           controller.write_fragment(name, fragment, options)
         end
       end

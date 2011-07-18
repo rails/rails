@@ -34,12 +34,29 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal({}, req.cookies)
     assert_equal nil, req.env["HTTP_COOKIE"]
 
-    req.cookies["user_name"] = "david"
-    assert_equal({"user_name" => "david"}, req.cookies)
-    assert_equal "user_name=david", req.env["HTTP_COOKIE"]
+    req.cookie_jar["user_name"] = "david"
+    assert_cookies({"user_name" => "david"}, req.cookie_jar)
 
-    req.cookies["login"] = "XJ-122"
-    assert_equal({"user_name" => "david", "login" => "XJ-122"}, req.cookies)
-    assert_equal %w(login=XJ-122 user_name=david), req.env["HTTP_COOKIE"].split(/; /).sort
+    req.cookie_jar["login"] = "XJ-122"
+    assert_cookies({"user_name" => "david", "login" => "XJ-122"}, req.cookie_jar)
+
+		assert_nothing_raised do
+      req.cookie_jar["login"] = nil
+      assert_cookies({"user_name" => "david", "login" => nil}, req.cookie_jar)
+		end
+
+    req.cookie_jar.delete(:login)
+    assert_cookies({"user_name" => "david"}, req.cookie_jar)
+
+    req.cookie_jar.clear
+    assert_cookies({}, req.cookie_jar)
+
+    req.cookie_jar.update(:user_name => "david")
+    assert_cookies({"user_name" => "david"}, req.cookie_jar)
   end
+
+  private
+    def assert_cookies(expected, cookie_jar)
+      assert_equal(expected, cookie_jar.instance_variable_get("@cookies"))
+    end
 end

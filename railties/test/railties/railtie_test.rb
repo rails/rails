@@ -11,6 +11,10 @@ module RailtiesTest
       require "rails/all"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app
       @app ||= Rails.application
     end
@@ -97,7 +101,7 @@ module RailtiesTest
       assert !$ran_block
       require 'rake'
       require 'rake/testtask'
-      require 'rake/rdoctask'
+      require 'rdoc/task'
 
       AppTemplate::Application.load_tasks
       assert $ran_block
@@ -121,7 +125,7 @@ module RailtiesTest
       assert_equal [], $ran_block
       require 'rake'
       require 'rake/testtask'
-      require 'rake/rdoctask'
+      require 'rdoc/task'
 
       AppTemplate::Application.load_tasks
       assert $ran_block.include?("my_tie")

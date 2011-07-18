@@ -43,6 +43,7 @@ module ActionController
     #
     # The status code can either be a standard {HTTP Status code}[http://www.iana.org/assignments/http-status-codes] as an
     # integer, or a symbol representing the downcased, underscored and symbolized description.
+    # Note that the status code must be a 3xx HTTP code, or redirection will not occur.
     #
     # It is also possible to assign a flash message as part of the redirection. There are two special accessors for commonly used the flash names
     # +alert+ and +notice+ as well as a general purpose +flash+ bucket.

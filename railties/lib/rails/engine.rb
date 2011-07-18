@@ -180,7 +180,7 @@ module Rails
   #   <tt>my_engine:install:assets</tt>
   #
   # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
-  # <tt>my_engine_engine</tt>. You can change it manually it manually using the <tt>engine_name</tt> method:
+  # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -296,7 +296,7 @@ module Rails
   #   helper MyEngine::SharedEngineHelper
   # end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on egine's
+  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
   # instance:
   #
   # class ApplicationController < ActionController::Base
@@ -305,7 +305,7 @@ module Rails
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
-  # only helpers defined in helpers directory will be included.
+  # only helpers defined in the helpers directory will be included.
   #
   # == Migrations & seed data
   #
@@ -329,6 +329,14 @@ module Rails
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
+
+    def load_generators(app=self)
+      initialize_generators
+      railties.all { |r| r.load_generators(app) }
+      Rails::Generators.configure!(app.config.generators)
+      super
+      self
+    end
 
     class << self
       attr_accessor :called_from, :isolated
@@ -387,12 +395,20 @@ module Rails
     delegate :middleware, :root, :paths, :to => :config
     delegate :engine_name, :isolated?, :to => "self.class"
 
-    def load_tasks
+    def load_tasks(app=self)
+      railties.all { |r| r.load_tasks(app) }
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
-
+    
+    def load_console(app=self)
+      railties.all { |r| r.load_console(app) }
+      super
+    end
+    
     def eager_load!
+      railties.all(&:eager_load!)
+      
       config.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
@@ -561,12 +577,16 @@ module Rails
 
   protected
 
+    def initialize_generators
+      require "rails/generators"
+    end
+
     def routes?
       defined?(@routes)
     end
 
     def has_migrations?
-      paths["db/migrate"].first.present?
+      paths["db/migrate"].existent.any?
     end
 
     def find_root_with_flag(flag, default=nil)

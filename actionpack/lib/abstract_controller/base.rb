@@ -10,7 +10,7 @@ module AbstractController
   # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
   # expected to provide their own +render+ method, since rendering means
-  # different things depending on the context.  
+  # different things depending on the context.
   class Base
     attr_internal :response_body
     attr_internal :action_name

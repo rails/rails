@@ -36,8 +36,8 @@ class TextHelperTest < ActionView::TestCase
     text = "A\r\n  \nB\n\n\r\n\t\nC\nD".freeze
     assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
 
-     assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", :class => 'test')
-     assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
+    assert_equal %q(<p class="test">This is a classy test</p>), simple_format("This is a classy test", :class => 'test')
+    assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", :class => 'test')
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
@@ -46,6 +46,13 @@ class TextHelperTest < ActionView::TestCase
 
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
+  end
+
+  def test_simple_format_should_not_change_the_frozen_text_passed
+    text = "<b>Ok</b><script>code!</script>"
+    text_clone = text.dup
+    simple_format(text.freeze)
+    assert_equal text_clone, text
   end
 
   def test_truncate_should_not_be_html_safe
@@ -291,7 +298,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_cycle_class_with_no_arguments
-    assert_raise(ArgumentError) { value = Cycle.new() }
+    assert_raise(ArgumentError) { Cycle.new }
   end
 
   def test_cycle
@@ -304,7 +311,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_cycle_with_no_arguments
-    assert_raise(ArgumentError) { value = cycle() }
+    assert_raise(ArgumentError) { cycle }
   end
 
   def test_cycle_resets_with_new_values

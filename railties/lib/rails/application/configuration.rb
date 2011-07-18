@@ -30,13 +30,15 @@ module Rails
         @log_level                   = nil
         @middleware                  = app_middleware
         @generators                  = app_generators
+        @cache_store                 = [ :file_store, "#{root}/tmp/cache/" ]
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled    = false
         @assets.paths      = []
-        @assets.precompile = [ /\w+\.(?!js|css).+/, "application.js", "application.css" ]
+        @assets.precompile = [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
         @assets.prefix     = "/assets"
 
+        @assets.cache_store    = [ :file_store, "#{root}/tmp/cache/assets/" ]
         @assets.js_compressor  = nil
         @assets.css_compressor = nil
       end
@@ -70,7 +72,6 @@ module Rails
           paths.add "public/javascripts"
           paths.add "public/stylesheets"
           paths.add "tmp"
-          paths.add "tmp/cache"
           paths
         end
       end
@@ -93,16 +94,6 @@ module Rails
       def database_configuration
         require 'erb'
         YAML::load(ERB.new(IO.read(paths["config/database"].first)).result)
-      end
-
-      def cache_store
-        @cache_store ||= begin
-          if File.exist?("#{root}/tmp/cache/")
-            [ :file_store, "#{root}/tmp/cache/" ]
-          else
-            :memory_store
-          end
-        end
       end
 
       def log_level

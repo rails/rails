@@ -131,7 +131,7 @@ module AbstractController
       end
 
       def authenticate
-        @list = []
+        @list ||= []
         @authenticated = "true"
       end
     end

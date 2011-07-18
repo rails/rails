@@ -7,15 +7,7 @@ require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   def setup
-    TestApp::Application.isolate_namespace(TestApp)
-  end
-
-  def teardown
-    if TestApp.respond_to?(:_railtie)
-      TestApp.singleton_class.send(:undef_method, :_railtie)
-      TestApp.singleton_class.send(:undef_method, :table_name_prefix)
-      TestApp::Application.isolated = false
-    end
+    Rails::Generators.namespace = TestApp
   end
 end
 
@@ -252,7 +244,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_on_revoke
@@ -283,7 +275,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_no_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets (should not be removed)
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_namespace_on_invoke
@@ -324,7 +316,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 
   def test_scaffold_with_namespace_on_revoke
@@ -356,6 +348,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_no_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
-    assert_file "app/assets/stylesheets/scaffold.css.scss"
+    assert_file "app/assets/stylesheets/scaffold.css"
   end
 end

@@ -53,7 +53,7 @@ module ActiveRecord
   #
   # This migration will add a boolean flag to the accounts table and remove it
   # if you're backing out of the migration. It shows how all migrations have
-  # two class methods +up+ and +down+ that describes the transformations
+  # two methods +up+ and +down+ that describes the transformations
   # required to implement or remove the migration. These methods can consist
   # of both the migration specific methods like add_column and remove_column,
   # but may also contain regular Ruby code for generating data needed for the
@@ -66,9 +66,9 @@ module ActiveRecord
   #       create_table :system_settings do |t|
   #         t.string  :name
   #         t.string  :label
-  #         t.text  :value
+  #         t.text    :value
   #         t.string  :type
-  #         t.integer  :position
+  #         t.integer :position
   #       end
   #
   #       SystemSetting.create  :name => "notice",
@@ -116,8 +116,10 @@ module ActiveRecord
   #   with the name of the column. Other options include
   #   <tt>:name</tt> and <tt>:unique</tt> (e.g.
   #   <tt>{ :name => "users_name_index", :unique => true }</tt>).
-  # * <tt>remove_index(table_name, index_name)</tt>: Removes the index specified
-  #   by +index_name+.
+  # * <tt>remove_index(table_name, :column => column_name)</tt>: Removes the index
+  #   specified by +column_name+.
+  # * <tt>remove_index(table_name, :name => index_name)</tt>: Removes the index
+  #   specified by +index_name+.
   #
   # == Irreversible transformations
   #
@@ -179,7 +181,7 @@ module ActiveRecord
   #
   #   class RemoveEmptyTags < ActiveRecord::Migration
   #     def up
-  #       Tag.find(:all).each { |tag| tag.destroy if tag.pages.empty? }
+  #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
   #
   #     def down
@@ -225,7 +227,7 @@ module ActiveRecord
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
-  #       Person.find(:all).each do |p|
+  #       Person.all.each do |p|
   #         p.update_attribute :salary, SalaryCalculator.compute(p)
   #       end
   #     end
@@ -245,7 +247,7 @@ module ActiveRecord
   #   def up
   #     ...
   #     say_with_time "Updating salaries..." do
-  #       Person.find(:all).each do |p|
+  #       Person.all.each do |p|
   #         p.update_attribute :salary, SalaryCalculator.compute(p)
   #       end
   #     end

@@ -315,10 +315,8 @@ module ActiveSupport
       tzinfo.period_for_local(time, dst)
     end
 
-    # TODO: Preload instead of lazy load for thread safety
     def self.find_tzinfo(name)
-      require 'active_support/tzinfo' unless defined?(::TZInfo)
-      ::TZInfo::TimezoneProxy.new(MAPPING[name] || name)
+      TZInfo::TimezoneProxy.new(MAPPING[name] || name)
     end
 
     class << self

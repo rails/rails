@@ -40,7 +40,7 @@ module ActionController
     #   dom_class(post, :edit)   # => "edit_post"
     #   dom_class(Person, :edit) # => "edit_person"
     def dom_class(record_or_class, prefix = nil)
-      singular = ActiveModel::Naming.singular(record_or_class)
+      singular = ActiveModel::Naming.param_key(record_or_class)
       prefix ? "#{prefix}#{JOIN}#{singular}" : singular
     end
 

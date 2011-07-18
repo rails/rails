@@ -60,12 +60,16 @@ module ActionView
 
         private
 
-          def path_to_asset(source, include_host = true)
-            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension, include_host)
+          def path_to_asset(source, include_host = true, protocol = nil)
+            asset_paths.compute_public_path(source, asset_name.to_s.pluralize, extension, include_host, protocol)
+          end
+
+          def path_to_asset_source(source)
+            asset_paths.compute_source_path(source, asset_name.to_s.pluralize, extension)
           end
 
           def compute_paths(*args)
-            expand_sources(*args).collect { |source| asset_paths.compute_public_path(source, asset_name.pluralize, extension, false) }
+            expand_sources(*args).collect { |source| path_to_asset_source(source) }
           end
 
           def expand_sources(sources, recursive)
@@ -92,7 +96,7 @@ module ActionView
 
           def ensure_sources!(sources)
             sources.each do |source|
-              asset_file_path!(path_to_asset(source, false))
+              asset_file_path!(path_to_asset_source(source))
             end
           end
 
@@ -123,19 +127,14 @@ module ActionView
 
             # Set mtime to the latest of the combined files to allow for
             # consistent ETag without a shared filesystem.
-            mt = asset_paths.map { |p| File.mtime(asset_file_path(p)) }.max
+            mt = asset_paths.map { |p| File.mtime(asset_file_path!(p)) }.max
             File.utime(mt, mt, joined_asset_path)
           end
 
-          def asset_file_path(path)
-            File.join(config.assets_dir, path.split('?').first)
-          end
-
-          def asset_file_path!(path, error_if_file_is_uri = false)
-            if asset_paths.is_uri?(path)
+          def asset_file_path!(absolute_path, error_if_file_is_uri = false)
+            if asset_paths.is_uri?(absolute_path)
               raise(Errno::ENOENT, "Asset file #{path} is uri and cannot be merged into single file") if error_if_file_is_uri
             else
-              absolute_path = asset_file_path(path)
               raise(Errno::ENOENT, "Asset file not found at '#{absolute_path}'" ) unless File.exist?(absolute_path)
               return absolute_path
             end

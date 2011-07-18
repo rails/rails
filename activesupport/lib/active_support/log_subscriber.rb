@@ -3,8 +3,8 @@ require 'active_support/core_ext/class/attribute'
 
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume ActiveSupport::Notifications
-  # with solely purpose of logging. The log subscriber dispatches notifications to a
-  # registered object based on its given namespace.
+  # with the sole purpose of logging them. The log subscriber dispatches notifications to 
+  # a registered object based on its given namespace.
   #
   # An example would be Active Record log subscriber responsible for logging queries:
   #
@@ -109,8 +109,8 @@ module ActiveSupport
 
     # Set color by using a string or one of the defined constants. If a third
     # option is set to true, it also adds bold to the string. This is based
-    # on Highline implementation and it automatically appends CLEAR to the end
-    # of the returned String.
+    # on the Highline implementation and will automatically append CLEAR to the
+    # end of the returned String.
     #
     def color(text, color, bold=false)
       return text unless colorize_logging

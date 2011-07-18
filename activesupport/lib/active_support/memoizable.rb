@@ -1,8 +1,15 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/aliasing'
+require 'active_support/deprecation'
 
 module ActiveSupport
   module Memoizable
+    def self.extended(base)
+      ActiveSupport::Deprecation.warn "ActiveSupport::Memoizable is deprecated and will be removed in future releases," \
+        "simply use Ruby memoization pattern instead.", caller
+      super
+    end
+
     def self.memoized_ivar_for(symbol)
       "@_memoized_#{symbol.to_s.sub(/\?\Z/, '_query').sub(/!\Z/, '_bang')}".to_sym
     end
@@ -79,7 +86,11 @@ module ActiveSupport
           else                                                                     # else
             def #{symbol}(*args)                                                   #   def mime_type(*args)
               #{memoized_ivar} ||= {} unless frozen?                               #     @_memoized_mime_type ||= {} unless frozen?
-              reload = args.pop if args.last == true || args.last == :reload       #     reload = args.pop if args.last == true || args.last == :reload
+              args_length = method(:#{original_method}).arity                      #     args_length = method(:_unmemoized_mime_type).arity
+              if args.length == args_length + 1 &&                                 #     if args.length == args_length + 1 &&
+                (args.last == true || args.last == :reload)                        #       (args.last == true || args.last == :reload)
+                reload = args.pop                                                  #       reload = args.pop
+              end                                                                  #     end
                                                                                    #
               if defined?(#{memoized_ivar}) && #{memoized_ivar}                    #     if defined?(@_memoized_mime_type) && @_memoized_mime_type
                 if !reload && #{memoized_ivar}.has_key?(args)                      #       if !reload && @_memoized_mime_type.has_key?(args)

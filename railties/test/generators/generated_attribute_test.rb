@@ -68,6 +68,11 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_default_value :string, 'MyString'
   end
 
+  def test_default_value_for_type
+    att = Rails::Generators::GeneratedAttribute.new("type", "string")
+    assert_equal("", att.default)
+  end
+
   def test_default_value_is_text
     assert_field_default_value :text, 'MyText'
   end
@@ -113,15 +118,8 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     end
   end
 
-  def test_nil_type_raises_exception
-    assert_raise Thor::Error do
-      create_generated_attribute(nil, 'title')
-    end
-  end
-
-  def test_missing_type_raises_exception
-    assert_raise Thor::Error do
-      create_generated_attribute('', 'title')
-    end
+  def test_blank_type_defaults_to_string_raises_exception
+    assert_equal :string, create_generated_attribute(nil, 'title').type
+    assert_equal :string, create_generated_attribute("", 'title').type
   end
 end

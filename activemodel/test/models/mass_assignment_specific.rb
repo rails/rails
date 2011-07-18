@@ -20,6 +20,14 @@ class Person
   public :sanitize_for_mass_assignment
 end
 
+class Account
+  include ActiveModel::MassAssignmentSecurity
+  attr_accessible :name, :email, :as => [:default, :admin]
+  attr_accessible :admin, :as => :admin
+
+  public :sanitize_for_mass_assignment
+end
+
 class Firm
   include ActiveModel::MassAssignmentSecurity
 

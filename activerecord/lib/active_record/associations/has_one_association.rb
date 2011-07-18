@@ -14,12 +14,12 @@ module ActiveRecord
           end
 
           if record
-            set_inverse_instance(record)
             set_owner_attributes(record)
+            set_inverse_instance(record)
 
             if owner.persisted? && save && !record.save
               nullify_owner_attributes(record)
-              set_owner_attributes(target)
+              set_owner_attributes(target) if target
               raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
             end
           end

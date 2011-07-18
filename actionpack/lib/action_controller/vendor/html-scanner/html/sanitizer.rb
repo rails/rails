@@ -103,7 +103,7 @@ module HTML
     # Specifies the default Set of allowed shorthand css properties for the #sanitize and #sanitize_css helpers.
     self.shorthand_css_properties = Set.new(%w(background border margin padding))
 
-    # Sanitizes a block of css code.  Used by #sanitize when it comes across a style attribute
+    # Sanitizes a block of css code. Used by #sanitize when it comes across a style attribute
     def sanitize_css(style)
       # disallow urls
       style = style.to_s.gsub(/url\s*\(\s*[^\s)]+?\s*\)\s*/, ' ')

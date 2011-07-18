@@ -232,7 +232,7 @@ module ActionView
       # considered as a linebreak and a <tt><br /></tt> tag is appended. This
       # method does not remove the newlines from the +text+.
       #
-      # You can pass any HTML attributes into <tt>html_options</tt>.  These
+      # You can pass any HTML attributes into <tt>html_options</tt>. These
       # will be added to all created paragraphs.
       #
       # ==== Options
@@ -255,9 +255,11 @@ module ActionView
       #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
-        text = ''.html_safe if text.nil?
+        text = '' if text.nil?
+        text = text.dup if text.frozen?
         start_tag = tag('p', html_options, true)
         text = sanitize(text) unless options[:sanitize] == false
+        text = text.to_str
         text.gsub!(/\r\n?/, "\n")                    # \r\n and \r -> \n
         text.gsub!(/\n\n+/, "</p>\n\n#{start_tag}")  # 2+ newline  -> paragraph
         text.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') # 1 newline   -> br
@@ -267,7 +269,7 @@ module ActionView
 
       # Creates a Cycle object whose _to_s_ method cycles through elements of an
       # array every time it is called. This can be used for example, to alternate
-      # classes for table rows.  You can use named cycles to allow nesting in loops.
+      # classes for table rows. You can use named cycles to allow nesting in loops.
       # Passing a Hash as the last parameter with a <tt>:name</tt> key will create a
       # named cycle. The default name for a cycle without a +:name+ key is
       # <tt>"default"</tt>. You can manually reset a cycle by calling reset_cycle
@@ -279,7 +281,7 @@ module ActionView
       #   @items = [1,2,3,4]
       #   <table>
       #   <% @items.each do |item| %>
-      #     <tr class="<%= cycle("even", "odd") -%>">
+      #     <tr class="<%= cycle("odd", "even") -%>">
       #       <td>item</td>
       #     </tr>
       #   <% end %>

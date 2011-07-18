@@ -31,7 +31,7 @@ module ActiveSupport
         DELETED     = "DELETED\r\n"
       end
 
-      ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/
+      ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       def self.build_mem_cache(*addresses)
         addresses = addresses.flatten
@@ -183,6 +183,14 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         protected
+          def read_entry(key, options)
+            entry = super
+            if options[:raw] && local_cache && entry
+               entry = deserialize_entry(entry.value)
+            end
+            entry
+          end
+
           def write_entry(key, entry, options) # :nodoc:
             retval = super
             if options[:raw] && local_cache && retval

@@ -35,7 +35,23 @@ module ApplicationTests
     end
 
     def teardown
+      teardown_app
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
+    end
+
+    test "Rails.groups returns available groups" do
+      require "rails"
+
+      Rails.env = "development"
+      assert_equal [:default, "development"], Rails.groups
+      assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, :assets => %w(development))
+
+      Rails.env = "test"
+      assert_equal [:default, "test"], Rails.groups(:assets => [:development])
+
+      ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
+      assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
     end
 
     test "Rails.application is nil until app is initialized" do
@@ -499,6 +515,15 @@ module ApplicationTests
 
       get "/", { :format => :xml }, "HTTP_ACCEPT" => "application/xml"
       assert_equal 'XML', last_response.body
+    end
+
+    test "Rails.application#env_config exists and include some existing parameters" do
+      make_basic_app
+
+      assert_respond_to app, :env_config
+      assert_equal      app.env_config['action_dispatch.parameter_filter'], app.config.filter_parameters
+      assert_equal      app.env_config['action_dispatch.secret_token'],     app.config.secret_token
+      assert_equal      app.env_config['action_dispatch.show_exceptions'],  app.config.action_dispatch.show_exceptions
     end
   end
 end

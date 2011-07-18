@@ -1,5 +1,8 @@
-require 'active_support/core_ext/class/attribute.rb'
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/array/wrap'
 require 'active_model/mass_assignment_security/permission_set'
+require 'active_model/mass_assignment_security/sanitizer'
 
 module ActiveModel
   # = Active Model Mass-Assignment Security
@@ -10,6 +13,9 @@ module ActiveModel
       class_attribute :_accessible_attributes
       class_attribute :_protected_attributes
       class_attribute :_active_authorizer
+
+      class_attribute :_mass_assignment_sanitizer
+      self.mass_assignment_sanitizer = :logger
     end
 
     # Mass assignment security provides an interface for protecting attributes
@@ -41,6 +47,16 @@ module ActiveModel
     #
     #   end
     #
+    # = Configuration options
+    #
+    # * <tt>mass_assignment_sanitizer</tt> - Defines sanitize method. Possible values are:
+    #   * <tt>:logger</tt> (default) - writes filtered attributes to logger
+    #   * <tt>:strict</tt> - raise <tt>ActiveModel::MassAssignmentSecurity::Error</tt> on any protected attribute update
+    #
+    # You can specify your own sanitizer object eg. MySanitizer.new.
+    # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
+    #
+    # 
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
       # whenever attributes are sanitized before assignment. A role for the
@@ -95,8 +111,11 @@ module ActiveModel
         options = args.extract_options!
         role = options[:as] || :default
 
-        self._protected_attributes        = protected_attributes_configs.dup
-        self._protected_attributes[role] = self.protected_attributes(role) + args
+        self._protected_attributes = protected_attributes_configs.dup
+
+        Array.wrap(role).each do |name|
+          self._protected_attributes[name] = self.protected_attributes(name) + args
+        end
 
         self._active_authorizer = self._protected_attributes
       end
@@ -154,8 +173,11 @@ module ActiveModel
         options = args.extract_options!
         role = options[:as] || :default
 
-        self._accessible_attributes        = accessible_attributes_configs.dup
-        self._accessible_attributes[role] = self.accessible_attributes(role) + args
+        self._accessible_attributes = accessible_attributes_configs.dup
+
+        Array.wrap(role).each do |name|
+          self._accessible_attributes[name] = self.accessible_attributes(name) + args
+        end
 
         self._active_authorizer = self._accessible_attributes
       end
@@ -177,21 +199,25 @@ module ActiveModel
         []
       end
 
+      def mass_assignment_sanitizer=(value)
+        self._mass_assignment_sanitizer = if value.is_a?(Symbol)
+          const_get(:"#{value.to_s.camelize}Sanitizer").new(self)
+        else
+          value
+        end
+      end
+
       private
 
       def protected_attributes_configs
         self._protected_attributes ||= begin
-          default_black_list = BlackList.new(attributes_protected_by_default).tap do |w|
-            w.logger = self.logger if self.respond_to?(:logger)
-          end
-          Hash.new(default_black_list)
+          Hash.new { |h,k| h[k] = BlackList.new(attributes_protected_by_default) }
         end
       end
 
       def accessible_attributes_configs
         self._accessible_attributes ||= begin
-          default_white_list = WhiteList.new.tap { |w| w.logger = self.logger if self.respond_to?(:logger) }
-          Hash.new(default_white_list)
+          Hash.new { |h,k| h[k] = WhiteList.new }
         end
       end
     end
@@ -199,7 +225,7 @@ module ActiveModel
   protected
 
     def sanitize_for_mass_assignment(attributes, role = :default)
-      mass_assignment_authorizer(role).sanitize(attributes)
+      _mass_assignment_sanitizer.sanitize(attributes, mass_assignment_authorizer(role))
     end
 
     def mass_assignment_authorizer(role = :default)

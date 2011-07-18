@@ -53,6 +53,16 @@ class Weird < ActiveRecord::Base; end
 
 class Boolean < ActiveRecord::Base; end
 
+class LintTest < ActiveRecord::TestCase
+  include ActiveModel::Lint::Tests
+
+  class LintModel < ActiveRecord::Base; end
+
+  def setup
+    @model = LintModel.new
+  end
+end
+
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
@@ -367,6 +377,15 @@ class BasicsTest < ActiveRecord::TestCase
     GUESSED_CLASSES.each(&:reset_table_name)
   end
 
+  def test_singular_table_name_guesses_for_individual_table
+    CreditCard.pluralize_table_names = false
+    CreditCard.reset_table_name
+    assert_equal "credit_card", CreditCard.table_name
+    assert_equal "categories", Category.table_name
+  ensure
+    CreditCard.pluralize_table_names = true
+    CreditCard.reset_table_name
+  end
 
   if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
@@ -470,6 +489,19 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
 
+  def test_comparison
+    topic_1 = Topic.create!
+    topic_2 = Topic.create!
+
+    assert_equal [topic_2, topic_1].sort, [topic_1, topic_2]
+  end
+
+  def test_comparison_with_different_objects
+    topic = Topic.create
+    category = Category.create(:name => "comparison")
+    assert_nil topic <=> category
+  end
+
   def test_readonly_attributes
     assert_equal Set.new([ 'title' , 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
 
@@ -491,13 +523,6 @@ class BasicsTest < ActiveRecord::TestCase
     weird.update_column('a$b', 'value2')
     weird.reload
     assert_equal 'value2', weird.send('a$b')
-  end
-
-  def test_attributes_guard_protected_attributes_is_deprecated
-    attributes = { "title" => "An amazing title" }
-    post = ProtectedTitlePost.new
-    assert_deprecated { post.send(:attributes=, attributes, false) }
-    assert_equal "An amazing title", post.title
   end
 
   def test_multiparameter_attributes_on_date
@@ -1764,6 +1789,13 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_compute_type_argument_error
+    ActiveSupport::Dependencies.stubs(:constantize).raises(ArgumentError)
+    assert_raises ArgumentError do
+      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    end
+  end
+
   def test_clear_cache!
     # preheat cache
     c1 = Post.columns
@@ -1802,5 +1834,30 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_attribtue_names_on_abstract_class
     assert_equal [], AbstractCompany.attribute_names
+  end
+
+  def test_cache_key_for_existing_record_is_not_timezone_dependent
+    ActiveRecord::Base.time_zone_aware_attributes = true
+
+    Time.zone = "UTC"
+    utc_key = Developer.first.cache_key
+
+    Time.zone = "EST"
+    est_key = Developer.first.cache_key
+
+    assert_equal utc_key, est_key
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = false
+  end
+
+  def test_cache_key_format_for_existing_record_with_updated_at
+    dev = Developer.first
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+  end
+
+  def test_cache_key_format_for_existing_record_with_nil_updated_at
+    dev = Developer.first
+    dev.update_attribute(:updated_at, nil)
+    assert_match /\/#{dev.id}$/, dev.cache_key
   end
 end

@@ -62,10 +62,10 @@ To force process of all the guides, pass +ALL=1+.
 
 It is also recommended that you work with +WARNINGS=1+. This detects duplicate IDs and warns about broken internal links.
 
-If you want to generate guides in languages other than English, you can keep them in a separate directory under +source+ (eg. <tt>source/es</tt>) and use the +LANGUAGE+ environment variable:
+If you want to generate guides in languages other than English, you can keep them in a separate directory under +source+ (eg. <tt>source/es</tt>) and use the +GUIDES_LANGUAGE+ environment variable:
 
 <plain>
-rake generate_guides LANGUAGE=es
+bundle exec rake generate_guides GUIDES_LANGUAGE=es
 </plain>
 
 h3. HTML Validation
@@ -73,7 +73,7 @@ h3. HTML Validation
 Please validate the generated HTML with:
 
 <plain>
-rake validate_guides
+bundle exec rake validate_guides
 </plain>
 
 Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set +WARNINGS=1+ when generating guides to detect them. The warning messages suggest a way to fix them.

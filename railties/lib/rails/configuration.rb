@@ -43,6 +43,7 @@ module Rails
 
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
+      attr_reader :hidden_namespaces
 
       def initialize
         @aliases = Hash.new { |h,k| h[k] = {} }
@@ -50,6 +51,7 @@ module Rails
         @fallbacks = {}
         @templates = []
         @colorize_logging = true
+        @hidden_namespaces = []
       end
 
       def initialize_copy(source)
@@ -57,6 +59,10 @@ module Rails
         @options = @options.deep_dup
         @fallbacks = @fallbacks.deep_dup
         @templates = @templates.dup
+      end
+
+      def hide_namespace(namespace)
+        @hidden_namespaces << namespace
       end
 
       def method_missing(method, *args)

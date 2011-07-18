@@ -168,6 +168,7 @@ module InflectorTestCases
 
   StringToParameterizeWithNoSeparator = {
     "Donald E. Knuth"                     => "donaldeknuth",
+    "With-some-dashes"                    => "with-some-dashes",
     "Random text with *(bad)* characters" => "randomtextwithbadcharacters",
     "Trailing bad characters!@#"          => "trailingbadcharacters",
     "!@#Leading bad characters"           => "leadingbadcharacters",
@@ -179,6 +180,8 @@ module InflectorTestCases
   StringToParameterizeWithUnderscore = {
     "Donald E. Knuth"                     => "donald_e_knuth",
     "Random text with *(bad)* characters" => "random_text_with_bad_characters",
+    "With-some-dashes"                    => "with-some-dashes",
+    "Retain_underscore"                   => "retain_underscore",
     "Trailing bad characters!@#"          => "trailing_bad_characters",
     "!@#Leading bad characters"           => "leading_bad_characters",
     "Squeeze   separators"                => "squeeze_separators",

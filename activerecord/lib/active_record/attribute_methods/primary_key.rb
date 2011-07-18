@@ -7,7 +7,7 @@ module ActiveRecord
       # the record is not persisted? or has just been destroyed.
       def to_key
         key = send(self.class.primary_key)
-        [key] if key
+        persisted? && key ? [key] : nil
       end
 
       module ClassMethods
@@ -48,7 +48,7 @@ module ActiveRecord
         end
 
         attr_accessor :original_primary_key
-        
+
         # Attribute writer for the primary key column
         def primary_key=(value)
           @quoted_primary_key = nil

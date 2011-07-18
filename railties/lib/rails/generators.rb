@@ -20,6 +20,8 @@ module Rails
     autoload :ResourceHelpers, 'rails/generators/resource_helpers'
     autoload :TestCase,        'rails/generators/test_case'
 
+    mattr_accessor :namespace
+
     DEFAULT_ALIASES = {
       :rails => {
         :actions => '-a',
@@ -51,13 +53,13 @@ module Rails
         :helper => true,
         :integration_tool => nil,
         :javascripts => true,
-        :javascript_engine => nil,
+        :javascript_engine => :js,
         :orm => false,
         :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
         :stylesheets => true,
-        :stylesheet_engine => nil,
+        :stylesheet_engine => :css,
         :test_framework => false,
         :template_engine => :erb
       },
@@ -68,13 +70,14 @@ module Rails
       }
     }
 
-    def self.configure!(config = Rails.application.config.generators) #:nodoc:
+    def self.configure!(config) #:nodoc:
       no_color! unless config.colorize_logging
       aliases.deep_merge! config.aliases
       options.deep_merge! config.options
       fallbacks.merge! config.fallbacks
       templates_path.concat config.templates
       templates_path.uniq!
+      hide_namespaces *config.hidden_namespaces
     end
 
     def self.templates_path
@@ -175,6 +178,7 @@ module Rails
         orm      = options[:rails][:orm]
         test     = options[:rails][:test_framework]
         template = options[:rails][:template_engine]
+        css      = options[:rails][:stylesheet_engine]
 
         [
           "rails",
@@ -194,7 +198,11 @@ module Rails
           "#{test}:plugin",
           "#{template}:controller",
           "#{template}:scaffold",
-          "#{template}:mailer"
+          "#{template}:mailer",
+          "#{css}:scaffold",
+          "#{css}:assets",
+          "css:assets",
+          "css:scaffold"
         ]
       end
     end
@@ -280,7 +288,6 @@ module Rails
       # Receives namespaces in an array and tries to find matching generators
       # in the load path.
       def self.lookup(namespaces) #:nodoc:
-        load_generators_from_railties!
         paths = namespaces_to_paths(namespaces)
 
         paths.each do |raw_path|
@@ -292,9 +299,6 @@ module Rails
               return
             rescue LoadError => e
               raise unless e.message =~ /#{Regexp.escape(path)}$/
-            rescue NameError => e
-              raise unless e.message =~ /Rails::Generator([\s(::)]|$)/
-              warn "[WARNING] Could not load generator #{path.inspect} because it's a Rails 2.x generator, which is not supported anymore. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
             rescue Exception => e
               warn "[WARNING] Could not load generator #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
             end
@@ -304,8 +308,6 @@ module Rails
 
       # This will try to load any generator in the load path to show in help.
       def self.lookup! #:nodoc:
-        load_generators_from_railties!
-
         $LOAD_PATH.each do |base|
           Dir[File.join(base, "{rails/generators,generators}", "**", "*_generator.rb")].each do |path|
             begin
@@ -316,13 +318,6 @@ module Rails
             end
           end
         end
-      end
-
-      # Allow generators to be loaded from custom paths.
-      def self.load_generators_from_railties! #:nodoc:
-        return if defined?(@generators_from_railties) || Rails.application.nil?
-        @generators_from_railties = true
-        Rails.application.load_generators
       end
 
       # Convert namespaces to paths by replacing ":" for "/" and adding

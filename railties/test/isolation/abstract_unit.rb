@@ -8,9 +8,8 @@
 # Rails booted up.
 require 'fileutils'
 
-# TODO: Remove rubygems when possible
-require 'rubygems'
 require 'test/unit'
+require 'rubygems'
 
 # TODO: Remove setting this magic constant
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -92,6 +91,9 @@ module TestHelpers
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
+      @prev_rails_env = ENV['RAILS_ENV']
+      ENV['RAILS_ENV'] = 'development'
+
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(tmp_path('app_template'), app_path)
 
@@ -114,6 +116,10 @@ module TestHelpers
       end
 
       add_to_config 'config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"; config.session_store :cookie_store, :key => "_myapp_session"; config.active_support.deprecation = :log'
+    end
+
+    def teardown_app
+      ENV['RAILS_ENV'] = @prev_rails_env if @prev_rails_env
     end
 
     # Make a very basic app, without creating the whole directory structure.
@@ -232,6 +238,10 @@ module TestHelpers
       end
     end
 
+    def remove_file(path)
+      FileUtils.rm_rf "#{app_path}/#{path}"
+    end
+
     def controller(name, contents)
       app_file("app/controllers/#{name}_controller.rb", contents)
     end
@@ -281,4 +291,4 @@ Module.new do
     end
     f.puts "require 'rails/all'"
   end
-end
+end unless defined?(RAILS_ISOLATED_ENGINE)

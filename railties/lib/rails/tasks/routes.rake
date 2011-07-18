@@ -10,8 +10,16 @@ task :routes => :environment do
   routes = all_routes.collect do |route|
 
     reqs = route.requirements.dup
-    reqs[:to] = route.app unless route.app.class.name.to_s =~ /^ActionDispatch::Routing/
-    reqs = reqs.empty? ? "" : reqs.inspect
+    rack_app = route.app unless route.app.class.name.to_s =~ /^ActionDispatch::Routing/
+
+    endpoint = rack_app ? rack_app.inspect : "#{reqs[:controller]}##{reqs[:action]}"
+    constraints = reqs.except(:controller, :action)
+
+    reqs = endpoint == '#' ? '' : endpoint
+
+    unless constraints.empty?
+      reqs = reqs.empty? ? constraints.inspect : "#{reqs} #{constraints.inspect}"
+    end
 
     {:name => route.name.to_s, :verb => route.verb.to_s, :path => route.path, :reqs => reqs}
   end

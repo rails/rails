@@ -6,14 +6,13 @@ rescue LoadError
 end
 
 require 'yaml'
-require 'csv'
 require 'zlib'
 require 'active_support/dependencies'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
-require 'active_support/core_ext/module/deprecation'
+require 'active_record/fixtures/file'
 
 if defined? ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -54,14 +53,14 @@ class FixturesFileNotFound < StandardError; end
 #     name: Google
 #     url: http://www.google.com
 #
-# This YAML fixture file includes two fixtures.  Each YAML fixture (ie. record) is given a name and is followed by an
-# indented list of key/value pairs in the "key: value" format.  Records are separated by a blank line for your viewing
+# This YAML fixture file includes two fixtures. Each YAML fixture (ie. record) is given a name and is followed by an
+# indented list of key/value pairs in the "key: value" format. Records are separated by a blank line for your viewing
 # pleasure.
 #
 # Note that YAML fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
 # See http://yaml.org/type/omap.html
-# for the specification.  You will need ordered fixtures when you have foreign key constraints on keys in the same table.
-# This is commonly needed for tree structures.  Example:
+# for the specification. You will need ordered fixtures when you have foreign key constraints on keys in the same table.
+# This is commonly needed for tree structures. Example:
 #
 #    --- !omap
 #    - parent:
@@ -75,7 +74,7 @@ class FixturesFileNotFound < StandardError; end
 #
 # = Using fixtures in testcases
 #
-# Since fixtures are a testing construct, we use them in our unit and functional tests.  There are two ways to use the
+# Since fixtures are a testing construct, we use them in our unit and functional tests. There are two ways to use the
 # fixtures, but first let's take a look at a sample unit test:
 #
 #   require 'test_helper'
@@ -150,13 +149,13 @@ class FixturesFileNotFound < StandardError; end
 #     self.use_transactional_fixtures = true
 #
 #     test "godzilla" do
-#       assert !Foo.find(:all).empty?
+#       assert !Foo.all.empty?
 #       Foo.destroy_all
-#       assert Foo.find(:all).empty?
+#       assert Foo.all.empty?
 #     end
 #
 #     test "godzilla aftermath" do
-#       assert !Foo.find(:all).empty?
+#       assert !Foo.all.empty?
 #     end
 #   end
 #
@@ -385,16 +384,13 @@ class FixturesFileNotFound < StandardError; end
 #
 #   first:
 #     name: Smurf
-#     <<: *DEFAULTS
+#     *DEFAULTS
 #
 #   second:
 #     name: Fraggle
-#     <<: *DEFAULTS
+#     *DEFAULTS
 #
 # Any fixture labeled "DEFAULTS" is safely ignored.
-
-Fixture = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixture', 'ActiveRecord::Fixture')
-Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixtures', 'ActiveRecord::Fixtures')
 
 module ActiveRecord
   class Fixtures
@@ -477,7 +473,7 @@ module ActiveRecord
               connection,
               table_name,
               class_names[table_name.to_sym] || table_name.classify,
-              File.join(fixtures_directory, path))
+              ::File.join(fixtures_directory, path))
           end
 
           all_loaded_fixtures.update(fixtures_map)
@@ -558,7 +554,7 @@ module ActiveRecord
       fixtures.size
     end
 
-    # Return a hash of rows to be inserted.  The key is the table, the value is
+    # Return a hash of rows to be inserted. The key is the table, the value is
     # a list of rows to insert to that table.
     def table_rows
       now = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now
@@ -655,74 +651,33 @@ module ActiveRecord
       end
 
       def read_fixture_files
-        if File.file?(yaml_file_path)
+        if ::File.file?(yaml_file_path)
           read_yaml_fixture_files
-        elsif File.file?(csv_file_path)
-          read_csv_fixture_files
         else
-          raise FixturesFileNotFound, "Could not find #{yaml_file_path} or #{csv_file_path}"
+          raise FixturesFileNotFound, "Could not find #{yaml_file_path}"
         end
       end
 
       def read_yaml_fixture_files
-        yaml_string = (Dir["#{@fixture_path}/**/*.yml"].select { |f|
-          File.file?(f)
-        } + [yaml_file_path]).map { |file_path| IO.read(file_path) }.join
+        yaml_files = Dir["#{@fixture_path}/**/*.yml"].select { |f|
+          ::File.file?(f)
+        } + [yaml_file_path]
 
-        if yaml = parse_yaml_string(yaml_string)
-          # If the file is an ordered map, extract its children.
-          yaml_value =
-            if yaml.respond_to?(:type_id) && yaml.respond_to?(:value)
-              yaml.value
-            else
-              [yaml]
-            end
-
-          yaml_value.each do |fixture|
-            raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{fixture}" unless fixture.respond_to?(:each)
-            fixture.each do |name, data|
-              unless data
-                raise Fixture::FormatError, "Bad data for #{@class_name} fixture named #{name} (nil)"
-              end
-
-              fixtures[name] = ActiveRecord::Fixture.new(data, model_class)
+        yaml_files.each do |file|
+          Fixtures::File.open(file) do |fh|
+            fh.each do |name, row|
+              fixtures[name] = ActiveRecord::Fixture.new(row, model_class)
             end
           end
         end
       end
 
-      def read_csv_fixture_files
-        reader = CSV.parse(erb_render(IO.read(csv_file_path)))
-        header = reader.shift
-        i = 0
-        reader.each do |row|
-          data = {}
-          row.each_with_index { |cell, j| data[header[j].to_s.strip] = cell.to_s.strip }
-          fixtures["#{@class_name.to_s.underscore}_#{i+=1}"] = ActiveRecord::Fixture.new(data, model_class)
-        end
-      end
-      deprecate :read_csv_fixture_files
-
       def yaml_file_path
         "#{@fixture_path}.yml"
       end
 
-      def csv_file_path
-        @fixture_path + ".csv"
-      end
-
       def yaml_fixtures_key(path)
-        File.basename(@fixture_path).split(".").first
-      end
-
-      def parse_yaml_string(fixture_content)
-        YAML::load(erb_render(fixture_content))
-      rescue => error
-        raise Fixture::FormatError, "a YAML error occurred parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}"
-      end
-
-      def erb_render(fixture_content)
-        ERB.new(fixture_content).result
+        ::File.basename(@fixture_path).split(".").first
       end
   end
 
@@ -798,7 +753,7 @@ module ActiveRecord
 
       def fixtures(*fixture_names)
         if fixture_names.first == :all
-          fixture_names = Dir["#{fixture_path}/**/*.{yml,csv}"]
+          fixture_names = Dir["#{fixture_path}/**/*.{yml}"]
           fixture_names.map! { |f| f[(fixture_path.size + 1)..-5] }
         else
           fixture_names = fixture_names.flatten.map { |n| n.to_s }

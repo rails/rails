@@ -58,7 +58,7 @@ module ActiveRecord
             generated_attribute_methods.module_eval("def _#{attr_name}; #{access_code}; end; alias #{attr_name} _#{attr_name}", __FILE__, __LINE__)
           end
 
-          # Define an attribute reader method.  Cope with nil column.
+          # Define an attribute reader method. Cope with nil column.
           # method_name is the same as attr_name except when a non-standard primary key is used,
           # we still define #id as an accessor for the key
           def define_read_method(method_name, attr_name, column)
@@ -99,8 +99,9 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        if respond_to? "_#{attr_name}"
-          send "_#{attr_name}" if @attributes.has_key?(attr_name.to_s)
+        method = "_#{attr_name}"
+        if respond_to? method
+          send method if @attributes.has_key?(attr_name.to_s)
         else
           _read_attribute attr_name
         end

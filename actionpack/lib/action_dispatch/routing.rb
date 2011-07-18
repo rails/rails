@@ -161,7 +161,7 @@ module ActionDispatch
   # Consider the following route, which you will find commented out at the
   # bottom of your generated <tt>config/routes.rb</tt>:
   #
-  #   match ':controller(/:action(/:id(.:format)))'
+  #   match ':controller(/:action(/:id))(.:format)'
   #
   # This route states that it expects requests to consist of a
   # <tt>:controller</tt> followed optionally by an <tt>:action</tt> that in

@@ -436,20 +436,6 @@ end
 
 NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
-h4. +require_library_or_gem+
-
-The convenience method +require_library_or_gem+ tries to load its argument with a regular +require+ first. If it fails loads +rubygems+ and tries again.
-
-If the first attempt is a failure and +rubygems+ can't be loaded the method raises +LoadError+. A +LoadError+ is also raised if +rubygems+ is available but the argument is not loadable as a gem.
-
-For example, that's the way the MySQL adapter loads the MySQL library:
-
-<ruby>
-require_library_or_gem('mysql')
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/kernel/requires.rb+.
-
 h4. +in?+
 
 The predicate +in?+ tests if an object is included in another object. An +ArgumentError+ exception will be raised if the argument passed does not respond to +include?+.
@@ -882,7 +868,7 @@ The macro accepts several methods:
 delegate :name, :age, :address, :twitter, :to => :profile
 </ruby>
 
-When interpolated into a string, the +:to+ option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such a expression is evaluated in the context of the receiver:
+When interpolated into a string, the +:to+ option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such an expression is evaluated in the context of the receiver:
 
 <ruby>
 # delegates to the Rails constant
@@ -961,7 +947,7 @@ h4. Class Attributes
 
 h5. +class_attribute+
 
-The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy:
+The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy.
 
 <ruby>
 class A
@@ -997,7 +983,7 @@ self.default_params = {
 }.freeze
 </ruby>
 
-They can be also accessed and overridden at the instance level:
+They can be also accessed and overridden at the instance level.
 
 <ruby>
 A.x = 1
@@ -1010,7 +996,7 @@ a1.x # => 1, comes from A
 a2.x # => 2, overridden in a2
 </ruby>
 
-The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to false, as in
+The generation of the writer instance method can be prevented by setting the option +:instance_writer+ to +false+.
 
 <ruby>
 module ActiveRecord
@@ -1023,7 +1009,19 @@ end
 
 A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
 
+The generation of the reader instance method can be prevented by setting the option +:instance_reader+ to +false+.
+
+<ruby>
+class A
+  class_attribute :x, :instance_reader => false
+end
+
+A.x = 1 # NoMethodError
+</ruby>
+
 For convenience +class_attribute+ also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
+
+When +:instance_reader+ is +false+, the instance predicate returns a +NoMethodError+ just like the reader method.
 
 NOTE: Defined in +active_support/core_ext/class/attribute.rb+
 
@@ -1050,18 +1048,24 @@ module ActionView
 end
 </ruby>
 
-we can access +field_error_proc+ in views. The generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+ (not any false value, but exactly +false+):
+we can access +field_error_proc+ in views.
+
+The generation of the reader instance method can be prevented by setting +:instance_reader+ to +false+ and the generation of the writer instance method can be prevented by setting +:instance_writer+ to +false+. Generation of both methods can be prevented by setting +:instance_accessor+ to +false+. In all cases, the value must be exactly +false+ and not any false value.
 
 <ruby>
-module ActiveRecord
-  class Base
-    # No pluralize_table_names= instance writer is generated.
-    cattr_accessor :pluralize_table_names, :instance_writer => false
+module A
+  class B
+    # No first_name instance reader is generated.
+    cattr_accessor :first_name, :instance_reader => false
+    # No last_name= instance writer is generated.
+    cattr_accessor :last_name, :instance_writer => false
+    # No surname instance reader or surname= writer is generated.
+    cattr_accessor :surname, :instance_accessor => false
   end
 end
 </ruby>
 
-A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
+A model may find it useful to set +:instance_accessor+ to +false+ as a way to prevent mass-assignment from setting the attribute.
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
@@ -1160,7 +1164,11 @@ h3. Extensions to +String+
 
 h4. Output Safety
 
+h5. Motivation
+
 Inserting data into HTML templates needs extra care. For example you can't just interpolate +@review.title+ verbatim into an HTML page. On one hand if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". On the other hand, depending on the application that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the Security guide":security.html#cross-site-scripting-xss for further information about the risks.
+
+h5. Safe Strings
 
 Active Support has the concept of <i>(html) safe</i> strings since Rails 3. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
@@ -1186,8 +1194,6 @@ s            # => "<script>...</script>"
 </ruby>
 
 It is your responsibility to ensure calling +html_safe+ on a particular string is fine.
-
-NOTE: For performance reasons safe strings are implemented in a way that cannot offer an in-place +html_safe!+ variant.
 
 If you append onto a safe string, either in-place with +concat+/<tt><<</tt>, or with <tt>+</tt>, the result is a safe string. Unsafe arguments are escaped:
 
@@ -1228,6 +1234,22 @@ end
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
+
+h5. Transformation
+
+As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +donwcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
+
+In the case of in-place transformations like +gsub!+ the receiver itself becomes unsafe.
+
+INFO: The safety bit is lost always, no matter whether the transformation actually changed something.
+
+h5. Conversion and Coercion
+
+Calling +to_s+ on a safe string returns a safe string, but coercion with +to_str+ returns an unsafe string.
+
+h5. Copying
+
+Calling +dup+ or +clone+ on safe strings yields safe strings.
 
 h4. +squish+
 
@@ -1474,7 +1496,15 @@ end
 
 That may be handy to compute method names in a language that follows that convention, for example JavaScript.
 
-INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>.
+INFO: As a rule of thumb you can think of +camelize+ as the inverse of +underscore+, though there are cases where that does not hold: <tt>"SSLError".underscore.camelize</tt> gives back <tt>"SslError"</tt>. To support cases such as this, Active Support allows you to specify acronyms in +config/initializers/inflections.rb+:
+
+<ruby>
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym 'SSL'
+end
+
+"SSLError".underscore.camelize #=> "SSLError"
+</ruby>
 
 +camelize+ is aliased to +camelcase+.
 
@@ -2219,8 +2249,8 @@ The method +Array.wrap+ wraps its argument in an array unless it is already an a
 Specifically:
 
 * If the argument is +nil+ an empty list is returned.
-* Otherwise, if the argument responds to +to_ary+ it is invoked, and its result returned.
-* Otherwise, returns an array with the argument as its single element.
+* Otherwise, if the argument responds to +to_ary+ it is invoked, and if the value of +to_ary+ is not +nil+, it is returned.
+* Otherwise, an array with the argument as its single element is returned.
 
 <ruby>
 Array.wrap(nil)       # => []
@@ -2296,7 +2326,7 @@ NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
 
 h5. +in_groups(number, fill_with = nil)+
 
-The method +in_groups+ splits an array into a certain number of groups. The method returns and array with the groups:
+The method +in_groups+ splits an array into a certain number of groups. The method returns an array with the groups:
 
 <ruby>
 %w(1 2 3 4 5 6 7).in_groups(3)
@@ -2728,7 +2758,7 @@ Active Support extends the method +Range#step+ so that it can be invoked without
 (1..10).step(2) # => [1, 3, 5, 7, 9]
 </ruby>
 
-As the example shows, in that case the method returns and array with the corresponding elements.
+As the example shows, in that case the method returns an array with the corresponding elements.
 
 NOTE: Defined in +active_support/core_ext/range/blockless_step.rb+.
 
@@ -3038,7 +3068,7 @@ Date.new(2010, 1, 31).change(:month => 2)
 
 h5(#date-durations). Durations
 
-Durations can be added and substracted to dates:
+Durations can be added to and subtracted from dates:
 
 <ruby>
 d = Date.current
@@ -3246,7 +3276,7 @@ DateTime.current.change(:month => 2, :day => 30)
 
 h5(#datetime-durations). Durations
 
-Durations can be added and substracted to datetimes:
+Durations can be added to and subtracted from datetimes:
 
 <ruby>
 now = DateTime.current
@@ -3330,6 +3360,32 @@ Active Support defines +Time.current+ to be today in the current time zone. That
 
 When making Time comparisons using methods which honor the user time zone, make sure to use +Time.current+ and not +Time.now+. There are cases where the user time zone might be in the future compared to the system time zone, which +Time.today+ uses by default. This means +Time.now+ may equal +Time.yesterday+.
 
+h5. +all_day+, +all_week+, +all_month+, +all_quarter+ and +all_year+
+
+The method +all_day+ returns a range representing the whole day of the current time.
+
+<ruby>
+now = Time.current
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now.all_day
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
+</ruby>
+
+Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the purpose of generating time ranges.
+
+<ruby>
+now = Time.current
+# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+now.all_week
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+now.all_month
+# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
+now.all_quarter
+# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
+now.all_year
+# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
+</ruby>
+
 h4. Time Constructors
 
 Active Support defines +Time.current+ to be +Time.zone.now+ if there's a user time zone defined, with fallback to +Time.now+:
@@ -3367,7 +3423,7 @@ If the time to be constructed lies beyond the range supported by +Time+ in the r
 
 h5(#time-durations). Durations
 
-Durations can be added and substracted to time objects:
+Durations can be added to and subtracted from time objects:
 
 <ruby>
 now = Time.current

@@ -11,15 +11,15 @@ module Rails
     def app
       if mountable?
         directory "app"
-        template "#{app_templates_dir}/app/views/layouts/application.html.erb.tt",
+        template "app/views/layouts/application.html.erb.tt",
                  "app/views/layouts/#{name}/application.html.erb"
-        empty_directory_with_gitkeep "app/assets/images"
+        empty_directory_with_gitkeep "app/assets/images/#{name}"
       elsif full?
         empty_directory_with_gitkeep "app/models"
         empty_directory_with_gitkeep "app/controllers"
         empty_directory_with_gitkeep "app/views"
         empty_directory_with_gitkeep "app/helpers"
-        empty_directory_with_gitkeep "app/assets/images"
+        empty_directory_with_gitkeep "app/assets/images/#{name}"
       end
     end
 
@@ -108,9 +108,9 @@ task :default => :test
     def stylesheets
       if mountable?
         copy_file "#{app_templates_dir}/app/assets/stylesheets/application.css",
-                  "app/assets/stylesheets/application.css"
+                  "app/assets/stylesheets/#{name}/application.css"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/stylesheets"
+        empty_directory_with_gitkeep "app/assets/stylesheets/#{name}"
       end
     end
 
@@ -118,14 +118,16 @@ task :default => :test
       return if options.skip_javascript?
 
       if mountable?
-        copy_file "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
-                  "app/assets/javascripts/application.js"
+        template "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
+                  "app/assets/javascripts/#{name}/application.js"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/javascripts"
+        empty_directory_with_gitkeep "app/assets/javascripts/#{name}"
       end
     end
 
     def script(force = false)
+      return unless full?
+
       directory "script", :force => force do |content|
         "#{shebang}\n" + content
       end
@@ -202,7 +204,7 @@ task :default => :test
       end
 
       def create_test_dummy_files
-        return if options[:skip_test_unit]
+        return if options[:skip_test_unit] && options[:dummy_path] == 'test/dummy'
         create_dummy_app
       end
 
@@ -258,7 +260,7 @@ task :default => :test
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{name}. Please give a name which does not match one of the reserved rails words."
         elsif Object.const_defined?(camelized)
-          raise Error, "Invalid plugin name #{name}, constant #{camelized} is already in use. Please choose another application name."
+          raise Error, "Invalid plugin name #{name}, constant #{camelized} is already in use. Please choose another plugin name."
         end
       end
 

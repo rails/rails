@@ -140,23 +140,30 @@ class FinderTest < ActiveRecord::TestCase
 
 
   def test_find_with_group
-    developers =  Developer.find(:all, :group => "salary", :select => "salary")
+    developers = Developer.find(:all, :group => "salary", :select => "salary")
     assert_equal 4, developers.size
     assert_equal 4, developers.map(&:salary).uniq.size
   end
 
   def test_find_with_group_and_having
-    developers =  Developer.find(:all, :group => "salary", :having => "sum(salary) >  10000", :select => "salary")
+    developers = Developer.find(:all, :group => "salary", :having => "sum(salary) > 10000", :select => "salary")
     assert_equal 3, developers.size
     assert_equal 3, developers.map(&:salary).uniq.size
-    assert developers.all? { |developer|  developer.salary > 10000 }
+    assert developers.all? { |developer| developer.salary > 10000 }
   end
 
   def test_find_with_group_and_sanitized_having
-    developers =  Developer.find(:all, :group => "salary", :having => ["sum(salary) > ?", 10000], :select => "salary")
+    developers = Developer.find(:all, :group => "salary", :having => ["sum(salary) > ?", 10000], :select => "salary")
     assert_equal 3, developers.size
     assert_equal 3, developers.map(&:salary).uniq.size
-    assert developers.all? { |developer|  developer.salary > 10000 }
+    assert developers.all? { |developer| developer.salary > 10000 }
+  end
+
+  def test_find_with_group_and_sanitized_having_method
+    developers = Developer.group(:salary).having("sum(salary) > ?", 10000).select('salary').all
+    assert_equal 3, developers.size
+    assert_equal 3, developers.map(&:salary).uniq.size
+    assert developers.all? { |developer| developer.salary > 10000 }
   end
 
   def test_find_with_entire_select_statement
@@ -659,6 +666,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.find_by_title_and_author_name("The First Topic", "Mary")
   end
 
+  def test_find_by_two_attributes_but_passing_only_one
+    assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
+  end
+
   def test_find_last_by_one_attribute
     assert_equal Topic.last, Topic.find_last_by_title(Topic.last.title)
     assert_nil Topic.find_last_by_title("A title with no matches")
@@ -938,6 +949,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Another topic", another.title
     assert_equal "John", another.author_name
     assert !another.persisted?
+  end
+
+  def test_find_or_initialize_from_two_attributes_but_passing_only_one
+    assert_raise(ArgumentError) { Topic.find_or_initialize_by_title_and_author_name("Another topic") }
   end
 
   def test_find_or_initialize_from_one_aggregate_attribute_and_one_not

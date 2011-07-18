@@ -11,6 +11,10 @@ module ApplicationTests
       boot_rails
     end
 
+    def teardown
+      teardown_app
+    end
+
     test "rails/info/properties in development" do
       app("development")
       get "/rails/info/properties"

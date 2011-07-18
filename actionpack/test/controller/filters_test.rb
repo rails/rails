@@ -530,6 +530,11 @@ class FilterTest < ActionController::TestCase
     assert sweeper.before(TestController.new)
   end
 
+  def test_after_method_of_sweeper_should_always_return_nil
+    sweeper = ActionController::Caching::Sweeper.send(:new)
+    assert_nil sweeper.after(TestController.new)
+  end
+
   def test_non_yielding_around_filters_not_returning_false_do_not_raise
     controller = NonYieldingAroundFilterController.new
     controller.instance_variable_set "@filter_return_value", true

@@ -9,7 +9,7 @@ class FormTagHelperTest < ActionView::TestCase
     @controller = BasicController.new
   end
 
-  def snowman(options = {})
+  def hidden_fields(options = {})
     method = options[:method]
 
     txt =  %{<div style="margin:0;padding:0;display:inline">}
@@ -34,7 +34,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def whole_form(action = "http://www.example.com", options = {})
-    out = form_text(action, options) + snowman(options)
+    out = form_text(action, options) + hidden_fields(options)
 
     if block_given?
       out << yield << "</form>"

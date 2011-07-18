@@ -116,31 +116,32 @@ module ActiveSupport
     #   cache.read("city")   # => "Duckburgh"
     #
     # Keys are always translated into Strings and are case sensitive. When an
-    # object is specified as a key, its +cache_key+ method will be called if it
-    # is defined. Otherwise, the +to_param+ method will be called. Hashes and
-    # Arrays can be used as keys. The elements will be delimited by slashes
-    # and Hashes elements will be sorted by key so they are consistent.
+    # object is specified as a key and has a +cache_key+ method defined, this
+    # method will be called to define the key.  Otherwise, the +to_param+
+    # method will be called. Hashes and Arrays can also be used as keys. The
+    # elements will be delimited by slashes, and the elements within a Hash
+    # will be sorted by key so they are consistent.
     #
     #   cache.read("city") == cache.read(:city)   # => true
     #
     # Nil values can be cached.
     #
-    # If your cache is on a shared infrastructure, you can define a namespace for
-    # your cache entries. If a namespace is defined, it will be prefixed on to every
-    # key. The namespace can be either a static value or a Proc. If it is a Proc, it
-    # will be invoked when each key is evaluated so that you can use application logic
-    # to invalidate keys.
+    # If your cache is on a shared infrastructure, you can define a namespace
+    # for your cache entries. If a namespace is defined, it will be prefixed on
+    # to every key. The namespace can be either a static value or a Proc. If it
+    # is a Proc, it will be invoked when each key is evaluated so that you can
+    # use application logic to invalidate keys.
     #
     #   cache.namespace = lambda { @last_mod_time }  # Set the namespace to a variable
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
     #
-    # Caches can also store values in a compressed format to save space and reduce
-    # time spent sending data. Since there is some overhead, values must be large
-    # enough to warrant compression. To turn on compression either pass
-    # <tt>:compress => true</tt> in the initializer or to +fetch+ or +write+.
-    # To specify the threshold at which to compress values, set
-    # <tt>:compress_threshold</tt>. The default threshold is 32K.
+    # Caches can also store values in a compressed format to save space and
+    # reduce time spent sending data. Since there is overhead, values must be
+    # large enough to warrant compression. To turn on compression either pass
+    # <tt>:compress => true</tt> in the initializer or as an option to +fetch+
+    # or +write+. To specify the threshold at which to compress values, set the
+    # <tt>:compress_threshold</tt> option. The default threshold is 32K.
     class Store
 
       cattr_accessor :logger, :instance_writer => true
@@ -180,11 +181,11 @@ module ActiveSupport
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned.
       #
-      # If there is no such data in the cache (a cache miss occurred),
-      # then nil will be returned. However, if a block has been passed, then
-      # that block will be run in the event of a cache miss. The return value
-      # of the block will be written to the cache under the given cache key,
-      # and that return value will be returned.
+      # If there is no such data in the cache (a cache miss), then nil will be
+      # returned. However, if a block has been passed, that block will be run
+      # in the event of a cache miss. The return value of the block will be
+      # written to the cache under the given cache key, and that return value
+      # will be returned.
       #
       #   cache.write("today", "Monday")
       #   cache.fetch("today")  # => "Monday"
@@ -205,10 +206,11 @@ module ActiveSupport
       # in a compressed format.
       #
       #
-      # Setting <tt>:expires_in</tt> will set an expiration time on the cache. All caches
-      # support auto expiring content after a specified number of seconds. This value can
-      # be specified as an option to the construction in which call all entries will be
-      # affected. Or it can be supplied to the +fetch+ or +write+ method for just one entry.
+      # Setting <tt>:expires_in</tt> will set an expiration time on the cache.
+      # All caches support auto-expiring content after a specified number of
+      # seconds. This value can be specified as an option to the constructor
+      # (in which case all entries will be affected), or it can be supplied to
+      # the +fetch+ or +write+ method to effect just one entry.
       #
       #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 5.minutes)
       #   cache.write(key, value, :expires_in => 1.minute)  # Set a lower value for one entry
@@ -555,7 +557,7 @@ module ActiveSupport
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
         @created_at = Time.now.to_f
-        if value
+        if defined?(value)
           if should_compress?(value, options)
             @value = Zlib::Deflate.deflate(Marshal.dump(value))
             @compressed = true
@@ -574,7 +576,7 @@ module ActiveSupport
 
       # Get the value stored in the cache.
       def value
-        if @value
+        if defined?(@value)
           val = compressed? ? Marshal.load(Zlib::Inflate.inflate(@value)) : @value
           unless val.frozen?
             val.freeze rescue nil

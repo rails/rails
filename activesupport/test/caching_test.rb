@@ -188,6 +188,11 @@ module CacheStoreBehavior
     assert_equal nil, @cache.read('foo')
   end
 
+  def test_should_read_and_write_false
+    assert_equal true, @cache.write('foo', false)
+    assert_equal false, @cache.read('foo')
+  end
+
   def test_read_multi
     @cache.write('foo', 'bar')
     @cache.write('fu', 'baz')
@@ -531,26 +536,6 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
 
-  def test_deprecated_expires_in_on_read
-    ActiveSupport::Deprecation.silence do
-      old_cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir)
-
-      time = Time.local(2008, 4, 24)
-      Time.stubs(:now).returns(time)
-
-      old_cache.write("foo", "bar")
-      assert_equal 'bar', old_cache.read('foo', :expires_in => 60)
-
-      Time.stubs(:now).returns(time + 30)
-      assert_equal 'bar', old_cache.read('foo', :expires_in => 60)
-
-      Time.stubs(:now).returns(time + 61)
-      assert_equal 'bar', old_cache.read('foo')
-      assert_nil old_cache.read('foo', :expires_in => 60)
-      assert_nil old_cache.read('foo')
-    end
-  end
-
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
@@ -628,18 +613,6 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 end
 
-class SynchronizedStoreTest < ActiveSupport::TestCase
-  def setup
-    ActiveSupport::Deprecation.silence do
-      @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60)
-    end
-  end
-
-  include CacheStoreBehavior
-  include CacheDeleteMatchedBehavior
-  include CacheIncrementDecrementBehavior
-end
-
 uses_memcached 'memcached backed store' do
   class MemCacheStoreTest < ActiveSupport::TestCase
     def setup
@@ -662,7 +635,14 @@ uses_memcached 'memcached backed store' do
       cache.write("foo", 2)
       assert_equal "2", cache.read("foo")
     end
-
+    
+    def test_raw_values_with_marshal
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+      cache.clear
+      cache.write("foo", Marshal.dump([]))
+      assert_equal [], cache.read("foo")      
+    end
+    
     def test_local_cache_raw_values
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
       cache.clear
@@ -671,18 +651,15 @@ uses_memcached 'memcached backed store' do
         assert_equal "2", cache.read("foo")
       end
     end
-  end
 
-  class CompressedMemCacheStore < ActiveSupport::TestCase
-    def setup
-      ActiveSupport::Deprecation.silence do
-        @cache = ActiveSupport::Cache.lookup_store(:compressed_mem_cache_store, :expires_in => 60)
-        @cache.clear
+    def test_local_cache_raw_values_with_marshal
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+      cache.clear
+      cache.with_local_cache do
+        cache.write("foo", Marshal.dump([]))
+        assert_equal [], cache.read("foo")
       end
     end
-
-    include CacheStoreBehavior
-    include CacheIncrementDecrementBehavior
   end
 end
 

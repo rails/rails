@@ -60,6 +60,7 @@ module ActiveRecord
       attr_accessor :automatic_reconnect
       attr_reader :spec, :connections
       attr_reader :columns, :columns_hash, :primary_keys, :tables
+      attr_reader :column_defaults
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -106,6 +107,12 @@ module ActiveRecord
           }]
         end
 
+        @column_defaults = Hash.new do |h, table_name|
+          h[table_name] = Hash[columns[table_name].map { |col|
+            [col.name, col.default]
+          }]
+        end
+
         @primary_keys = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
             table_exists?(table_name) ? conn.primary_key(table_name) : 'id'
@@ -119,6 +126,7 @@ module ActiveRecord
 
         with_connection do |conn|
           conn.tables.each { |table| @tables[table] = true }
+          @tables[name] = true if !@tables.key?(name) && conn.table_exists?(name)
         end
 
         @tables.key? name
@@ -132,6 +140,7 @@ module ActiveRecord
       def clear_cache!
         @columns.clear
         @columns_hash.clear
+        @column_defaults.clear
         @tables.clear
       end
 
@@ -139,6 +148,7 @@ module ActiveRecord
       def clear_table_cache!(table_name)
         @columns.delete table_name
         @columns_hash.delete table_name
+        @column_defaults.delete table_name
         @primary_keys.delete table_name
       end
 
@@ -165,7 +175,7 @@ module ActiveRecord
         checkin conn if conn
       end
 
-      # If a connection already exists yield it to the block.  If no connection
+      # If a connection already exists yield it to the block. If no connection
       # exists checkout a connection, yield it to the block, and checkin the
       # connection when finished.
       def with_connection
@@ -262,7 +272,7 @@ module ActiveRecord
             else
               clear_stale_cached_connections!
               if @size == @checked_out.size
-                raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}.  The max pool size is currently #{@size}; consider increasing it."
+                raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
               end
             end
 
@@ -423,6 +433,14 @@ module ActiveRecord
         def initialize(body, testing = false)
           @body    = body
           @testing = testing
+        end
+
+        def method_missing(method_sym, *arguments, &block)
+          @body.send(method_sym, *arguments, &block)
+        end
+
+        def respond_to?(method_sym, include_private = false)
+          super || @body.respond_to?(method_sym)
         end
 
         def each(&block)

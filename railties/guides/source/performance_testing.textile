@@ -66,7 +66,7 @@ resources :posts
 # home_controller.rb
 class HomeController < ApplicationController
   def dashboard
-    @users = User.last_ten(:include => :avatars)
+    @users = User.last_ten.includes(:avatars)
     @posts = Post.all_today
   end
 end
@@ -151,7 +151,7 @@ Performance tests can be run in two modes: Benchmarking and Profiling.
 
 h5. Benchmarking
 
-Benchmarking makes it easy to quickly gather a few metrics about each test tun. By default, each test case is run +4 times+ in benchmarking mode.
+Benchmarking makes it easy to quickly gather a few metrics about each test tun. By default, each test case is run *4 times* in benchmarking mode.
 
 To run performance tests in benchmarking mode:
 
@@ -161,7 +161,7 @@ $ rake test:benchmark
 
 h5. Profiling
 
-Profiling allows you to make an in-depth analysis of each of your tests by using an external profiler. Depending on your Ruby interpreter, this profiler can be native (Rubinius, JRuby) or not (MRI, which uses RubyProf). By default, each test case is run +1 time+ in profiling mode.
+Profiling allows you to make an in-depth analysis of each of your tests by using an external profiler. Depending on your Ruby interpreter, this profiler can be native (Rubinius, JRuby) or not (MRI, which uses RubyProf). By default, each test case is run *once* in profiling mode.
 
 To run performance tests in profiling mode:
 
@@ -276,7 +276,7 @@ measurement,created_at,app,rails,ruby,platform
 
 h5(#output-profiling). Profiling
 
-In profiling mode, performance tests can generate multiple types of outputs. The command line output is always presented but support for the others is dependant on the interpreter in use. A brief description of each type and their availability across interpreters is given below.
+In profiling mode, performance tests can generate multiple types of outputs. The command line output is always presented but support for the others is dependent on the interpreter in use. A brief description of each type and their availability across interpreters is given below.
 
 h6. Command Line
 
@@ -481,7 +481,7 @@ h4. +profiler+
 Usage:
 
 <shell>
-Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
+Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
     -r, --runs N                     Number of runs.
                                      Default: 1
     -o, --output PATH                Directory to use when writing the results.
@@ -573,7 +573,7 @@ h3. Useful Links
 h4. Rails Plugins and Gems
 
 * "Rails Analyzer":http://rails-analyzer.rubyforge.org
-* "Palmist":http://www.flyingmachinestudios.com/projects/
+* "Palmist":http://www.flyingmachinestudios.com/programming/announcing-palmist
 * "Rails Footnotes":https://github.com/josevalim/rails-footnotes/tree/master
 * "Query Reviewer":https://github.com/dsboulder/query_reviewer/tree/master
 

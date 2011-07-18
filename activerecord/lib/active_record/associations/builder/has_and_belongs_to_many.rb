@@ -7,24 +7,22 @@ module ActiveRecord::Associations::Builder
     def build
       reflection = super
       check_validity(reflection)
-      define_after_destroy_method
+      define_destroy_hook
       reflection
     end
 
     private
 
-      def define_after_destroy_method
+      def define_destroy_hook
         name = self.name
-        model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
-          def #{after_destroy_method_name}
-            association(#{name.to_sym.inspect}).delete_all
-          end
-        eoruby
-        model.after_destroy after_destroy_method_name
-      end
-
-      def after_destroy_method_name
-        "has_and_belongs_to_many_after_destroy_for_#{name}"
+        model.send(:include, Module.new {
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def destroy_associations
+              association(#{name.to_sym.inspect}).delete_all
+              super
+            end
+          RUBY
+        })
       end
 
       # TODO: These checks should probably be moved into the Reflection, and we should not be
@@ -39,10 +37,6 @@ module ActiveRecord::Associations::Builder
           model.send(:undecorated_table_name, model.to_s),
           model.send(:undecorated_table_name, reflection.class_name)
         )
-
-        if model.connection.supports_primary_key? && (model.connection.primary_key(reflection.options[:join_table]) rescue false)
-          raise ActiveRecord::HasAndBelongsToManyAssociationWithPrimaryKeyError.new(reflection)
-        end
       end
 
       # Generates a join table name from two provided table names.

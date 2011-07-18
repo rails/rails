@@ -43,4 +43,3 @@ class ActiveRecordI18nTests < ActiveRecord::TestCase
     assert_equal 'topic model', Reply.model_name.human
   end
 end
-

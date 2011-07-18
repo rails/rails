@@ -83,7 +83,7 @@ module ActiveRecord
     #
     # Example for find with a lock: Imagine two concurrent transactions:
     # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
-    # in two saves of <tt>person.visits = 3</tt>.  By locking the row, the second
+    # in two saves of <tt>person.visits = 3</tt>. By locking the row, the second
     # transaction has to wait until the first is finished; we get the
     # expected <tt>person.visits == 4</tt>.
     #
@@ -193,8 +193,8 @@ module ActiveRecord
       else
         relation = relation.where(table[primary_key].eq(id)) if id
       end
-
-      connection.select_value(relation.to_sql) ? true : false
+      
+      connection.select_value(relation.to_sql, "#{name} Exists") ? true : false
     end
 
     protected
@@ -226,7 +226,7 @@ module ActiveRecord
     end
 
     def apply_join_dependency(relation, join_dependency)
-      for association in join_dependency.join_associations
+      join_dependency.join_associations.each do |association|
         relation = association.join_relation(relation)
       end
 
@@ -259,11 +259,13 @@ module ActiveRecord
       if match.bang? && result.blank?
         raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
       else
+        yield(result) if block_given?
         result
       end
     end
 
     def find_or_instantiator_by_attributes(match, attributes, *args)
+      options = args.size > 1 && args.last(2).all?{ |a| a.is_a?(Hash) } ? args.extract_options! : {}
       protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
       args.each_with_index do |arg, i|
         if arg.is_a?(Hash)
@@ -278,8 +280,7 @@ module ActiveRecord
       record = where(conditions).first
 
       unless record
-        record = @klass.new do |r|
-          r.assign_attributes(protected_attributes_for_create)
+        record = @klass.new(protected_attributes_for_create, options) do |r|
           r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
         end
         yield(record) if block_given?

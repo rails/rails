@@ -12,13 +12,13 @@ module ActionController #:nodoc:
     #
     #   <% cache do %>
     #     All the topics in the system:
-    #     <%= render :partial => "topic", :collection => Topic.find(:all) %>
+    #     <%= render :partial => "topic", :collection => Topic.all %>
     #   <% end %>
     #
     # This cache will bind the name of the action that called it, so if
     # this code was part of the view for the topics/list action, you 
     # would be able to invalidate it using:
-    #   
+    #
     #   expire_fragment(:controller => "topics", :action => "list")
     #
     # This default behavior is limited if you need to cache multiple 
@@ -109,7 +109,6 @@ module ActionController #:nodoc:
       def expire_fragment(key, options = nil)
         return unless cache_configured?
         key = fragment_cache_key(key) unless key.is_a?(Regexp)
-        message = nil
 
         instrument_fragment_cache :expire_fragment, key do
           if key.is_a?(Regexp)

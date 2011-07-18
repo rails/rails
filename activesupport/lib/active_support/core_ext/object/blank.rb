@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
   # For example, "", "   ", +nil+, [], and {} are all blank.
@@ -22,7 +24,7 @@ class Object
   # <tt>object.presence</tt> is equivalent to <tt>object.present? ? object : nil</tt>.
   #
   # This is handy for any representation of objects where blank is the same
-  # as not present at all.  For example, this simplifies a common check for
+  # as not present at all. For example, this simplifies a common check for
   # HTTP POST/query parameters:
   #
   #   state   = params[:state]   if params[:state].present?
@@ -86,14 +88,18 @@ class Hash
 end
 
 class String
+  # 0x3000: fullwidth whitespace
+  NON_WHITESPACE_REGEXP = %r![^\s#{[0x3000].pack("U")}]!
+
   # A string is blank if it's empty or contains whitespaces only:
   #
   #   "".blank?                 # => true
   #   "   ".blank?              # => true
+  #   "　".blank?               # => true
   #   " something here ".blank? # => false
   #
   def blank?
-    self !~ /\S/
+    self !~ NON_WHITESPACE_REGEXP
   end
 end
 

@@ -30,6 +30,7 @@ module ActionView
   extend ActiveSupport::Autoload
 
   eager_autoload do
+    autoload :AssetPaths
     autoload :Base
     autoload :Context
     autoload :Helpers
@@ -70,11 +71,6 @@ module ActionView
       autoload :EncodingError
       autoload :TemplateError
       autoload :WrongEncodingError
-    end
-
-    autoload_at "action_view/template" do
-      autoload :TemplateHandler
-      autoload :TemplateHandlers
     end
   end
 

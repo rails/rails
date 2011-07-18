@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/deprecation'
 require 'active_support/json/variable'
 require 'active_support/ordered_hash'
 
@@ -14,6 +13,7 @@ require 'time'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/conversions'
 require 'active_support/core_ext/date/conversions'
+require 'set'
 
 module ActiveSupport
   class << self
@@ -39,7 +39,7 @@ module ActiveSupport
 
         def initialize(options = nil)
           @options = options
-          @seen = []
+          @seen = Set.new
         end
 
         def encode(value, use_options = true)
@@ -71,13 +71,12 @@ module ActiveSupport
 
         private
           def check_for_circular_references(value)
-            if @seen.any? { |object| object.equal?(value) }
+            unless @seen.add?(value.__id__)
               raise CircularReferenceError, 'object references itself'
             end
-            @seen.unshift value
             yield
           ensure
-            @seen.shift
+            @seen.delete(value.__id__)
           end
       end
 
@@ -139,8 +138,6 @@ module ActiveSupport
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = false
     end
-
-    CircularReferenceError = Deprecation::DeprecatedConstantProxy.new('ActiveSupport::JSON::CircularReferenceError', Encoding::CircularReferenceError)
   end
 end
 

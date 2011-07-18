@@ -56,9 +56,9 @@ module ActiveSupport
     end
 
     def open_log(log, mode)
-      open(log, mode).tap do |log|
-        log.set_encoding(Encoding::BINARY) if log.respond_to?(:set_encoding)
-        log.sync = true
+      open(log, mode).tap do |open_log|
+        open_log.set_encoding(Encoding::BINARY) if open_log.respond_to?(:set_encoding)
+        open_log.sync = true
       end
     end
 
@@ -77,7 +77,7 @@ module ActiveSupport
     # def info
     # def warn
     # def debug
-    for severity in Severity.constants
+    Severity.constants.each do |severity|
       class_eval <<-EOT, __FILE__, __LINE__ + 1
         def #{severity.downcase}(message = nil, progname = nil, &block) # def debug(message = nil, progname = nil, &block)
           add(#{severity}, message, progname, &block)                   #   add(DEBUG, message, progname, &block)

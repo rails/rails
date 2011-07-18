@@ -1,5 +1,6 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/array/extract_options'
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -56,11 +57,18 @@ class Class
   #   object.setting          # => false
   #   Base.setting            # => true
   #
+  # To opt out of the instance reader method, pass :instance_reader => false.
+  #
+  #   object.setting          # => NoMethodError
+  #   object.setting?         # => NoMethodError
+  #
   # To opt out of the instance writer method, pass :instance_writer => false.
   #
   #   object.setting = false  # => NoMethodError
   def class_attribute(*attrs)
-    instance_writer = !attrs.last.is_a?(Hash) || attrs.pop[:instance_writer]
+    options = attrs.extract_options!
+    instance_reader = options.fetch(:instance_reader, true)
+    instance_writer = options.fetch(:instance_writer, true)
 
     attrs.each do |name|
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -84,13 +92,15 @@ class Class
           val
         end
 
-        remove_possible_method :#{name}
-        def #{name}
-          defined?(@#{name}) ? @#{name} : self.class.#{name}
-        end
+        if instance_reader
+          remove_possible_method :#{name}
+          def #{name}
+            defined?(@#{name}) ? @#{name} : self.class.#{name}
+          end
 
-        def #{name}?
-          !!#{name}
+          def #{name}?
+            !!#{name}
+          end
         end
       RUBY
 

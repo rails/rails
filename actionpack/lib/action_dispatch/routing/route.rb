@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/deprecation'
-
 module ActionDispatch
   module Routing
     class Route #:nodoc:
@@ -46,11 +44,6 @@ module ActionDispatch
       def segment_keys
         @segment_keys ||= conditions[:path_info].names.compact.map { |key| key.to_sym }
       end
-
-      def to_a
-        [@app, @conditions, @defaults, @name]
-      end
-      deprecate :to_a
 
       def to_s
         @to_s ||= begin

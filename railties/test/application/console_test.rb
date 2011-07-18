@@ -1,16 +1,21 @@
 require 'isolation/abstract_unit'
 
 class ConsoleTest < Test::Unit::TestCase
-  include ActiveSupport::Testing::Isolation  
+  include ActiveSupport::Testing::Isolation
 
   def setup
     build_app
     boot_rails
   end
 
+  def teardown
+    teardown_app
+  end
+
   def load_environment(sandbox = false)
     require "#{rails_root}/config/environment"
-    Rails.application.load_console(sandbox)
+    Rails.application.sandbox = sandbox
+    Rails.application.load_console
   end
 
   def test_app_method_should_return_integration_session
@@ -78,8 +83,8 @@ class ConsoleTest < Test::Unit::TestCase
     value = false
 
     Class.new(Rails::Railtie) do
-      console do |sandbox|
-        value = sandbox
+      console do |app|
+        value = app.sandbox?
       end
     end
 

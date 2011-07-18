@@ -1,7 +1,13 @@
-require 'rake/rdoctask'
+begin
+  require 'rdoc/task'
+rescue LoadError
+  require 'rdoc/rdoc'
+  require 'rake/rdoctask'
+  RDoc::Task = Rake::RDocTask
+end
 
 # Monkey-patch to remove redoc'ing and clobber descriptions to cut down on rake -T noise
-class RDocTaskWithoutDescriptions < Rake::RDocTask
+class RDocTaskWithoutDescriptions < RDoc::Task
   def define
     task rdoc_task_name
 

@@ -47,7 +47,7 @@ module Mime
     cattr_reader :html_types
 
     # These are the content types which browsers can generate without using ajax, flash, etc
-    # i.e. following a link, getting an image or posting a form.  CSRF protection
+    # i.e. following a link, getting an image or posting a form. CSRF protection
     # only needs to protect against these types.
     @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form, :text]
     cattr_reader :browser_generated_types
@@ -246,7 +246,7 @@ module Mime
       end
     end
 
-    # Returns true if Action Pack should check requests using this Mime Type for possible request forgery.  See
+    # Returns true if Action Pack should check requests using this Mime Type for possible request forgery. See
     # ActionController::RequestForgeryProtection.
     def verify_request?
       @@browser_generated_types.include?(to_sym)

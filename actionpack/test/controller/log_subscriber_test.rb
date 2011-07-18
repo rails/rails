@@ -4,7 +4,14 @@ require "action_controller/log_subscriber"
 
 module Another
   class LogSubscribersController < ActionController::Base
-    wrap_parameters :person, :only => :name, :format => :json
+    wrap_parameters :person, :include => :name, :format => :json
+
+    class SpecialException < Exception
+    end
+
+    rescue_from SpecialException do
+      head :status => 406
+    end
 
     def show
       render :nothing => true
@@ -34,11 +41,15 @@ module Another
       cache_page("Super soaker", "/index.html")
       render :nothing => true
     end
-    
+
     def with_exception
       raise Exception
     end
-    
+
+    def with_rescued_exception
+      raise SpecialException
+    end
+
   end
 end
 
@@ -193,6 +204,14 @@ class ACLogSubscriberTest < ActionController::TestCase
     end
     assert_equal 2, logs.size
     assert_match(/Completed 500/, logs.last)
+  end
+
+  def test_process_action_with_rescued_exception_includes_http_status_code
+    get :with_rescued_exception
+    wait
+
+    assert_equal 2, logs.size
+    assert_match(/Completed 406/, logs.last)
   end
 
   def logs

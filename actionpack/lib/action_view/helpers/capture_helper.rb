@@ -27,7 +27,7 @@ module ActionView
       #     "The current timestamp is #{Time.now}."
       #   end
       #
-      # You can then use that variable anywhere else.  For example:
+      # You can then use that variable anywhere else. For example:
       #
       #   <html>
       #   <head><title><%= @greeting %></title></head>
@@ -76,7 +76,7 @@ module ActionView
       #
       #   <%= stored_content %>
       #
-      # You can use the <tt>yield</tt> syntax alongside an existing call to <tt>yield</tt> in a layout.  For example:
+      # You can use the <tt>yield</tt> syntax alongside an existing call to <tt>yield</tt> in a layout. For example:
       #
       #   <%# This is the layout %>
       #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">

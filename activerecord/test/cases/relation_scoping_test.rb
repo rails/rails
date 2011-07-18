@@ -11,6 +11,26 @@ require 'models/reference'
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
 
+  def test_reverse_order
+    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
+  end
+
+  def test_reverse_order_with_arel_node
+    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
+  end
+
+  def test_reverse_order_with_multiple_arel_nodes
+    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
+  end
+
+  def test_reverse_order_with_arel_nodes_and_strings
+    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order("id DESC").order(Developer.arel_table[:name].desc).reverse_order
+  end
+
+  def test_double_reverse_order_produces_original_order
+    assert_equal Developer.order("name DESC"), Developer.order("name DESC").reverse_order.reverse_order
+  end
+
   def test_scoped_find
     Developer.where("name = 'David'").scoping do
       assert_nothing_raised { Developer.find(1) }
@@ -312,6 +332,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal [developers(:david).becomes(ClassMethodDeveloperCalledDavid)], ClassMethodDeveloperCalledDavid.all
   end
 
+  def test_default_scope_as_class_method_referencing_scope
+    assert_equal [developers(:david).becomes(ClassMethodReferencingScopeDeveloperCalledDavid)], ClassMethodReferencingScopeDeveloperCalledDavid.all
+  end
+
+  def test_default_scope_as_block_referencing_scope
+    assert_equal [developers(:david).becomes(LazyBlockReferencingScopeDeveloperCalledDavid)], LazyBlockReferencingScopeDeveloperCalledDavid.all
+  end
+
   def test_default_scope_with_lambda
     assert_equal [developers(:david).becomes(LazyLambdaDeveloperCalledDavid)], LazyLambdaDeveloperCalledDavid.all
   end
@@ -456,6 +484,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 'Jamis', jamis.name
   end
 
+  # FIXME: I don't know if this is *desired* behavior, but it is *today's*
+  # behavior.
+  def test_create_with_empty_hash_will_not_reset
+    jamis = PoorDeveloperCalledJamis.create_with(:name => 'Aaron').create_with({}).new
+    assert_equal 'Aaron', jamis.name
+  end
+
   def test_unscoped_with_named_scope_should_not_have_default_scope
     assert_equal [DeveloperCalledJamis.find(developers(:poor_jamis).id)], DeveloperCalledJamis.poor
 
@@ -463,7 +498,30 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
   end
 
+  def test_default_scope_select_ignored_by_aggregations
+    assert_equal DeveloperWithSelect.all.count, DeveloperWithSelect.count
+  end
+
+  def test_default_scope_select_ignored_by_grouped_aggregations
+    assert_equal Hash[Developer.all.group_by(&:salary).map { |s, d| [s, d.count] }],
+                 DeveloperWithSelect.group(:salary).count
+  end
+
   def test_default_scope_order_ignored_by_aggregations
     assert_equal DeveloperOrderedBySalary.all.count, DeveloperOrderedBySalary.count
+  end
+
+  def test_default_scope_find_last
+    assert DeveloperOrderedBySalary.count > 1, "need more than one row for test"
+
+    lowest_salary_dev = DeveloperOrderedBySalary.find(developers(:poor_jamis).id)
+    assert_equal lowest_salary_dev, DeveloperOrderedBySalary.last
+  end
+
+  def test_default_scope_include_with_count
+    d = DeveloperWithIncludes.create!
+    d.audit_logs.create! :message => 'foo'
+
+    assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => 'foo' }).count
   end
 end

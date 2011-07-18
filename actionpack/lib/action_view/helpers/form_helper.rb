@@ -4,6 +4,7 @@ require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/module/method_names'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
@@ -202,13 +203,13 @@ module ActionView
       #
       # is equivalent to something like:
       #
-      #   <%= form_for @post, :as => :post, :url => post_path(@post), :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #   <%= form_for @post, :as => :post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
       #     ...
       #   <% end %>
       #
       # You can also overwrite the individual conventions, like this:
       #
-      #   <%= form_for(@post, :url => super_post_path(@post)) do |f| %>
+      #   <%= form_for(@post, :url => super_posts_path) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -219,9 +220,9 @@ module ActionView
       #   <% end %>
       #
       # If you have an object that needs to be represented as a different
-      # parameter, like a Client that acts as a Person:
+      # parameter, like a Person that acts as a Client:
       #
-      #   <%= form_for(@post, :as => :client) do |f| %>
+      #   <%= form_for(@person, :as => :client) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -290,7 +291,7 @@ module ActionView
       #
       # Example:
       #
-      #   <%= form(@post) do |f| %>
+      #   <%= form_for(@post) do |f| %>
       #     <% f.fields_for(:comments, :include_id => false) do |cf| %>
       #       ...
       #     <% end %>
@@ -515,6 +516,18 @@ module ActionView
       #     def projects_attributes=(attributes)
       #       # Process the attributes hash
       #     end
+      #   end
+      #
+      # Note that the <tt>projects_attributes=</tt> writer method is in fact
+      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # collection, and the correct indices to be set in the form markup.
+      #
+      # When projects is already an association on Person you can use
+      # +accepts_nested_attributes_for+ to define the writer method for you:
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :projects
+      #     accepts_nested_attributes_for :projects
       #   end
       #
       # This model can now be used with a nested fields_for. The block given to
@@ -1136,7 +1149,7 @@ module ActionView
             options["name"] ||= tag_name_with_index(@auto_index)
             options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
           else
-            options["name"] ||= tag_name + (options.has_key?('multiple') ? '[]' : '')
+            options["name"] ||= tag_name + (options['multiple'] ? '[]' : '')
             options["id"] = options.fetch("id"){ tag_id }
           end
         end
@@ -1217,7 +1230,7 @@ module ActionView
       end
 
       def fields_for(record_name, record_object = nil, fields_options = {}, &block)
-        fields_options, record_object = record_object, nil if record_object.is_a?(Hash)
+        fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
         fields_options[:parent_builder] = self
 

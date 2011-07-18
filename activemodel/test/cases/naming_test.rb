@@ -114,6 +114,44 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
   end
 end
 
+class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
+  def setup
+    @model_name = ActiveModel::Name.new(Blog::Post, nil, 'Article')
+  end
+
+  def test_singular
+    assert_equal 'article', @model_name.singular
+  end
+
+  def test_plural
+    assert_equal 'articles', @model_name.plural
+  end
+
+  def test_element
+    assert_equal 'article', @model_name.element
+  end
+
+  def test_collection
+    assert_equal 'articles', @model_name.collection
+  end
+
+  def test_partial_path
+    assert_equal 'articles/article', @model_name.partial_path
+  end
+
+  def test_human
+    'Article'
+  end
+
+  def test_route_key
+    assert_equal 'articles', @model_name.route_key
+  end
+
+  def test_param_key
+    assert_equal 'article', @model_name.param_key
+  end
+end
+
 class NamingHelpersTest < Test::Unit::TestCase
   def setup
     @klass  = Contact
@@ -171,4 +209,3 @@ class NamingHelpersTest < Test::Unit::TestCase
       ActiveModel::Naming.send(method, *args)
     end
 end
-

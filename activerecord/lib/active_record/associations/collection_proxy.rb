@@ -12,7 +12,7 @@ module ActiveRecord
     #     has_many :posts
     #   end
     #
-    #   blog = Blog.find(:first)
+    #   blog = Blog.first
     #
     # the association proxy in <tt>blog.posts</tt> has the object in +blog+ as
     # <tt>@owner</tt>, the collection of its posts as <tt>@target</tt>, and
@@ -56,16 +56,18 @@ module ActiveRecord
         Array.wrap(association.options[:extend]).each { |ext| proxy_extend(ext) }
       end
 
-      def respond_to?(*args)
+      alias_method :new, :build
+
+      def respond_to?(name, include_private = false)
         super ||
-        (load_target && target.respond_to?(*args)) ||
-        @association.klass.respond_to?(*args)
+        (load_target && target.respond_to?(name, include_private)) ||
+        @association.klass.respond_to?(name, include_private)
       end
 
       def method_missing(method, *args, &block)
         match = DynamicFinderMatch.match(method)
         if match && match.instantiator?
-          record = send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
+          send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
             @association.send :set_owner_attributes, r
             @association.send :add_to_target, r
             yield(r) if block_given?
@@ -114,14 +116,6 @@ module ActiveRecord
       def reload
         @association.reload
         self
-      end
-
-      def new(*args, &block)
-        if @association.is_a?(HasManyThroughAssociation)
-          @association.build(*args, &block)
-        else
-          method_missing(:new, *args, &block)
-        end
       end
     end
   end

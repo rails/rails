@@ -1,11 +1,11 @@
+require 'thread'
 require 'active_support/core_ext/file'
-require 'action_view/helpers/asset_paths'
 
 module ActionView
   module Helpers
     module AssetTagHelper
 
-      class AssetPaths < ActionView::Helpers::AssetPaths #:nodoc:
+      class AssetPaths < ::ActionView::AssetPaths #:nodoc:
         # You can enable or disable the asset tag ids cache.
         # With the cache enabled, the asset tag helper methods will make fewer
         # expensive file system calls (the default implementation checks the file
@@ -84,15 +84,6 @@ module ActionView
               asset_id
             end
           end
-        end
-
-        def rewrite_relative_url_root(source, relative_url_root)
-          relative_url_root && !source.starts_with?("#{relative_url_root}/") ? "#{relative_url_root}#{source}" : source
-        end
-
-        def rewrite_host_and_protocol(source, has_request)
-          source = rewrite_relative_url_root(source, controller.config.relative_url_root) if has_request
-          super(source, has_request)
         end
       end
 

@@ -15,6 +15,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   routes.draw do
     match "/" => "foo#bar"
     match "/other" => "foo#other"
+    match "/article/:id" => "foo#article", :as => :article
   end
 
   include routes.url_helpers
@@ -24,6 +25,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   include ActionDispatch::Assertions::DomAssertions
   include ActionView::Context
   include RenderERBUtils
+
+  setup :_prepare_context
 
   def hash_for(opts = [])
     ActiveSupport::OrderedHash[*([:controller, "foo", :action, "bar"].concat(opts))]
@@ -242,6 +245,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_link_tag_using_post_javascript_and_rel
+    assert_dom_equal(
+      "<a href='http://www.example.com' data-method=\"post\" rel=\"example nofollow\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :method => :post, :rel => 'example')
+    )
+  end
+
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
       "<a href=\"http://www.example.com\" data-method=\"post\" rel=\"nofollow\" data-confirm=\"Are you serious?\">Hello</a>",
@@ -260,6 +270,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_tag_using_block_in_erb
     out = render_erb %{<%= link_to('/') do %>Example site<% end %>}
     assert_equal '<a href="/">Example site</a>', out
+  end
+
+  def test_link_tag_with_html_safe_string
+    assert_dom_equal(
+      "<a href=\"/article/Gerd_M%C3%BCller\">Gerd Müller</a>",
+      link_to("Gerd Müller", article_path("Gerd_Müller".html_safe))
+    )
   end
 
   def test_link_to_unless
@@ -369,13 +386,11 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_mail_to_with_javascript
     snippet = mail_to("me@domain.com", "My email", :encode => "javascript")
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
-    assert snippet.html_safe?
   end
 
   def test_mail_to_with_javascript_unicode
     snippet = mail_to("unicode@example.com", "únicode", :encode => "javascript")
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%75%6e%69%63%6f%64%65%40%65%78%61%6d%70%6c%65%2e%63%6f%6d%5c%22%3e%c3%ba%6e%69%63%6f%64%65%3c%5c%2f%61%3e%27%29%3b'))</script>", snippet
-    assert snippet.html_safe
   end
 
   def test_mail_with_options
@@ -402,6 +417,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal "<a href=\"&#109;&#97;&#105;&#108;&#116;&#111;&#58;%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">&#109;&#101;&#40;&#97;&#116;&#41;&#100;&#111;&#109;&#97;&#105;&#110;&#40;&#100;&#111;&#116;&#41;&#99;&#111;&#109;</a>", mail_to("me@domain.com", nil, :encode => "hex", :replace_at => "(at)", :replace_dot => "(dot)")
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%4d%79%20%65%6d%61%69%6c%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
     assert_dom_equal "<script type=\"text/javascript\">eval(decodeURIComponent('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%5c%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%5c%22%3e%6d%65%28%61%74%29%64%6f%6d%61%69%6e%28%64%6f%74%29%63%6f%6d%3c%5c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", nil, :encode => "javascript", :replace_at => "(at)", :replace_dot => "(dot)")
+  end
+
+  def test_mail_to_returns_html_safe_string
+    assert mail_to("david@loudthinking.com").html_safe?
+    assert mail_to("me@domain.com", "My email", :encode => "javascript").html_safe?
+    assert mail_to("me@domain.com", "My email", :encode => "hex").html_safe?
   end
 
   # TODO: button_to looks at this ... why?

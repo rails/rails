@@ -16,7 +16,7 @@ module ActiveSupport
             :metrics => [:process_time, :memory, :objects],
             :formats => [:flat, :graph_html, :call_tree, :call_stack] }
         end).freeze
-      
+
       protected
         def run_gc
           GC.start
@@ -77,7 +77,7 @@ module ActiveSupport
           def measure_mode
             self.class::Mode
           end
-          
+
           def profile
             RubyProf.resume
             yield
@@ -91,7 +91,7 @@ module ActiveSupport
               yield
             end
         end
-        
+
         class ProcessTime < Time
           Mode = RubyProf::PROCESS_TIME if RubyProf.const_defined?(:PROCESS_TIME)
 

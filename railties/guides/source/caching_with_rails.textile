@@ -112,7 +112,7 @@ As an example, if you wanted to show all the orders placed on your website in re
 
 <ruby>
 <% Order.find_recent.each do |o| %>
-  <%= o.buyer.name %> bought <% o.product.name %>
+  <%= o.buyer.name %> bought <%= o.product.name %>
 <% end %>
 
 <% cache do %>
@@ -162,17 +162,17 @@ class ProductSweeper < ActionController::Caching::Sweeper
 
   # If our sweeper detects that a Product was created call this
   def after_create(product)
-          expire_cache_for(product)
+    expire_cache_for(product)
   end
 
   # If our sweeper detects that a Product was updated call this
   def after_update(product)
-          expire_cache_for(product)
+    expire_cache_for(product)
   end
 
   # If our sweeper detects that a Product was deleted call this
   def after_destroy(product)
-          expire_cache_for(product)
+    expire_cache_for(product)
   end
 
   private
@@ -345,7 +345,7 @@ ActionController::Base.cache_store = MyCacheStore.new
 
 h4. Cache Keys
 
-The keys used in a cache can be any object that responds to either +:cache_key+ or to +:to_param+. You can implement the +:cache_key+ method on your classes if you need to generate custom keys. ActiveRecord will generate keys based on the class name and record id.
+The keys used in a cache can be any object that responds to either +:cache_key+ or to +:to_param+. You can implement the +:cache_key+ method on your classes if you need to generate custom keys. Active Record will generate keys based on the class name and record id.
 
 You can use Hashes and Arrays of values as cache keys.
 
@@ -382,6 +382,7 @@ class ProductsController < ApplicationController
     # anything. The default render checks for this using the parameters
     # used in the previous call to stale? and will automatically send a
     # :not_modified. So that's it, you're done.
+  end
 end
 </ruby>
 

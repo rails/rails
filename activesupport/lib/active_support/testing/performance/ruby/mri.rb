@@ -15,7 +15,7 @@ module ActiveSupport
               end
             end
         end
-            
+
         class Memory < DigitalInformationUnit
           # Ruby 1.8 + ruby-prof wrapper
           if RubyProf.respond_to?(:measure_memory)
@@ -24,7 +24,7 @@ module ActiveSupport
             end
           end
         end
-          
+
         class Objects < Amount
           # Ruby 1.8 + ruby-prof wrapper
           if RubyProf.respond_to?(:measure_allocations)
@@ -33,7 +33,7 @@ module ActiveSupport
             end
           end
         end
-        
+
         class GcRuns < Amount
           # Ruby 1.8 + ruby-prof wrapper
           if RubyProf.respond_to?(:measure_gc_runs)
@@ -42,7 +42,7 @@ module ActiveSupport
             end
           end
         end
-        
+
         class GcTime < Time
           # Ruby 1.8 + ruby-prof wrapper
           if RubyProf.respond_to?(:measure_gc_time)
@@ -55,5 +55,3 @@ module ActiveSupport
     end
   end
 end
-            
-            

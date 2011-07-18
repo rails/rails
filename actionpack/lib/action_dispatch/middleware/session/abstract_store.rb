@@ -29,7 +29,7 @@ module ActionDispatch
       end
 
       def generate_sid
-        sid = ActiveSupport::SecureRandom.hex(16)
+        sid = SecureRandom.hex(16)
         sid.encode!('UTF-8') if sid.respond_to?(:encode!)
         sid
       end
@@ -73,13 +73,7 @@ module ActionDispatch
       include StaleSessionCheck
 
       def destroy_session(env, sid, options)
-        ActiveSupport::Deprecation.warn "Implementing #destroy in session stores is deprecated. " <<
-          "Please implement destroy_session(env, session_id, options) instead."
-        destroy(env)
-      end
-
-      def destroy(env)
-        raise '#destroy needs to be implemented.'
+        raise '#destroy_session needs to be implemented.'
       end
     end
   end

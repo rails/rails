@@ -9,7 +9,7 @@ module ActiveSupport
   module Testing
     module Performance
       extend ActiveSupport::Concern
-      
+
       included do
         superclass_delegating_accessor :profile_options
         self.profile_options = {}
@@ -20,7 +20,7 @@ module ActiveSupport
           include ForClassicTestUnit
         end
       end
-      
+
       # each implementation should define metrics and freeze the defaults
       DEFAULTS =
         if ARGV.include?('--benchmark') # HAX for rake test
@@ -32,7 +32,7 @@ module ActiveSupport
             :output => 'tmp/performance',
             :benchmark => false }
         end
-      
+
       def full_profile_options
         DEFAULTS.merge(profile_options)
       end
@@ -40,7 +40,7 @@ module ActiveSupport
       def full_test_name
         "#{self.class.name}##{method_name}"
       end
-      
+
       module ForMiniTest
         def run(runner)
           @runner = runner
@@ -53,7 +53,7 @@ module ActiveSupport
               end
             end
           end
-          
+
           return
         end
 
@@ -122,7 +122,7 @@ module ActiveSupport
       protected
         # overridden by each implementation
         def run_gc; end
-      
+
         def run_warmup
           run_gc
 
@@ -132,7 +132,7 @@ module ActiveSupport
 
           run_gc
         end
-        
+
         def run_profile(metric)
           klass = full_profile_options[:benchmark] ? Benchmarker : Profiler
           performer = klass.new(self, metric)
@@ -163,7 +163,7 @@ module ActiveSupport
             "#{full_profile_options[:output]}/#{full_test_name}_#{@metric.name}"
           end
       end
-      
+
       # overridden by each implementation
       class Profiler < Performer
         def time_with_block
@@ -171,7 +171,7 @@ module ActiveSupport
           yield
           Time.now - before
         end
-        
+
         def run;    end
         def record; end
       end
@@ -181,10 +181,10 @@ module ActiveSupport
           super
           @supported = @metric.respond_to?('measure')
         end
-           
+
         def run
           return unless @supported
-          
+
           full_profile_options[:runs].to_i.times { run_test(@metric, :benchmark) }
           @total = @metric.total
         end
@@ -237,7 +237,7 @@ module ActiveSupport
             "#{super}.csv"
           end
       end
-      
+
       module Metrics
         def self.[](name)
           const_get(name.to_s.camelize)
@@ -247,7 +247,7 @@ module ActiveSupport
 
         class Base
           include ActionView::Helpers::NumberHelper
-          
+
           attr_reader :total
 
           def initialize
@@ -265,15 +265,15 @@ module ActiveSupport
               @total += (measure - before)
             end
           end
-          
+
           # overridden by each implementation
           def profile; end
-            
+
           protected
             # overridden by each implementation
             def with_gc_stats; end
         end
-        
+
         class Time < Base
           def measure
             ::Time.now.to_f
@@ -287,19 +287,19 @@ module ActiveSupport
             end
           end
         end
-        
+
         class Amount < Base
           def format(measurement)
             number_with_delimiter(measurement.floor)
           end
         end
-        
+
         class DigitalInformationUnit < Base
           def format(measurement)
             number_to_human_size(measurement, :precision => 2)
           end
         end
-        
+
         # each implementation provides its own metrics like ProcessTime, Memory or GcRuns
       end
     end

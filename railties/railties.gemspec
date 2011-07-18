@@ -11,16 +11,19 @@ Gem::Specification.new do |s|
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
-  s.rubyforge_project = 'rails'
 
   s.files              = Dir['CHANGELOG', 'README.rdoc', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
   s.require_path       = 'lib'
+
+  s.bindir             = 'bin'
+  s.executables        = ['rails']
 
   s.rdoc_options << '--exclude' << '.'
 
   s.add_dependency('rake',          '>= 0.8.7')
   s.add_dependency('thor',          '~> 0.14.6')
   s.add_dependency('rack-ssl',      '~> 1.3.2')
+  s.add_dependency('rdoc',          '~> 3.4')
   s.add_dependency('activesupport', version)
   s.add_dependency('actionpack',    version)
 end

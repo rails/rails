@@ -1,5 +1,5 @@
 require 'digest/md5'
-require 'active_support/secure_random'
+require 'securerandom'
 require 'active_support/core_ext/string/strip'
 require 'rails/version' unless defined?(Rails::VERSION)
 require 'rbconfig'
@@ -10,7 +10,7 @@ module Rails
   module Generators
     class AppBase < Base
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql )
+      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
@@ -36,6 +36,9 @@ module Rails
 
         class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
                                           :desc => "Skip Active Record files"
+
+        class_option :skip_sprockets,     :type => :boolean, :aliases => "-S", :default => false,
+                                          :desc => "Skip Sprockets files"
 
         class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
@@ -64,8 +67,8 @@ module Rails
 
       def initialize(*args)
         @original_wd = Dir.pwd
-
         super
+        convert_database_option_for_jruby
       end
 
     protected
@@ -124,11 +127,11 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_test_unit]
+        !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
       end
 
       def comment_if(value)
-        options[value] ? '#' : ''
+        options[value] ? '# ' : ''
       end
 
       def rails_gemfile_entry
@@ -157,14 +160,26 @@ module Rails
         when "postgresql" then "pg"
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
-        when "jdbcmysql"  then "activerecord-jdbcmysql-adapter"
-        when "jdbcsqlite3"  then "activerecord-jdbcsqlite3-adapter"
-        when "jdbcpostgresql"  then "activerecord-jdbcpostgresql-adapter"
+        when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
+        when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
+        when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
+        when "jdbc"           then "activerecord-jdbc-adapter"
         else options[:database]
         end
       end
 
-      def gem_for_ruby_debugger
+      def convert_database_option_for_jruby
+        if defined?(JRUBY_VERSION)
+          case options[:database]
+          when "oracle"     then options[:database].replace "jdbc"
+          when "postgresql" then options[:database].replace "jdbcpostgresql"
+          when "mysql"      then options[:database].replace "jdbcmysql"
+          when "sqlite3"    then options[:database].replace "jdbcsqlite3"
+          end
+        end
+      end
+
+      def ruby_debugger_gemfile_entry
         if RUBY_VERSION < "1.9"
           "gem 'ruby-debug'"
         else
@@ -172,7 +187,7 @@ module Rails
         end
       end
 
-      def gem_for_turn
+      def turn_gemfile_entry
         unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
           <<-GEMFILE.strip_heredoc
             group :test do
@@ -183,18 +198,34 @@ module Rails
         end
       end
 
-      def gem_for_javascript
+      def assets_gemfile_entry
+        <<-GEMFILE.strip_heredoc
+          group :assets do
+            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails'
+            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails'
+            gem 'uglifier'
+          end
+        GEMFILE
+      end
+
+      def javascript_gemfile_entry
         "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
       end
 
       def bundle_command(command)
-        require 'bundler'
-        require 'bundler/cli'
-
         say_status :run, "bundle #{command}"
-        Bundler::CLI.new.send(command)
-      rescue
-        say_status :failure, "bundler raised an exception, are you offline?", :red
+
+        # We are going to shell out rather than invoking Bundler::CLI.new(command)
+        # because `rails new` loads the Thor gem and on the other hand bundler uses
+        # its own vendored Thor, which could be a different version. Running both
+        # things in the same process is a recipe for a night with paracetamol.
+        #
+        # We use backticks and #print here instead of vanilla #system because it
+        # is easier to silence stdout in the existing test suite this way. The
+        # end-user gets the bundler commands called anyway, so no big deal.
+        #
+        # Thanks to James Tucker for the Gem tricks involved in this call.
+        print `"#{Gem.ruby}" -rubygems "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
       end
 
       def run_bundle

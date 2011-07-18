@@ -36,6 +36,10 @@ class Post < ActiveRecord::Base
     def find_most_recent
       find(:first, :order => "id DESC")
     end
+
+    def newest
+      created.last
+    end
   end
 
   has_many :author_favorites, :through => :author
@@ -161,4 +165,10 @@ class FirstPost < ActiveRecord::Base
 
   has_many :comments, :foreign_key => :post_id
   has_one  :comment,  :foreign_key => :post_id
+end
+
+class PostWithDefaultInclude < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope includes(:comments)
+  has_many :comments, :foreign_key => :post_id
 end

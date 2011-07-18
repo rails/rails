@@ -73,7 +73,7 @@ module ActiveRecord
           # <tt>locking_enabled?</tt> at this point as 
           # <tt>@attributes</tt> may not have been initialized yet.
 
-          if lock_optimistically && result.include?(self.class.locking_column)
+          if result.key?(self.class.locking_column) && lock_optimistically
             result[self.class.locking_column] ||= 0
           end
 

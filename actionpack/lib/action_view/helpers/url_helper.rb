@@ -55,9 +55,9 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # If you instead of a hash pass a record (like an Active Record or Active Resource) as the options parameter,
-      # you'll trigger the named route for that record. The lookup will happen on the name of the class. So passing
-      # a Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
+      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will 
+      # trigger the named route for that record. The lookup will happen on the name of the class. So passing a 
+      # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
       #
       # ==== Examples
@@ -112,13 +112,13 @@ module ActionView
         end
       end
 
-      # Creates a link tag of the given +name+ using a URL created by the set
-      # of +options+. See the valid options in the documentation for
-      # +url_for+. It's also possible to pass a string instead
-      # of an options hash to get a link tag that uses the value of the string as the
-      # href for the link, or use <tt>:back</tt> to link to the referrer - a JavaScript back
-      # link will be used in place of a referrer if none exists. If +nil+ is passed as
-      # a name, the link itself will become the name.
+      # Creates a link tag of the given +name+ using a URL created by the set of +options+.
+      # See the valid options in the documentation for +url_for+. It's also possible to 
+      # pass a String instead of an options hash, which generates a link tag that uses the
+      # value of the String as the href for the link. Using a <tt>:back</tt> Symbol instead
+      # of an options hash will generate a link to the referrer (a JavaScript back link
+      # will be used in place of a referrer if none exists). If +nil+ is passed as the name
+      # the value of the link itself will become the name.
       #
       # ==== Signatures
       #
@@ -160,7 +160,7 @@ module ActionView
       #
       # ==== Examples
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
-      # and newer RESTful routes.  Current Rails style favors RESTful routes whenever possible, so base
+      # and newer RESTful routes. Current Rails style favors RESTful routes whenever possible, so base
       # your application on resources and use
       #
       #   link_to "Profile", profile_path(@profile)
@@ -348,7 +348,7 @@ module ActionView
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ unless the current request URI is the same as the links, in
       # which case only the name is returned (or the given block is yielded, if
-      # one exists).  You can give +link_to_unless_current+ a block which will
+      # one exists). You can give +link_to_unless_current+ a block which will
       # specialize the default behavior (e.g., show a "Start Here" link rather
       # than the link's text).
       #
@@ -375,7 +375,7 @@ module ActionView
       #   </ul>
       #
       # The implicit block given to +link_to_unless_current+ is evaluated if the current
-      # action is the action given.  So, if we had a comments page and wanted to render a
+      # action is the action given. So, if we had a comments page and wanted to render a
       # "Go Back" link instead of a link to the comments page, we could do something like this...
       #
       #    <%=
@@ -497,14 +497,14 @@ module ActionView
         }.compact
         extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
 
-        email_address_obfuscated = email_address.dup
+        email_address_obfuscated = email_address.to_str
         email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.key?("replace_at")
         email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.key?("replace_dot")
         case encode
         when "javascript"
           string = ''
           html   = content_tag("a", name || email_address_obfuscated.html_safe, html_options.merge("href" => "mailto:#{email_address}#{extras}".html_safe))
-          html   = escape_javascript(html)
+          html   = escape_javascript(html.to_str)
           "document.write('#{html}');".each_byte do |c|
             string << sprintf("%%%x", c)
           end
@@ -579,7 +579,7 @@ module ActionView
         url_string = url_for(options)
 
         # We ignore any extra parameters in the request_uri if the
-        # submitted url doesn't have any either.  This lets the function
+        # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
         if url_string.index("?")
           request_uri = request.fullpath
@@ -619,7 +619,9 @@ module ActionView
         end
 
         def add_method_to_attributes!(html_options, method)
-          html_options["rel"] = "nofollow" if method.to_s.downcase != "get"
+          if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
+            html_options["rel"] = "#{html_options["rel"]} nofollow".strip
+          end
           html_options["data-method"] = method
         end
 
@@ -641,7 +643,7 @@ module ActionView
 
         # Processes the +html_options+ hash, converting the boolean
         # attributes from true/false form into the form required by
-        # HTML/XHTML.  (An attribute is considered to be boolean if
+        # HTML/XHTML. (An attribute is considered to be boolean if
         # its name is listed in the given +bool_attrs+ array.)
         #
         # More specifically, for each boolean attribute in +html_options+
@@ -651,7 +653,7 @@ module ActionView
         #
         # if the associated +bool_value+ evaluates to true, it is
         # replaced with the attribute's name; otherwise the attribute is
-        # removed from the +html_options+ hash.  (See the XHTML 1.0 spec,
+        # removed from the +html_options+ hash. (See the XHTML 1.0 spec,
         # section 4.5 "Attribute Minimization" for more:
         # http://www.w3.org/TR/xhtml1/#h-4.5)
         #

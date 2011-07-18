@@ -6,9 +6,13 @@ class Comment < ActiveRecord::Base
   scope :for_first_author,
               :joins => :post,
               :conditions => { "posts.author_id" => 1 }
+  scope :created
 
   belongs_to :post, :counter_cache => true
   has_many :ratings
+
+  has_many :children, :class_name => 'Comment', :foreign_key => :parent_id
+  belongs_to :parent, :class_name => 'Comment', :counter_cache => :children_count
 
   def self.what_are_you
     'a comment...'

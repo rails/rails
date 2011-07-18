@@ -98,6 +98,15 @@ module RenderTestCases
     assert_equal "only partial", @view.render("test/partial_only", :counter_counter => 5)
   end
 
+  def test_render_partial_with_invalid_name
+    @view.render(:partial => "test/200")
+    flunk "Render did not raise ArgumentError"
+  rescue ArgumentError => e
+    assert_equal "The partial name (test/200) is not a valid Ruby identifier; " +
+                                "make sure your partial name starts with a letter or underscore, " +
+                                "and is followed by any combinations of letters, numbers, or underscores.", e.message
+  end
+
   def test_render_partial_with_errors
     @view.render(:partial => "test/raise")
     flunk "Render did not raise Template::Error"
@@ -370,7 +379,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     def test_render_utf8_template_with_incompatible_external_encoding
       with_external_encoding Encoding::SHIFT_JIS do
         begin
-          result = @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
+          @view.render(:file => "test/utf8.html.erb", :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'
         rescue ActionView::Template::Error => error
           assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message
@@ -381,7 +390,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     def test_render_utf8_template_with_partial_with_incompatible_encoding
       with_external_encoding Encoding::SHIFT_JIS do
         begin
-          result = @view.render(:file => "test/utf8_magic_with_bare_partial.html.erb", :layouts => "layouts/yield")
+          @view.render(:file => "test/utf8_magic_with_bare_partial.html.erb", :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'
         rescue ActionView::Template::Error => error
           assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message

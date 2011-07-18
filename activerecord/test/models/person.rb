@@ -59,8 +59,9 @@ class LoosePerson < ActiveRecord::Base
 
   has_one    :best_friend,    :class_name => 'LoosePerson', :foreign_key => :best_friend_id
   belongs_to :best_friend_of, :class_name => 'LoosePerson', :foreign_key => :best_friend_of_id
-
   has_many   :best_friends,   :class_name => 'LoosePerson', :foreign_key => :best_friend_id
+
+  accepts_nested_attributes_for :best_friend, :best_friend_of, :best_friends
 end
 
 class LooseDescendant < LoosePerson; end
@@ -70,11 +71,14 @@ class TightPerson < ActiveRecord::Base
 
   attr_accessible :first_name, :gender
   attr_accessible :first_name, :gender, :comments, :as => :admin
+  attr_accessible :best_friend_attributes, :best_friend_of_attributes, :best_friends_attributes
+  attr_accessible :best_friend_attributes, :best_friend_of_attributes, :best_friends_attributes, :as => :admin
 
   has_one    :best_friend,    :class_name => 'TightPerson', :foreign_key => :best_friend_id
   belongs_to :best_friend_of, :class_name => 'TightPerson', :foreign_key => :best_friend_of_id
-
   has_many   :best_friends,   :class_name => 'TightPerson', :foreign_key => :best_friend_id
+
+  accepts_nested_attributes_for :best_friend, :best_friend_of, :best_friends
 end
 
 class TightDescendant < TightPerson; end

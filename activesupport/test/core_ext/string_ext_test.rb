@@ -158,6 +158,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:local)
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
     assert_equal Time.local_time(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
+    assert_equal Time.utc(2039, 2, 27, 23, 50), "2039-02-27 22:50 -0100".to_time
     assert_nil "".to_time
   end
 
@@ -251,7 +252,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     # And changes the original string:
     assert_equal original, expected
   end
-  
+
   def test_string_inquiry
     assert "production".inquiry.production?
     assert !"production".inquiry.development?
@@ -353,6 +354,10 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "A fixnum is safe by default" do
     assert 5.html_safe?
   end
+  
+  test "a float is safe by default" do
+    assert 5.7.html_safe?
+  end
 
   test "An object is unsafe by default" do
     assert !@object.html_safe?
@@ -450,6 +455,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
     else
       assert !'ruby'.encoding_aware?
     end
+  end
+
+  test "call to_param returns a normal string" do
+    string = @string.html_safe
+    assert string.html_safe?
+    assert !string.to_param.html_safe?
   end
 end
 

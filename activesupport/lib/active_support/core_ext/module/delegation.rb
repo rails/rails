@@ -113,7 +113,7 @@ class Module
       raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
     end
 
-    prefix = options[:prefix] && "#{options[:prefix] == true ? to : options[:prefix]}_" || ''
+    prefix = options[:prefix] ? "#{options[:prefix] == true ? to : options[:prefix]}_" : ''
 
     file, line = caller.first.split(':', 2)
     line = line.to_i
@@ -127,10 +127,6 @@ class Module
         end
 
       module_eval(<<-EOS, file, line - 5)
-        if instance_methods(false).map(&:to_s).include?("#{prefix}#{method}")
-          remove_possible_method("#{prefix}#{method}")
-        end
-
         def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
           #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
         rescue NoMethodError                                # rescue NoMethodError

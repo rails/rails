@@ -33,6 +33,14 @@ module ActiveRecord
         @target               = target
       end
 
+      def method_missing(method_sym, *arguments, &block)
+        @target.send(method_sym, *arguments, &block)
+      end
+
+      def respond_to?(method_sym, include_private = false)
+        super || @target.respond_to?(method_sym)
+      end
+
       def each(&block)
         @target.each(&block)
       end

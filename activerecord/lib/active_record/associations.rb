@@ -33,7 +33,7 @@ module ActiveRecord
 
   class HasManyThroughAssociationPointlessSourceTypeError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
-      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic.  Try removing :source_type on your association.")
+      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' with a :source_type option if the '#{reflection.through_reflection.class_name}##{source_reflection.name}' is not polymorphic. Try removing :source_type on your association.")
     end
   end
 
@@ -48,7 +48,7 @@ module ActiveRecord
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
       source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
-      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}.  Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'.  Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
+      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
     end
   end
 
@@ -76,12 +76,6 @@ module ActiveRecord
     end
   end
 
-  class HasAndBelongsToManyAssociationWithPrimaryKeyError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Primary key is not allowed in a has_and_belongs_to_many join table (#{reflection.options[:join_table]}).")
-    end
-  end
-
   class HasAndBelongsToManyAssociationForeignKeyNeeded < ActiveRecordError #:nodoc:
     def initialize(reflection)
       super("Cannot create self referential has_and_belongs_to_many association on '#{reflection.class_name rescue nil}##{reflection.name rescue nil}'. :association_foreign_key cannot be the same as the :foreign_key.")
@@ -96,7 +90,7 @@ module ActiveRecord
 
   class ReadOnlyAssociation < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      super("Can not add to a has_many :through association.  Try adding to #{reflection.through_reflection.name.inspect}.")
+      super("Can not add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
     end
   end
 
@@ -197,7 +191,7 @@ module ActiveRecord
     # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
-    #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.find(:all, options),</tt>
+    #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.all(options),</tt>
     #   <tt>Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1)</tt>
@@ -426,7 +420,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   person = Account.find(:first).people.find_or_create_by_name("David Heinemeier Hansson")
+    #   person = Account.first.people.find_or_create_by_name("David Heinemeier Hansson")
     #   person.first_name # => "David"
     #   person.last_name  # => "Heinemeier Hansson"
     #
@@ -457,20 +451,21 @@ module ActiveRecord
     #     has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
     #   end
     #
-    # Some extensions can only be made to work with knowledge of the association proxy's internals.
-    # Extensions can access relevant state using accessors on the association proxy:
+    # Some extensions can only be made to work with knowledge of the association's internals.
+    # Extensions can access relevant state using the following methods (where +items+ is the
+    # name of the association):
     #
-    # * +proxy_owner+ - Returns the object the association is part of.
-    # * +proxy_reflection+ - Returns the reflection object that describes the association.
-    # * +proxy_target+ - Returns the associated object for +belongs_to+ and +has_one+, or
+    # * <tt>record.association(:items).owner</tt> - Returns the object the association is part of.
+    # * <tt>record.association(:items).reflection</tt> - Returns the reflection object that describes the association.
+    # * <tt>record.association(:items).target</tt> - Returns the associated object for +belongs_to+ and +has_one+, or
     #   the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
     #
     # === Association Join Models
     #
     # Has Many associations can be configured with the <tt>:through</tt> option to use an
-    # explicit join model to retrieve the data.  This operates similarly to a
-    # +has_and_belongs_to_many+ association.  The advantage is that you're able to add validations,
-    # callbacks, and extra attributes on the join model.  Consider the following schema:
+    # explicit join model to retrieve the data. This operates similarly to a
+    # +has_and_belongs_to_many+ association. The advantage is that you're able to add validations,
+    # callbacks, and extra attributes on the join model. Consider the following schema:
     #
     #   class Author < ActiveRecord::Base
     #     has_many :authorships
@@ -482,7 +477,7 @@ module ActiveRecord
     #     belongs_to :book
     #   end
     #
-    #   @author = Author.find :first
+    #   @author = Author.first
     #   @author.authorships.collect { |a| a.book } # selects all books that the author's authorships belong to
     #   @author.books                              # selects all books by using the Authorship join model
     #
@@ -502,7 +497,7 @@ module ActiveRecord
     #     belongs_to :client
     #   end
     #
-    #   @firm = Firm.find :first
+    #   @firm = Firm.first
     #   @firm.clients.collect { |c| c.invoices }.flatten # select all invoices for all clients of the firm
     #   @firm.invoices                                   # selects all invoices by going through the Client join model
     #
@@ -527,7 +522,7 @@ module ActiveRecord
     #   @group.avatars                                # selects all avatars by going through the User join model.
     #
     # An important caveat with going through +has_one+ or +has_many+ associations on the
-    # join model is that these associations are *read-only*.  For example, the following
+    # join model is that these associations are *read-only*. For example, the following
     # would not work following the previous example:
     #
     #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
@@ -595,7 +590,7 @@ module ActiveRecord
     # === Polymorphic Associations
     #
     # Polymorphic associations on models are not restricted on what types of models they
-    # can be associated with.  Rather, they specify an interface that a +has_many+ association
+    # can be associated with. Rather, they specify an interface that a +has_many+ association
     # must adhere to.
     #
     #   class Asset < ActiveRecord::Base
@@ -609,7 +604,7 @@ module ActiveRecord
     #   @asset.attachable = @post
     #
     # This works by using a type column in addition to a foreign key to specify the associated
-    # record.  In the Asset example, you'd need an +attachable_id+ integer column and an
+    # record. In the Asset example, you'd need an +attachable_id+ integer column and an
     # +attachable_type+ string column.
     #
     # Using polymorphic associations in combination with single table inheritance (STI) is
@@ -665,7 +660,7 @@ module ActiveRecord
     #
     # Consider the following loop using the class above:
     #
-    #   for post in Post.all
+    #   Post.all.each do |post|
     #     puts "Post:            " + post.title
     #     puts "Written by:      " + post.author.name
     #     puts "Last comment on: " + post.comments.first.created_on
@@ -674,7 +669,7 @@ module ActiveRecord
     # To iterate over these one hundred posts, we'll generate 201 database queries. Let's
     # first just optimize it for retrieving the author:
     #
-    #   for post in Post.find(:all, :include => :author)
+    #   Post.includes(:author).each do |post|
     #
     # This references the name of the +belongs_to+ association that also used the <tt>:author</tt>
     # symbol. After loading the posts, find will collect the +author_id+ from each one and load
@@ -683,7 +678,7 @@ module ActiveRecord
     #
     # We can improve upon the situation further by referencing both associations in the finder with:
     #
-    #   for post in Post.find(:all, :include => [ :author, :comments ])
+    #   Post.includes(:author, :comments).each do |post|
     #
     # This will load all comments with a single query. This reduces the total number of queries
     # to 3. More generally the number of queries will be 1 plus the number of associations
@@ -691,7 +686,7 @@ module ActiveRecord
     #
     # To include a deep hierarchy of associations, use a hash:
     #
-    #   for post in Post.find(:all, :include => [ :author, { :comments => { :author => :gravatar } } ])
+    #   Post.includes(:author, {:comments => {:author => :gravatar}}).each do |post|
     #
     # That'll grab not only all the comments but all their authors and gravatar pictures.
     # You can mix and match symbols, arrays and hashes in any combination to describe the
@@ -719,13 +714,13 @@ module ActiveRecord
     # <tt>:order => "author.name DESC"</tt> will work but <tt>:order => "name DESC"</tt> will not.
     #
     # If you do want eager load only some members of an association it is usually more natural
-    # to <tt>:include</tt> an association which has conditions defined on it:
+    # to include an association which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
     #     has_many :approved_comments, :class_name => 'Comment', :conditions => ['approved = ?', true]
     #   end
     #
-    #   Post.find(:all, :include => :approved_comments)
+    #   Post.includes(:approved_comments)
     #
     # This will load posts and eager load the +approved_comments+ association, which contains
     # only those comments that have been approved.
@@ -737,10 +732,10 @@ module ActiveRecord
     #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
     #   end
     #
-    #   Picture.find(:first, :include => :most_recent_comments).most_recent_comments # => returns all associated comments.
+    #   Picture.includes(:most_recent_comments).first.most_recent_comments # => returns all associated comments.
     #
     # When eager loaded, conditions are interpolated in the context of the model class, not
-    # the model instance.  Conditions are lazily interpolated before the actual model exists.
+    # the model instance. Conditions are lazily interpolated before the actual model exists.
     #
     # Eager loading is supported with polymorphic associations.
     #
@@ -750,7 +745,7 @@ module ActiveRecord
     #
     # A call that tries to eager load the addressable model
     #
-    #   Address.find(:all, :include => :addressable)
+    #   Address.includes(:addressable)
     #
     # This will execute one query to load the addresses and load the addressables with one
     # query per addressable type.
@@ -764,47 +759,47 @@ module ActiveRecord
     # == Table Aliasing
     #
     # Active Record uses table aliasing in the case that a table is referenced multiple times
-    # in a join.  If a table is referenced only once, the standard table name is used.  The
+    # in a join. If a table is referenced only once, the standard table name is used. The
     # second time, the table is aliased as <tt>#{reflection_name}_#{parent_table_name}</tt>.
     # Indexes are appended for any more successive uses of the table name.
     #
-    #   Post.find :all, :joins => :comments
+    #   Post.joins(:comments)
     #   # => SELECT ... FROM posts INNER JOIN comments ON ...
-    #   Post.find :all, :joins => :special_comments # STI
+    #   Post.joins(:special_comments) # STI
     #   # => SELECT ... FROM posts INNER JOIN comments ON ... AND comments.type = 'SpecialComment'
-    #   Post.find :all, :joins => [:comments, :special_comments] # special_comments is the reflection name, posts is the parent table name
+    #   Post.joins(:comments, :special_comments) # special_comments is the reflection name, posts is the parent table name
     #   # => SELECT ... FROM posts INNER JOIN comments ON ... INNER JOIN comments special_comments_posts
     #
     # Acts as tree example:
     #
-    #   TreeMixin.find :all, :joins => :children
+    #   TreeMixin.joins(:children)
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
-    #   TreeMixin.find :all, :joins => {:children => :parent}
+    #   TreeMixin.joins(:children => :parent)
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
-    #   TreeMixin.find :all, :joins => {:children => {:parent => :children}}
+    #   TreeMixin.joins(:children => {:parent => :children})
     #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
     #                               INNER JOIN parents_mixins ...
     #                               INNER JOIN mixins childrens_mixins_2
     #
     # Has and Belongs to Many join tables use the same idea, but add a <tt>_join</tt> suffix:
     #
-    #   Post.find :all, :joins => :categories
+    #   Post.joins(:categories)
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
-    #   Post.find :all, :joins => {:categories => :posts}
+    #   Post.joins(:categories => :posts)
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
-    #   Post.find :all, :joins => {:categories => {:posts => :categories}}
+    #   Post.joins(:categories => {:posts => :categories})
     #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
     #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
     #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
     #
-    # If you wish to specify your own custom joins using a <tt>:joins</tt> option, those table
+    # If you wish to specify your own custom joins using <tt>joins</tt> method, those table
     # names will take precedence over the eager associations:
     #
-    #   Post.find :all, :joins => :comments, :joins => "inner join comments ..."
+    #   Post.joins(:comments).joins("inner join comments ...")
     #   # => SELECT ... FROM posts INNER JOIN comments_posts ON ... INNER JOIN comments ...
-    #   Post.find :all, :joins => [:comments, :special_comments], :joins => "inner join comments ..."
+    #   Post.joins(:comments, :special_comments).joins("inner join comments ...")
     #   # => SELECT ... FROM posts INNER JOIN comments comments_posts ON ...
     #                              INNER JOIN comments special_comments_posts ...
     #                              INNER JOIN comments ...
@@ -846,7 +841,7 @@ module ActiveRecord
     # == Bi-directional associations
     #
     # When you specify an association there is usually an association on the associated model
-    # that specifies the same relationship in reverse.  For example, with the following models:
+    # that specifies the same relationship in reverse. For example, with the following models:
     #
     #    class Dungeon < ActiveRecord::Base
     #      has_many :traps
@@ -863,9 +858,9 @@ module ActiveRecord
     #
     # The +traps+ association on +Dungeon+ and the +dungeon+ association on +Trap+ are
     # the inverse of each other and the inverse of the +dungeon+ association on +EvilWizard+
-    # is the +evil_wizard+ association on +Dungeon+ (and vice-versa).  By default,
+    # is the +evil_wizard+ association on +Dungeon+ (and vice-versa). By default,
     # Active Record doesn't know anything about these inverse relationships and so no object
-    # loading optimisation is possible.  For example:
+    # loading optimization is possible. For example:
     #
     #    d = Dungeon.first
     #    t = d.traps.first
@@ -875,8 +870,8 @@ module ActiveRecord
     #
     # The +Dungeon+ instances +d+ and <tt>t.dungeon</tt> in the above example refer to
     # the same object data from the database, but are actually different in-memory copies
-    # of that data.  Specifying the <tt>:inverse_of</tt> option on associations lets you tell
-    # Active Record about inverse relationships and it will optimise object loading.  For
+    # of that data. Specifying the <tt>:inverse_of</tt> option on associations lets you tell
+    # Active Record about inverse relationships and it will optimise object loading. For
     # example, if we changed our model definitions to:
     #
     #    class Dungeon < ActiveRecord::Base
@@ -1036,7 +1031,7 @@ module ActiveRecord
       # === Example
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => ["firm_id = ?", id]</tt>)
+      # * <tt>Firm#clients</tt> (similar to <tt>Clients.all :conditions => ["firm_id = ?", id]</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients=</tt>
@@ -1059,7 +1054,7 @@ module ActiveRecord
       #   specify it with this option.
       # [:conditions]
       #   Specify the conditions that the associated objects must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>.  Record creations from
+      #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>. Record creations from
       #   the association are scoped if a hash is used.
       #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published
       #   posts with <tt>@blog.posts.create</tt> or <tt>@blog.posts.build</tt>.
@@ -1074,10 +1069,11 @@ module ActiveRecord
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:dependent]
       #   If set to <tt>:destroy</tt> all the associated objects are destroyed
-      #   alongside this object by calling their +destroy+ method.  If set to <tt>:delete_all</tt> all associated
-      #   objects are deleted *without* calling their +destroy+ method.  If set to <tt>:nullify</tt> all associated
+      #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
+      #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> this object cannot be deleted if it has any associated object.
+      #   <tt>:restrict</tt> this object raises an <tt>ActiveRecord::DeleteRestrictionError</tt> exception and
+      #   cannot be deleted if it has any associated objects.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1199,7 +1195,7 @@ module ActiveRecord
       # === Example
       #
       # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
-      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find(:first, :conditions => "account_id = #{id}")</tt>)
+      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.first(:conditions => "account_id = #{id}")</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
@@ -1226,7 +1222,8 @@ module ActiveRecord
       #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
       #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
       #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   Also, association is assigned.
+      #   Also, association is assigned. If set to <tt>:restrict</tt> this object raises an
+      #   <tt>ActiveRecord::DeleteRestrictionError</tt> exception and cannot be deleted if it has any associated object.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
@@ -1242,7 +1239,7 @@ module ActiveRecord
       #   you want to do a join but not include the joined columns. Do not forget to include the
       #   primary and foreign keys, otherwise it will raise an error.
       # [:through]
-      #   Specifies a Join Model through which to perform the query.  Options for <tt>:class_name</tt>,
+      #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
       #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
       #   source reflection. You can only use a <tt>:through</tt> query through a <tt>has_one</tt>
       #   or <tt>belongs_to</tt> association on the join model.
@@ -1264,7 +1261,7 @@ module ActiveRecord
       #   By default, only save the associated object if it's a new record.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object
-      #   that is the inverse of this <tt>has_one</tt> association.  Does not work in combination
+      #   that is the inverse of this <tt>has_one</tt> association. Does not work in combination
       #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
@@ -1382,7 +1379,7 @@ module ActiveRecord
       #   will be updated with the current time in addition to the updated_at/on attribute.
       # [:inverse_of]
       #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated
-      #   object that is the inverse of this <tt>belongs_to</tt> association.  Does not work in
+      #   object that is the inverse of this <tt>belongs_to</tt> association. Does not work in
       #   combination with the <tt>:polymorphic</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
@@ -1402,15 +1399,15 @@ module ActiveRecord
       end
 
       # Specifies a many-to-many relationship with another class. This associates two classes via an
-      # intermediate join table.  Unless the join table is explicitly specified as an option, it is
+      # intermediate join table. Unless the join table is explicitly specified as an option, it is
       # guessed using the lexical order of the class names. So a join between Developer and Project
       # will give the default join table name of "developers_projects" because "D" outranks "P".
-      # Note that this precedence is calculated using the <tt><</tt> operator for String.  This
+      # Note that this precedence is calculated using the <tt><</tt> operator for String. This
       # means that if the strings are of different lengths, and the strings are equal when compared
       # up to the shortest length, then the longer string is considered of higher
-      # lexical precedence than the shorter one.  For example, one would expect the tables "paper_boxes" and "papers"
+      # lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers"
       # to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes",
-      # but it in fact generates a join table name of "paper_boxes_papers".  Be aware of this caveat, and use the
+      # but it in fact generates a join table name of "paper_boxes_papers". Be aware of this caveat, and use the
       # custom <tt>:join_table</tt> option if you need to.
       #
       # The join table should not have a primary key or a model associated with it. You must manually generate the
@@ -1512,7 +1509,7 @@ module ActiveRecord
       #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>authorized = 1</tt>.  Record creations from the association are
+      #   SQL fragment, such as <tt>authorized = 1</tt>. Record creations from the association are
       #   scoped if a hash is used.
       #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt>
       #   or <tt>@blog.posts.build</tt>.

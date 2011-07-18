@@ -15,7 +15,7 @@ module ActiveModel
       disabled_observers.include?(observer.class)
     end
 
-    # Disables one or more observers.  This supports multiple forms:
+    # Disables one or more observers. This supports multiple forms:
     #
     #   ORM.observers.disable :user_observer
     #     # => disables the UserObserver
@@ -38,7 +38,7 @@ module ActiveModel
       set_enablement(false, observers, &block)
     end
 
-    # Enables one or more observers.  This supports multiple forms:
+    # Enables one or more observers. This supports multiple forms:
     #
     #   ORM.observers.enable :user_observer
     #     # => enables the UserObserver
@@ -59,7 +59,7 @@ module ActiveModel
     #     # just the duration of the block
     #   end
     #
-    # Note: all observers are enabled by default.  This method is only
+    # Note: all observers are enabled by default. This method is only
     # useful when you have previously disabled one or more observers.
     def enable(*observers, &block)
       set_enablement(true, observers, &block)

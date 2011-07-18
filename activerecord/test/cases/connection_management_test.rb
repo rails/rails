@@ -77,6 +77,13 @@ module ActiveRecord
         @management.call(@env)
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
+
+      test "proxy is polite to it's body and responds to it" do
+        body = Class.new(String) { def to_path; "/path"; end }.new
+        proxy = ConnectionManagement::Proxy.new(body)
+        assert proxy.respond_to?(:to_path)
+        assert_equal proxy.to_path, "/path"
+      end
     end
   end
 end

@@ -1,43 +1,39 @@
-== Creating the test database
+== Configure databases
 
-The default names for the test databases are "activerecord_unittest" and
-"activerecord_unittest2". If you want to use another database name, then be sure
-to update the connection adapter setups you want to test within
-test/connections/<your database>/connection.rb.
-When you have the database online, you can import the fixture tables with
-the test/schema/*.sql files.
+Copy test/config.example.yml to test/config.yml and edit as needed. Or just run the tests for
+the first time, which will do the copy automatically and use the default (sqlite3).
 
-Make sure that you create database objects with the same user that you specified in
-connection.rb otherwise (on Postgres, at least) tests for default values will fail.
+You can build postgres and mysql databases using the build_postgresql and build_mysql rake tasks.
 
-== Running with Rake
+== Running the tests
 
-The easiest way to run the unit tests is through Rake. The default task runs
-the entire test suite for all the adapters. You can also run the suite on just
-one adapter by using the tasks test_mysql, test_sqlite3, test_postgresql or any
-of the other test_ tasks. For more information, checkout the full array of rake
-tasks with "rake -T"
+You can run a particular test file from the command line, e.g.
 
-Rake can be found at http://rake.rubyforge.org
+  $ ruby -Itest test/cases/base_test.rb
 
-== Running by hand
+To run a specific test:
 
-Unit tests are located in test/cases directory. If you only want to run a single test suite,
-you can do so with:
+  $ ruby -Itest test/cases/base_test.rb -n test_something_works
 
-   rake test_mysql TEST=test/cases/base_test.rb
+You can run with a database other than the default you set in test/config.yml, using the ARCONN
+environment variable:
 
-That'll run the base suite using the MySQL-Ruby adapter.  Some tests rely on the schema
-being initialized - you can initialize the schema with:
+  $ ARCONN=postgresql ruby -Itest test/cases/base_test.rb
 
-  rake test_mysql TEST=test/cases/aaa_create_tables_test.rb
-  rake mysql:build_databases
+You can run all the tests for a given database via rake:
 
-To setup the testing environment for PostgreSQL use this command:
+  $ rake test_mysql
 
-  rake postgresql:build_databases
+The 'rake test' task will run all the tests for mysql, mysql2, sqlite3 and postgresql.
 
-The incantation for running a particular test looks like this
+== Identity Map
 
-  rake test TEST=test/cases/datatype_test_postgresql.rb TESTOPTS="-n test_timestamp_with_zone_values_without_rails_time_zone_support"
+By default the tests run with the Identity Map turned off. But all tests should pass whether or
+not the identity map is on or off. You can turn it on using the IM env variable:
 
+  $ IM=true ruby -Itest test/case/base_test.rb
+
+== Config file
+
+By default, the config file is expected to be at the path test/config.yml. You can specify a
+custom location with the ARCONFIG environment variable.

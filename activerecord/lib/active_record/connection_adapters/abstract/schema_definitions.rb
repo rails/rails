@@ -328,7 +328,7 @@ module ActiveRecord
       end
 
       # Checks to see if a column exists. See SchemaStatements#column_exists?
-      def column_exists?(column_name, type = nil, options = nil)
+      def column_exists?(column_name, type = nil, options = {})
         @base.column_exists?(@table_name, column_name, type, options)
       end
 
@@ -386,13 +386,13 @@ module ActiveRecord
       # Removes the given index from the table.
       #
       # ===== Examples
-      # ====== Remove the suppliers_name_index in the suppliers table
-      #   t.remove_index :name
-      # ====== Remove the index named accounts_branch_id_index in the accounts table
+      # ====== Remove the index_table_name_on_column in the table_name table
+      #   t.remove_index :column
+      # ====== Remove the index named index_table_name_on_branch_id in the table_name table
       #   t.remove_index :column => :branch_id
-      # ====== Remove the index named accounts_branch_id_party_id_index in the accounts table
+      # ====== Remove the index named index_table_name_on_branch_id_and_party_id in the table_name table
       #   t.remove_index :column => [:branch_id, :party_id]
-      # ====== Remove the index named by_branch_party in the accounts table
+      # ====== Remove the index named by_branch_party in the table_name table
       #   t.remove_index :name => :by_branch_party
       def remove_index(options = {})
         @base.remove_index(@table_name, options)

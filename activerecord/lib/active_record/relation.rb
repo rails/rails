@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
   # = Active Record Relation
@@ -6,13 +7,13 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :create_with, :from, :reorder]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
     # These are explicitly delegated to improve performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :to => :klass
+    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :connection, :column_hash,:to => :klass
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions, :default_scoped
@@ -29,6 +30,7 @@ module ActiveRecord
       SINGLE_VALUE_METHODS.each {|v| instance_variable_set(:"@#{v}_value", nil)}
       (ASSOCIATION_METHODS + MULTI_VALUE_METHODS).each {|v| instance_variable_set(:"@#{v}_values", [])}
       @extensions = []
+      @create_with_value = {}
     end
 
     def insert(values)
@@ -102,24 +104,30 @@ module ActiveRecord
     def to_a
       return @records if loaded?
 
-      @records = if @readonly_value.nil? && !@klass.locking_enabled?
-        eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
-      else
-        IdentityMap.without do
+      default_scoped = with_default_scope
+
+      if default_scoped.equal?(self)
+        @records = if @readonly_value.nil? && !@klass.locking_enabled?
           eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+        else
+          IdentityMap.without do
+            eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+          end
         end
-      end
 
-      preload = @preload_values
-      preload +=  @includes_values unless eager_loading?
-      preload.each do |associations|
-        ActiveRecord::Associations::Preloader.new(@records, associations).run
-      end
+        preload = @preload_values
+        preload +=  @includes_values unless eager_loading?
+        preload.each do |associations|
+          ActiveRecord::Associations::Preloader.new(@records, associations).run
+        end
 
-      # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
-      # are JOINS and no explicit SELECT.
-      readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
-      @records.each { |record| record.readonly! } if readonly
+        # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
+        # are JOINS and no explicit SELECT.
+        readonly = @readonly_value.nil? ? @implicit_readonly : @readonly_value
+        @records.each { |record| record.readonly! } if readonly
+      else
+        @records = default_scoped.to_a
+      end
 
       @loaded = true
       @records
@@ -242,8 +250,7 @@ module ActiveRecord
     #   Person.update(people.keys, people.values)
     def update(id, attributes)
       if id.is_a?(Array)
-        idx = -1
-        id.collect { |one_id| idx += 1; update(one_id, attributes[idx]) }
+        id.each.with_index.map {|one_id, idx| update(one_id, attributes[idx])}
       else
         object = find(id)
         object.update_attributes(attributes)
@@ -287,7 +294,7 @@ module ActiveRecord
     end
 
     # Destroy an object (or multiple objects) that has the given id, the object is instantiated first,
-    # therefore all callbacks and filters are fired off before the object is deleted.  This method is
+    # therefore all callbacks and filters are fired off before the object is deleted. This method is
     # less efficient than ActiveRecord#delete but allows cleanup methods and other actions to be run.
     #
     # This essentially finds the object (or multiple objects) with the given id, creates a new object
@@ -316,7 +323,7 @@ module ActiveRecord
     # Deletes the records matching +conditions+ without instantiating the records first, and hence not
     # calling the +destroy+ method nor invoking callbacks. This is a single SQL DELETE statement that
     # goes straight to the database, much more efficient than +destroy_all+. Be careful with relations
-    # though, in particular <tt>:dependent</tt> rules defined on associations are not honored.  Returns
+    # though, in particular <tt>:dependent</tt> rules defined on associations are not honored. Returns
     # the number of rows affected.
     #
     # ==== Parameters
@@ -397,11 +404,21 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(@create_with_value || {})
+      @scope_for_create ||= where_values_hash.merge(create_with_value)
     end
 
     def eager_loading?
-      @should_eager_load ||= (@eager_load_values.any? || (@includes_values.any? && references_eager_loaded_tables?))
+      @should_eager_load ||=
+        @eager_load_values.any? ||
+        @includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
+    end
+
+    # Joins that are also marked for preloading. In which case we should just eager load them.
+    # Note that this is a naive implementation because we could have strings and symbols which
+    # represent the same association, but that aren't matched by this. Also, we could have
+    # nested hashes which partially match, e.g. { :a => :b } & { :a => [:b, :c] }
+    def joined_includes_values
+      @includes_values & @joins_values
     end
 
     def ==(other)
@@ -418,9 +435,10 @@ module ActiveRecord
     end
 
     def with_default_scope #:nodoc:
-      if default_scoped?
-        default_scope = @klass.send(:build_default_scope)
-        default_scope ? default_scope.merge(self) : self
+      if default_scoped? && default_scope = klass.send(:build_default_scope)
+        default_scope = default_scope.merge(self)
+        default_scope.default_scoped = false
+        default_scope
       else
         self
       end

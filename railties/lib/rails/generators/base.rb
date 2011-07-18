@@ -259,9 +259,9 @@ module Rails
             extra << false unless Object.method(:const_defined?).arity == 1
 
             # Extract the last Module in the nesting
-            last = nesting.inject(Object) do |last, nest|
-              break unless last.const_defined?(nest, *extra)
-              last.const_get(nest)
+            last = nesting.inject(Object) do |last_module, nest|
+              break unless last_module.const_defined?(nest, *extra)
+              last_module.const_get(nest)
             end
 
             if last && last.const_defined?(last_name.camelize, *extra)

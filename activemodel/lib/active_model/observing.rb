@@ -71,9 +71,7 @@ module ActiveModel
 
       # Notify list of observers of a change.
       def notify_observers(*arg)
-        for observer in observer_instances
-          observer.update(*arg)
-        end
+        observer_instances.each { |observer| observer.update(*arg) }
       end
 
       # Total number of observers.
@@ -127,7 +125,7 @@ module ActiveModel
   #
   #   class CommentObserver < ActiveModel::Observer
   #     def after_save(comment)
-  #       Notifications.deliver_comment("admin@do.com", "New comment was posted", comment)
+  #       Notifications.comment("admin@do.com", "New comment was posted", comment).deliver
   #     end
   #   end
   #

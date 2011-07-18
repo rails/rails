@@ -1,6 +1,5 @@
+require 'action_dispatch/http/mime_type'
 require 'active_support/core_ext/class/attribute_accessors'
-require 'action_view/template'
-require 'action_view/template/handler'
 require 'erubis'
 
 module ActionView

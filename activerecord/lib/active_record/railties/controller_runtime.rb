@@ -32,7 +32,9 @@ module ActiveRecord
 
       def append_info_to_payload(payload)
         super
-        payload[:db_runtime] = db_runtime
+        if ActiveRecord::Base.connected?
+          payload[:db_runtime] = (db_runtime || 0) + ActiveRecord::LogSubscriber.reset_runtime
+        end
       end
 
       module ClassMethods

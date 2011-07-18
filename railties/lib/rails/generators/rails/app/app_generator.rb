@@ -88,6 +88,7 @@ module Rails
     def lib
       empty_directory "lib"
       empty_directory_with_gitkeep "lib/tasks"
+      empty_directory_with_gitkeep "lib/assets"
     end
 
     def log
@@ -116,7 +117,8 @@ module Rails
     end
 
     def tmp
-      empty_directory_with_gitkeep "tmp/cache"
+      empty_directory "tmp/cache"
+      empty_directory "tmp/cache/assets"
     end
 
     def vendor
@@ -272,7 +274,7 @@ module Rails
       end
 
       def app_secret
-        ActiveSupport::SecureRandom.hex(64)
+        SecureRandom.hex(64)
       end
 
       def mysql_socket

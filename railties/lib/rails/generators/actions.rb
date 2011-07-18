@@ -92,14 +92,15 @@ module Rails
       #
       def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i
+        env_file_sentinel = /::Application\.configure do/
         data = block.call if !data && block_given?
 
         in_root do
           if options[:env].nil?
             inject_into_file 'config/application.rb', "\n  #{data}", :after => sentinel, :verbose => false
           else
-            Array.wrap(options[:env]).each do|env|
-              append_file "config/environments/#{env}.rb", "\n#{data}", :verbose => false
+            Array.wrap(options[:env]).each do |env|
+              inject_into_file "config/environments/#{env}.rb", "\n  #{data}", :after => env_file_sentinel, :verbose => false
             end
           end
         end
@@ -114,11 +115,11 @@ module Rails
       #   git :add => "this.file that.rb"
       #   git :add => "onefile.rb", :rm => "badfile.cxx"
       #
-      def git(command={})
-        if command.is_a?(Symbol)
-          run "git #{command}"
+      def git(commands={})
+        if commands.is_a?(Symbol)
+          run "git #{commands}"
         else
-          command.each do |command, options|
+          commands.each do |command, options|
             run "git #{command} #{options}"
           end
         end

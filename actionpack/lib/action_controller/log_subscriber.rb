@@ -10,7 +10,7 @@ module ActionController
       format  = payload[:format]
       format  = format.to_s.upcase if format.is_a?(Symbol)
 
-      info "  Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
+      info "Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
       info "  Parameters: #{params.inspect}" unless params.empty?
     end
 
@@ -20,10 +20,11 @@ module ActionController
 
       status = payload[:status]
       if status.nil? && payload[:exception].present?
-        status = Rack::Utils.status_code(ActionDispatch::ShowExceptions.rescue_responses[payload[:exception].first]) rescue nil 
-      end 
+        status = Rack::Utils.status_code(ActionDispatch::ShowExceptions.rescue_responses[payload[:exception].first]) rescue nil
+      end
       message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in %.0fms" % event.duration
       message << " (#{additions.join(" | ")})" unless additions.blank?
+      message << "\n"
 
       info(message)
     end

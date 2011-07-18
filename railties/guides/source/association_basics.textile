@@ -1120,10 +1120,8 @@ h6(#has_many-collection-find). <tt><em>collection</em>.find(...)</tt>
 The <tt><em>collection</em>.find</tt> method finds objects within the collection. It uses the same syntax and options as +ActiveRecord::Base.find+.
 
 <ruby>
-@open_orders = @customer.orders.all(:conditions => "open = 1")
+@open_orders = @customer.orders.where(:open => 1)
 </ruby>
-
-NOTE: Starting Rails 3, supplying options to +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
 
 h6(#has_many-collection-where). <tt><em>collection</em>.where(...)</tt>
 

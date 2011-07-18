@@ -18,16 +18,15 @@ module ActiveRecord
       end
 
       def create(attributes = {}, options = {}, &block)
-        build(attributes, options, &block).tap { |record| record.save }
+        create_record(attributes, options, &block)
       end
 
       def create!(attributes = {}, options = {}, &block)
-        build(attributes, options, &block).tap { |record| record.save! }
+        create_record(attributes, options, true, &block)
       end
 
       def build(attributes = {}, options = {})
-        record = reflection.build_association(attributes, options)
-        record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
+        record = build_record(attributes, options)
         yield(record) if block_given?
         set_new_record(record)
         record
@@ -50,6 +49,15 @@ module ActiveRecord
 
         def set_new_record(record)
           replace(record)
+        end
+
+        def create_record(attributes, options, raise_error = false)
+          record = build_record(attributes, options)
+          yield(record) if block_given?
+          saved = record.save
+          set_new_record(record)
+          raise RecordInvalid.new(record) if !saved && raise_error
+          record
         end
     end
   end

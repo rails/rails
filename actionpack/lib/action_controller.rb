@@ -37,30 +37,16 @@ module ActionController
     autoload :UrlFor
   end
 
-  autoload :Integration,     'action_controller/deprecated/integration_test'
-  autoload :IntegrationTest, 'action_controller/deprecated/integration_test'
-  autoload :PerformanceTest, 'action_controller/deprecated/performance_test'
-  autoload :UrlWriter,       'action_controller/deprecated'
-  autoload :Routing,         'action_controller/deprecated'
-  autoload :TestCase,        'action_controller/test_case'
+  autoload :Integration,        'action_controller/deprecated/integration_test'
+  autoload :IntegrationTest,    'action_controller/deprecated/integration_test'
+  autoload :PerformanceTest,    'action_controller/deprecated/performance_test'
+  autoload :UrlWriter,          'action_controller/deprecated'
+  autoload :Routing,            'action_controller/deprecated'
+  autoload :TestCase,           'action_controller/test_case'
+  autoload :TemplateAssertions, 'action_controller/test_case'
 
   eager_autoload do
     autoload :RecordIdentifier
-
-    # TODO: Don't autoload exceptions, setup explicit
-    # requires for files that need them
-    autoload_at "action_controller/metal/exceptions" do
-      autoload :ActionControllerError
-      autoload :RenderError
-      autoload :RoutingError
-      autoload :MethodNotAllowed
-      autoload :NotImplemented
-      autoload :UnknownController
-      autoload :MissingFile
-      autoload :RenderError
-      autoload :SessionOverflowError
-      autoload :UnknownHttpMethod
-    end
   end
 end
 

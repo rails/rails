@@ -1,18 +1,26 @@
+*Rails 3.2.0 (unreleased)*
+
+* Attributes on scaffold and model generators default to string. This allows the following: "rails g scaffold Post title body:text author" [José Valim]
+
+* Removed old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command. [Guillermo Iguaran]
+
+* Removed old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API. [Guillermo Iguaran]
+
 *Rails 3.1.0 (unreleased)*
+
+* Make sprockets/railtie require explicit and add --skip-sprockets to app generator [José Valim]
+
+* Added Rails.groups that automatically handles Rails.env and ENV["RAILS_GROUPS"] [José Valim]
+
+* The new rake task assets:clean removes precompiled assets. [fxn]
 
 * Application and plugin generation run bundle install unless --skip-gemfile or --skip-bundle. [fxn]
 
-* Fixed database tasks for jdbc* adapters #jruby
+* Fixed database tasks for jdbc* adapters #jruby [Rashmi Yadav]
 
-  [Rashmi Yadav]
+* Template generation for jdbcpostgresql  #jruby [Vishnu Atrai]
 
-* Template generation for jdbcpostgresql  #jruby
-
-  [Vishnu Atrai]
-
-* Template generation for jdbcmysql and jdbcsqlite3 #jruby
-
-  [Arun Agrawal]
+* Template generation for jdbcmysql and jdbcsqlite3 #jruby [Arun Agrawal]
 
 * The -j option of the application generator accepts an arbitrary string. If passed "foo",
 the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest

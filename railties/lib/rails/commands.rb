@@ -15,15 +15,15 @@ command = aliases[command] || command
 
 case command
 when 'generate', 'destroy', 'plugin'
+  require 'rails/generators'
+
   if command == 'plugin' && ARGV.first == 'new'
     require "rails/commands/plugin_new"
   else
     require APP_PATH
     Rails.application.require_environment!
 
-    if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
-      Rails.application = engine
-    end
+    Rails.application.load_generators
 
     require "rails/commands/#{command}"
   end
@@ -91,7 +91,7 @@ In addition to those, there are:
  benchmarker  See how fast a piece of code runs
  profiler     Get profile information from a piece of code
  plugin       Install a plugin
- runner       Run a piece of code in the application environment
+ runner       Run a piece of code in the application environment (short-cut alias: "r")
 
 All commands can be run with -h for more information.
   EOT

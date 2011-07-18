@@ -23,7 +23,8 @@ module Rails
         opt.parse!(ARGV)
       end
 
-      @app.load_console(options[:sandbox])
+      @app.sandbox = options[:sandbox]
+      @app.load_console
 
       if options[:debugger]
         begin

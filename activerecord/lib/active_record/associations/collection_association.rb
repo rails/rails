@@ -50,7 +50,7 @@ module ActiveRecord
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
 
-          scoped.select(column).except(:includes).map! do |record|
+          scoped.select(column).map! do |record|
             record.send(reflection.association_primary_key)
           end
         end
@@ -78,10 +78,14 @@ module ActiveRecord
       end
 
       def find(*args)
-        if options[:finder_sql]
-          find_by_scan(*args)
+        if block_given?
+          load_target.find(*args) { |*block_args| yield(*block_args) }
         else
-          scoped.find(*args)
+          if options[:finder_sql]
+            find_by_scan(*args)
+          else
+            scoped.find(*args)
+          end
         end
       end
 
@@ -104,44 +108,23 @@ module ActiveRecord
       end
 
       def create(attributes = {}, options = {}, &block)
-        unless owner.persisted?
-          raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
-        end
-
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr, options, &block) }
-        else
-          transaction do
-            add_to_target(build_record(attributes, options)) do |record|
-              yield(record) if block_given?
-              insert_record(record)
-            end
-          end
-        end
+        create_record(attributes, options, &block)
       end
 
-      def create!(attrs = {}, options = {}, &block)
-        record = create(attrs, options, &block)
-        Array.wrap(record).each(&:save!)
-        record
+      def create!(attributes = {}, options = {}, &block)
+        create_record(attributes, options, true, &block)
       end
 
-      # Add +records+ to this association.  Returns +self+ so method calls may be chained.
+      # Add +records+ to this association. Returns +self+ so method calls may be chained.
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
-        result = true
         load_target if owner.new_record?
 
-        transaction do
-          records.flatten.each do |record|
-            raise_on_type_mismatch(record)
-            add_to_target(record) do |r|
-              result &&= insert_record(record) unless owner.new_record?
-            end
-          end
+        if owner.new_record?
+          concat_records(records)
+        else
+          transaction { concat_records(records) }
         end
-
-        result && records
       end
 
       # Starts a transaction in the association class's database connection.
@@ -310,14 +293,10 @@ module ActiveRecord
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
 
-        transaction do
-          delete(target - other_array)
-
-          unless concat(other_array - target)
-            @target = original_target
-            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
-                                  "new records could not be saved."
-          end
+        if owner.new_record?
+          replace_records(other_array, original_target)
+        else
+          transaction { replace_records(other_array, original_target) }
         end
       end
 
@@ -402,9 +381,13 @@ module ActiveRecord
           return memory    if persisted.empty?
 
           persisted.map! do |record|
-            mem_record = memory.delete(record)
+            # Unfortunately we cannot simply do memory.delete(record) since on 1.8 this returns
+            # record rather than memory.at(memory.index(record)). The behaviour is fixed in 1.9.
+            mem_index = memory.index(record)
 
-            if mem_record
+            if mem_index
+              mem_record = memory.delete_at(mem_index)
+
               (record.attribute_names - mem_record.changes.keys).each do |name|
                 mem_record[name] = record[name]
               end
@@ -418,8 +401,25 @@ module ActiveRecord
           persisted + memory
         end
 
+        def create_record(attributes, options, raise = false, &block)
+          unless owner.persisted?
+            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+          end
+
+          if attributes.is_a?(Array)
+            attributes.collect { |attr| create_record(attr, options, raise, &block) }
+          else
+            transaction do
+              add_to_target(build_record(attributes, options)) do |record|
+                yield(record) if block_given?
+                insert_record(record, true, raise)
+              end
+            end
+          end
+        end
+
         # Do the relevant stuff to insert the given record into the association collection.
-        def insert_record(record, validate = true)
+        def insert_record(record, validate = true, raise = false)
           raise NotImplementedError
         end
 
@@ -427,32 +427,54 @@ module ActiveRecord
           scoped.scope_for_create.stringify_keys
         end
 
-        def build_record(attributes, options)
-          record = reflection.build_association(attributes, options)
-          record.assign_attributes(create_scope.except(*record.changed), :without_protection => true)
-          record.assign_attributes(attributes, options)
-          record
-        end
-
         def delete_or_destroy(records, method)
           records = records.flatten
           records.each { |record| raise_on_type_mismatch(record) }
           existing_records = records.reject { |r| r.new_record? }
 
-          transaction do
-            records.each { |record| callback(:before_remove, record) }
-
-            delete_records(existing_records, method) if existing_records.any?
-            records.each { |record| target.delete(record) }
-
-            records.each { |record| callback(:after_remove, record) }
+          if existing_records.empty?
+            remove_records(existing_records, records, method)
+          else
+            transaction { remove_records(existing_records, records, method) }
           end
+        end
+
+        def remove_records(existing_records, records, method)
+          records.each { |record| callback(:before_remove, record) }
+
+          delete_records(existing_records, method) if existing_records.any?
+          records.each { |record| target.delete(record) }
+
+          records.each { |record| callback(:after_remove, record) }
         end
 
         # Delete the given records from the association, using one of the methods :destroy,
         # :delete_all or :nullify (or nil, in which case a default is used).
         def delete_records(records, method)
           raise NotImplementedError
+        end
+
+        def replace_records(new_target, original_target)
+          delete(target - new_target)
+
+          unless concat(new_target - target)
+            @target = original_target
+            raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
+                                  "new records could not be saved."
+          end
+        end
+
+        def concat_records(records)
+          result = true
+
+          records.flatten.each do |record|
+            raise_on_type_mismatch(record)
+            add_to_target(record) do |r|
+              result &&= insert_record(record) unless owner.new_record?
+            end
+          end
+
+          result && records
         end
 
         def callback(method, record)

@@ -103,7 +103,7 @@ class Date
   alias_method :minus_without_duration, :-
   alias_method :-, :minus_with_duration
 
-  # Provides precise Date calculations for years, months, and days.  The +options+ parameter takes a hash with
+  # Provides precise Date calculations for years, months, and days. The +options+ parameter takes a hash with
   # any of these keys: <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>.
   def advance(options)
     options = options.dup

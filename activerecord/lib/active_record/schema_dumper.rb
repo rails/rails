@@ -106,7 +106,7 @@ HEADER
             spec = {}
             spec[:name]      = column.name.inspect
 
-            # AR has an optimisation which handles zero-scale decimals as integers.  This
+            # AR has an optimization which handles zero-scale decimals as integers. This
             # code ensures that the dumper still dumps the column as a decimal.
             spec[:type]      = if column.type == :integer && [/^numeric/, /^decimal/].any? { |e| e.match(column.sql_type) }
                                  'decimal'

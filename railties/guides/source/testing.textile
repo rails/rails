@@ -929,8 +929,8 @@ class UserControllerTest < ActionController::TestCase
     end
     invite_email = ActionMailer::Base.deliveries.first
 
-    assert_equal invite_email.subject, "You have been invited by me@example.com"
-    assert_equal invite_email.to[0], 'friend@example.com'
+    assert_equal "You have been invited by me@example.com", invite_email.subject
+    assert_equal 'friend@example.com', invite_email.to[0]
     assert_match /Hi friend@example.com/, invite_email.body
   end
 end
@@ -944,7 +944,7 @@ The built-in +test/unit+ based testing is not the only way to test Rails applica
 * "Factory Girl":https://github.com/thoughtbot/factory_girl/tree/master, a replacement for fixtures.
 * "Machinist":https://github.com/notahat/machinist/tree/master, another replacement for fixtures.
 * "Shoulda":http://www.thoughtbot.com/projects/shoulda, an extension to +test/unit+ with additional helpers, macros, and assertions.
-* "RSpec":http://rspec.info/, a behavior-driven development framework
+* "RSpec":http://relishapp.com/rspec, a behavior-driven development framework
 
 h3. Changelog
 

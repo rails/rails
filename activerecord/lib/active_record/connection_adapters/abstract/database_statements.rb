@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/deprecation'
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
@@ -42,7 +40,7 @@ module ActiveRecord
       undef_method :execute
 
       # Executes +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes.  +name+ is logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [])
       end
@@ -245,38 +243,13 @@ module ActiveRecord
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
 
-      # Appends +LIMIT+ and +OFFSET+ options to an SQL statement, or some SQL
-      # fragment that has the same semantics as LIMIT and OFFSET.
-      #
-      # +options+ must be a Hash which contains a +:limit+ option
-      # and an +:offset+ option.
-      #
-      # This method *modifies* the +sql+ parameter.
-      #
-      # This method is deprecated!! Stop using it!
-      #
-      # ===== Examples
-      #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
-      # generates
-      #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
-      def add_limit_offset!(sql, options)
-        if limit = options[:limit]
-          sql << " LIMIT #{sanitize_limit(limit)}"
-        end
-        if offset = options[:offset]
-          sql << " OFFSET #{offset.to_i}"
-        end
-        sql
-      end
-      deprecate :add_limit_offset!
-
       def default_sequence_name(table, column)
         nil
       end
 
       # Set the sequence to the max value of the table's column.
       def reset_sequence!(table, column, sequence = nil)
-        # Do nothing by default.  Implement for PostgreSQL, Oracle, ...
+        # Do nothing by default. Implement for PostgreSQL, Oracle, ...
       end
 
       # Inserts the given fixture into the table. Overridden in adapters that require
@@ -308,10 +281,10 @@ module ActiveRecord
       # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
       #
       # The +limit+ may be anything that can evaluate to a string via #to_s. It
-      # should look like an integer, or a comma-delimited list of integers, or 
+      # should look like an integer, or a comma-delimited list of integers, or
       # an Arel SQL literal.
       #
-      # Returns Integer and Arel::Nodes::SqlLiteral limits as is. 
+      # Returns Integer and Arel::Nodes::SqlLiteral limits as is.
       # Returns the sanitized limit parameter, either as an integer, or as a
       # string which contains a comma-delimited list of integers.
       def sanitize_limit(limit)

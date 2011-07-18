@@ -714,6 +714,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [categories(:general).id], authors(:mary).categories_like_general_ids
   end
 
+  def test_get_collection_singular_ids_on_has_many_through_with_conditions_and_include
+    person = Person.first
+    assert_equal person.posts_with_no_comment_ids, person.posts_with_no_comments.map(&:id)
+  end
+
   def test_count_has_many_through_with_named_scope
     assert_equal 2, authors(:mary).categories.count
     assert_equal 1, authors(:mary).categories.general.count
@@ -765,5 +770,47 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [category], post.named_categories
     assert_equal [category.name], post.named_category_ids # checks when target loaded
     assert_equal [category.name], post.reload.named_category_ids # checks when target no loaded
+  end
+
+  def test_create_should_not_raise_exception_when_join_record_has_errors
+    repair_validations(Categorization) do
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      Category.create(:name => 'Fishing', :authors => [Author.first])
+    end
+  end
+
+  def test_save_should_not_raise_exception_when_join_record_has_errors
+    repair_validations(Categorization) do
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      c = Category.create(:name => 'Fishing', :authors => [Author.first])
+      c.save
+    end
+  end
+
+  def test_create_bang_should_raise_exception_when_join_record_has_errors
+    repair_validations(Categorization) do
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      assert_raises(ActiveRecord::RecordInvalid) do
+        Category.create!(:name => 'Fishing', :authors => [Author.first])
+      end
+    end
+  end
+
+  def test_save_bang_should_raise_exception_when_join_record_has_errors
+    repair_validations(Categorization) do
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      c = Category.new(:name => 'Fishing', :authors => [Author.first])
+      assert_raises(ActiveRecord::RecordInvalid) do
+        c.save!
+      end
+    end
+  end
+
+  def test_create_bang_returns_falsy_when_join_record_has_errors
+    repair_validations(Categorization) do
+      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
+      c = Category.new(:name => 'Fishing', :authors => [Author.first])
+      assert !c.save
+    end
   end
 end

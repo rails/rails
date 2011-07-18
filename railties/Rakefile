@@ -1,6 +1,6 @@
 #!/usr/bin/env rake
 require 'rake/testtask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 
 require 'date'
 require 'rbconfig'
@@ -55,7 +55,7 @@ end
 
 spec = eval(File.read('railties.gemspec'))
 
-Rake::GemPackageTask.new(spec) do |pkg|
+Gem::PackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 

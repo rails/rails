@@ -11,33 +11,8 @@ class TimestampTest < ActiveRecord::TestCase
 
   def setup
     @developer = Developer.first
+    @developer.update_attribute(:updated_at, Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
-  end
-
-  def test_load_infinity_and_beyond
-    unless current_adapter?(:PostgreSQLAdapter)
-      return skip("only tested on postgresql")
-    end
-
-    d = Developer.find_by_sql("select 'infinity'::timestamp as updated_at")
-    assert d.first.updated_at.infinite?, 'timestamp should be infinite'
-
-    d = Developer.find_by_sql("select '-infinity'::timestamp as updated_at")
-    time = d.first.updated_at
-    assert time.infinite?, 'timestamp should be infinite'
-    assert_operator time, :<, 0
-  end
-
-  def test_save_infinity_and_beyond
-    unless current_adapter?(:PostgreSQLAdapter)
-      return skip("only tested on postgresql")
-    end
-
-    d = Developer.create!(:name => 'aaron', :updated_at => 1.0 / 0.0)
-    assert_equal(1.0 / 0.0, d.updated_at)
-
-    d = Developer.create!(:name => 'aaron', :updated_at => -1.0 / 0.0)
-    assert_equal(-1.0 / 0.0, d.updated_at)
   end
 
   def test_saving_a_changed_record_updates_its_timestamp
@@ -64,6 +39,15 @@ class TimestampTest < ActiveRecord::TestCase
     assert @developer.changed?, 'developer should be marked as changed'
     @developer.reload
     assert_equal previous_salary, @developer.salary
+  end
+
+  def test_touching_a_record_with_default_scope_that_excludes_it_updates_its_timestamp
+    developer = @developer.becomes(DeveloperCalledJamis)
+
+    developer.touch
+    assert_not_equal @previously_updated_at, developer.updated_at
+    developer.reload
+    assert_not_equal @previously_updated_at, developer.updated_at
   end
 
   def test_saving_when_record_timestamps_is_false_doesnt_update_its_timestamp

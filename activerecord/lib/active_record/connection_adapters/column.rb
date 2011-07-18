@@ -1,3 +1,5 @@
+require 'set'
+
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
@@ -189,7 +191,7 @@ module ActiveRecord
 
           def new_time(year, mon, mday, hour, min, sec, microsec)
             # Treat 0000-00-00 00:00:00 as nil.
-            return nil if year.nil? || year == 0
+            return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
 
             Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end

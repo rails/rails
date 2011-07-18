@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'test/unit'
-require 'active_support'
 
 module CallbacksTest
   class Phone

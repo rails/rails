@@ -30,7 +30,7 @@ module ActiveRecord
         @updated = false
 
         reset
-        construct_scope
+        reset_scope
       end
 
       # Returns the name of the table of the related class:
@@ -51,7 +51,7 @@ module ActiveRecord
       # Reloads the \target and returns +self+ on success.
       def reload
         reset
-        construct_scope
+        reset_scope
         load_target
         self unless target.nil?
       end
@@ -84,19 +84,23 @@ module ActiveRecord
       end
 
       def scoped
-        target_scope.merge(@association_scope)
+        target_scope.merge(association_scope)
       end
 
-      # Construct the scope for this association.
+      # The scope for this association.
       #
       # Note that the association_scope is merged into the target_scope only when the
       # scoped method is called. This is because at that point the call may be surrounded
       # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
       # actually gets built.
-      def construct_scope
+      def association_scope
         if klass
-          @association_scope = AssociationScope.new(self).scope
+          @association_scope ||= AssociationScope.new(self).scope
         end
+      end
+
+      def reset_scope
+        @association_scope = nil
       end
 
       # Set the inverse association, if possible
@@ -141,7 +145,7 @@ module ActiveRecord
             @target ||= find_target
           end
         end
-        loaded!
+        loaded! unless loaded?
         target
       rescue ActiveRecord::RecordNotFound
         reset
@@ -177,9 +181,7 @@ module ActiveRecord
 
         # Sets the owner attributes on the given record
         def set_owner_attributes(record)
-          if owner.persisted?
-            creation_attributes.each { |key, value| record[key] = value }
-          end
+          creation_attributes.each { |key, value| record[key] = value }
         end
 
         # Should be true if there is a foreign key present on the owner which
@@ -225,6 +227,15 @@ module ActiveRecord
 
         def association_class
           @reflection.klass
+        end
+
+        def build_record(attributes, options)
+          reflection.build_association(attributes, options) do |record|
+            record.assign_attributes(
+              create_scope.except(*record.changed),
+              :without_protection => true
+            )
+          end
         end
     end
   end
