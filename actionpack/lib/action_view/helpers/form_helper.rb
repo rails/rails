@@ -49,7 +49,7 @@ module ActionView
     #     <label for="person_last_name">Last name</label>:
     #     <input id="person_last_name" name="person[last_name]" size="30" type="text" /><br />
     #
-    #     <input id="person_submit" name="commit" type="submit" value="Create Person" />
+    #     <input name="commit" type="submit" value="Create Person" />
     #   </form>
     #
     # As you see, the HTML reflects knowledge about the resource in several spots,
@@ -80,7 +80,7 @@ module ActionView
     #     <label for="person_last_name">Last name</label>:
     #     <input id="person_last_name" name="person[last_name]" size="30" type="text" value="Smith" /><br />
     #
-    #     <input id="person_submit" name="commit" type="submit" value="Update Person" />
+    #     <input name="commit" type="submit" value="Update Person" />
     #   </form>
     #
     # Note that the endpoint, default values, and submit button label are tailored for <tt>@person</tt>.
