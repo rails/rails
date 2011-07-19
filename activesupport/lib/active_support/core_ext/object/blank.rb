@@ -99,7 +99,12 @@ class String
   #   " something here ".blank? # => false
   #
   def blank?
-    self !~ NON_WHITESPACE_REGEXP
+    # 1.8 does not takes [:space:] properly
+    if encoding_aware?
+      self !~ /[^[:space:]]/
+    else
+      self !~ NON_WHITESPACE_REGEXP
+    end
   end
 end
 
