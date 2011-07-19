@@ -109,7 +109,6 @@ module ActiveSupport #:nodoc:
       end
     end
     alias << concat
-    alias :append= :concat
 
     def +(other)
       dup.concat(other)
