@@ -755,6 +755,11 @@ module NestedAttributesOnACollectionAssociationTests
     Interest.reflect_on_association(:man).options[:inverse_of] = :interests
   end
 
+  def test_can_use_symbols_as_object_identifier
+    @pirate.attributes = { :parrots_attributes => { :foo => { :name => 'Lovely Day' }, :bar => { :name => 'Blown Away' } } }
+    assert_nothing_raised(NoMethodError) { @pirate.save! }
+  end
+
   private
 
   def association_setter
