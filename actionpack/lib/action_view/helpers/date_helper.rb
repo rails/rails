@@ -8,7 +8,7 @@ module ActionView
   module Helpers
     # = Action View Date Helpers
     #
-    # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time 
+    # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
@@ -343,8 +343,8 @@ module ActionView
 
       # Returns a set of html select-tags (one for year, month, and day) pre-selected with the +date+.
       # It's possible to explicitly set the order of the tags using the <tt>:order</tt> option with an array of
-      # symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order. If you do not supply a symbol
-      # then all tags will be hidden.
+      # symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order.
+      # If the array passed to the <tt>:order</tt> option does not contain all the three symbols, all tags will be hidden.
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
