@@ -405,7 +405,4 @@ A good example of this is the +jquery-rails+ gem which comes with Rails as the s
 
 h3. Making Your Library or Gem a Pre-Processor
 
-"You should be able to register [your gems] on "Tilt":Tilt and Sprockets will find them." - Josh
-[Tilt]https://github.com/rtomayko/tilt
-
-
+TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sprockets to find them.
