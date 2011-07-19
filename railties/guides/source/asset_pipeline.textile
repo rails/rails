@@ -11,7 +11,7 @@ By referring to this guide you will be able to:
 
 endprologue.
 
-h3. What Is The Asset Pipeline?
+h3. What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress Javascript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, SCSS and ERB.
 
@@ -38,7 +38,7 @@ The second feature is to minify or compress. For CSS, this usually involves remo
 
 The third feature is the ability to code these assets using another language, or language extension. These include SCSS or Sass for CSS, CoffeeScript for Javascript, and ERB for both.
 
-h4. What is fingerprinting and why should I care?
+h4. What is Fingerprinting and Why Should I Care?
 
 Fingerprinting is a technique where the filenames of content that is static or infrequently updated is altered to be unique to the content contained in the file.
 
@@ -105,7 +105,7 @@ Assets can be placed inside an application in one of three locations: +app/asset
 
 All subdirectories that exist within these three locations will be added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths will be looked through to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and served.
 
-h4. Coding links to Assets
+h4. Coding Links to Assets
 
 To access assets, we can use the same tags that we are generally familiar with:
 
@@ -259,7 +259,7 @@ Sprockets also sets the +Cache-Control+ http header to +max-age=31536000+. This 
 
 This behavior is controlled by the setting of +config.action_controller.perform_caching+ setting in Rails (which is +true+ for production, +false+ for everything else). This value is propagated to Sprockets during initialization for use when action_controller is not available.
 
-h4. Precompiling assets
+h4. Precompiling Assets
 
 Even though assets are served by Rack::Cache with far-future headers, in high traffic sites this may not be fast enough.
 
@@ -320,7 +320,7 @@ When files are precompiled Sprockets also creates "Gzip":http://en.wikipedia.org
 TODO: Apache instructions
 
 
-h3. Customizing The Pipeline
+h3. Customizing the Pipeline
 
 
 h4. CSS Compression
@@ -349,7 +349,7 @@ config.assets.js_compressor  = :uglifier
 
 The +config.assets.compress+ must be set to +true+ to enable Javascript compression
 
-h4. Using your own compressor
+h4. Using Your Own Compressor
 
 The compressor config settings for CSS and Javascript will also take any Object. This object must have a +compress+ method that takes a string as the sole argument and it must return a string.
 
@@ -368,7 +368,7 @@ config.assets.css_compressor = Transformer.new
 </erb>
 
 
-h4. Changing the _assets_ path
+h4. Changing the _assets_ Path
 
 The public path that Sprockets uses by default is +/assets+.
 
@@ -380,7 +380,7 @@ config.assets.prefix = "/some_other_path"
 
 This is a handy option if you have any existing project (pre Rails 3.1) that already uses this path or you wish to use this path for a new resource.
 
-h4. X-Sendfile headers
+h4. X-Sendfile Headers
 
 The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. In production Rails (via Sprockets) does not send the asset - just the location and a zero-length response - relying on the server to do work. Files are faster served by the webserver. Both Apache and nginx support this option.
 
@@ -394,7 +394,7 @@ You should check that your server or hosting service actually supports this, oth
 
 Gotcha: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+ ).
 
-h3. How caching works
+h3. How Caching Works
 
 Sprockets uses the default rails cache store to cache assets in dev and production. The only difference is filenames are fingerprinted and get far-future headers in production.
 
