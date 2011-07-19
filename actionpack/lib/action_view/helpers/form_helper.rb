@@ -864,7 +864,7 @@ module ActionView
       # some browsers
       #
       # ==== Examples
-      #   
+      #
       #   search_field(:user, :name)
       #   # => <input id="user_name" name="user[name]" size="30" type="search" />
       #   search_field(:user, :name, :autosave => false)
@@ -900,7 +900,7 @@ module ActionView
 
       # Returns a text_field of type "tel".
       #
-      #   telephone_field("user", "phone")  
+      #   telephone_field("user", "phone")
       #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
 
       def telephone_field(object_name, method, options = {})
