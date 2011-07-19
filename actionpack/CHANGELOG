@@ -1,5 +1,7 @@
 *Rails 3.1.0 (unreleased)*
 
+* The submit form helper does not generate an id "object_name_id" anymore. [fbrusatti]
+
 * Make sure respond_with with :js tries to render a template in all cases [José Valim]
 
 * json_escape will now return a SafeBuffer string if it receives SafeBuffer string [tenderlove]
