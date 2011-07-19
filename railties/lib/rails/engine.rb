@@ -73,7 +73,7 @@ module Rails
   # == Paths
   #
   # Since Rails 3.0, applications and engines have more flexible path configuration (as
-  # opposed to the previous hardcoded path configuration).  This means that you are not
+  # opposed to the previous hardcoded path configuration). This means that you are not
   # required to place your controllers at <tt>app/controllers</tt>, but in any place
   # which you find convenient.
   #
