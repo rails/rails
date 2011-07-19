@@ -13,7 +13,7 @@ endprologue.
 
 h3. What is the Asset Pipeline?
 
-The asset pipeline provides a framework to concatenate and minify or compress Javascript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, SCSS and ERB.
+The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, SCSS and ERB.
 
 Prior to Rails 3.1 these features were added through third-party Ruby libraries such as Jammit and Sprockets. Rails 3.1 includes the +sprockets-rails+ gem, which depends on the +sprockets+ gem, by default.
 
@@ -22,7 +22,7 @@ By having this as a core feature of Rails, all developers can benefit from the p
 In new Rails 3.1 application the asset pipeline is enable by default. It can be disabled in +application.rb+ by putting this line inside the +Application+ class definition:
 
 <plain>
-  config.assets.enabled = false
+config.assets.enabled = false
 </plain>
 
 It is recommended that you use the defaults for all new apps.
@@ -36,7 +36,7 @@ The default behavior in Rails 3.1 and onward is to concatenate all files into on
 
 The second feature is to minify or compress. For CSS, this usually involves removing whitespace and comments. For JavaScript, more complex processes can be applied. You can choose from a set of built in options or specify your own.
 
-The third feature is the ability to code these assets using another language, or language extension. These include SCSS or Sass for CSS, CoffeeScript for Javascript, and ERB for both.
+The third feature is the ability to code these assets using another language, or language extension. These include SCSS or Sass for CSS, CoffeeScript for JavaScript, and ERB for both.
 
 h4. What is Fingerprinting and Why Should I Care?
 
@@ -63,19 +63,17 @@ This has several disadvantages:
 <ol>
   <li>
     <strong>Not all caches will cache content with a query string</strong><br>
-
     "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in these case 5-20% of requests will not be cached.
   </li>
-  
   <li>
-    <strong>The filename can change between nodes in multi-server environments.</strong><br>
-    The query string in Rails is based on the files mtime (mtime is the file modification time). When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
+    <strong>The file name can change between nodes in multi-server environments.</strong><br>
+    The query string in Rails is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
   </li>
 </ol>
 
-The other problems is that when static assets are deployed with each new release of code, the mtime of *all* these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
+The other problem is that when static assets are deployed with each new release of code, the mtime of *all* these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
-Fingerprinting avoids all these problems be ensuring filenames are consistent based on the content.
+Fingerprinting avoids all these problems by ensuring filenames are consistent based on the content.
 
 More reading:
 
@@ -112,20 +110,20 @@ To access assets, we can use the same tags that we are generally familiar with:
 Sprockets does not add any new methods to require your assets, we still use the familiar +javascript_include_tag+ and +stylesheet_link_tag+.
 
 <erb>
-  <%= stylesheet_link_tag "application" %>
-  <%= javascript_include_tag "application" %>
+<%= stylesheet_link_tag "application" %>
+<%= javascript_include_tag "application" %>
 </erb>
 
 In regular views you can access images in the +assets/images+ directory like this:
 
 <erb>
-  <%= image_tag "rails.png" %>
+<%= image_tag "rails.png" %>
 </erb>
 
 Images can be organized into directories if required, and they can be accessed by specifying the directory's name in the tag:
 
 <erb>
-  <%= image_tag "icons/rails.png" %>
+<%= image_tag "icons/rails.png" %>
 </erb>
 
 Providing that assets are enabled within our application (+config.assets.enabled+ in the current environment's file is not set to +false+), this file will be served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file will be served.
@@ -134,22 +132,21 @@ Alternatively, a file with an MD5 hash after its name such as +public/assets/rai
 
 Otherwise, Sprockets will look through the available paths until it finds a file that matches the name and then will serve it, first looking in the application's assets directories and then falling back to the various engines of the application.
 
-If you want to use a "css data uri":http://en.wikipedia.org/wiki/Data_URI_scheme - a method of embedding the image data directly into the CSS file - you can use the +asset_data_uri+ helper.
+If you want to use a "css data URI":http://en.wikipedia.org/wiki/Data_URI_scheme - a method of embedding the image data directly into the CSS file - you can use the +asset_data_uri+ helper.
 
-<css>
-  #logo { background: url(<%= asset_data_uri 'logo.png' %>)
-</css>
+<plain>
+#logo { background: url(<%= asset_data_uri 'logo.png' %>)
+</plain>
 
-This will insert a correctly formatted data uri into the CSS source.
-
+This will insert a correctly formatted data URI into the CSS source.
 
 h5. CSS and ERB
 
 If you add an +erb+ extension to a CSS asset, making it something such as +application.css.erb+ then you can use the +asset_path+ helper in your CSS rules:
 
-<css>
+<plain>
 .class{background-image:<%= asset_path 'image.png' %>}
-</css>
+</plain>
 
 This will write the path to the particular asset being referenced. In this example, it would make sense to have an image in one of the asset load paths, such as +app/assets/images/image.png+, which would be referenced here. If this image is already available in +public/assets+ as a fingerprinted file then that path will be referenced.
 
@@ -237,15 +234,15 @@ You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL and Sp
 By default, this would only render this line when used with +<%= javascript_include_tag "application" %>+ in a view or layout:
 
 <html>
-  <script src='/assets/application.js'></script>
+<script src='/assets/application.js'></script>
 </html>
 
 When the +debug_assets+ parameter is set, this line will be expanded out into three separate lines, separating out the combined file into their parts.
 
 <html>
-  <script src='/assets/application.js'></script>
-  <script src='/assets/projects.js'></script>
-  <script src='/assets/tickets.js'></script>
+<script src='/assets/application.js'></script>
+<script src='/assets/projects.js'></script>
+<script src='/assets/tickets.js'></script>
 </html>
 
 This allows the individual parts of an asset to be rendered and debugged separately.
@@ -287,7 +284,7 @@ before 'deploy:symlink' do
 end
 </erb>
 
-If you are not precompiling your assets, and you are using the default cache file store (which is the filesystem), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure. This is so the cached file persist between deployments.
+If you are not precompiling your assets, and you are using the default cache file store (which is the file system), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure in order to persist the cached file between deployments.
 
 TODO: Extend above task to allow for this and add task to set it up (See commits 8f0e0b6 and 704ee0df). Note: Capistrano folks are working on a recipe - update this when it available (see https://github.com/capistrano/capistrano/pull/35).
 
@@ -297,7 +294,7 @@ The default matcher for compiling files will include +application.js+, +applicat
 [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
 </ruby>
 
-If you have other manifests or individual stylesheet and javascript files to include, you can append them to the +precompile+ array:
+If you have other manifests or individual stylesheets and JavaScript files to include, you can append them to the +precompile+ array:
 
 <erb>
 config.assets.precompile << ['admin.js', 'admin.css', 'swfObject.js']
@@ -343,23 +340,23 @@ config.assets.css_compressor = :yui
 
 The +config.assets.compress+ must be set to +true+ to enable CSS compression
 
-h4. Javascript
+h4. JavaScript
 
-Possible options for Javascript compression are +:closure+, +:uglifier+ and +:yui+. These require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems respectively.
+Possible options for JavaScript compression are +:closure+, +:uglifier+ and +:yui+. These require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems respectively.
 
 The default Gemfile includes "uglifier":https://github.com/lautis/uglifier. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your +if+ and +else+ statements to ternary operators where possible.
 
-The following line will invoke uglifier for Javascript compression.
+The following line will invoke uglifier for JavaScript compression.
 
 <erb>
 config.assets.js_compressor  = :uglifier
 </erb>
 
-The +config.assets.compress+ must be set to +true+ to enable Javascript compression
+The +config.assets.compress+ must be set to +true+ to enable JavaScript compression
 
 h4. Using Your Own Compressor
 
-The compressor config settings for CSS and Javascript will also take any Object. This object must have a +compress+ method that takes a string as the sole argument and it must return a string.
+The compressor config settings for CSS and JavaScript will also take any Object. This object must have a +compress+ method that takes a string as the sole argument and it must return a string.
 
 <erb>
 class Transformer
@@ -390,9 +387,9 @@ This is a handy option if you have any existing project (pre Rails 3.1) that alr
 
 h4. X-Sendfile Headers
 
-The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. In production Rails (via Sprockets) does not send the asset - just the location and a zero-length response - relying on the server to do work. Files are faster served by the webserver. Both Apache and nginx support this option.
+The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. In production Rails (via Sprockets) does not send the asset - just the location and a zero-length response - relying on the web server to do the file serving, which is usually faster. Both Apache and nginx support this option.
 
-New applications contain this line in +production.rb+
+The configuration is available in <tt>config/environments/production.rb</tt>.
 
 <erb>
 config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect' for nginx
@@ -400,11 +397,11 @@ config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect'
 
 You should check that your server or hosting service actually supports this, otherwise comment it out.
 
-Gotcha: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+ ).
+WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+) and any other environment you define with production behaviour.
 
 h3. How Caching Works
 
-Sprockets uses the default rails cache store to cache assets in dev and production. The only difference is filenames are fingerprinted and get far-future headers in production.
+Sprockets uses the default rails cache store to cache assets in dev and production. The only difference is file names are fingerprinted and get far-future headers in production.
 
 TODO: Add more about changing the default store.
 
@@ -416,7 +413,4 @@ A good example of this is the +jquery-rails+ gem which comes with Rails as the s
 
 h3. Making Your Library or Gem a Pre-Processor
 
-"You should be able to register [your gems] on "Tilt":Tilt and Sprockets will find them." - Josh
-[Tilt]https://github.com/rtomayko/tilt
-
-
+TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sprockets to find them.

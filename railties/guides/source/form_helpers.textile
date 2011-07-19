@@ -177,12 +177,12 @@ Other form controls worth mentioning are the text area, password input, hidden i
 <%= password_field_tag(:password) %>
 <%= hidden_field_tag(:parent_id, "5") %>
 <%= search_field(:user, :name) %>
-<%= telephone_field(:user, :phone) %> 
-<%= url_field(:user, "homepage) %>
+<%= telephone_field(:user, :phone) %>
+<%= url_field(:user, :homepage) %>
 <%= email_field(:user, :address) %>
 </erb>
 
-output:
+Output:
 
 <html>
 <textarea id="message" name="message" cols="24" rows="6">Hi, nice site</textarea>
@@ -194,8 +194,7 @@ output:
 <input id="user_address" size="30" name="user[address]" type="email" />
 </html>
 
-Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript. The search, tel, url and email inputs are specified in HTML5 and may receive special handling and/or formatting 
-in some user-agents.
+Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript. The search, tel, url and email inputs are specified in HTML5 and may receive special handling and/or formatting in some user-agents.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged.
 
