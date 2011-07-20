@@ -1110,6 +1110,17 @@ class BasicsTest < ActiveRecord::TestCase
     self.table_name = 'numeric_data'
   end
 
+  def test_big_decimal_conditions
+    m = NumericData.new(
+      :bank_balance => 1586.43,
+      :big_bank_balance => BigDecimal("1000234000567.95"),
+      :world_population => 6000000000,
+      :my_house_population => 3
+    )
+    assert m.save
+    assert_equal 0, NumericData.where("bank_balance > ?", 2000.0).count
+  end
+
   def test_numeric_fields
     m = NumericData.new(
       :bank_balance => 1586.43,
