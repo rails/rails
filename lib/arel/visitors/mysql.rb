@@ -2,6 +2,28 @@ module Arel
   module Visitors
     class MySQL < Arel::Visitors::ToSql
       private
+      def visit_Arel_Nodes_Union o, suppress_parens = false
+        left_result = case o.left
+                      when Arel::Nodes::Union
+                        visit_Arel_Nodes_Union o.left, true
+                      else
+                        visit o.left
+                      end
+
+        right_result = case o.right
+                       when Arel::Nodes::Union
+                         visit_Arel_Nodes_Union o.right, true
+                       else
+                         visit o.right
+                       end
+
+        if suppress_parens
+          "#{left_result} UNION #{right_result}"
+        else
+          "( #{left_result} UNION #{right_result} )"
+        end
+      end
+
       def visit_Arel_Nodes_Bin o
         "BINARY #{visit o.expr}"
       end

@@ -3,6 +3,7 @@
 * Bug Fixes
 
   * Fix depth-first traversal to understand ascending / descending nodes.
+  * Parentheis are suppressed with nested unions in MySQL. Thanks jhtwong!
 
 == 2.1.3 / 2011-06-27
 

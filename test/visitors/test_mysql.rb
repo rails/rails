@@ -7,6 +7,16 @@ module Arel
         @visitor = MySQL.new Table.engine
       end
 
+      it 'squashes parenthesis on multiple unions' do
+        subnode = Nodes::Union.new 'left', 'right'
+        node    = Nodes::Union.new subnode, 'topright'
+        assert_equal 1, @visitor.accept(node).scan('(').length
+
+        subnode = Nodes::Union.new 'left', 'right'
+        node    = Nodes::Union.new 'topleft', subnode
+        assert_equal 1, @visitor.accept(node).scan('(').length
+      end
+
       ###
       # :'(
       # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214
