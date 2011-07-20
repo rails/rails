@@ -78,11 +78,13 @@ The following values are considered to be blank in a Rails application:
 
 * +nil+ and +false+,
 
-* strings composed only of whitespace, i.e. matching +/\A\s*\z/+,
+* strings composed only of whitespace (see note below),
 
 * empty arrays and hashes, and
 
 * any other object that responds to +empty?+ and it is empty.
+
+INFO: In Ruby 1.9 the predicate for strings uses the Unicode-aware character class <tt>[:space:]</tt>, so for example U+2029 (paragraph separator) is considered to be whitespace. In Ruby 1.8 whitespace is considered to be <tt>\s</tt> together with the ideographic space U+3000.
 
 WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
 
