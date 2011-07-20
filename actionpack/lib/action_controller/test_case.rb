@@ -98,19 +98,6 @@ module ActionController
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
-          elsif options.key?(:layout)
-            msg = build_message(message,
-                    "expecting layout <?> but action rendered <?>",
-                    expected_layout, @layouts.keys)
-
-            case layout = options[:layout]
-            when String
-              assert(@layouts.include?(expected_layout), msg)
-            when Regexp
-              assert(@layouts.any? {|l| l =~ layout }, msg)
-            when nil
-              assert(@layouts.empty?, msg)
-            end
           else
             msg = build_message(message,
                     "expecting partial <?> but action rendered <?>",
@@ -121,6 +108,26 @@ module ActionController
           assert @partials.empty?,
             "Expected no partials to be rendered"
         end
+       if expected_layout = options[:layout]
+         case expected_layout
+           when String
+             msg = build_message(message,
+                 "expecting layout <?> but action rendered layouts <?>",
+                 expected_layout, @layouts.keys)
+             puts "The layouts variable - keys : #{@layouts.inspect} .. "
+             assert(@layouts.include?(expected_layout), msg)
+           when Regexp
+             msg = build_message(message,
+                 "expecting layout to match <?> but action rendered layouts <?>",
+                 expected_layout, @layouts.keys)
+             assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
+           when nil
+             msg = build_message(message,
+                 "expecting no layout but action rendered layouts <?>",
+                 @layouts.keys)
+             assert(@layouts.empty?, msg)
+         end
+       end      
       end
     end
   end

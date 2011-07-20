@@ -296,6 +296,12 @@ module ActionView
         assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
       end
     end
+
+    test "supports specifying partials & layouts (passing)" do
+      controller.controller_path = "test"
+      render(:template => "test/calling_partial_with_layout")
+      assert_template :partial => "_partial_for_use_in_layout", :layout => "layout_for_partial"
+    end
   end
 
   module AHelperWithInitialize
