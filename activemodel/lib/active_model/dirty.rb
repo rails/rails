@@ -29,7 +29,7 @@ module ActiveModel
   #
   #     include ActiveModel::Dirty
   #
-  #     define_attribute_methods [:name]
+  #     define_attribute_methods = [:name]
   #
   #     def name
   #       @name
