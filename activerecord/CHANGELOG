@@ -1,5 +1,10 @@
 *Rails 3.2.0 (unreleased)*
 
+* ActiveRecord::Base.establish_connection now takes a string that contains
+a URI that specifies the connection configuration.  For example:
+
+    ActiveRecord::Base.establish_connection 'postgres://localhost/foo'
+
 * Active Record's dynamic finder will now raise the error if you passing in less number of arguments than what you call in method signature.
 
   So if you were doing this and expecting the second argument to be nil:
