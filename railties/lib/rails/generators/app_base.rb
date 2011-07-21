@@ -28,8 +28,8 @@ module Rails
         class_option :skip_gemfile,       :type => :boolean, :default => false,
                                           :desc => "Don't create a Gemfile"
 
-        class_option :skip_bundle,        :type => :boolean, :default => false,
-                                          :desc => "Don't run bundle install"
+        class_option :run_bundler,        :type => :boolean, :default => false,
+                                          :desc => "Run bundle install"
 
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
@@ -229,7 +229,9 @@ module Rails
       end
 
       def run_bundle
-        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
+        if options[:run_bundler]
+          bundle_command('install') unless options[:skip_gemfile] 
+        end
       end
 
       def empty_directory_with_gitkeep(destination, config = {})
