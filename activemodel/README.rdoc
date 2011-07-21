@@ -197,7 +197,7 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 == License
 
-Action Pack is released under the MIT license.
+Active Model is released under the MIT license.
 
 
 == Support
