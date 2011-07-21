@@ -104,7 +104,7 @@ INFO: Action caching runs in an after filter. Thus, invalid requests won't gener
 
 h4. Fragment Caching
 
-Life would be perfect if we could get away with caching the entire contents of a page or action and serving it out to the world. Unfortunately, dynamic web applications usually build pages with a variety of components not all of which have the same caching characteristics. In order to address such a dynamically created page where different parts of the page need to be cached and expired differently Rails provides a mechanism called Fragment Caching.
+Life would be perfect if we could get away with caching the entire contents of a page or action and serving it out to the world. Unfortunately, dynamic web applications usually build pages with a variety of components and not all of which have the same caching characteristics. In order to address such a dynamically created page where different parts of the page need to be cached and expired differently Rails provides a mechanism called Fragment Caching.
 
 Fragment Caching allows a fragment of view logic to be wrapped in a cache block and served out of the cache store when the next request comes in.
 
