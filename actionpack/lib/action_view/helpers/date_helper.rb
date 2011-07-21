@@ -422,7 +422,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
-      # The <tt>second</tt> can also be substituted for a second number.
+      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.      
       # Override the field name using the <tt>:field_name</tt> option, 'second' by default.
       #
       # ==== Examples
@@ -448,7 +448,7 @@ module ActionView
 
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
       # Also can return a select tag with options by <tt>minute_step</tt> from 0 through 59 with the 00 minute
-      # selected. The <tt>date</tt> can also be substituted for a minute number.
+      # selected. The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer. 
       # Override the field name using the <tt>:field_name</tt> option, 'minute' by default.
       #
       # ==== Examples
@@ -473,7 +473,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
-      # The <tt>date</tt> can also be substituted for a hour number.
+      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.      
       # Override the field name using the <tt>:field_name</tt> option, 'hour' by default.
       #
       # ==== Examples
