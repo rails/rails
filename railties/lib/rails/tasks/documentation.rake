@@ -47,7 +47,7 @@ namespace :doc do
     rdoc.rdoc_dir = 'doc/app'
     rdoc.template = ENV['template'] if ENV['template']
     rdoc.title    = ENV['title'] || "Rails Application Documentation"
-    rdoc.options << '--line-numbers' << '--inline-source'
+    rdoc.options << '--line-numbers'
     rdoc.options << '--charset' << 'utf-8'
     rdoc.rdoc_files.include('doc/README_FOR_APP')
     rdoc.rdoc_files.include('app/**/*.rb')
@@ -60,7 +60,7 @@ namespace :doc do
     rdoc.rdoc_dir = 'doc/api'
     rdoc.template = "#{ENV['template']}.rb" if ENV['template']
     rdoc.title    = "Rails Framework Documentation"
-    rdoc.options << '--line-numbers' << '--inline-source'
+    rdoc.options << '--line-numbers'
     rdoc.rdoc_files.include('README')
 
     gem_path('actionmailer') do |actionmailer|
@@ -133,7 +133,7 @@ namespace :doc do
         files         = Rake::FileList.new
         options << "-o doc/plugins/#{plugin}"
         options << "--title '#{plugin.titlecase} Plugin Documentation'"
-        options << '--line-numbers' << '--inline-source'
+        options << '--line-numbers'
         options << '--charset' << 'utf-8'
         options << '-T html'
 
