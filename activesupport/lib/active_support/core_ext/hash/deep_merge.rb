@@ -1,4 +1,7 @@
 class Hash
+
+  alias_method :old_deep_merge!, :deep_merge! if method_defined?(:deep_merge!)
+
   # Returns a new hash with +self+ and +other_hash+ merged recursively.
   def deep_merge(other_hash)
     dup.deep_merge!(other_hash)
