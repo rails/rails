@@ -311,6 +311,8 @@ h4. +rails runner+
 $ rails runner "Model.long_running_method"
 </shell>
 
+You can also use the alias "r" to run Ruby code in the context of Rails: <tt>rails r</tt>.
+
 You can specify the environment in which the +runner+ command should operate using the +-e+ switch.
 
 <shell>
