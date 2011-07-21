@@ -15,7 +15,7 @@ h3. Basic Caching
 
 This is an introduction to the three types of caching techniques that Rails provides by default without the use of any third party plugins.
 
-To start playing with caching you'll want to ensure that +config.action_controller.perform_caching+ is set to +true+ if you're running in development mode. This flag is normally set in the corresponding +config/environments/*.rb+ and caching is disabled by default for development and test, and enabled for production.
+To start playing with caching you'll want to ensure that +config.action_controller.perform_caching+ is set to +true+, if you're running in development mode. This flag is normally set in the corresponding +config/environments/*.rb+ and caching is disabled by default for development and test, and enabled for production.
 
 <ruby>
 config.action_controller.perform_caching = true
@@ -25,7 +25,7 @@ h4. Page Caching
 
 Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. apache or nginx), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
 
-So, how do you enable this super-fast cache behavior? Simple, let's say you have a controller called +ProductsController+ and an +index+ action that lists all the products
+So, how do you enable this super-fast cache behavior?. Simple, let's say you have a controller called +ProductsController+ and an +index+ action that lists all the products.
 
 <ruby>
 class ProductsController < ActionController
