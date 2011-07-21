@@ -678,6 +678,11 @@ ActiveRecord::Schema.define do
     t.references :wheelable, :polymorphic => true
   end
 
+  create_table :wholesale_products, :force => true do |t|
+    t.integer :msrp
+    t.integer :wholesale
+  end
+
   create_table :zines, :force => true do |t|
     t.string :title
   end

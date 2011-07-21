@@ -21,6 +21,7 @@ require 'models/parrot'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
+require 'models/wholesale_product'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -258,6 +259,28 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal(1, ex.errors.size)
       assert_equal("last_read", ex.errors[0].attribute)
     end
+  end
+
+  def test_create_with_after_initialize
+    wp1 = WholesaleProduct.create(:msrp => 10)
+    assert_equal(10, wp1.msrp)
+    assert_equal(5, wp1.wholesale)
+
+    wp2 = WholesaleProduct.create(:wholesale => 10)
+    assert_equal(20, wp2.msrp)
+    assert_equal(10, wp2.wholesale)
+
+    wp3 = WholesaleProduct.create do |wp|
+      wp.msrp = 10
+    end
+    assert_equal(10, wp3.msrp)
+    assert_equal(5, wp3.wholesale)
+
+    wp4 = WholesaleProduct.create do |wp|
+      wp.wholesale = 10
+    end
+    assert_equal(20, wp4.msrp)
+    assert_equal(10, wp4.wholesale)
   end
 
   def test_load
