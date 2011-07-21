@@ -60,17 +60,6 @@ class AdapterTest < ActiveRecord::TestCase
       assert_equal @connection.show_variable('collation_database'), @connection.collation
     end
 
-    def test_connect_with_url
-      begin
-        ar_config = ARTest.connection_config['arunit']
-        url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
-        ActiveRecord::Base.establish_connection(url)
-        assert_equal ar_config['database'], ActiveRecord::Base.connection.current_database
-      ensure
-        ActiveRecord::Base.establish_connection 'arunit'
-      end
-    end
-
     def test_show_nonexistent_variable_returns_nil
       assert_nil @connection.show_variable('foo_bar_baz')
     end
@@ -86,25 +75,6 @@ class AdapterTest < ActiveRecord::TestCase
             "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
           )
         end
-      ensure
-        ActiveRecord::Base.establish_connection 'arunit'
-      end
-    end
-  end
-
-  if current_adapter?(:PostgreSQLAdapter)
-    def test_encoding
-      assert_not_nil @connection.encoding
-    end
-
-    def test_connect_with_url
-      begin
-        ar_config = ARTest.connection_config['arunit']
-        url = "postgres:///#{ar_config["database"]}?encoding=utf8"
-        ActiveRecord::Base.establish_connection(url)
-        connection = ActiveRecord::Base.connection
-        assert_equal ar_config['database'], connection.current_database
-        assert_equal "UTF8", connection.encoding
       ensure
         ActiveRecord::Base.establish_connection 'arunit'
       end
