@@ -208,7 +208,7 @@ For some assets (like CSS) the compiled order is important. You can specify indi
 
 h4. Preprocessing
 
-The file extensions used on an asset will determine what preprocssing will be applied. When a controller or a scaffold is generated with the default Rails gemset, a CoffeeScript file and a SCSS file will be generated in place of a regular JavaScript and CSS file. The example used before was a controller called "projects", which generated an +app/assets/javascripts/projects.js.coffee+ and a +app/assets/stylesheets/projects.css.scss+ file.
+The file extensions used on an asset will determine what preprocessing will be applied. When a controller or a scaffold is generated with the default Rails gemset, a CoffeeScript file and a SCSS file will be generated in place of a regular JavaScript and CSS file. The example used before was a controller called "projects", which generated an +app/assets/javascripts/projects.js.coffee+ and a +app/assets/stylesheets/projects.css.scss+ file.
 
 When these files are requested, they will be processed by the processors provided by the +coffee-script+ and +sass-rails+ gems and then sent back to the browser as JavaScript and CSS respectively.
 
