@@ -15,7 +15,7 @@ h3. Basic Caching
 
 This is an introduction to the three types of caching techniques that Rails provides by default without the use of any third party plugins.
 
-To start playing with testing you'll want to ensure that +config.action_controller.perform_caching+ is set to +true+ if you're running in development mode. This flag is normally set in the corresponding +config/environments/*.rb+ and caching is disabled by default for development and test, and enabled for production.
+To start playing with caching you'll want to ensure that +config.action_controller.perform_caching+ is set to +true+ if you're running in development mode. This flag is normally set in the corresponding +config/environments/*.rb+ and caching is disabled by default for development and test, and enabled for production.
 
 <ruby>
 config.action_controller.perform_caching = true
@@ -416,3 +416,4 @@ h3. Changelog
 * December  27, 2008: Typo fixes
 * November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
 * September 15, 2008: Initial version by Aditya Chadha
+
