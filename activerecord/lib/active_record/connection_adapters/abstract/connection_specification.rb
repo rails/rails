@@ -89,8 +89,8 @@ module ActiveRecord
       end
     end
 
-    def self.connection_url_to_hash(url)
-      config = URI.parse(url)
+    def self.connection_url_to_hash(url) # :nodoc:
+      config = URI.parse url
       adapter = config.scheme
       adapter = "postgresql" if adapter == "postgres"
       spec = { :adapter  => adapter,
@@ -99,14 +99,12 @@ module ActiveRecord
                :port     => config.port,
                :database => config.path.sub(%r{^/},""),
                :host     => config.host }
-      spec.reject!{ |key,value| value.nil? }
+      spec.reject!{ |_,value| !value }
       if config.query
         options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
         spec.merge!(options)
       end
       spec
-    rescue URI::InvalidURIError
-      return nil
     end
 
     class << self
