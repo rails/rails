@@ -1,4 +1,7 @@
 class Hash
+
+  alias_method :old_except, :except if method_defined?(:except)
+
   # Return a hash that includes everything but the given keys. This is useful for
   # limiting a set of parameters to everything but a few known toggles:
   #
