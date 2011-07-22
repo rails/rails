@@ -48,7 +48,7 @@ module ActiveRecord
     #
     # Or a URL:
     #
-    #   ActiverRecord::Base.establish_connection(
+    #   ActiveRecord::Base.establish_connection(
     #     "postgres://myuser:mypass@localhost/somedatabase"
     #   )
     #
