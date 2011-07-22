@@ -67,3 +67,5 @@ def find_engine_path(path)
     find_engine_path(File.expand_path('..', path))
   end
 end
+
+Rake.application.invoke_task(:load_app)
