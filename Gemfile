@@ -40,6 +40,12 @@ platforms :mri_19 do
   gem "ruby-debug19", :require => "ruby-debug" unless RUBY_VERSION > "1.9.2" || ENV['TRAVIS']
 end
 
+platforms :mri do
+  group :test do
+    gem "ruby-prof" if RUBY_VERSION < "1.9.3"
+  end
+end
+
 platforms :ruby do
   if ENV["RB_FSEVENT"]
     gem "rb-fsevent"
@@ -48,10 +54,6 @@ platforms :ruby do
   gem "yajl-ruby"
   gem "nokogiri", ">= 1.4.5"
 
-  group :test do
-    gem "ruby-prof" if RUBY_VERSION < "1.9.3"
-
-  end
   # AR
   gem "sqlite3", "~> 1.3.3"
 
