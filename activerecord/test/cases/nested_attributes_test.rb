@@ -147,14 +147,6 @@ def test_reject_if_with_a_proc_which_returns_true_always_for_has_one
     assert man.reload.interests.empty?
   end
 
-  def test_has_many_association_updating_a_single_record
-    Man.accepts_nested_attributes_for(:interests)
-    man = Man.create(:name => 'John')
-    interest = man.interests.create(:topic => 'photography')
-    man.update_attributes({:interests_attributes => {:topic => 'gardening', :id => interest.id}})
-    assert_equal 'gardening', interest.reload.topic
-  end
-
   def test_reject_if_with_blank_nested_attributes_id
     # When using a select list to choose an existing 'ship' id, with :include_blank => true
     Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:id].blank? }
