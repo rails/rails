@@ -104,6 +104,13 @@ class EnumerableTests < Test::Unit::TestCase
     assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? {|x| x > 1 }
   end
 
+  def test_many_iterates_only_on_what_is_needed
+    infinity = 1.0/0.0
+    very_long_enum = 0..infinity
+    assert_equal true, very_long_enum.many?
+    assert_equal true, very_long_enum.many?{|x| x > 100}
+  end
+
   def test_exclude?
     assert_equal true,  GenericEnumerable.new([ 1 ]).exclude?(2)
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)

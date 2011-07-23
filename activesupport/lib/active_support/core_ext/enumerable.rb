@@ -95,9 +95,16 @@ module Enumerable
 
   # Returns true if the enumerable has more than 1 element. Functionally equivalent to enum.to_a.size > 1.
   # Can be called with a block too, much like any?, so people.many? { |p| p.age > 26 } returns true if more than 1 person is over 26.
-  def many?(&block)
-    size = block_given? ? count(&block) : to_a.size
-    size > 1
+  def many?
+    cnt = 0
+    if block_given?
+      any? do |element|
+        cnt += 1 if yield element
+        cnt > 1
+      end
+    else
+      any?{ (cnt += 1) > 1 }
+    end
   end
 
   # The negative of the Enumerable#include?. Returns true if the collection does not include the object.
