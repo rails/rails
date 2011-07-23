@@ -8,6 +8,17 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < Test::Unit::TestCase
+  class GenericEnumerable
+    include Enumerable
+    def initialize(values = [1, 2, 3])
+      @values = values
+    end
+
+    def each
+      @values.each{|v| yield v}
+    end
+  end
+
   def test_group_by
     names = %w(marcel sam david jeremy)
     klass = Struct.new(:name)
@@ -17,7 +28,7 @@ class EnumerableTests < Test::Unit::TestCase
       people << p
     end
 
-    grouped = objects.group_by { |object| object.name }
+    grouped = GenericEnumerable.new(objects).group_by { |object| object.name }
 
     grouped.each do |name, group|
       assert group.all? { |person| person.name == name }
@@ -28,17 +39,19 @@ class EnumerableTests < Test::Unit::TestCase
   end
 
   def test_sums
-    assert_equal 30, [5, 15, 10].sum
-    assert_equal 60, [5, 15, 10].sum { |i| i * 2}
+    enum = GenericEnumerable.new([5, 15, 10])
+    assert_equal 30, enum.sum
+    assert_equal 60, enum.sum { |i| i * 2}
 
-    assert_equal 'abc', %w(a b c).sum
-    assert_equal 'aabbcc', %w(a b c).sum { |i| i * 2 }
+    enum = GenericEnumerable.new(%w(a b c))
+    assert_equal 'abc', enum.sum
+    assert_equal 'aabbcc', enum.sum { |i| i * 2 }
 
-    payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal 30, payments.sum(&:price)
     assert_equal 60, payments.sum { |p| p.price * 2 }
 
-    payments = [ SummablePayment.new(5), SummablePayment.new(15) ]
+    payments = GenericEnumerable.new([ SummablePayment.new(5), SummablePayment.new(15) ])
     assert_equal SummablePayment.new(20), payments.sum
     assert_equal SummablePayment.new(20), payments.sum { |p| p }
   end
@@ -46,18 +59,18 @@ class EnumerableTests < Test::Unit::TestCase
   def test_nil_sums
     expected_raise = TypeError
 
-    assert_raise(expected_raise) { [5, 15, nil].sum }
+    assert_raise(expected_raise) { GenericEnumerable.new([5, 15, nil]).sum }
 
-    payments = [ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(nil) ]
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(nil) ])
     assert_raise(expected_raise) { payments.sum(&:price) }
 
     assert_equal 60, payments.sum { |p| p.price.to_i * 2 }
   end
 
   def test_empty_sums
-    assert_equal 0, [].sum
-    assert_equal 0, [].sum { |i| i + 10 }
-    assert_equal Payment.new(0), [].sum(Payment.new(0))
+    assert_equal 0, GenericEnumerable.new([]).sum
+    assert_equal 0, GenericEnumerable.new([]).sum { |i| i + 10 }
+    assert_equal Payment.new(0), GenericEnumerable.new([]).sum(Payment.new(0))
   end
 
   def test_range_sums
@@ -69,29 +82,30 @@ class EnumerableTests < Test::Unit::TestCase
   end
 
   def test_each_with_object
-    result = %w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase }
+    enum = GenericEnumerable.new(%w(foo bar))
+    result = enum.each_with_object({}) { |str, hsh| hsh[str] = str.upcase }
     assert_equal({'foo' => 'FOO', 'bar' => 'BAR'}, result)
   end
 
   def test_index_by
-    payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal({ 5 => payments[0], 15 => payments[1], 10 => payments[2] },
                  payments.index_by { |p| p.price })
   end
 
   def test_many
-    assert_equal false, [].many?
-    assert_equal false, [ 1 ].many?
-    assert_equal true,  [ 1, 2 ].many?
+    assert_equal false, GenericEnumerable.new([]         ).many?
+    assert_equal false, GenericEnumerable.new([ 1 ]      ).many?
+    assert_equal true,  GenericEnumerable.new([ 1, 2 ]   ).many?
 
-    assert_equal false, [].many? {|x| x > 1 }
-    assert_equal false, [ 2 ].many? {|x| x > 1 }
-    assert_equal false, [ 1, 2 ].many? {|x| x > 1 }
-    assert_equal true,  [ 1, 2, 2 ].many? {|x| x > 1 }
+    assert_equal false, GenericEnumerable.new([]         ).many? {|x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 2 ]      ).many? {|x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 1, 2 ]   ).many? {|x| x > 1 }
+    assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? {|x| x > 1 }
   end
 
   def test_exclude?
-    assert_equal true,  [ 1 ].exclude?(2)
-    assert_equal false, [ 1 ].exclude?(1)
+    assert_equal true,  GenericEnumerable.new([ 1 ]).exclude?(2)
+    assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
   end
 end
