@@ -89,7 +89,7 @@ class EnumerableTests < Test::Unit::TestCase
 
   def test_index_by
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
-    assert_equal({ 5 => payments[0], 15 => payments[1], 10 => payments[2] },
+    assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
                  payments.index_by { |p| p.price })
   end
 
