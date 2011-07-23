@@ -61,6 +61,8 @@ module ActiveRecord
 
       status, headers, body = @app.call(env)
       [status, headers, BodyProxy.new(old, body)]
+    rescue Exception
+       @app.call(env)
     end
   end
 end
