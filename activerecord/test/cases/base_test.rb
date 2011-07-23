@@ -123,6 +123,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.all.map(&:id).sort, topic_ids
   end
 
+  def test_select_symbol_for_many_arguments
+    topics = Topic.select(:id, :author_name).map{|topic| [topic.id, topic.author_name]}.sort
+    assert_equal Topic.all.map{|topic| [topic.id,topic.author_name]}.sort, topics
+  end
+
   def test_table_exists
     assert !NonExistentTable.table_exists?
     assert Topic.table_exists?
