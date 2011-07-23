@@ -516,6 +516,7 @@ class FileStoreTest < ActiveSupport::TestCase
     Dir.mkdir(cache_dir) unless File.exist?(cache_dir)
     @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
     @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
+    @cache_with_pathname = ActiveSupport::Cache.lookup_store(:file_store, Pathname.new(cache_dir), :expires_in => 60)
   end
 
   def teardown
@@ -554,6 +555,12 @@ class FileStoreTest < ActiveSupport::TestCase
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
+  end
+
+  def test_key_transformation_with_pathname
+    FileUtils.touch(File.join(cache_dir, "foo"))
+    key = @cache_with_pathname.send(:key_file_path, "views/index?id=1")
+    assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
   end
 end
 
