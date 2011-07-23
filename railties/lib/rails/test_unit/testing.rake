@@ -110,7 +110,7 @@ namespace :test do
       if File.directory?(".svn")
         changed_since_checkin = silence_stderr { `svn status` }.map { |path| path.chomp[7 .. -1] }
       elsif File.directory?(".git")
-        changed_since_checkin = silence_stderr { `git ls-files --modified --others` }.map { |path| path.chomp }
+        changed_since_checkin = silence_stderr { `git ls-files --modified --others` }.split.map { |path| path.chomp }
       else
         abort "Not a Subversion or Git checkout."
       end
