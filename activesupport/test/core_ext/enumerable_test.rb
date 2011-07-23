@@ -8,6 +8,8 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < Test::Unit::TestCase
+  Enumerator = [].each.class
+
   class GenericEnumerable
     include Enumerable
     def initialize(values = [1, 2, 3])
@@ -28,7 +30,8 @@ class EnumerableTests < Test::Unit::TestCase
       people << p
     end
 
-    grouped = GenericEnumerable.new(objects).group_by { |object| object.name }
+    enum = GenericEnumerable.new(objects)
+    grouped = enum.group_by { |object| object.name }
 
     grouped.each do |name, group|
       assert group.all? { |person| person.name == name }
@@ -36,6 +39,8 @@ class EnumerableTests < Test::Unit::TestCase
 
     assert_equal objects.uniq.map(&:name), grouped.keys
     assert({}.merge(grouped), "Could not convert ActiveSupport::OrderedHash into Hash")
+    assert_equal Enumerator, enum.group_by.class
+    assert_equal grouped, enum.group_by.each(&:name)
   end
 
   def test_sums
@@ -85,12 +90,18 @@ class EnumerableTests < Test::Unit::TestCase
     enum = GenericEnumerable.new(%w(foo bar))
     result = enum.each_with_object({}) { |str, hsh| hsh[str] = str.upcase }
     assert_equal({'foo' => 'FOO', 'bar' => 'BAR'}, result)
+    assert_equal Enumerator, enum.each_with_object({}).class
+    result2 = enum.each_with_object({}).each{|str, hsh| hsh[str] = str.upcase}
+    assert_equal result, result2
   end
 
   def test_index_by
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
                  payments.index_by { |p| p.price })
+    assert_equal Enumerator, payments.index_by.class
+    assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
+                 payments.index_by.each { |p| p.price })
   end
 
   def test_many

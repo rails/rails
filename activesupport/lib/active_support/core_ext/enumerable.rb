@@ -20,6 +20,7 @@ module Enumerable
   #   "2006-02-24 -> Transcript, Transcript"
   #   "2006-02-23 -> Transcript"
   def group_by
+    return to_enum :group_by unless block_given?
     assoc = ActiveSupport::OrderedHash.new
 
     each do |element|
@@ -76,6 +77,7 @@ module Enumerable
   #   (1..5).each_with_object(1) { |value, memo| memo *= value } # => 1
   #
   def each_with_object(memo, &block)
+    return to_enum :each_with_object, memo unless block_given?
     each do |element|
       block.call(element, memo)
     end
@@ -90,6 +92,7 @@ module Enumerable
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   #
   def index_by
+    return to_enum :index_by unless block_given?
     Hash[map { |elem| [yield(elem), elem] }]
   end
 
