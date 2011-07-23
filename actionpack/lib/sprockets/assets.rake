@@ -10,6 +10,7 @@ namespace :assets do
     Sprockets::Helpers::RailsHelper
 
     assets = Rails.application.config.assets.precompile
+    Rails.application.config.action_controller.perform_caching = true
     Rails.application.assets.precompile(*assets)
   end
 
