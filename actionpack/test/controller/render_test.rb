@@ -17,7 +17,7 @@ end
 module Quiz
   class QuestionsController < ActionController::Base
     def new
-      render :partial => Quiz::Question.new(:name => "Bruce Lee")
+      render :partial => Quiz::Question.new("Namespaced Partial")
     end
   end
 end
