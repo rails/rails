@@ -81,10 +81,10 @@ $ gem install bundler
 and run:
 
 <shell>
-$ bundle install --without db
+$ bundle install
 </shell>
 
-This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back at these soon. With dependencies installed, you can run the test suite with:
+This command will install all dependencies. With dependencies installed, you can run the test suite with:
 
 <shell>
 $ rake test
@@ -138,15 +138,6 @@ To be able to run the suite for MySQL and PostgreSQL we need their gems. Install
 $ sudo apt-get install mysql-server libmysqlclient15-dev
 $ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
 </shell>
-
-After that run:
-
-<shell>
-$ rm .bundle/config
-$ bundle install
-</shell>
-
-We need first to delete +.bundle/config+ because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
 
 In order to be able to run the test suite against MySQL you need to create a user named +rails+ with privileges on the test databases:
 
