@@ -15,7 +15,7 @@ h3. Basic Caching
 
 This is an introduction to the three types of caching techniques that Rails provides by default without the use of any third party plugins.
 
-To start playing with testing you'll want to ensure that +config.action_controller.perform_caching+ is set to +true+ if you're running in development mode. This flag is normally set in the corresponding +config/environments/*.rb+ and caching is disabled by default for development and test, and enabled for production.
+To start playing with caching you'll want to ensure that +config.action_controller.perform_caching+ is set to +true+, if you're running in development mode. This flag is normally set in the corresponding +config/environments/*.rb+ and caching is disabled by default for development and test, and enabled for production.
 
 <ruby>
 config.action_controller.perform_caching = true
@@ -23,9 +23,9 @@ config.action_controller.perform_caching = true
 
 h4. Page Caching
 
-Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. apache or nginx), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
+Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. Apache or nginx), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
 
-So, how do you enable this super-fast cache behavior? Simple, let's say you have a controller called +ProductsController+ and an +index+ action that lists all the products
+To enable page caching, you need to use the +caches_page+ method.
 
 <ruby>
 class ProductsController < ActionController
@@ -35,11 +35,10 @@ class ProductsController < ActionController
   def index
     @products = Products.all
   end
-
 end
 </ruby>
 
-The first time anyone requests +/products+, Rails will generate a file called +products.html+ and the webserver will then look for that file before it passes the next request for +/products+ to your Rails application.
+Let's say you have a controller called +ProductsController+ and an +index+ action that lists all the products. The first time anyone requests +/products+, Rails will generate a file called +products.html+ and the webserver will then look for that file before it passes the next request for +/products+ to your Rails application.
 
 By default, the page cache directory is set to +Rails.public_path+ (which is usually set to the +public+ folder) and this can be configured by changing the configuration setting +config.action_controller.page_cache_directory+. Changing the default from +public+ helps avoid naming conflicts, since you may want to put other static html in +public+, but changing this will require web server reconfiguration to let the web server know where to serve the cached files from.
 
@@ -104,7 +103,7 @@ INFO: Action caching runs in an after filter. Thus, invalid requests won't gener
 
 h4. Fragment Caching
 
-Life would be perfect if we could get away with caching the entire contents of a page or action and serving it out to the world. Unfortunately, dynamic web applications usually build pages with a variety of components not all of which have the same caching characteristics. In order to address such a dynamically created page where different parts of the page need to be cached and expired differently Rails provides a mechanism called Fragment Caching.
+Life would be perfect if we could get away with caching the entire contents of a page or action and serving it out to the world. Unfortunately, dynamic web applications usually build pages with a variety of components not all of which have the same caching characteristics. In order to address such a dynamically created page where different parts of the page need to be cached and expired differently, Rails provides a mechanism called Fragment Caching.
 
 Fragment Caching allows a fragment of view logic to be wrapped in a cache block and served out of the cache store when the next request comes in.
 
@@ -416,3 +415,4 @@ h3. Changelog
 * December  27, 2008: Typo fixes
 * November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
 * September 15, 2008: Initial version by Aditya Chadha
+

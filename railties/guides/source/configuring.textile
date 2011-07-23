@@ -120,9 +120,11 @@ h4. Configuring Assets
 
 Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
 
-* +config.assets.css_compressor+ defines the CSS compressor to use. Only supported value at the moment is +:yui+, which uses the +yui-compressor+ gem.
-
 * +config.assets.enabled+ a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in +config/application.rb+.
+
+* +config.assets.compress+ a flag that enables the compression of compiled assets. It is explicitly set to true in +config/production.rb+.
+
+* +config.assets.css_compressor+ defines the CSS compressor to use. Only supported value at the moment is +:yui+, which uses the +yui-compressor+ gem.
 
 * +config.assets.js_compressor+ defines the JavaScript compressor to use. Possible values are +:closure+, +:uglifier+ and +:yui+ which require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems respectively.
 

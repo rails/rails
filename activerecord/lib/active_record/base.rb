@@ -1738,7 +1738,7 @@ MSG
       end
 
       # Returns an <tt>#inspect</tt>-like string for the value of the
-      # attribute +attr_name+. String attributes are elided after 50
+      # attribute +attr_name+. String attributes are truncated upto 50
       # characters, and Date and Time attributes are returned in the
       # <tt>:db</tt> format. Other attributes return the value of
       # <tt>#inspect</tt> without modification.

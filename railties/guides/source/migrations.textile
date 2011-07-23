@@ -17,7 +17,7 @@ endprologue.
 
 h3. Anatomy of a Migration
 
-Before I dive into the details of a migration, here are a few examples of the sorts of things you can do:
+Before we dive into the details of a migration, here are a few examples of the sorts of things you can do:
 
 <ruby>
 class CreateProducts < ActiveRecord::Migration
@@ -116,6 +116,33 @@ h4. Changing Migrations
 Occasionally you will make a mistake when writing a migration. If you have already run the migration then you cannot just edit the migration and run the migration again: Rails thinks it has already run the migration and so will do nothing when you run +rake db:migrate+. You must rollback the migration (for example with +rake db:rollback+), edit your migration and then run +rake db:migrate+ to run the corrected version.
 
 In general editing existing migrations is not a good idea: you will be creating extra work for yourself and your co-workers and cause major headaches if the existing version of the migration has already been run on production machines. Instead you should write a new migration that performs the changes you require. Editing a freshly generated migration that has not yet been committed to source control (or more generally which has not been propagated beyond your development machine) is relatively harmless.
+
+h4. Supported Types
+
+Active Record supports the following types:
+
+* +:primary_key+
+* +:string+
+* +:text+
+* +:integer+
+* +:float+
+* +:decimal+
+* +:datetime+
+* +:timestamp+
+* +:time+
+* +:date+
+* +:binary+
+* +:boolean+
+
+These will be mapped onto an appropriate underlying database type, for example with MySQL +:string+ is mapped to +VARCHAR(255)+. You can create columns of types not supported by Active Record when using the non-sexy syntax, for example
+
+<ruby>
+create_table :products do |t|
+  t.column :name, 'polygon', :null => false
+end
+</ruby>
+
+This may however hinder portability to other databases.
 
 h3. Creating a Migration
 
@@ -260,18 +287,6 @@ end
 </ruby>
 
 will append +ENGINE=BLACKHOLE+ to the SQL statement used to create the table (when using MySQL the default is +ENGINE=InnoDB+).
-
-The types supported by Active Record are +:primary_key+, +:string+, +:text+, +:integer+, +:float+, +:decimal+, +:datetime+, +:timestamp+, +:time+, +:date+, +:binary+, +:boolean+.
-
-These will be mapped onto an appropriate underlying database type, for example with MySQL +:string+ is mapped to +VARCHAR(255)+. You can create columns of types not supported by Active Record when using the non-sexy syntax, for example
-
-<ruby>
-create_table :products do |t|
-  t.column :name, 'polygon', :null => false
-end
-</ruby>
-
-This may however hinder portability to other databases.
 
 h4. Changing Tables
 
