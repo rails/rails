@@ -29,10 +29,10 @@ class EnumerableTests < Test::Unit::TestCase
 
   def test_sums
     assert_equal 30, [5, 15, 10].sum
-    assert_equal 30, [5, 15, 10].sum { |i| i }
+    assert_equal 60, [5, 15, 10].sum { |i| i * 2}
 
     assert_equal 'abc', %w(a b c).sum
-    assert_equal 'abc', %w(a b c).sum { |i| i }
+    assert_equal 'aabbcc', %w(a b c).sum { |i| i * 2 }
 
     payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
     assert_equal 30, payments.sum(&:price)
@@ -56,11 +56,11 @@ class EnumerableTests < Test::Unit::TestCase
 
   def test_empty_sums
     assert_equal 0, [].sum
-    assert_equal 0, [].sum { |i| i }
+    assert_equal 0, [].sum { |i| i + 10 }
     assert_equal Payment.new(0), [].sum(Payment.new(0))
   end
 
-  def test_enumerable_sums
+  def test_range_sums
     assert_equal 20, (1..4).sum { |i| i * 2 }
     assert_equal 10, (1..4).sum
     assert_equal 10, (1..4.5).sum
@@ -80,18 +80,18 @@ class EnumerableTests < Test::Unit::TestCase
   end
 
   def test_many
-    assert ![].many?
-    assert ![ 1 ].many?
-    assert [ 1, 2 ].many?
+    assert_equal false, [].many?
+    assert_equal false, [ 1 ].many?
+    assert_equal true,  [ 1, 2 ].many?
 
-    assert ![].many? {|x| x > 1 }
-    assert ![ 2 ].many? {|x| x > 1 }
-    assert ![ 1, 2 ].many? {|x| x > 1 }
-    assert [ 1, 2, 2 ].many? {|x| x > 1 }
+    assert_equal false, [].many? {|x| x > 1 }
+    assert_equal false, [ 2 ].many? {|x| x > 1 }
+    assert_equal false, [ 1, 2 ].many? {|x| x > 1 }
+    assert_equal true,  [ 1, 2, 2 ].many? {|x| x > 1 }
   end
 
   def test_exclude?
-    assert [ 1 ].exclude?(2)
-    assert ![ 1 ].exclude?(1)
+    assert_equal true,  [ 1 ].exclude?(2)
+    assert_equal false, [ 1 ].exclude?(1)
   end
 end
