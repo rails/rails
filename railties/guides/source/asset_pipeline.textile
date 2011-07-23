@@ -397,7 +397,7 @@ config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect'
 
 You should check that your server or hosting service actually supports this, otherwise comment it out.
 
-WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+) and any other environment you define with production behaviour.
+WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+) and any other environment you define with production behavior.
 
 h3. How Caching Works
 
