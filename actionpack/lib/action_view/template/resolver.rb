@@ -78,7 +78,7 @@ module ActionView
 
         scope = @cached[key][name][prefix][partial]
         cache = scope[locals]
-        mtime = cache && cache.map(&:updated_at).max
+        mtime = cache && cache.map{ |template| template.updated_at }.max
 
         if !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
           scope[locals] = fresh

@@ -205,7 +205,7 @@ module ActionView
       }
 
       def _user_defined_ivars
-        instance_variables.map(&:to_s) - INTERNAL_IVARS
+        instance_variables.map{ |variable| variable.to_s } - INTERNAL_IVARS
       end
 
       # Returns a Hash of instance variables and their values, as defined by

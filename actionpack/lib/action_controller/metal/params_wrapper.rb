@@ -177,8 +177,8 @@ module ActionController
             controller_name.singularize
         end
 
-        options[:include] = Array.wrap(options[:include]).collect(&:to_s) if options[:include]
-        options[:exclude] = Array.wrap(options[:exclude]).collect(&:to_s) if options[:exclude]
+        options[:include] = Array.wrap(options[:include]).collect{ |attr| attr.to_s } if options[:include]
+        options[:exclude] = Array.wrap(options[:exclude]).collect{ |attr| attr.to_s } if options[:exclude]
         options[:format]  = Array.wrap(options[:format])
 
         self._wrapper_options = options

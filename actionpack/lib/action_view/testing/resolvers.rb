@@ -35,7 +35,7 @@ module ActionView #:nodoc:
           :virtual_path => path.virtual, :format => format, :updated_at => updated_at)
       end
 
-      templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }
+      templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject{ |capture| capture.blank? }.size }
     end
   end
 
