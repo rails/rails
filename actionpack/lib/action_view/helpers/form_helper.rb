@@ -860,8 +860,8 @@ module ActionView
       end
 
       # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
-      # assigned to the template (identified by +object+). Inputs of type "search" may be styled differently by
-      # some browsers
+      # assigned to the template (identified by +object_name+). Inputs of type "search" may be styled differently by
+      # some browsers.
       #
       # ==== Examples
       #
@@ -880,7 +880,7 @@ module ActionView
       #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" size="30" type="search" />
       #   search_field(:user, :name, :autosave => true, :onsearch => true)
       #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" size="30" type="search" />
-      
+      #
       def search_field(object_name, method, options = {})
         options = options.stringify_keys
 
@@ -902,7 +902,7 @@ module ActionView
       #
       #   telephone_field("user", "phone")
       #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
-
+      #
       def telephone_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("tel", options)
       end
@@ -912,7 +912,7 @@ module ActionView
       #
       #   url_field("user", "homepage")
       #   # => <input id="user_homepage" size="30" name="user[homepage]" type="url" />
-
+      #
       def url_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("url", options)
       end
@@ -921,7 +921,7 @@ module ActionView
       #
       #   email_field("user", "address")
       #   # => <input id="user_address" size="30" name="user[address]" type="email" />
-      
+      #
       def email_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("email", options)
       end

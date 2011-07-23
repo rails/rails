@@ -42,7 +42,7 @@ h4. What is Fingerprinting and Why Should I Care?
 
 Fingerprinting is a technique where the filenames of content that is static or infrequently updated is altered to be unique to the content contained in the file.
 
-When a filename is unique and based on its content, http headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep their own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
+When a filename is unique and based on its content, HTTP headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep their own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
 
 The most effective technique is to insert a hash of the content into the name, usually at the end. For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
 
@@ -218,7 +218,7 @@ Keep in mind that the order of these pre-processors is important. For example, i
 
 h3. In Development
 
-In the development environment assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ cache-control http header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
+In the development environment assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ Cache-Control HTTP header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
 
 If any of the files in the manifest have changed between requests, the server will respond with a new compiled file.
 
@@ -258,9 +258,9 @@ On the first request the assets are compiled and cached as described above, howe
 /assets/application-4dd5b109ee3439da54f5bdfd78a80473.css
 </plain>
 
-The MD5 is generated from the contents of the compiled files, and is included in the http +Content-MD5+ header.
+The MD5 is generated from the contents of the compiled files, and is included in the HTTP +Content-MD5+ header.
 
-Sprockets also sets the +Cache-Control+ http header to +max-age=31536000+. This signals all caches between your server and the client browser that this content (the file served) can be cached for 1 year. The effect of this is to reduce the number of requests for this asset from your server; the asset has a good chance of being in the local browser cache or some intermediate cache.
+Sprockets also sets the +Cache-Control+ HTTP header to +max-age=31536000+. This signals all caches between your server and the client browser that this content (the file served) can be cached for 1 year. The effect of this is to reduce the number of requests for this asset from your server; the asset has a good chance of being in the local browser cache or some intermediate cache.
 
 This behavior is controlled by the setting of +config.action_controller.perform_caching+ setting in Rails (which is +true+ for production, +false+ for everything else). This value is propagated to Sprockets during initialization for use when action_controller is not available.
 

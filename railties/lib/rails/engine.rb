@@ -5,7 +5,7 @@ require 'rbconfig'
 require 'rails/engine/railties'
 
 module Rails
-  # Rails::Engine allows you to wrap a specific Rails application or subset of
+  # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
   # functionality and share it with other applications. Since Rails 3.0, every
   # <tt>Rails::Application</tt> is just an engine, which allows for simple
   # feature and application sharing.
@@ -176,6 +176,7 @@ module Rails
   # == Engine name
   #
   # There are some places where an Engine's name is used:
+  #
   # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
   #   it's used as default :as option
   # * some of the rake tasks are based on engine name, e.g. <tt>my_engine:install:migrations</tt>,
