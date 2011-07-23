@@ -20,6 +20,45 @@ class Contact
 end
 
 class JsonSerializationTest < ActiveModel::TestCase
+  class User
+    extend ActiveModel::Naming
+    include ActiveModel::Serializers::JSON
+    include ActiveModel::Validations
+
+    attr_accessor :name, :email, :gender, :address
+
+    def initialize(name, email, gender)
+      @name, @email, @gender = name, email, gender
+    end
+
+    def attributes
+      instance_values.except("address")
+    end
+
+    def as_json(options)
+      options = {} unless options
+      super({:root => false, :only => [:name, :email], :include => :address}.merge(options))
+    end
+
+  end
+
+  class Address
+    extend ActiveModel::Naming
+    include ActiveModel::Serializers::JSON
+    include ActiveModel::Validations
+
+    attr_accessor :street, :city, :state, :zip
+
+    def attributes
+      instance_values
+    end
+    
+    def as_json(options)
+      options = {} unless options
+      super({:only => [:street, :state]}.merge(options))
+    end
+  end
+
   def setup
     @contact = Contact.new
     @contact.name = 'Konata Izumi'
@@ -27,6 +66,13 @@ class JsonSerializationTest < ActiveModel::TestCase
     @contact.created_at = Time.utc(2006, 8, 1)
     @contact.awesome = true
     @contact.preferences = { 'shows' => 'anime' }
+    
+    @user = User.new('David', 'david@example.com', 'male')
+    @user.address = Address.new
+    @user.address.street = "123 Lane"
+    @user.address.city = "Springfield"
+    @user.address.state = "CA"
+    @user.address.zip = 11111
   end
 
   test "should include root in json" do
@@ -148,6 +194,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
+
   test "from_json should set the object's attributes" do
     json = @contact.to_json
     result = Contact.new.from_json(json)
@@ -196,4 +243,12 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_no_match %r{"preferences":}, json
   end
 
+  test "as_json should use include's as_json" do
+    #expected =  {"name"=>"David", "gender"=>"male", "email"=>"david@example.com",
+                 #"address"=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111}}
+    expected =  {"name"=>"David", "email"=>"david@example.com",
+                 "address"=>{"street"=>"123 Lane", "state"=>"CA"}}
+    json = @user.to_json
+    assert_equal  expected, JSON.parse(json)
+  end
 end
