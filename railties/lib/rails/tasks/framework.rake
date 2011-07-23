@@ -7,10 +7,14 @@ namespace :rails do
     template = ENV["LOCATION"]
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
 
-    require 'rails/generators'
-    require 'rails/generators/rails/app/app_generator'
-    generator = Rails::Generators::AppGenerator.new [ Rails.root ], {}, :destination_root => Rails.root
-    generator.apply template, :verbose => false
+    if template.present?
+      require 'rails/generators'
+      require 'rails/generators/rails/app/app_generator'
+      generator = Rails::Generators::AppGenerator.new [ Rails.root ], {}, :destination_root => Rails.root
+      generator.apply template, :verbose => false
+    else
+      puts "Do not know where template file is. Define LOCATION=/path/to/template variable and add it to end of command line."
+    end
   end
 
   namespace :templates do
