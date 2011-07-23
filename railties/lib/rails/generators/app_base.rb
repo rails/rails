@@ -28,8 +28,6 @@ module Rails
         class_option :skip_gemfile,       :type => :boolean, :default => false,
                                           :desc => "Don't create a Gemfile"
 
-        class_option :skip_bundle,        :type => :boolean, :default => false,
-                                          :desc => "Don't run bundle install"
 
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
@@ -39,6 +37,9 @@ module Rails
 
         class_option :skip_sprockets,     :type => :boolean, :aliases => "-S", :default => false,
                                           :desc => "Skip Sprockets files"
+        
+        class_option :bundle,             :type => :boolean, :aliases => "-I", :default => false,
+                                          :desc => "Run bundle install"
 
         class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
                                           :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
@@ -229,7 +230,9 @@ module Rails
       end
 
       def run_bundle
-        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle]
+        if options[:bundle] && !options[:skip_gemfile]
+          bundle_command('install')
+        end
       end
 
       def empty_directory_with_gitkeep(destination, config = {})

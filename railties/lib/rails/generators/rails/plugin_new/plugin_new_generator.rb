@@ -75,7 +75,7 @@ task :default => :test
     def generate_test_dummy(force = false)
       opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
-      opts[:skip_bundle] = true
+      opts[:bundle] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
