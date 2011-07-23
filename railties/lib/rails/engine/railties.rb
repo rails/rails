@@ -20,11 +20,11 @@ module Rails
       end
 
       def self.railties
-        @railties ||= ::Rails::Railtie.subclasses.map(&:instance)
+        @railties ||= ::Rails::Railtie.subclasses.map{ |subclass| subclass.instance }
       end
 
       def self.engines
-        @engines ||= ::Rails::Engine.subclasses.map(&:instance)
+        @engines ||= ::Rails::Engine.subclasses.map{ |subclass| subclass.instance }
       end
 
       delegate :railties, :engines, :to => "self.class"

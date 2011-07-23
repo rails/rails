@@ -276,7 +276,7 @@ module ActionDispatch
           end
         elsif match_with = equals[:html]
           matches.delete_if do |match|
-            html = match.children.map(&:to_s).join
+            html = match.children.map{ |child| child.to_s }.join
             html.strip! unless NO_STRIP.include?(match.name)
             unless match_with.is_a?(Regexp) ? (html =~ match_with) : (html == match_with.to_s)
               content_mismatch ||= build_message(message, "<?> expected but was\n<?>.", match_with, html)

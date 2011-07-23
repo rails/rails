@@ -5,7 +5,7 @@ module ActiveModel
     class PermissionSet < Set
 
       def +(values)
-        super(values.map(&:to_s))
+        super(values.map{ |value| value.to_s })
       end
 
       def include?(key)

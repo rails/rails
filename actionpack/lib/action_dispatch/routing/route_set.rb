@@ -87,7 +87,7 @@ module ActionDispatch
         end
 
         def helper_names
-          self.module.instance_methods.map(&:to_s)
+          self.module.instance_methods.map{ |method| method.to_s }
         end
 
         def clear!

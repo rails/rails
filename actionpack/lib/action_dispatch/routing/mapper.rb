@@ -891,9 +891,9 @@ module ActionDispatch
 
           def actions
             if only = @options[:only]
-              Array(only).map(&:to_sym)
+              Array(only).map{ |action| action.to_sym }
             elsif except = @options[:except]
-              default_actions - Array(except).map(&:to_sym)
+              default_actions - Array(except).map{ |action| action.to_sym }
             else
               default_actions
             end
@@ -1466,7 +1466,7 @@ module ActionDispatch
               [name_prefix, member_name, prefix]
             end
 
-            candidate = name.select(&:present?).join("_").presence
+            candidate = name.select{ |n| n.present? }.join("_").presence
             candidate unless as.nil? && @set.routes.find { |r| r.name == candidate }
           end
       end

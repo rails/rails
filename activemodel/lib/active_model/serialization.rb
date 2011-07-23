@@ -71,9 +71,9 @@ module ActiveModel
 
       attribute_names = attributes.keys.sort
       if only = options[:only]
-        attribute_names &= Array.wrap(only).map(&:to_s)
+        attribute_names &= Array.wrap(only).map{ |n| n.to_s }
       elsif except = options[:except]
-        attribute_names -= Array.wrap(except).map(&:to_s)
+        attribute_names -= Array.wrap(except).map{ |n| n.to_s }
       end
 
       method_names = Array.wrap(options[:methods]).select { |n| respond_to?(n) }

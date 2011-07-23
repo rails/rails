@@ -24,7 +24,7 @@ module ActionController
       # ==== Parameters
       # * <tt>args</tt> - A list of actions
       def hide_action(*args)
-        self.hidden_actions = hidden_actions.dup.merge(args.map(&:to_s)).freeze
+        self.hidden_actions = hidden_actions.dup.merge(args.map{ |arg| arg.to_s }).freeze
       end
 
       def inherited(klass)

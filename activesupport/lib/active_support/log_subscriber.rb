@@ -73,7 +73,7 @@ module ActiveSupport
 
       def flushable_loggers
         @@flushable_loggers ||= begin
-          loggers = log_subscribers.map(&:logger)
+          loggers = log_subscribers.map{ |subscriber| subscriber.logger }
           loggers.uniq!
           loggers.select { |l| l.respond_to?(:flush) }
         end

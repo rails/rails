@@ -608,7 +608,7 @@ module ActiveRecord
           MigrationProxy.new(name, version, file)
         end
 
-        migrations.sort_by(&:version)
+        migrations.sort_by{ |migration| migration.version }
       end
 
       private
