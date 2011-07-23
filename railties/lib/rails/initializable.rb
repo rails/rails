@@ -1,5 +1,3 @@
-require 'tsort'
-
 module Rails
   module Initializable
     def self.included(base)
@@ -31,22 +29,9 @@ module Rails
       end
     end
 
-    class Collection < Array
-      include TSort
-
-      alias :tsort_each_node :each
-      def tsort_each_child(initializer, &block)
-        select { |i| i.before == initializer.name || i.name == initializer.after }.each(&block)
-      end
-
-      def +(other)
-        Collection.new(to_a + other.to_a)
-      end
-    end
-
     def run_initializers(*args)
       return if instance_variable_defined?(:@ran)
-      initializers.tsort.each do |initializer|
+      initializers.each do |initializer|
         initializer.run(*args)
       end
       @ran = true
@@ -58,11 +43,11 @@ module Rails
 
     module ClassMethods
       def initializers
-        @initializers ||= Collection.new
+        @initializers ||= []
       end
 
       def initializers_chain
-        initializers = Collection.new
+        initializers = []
         ancestors.reverse_each do |klass|
           next unless klass.respond_to?(:initializers)
           initializers = initializers + klass.initializers
@@ -71,7 +56,7 @@ module Rails
       end
 
       def initializers_for(binding)
-        Collection.new(initializers_chain.map { |i| i.bind(binding) })
+        initializers_chain.map { |i| i.bind(binding) }
       end
 
       def initializer(name, opts = {}, &blk)
