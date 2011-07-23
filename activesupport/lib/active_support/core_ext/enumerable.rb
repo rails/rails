@@ -20,6 +20,7 @@ module Enumerable
   #   "2006-02-24 -> Transcript, Transcript"
   #   "2006-02-23 -> Transcript"
   def group_by
+    return to_enum :group_by unless block_given?
     assoc = ActiveSupport::OrderedHash.new
 
     each do |element|
@@ -75,9 +76,10 @@ module Enumerable
   #
   #   (1..5).each_with_object(1) { |value, memo| memo *= value } # => 1
   #
-  def each_with_object(memo, &block)
+  def each_with_object(memo)
+    return to_enum :each_with_object, memo unless block_given?
     each do |element|
-      block.call(element, memo)
+      yield element, memo
     end
     memo
   end unless [].respond_to?(:each_with_object)
@@ -90,14 +92,22 @@ module Enumerable
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   #
   def index_by
+    return to_enum :index_by unless block_given?
     Hash[map { |elem| [yield(elem), elem] }]
   end
 
-  # Returns true if the collection has more than 1 element. Functionally equivalent to collection.size > 1.
+  # Returns true if the enumerable has more than 1 element. Functionally equivalent to enum.to_a.size > 1.
   # Can be called with a block too, much like any?, so people.many? { |p| p.age > 26 } returns true if more than 1 person is over 26.
-  def many?(&block)
-    size = block_given? ? count(&block) : self.size
-    size > 1
+  def many?
+    cnt = 0
+    if block_given?
+      any? do |element|
+        cnt += 1 if yield element
+        cnt > 1
+      end
+    else
+      any?{ (cnt += 1) > 1 }
+    end
   end
 
   # The negative of the Enumerable#include?. Returns true if the collection does not include the object.
