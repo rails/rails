@@ -88,7 +88,9 @@ Action Controller is the component that manages the controllers in a Rails appli
 
 h5. Action View
 
-Action View manages the views of your Rails application. It can create both HTML and XML output by default. Action View manages rendering templates, including nested and partial templates, and includes built-in AJAX support.
+Action View manages the views of your Rails application. It can create both HTML and XML output by default. Action View
+manages rendering templates, including nested and partial templates, and includes built-in AJAX support.  View templates
+are covered in more detail in another guide called "Layouts and Rendering":http://edgeguides.rubyonrails.org/layouts_and_rendering.html.
 
 h5. Action Dispatch
 
