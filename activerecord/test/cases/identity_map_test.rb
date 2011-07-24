@@ -164,7 +164,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   ##############################################################################
-  # Tests checking dirty attribute behaviour with IM                           #
+  # Tests checking dirty attribute behavior with IM                            #
   ##############################################################################
 
   def test_loading_new_instance_should_not_update_dirty_attributes
@@ -238,7 +238,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   ##############################################################################
-  # Tests checking Identity Map behaviour with preloaded associations, joins,  #
+  # Tests checking Identity Map behavior with preloaded associations, joins,   #
   # includes etc.                                                              #
   ##############################################################################
 

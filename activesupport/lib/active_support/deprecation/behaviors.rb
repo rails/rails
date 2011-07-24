@@ -7,12 +7,12 @@ module ActiveSupport
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug
 
-      # Returns the set behaviour or if one isn't set, defaults to +:stderr+
+      # Returns the set behavior or if one isn't set, defaults to +:stderr+
       def behavior
         @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
-      # Sets the behaviour to the specified value. Can be a single value or an array.
+      # Sets the behavior to the specified value. Can be a single value or an array.
       #
       # Examples
       #

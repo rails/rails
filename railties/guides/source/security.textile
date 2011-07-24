@@ -15,7 +15,7 @@ endprologue.
 
 h3. Introduction
 
-Web application frameworks are made to help developers building web applications. Some of them also help you with securing the web application. In fact one framework is not more secure than another: If you use it correctly, you will be able to build secure apps with many frameworks. Ruby on Rails has some clever helper methods, for example against SQL injection, so that this is hardly a problem. It‘s nice to see that all of the Rails applications I audited had a good level of security.
+Web application frameworks are made to help developers building web applications. Some of them also help you with securing the web application. In fact one framework is not more secure than another: If you use it correctly, you will be able to build secure apps with many frameworks. Ruby on Rails has some clever helper methods, for example against SQL injection, so that this is hardly a problem. It's nice to see that all of the Rails applications I audited had a good level of security.
 
 In general there is no such thing as plug-n-play security. Security depends on the people using the framework, and sometimes on the development method. And it depends on all layers of a web application environment: The back-end storage, the web server and the web application itself (and possibly other layers or applications).
 
@@ -23,7 +23,7 @@ The Gartner Group however estimates that 75% of attacks are at the web applicati
 
 The threats against web applications include user account hijacking, bypass of access control, reading or modifying sensitive data, or presenting fraudulent content. Or an attacker might be able to install a Trojan horse program or unsolicited e-mail sending software, aim at financial enrichment or cause brand name damage by modifying company resources. In order to prevent attacks, minimize their impact and remove points of attack, first of all, you have to fully understand the attack methods in order to find the correct countermeasures. That is what this guide aims at.
 
-In order to develop secure web applications you have to keep up to date on all layers and know your enemies. To keep up to date subscribe to security mailing lists, read security blogs and make updating and security checks a habit (check the <a href="#additional-resources">Additional Resources</a> chapter). I do it manually because that‘s how you find the nasty logical security problems.
+In order to develop secure web applications you have to keep up to date on all layers and know your enemies. To keep up to date subscribe to security mailing lists, read security blogs and make updating and security checks a habit (check the <a href="#additional-resources">Additional Resources</a> chapter). I do it manually because that's how you find the nasty logical security problems.
 
 h3. Sessions
 
@@ -209,7 +209,7 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 * The interaction _(highlight)changes the state_ of the resource in a way that the user would perceive (e.g., a subscription to a service), or
 * The user is _(highlight)held accountable for the results_ of the interaction.
 
-If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today‘s web browsers, however do not support them - only GET and POST. Rails uses a hidden +_method+ field to handle this barrier.
+If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today's web browsers, however do not support them - only GET and POST. Rails uses a hidden +_method+ field to handle this barrier.
 
 _(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
 
@@ -617,7 +617,7 @@ This is alright for some web applications, but certainly not if the user is not 
 
 Depending on your web application, there will be many more parameters the user can tamper with. As a rule of thumb, _(highlight)no user input data is secure, until proven otherwise, and every parameter from the user is potentially manipulated_.
 
-Don‘t be fooled by security by obfuscation and JavaScript security. The Web Developer Toolbar for Mozilla Firefox lets you review and change every form's hidden fields. _(highlight)JavaScript can be used to validate user input data, but certainly not to prevent attackers from sending malicious requests with unexpected values_. The Live Http Headers plugin for Mozilla Firefox logs every request and may repeat and change them. That is an easy way to bypass any JavaScript validations. And there are even client-side proxies that allow you to intercept any request and response from and to the Internet.
+Don't be fooled by security by obfuscation and JavaScript security. The Web Developer Toolbar for Mozilla Firefox lets you review and change every form's hidden fields. _(highlight)JavaScript can be used to validate user input data, but certainly not to prevent attackers from sending malicious requests with unexpected values_. The Live Http Headers plugin for Mozilla Firefox logs every request and may repeat and change them. That is an easy way to bypass any JavaScript validations. And there are even client-side proxies that allow you to intercept any request and response from and to the Internet.
 
 h3. Injection
 
@@ -825,7 +825,7 @@ Network traffic is mostly based on the limited Western alphabet, so new characte
   &amp;#108;&amp;#101;&amp;#114;&amp;#116;&amp;#40;&amp;#39;&amp;#88;&amp;#83;&amp;#83;&amp;#39;&amp;#41;>
 </html>
 
-This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the "Hackvertor":http://www.businessinfo.co.uk/labs/hackvertor/hackvertor.php. Rails‘ sanitize() method does a good job to fend off encoding attacks.
+This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the "Hackvertor":http://www.businessinfo.co.uk/labs/hackvertor/hackvertor.php. Rails' sanitize() method does a good job to fend off encoding attacks.
 
 h5. Examples from the Underground
 

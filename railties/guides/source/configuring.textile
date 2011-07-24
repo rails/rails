@@ -523,7 +523,7 @@ The error occurred while evaluating nil.each
 
 *+action_view.cache_asset_ids+* Sets +ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids+ to +false+ when Active Support loads, but only if +config.cache_classes+ is too.
 
-*+action_view.javascript_expansions+* Registers the expansions set up by +config.action_view.javascript_expansions+ and +config.action_view.stylesheet_expansions+ to be recognised by Action View and therefore usable in the views.
+*+action_view.javascript_expansions+* Registers the expansions set up by +config.action_view.javascript_expansions+ and +config.action_view.stylesheet_expansions+ to be recognized by Action View and therefore usable in the views.
 
 *+action_view.set_configs+* Sets up Action View by using the settings in +config.action_view+ by +send+'ing the method names as setters to +ActionView::Base+ and passing the values through.
 

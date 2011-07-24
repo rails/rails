@@ -259,8 +259,8 @@ module ActionView
       #    :remote => true
       #
       # in the options hash creates a form that will allow the unobtrusive JavaScript drivers to modify its
-      # behaviour. The expected default behaviour is an XMLHttpRequest in the background instead of the regular
-      # POST arrangement, but ultimately the behaviour is the choice of the JavaScript driver implementor.
+      # behavior. The expected default behavior is an XMLHttpRequest in the background instead of the regular
+      # POST arrangement, but ultimately the behavior is the choice of the JavaScript driver implementor.
       # Even though it's using JavaScript to serialize the form elements, the form submission will work just like
       # a regular submission as viewed by the receiving side (all elements available in <tt>params</tt>).
       #

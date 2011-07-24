@@ -382,7 +382,7 @@ module ActiveRecord
 
           persisted.map! do |record|
             # Unfortunately we cannot simply do memory.delete(record) since on 1.8 this returns
-            # record rather than memory.at(memory.index(record)). The behaviour is fixed in 1.9.
+            # record rather than memory.at(memory.index(record)). The behavior is fixed in 1.9.
             mem_index = memory.index(record)
 
             if mem_index
