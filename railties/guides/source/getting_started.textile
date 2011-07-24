@@ -90,11 +90,11 @@ h6. Action View
 
 Action View manages the views of your Rails application. It can create both HTML and XML output by default. Action View
 manages rendering templates, including nested and partial templates, and includes built-in AJAX support.  View templates
-are covered in more detail in another guide called "Layouts and Rendering":http://edgeguides.rubyonrails.org/layouts_and_rendering.html.
+are covered in more detail in another guide called "Layouts and Rendering":layouts_and_rendering.html.
 
 h6. Action Dispatch
 
-Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.  Rack applications are a more advanced topic and are covered in a separate guide called "Rails on Rack":http://guides.rubyonrails.org/rails_on_rack.html.
+Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.  Rack applications are a more advanced topic and are covered in a separate guide called "Rails on Rack":rails_on_rack.html.
 
 h5. Action Mailer
 
