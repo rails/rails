@@ -50,7 +50,7 @@ At the core of Rails is the Model, View, Controller architecture, usually just c
 
 h5. Models
 
-A model represents the information (data) of the application and the rules to manipulate that data. In the case of Rails, models are primarily used for managing the rules of interaction with a corresponding database table. In most cases, one table in your database will correspond to one model in your application. The bulk of your application's business logic will be concentrated in the models.
+A model represents the information (data) of the application and the rules to manipulate that data. In the case of Rails, models are primarily used for managing the rules of interaction with a corresponding database table. In most cases, each table in your database will correspond to one model in your application. The bulk of your application's business logic will be concentrated in the models.
 
 h5. Views
 
@@ -90,7 +90,7 @@ Action View manages the views of your Rails application. It can create both HTML
 
 h5. Action Dispatch
 
-Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.
+Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.  Rack applications are a more advanced topic and are covered in a later guide called "Rails on Rack":http://edgeguides.rubyonrails.org/rails_on_rack.html.
 
 h5. Action Mailer
 
@@ -174,9 +174,9 @@ $ cd blog
 In any case, Rails will create a folder in your working directory called <tt>blog</tt>. Open up that folder and explore its contents. Most of the work in this tutorial will happen in the <tt>app/</tt> folder, but here's a basic rundown on the function of each folder that Rails creates in a new application by default:
 
 |_.File/Folder|_.Purpose|
-|Gemfile|This file allows you to specify what gem dependencies are needed for your Rails application.|
-|README|This is a brief instruction manual for your application. Use it to tell others what your application does, how to set it up, and so on.|
-|Rakefile|This file contains batch jobs that can be run from the terminal.|
+|Gemfile|This file allows you to specify what gem dependencies are needed for your Rails application. See section on Bundler, below.|
+|README|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |app/|Contains the controllers, models, views and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |config/|Configure your application's runtime rules, routes, database, and more.|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
