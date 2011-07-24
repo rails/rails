@@ -462,8 +462,8 @@ your terminal:
 $ rails generate controller home index
 </shell>
 
-TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion,
-you may need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby
+TIP: If you get a command not found error when running this command, you
+need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby
 \path\to\your\application\script\rails generate controller home index</tt>.
 
 Rails will create several files for you, including
