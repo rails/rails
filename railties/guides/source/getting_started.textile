@@ -535,6 +535,10 @@ command in your terminal:
 $ rails generate scaffold Post name:string title:string content:text
 </shell>
 
+This will create a new database table called posts (plural of Post).  The table
+will have three columns, name (type string), title (type string) and content
+(type text).  It will also hook this new database up to Rails (details below).
+
 NOTE. While scaffolding will get you up and running quickly, the code it
 generates is unlikely to be a perfect fit for your application. You'll most
 probably want to customize the generated code. Many experienced Rails developers
