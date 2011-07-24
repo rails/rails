@@ -285,7 +285,7 @@ module ActiveRecord
 
   private
 
-    # A hook to be overriden by association modules.
+    # A hook to be overridden by association modules.
     def destroy_associations
     end
 
