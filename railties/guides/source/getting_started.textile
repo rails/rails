@@ -217,6 +217,8 @@ If you follow this guide, you'll create a Rails project called <tt>blog</tt>, a
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
+TIP: The examples below use # and $ to denote terminal prompts. If you are using Windows, your prompt will look something like c:\source_code>
+
 h4. Installing Rails
 
 In most cases, the easiest way to install Rails is to take advantage of RubyGems:
