@@ -62,7 +62,8 @@ Controllers provide the "glue" between models and views. In Rails, controllers a
 
 h4. The Components of Rails
 
-Rails ships as many individual components.
+Rails ships as many individual components.  Each of these components are briefly explained below.  If you are new to Rails, as you read this section, don't get hung up on the details of each component, as they will be
+explained in further detail later.  For instance, we will bring up Rack applications, but you don't need to know anything about them to continue with this guide.
 
 * Action Pack
   ** Action Controller
