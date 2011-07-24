@@ -194,7 +194,6 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
-
   test "from_json should set the object's attributes" do
     json = @contact.to_json
     result = Contact.new.from_json(json)
@@ -244,8 +243,6 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "as_json should use include's as_json" do
-    #expected =  {"name"=>"David", "gender"=>"male", "email"=>"david@example.com",
-                 #"address"=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111}}
     expected =  {"name"=>"David", "email"=>"david@example.com",
                  "address"=>{"street"=>"123 Lane", "state"=>"CA"}}
     json = @user.to_json
