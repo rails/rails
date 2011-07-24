@@ -386,7 +386,7 @@ $ rails generate scaffold Post name:string title:string content:text
 
 NOTE. While scaffolding will get you up and running quickly, the code it generates is unlikely to be a perfect fit for your application. You'll most probably want to customize the generated code. Many experienced Rails developers avoid scaffolding entirely, preferring to write all or most of their source code from scratch. Rails, however, makes it really simple to customize templates for generated models, controllers, views and other source files. You'll find more information in the "Creating and Customizing Rails Generators & Templates":generators.html guide.
 
-The scaffold generator will build 15 files in your application, along with some folders, and edit one more. Here's a quick overview of what it creates:
+The scaffold generator will build 17 files in your application, along with some folders, and edit one more. Here's a quick overview of what it creates:
 
 |_.File                                       |_.Purpose|
 |db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
@@ -400,6 +400,8 @@ The scaffold generator will build 15 files in your application, along with some 
 |app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
 |app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
 |app/assets/stylesheets/scaffold.css.scss     |Cascading style sheet to make the scaffolded views look better|
+|app/assets/stylesheets/post.css.scss         |Cascading style sheet for the posts controller|
+|app/assets/javascripts/post.js.coffee        |CoffeeScript for the posts controller|
 |test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
@@ -920,13 +922,15 @@ With the model in hand, you can turn your attention to creating a matching contr
 $ rails generate controller Comments
 </shell>
 
-This creates four files and one empty directory:
+This creates six files and one empty directory:
 
 * +app/controllers/comments_controller.rb+ - The controller
 * +app/helpers/comments_helper.rb+ - A view helper file
 * +test/functional/comments_controller_test.rb+ - The functional tests for the controller
 * +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper
 * +app/views/comments/+ - Views of the controller are stored here
+* +app/assets/stylesheets/comment.css.scss+ - Cascading style sheet for the controller
+* +app/assets/javascripts/comment.js.coffee+ - CoffeeScript for the controller
 
 Like with any blog, our readers will create their comments directly after reading the post, and once they have added their comment, will be sent back to the post show page to see their comment now listed. Due to this, our +CommentsController+ is there to provide a method to create comments and delete SPAM comments when they arrive.
 
