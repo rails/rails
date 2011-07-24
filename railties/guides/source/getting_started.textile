@@ -249,7 +249,8 @@ $ rails new blog
 This will create a Rails application called Blog in a directory called blog.
 
 TIP: You can see all of the switches that the Rails application builder accepts
-by running <tt>rails new -h</tt>.
+by running
+<tt>rails new -h</tt>.
 
 After you create the blog application, switch to its folder to continue work
 directly in that application:
