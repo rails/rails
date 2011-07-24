@@ -15,7 +15,7 @@ require 'action_dispatch/railtie'
 
 # For Ruby 1.8, this initialization sets $KCODE to 'u' to enable the
 # multibyte safe operations. Plugin authors supporting other encodings
-# should override this behaviour and set the relevant +default_charset+
+# should override this behavior and set the relevant +default_charset+
 # on ActionController::Base.
 #
 # For Ruby 1.9, UTF-8 is the default internal and external encoding.

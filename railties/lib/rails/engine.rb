@@ -5,7 +5,7 @@ require 'rbconfig'
 require 'rails/engine/railties'
 
 module Rails
-  # Rails::Engine allows you to wrap a specific Rails application or subset of
+  # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
   # functionality and share it with other applications. Since Rails 3.0, every
   # <tt>Rails::Application</tt> is just an engine, which allows for simple
   # feature and application sharing.
@@ -176,13 +176,14 @@ module Rails
   # == Engine name
   #
   # There are some places where an Engine's name is used:
+  #
   # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
   #   it's used as default :as option
   # * some of the rake tasks are based on engine name, e.g. <tt>my_engine:install:migrations</tt>,
   #   <tt>my_engine:install:assets</tt>
   #
   # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
-  # <tt>my_engine_engine</tt>. You can change it manually it manually using the <tt>engine_name</tt> method:
+  # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -219,7 +220,7 @@ module Rails
   # If an engine is marked as isolated, +FooController+ has access only to helpers from +Engine+ and
   # <tt>url_helpers</tt> from <tt>MyEngine::Engine.routes</tt>.
   #
-  # The next thing that changes in isolated engines is the behaviour of routes. Normally, when you namespace
+  # The next thing that changes in isolated engines is the behavior of routes. Normally, when you namespace
   # your controllers, you also need to do namespace all your routes. With an isolated engine,
   # the namespace is applied by default, so you can ignore it in routes:
   #
@@ -231,7 +232,7 @@ module Rails
   # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
-  # To make that behaviour consistent with other parts of the framework, an isolated engine also has influence on
+  # To make that behavior consistent with other parts of the framework, an isolated engine also has influence on
   # <tt>ActiveModel::Naming</tt>. When you use a namespaced model, like <tt>MyEngine::Article</tt>, it will normally
   # use the prefix "my_engine". In an isolated engine, the prefix will be omitted in url helpers and
   # form fields for convenience.
@@ -299,7 +300,7 @@ module Rails
   #   helper MyEngine::SharedEngineHelper
   # end
   #
-  # If you want to include all of the engine's helpers, you can use #helpers method on egine's
+  # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
   # instance:
   #
   # class ApplicationController < ActionController::Base
@@ -308,7 +309,7 @@ module Rails
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
-  # only helpers defined in helpers directory will be included.
+  # only helpers defined in the helpers directory will be included.
   #
   # == Migrations & seed data
   #

@@ -7,17 +7,16 @@ module ActionController #:nodoc:
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
   # by including a token in the rendered html for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
-  # access. When a request reaches your application, \Rails then verifies the received
-  # token with the token in the session. Only HTML and javascript requests are checked,
+  # access. When a request reaches your application, \Rails verifies the received
+  # token with the token in the session. Only HTML and JavaScript requests are checked,
   # so this will not protect your XML API (presumably you'll have a different
   # authentication scheme there anyway). Also, GET requests are not protected as these
   # should be idempotent.
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
-  # which will check the token and raise an ActionController::InvalidAuthenticityToken
-  # if it doesn't match what was expected. A call to this method is generated for new
-  # \Rails applications by default. You can customize the error message by editing
-  # public/422.html.
+  # which checks the token and resets the session if it doesn't match what was expected.
+  # A call to this method is generated for new \Rails applications by default.
+  # You can customize the error message by editing public/422.html.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
@@ -63,7 +62,7 @@ module ActionController #:nodoc:
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call.  Set which actions are verified.
+      # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call. Set which actions are verified.
       def protect_from_forgery(options = {})
         self.request_forgery_protection_token ||= :authenticity_token
         prepend_before_filter :verify_authenticity_token, options
@@ -71,7 +70,7 @@ module ActionController #:nodoc:
     end
 
     protected
-      # The actual before_filter that is used.  Modify this to change how you handle unverified requests.
+      # The actual before_filter that is used. Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         unless verified_request?
           logger.debug "WARNING: Can't verify CSRF token authenticity" if logger
@@ -79,11 +78,13 @@ module ActionController #:nodoc:
         end
       end
 
+      # This is the method that defines the application behavior when a request is found to be unverified.
+      # By default, \Rails resets the session when it finds an unverified request.
       def handle_unverified_request
         reset_session
       end
 
-      # Returns true or false if a request is verified.  Checks:
+      # Returns true or false if a request is verified. Checks:
       #
       # * is it a GET request?  Gets should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
