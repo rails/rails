@@ -4,22 +4,21 @@ require 'sprockets/helpers/rails_helper'
 require 'mocha'
 
 class SprocketsHelperTest < ActionView::TestCase
-  tests Sprockets::Helpers::RailsHelper
+  include Sprockets::Helpers::RailsHelper
 
   attr_accessor :assets
+
+  class MockRequest
+    def protocol() 'http://' end
+    def ssl?() false end
+    def host_with_port() 'localhost' end
+  end
 
   def setup
     super
 
-    @controller = BasicController.new
-
-    @request = Class.new do
-      def protocol() 'http://' end
-      def ssl?() false end
-      def host_with_port() 'localhost' end
-    end.new
-
-    @controller.request = @request
+    @controller         = BasicController.new
+    @controller.request = MockRequest.new
 
     @assets = Sprockets::Environment.new
     @assets.paths << FIXTURES.join("sprockets/app/javascripts")
