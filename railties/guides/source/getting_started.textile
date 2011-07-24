@@ -282,18 +282,6 @@ by default:
 |tmp/|Temporary files|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.|
 
-h4. Installing the Required Gems
-
-Rails applications manage gem dependencies with
-"Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any
-other gems beyond the ones in the generated +Gemfile+ we can directly run
-
-<shell>
-$ bundle install
-</shell>
-
-to have them ready.
-
 h4. Configuring a Database
 
 Just about every Rails application will interact with a database. The database
