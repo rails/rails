@@ -26,10 +26,8 @@ class SprocketsHelperTest < ActionView::TestCase
     @assets.paths << FIXTURES.join("sprockets/app/stylesheets")
     @assets.paths << FIXTURES.join("sprockets/app/images")
 
-    application = Object.new
+    application = Struct.new(:config, :assets).new(config, @assets)
     Rails.stubs(:application).returns(application)
-    application.stubs(:config).returns(config)
-    application.stubs(:assets).returns(@assets)
     @config = config
     @config.action_controller ||= ActiveSupport::InheritableOptions.new
     @config.perform_caching = true
@@ -53,7 +51,7 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_equal "/dir/audio",
       asset_path("/dir/audio")
   end
-  
+
   test "asset_path with absolute urls" do
     assert_equal "http://www.example.com/video/play",
       asset_path("http://www.example.com/video/play")
@@ -73,7 +71,7 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{http://assets-\d.example.com/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
   end
-  
+
   test "With a proc asset host that returns no protocol the url should be protocol relative" do
     @controller.config.asset_host = Proc.new do |asset|
       "assets-999.example.com"
