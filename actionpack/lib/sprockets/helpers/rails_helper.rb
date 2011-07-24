@@ -72,6 +72,8 @@ module Sprockets
       def debug_assets?
         params[:debug_assets] == '1' ||
           params[:debug_assets] == 'true'
+      rescue NoMethodError
+        false
       end
 
       # Override to specify an alternative prefix for asset path generation.
