@@ -61,10 +61,10 @@ module Sprockets
           env.paths.concat assets.paths
         end
 
-        env.logger = Rails.logger
+        env.logger = ::Rails.logger
 
         if env.respond_to?(:cache) && assets.cache_store != false
-          env.cache = ActiveSupport::Cache.lookup_store(assets.cache_store) || Rails.cache
+          env.cache = ActiveSupport::Cache.lookup_store(assets.cache_store) || ::Rails.cache
         end
 
         if assets.compress
