@@ -49,7 +49,7 @@ module ActionView
     #     <label for="person_last_name">Last name</label>:
     #     <input id="person_last_name" name="person[last_name]" size="30" type="text" /><br />
     #
-    #     <input id="person_submit" name="commit" type="submit" value="Create Person" />
+    #     <input name="commit" type="submit" value="Create Person" />
     #   </form>
     #
     # As you see, the HTML reflects knowledge about the resource in several spots,
@@ -80,7 +80,7 @@ module ActionView
     #     <label for="person_last_name">Last name</label>:
     #     <input id="person_last_name" name="person[last_name]" size="30" type="text" value="Smith" /><br />
     #
-    #     <input id="person_submit" name="commit" type="submit" value="Update Person" />
+    #     <input name="commit" type="submit" value="Update Person" />
     #   </form>
     #
     # Note that the endpoint, default values, and submit button label are tailored for <tt>@person</tt>.
@@ -233,7 +233,7 @@ module ActionView
       #   <% end %>
       #
       # If your resource has associations defined, for example, you want to add comments
-      # to the post given that the routes are set correctly:
+      # to the document given that the routes are set correctly:
       #
       #   <%= form_for([@document, @comment]) do |f| %>
       #    ...
@@ -859,7 +859,28 @@ module ActionView
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_radio_button_tag(tag_value, options)
       end
 
-      # Returns a text_field of type "search".
+      # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object_name+). Inputs of type "search" may be styled differently by
+      # some browsers.
+      #
+      # ==== Examples
+      #
+      #   search_field(:user, :name)
+      #   # => <input id="user_name" name="user[name]" size="30" type="search" />
+      #   search_field(:user, :name, :autosave => false)
+      #   # => <input autosave="false" id="user_name" name="user[name]" size="30" type="search" />
+      #   search_field(:user, :name, :results => 3)
+      #   # => <input id="user_name" name="user[name]" results="3" size="30" type="search" />
+      #   #  Assume request.host returns "www.example.com"
+      #   search_field(:user, :name, :autosave => true)
+      #   # => <input autosave="com.example.www" id="user_name" name="user[name]" results="10" size="30" type="search" />
+      #   search_field(:user, :name, :onsearch => true)
+      #   # => <input id="user_name" incremental="true" name="user[name]" onsearch="true" size="30" type="search" />
+      #   search_field(:user, :name, :autosave => false, :onsearch => true)
+      #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" size="30" type="search" />
+      #   search_field(:user, :name, :autosave => true, :onsearch => true)
+      #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" size="30" type="search" />
+      #
       def search_field(object_name, method, options = {})
         options = options.stringify_keys
 
@@ -878,17 +899,29 @@ module ActionView
       end
 
       # Returns a text_field of type "tel".
+      #
+      #   telephone_field("user", "phone")
+      #   # => <input id="user_phone" name="user[phone]" size="30" type="tel" />
+      #
       def telephone_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("tel", options)
       end
       alias phone_field telephone_field
 
       # Returns a text_field of type "url".
+      #
+      #   url_field("user", "homepage")
+      #   # => <input id="user_homepage" size="30" name="user[homepage]" type="url" />
+      #
       def url_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("url", options)
       end
 
       # Returns a text_field of type "email".
+      #
+      #   email_field("user", "address")
+      #   # => <input id="user_address" size="30" name="user[address]" type="email" />
+      #
       def email_field(object_name, method, options = {})
         InstanceTag.new(object_name, method, self, options.delete(:object)).to_input_field_tag("email", options)
       end

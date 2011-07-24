@@ -1,5 +1,10 @@
 *Rails 3.2.0 (unreleased)*
 
+* If multiple parameters are sent representing a date, and some are blank, the
+resulting object is nil. In previous releases those values defaulted to 1. This
+only affects existing but blank parameters, missing ones still raise an error.
+[Akira Matsuda]
+
 * ActiveRecord::Base.establish_connection now takes a string that contains
 a URI that specifies the connection configuration.  For example:
 

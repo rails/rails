@@ -16,7 +16,7 @@ module ActiveSupport
 
       def initialize(cache_path, options = nil)
         super(options)
-        @cache_path = cache_path
+        @cache_path = cache_path.to_s
         extend Strategy::LocalCache
       end
 

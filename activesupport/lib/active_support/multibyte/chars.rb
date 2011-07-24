@@ -331,8 +331,7 @@ module ActiveSupport #:nodoc:
       # when the storage for a string is limited for some reason.
       #
       # Example:
-      #   s = 'こんにちは'
-      #   s.mb_chars.limit(7) # => "こに"
+      #   'こんにちは'.mb_chars.limit(7).to_s # => "こん"
       def limit(limit)
         slice(0...translate_offset(limit))
       end

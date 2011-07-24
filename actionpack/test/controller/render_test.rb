@@ -14,6 +14,14 @@ module Fun
   end
 end
 
+module Quiz
+  class QuestionsController < ActionController::Base
+    def new
+      render :partial => Quiz::Question.new("Namespaced Partial")
+    end
+  end
+end
+
 class TestController < ActionController::Base
   protect_from_forgery
 
@@ -1249,6 +1257,12 @@ class RenderTest < ActionController::TestCase
     get :nested_partial_with_form_builder
     assert_match(/<label/, @response.body)
     assert_template('fun/games/_form')
+  end
+
+  def test_namespaced_object_partial
+    @controller = Quiz::QuestionsController.new
+    get :new
+    assert_equal "Namespaced Partial", @response.body
   end
 
   def test_partial_collection

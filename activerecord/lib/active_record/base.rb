@@ -1738,7 +1738,7 @@ MSG
       end
 
       # Returns an <tt>#inspect</tt>-like string for the value of the
-      # attribute +attr_name+. String attributes are elided after 50
+      # attribute +attr_name+. String attributes are truncated upto 50
       # characters, and Date and Time attributes are returned in the
       # <tt>:db</tt> format. Other attributes return the value of
       # <tt>#inspect</tt> without modification.
@@ -2027,15 +2027,18 @@ MSG
         # If Date bits were not provided, error
         raise "Missing Parameter" if [1,2,3].any?{|position| !values_hash_from_param.has_key?(position)}
         max_position = extract_max_param_for_multiparameter_attributes(values_hash_from_param, 6)
+        # If Date bits were provided but blank, then return nil
+        return nil if (1..3).any? {|position| values_hash_from_param[position].blank?}
+
         set_values = (1..max_position).collect{|position| values_hash_from_param[position] }
-        # If Date bits were provided but blank, then default to 1
         # If Time bits are not there, then default to 0
-        [1,1,1,0,0,0].each_with_index{|v,i| set_values[i] = set_values[i].blank? ? v : set_values[i]}
+        (3..5).each {|i| set_values[i] = set_values[i].blank? ? 0 : set_values[i]}
         instantiate_time_object(name, set_values)
       end
 
       def read_date_parameter_value(name, values_hash_from_param)
-        set_values = (1..3).collect{|position| values_hash_from_param[position].blank? ? 1 : values_hash_from_param[position]}
+        return nil if (1..3).any? {|position| values_hash_from_param[position].blank?}
+        set_values = [values_hash_from_param[1], values_hash_from_param[2], values_hash_from_param[3]]
         begin
           Date.new(*set_values)
         rescue ArgumentError # if Date.new raises an exception on an invalid date
@@ -2163,6 +2166,4 @@ MSG
   end
 end
 
-# TODO: Remove this and make it work with LAZY flag
-require 'active_record/connection_adapters/abstract_adapter'
 ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
