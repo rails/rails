@@ -82,17 +82,17 @@ h5. Action Pack
 
 Action Pack is a single gem that contains Action Controller, Action View and Action Dispatch. The "VC" part of "MVC".
 
-h5. Action Controller
+h6. Action Controller
 
 Action Controller is the component that manages the controllers in a Rails application. The Action Controller framework processes incoming requests to a Rails application, extracts parameters, and dispatches them to the intended action. Services provided by Action Controller include session management, template rendering, and redirect management.
 
-h5. Action View
+h6. Action View
 
 Action View manages the views of your Rails application. It can create both HTML and XML output by default. Action View
 manages rendering templates, including nested and partial templates, and includes built-in AJAX support.  View templates
 are covered in more detail in another guide called "Layouts and Rendering":http://edgeguides.rubyonrails.org/layouts_and_rendering.html.
 
-h5. Action Dispatch
+h6. Action Dispatch
 
 Action Dispatch handles routing of web requests and dispatches them as you want, either to your application or any other Rack application.  Rack applications are a more advanced topic and are covered in a separate guide called "Rails on Rack":http://guides.rubyonrails.org/rails_on_rack.html.
 
