@@ -198,9 +198,8 @@ For example, the following HTTP request:
 <tt>DELETE /photos/17</tt>
 
 refers to a photo resource with an ID of 17 and indicates an action to be taken
-upon it: deletion. REST is a natural style for the architecture of web applications,
-and Rails hooks into this shielding you from many of the RESTful complexities and
-browser quirks.
+upon it: deletion. REST is a natural web application architecture which Rails
+abstracts, shielding you from RESTful complexities and browser quirks.
 
 If you'd like more details on REST as an architectural style, these resources
 are more approachable than Fielding's thesis:
