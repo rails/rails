@@ -216,6 +216,8 @@ If you follow this guide, you'll create a Rails project called <tt>blog</tt>, a
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
+TIP: The examples below use # and $ to denote terminal prompts. If you are using Windows, your prompt will look something like c:\source_code>
+
 h4. Installing Rails
 
 In most cases, the easiest way to install Rails is to take advantage of RubyGems:
@@ -246,7 +248,8 @@ $ rails new blog
 This will create a Rails application called Blog in a directory called blog.
 
 TIP: You can see all of the switches that the Rails application builder accepts
-by running <tt>rails new -h</tt>.
+by running
+<tt>rails new -h</tt>.
 
 After you create the blog application, switch to its folder to continue work
 directly in that application:
@@ -277,18 +280,6 @@ by default:
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.|
-
-h4. Installing the Required Gems
-
-Rails applications manage gem dependencies with
-"Bundler":http://gembundler.com/v1.0/index.html by default. As we don't need any
-other gems beyond the ones in the generated +Gemfile+ we can directly run
-
-<shell>
-$ bundle install
-</shell>
-
-to have them ready.
 
 h4. Configuring a Database
 
@@ -405,12 +396,12 @@ development:
 
 Change the username and password in the +development+ section as appropriate.
 
-TIP: You don't have to update the database configurations manually. If you had a
-look at the options of application generator, you have seen that one of them is
-named <tt>--database</tt>. It lets you choose an adapter for couple of most used
-relational databases. You can even run the generator repeatedly: <tt>cd .. &&
-rails new blog --database=mysql</tt>. When you confirm the overwriting of the
-+config/database.yml+ file, your application will be configured for MySQL
+TIP: You don't have to update the database configurations manually. If you look at the
+options of the application generator, you will see that one of the options
+is named <tt>--database</tt>. This option allows you to choose an adapter from a
+list of the most used relational databases. You can even run the generator
+repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting
+ of the +config/database.yml+ file, your application will be configured for MySQL
 instead of SQLite.
 
 h4. Creating the Database
@@ -470,8 +461,8 @@ your terminal:
 $ rails generate controller home index
 </shell>
 
-TIP: If you're on Windows, or your Ruby is set up in some non-standard fashion,
-you may need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby
+TIP: If you get a command not found error when running this command, you
+need to explicitly pass Rails +rails+ commands to Ruby: <tt>ruby
 \path\to\your\application\script\rails generate controller home index</tt>.
 
 Rails will create several files for you, including
