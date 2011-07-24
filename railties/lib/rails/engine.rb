@@ -220,7 +220,7 @@ module Rails
   # If an engine is marked as isolated, +FooController+ has access only to helpers from +Engine+ and
   # <tt>url_helpers</tt> from <tt>MyEngine::Engine.routes</tt>.
   #
-  # The next thing that changes in isolated engines is the behaviour of routes. Normally, when you namespace
+  # The next thing that changes in isolated engines is the behavior of routes. Normally, when you namespace
   # your controllers, you also need to do namespace all your routes. With an isolated engine,
   # the namespace is applied by default, so you can ignore it in routes:
   #
@@ -232,7 +232,7 @@ module Rails
   # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
   # <tt>articles_path</tt> as you would do with your application.
   #
-  # To make that behaviour consistent with other parts of the framework, an isolated engine also has influence on
+  # To make that behavior consistent with other parts of the framework, an isolated engine also has influence on
   # <tt>ActiveModel::Naming</tt>. When you use a namespaced model, like <tt>MyEngine::Article</tt>, it will normally
   # use the prefix "my_engine". In an isolated engine, the prefix will be omitted in url helpers and
   # form fields for convenience.
@@ -404,15 +404,15 @@ module Rails
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
-    
+
     def load_console(app=self)
       railties.all { |r| r.load_console(app) }
       super
     end
-    
+
     def eager_load!
       railties.all(&:eager_load!)
-      
+
       config.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
