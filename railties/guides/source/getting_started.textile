@@ -127,11 +127,11 @@ Rest stands for Representational State Transfer and is the foundation of the RES
 * Using resource identifiers such as URLs to represent resources.
 * Transferring representations of the state of that resource between system components.
 
-For example, to a Rails application a request such as this:
+For example, the following HTTP request:
 
 <tt>DELETE /photos/17</tt>
 
-would be understood to refer to a photo resource with the ID of 17, and to indicate a desired action - deleting that resource. REST is a natural style for the architecture of web applications, and Rails hooks into this shielding you from many of the RESTful complexities and browser quirks.
+refers to a photo resource with an ID of 17 and indicates an action to be taken upon it: deletion. REST is a natural style for the architecture of web applications, and Rails hooks into this shielding you from many of the RESTful complexities and browser quirks.
 
 If you'd like more details on REST as an architectural style, these resources are more approachable than Fielding's thesis:
 
