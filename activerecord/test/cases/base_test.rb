@@ -21,7 +21,7 @@ require 'models/parrot'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
-require 'models/wholesale_product'
+require 'models/bulb'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -262,17 +262,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_create_after_initialize_without_block
-    wp = WholesaleProduct.create(:wholesale => 10)
-    assert_equal(20, wp.msrp)
-    assert_equal(10, wp.wholesale)
+    cb = CustomBulb.create(:name => 'Dude')
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
   end
 
   def test_create_after_initialize_with_block
-    wp = WholesaleProduct.create do |w|
-      w.wholesale = 10
-    end
-    assert_equal(20, wp.msrp)
-    assert_equal(10, wp.wholesale)
+    cb = CustomBulb.create {|c| c.name = 'Dude' }
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
   end
 
   def test_load
