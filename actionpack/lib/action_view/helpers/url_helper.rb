@@ -278,7 +278,7 @@ module ActionView
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
       # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
-      #   submit behavior. By default this behaviour is an ajax submit.
+      #   submit behavior. By default this behavior is an ajax submit.
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
       #
