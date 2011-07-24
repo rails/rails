@@ -31,6 +31,17 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw.call({})
   end
 
+  def test_middleware_fails_but_passes_through
+    called = false
+    ActiveRecord::Base.connection.expects(:query_cache_enabled).raises(Exception)
+    
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      called = true
+    }
+    mw.call({})
+    assert called, 'middleware should delegate even if connection failure occurs'
+  end
+
   def test_cache_enabled_during_call
     assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 
