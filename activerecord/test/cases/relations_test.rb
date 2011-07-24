@@ -145,7 +145,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:first).title, topics.first.title
   end
 
-
   def test_finding_with_arel_order
     topics = Topic.order(Topic.arel_table[:id].asc)
     assert_equal 4, topics.to_a.size
@@ -574,7 +573,7 @@ class RelationTest < ActiveRecord::TestCase
     authors = Author.scoped
     assert_equal authors(:bob), authors.last
   end
-
+  
   def test_destroy_all
     davids = Author.where(:name => 'David')
 
@@ -909,6 +908,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'zyke', CoolCar.order_using_old_style.limit(1).first.name
     assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
     assert_equal 'zyke', FastCar.order_using_old_style.limit(1).first.name
+  end
+  
+  def test_order_with_function_and_last
+    authors = Author.scoped
+    assert_equal authors(:bob), authors.order( "id asc, MAX( organization_id, owned_essay_id)" ).last
   end
 
   def test_order_using_scoping
