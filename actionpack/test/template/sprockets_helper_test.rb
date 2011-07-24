@@ -12,7 +12,6 @@ class SprocketsHelperTest < ActionView::TestCase
     super
 
     @controller = BasicController.new
-    @controller.stubs(:params).returns({})
 
     @request = Class.new do
       def protocol() 'http://' end
