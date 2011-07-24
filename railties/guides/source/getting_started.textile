@@ -164,7 +164,7 @@ in terms of Rails boils down to two main principles:
 * Using resource identifiers such as URLs to represent resources.
 * Transferring representations of the state of that resource between system components.
 
-For example, to a Rails application a request such as this:
+For example, the following HTTP request:
 
 <tt>DELETE /photos/17</tt>
 
