@@ -8,6 +8,7 @@ else
   gem "arel", '~> 2.1.3'
 end
 
+gem "jquery-rails"
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem "uglifier", ">= 1.0.0", :require => false
