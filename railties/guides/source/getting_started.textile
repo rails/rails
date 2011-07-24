@@ -397,12 +397,12 @@ development:
 
 Change the username and password in the +development+ section as appropriate.
 
-TIP: You don't have to update the database configurations manually. If you had a
-look at the options of application generator, you have seen that one of them is
-named <tt>--database</tt>. It lets you choose an adapter for couple of most used
-relational databases. You can even run the generator repeatedly: <tt>cd .. &&
-rails new blog --database=mysql</tt>. When you confirm the overwriting of the
-+config/database.yml+ file, your application will be configured for MySQL
+TIP: You don't have to update the database configurations manually. If you look at the
+options of the application generator, you will see that one of the options
+is named <tt>--database</tt>. This option allows you to choose an adapter from a
+list of the most used relational databases. You can even run the generator
+repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting
+ of the +config/database.yml+ file, your application will be configured for MySQL
 instead of SQLite.
 
 h4. Creating the Database
