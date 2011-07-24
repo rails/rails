@@ -11,10 +11,12 @@ module ApplicationTests
 
       add_to_config("config.action_dispatch.show_exceptions = false")
 
+      @simple_plugin = engine "weblog"
       @plugin = engine "blog"
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
+          mount Weblog::Engine, :at => '/', :as => 'weblog'
           match "/engine_route" => "application_generating#engine_route"
           match "/engine_route_in_view" => "application_generating#engine_route_in_view"
           match "/url_for_engine_route" => "application_generating#url_for_engine_route"
@@ -25,6 +27,29 @@ module ApplicationTests
           root :to => 'main#index'
         end
       RUBY
+
+
+      @simple_plugin.write "lib/weblog.rb", <<-RUBY
+        module Weblog
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      @simple_plugin.write "config/routes.rb", <<-RUBY
+        Weblog::Engine.routes.draw do
+          match '/weblog' => "weblogs#index"
+        end
+      RUBY
+
+      @simple_plugin.write "app/controllers/weblogs_controller.rb", <<-RUBY
+        class WeblogsController < ActionController::Base
+          def index
+            render :text => request.url
+          end
+        end
+      RUBY
+
 
       @plugin.write "app/models/blog/post.rb", <<-RUBY
         module Blog
@@ -172,6 +197,11 @@ module ApplicationTests
       # test polymorphic routes
       get "/polymorphic_route"
       assert_equal "http://example.org/anonymous/blog/posts/44", last_response.body
+    end
+
+    test "request url for controller action when engine is mounted at root" do
+      get "/weblog"
+      assert_equal "http://example.org/weblog", last_response.body
     end
   end
 end
