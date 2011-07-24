@@ -426,6 +426,11 @@ One of the traditional places to start with a new language is by getting some
 text up on screen quickly. To do this, you need to get your Rails application
 server running.
 
+TIP: You may find it helpful to open two command prompt windows and navigate
+to your Rails project in both. Leave the server running ('rails server') in
+the first window, and run the commands listed below in the second terminal
+window.
+
 h4. Starting up the Web Server
 
 You actually have a functional Rails application already. To see it, you need to
