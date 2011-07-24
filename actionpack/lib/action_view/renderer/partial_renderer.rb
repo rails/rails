@@ -362,11 +362,25 @@ module ActionView
     def partial_path(object = @object)
       @partial_names[object.class.name] ||= begin
         object = object.to_model if object.respond_to?(:to_model)
-
         object.class.model_name.partial_path.dup.tap do |partial|
           path = @lookup_context.prefixes.first
-          partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
+          merge_path_into_partial(path, partial)
         end
+      end
+    end
+
+    def merge_path_into_partial(path, partial)
+      if path.include?(?/) && partial.include?(?/)
+        overlap = []
+        path_array = File.dirname(path).split('/')
+        partial_array = partial.split('/')[0..-3] # skip model dir & partial
+
+        path_array.each_with_index do |dir, index|
+          overlap << dir if dir == partial_array[index]
+        end
+
+        partial.gsub!(/^#{overlap.join('/')}\//,'')
+        partial.insert(0, "#{File.dirname(path)}/")
       end
     end
 
