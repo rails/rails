@@ -204,7 +204,7 @@ module RailsGuides
         t = RedCloth.new(body)
         t.hard_breaks = false
         t.lite_mode = lite_mode
-        t.to_html(:notestuff, :plusplus, :code, :tip)
+        t.to_html(:notestuff, :plusplus, :code)
       end
     end
 
