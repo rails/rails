@@ -30,7 +30,7 @@ module ActionView
     # :api: plugin
     def _layout_for(name=nil)
       name ||= :layout
-      view_flow.get(name).html_safe
+      view_flow.get(name).try(:html_safe)
     end
   end
 end
