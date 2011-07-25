@@ -1,11 +1,11 @@
 *Rails 3.2.0 (unreleased)*
 
 * The definition of blank string for Ruby 1.9 has been extended to Unicode whitespace.
-Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira Matsuda, Damien Mathieu]
+  Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira Matsuda, Damien Mathieu]
 
 * The inflector understands acronyms. [dlee]
 
-* Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim] 
+* Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim]
 
 * Added Time#all_day/week/quarter/year as a way of generating ranges (example: Event.where(created_at: Time.now.all_week)) [DHH]
 
@@ -14,11 +14,12 @@ Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira
 * Removed ActiveSupport::SecureRandom in favor of SecureRandom from the standard library [Jon Leighton]
 
 * ActiveSupport::OrderedHash now has different behavior for #each and
-#each_pair when given a block accepting its parameters with a splat. [Andrew Radev]
+  #each_pair when given a block accepting its parameters with a splat. [Andrew Radev]
 
 *Rails 3.1.0 (unreleased)*
 
-* ActiveSupport::Dependencies now raises NameError if it finds an existing constant in load_missing_constant. This better reflects the nature of the error which is usually caused by calling constantize on a nested constant. [Andrew White]
+* ActiveSupport::Dependencies now raises NameError if it finds an existing constant in load_missing_constant.
+  This better reflects the nature of the error which is usually caused by calling constantize on a nested constant. [Andrew White]
 
 * Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
 
@@ -29,13 +30,13 @@ Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira
 * Add Object#in? to test if an object is included in another object [Prem Sichanugrist, Brian Morearty, John Reitano]
 
 * LocalCache strategy is now a real middleware class, not an anonymous class
-posing for pictures.
+  posing for pictures.
 
 * ActiveSupport::Dependencies::ClassCache class has been introduced for
-holding references to reloadable classes.
+  holding references to reloadable classes.
 
 * ActiveSupport::Dependencies::Reference has been refactored to take direct
-advantage of the new ClassCache.
+  advantage of the new ClassCache.
 
 * Backports Range#cover? as an alias for Range#include? in Ruby 1.8 [Diego Carrion, fxn]
 
@@ -85,7 +86,8 @@ advantage of the new ClassCache.
 
 * Implemented String#strip_heredoc. [fxn]
 
-* Pluggable cache stores: setting config.cache_store = "custom_store" will require 'active_support/cache/custom_store' and look for the CustomStore constant.  #5486 [Mike Perham]
+* Pluggable cache stores: setting config.cache_store = "custom_store" will require 'active_support/cache/custom_store' and
+  look for the CustomStore constant.  #5486 [Mike Perham]
 
 * Removed Object#returning, Object#tap should be used instead. [Santiago Pastorino]
 
@@ -185,7 +187,7 @@ advantage of the new ClassCache.
 * Georgetown TimeZone is now mapped to "America/Guyana" instead of "America/Argentina/San_Juan" #1821 [Geoff Buesing, Reuben Sivan]
 
 * Changed the default ActiveSupport.use_standard_json_time_format from false to true and
-ActiveSupport.escape_html_entities_in_json from true to false to match previously announced Rails 3 defaults [DHH]
+  ActiveSupport.escape_html_entities_in_json from true to false to match previously announced Rails 3 defaults [DHH]
 
 * Added Object#presence that returns the object if it's #present? otherwise returns nil [DHH/Colin Kelley]
 
@@ -1538,3 +1540,4 @@ approximations and shouldn't be used for critical calculations. [Michael Koziars
 * Added that Inflector now accepts Symbols and Classes by calling .to_s on the word supplied
 
 * Added time unit extensions to Fixnum that'll return the period in seconds, like 2.days + 4.hours.
+
