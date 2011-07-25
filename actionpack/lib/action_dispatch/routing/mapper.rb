@@ -119,6 +119,8 @@ module ActionDispatch
               path
             elsif path.include?(":format") || path.end_with?('/')
               path
+            elsif @options[:format] == true
+              "#{path}.:format"
             else
               "#{path}(.:format)"
             end
