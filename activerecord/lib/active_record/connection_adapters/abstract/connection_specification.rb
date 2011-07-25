@@ -54,7 +54,7 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
-    def self.establish_connection(spec = nil)
+    def self.establish_connection(spec = ENV["DATABASE_URL"])
       case spec
         when nil
           raise AdapterNotSpecified unless defined?(Rails.env)
