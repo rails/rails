@@ -216,17 +216,13 @@ module ActiveRecord
       if conditions || options.present?
         where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
       else
-        limit = nil
-        order = []
-        # Apply limit and order only if they're both present
-        if @limit_value.present? == @order_values.present?
-          limit = arel.limit
-          order = arel.orders
+        stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
+
+        if limit = arel.limit
+          stmt.take limit
         end
 
-        stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
-        stmt.take limit if limit
-        stmt.order(*order)
+        stmt.order(*arel.orders)
         stmt.key = table[primary_key]
         @klass.connection.update stmt.to_sql, 'SQL', bind_values
       end
