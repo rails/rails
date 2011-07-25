@@ -167,6 +167,21 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/you now need to do something extra for this one/) { @dtc.d }
   end
 
+  def test_deprecation_in_other_module_does_not_interfere
+    messages = []
+
+    m = Module.new
+    m.extend ActiveSupport::Deprecation
+    m.behavior = Proc.new{|message, callstack| messages << message}
+    assert_not_deprecated do # not globally
+      assert_difference("messages.size") do # but locally
+        m.warn("warning")
+      end
+    end
+  end
+
+  # test ze moge nadpisac deprecator...
+
   unless defined?(::MiniTest)
     def test_assertion_failed_error_doesnt_spout_deprecation_warnings
       error_class = Class.new(StandardError) do

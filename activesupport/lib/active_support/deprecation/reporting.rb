@@ -24,10 +24,10 @@ module ActiveSupport
     def deprecated_method_warning(method_name, message = nil)
       warning = "#{method_name} is deprecated and will be removed from Rails #{deprecation_horizon}"
       case message
-      when Symbol then "#{warning} (use #{message} instead)"
-      when String then "#{warning} (#{message})"
-      else warning
+      when Symbol then warning << " (use #{message} instead)"
+      when String then warning << " (#{message})"
       end
+      warning
     end
 
     private
