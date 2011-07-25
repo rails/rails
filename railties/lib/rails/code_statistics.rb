@@ -30,7 +30,7 @@ class CodeStatistics #:nodoc:
       stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
 
       Dir.foreach(directory) do |file_name|
-        if File.stat(directory + "/" + file_name).directory? and (/^\./ !~ file_name)
+        if File.directory?(directory + "/" + file_name) and (/^\./ !~ file_name)
           newstats = calculate_directory_statistics(directory + "/" + file_name, pattern)
           stats.each { |k, v| stats[k] += newstats[k] }
         end
