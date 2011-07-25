@@ -15,11 +15,10 @@ module RailsGuides
     end
 
     def tip(body)
-      body.gsub!(/^TIP[.:](.*?)(\n\Z|\n\n+|\Z)/m) do |m|
+      body.gsub!(/^TIP[.:](.*)$/) do |m|
         result = "<div class='info'><p>"
         result << $1.strip
         result << '</p></div>'
-        result << $2 if $2
         result
       end
     end
