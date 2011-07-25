@@ -5,10 +5,9 @@ require 'active_support/deprecation/proxy_wrappers'
 
 module ActiveSupport
   module Deprecation
-    class << self
-      # The version the deprecated behavior will be removed, by default.
-      attr_accessor :deprecation_horizon
-    end
+    # The version the deprecated behavior will be removed, by default.
+    attr_accessor :deprecation_horizon
+    extend self
     self.deprecation_horizon = '3.2'
 
     # By default, warnings are not silenced and debugging is off.
