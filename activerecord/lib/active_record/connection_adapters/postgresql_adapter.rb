@@ -1,4 +1,3 @@
-require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/object/blank'
 
 # Make sure we're using pg high enough for PGResult#values
