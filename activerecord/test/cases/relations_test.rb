@@ -961,4 +961,8 @@ class RelationTest < ActiveRecord::TestCase
 
     assert scope.eager_loading?
   end
+
+  def test_ordering_with_extra_spaces
+    assert_equal authors(:david), Author.order('organization_id ASC , owned_essay_id DESC').last
+  end
 end

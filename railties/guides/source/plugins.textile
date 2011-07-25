@@ -86,7 +86,7 @@ class CoreExtTest < Test::Unit::TestCase
 end
 </ruby>
 
-Run +rake+ to run the test. This test should fail because we haven't implemented the +to_squak+ method:
+Run +rake+ to run the test. This test should fail because we haven't implemented the +to_squawk+ method:
 
 <shell>
 	  1) Error:
@@ -218,8 +218,8 @@ test/dummy directory:
 
 <shell>
 $ cd test/dummy
-$ rails generate model Hickwall last_squak:string
-$ rails generate model Wickwall last_squak:string last_tweet:string
+$ rails generate model Hickwall last_squawk:string
+$ rails generate model Wickwall last_squawk:string last_tweet:string
 </shell>
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app

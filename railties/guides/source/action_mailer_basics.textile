@@ -422,7 +422,7 @@ The above will send a multipart email with an attachment, properly nested with t
 
 h3. Receiving Emails
 
-Receiving and parsing emails with Action Mailer can be a rather complex endeavour. Before your email reaches your Rails app, you would have had to configure your system to somehow forward emails to your app, which needs to be listening for that. So, to receive emails in your Rails app you'll need to:
+Receiving and parsing emails with Action Mailer can be a rather complex endeavor. Before your email reaches your Rails app, you would have had to configure your system to somehow forward emails to your app, which needs to be listening for that. So, to receive emails in your Rails app you'll need to:
 
 * Implement a +receive+ method in your mailer.
 

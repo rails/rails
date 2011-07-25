@@ -24,9 +24,9 @@ class InvalidDateTest < ActiveRecord::TestCase
         topic = Topic.new({"last_read(1i)" => date_src[0].to_s, "last_read(2i)" => date_src[1].to_s, "last_read(3i)" => date_src[2].to_s})
         # Oracle DATE columns are datetime columns and Oracle adapter returns Time value
         if current_adapter?(:OracleAdapter)
-          assert_equal(topic.last_read.to_date, Time.local(*date_src).to_date, "The date should be modified according to the behaviour of the Time object")
+          assert_equal(topic.last_read.to_date, Time.local(*date_src).to_date, "The date should be modified according to the behavior of the Time object")
         else
-          assert_equal(topic.last_read, Time.local(*date_src).to_date, "The date should be modified according to the behaviour of the Time object")
+          assert_equal(topic.last_read, Time.local(*date_src).to_date, "The date should be modified according to the behavior of the Time object")
         end
       end
     end

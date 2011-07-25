@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'active_support/core_ext/string/encoding'
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
@@ -99,7 +100,12 @@ class String
   #   " something here ".blank? # => false
   #
   def blank?
-    self !~ NON_WHITESPACE_REGEXP
+    # 1.8 does not takes [:space:] properly
+    if encoding_aware?
+      self !~ /[^[:space:]]/
+    else
+      self !~ NON_WHITESPACE_REGEXP
+    end
   end
 end
 

@@ -85,6 +85,8 @@ h4. +rails generate+
 
 The +rails generate+ command uses templates to create a whole lot of things. Running +rails generate+ by itself gives a list of available generators:
 
+You can also use the alias "g" to invoke the generator command: <tt>rails g</tt>.
+
 <shell>
 $ rails generate
 Usage: rails generate GENERATOR [args] [options]
@@ -310,6 +312,8 @@ h4. +rails runner+
 <shell>
 $ rails runner "Model.long_running_method"
 </shell>
+
+You can also use the alias "r" to invoke the runner: <tt>rails r</tt>.
 
 You can specify the environment in which the +runner+ command should operate using the +-e+ switch.
 

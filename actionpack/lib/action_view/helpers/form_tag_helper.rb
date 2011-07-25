@@ -30,7 +30,7 @@ module ActionView
       #   (by passing <tt>false</tt>).
       # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
-      #   submit behaviour. By default this behaviour is an ajax submit.
+      #   submit behavior. By default this behavior is an ajax submit.
       #
       # ==== Examples
       #   form_tag('/posts')

@@ -170,26 +170,33 @@ IMPORTANT: Always use labels for each checkbox and radio button. They associate 
 
 h4. Other Helpers of Interest
 
-Other form controls worth mentioning are the text area, password input and hidden input:
+Other form controls worth mentioning are the text area, password input, hidden input, search input, tel input, url input and email input:
 
 <erb>
 <%= text_area_tag(:message, "Hi, nice site", :size => "24x6") %>
 <%= password_field_tag(:password) %>
 <%= hidden_field_tag(:parent_id, "5") %>
+<%= search_field(:user, :name) %>
+<%= telephone_field(:user, :phone) %>
+<%= url_field(:user, :homepage) %>
+<%= email_field(:user, :address) %>
 </erb>
 
-output:
+Output:
 
 <html>
 <textarea id="message" name="message" cols="24" rows="6">Hi, nice site</textarea>
 <input id="password" name="password" type="password" />
 <input id="parent_id" name="parent_id" type="hidden" value="5" />
+<input id="user_name" name="user[name]" size="30" type="search" />
+<input id="user_phone" name="user[phone]" size="30" type="tel" />
+<input id="user_homepage" size="30" name="user[homepage]" type="url" />
+<input id="user_address" size="30" name="user[address]" type="email" />
 </html>
 
-Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript.
+Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript. The search, tel, url and email inputs are specified in HTML5 and may receive special handling and/or formatting in some user-agents.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged.
-
 
 h3. Dealing with Model Objects
 

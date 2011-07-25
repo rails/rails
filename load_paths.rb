@@ -1,8 +1,4 @@
 # bust gem prelude
-if defined? Gem
-  gem 'bundler'
-else
-  require 'rubygems'
-end
+require 'rubygems' unless defined? Gem
 require 'bundler'
 Bundler.setup

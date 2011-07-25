@@ -46,6 +46,12 @@ module ActiveRecord
     #     "database"  => "path/to/dbfile"
     #   )
     #
+    # Or a URL:
+    #
+    #   ActiveRecord::Base.establish_connection(
+    #     "postgres://myuser:mypass@localhost/somedatabase"
+    #   )
+    #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
     def self.establish_connection(spec = nil)
@@ -58,6 +64,8 @@ module ActiveRecord
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
+          elsif spec.is_a?(String) && hash = connection_url_to_hash(spec)
+            establish_connection(hash)
           else
             raise AdapterNotSpecified, "#{spec} database is not configured"
           end
@@ -79,6 +87,24 @@ module ActiveRecord
           remove_connection
           establish_connection(ConnectionSpecification.new(spec, adapter_method))
       end
+    end
+
+    def self.connection_url_to_hash(url) # :nodoc:
+      config = URI.parse url
+      adapter = config.scheme
+      adapter = "postgresql" if adapter == "postgres"
+      spec = { :adapter  => adapter,
+               :username => config.user,
+               :password => config.password,
+               :port     => config.port,
+               :database => config.path.sub(%r{^/},""),
+               :host     => config.host }
+      spec.reject!{ |_,value| !value }
+      if config.query
+        options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
+        spec.merge!(options)
+      end
+      spec
     end
 
     class << self

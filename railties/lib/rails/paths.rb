@@ -2,7 +2,7 @@ require 'set'
 
 module Rails
   module Paths
-    # This object is an extended hash that behaves as root of the Rails::Paths system.
+    # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
     # It allows you to collect information about how you want to structure your application
     # paths by a Hash like API. It requires you to give a physical path on initialization.
     #
@@ -10,13 +10,13 @@ module Rails
     #   root.add "app/controllers", :eager_load => true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
-    # This means we can get a Path object back like below:
+    # This means we can get a +Rails::Paths::Path+ object back like below:
     #
     #   path = root["app/controllers"]
     #   path.eager_load?               # => true
     #   path.is_a?(Rails::Paths::Path) # => true
     #
-    # The Path object is simply an array and allows you to easily add extra paths:
+    # The +Path+ object is simply an array and allows you to easily add extra paths:
     #
     #   path.is_a?(Array) # => true
     #   path.inspect      # => ["app/controllers"]
@@ -24,17 +24,17 @@ module Rails
     #   path << "lib/controllers"
     #   path.inspect      # => ["app/controllers", "lib/controllers"]
     #
-    # Notice that when you add a path using #add, the path object created already
-    # contains the path with the same path value given to #add. In some situations,
+    # Notice that when you add a path using +add+, the path object created already
+    # contains the path with the same path value given to +add+. In some situations,
     # you may not want this behavior, so you can give :with as option.
     #
     #   root.add "config/routes", :with => "config/routes.rb"
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
-    # #add also accepts the following options as argument: eager_load, autoload,
-    # autoload_once and glob.
+    # The +add+ method accepts the following options as arguments:
+    # eager_load, autoload, autoload_once and glob.
     #
-    # Finally, the Path object also provides a few helpers:
+    # Finally, the +Path+ object also provides a few helpers:
     #
     #   root = Root.new "/rails"
     #   root.add "app/controllers"
@@ -42,7 +42,7 @@ module Rails
     #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
     #   root["app/controllers"].existent # => ["/rails/app/controllers"]
     #
-    # Check the Path documentation for more information.
+    # Check the <tt>Rails::Paths::Path</tt> documentation for more information.
     class Root < ::Hash
       attr_accessor :path
 

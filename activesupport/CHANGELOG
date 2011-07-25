@@ -1,5 +1,8 @@
 *Rails 3.2.0 (unreleased)*
 
+* The definition of blank string for Ruby 1.9 has been extended to Unicode whitespace.
+Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira Matsuda, Damien Mathieu]
+
 * The inflector understands acronyms. [dlee]
 
 * Deprecated ActiveSupport::Memoizable in favor of Ruby memoization pattern [José Valim] 

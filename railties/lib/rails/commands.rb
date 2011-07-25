@@ -93,7 +93,7 @@ In addition to those, there are:
  plugin       Install a plugin
  runner       Run a piece of code in the application environment (short-cut alias: "r")
 
-All commands can be run with -h for more information.
+All commands can be run with -h (or --help) for more information.
   EOT
   exit(1)
 end
