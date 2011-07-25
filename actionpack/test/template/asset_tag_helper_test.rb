@@ -481,7 +481,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_timebased_asset_id
-    expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
@@ -512,7 +512,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_timebased_asset_id_with_relative_url_root
     @controller.config.relative_url_root = "/collaboration/hieraki"
-    expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
     assert_equal %(<img alt="Rails" src="#{@controller.config.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
