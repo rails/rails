@@ -22,7 +22,7 @@ module ActiveSupport
     end
 
     def updated_at
-      paths.map { |path| File.stat(path).mtime }.max
+      paths.map { |path| File.mtime(path) }.max
     end
 
     def execute_if_updated

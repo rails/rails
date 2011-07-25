@@ -161,7 +161,7 @@ module ActionView
 
     # Returns the file mtime from the filesystem.
     def mtime(p)
-      File.stat(p).mtime
+      File.mtime(p)
     end
 
     # Extract handler and formats from path. If a format cannot be a found neither
