@@ -180,7 +180,63 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  # test ze moge nadpisac deprecator...
+  def test_deprecated_method_with_deprecator_implemented
+    deprecator = deprecator_with_messages
+    def deprecator.deprecated_method_warning(method, *params)
+      "deprecator.deprecated_method_warning.#{method}"
+    end
+
+    deprecatee = Class.new() do
+      def method
+      end
+      deprecate :method
+      define_method(:deprecator){ deprecator }
+    end
+
+    deprecatee.new.method
+    assert deprecator.messages.first.match("DEPRECATION WARNING: deprecator.deprecated_method_warning.method")
+  end
+
+  def test_deprecated_constant_with_deprecator_given
+    deprecator = deprecator_with_messages
+    klass = Class.new()
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new('klass::OLD', 'Object', deprecator) )
+    assert_difference("deprecator.messages.size") do
+      klass::OLD.to_s
+    end
+  end
+  
+  def test_deprecated_instance_variable_with_instance_deprecator
+    deprecator = deprecator_with_messages
+    
+    klass = Class.new() do
+      def initialize
+        @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request)
+        @_request = :a_request
+      end
+      def request; @_request end
+      def old_request; @request end
+      define_method(:deprecator) { deprecator }
+    end
+
+    assert_difference("deprecator.messages.size") { klass.new.old_request.to_s }
+    
+  end
+
+  def test_deprecated_instance_variable_with_given_deprecator
+    deprecator = deprecator_with_messages
+
+    klass = Class.new() do
+      define_method(:initialize) do
+        @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator)
+        @_request = :a_request
+      end
+      def request; @_request end
+      def old_request; @request end
+    end
+
+    assert_difference("deprecator.messages.size") { klass.new.old_request.to_s }
+  end
 
   unless defined?(::MiniTest)
     def test_assertion_failed_error_doesnt_spout_deprecation_warnings
@@ -198,5 +254,19 @@ class DeprecationTest < ActiveSupport::TestCase
       assert_not_deprecated { error.message }
       assert_nil @last_message
     end
+  end
+
+
+  private
+
+
+  def deprecator_with_messages
+    deprecator = Object.new
+    deprecator.extend(ActiveSupport::Deprecation)
+    deprecator.behavior = Proc.new{|message, callstack| deprecator.messages << message}
+    def deprecator.messages
+      @messages ||= []
+    end
+    deprecator
   end
 end
