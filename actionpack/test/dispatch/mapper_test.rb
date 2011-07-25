@@ -83,6 +83,13 @@ module ActionDispatch
         assert_equal '/*path', fakeset.conditions.first[:path_info]
         assert_nil fakeset.requirements.first[:path]
       end
+
+      def test_map_wildcard_with_format_true
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.match '/*path', :to => 'pages#show', :format => true
+        assert_equal '/*path.:format', fakeset.conditions.first[:path_info]
+      end
     end
   end
 end

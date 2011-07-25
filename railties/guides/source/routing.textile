@@ -569,6 +569,12 @@ NOTE: By requesting +"/foo/bar.json"+, your +params[:pages]+ will be equals to +
 match '*pages' => 'pages#show', :format => false
 </ruby>
 
+NOTE: If you want to make the format segment mandatory, so it cannot be omitted, you can supply +:format => true+ like this:
+
+<ruby>
+match '*pages' => 'pages#show', :format => true
+</ruby>
+
 h4. Redirection
 
 You can redirect any path to another path using the +redirect+ helper in your router:
