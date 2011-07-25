@@ -21,6 +21,7 @@ require 'models/parrot'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
+require 'models/bulb'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -258,6 +259,18 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal(1, ex.errors.size)
       assert_equal("last_read", ex.errors[0].attribute)
     end
+  end
+
+  def test_create_after_initialize_without_block
+    cb = CustomBulb.create(:name => 'Dude')
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
+  end
+
+  def test_create_after_initialize_with_block
+    cb = CustomBulb.create {|c| c.name = 'Dude' }
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
   end
 
   def test_load
