@@ -46,7 +46,7 @@ module ApplicationTests
       assert defined?(Uglifier)
     end
 
-    test "assets are compiled properly" do
+    test "precompile creates the file and gives it the original asset's content" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
 
@@ -61,7 +61,7 @@ module ApplicationTests
       end
     end
 
-    test "precompile properly performs caching" do
+    test "precompile appends the md5 hash to files referenced with asset_path" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
 
       capture(:stdout) do
