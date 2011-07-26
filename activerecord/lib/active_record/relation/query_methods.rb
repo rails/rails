@@ -37,15 +37,12 @@ module ActiveRecord
       relation
     end
 
-    def select(*args, &blk)
-      if !block_given? && args.blank?
-        raise ArgumentError
-      end
+    def select(value = Proc.new)
       if block_given?
-        to_a.select {|*block_args| blk.call(*block_args) }
+        to_a.select {|*block_args| value.call(*block_args) }
       else
         relation = clone
-        relation.select_values += args
+        relation.select_values += Array.wrap(value)
         relation
       end
     end
