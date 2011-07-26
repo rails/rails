@@ -65,6 +65,18 @@ module Arel
         "( #{visit o.left} MINUS #{visit o.right} )"
       end
 
+      def visit_Arel_Nodes_UpdateStatement o
+        # Oracle does not allow ORDER BY/LIMIT in UPDATEs. 
+        if o.orders.any? && o.limit.nil?
+          # However, there is no harm in silently eating the ORDER BY clause if no LIMIT has been provided,
+          # otherwise let the user deal with the error
+          o = o.dup
+          o.orders = []
+        end
+
+        super
+      end
+
       ###
       # Hacks for the order clauses specific to Oracle
       def order_hacks o
