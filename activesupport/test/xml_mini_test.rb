@@ -58,7 +58,7 @@ module XmlMiniTest
       assert_equal xml, @options[:builder].target!
     end
 
-    setup do
+    def setup
       @xml = ActiveSupport::XmlMini
       @options = {:skip_instruct => true, :builder => Builder::XmlMarkup.new}
     end
