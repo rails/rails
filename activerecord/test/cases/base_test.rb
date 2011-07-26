@@ -1867,6 +1867,6 @@ class BasicsTest < ActiveRecord::TestCase
   def test_cache_key_format_for_existing_record_with_nil_updated_at
     dev = Developer.first
     dev.update_attribute(:updated_at, nil)
-    assert_match /\/#{dev.id}$/, dev.cache_key
+    assert_match(/\/#{dev.id}$/, dev.cache_key)
   end
 end
