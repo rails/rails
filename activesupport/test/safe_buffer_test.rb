@@ -80,14 +80,12 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should escape dirty buffers on add" do
-    dirty = @buffer
     clean = "hello".html_safe
     @buffer.gsub!('', '<>')
     assert_equal "hello&lt;&gt;", clean + @buffer
   end
 
   test "Should concat as a normal string when dirty" do
-    dirty = @buffer
     clean = "hello".html_safe
     @buffer.gsub!('', '<>')
     assert_equal "<>hello", @buffer + clean
