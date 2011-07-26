@@ -46,6 +46,7 @@ module Rails
     def lib
       template "lib/%name%.rb"
       template "lib/tasks/%name%_tasks.rake"
+      template "lib/%name%/version.rb"
       if full?
         template "lib/%name%/engine.rb"
       end
