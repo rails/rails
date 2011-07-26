@@ -1,8 +1,12 @@
-# Provide a simple gemspec so you can easily use your
-# project in your rails apps through git.
+$:.push File.expand_path("../lib", __FILE__)
+
+# Maintain your gem's version:
+require "<%= name %>/version"
+
+# Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "<%= name %>"
-  s.version     = "0.0.1"
+  s.version     = <%= camelized %>::VERSION
   s.authors     = ["TODO: Your name"]
   s.email       = ["TODO: Your email"]
   s.homepage    = "TODO"
