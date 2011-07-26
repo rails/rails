@@ -19,6 +19,7 @@ module Rails
         empty_directory_with_gitkeep "app/controllers"
         empty_directory_with_gitkeep "app/views"
         empty_directory_with_gitkeep "app/helpers"
+        empty_directory_with_gitkeep "app/mailers"
         empty_directory_with_gitkeep "app/assets/images/#{name}"
       end
     end
@@ -46,6 +47,7 @@ module Rails
     def lib
       template "lib/%name%.rb"
       template "lib/tasks/%name%_tasks.rake"
+      template "lib/%name%/version.rb"
       if full?
         template "lib/%name%/engine.rb"
       end

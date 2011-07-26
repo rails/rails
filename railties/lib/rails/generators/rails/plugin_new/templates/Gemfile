@@ -1,14 +1,16 @@
 source "http://rubygems.org"
 
+# Specify your gem's dependencies in <%= name %>.gemspec.
+# Bundler will treat runtime dependencies like base dependencies, and
+# development dependencies will be added by default to the :development group.
+gemspec
+
+<% if options.dev? || options.edge? -%>
+# A dependency on dev or edge Rails needs to be declared here instead of in
+# your gemspec. Once you can lock this dependency down to a specific version,
+# move it to your gemspec.
 <%= rails_gemfile_entry -%>
 
-<% if full? -%>
-<%= database_gemfile_entry -%>
 <% end -%>
-
-<% if mountable? -%>
-<%= javascript_gemfile_entry -%>
-<% end -%>
-
 # To use debugger
 # <%= ruby_debugger_gemfile_entry %>
