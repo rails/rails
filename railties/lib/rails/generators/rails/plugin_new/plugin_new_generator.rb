@@ -19,6 +19,7 @@ module Rails
         empty_directory_with_gitkeep "app/controllers"
         empty_directory_with_gitkeep "app/views"
         empty_directory_with_gitkeep "app/helpers"
+        empty_directory_with_gitkeep "app/mailers"
         empty_directory_with_gitkeep "app/assets/images/#{name}"
       end
     end
