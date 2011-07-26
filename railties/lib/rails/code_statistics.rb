@@ -26,7 +26,7 @@ class CodeStatistics #:nodoc:
       Hash[@pairs.map{|pair| [pair.first, calculate_directory_statistics(pair.last)]}]
     end
 
-    def calculate_directory_statistics(directory, pattern = /.*\.rb$/)
+    def calculate_directory_statistics(directory, pattern = /.*\.(rb|js|coffee)$/)
       stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
 
       Dir.foreach(directory) do |file_name|
@@ -39,11 +39,19 @@ class CodeStatistics #:nodoc:
 
         f = File.open(directory + "/" + file_name)
 
+        if file_name =~ /.*\.rb$/
+          comment_pattern = /^\s*#/
+        elsif file_name =~ /.*\.js$/
+          comment_pattern = /^\s*\/\//
+        elsif file_name =~ /.*\.coffee$/
+          comment_pattern = /^\s*#/
+        end
+
         while line = f.gets
           stats["lines"]     += 1
           stats["classes"]   += 1 if line =~ /class [A-Z]/
           stats["methods"]   += 1 if line =~ /def [a-z]/
-          stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
+          stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ comment_pattern
         end
       end
 
