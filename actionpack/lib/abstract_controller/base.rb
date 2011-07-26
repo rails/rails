@@ -2,6 +2,7 @@ require 'erubis'
 require 'active_support/configurable'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/short_inspect'
 
 module AbstractController
   class Error < StandardError; end
@@ -16,6 +17,7 @@ module AbstractController
     attr_internal :action_name
     attr_internal :formats
 
+    include ActiveSupport::ShortInspect
     include ActiveSupport::Configurable
     extend ActiveSupport::DescendantsTracker
 

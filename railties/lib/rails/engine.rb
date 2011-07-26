@@ -1,5 +1,6 @@
 require 'rails/railtie'
 require 'active_support/core_ext/module/delegation'
+require 'active_support/short_inspect'
 require 'pathname'
 require 'rbconfig'
 require 'rails/engine/railties'
@@ -333,6 +334,8 @@ module Rails
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
+
+    include ActiveSupport::ShortInspect
 
     class << self
       attr_accessor :called_from, :isolated
