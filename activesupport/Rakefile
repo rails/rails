@@ -4,7 +4,7 @@ require 'rubygems/package_task'
 task :default => :test
 Rake::TestTask.new do |t|
   t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
+  t.test_files = Dir.glob('test/**/*_test.rb')
   t.warning = true
   t.verbose = true
 end
