@@ -466,6 +466,7 @@ module ActiveSupport #:nodoc:
     # Load the constant named +const_name+ which is missing from +from_mod+. If
     # it is not possible to load the constant into from_mod, try its parent module
     # using const_missing.
+    THIS_FILE = %r{#{Regexp.escape(__FILE__)}}
     def load_missing_constant(from_mod, const_name)
       log_call from_mod, const_name
 
@@ -478,7 +479,7 @@ module ActiveSupport #:nodoc:
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
 
-      trace = caller.reject {|l| l =~ %r{#{Regexp.escape(__FILE__)}}}
+      trace = caller.reject {|l| l =~ THIS_FILE}
       name_error = NameError.new("uninitialized constant #{qualified_name}")
       name_error.set_backtrace(trace)
 
