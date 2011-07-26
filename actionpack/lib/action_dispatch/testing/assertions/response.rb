@@ -55,7 +55,6 @@ module ActionDispatch
       #   assert_redirected_to @customer
       #
       def assert_redirected_to(options = {}, message=nil)
-
         assert_response(:redirect, message)
         return true if options == @response.location
 
