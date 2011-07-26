@@ -577,7 +577,7 @@ module ActiveRecord
         def quoted_columns_for_index(column_names, options = {})
           length = options[:length] if options.is_a?(Hash)
 
-          quoted_column_names = case length
+          case length
           when Hash
             column_names.map {|name| length[name] ? "#{quote_column_name(name)}(#{length[name]})" : quote_column_name(name) }
           when Fixnum
