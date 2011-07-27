@@ -250,6 +250,7 @@ module ActiveRecord
           operation,
           distinct).as(aggregate_alias)
       ]
+      select_values += @select_values unless @having_values.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
         "#{field} AS #{aliaz}"
