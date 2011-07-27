@@ -224,19 +224,11 @@ module ActionDispatch
           end
 
           def default_controller
-            if @options[:controller]
-              @options[:controller]
-            elsif @scope[:controller]
-              @scope[:controller]
-            end
+            @options[:controller] || @scope[:controller]
           end
 
           def default_action
-            if @options[:action]
-              @options[:action]
-            elsif @scope[:action]
-              @scope[:action]
-            end
+            @options[:action] || @scope[:action]
           end
       end
 
