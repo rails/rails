@@ -51,7 +51,7 @@ module ActionDispatch
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         SHORTHAND_REGEX = %r{^/[\w/]+$}
-        WILDCARD_PATH = %r{\*([^/]+)$}
+        WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
         def initialize(set, scope, path, options)
           @set, @scope = set, scope
