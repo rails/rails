@@ -17,7 +17,7 @@ endprologue.
 
 h3. Anatomy of a Migration
 
-Before I dive into the details of a migration, here are a few examples of the sorts of things you can do:
+Before we dive into the details of a migration, here are a few examples of the sorts of things you can do:
 
 <ruby>
 class CreateProducts < ActiveRecord::Migration
@@ -116,6 +116,33 @@ h4. Changing Migrations
 Occasionally you will make a mistake when writing a migration. If you have already run the migration then you cannot just edit the migration and run the migration again: Rails thinks it has already run the migration and so will do nothing when you run +rake db:migrate+. You must rollback the migration (for example with +rake db:rollback+), edit your migration and then run +rake db:migrate+ to run the corrected version.
 
 In general editing existing migrations is not a good idea: you will be creating extra work for yourself and your co-workers and cause major headaches if the existing version of the migration has already been run on production machines. Instead you should write a new migration that performs the changes you require. Editing a freshly generated migration that has not yet been committed to source control (or more generally which has not been propagated beyond your development machine) is relatively harmless.
+
+h4. Supported Types
+
+Active Record supports the following types:
+
+* +:primary_key+
+* +:string+
+* +:text+
+* +:integer+
+* +:float+
+* +:decimal+
+* +:datetime+
+* +:timestamp+
+* +:time+
+* +:date+
+* +:binary+
+* +:boolean+
+
+These will be mapped onto an appropriate underlying database type, for example with MySQL +:string+ is mapped to +VARCHAR(255)+. You can create columns of types not supported by Active Record when using the non-sexy syntax, for example
+
+<ruby>
+create_table :products do |t|
+  t.column :name, 'polygon', :null => false
+end
+</ruby>
+
+This may however hinder portability to other databases.
 
 h3. Creating a Migration
 
@@ -260,18 +287,6 @@ end
 </ruby>
 
 will append +ENGINE=BLACKHOLE+ to the SQL statement used to create the table (when using MySQL the default is +ENGINE=InnoDB+).
-
-The types supported by Active Record are +:primary_key+, +:string+, +:text+, +:integer+, +:float+, +:decimal+, +:datetime+, +:timestamp+, +:time+, +:date+, +:binary+, +:boolean+.
-
-These will be mapped onto an appropriate underlying database type, for example with MySQL +:string+ is mapped to +VARCHAR(255)+. You can create columns of types not supported by Active Record when using the non-sexy syntax, for example
-
-<ruby>
-create_table :products do |t|
-  t.column :name, 'polygon', :null => false
-end
-</ruby>
-
-This may however hinder portability to other databases.
 
 h4. Changing Tables
 
@@ -462,7 +477,7 @@ Several methods are provided that allow you to control all this:
 
 For example, this migration
 
-<ruby>
+<pre>
 class CreateProducts < ActiveRecord::Migration
   def change
     suppress_messages do
@@ -481,7 +496,7 @@ class CreateProducts < ActiveRecord::Migration
     end
   end
 end
-</ruby>
+</pre>
 
 generates the following output
 
@@ -499,40 +514,107 @@ If you just want Active Record to shut up then running +rake db:migrate VERBOSE=
 
 h3. Using Models in Your Migrations
 
-When creating or updating data in a migration it is often tempting to use one of your models. After all they exist to provide easy access to the underlying data. This can be done but some caution should be observed.
+When creating or updating data in a migration it is often tempting to use one of your models. After all they exist to provide easy access to the underlying data. This can be done, but some caution should be observed.
 
-Consider for example a migration that uses the +Product+ model to update a row in the corresponding table. Alice later updates the +Product+ model, adding a new column and a validation on it. Bob comes back from holiday, updates the source and runs outstanding migrations with +rake db:migrate+, including the one that used the +Product+ model. When the migration runs the source is up to date and so the +Product+ model has the validation added by Alice. The database however is still old and so does not have that column and an error ensues because that validation is on a column that does not yet exist.
+For example, problems occur when the model uses database columns which are (1) not currently in the database and (2) will be created by this or a subsequent migration.
 
-Frequently I just want to update rows in the database without writing out the SQL by hand: I'm not using anything specific to the model. One pattern for this is to define a copy of the model inside the migration itself, for example:
+Consider this example, where Alice and Bob are working on the same code base which contains a +Product+ model:
 
-<ruby>
-class AddPartNumberToProducts < ActiveRecord::Migration
-  class Product < ActiveRecord::Base
-  end
+Bob goes on vacation.
 
+Alice creates a migration for the +products+ table which adds a new column and initializes it.
+She also adds a validation to the Product model for the new column.
+
+<pre>
+# db/migrate/20100513121110_add_flag_to_product.rb
+
+class AddFlagToProduct < ActiveRecord::Migration
   def change
-    ...
+    add_column :products, :flag, :int
+    Product.all.each { |f| f.update_attributes!(:flag => 'false') }
   end
 end
-</ruby>
-The migration has its own minimal copy of the +Product+ model and no longer cares about the +Product+ model defined in the application.
+</pre>
 
-h4. Dealing with Changing Models
+<pre>
+# app/model/product.rb
 
-For performance reasons information about the columns a model has is cached. For example if you add a column to a table and then try and use the corresponding model to insert a new row it may try to use the old column information. You can force Active Record to re-read the column information with the +reset_column_information+ method, for example
+class Product < ActiveRecord::Base
+  validates_presence_of :flag
+end
+</pre>
 
-<ruby>
-class AddPartNumberToProducts < ActiveRecord::Migration
+Alice adds a second migration which adds and initializes another column to the +products+ table and also adds a validation to the Product model for the new column.
+
+<pre>
+# db/migrate/20100515121110_add_fuzz_to_product.rb
+
+class AddFuzzToProduct < ActiveRecord::Migration
+  def change
+    add_column :products, :fuzz, :string
+    Product.all.each { |f| f.update_attributes! :fuzz => 'fuzzy' }
+  end
+end
+</pre>
+
+<pre>
+# app/model/product.rb
+
+class Product < ActiveRecord::Base
+  validates_presence_of :flag
+  validates_presence_of :fuzz
+end
+</pre>
+
+Both migrations work for Alice.
+
+Bob comes back from vacation and:
+
+# updates the source - which contains both migrations and the latests version of the Product model.
+# runs outstanding migrations with +rake db:migrate+, which includes the one that updates the +Product+ model.
+
+The migration crashes because when the model attempts to save, it tries to validate the second added column, which is not in the database when the _first_ migration runs.
+
+<pre>
+rake aborted!
+An error has occurred, this and all later migrations canceled:
+
+undefined method `fuzz' for #<Product:0x000001049b14a0>
+</pre>
+
+A fix for this is to create a local model within the migration. This keeps rails from running the validations, so that the migrations run to completion.
+
+When using a faux model, it's a good idea to call +Product.reset_column_information+ to refresh the ActiveRecord cache for the Product model prior to updating data in the database.
+
+If Alice had done this instead, there would have been no problem:
+
+<pre>
+# db/migrate/20100513121110_add_flag_to_product.rb
+
+class AddFlagToProduct < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
-
   def change
-    add_column :product, :part_number, :string
+    add_column :products, :flag, :int
+    Product.reset_column_information  
+    Product.all.each { |f| f.update_attributes!(:flag => false) }
+  end
+end
+</pre>
+
+<pre>
+# db/migrate/20100515121110_add_fuzz_to_product.rb
+
+class AddFuzzToProduct < ActiveRecord::Migration
+  class Product < ActiveRecord::Base
+  end
+  def change
+    add_column :products, :fuzz, :string
     Product.reset_column_information
-    ...
+    Product.all.each { |f| f.update_attributes! :fuzz => 'fuzzy' }
   end
 end
-</ruby>
+</pre>
 
 
 h3. Schema Dumping and You

@@ -11,13 +11,6 @@ module Sprockets
       load "sprockets/assets.rake"
     end
 
-    # Configure ActionController to use sprockets.
-    initializer "sprockets.set_configs", :after => "action_controller.set_configs" do |app|
-      ActiveSupport.on_load(:action_controller) do
-        self.use_sprockets = app.config.assets.enabled
-      end
-    end
-
     # We need to configure this after initialization to ensure we collect
     # paths from all engines. This hook is invoked exactly before routes
     # are compiled, and so that other Railties have an opportunity to
@@ -61,10 +54,10 @@ module Sprockets
           env.paths.concat assets.paths
         end
 
-        env.logger = Rails.logger
+        env.logger = ::Rails.logger
 
         if env.respond_to?(:cache) && assets.cache_store != false
-          env.cache = ActiveSupport::Cache.lookup_store(assets.cache_store) || Rails.cache
+          env.cache = ActiveSupport::Cache.lookup_store(assets.cache_store) || ::Rails.cache
         end
 
         if assets.compress

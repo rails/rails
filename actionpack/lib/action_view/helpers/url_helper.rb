@@ -55,8 +55,8 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will 
-      # trigger the named route for that record. The lookup will happen on the name of the class. So passing a 
+      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will
+      # trigger the named route for that record. The lookup will happen on the name of the class. So passing a
       # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
       #
@@ -113,7 +113,7 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of +options+.
-      # See the valid options in the documentation for +url_for+. It's also possible to 
+      # See the valid options in the documentation for +url_for+. It's also possible to
       # pass a String instead of an options hash, which generates a link tag that uses the
       # value of the String as the href for the link. Using a <tt>:back</tt> Symbol instead
       # of an options hash will generate a link to the referrer (a JavaScript back link
@@ -278,7 +278,7 @@ module ActionView
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
       # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
-      #   submit behaviour. By default this behaviour is an ajax submit.
+      #   submit behavior. By default this behavior is an ajax submit.
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
       #

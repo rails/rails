@@ -504,6 +504,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match '/countries/:country/(*other)', :to => redirect{ |params, req| params[:other] ? "/countries/all/#{params[:other]}" : '/countries/all' }
 
       match '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
+
+      scope '/italians' do
+        match '/writers', :to => 'italians#writers', :constraints => ::TestRoutingMapper::IpRestrictor
+        match '/sculptors', :to => 'italians#sculptors'
+        match '/painters/:painter', :to => 'italians#painters', :constraints => {:painter => /michelangelo/}
+      end
     end
   end
 
@@ -2227,6 +2233,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/countries/UK/cities'
     verify_redirect 'http://www.example.com/countries/all/cities'
+  end
+
+  def test_constraints_block_not_carried_to_following_routes
+    get '/italians/writers'
+    assert_equal 'Not Found', @response.body
+
+    get '/italians/sculptors'
+    assert_equal 'italians#sculptors', @response.body
+
+    get '/italians/painters/botticelli'
+    assert_equal 'Not Found', @response.body
+
+    get '/italians/painters/michelangelo'
+    assert_equal 'italians#painters', @response.body
   end
 
   def test_custom_resource_actions_defined_using_string

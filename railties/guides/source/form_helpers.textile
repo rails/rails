@@ -27,9 +27,7 @@ The most basic form helper is +form_tag+.
 <% end %>
 </erb>
 
-When called without arguments like this, it creates a form element that has the current page as its action and "post" as its method (some line breaks added for readability):
-
-Sample output from +form_tag+:
+When called without arguments like this, it creates a +&lt;form&gt;+ tag which, when submitted, will POST to the current page. For instance, assuming the current page is +/home/index+, the generated HTML will look like this (some line breaks added for readability):
 
 <html>
 <form accept-charset="UTF-8" action="/home/index" method="post">
@@ -41,36 +39,30 @@ Sample output from +form_tag+:
 </form>
 </html>
 
-If you carefully observe this output, you can see that the helper generated something you didn't specify: a +div+ element with two hidden input elements inside. The first input element with name +utf8+ enforces browsers to properly respect your form's character encoding and is generated for all forms whether action is "get" or "post". Second input element with name +authenticity_token+ is a security feature of Rails called *cross-site request forgery protection* and form helpers generate it for every form whose action is not "get" (provided that this security feature is enabled). You can read more about this in the "Ruby On Rails Security Guide":./security.html#_cross_site_reference_forgery_csrf.
+Now, you'll notice that the HTML contains something extra: a +div+ element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name +utf8+ enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name +authenticity_token+ is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the "Security Guide":./security.html#_cross_site_reference_forgery_csrf.
 
-NOTE: Throughout this guide, this +div+ with the hidden input elements will be stripped away to have clearer code samples.
+NOTE: Throughout this guide, the +div+ with the hidden input elements will be excluded from code samples for brevity.
 
 h4. A Generic Search Form
 
-Probably the most minimal form often seen on the web is a search form with a single text input for search terms. This form consists of:
+One of the most basic forms you see on the web is a search form. This form contains:
 
 # a form element with "GET" method,
 # a label for the input,
 # a text input element, and
 # a submit element.
 
-IMPORTANT: Always use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
-
-To create this form you will use +form_tag+, +label_tag+, +text_field_tag+, and +submit_tag+, respectively.
-
-A basic search form
+To create this form you will use +form_tag+, +label_tag+, +text_field_tag+, and +submit_tag+, respectively. Like this:
 
 <erb>
-<%= form_tag(search_path, :method => "get") do %>
+<%= form_tag("/search", :method => "get") do %>
   <%= label_tag(:q, "Search for:") %>
   <%= text_field_tag(:q) %>
   <%= submit_tag("Search") %>
 <% end %>
 </erb>
 
-TIP: +search_path+ can be a named route specified in "routes.rb" as: <br /><code>match "search" => "search"</code> This declares that path "/search" will be handled by action "search" belonging to controller "search".
-
-The above view code will result in the following markup:
+This will generate the following HTML:
 
 <html>
 <form accept-charset="UTF-8" action="/search" method="get">
@@ -80,47 +72,35 @@ The above view code will result in the following markup:
 </form>
 </html>
 
+TIP: For every form input, an ID attribute is generated from its name ("q" in the example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
+
 Besides +text_field_tag+ and +submit_tag+, there is a similar helper for _every_ form control in HTML.
 
-TIP: For every form input, an ID attribute is generated from its name ("q" in the example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
+IMPORTANT: Always use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
 
 h4. Multiple Hashes in Form Helper Calls
 
-By now you've seen that the +form_tag+ helper accepts 2 arguments: the path for the action and an options hash. This hash specifies the method of form submission and HTML options such as the form element's class.
+The +form_tag+ helper accepts 2 arguments: the path for the action and an options hash. This hash specifies the method of form submission and HTML options such as the form element's class.
 
-As with the +link_to+ helper, the path argument doesn't have to be given a string. It can be a hash of URL parameters that Rails' routing mechanism will turn into a valid URL. However, this is a bad way to pass multiple hashes as method arguments:
+As with the +link_to+ helper, the path argument doesn't have to be given a string; it can be a hash of URL parameters recognizable by Rails' routing mechanism, which will turn the hash into a valid URL. However, since both arguments to +form_tag+ are hashes, you can easily run into a problem if you would like to specify both. For instance, let's say you write this:
 
 <ruby>
 form_tag(:controller => "people", :action => "search", :method => "get", :class => "nifty_form")
-# => <form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">
+# => '<form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">'
 </ruby>
 
-Here you wanted to pass two hashes, but the Ruby interpreter sees only one hash, so Rails will construct a URL with extraneous parameters. The correct way of passing multiple hashes as arguments is to delimit the first hash (or both hashes) with curly brackets:
+Here, +method+ and +class+ are appended to the query string of the generated URL because you even though you mean to write two hashes, you really only specified one. So you need to tell Ruby which is which by delimiting the first hash (or both) with curly brackets. This will generate the HTML you expect:
 
 <ruby>
 form_tag({:controller => "people", :action => "search"}, :method => "get", :class => "nifty_form")
-# => <form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">
+# => '<form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">'
 </ruby>
-
-This is a common pitfall when using form helpers, since many of them accept multiple hashes. So in future, if a helper produces unexpected output, make sure that you have delimited the hash parameters properly.
-
-WARNING: Do not delimit the second hash without doing so with the first hash, otherwise your method invocation will result in an +expecting tASSOC+ syntax error.
 
 h4. Helpers for Generating Form Elements
 
-Rails provides a series of helpers for generating form elements such as checkboxes, text fields and radio buttons. These basic helpers, with names ending in <notextile>_tag</notextile> such as +text_field_tag+ and +check_box_tag+ generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. In the controller this name will be the key in the +params+ hash used to get the value entered by the user. For example, if the form contains
+Rails provides a series of helpers for generating form elements such as checkboxes, text fields, and radio buttons. These basic helpers, with names ending in "_tag" (such as +text_field_tag+ and +check_box_tag+), generate just a single +&lt;input&gt;+ element. The first parameter to these is always the name of the input. When the form is submitted, the name will be passed along with the form data, and will make its way to the +params+ hash in the controller with the value entered by the user for that field. For example, if the form contains +<%= text_field_tag(:query) %>+, then you would be able to get the value of this field in the controller with +params[:query]+.
 
-<erb>
-<%= text_field_tag(:query) %>
-</erb>
-
-then the controller code should use
-
-<ruby>
-params[:query]
-</ruby>
-
-to retrieve the value entered by the user. When naming inputs, be aware that Rails uses certain conventions that control whether values are at the top level of the +params+ hash, inside an array or a nested hash and so on. You can read more about them in the parameter_names section. For details on the precise usage of these helpers, please refer to the "API documentation":http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html.
+When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in +params+. You can read more about them in "chapter 7 of this guide":#understanding-parameter-naming-conventions. For details on the precise usage of these helpers, please refer to the "API documentation":http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html.
 
 h5. Checkboxes
 
@@ -133,7 +113,7 @@ Checkboxes are form controls that give the user a set of options they can enable
 <%= label_tag(:pet_cat, "I own a cat") %>
 </erb>
 
-output:
+This generates the following:
 
 <html>
 <input id="pet_dog" name="pet_dog" type="checkbox" value="1" />
@@ -142,11 +122,11 @@ output:
 <label for="pet_cat">I own a cat</label>
 </html>
 
-The second parameter to +check_box_tag+ is the value of the input. This is the value that will be submitted by the browser if the checkbox is ticked (i.e. the value that will be present in the +params+ hash). With the above form you would check the value of +params[:pet_dog]+ and +params[:pet_cat]+ to see which pets the user owns.
+The first parameter to +check_box_tag+, of course, is the name of the input. The second parameter, naturally, is the value of the input. This value will be included in the form data (and be present in +params+) when the checkbox is checked.
 
 h5. Radio Buttons
 
-Radio buttons, while similar to checkboxes, are controls that specify a set of options in which they are mutually exclusive (i.e. the user can only pick one):
+Radio buttons, while similar to checkboxes, are controls that specify a set of options in which they are mutually exclusive (i.e., the user can only pick one):
 
 <erb>
 <%= radio_button_tag(:age, "child") %>
@@ -155,7 +135,7 @@ Radio buttons, while similar to checkboxes, are controls that specify a set of o
 <%= label_tag(:age_adult, "I'm over 21") %>
 </erb>
 
-output:
+Output:
 
 <html>
 <input id="age_child" name="age" type="radio" value="child" />
@@ -164,32 +144,41 @@ output:
 <label for="age_adult">I'm over 21</label>
 </html>
 
-As with +check_box_tag+ the second parameter to +radio_button_tag+ is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one and +params[:age]+ will contain either "child" or "adult".
+As with +check_box_tag+, the second parameter to +radio_button_tag+ is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one, and +params[:age]+ will contain either "child" or "adult".
 
-IMPORTANT: Always use labels for each checkbox and radio button. They associate text with a specific option and provide a larger clickable region.
+NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and make it easier for users to click the inputs by expanding the clickable region.
 
 h4. Other Helpers of Interest
 
-Other form controls worth mentioning are the text area, password input and hidden input:
+Other form controls worth mentioning are textareas, password fields, hidden fields, search fields, telephone fields, URL fields and email fields:
 
 <erb>
 <%= text_area_tag(:message, "Hi, nice site", :size => "24x6") %>
 <%= password_field_tag(:password) %>
 <%= hidden_field_tag(:parent_id, "5") %>
+<%= search_field(:user, :name) %>
+<%= telephone_field(:user, :phone) %>
+<%= url_field(:user, :homepage) %>
+<%= email_field(:user, :address) %>
 </erb>
 
-output:
+Output:
 
 <html>
 <textarea id="message" name="message" cols="24" rows="6">Hi, nice site</textarea>
 <input id="password" name="password" type="password" />
 <input id="parent_id" name="parent_id" type="hidden" value="5" />
+<input id="user_name" name="user[name]" size="30" type="search" />
+<input id="user_phone" name="user[phone]" size="30" type="tel" />
+<input id="user_homepage" size="30" name="user[homepage]" type="url" />
+<input id="user_address" size="30" name="user[address]" type="email" />
 </html>
 
-Hidden inputs are not shown to the user, but they hold data like any textual input. Values inside them can be changed with JavaScript.
+Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
-TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged.
+IMPORTANT: The search, telephone, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely "no shortage of solutions for this":https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills, although a couple of popular tools at the moment are "Modernizr":http://www.modernizr.com/ and "yepnope":http://yepnopejs.com/, which provide a simple way to add functionality based on the presence of detected HTML5 features.
 
+TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the "Security Guide":security.html#logging.
 
 h3. Dealing with Model Objects
 

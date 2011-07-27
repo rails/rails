@@ -21,6 +21,7 @@ require 'models/parrot'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
+require 'models/bulb'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -258,6 +259,18 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal(1, ex.errors.size)
       assert_equal("last_read", ex.errors[0].attribute)
     end
+  end
+
+  def test_create_after_initialize_without_block
+    cb = CustomBulb.create(:name => 'Dude')
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
+  end
+
+  def test_create_after_initialize_with_block
+    cb = CustomBulb.create {|c| c.name = 'Dude' }
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
   end
 
   def test_load
@@ -540,7 +553,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(1, 6, 24), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_month
@@ -549,7 +562,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(2004, 1, 24), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_day
@@ -558,7 +571,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(2004, 6, 1), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_day_and_year
@@ -567,7 +580,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(1, 6, 1), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_day_and_month
@@ -576,7 +589,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(2004, 1, 1), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_year_and_month
@@ -585,7 +598,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(1, 1, 24), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_all_empty
@@ -678,12 +691,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal 1, topic.written_on.year
-    assert_equal 1, topic.written_on.month
-    assert_equal 1, topic.written_on.day
-    assert_equal 0, topic.written_on.hour
-    assert_equal 12, topic.written_on.min
-    assert_equal 2, topic.written_on.sec
+    assert_nil topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_will_ignore_date_if_empty
@@ -693,12 +701,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal 1, topic.written_on.year
-    assert_equal 1, topic.written_on.month
-    assert_equal 1, topic.written_on.day
-    assert_equal 16, topic.written_on.hour
-    assert_equal 24, topic.written_on.min
-    assert_equal 0, topic.written_on.sec
+    assert_nil topic.written_on
   end
   def test_multiparameter_attributes_on_time_with_seconds_will_ignore_date_if_empty
     attributes = {
@@ -707,12 +710,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal 1, topic.written_on.year
-    assert_equal 1, topic.written_on.month
-    assert_equal 1, topic.written_on.day
-    assert_equal 16, topic.written_on.hour
-    assert_equal 12, topic.written_on.min
-    assert_equal 02, topic.written_on.sec
+    assert_nil topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_with_utc
@@ -1869,6 +1867,6 @@ class BasicsTest < ActiveRecord::TestCase
   def test_cache_key_format_for_existing_record_with_nil_updated_at
     dev = Developer.first
     dev.update_attribute(:updated_at, nil)
-    assert_match /\/#{dev.id}$/, dev.cache_key
+    assert_match(/\/#{dev.id}$/, dev.cache_key)
   end
 end

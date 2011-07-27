@@ -443,7 +443,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_image_tag_windows_behaviour
     old_asset_id, ENV["RAILS_ASSET_ID"] = ENV["RAILS_ASSET_ID"], "1"
-    # This simulates the behaviour of File#exist? on windows when testing a file ending in "."
+    # This simulates the behavior of File#exist? on windows when testing a file ending in "."
     # If the file "rails.png" exists, windows will return true when asked if "rails.png." exists (notice trailing ".")
     # OS X, linux etc will return false in this case.
     File.stubs(:exist?).with('template/../fixtures/public/images/rails.png.').returns(true)
@@ -481,7 +481,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_timebased_asset_id
-    expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 
@@ -512,7 +512,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_timebased_asset_id_with_relative_url_root
     @controller.config.relative_url_root = "/collaboration/hieraki"
-    expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
     assert_equal %(<img alt="Rails" src="#{@controller.config.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
 

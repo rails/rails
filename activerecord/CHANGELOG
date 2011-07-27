@@ -1,5 +1,10 @@
 *Rails 3.2.0 (unreleased)*
 
+* If multiple parameters are sent representing a date, and some are blank, the
+resulting object is nil. In previous releases those values defaulted to 1. This
+only affects existing but blank parameters, missing ones still raise an error.
+[Akira Matsuda]
+
 * ActiveRecord::Base.establish_connection now takes a string that contains
 a URI that specifies the connection configuration.  For example:
 
@@ -18,6 +23,12 @@ a URI that specifies the connection configuration.  For example:
   [Prem Sichanugrist]
 
 *Rails 3.1.0 (unreleased)*
+
+* Add a proxy_association method to association proxies, which can be called by association
+  extensions to access information about the association. This replaces proxy_owner etc with
+  proxy_association.owner.
+
+  [Jon Leighton]
 
 * ActiveRecord::MacroReflection::AssociationReflection#build_record has a new method signature.
 

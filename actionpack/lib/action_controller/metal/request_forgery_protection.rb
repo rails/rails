@@ -79,7 +79,7 @@ module ActionController #:nodoc:
         end
       end
 
-      # This is the method that defines the application behaviour when a request is found to be unverified.
+      # This is the method that defines the application behavior when a request is found to be unverified.
       # By default, \Rails resets the session when it finds an unverified request.
       def handle_unverified_request
         reset_session

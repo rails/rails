@@ -8,7 +8,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app
+      build_app(:initializers => true)
       boot_rails
     end
 
@@ -46,7 +46,7 @@ module ApplicationTests
       assert defined?(Uglifier)
     end
 
-    test "assets are compiled properly" do
+    test "precompile creates the file and gives it the original asset's content" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
 
@@ -59,6 +59,16 @@ module ApplicationTests
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
         assert_equal "alert();\n", File.read(file)
       end
+    end
+
+    test "precompile appends the md5 hash to files referenced with asset_path" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
+      assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
     end
 
     test "assets are cleaned up properly" do

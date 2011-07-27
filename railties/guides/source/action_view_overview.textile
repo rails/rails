@@ -870,7 +870,7 @@ h4. FormHelper
 
 Form helpers are designed to make working with models much easier compared to using just standard HTML elements by providing a set of methods for creating forms based on your models. This helper generates the HTML for forms, providing a method for each sort of input (e.g., text, password, select, and so on). When the form is submitted (i.e., when the user hits the submit button or form.submit is called via JavaScript), the form inputs will be bundled into the params object and passed back to the controller.
 
-There are two types of form helpers: those that specifically work with model attributes and those that don't. This helper deals with those that work with model attributes; to see an example of form helpers that don‘t work with model attributes, check the ActionView::Helpers::FormTagHelper documentation.
+There are two types of form helpers: those that specifically work with model attributes and those that don't. This helper deals with those that work with model attributes; to see an example of form helpers that don't work with model attributes, check the ActionView::Helpers::FormTagHelper documentation.
 
 The core method of this helper, form_for, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
 
@@ -914,7 +914,7 @@ check_box("post", "validated")
 
 h5. fields_for
 
-Creates a scope around a specific model object like form_for, but doesn‘t create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
+Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
 
 <ruby>
 <%= form_for @person, :url => { :action => "update" } do |person_form| %>
