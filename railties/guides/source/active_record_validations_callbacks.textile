@@ -612,6 +612,61 @@ class Movie < ActiveRecord::Base
 end
 </ruby>
 
+h3. Shortcut helper
+
+There is a special method +validates+ that is a shortcut to all default validators and any custom validator classes ending in 'Validator'. Note that Rails default validators can be overridden inside specific classes by creating custom validator classes in their place such as +PresenceValidator+.
+
+h4. Multiple validations for a single attribue
+
+In cases where you want multiple validations for a single attribute you can do it with a one-liner.
+
+<ruby>
+class User < ActiveRecord::Base
+  validates :password, :presence => true, :confirmation => true, :length => { :minimum => 6 }
+end
+</ruby>
+
+h4. Combining standard validations with custom validators
+
+You can also combine standard validations with your own custom validators.
+
+<ruby>
+class EmailValidator < ActiveModel::EachValidator
+  def validate_each(record, attribute, value)
+    record.errors[attribute] << (options[:message] || "is not an email") unless
+      value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+  end
+end
+
+class Person
+  include ActiveModel::Validations
+  attr_accessor :name, :email
+
+  validates :name, :presence => true, :uniqueness => true, :length => { :maximum => 100 }
+  validates :email, :presence => true, :email => true
+end
+</ruby>
+
+h4. Validating multiple attributes with the same criteria
+
+If you have a case where you want to apply the same validations to multiple attributes you can do that as well.
+
+<ruby>
+class BlogPost < ActiveRecord::Base
+  validates :title, :body, :presence => true
+end
+</ruby>
+
+h4. Using the standard options
+
+The shortcut syntax is also compatible with the standard options +:allow_nil+, +:allow_blank+, etc. as well as the conditional options +:if+ and +unless+.
+
+<ruby>
+class User < ActiveRecord::Base
+  validates :password, :presence => { :if => :password_required? }, :confirmation => true
+end
+</ruby>
+
 h3. Working with Validation Errors
 
 In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provides a number of methods for working with the +errors+ collection and inquiring about the validity of objects.
