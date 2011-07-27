@@ -151,7 +151,7 @@ module ActiveSupport #:nodoc:
     protected
 
     def dirty?
-      @dirty ||= false
+      @dirty
     end
   end
 end
