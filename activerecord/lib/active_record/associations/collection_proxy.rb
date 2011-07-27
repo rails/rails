@@ -132,25 +132,28 @@ module ActiveRecord
       def proxy_owner
         ActiveSupport::Deprecation.warn(
           "Calling record.#{@association.reflection.name}.proxy_owner is deprecated. Please use " \
-          "record.association(:#{@association.reflection.name}).owner instead."
+          "record.association(:#{@association.reflection.name}).owner instead. Or, from an " \
+          "association extension you can access proxy_association.owner."
         )
-        @association.owner
+        proxy_association.owner
       end
 
       def proxy_target
         ActiveSupport::Deprecation.warn(
           "Calling record.#{@association.reflection.name}.proxy_target is deprecated. Please use " \
-          "record.association(:#{@association.reflection.name}).target instead."
+          "record.association(:#{@association.reflection.name}).target instead. Or, from an " \
+          "association extension you can access proxy_association.target."
         )
-        @association.target
+        proxy_association.target
       end
 
       def proxy_reflection
         ActiveSupport::Deprecation.warn(
           "Calling record.#{@association.reflection.name}.proxy_reflection is deprecated. Please use " \
-          "record.association(:#{@association.reflection.name}).reflection instead."
+          "record.association(:#{@association.reflection.name}).reflection instead. Or, from an " \
+          "association extension you can access proxy_association.reflection."
         )
-        @association.reflection
+        proxy_association.reflection
       end
     end
   end
