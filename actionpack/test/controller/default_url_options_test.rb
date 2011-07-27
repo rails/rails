@@ -5,12 +5,12 @@ class DefaultUrlOptionsController < ActionController::Base
 
   before_filter { I18n.locale = params[:locale] }
 
-  def redirect_target
-    render :text => "index1"
+  def target
+    render :text => "final response"
   end
 
   def redirect
-    redirect_to :action => "redirect_target"
+    redirect_to :action => "target"
   end
 
   def default_url_options(options={})
@@ -22,10 +22,9 @@ end
 class DefaultUrlOptionsControllerTest < ActionController::TestCase
 
   def setup
-    @controller = DefaultUrlOptionsController.new
     @routes = ActionDispatch::Routing::RouteSet.new
     @routes.draw do
-      get "/default_url_options/redirect_target" => "default_url_options#redirect_target"
+      get "/default_url_options/target" => "default_url_options#target"
       get "/default_url_options/redirect" => "default_url_options#redirect"
     end
   end
@@ -33,7 +32,7 @@ class DefaultUrlOptionsControllerTest < ActionController::TestCase
   # This test has it´s roots in issue #1872 
   test "should redirect with correct locale :de" do
     get :redirect, :locale => "de"
-    assert_redirected_to "/default_url_options/redirect_target?locale=de"
+    assert_redirected_to "/default_url_options/target?locale=de"
   end
 end
 
