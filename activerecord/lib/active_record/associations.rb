@@ -460,6 +460,12 @@ module ActiveRecord
     # * <tt>record.association(:items).target</tt> - Returns the associated object for +belongs_to+ and +has_one+, or
     #   the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
     #
+    # However, inside the actual extension code, you will not have access to the <tt>record</tt> as
+    # above. In this case, you can access <tt>proxy_association</tt>. For example,
+    # <tt>record.association(:items)</tt> and <tt>record.items.proxy_association</tt> will return
+    # the same object, allowing you to make calls like <tt>proxy_association.owner</tt> inside
+    # association extensions.
+    #
     # === Association Join Models
     #
     # Has Many associations can be configured with the <tt>:through</tt> option to use an

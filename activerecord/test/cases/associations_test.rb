@@ -203,6 +203,11 @@ class AssociationProxyTest < ActiveRecord::TestCase
       assert_equal david.projects, david.projects.reload.reload
     end
   end
+
+  def test_proxy_association_accessor
+    david = developers(:david)
+    assert_equal david.association(:projects), david.projects.proxy_association
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
