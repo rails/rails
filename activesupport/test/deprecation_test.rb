@@ -238,6 +238,30 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_difference("deprecator.messages.size") { klass.new.old_request.to_s }
   end
 
+  def test_included_deprecation_module
+    klass = Class.new() do
+      attr_reader :last_message
+      include ActiveSupport::Deprecation
+      def deprecated_method
+        warn(deprecated_method_warning(:deprecated_method, "You are calling deprecated method"))
+      end
+
+      private
+
+      def deprecated_method_warning(method_name, message = nil)
+        message || "#{method_name} is deprecated and will be removed from This Library"
+      end
+
+      def behavior
+        @behavior ||= [Proc.new { |message| @last_message = message }]
+      end
+    end
+
+    object = klass.new
+    object.deprecated_method
+    assert_match(/You are calling deprecated method/, object.last_message)
+  end
+
   unless defined?(::MiniTest)
     def test_assertion_failed_error_doesnt_spout_deprecation_warnings
       error_class = Class.new(StandardError) do

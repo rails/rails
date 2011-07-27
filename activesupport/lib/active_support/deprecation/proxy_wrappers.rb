@@ -45,7 +45,7 @@ module ActiveSupport
     # Stand-in for <tt>@request</tt>, <tt>@attributes</tt>, <tt>@params</tt>, etc.
     # which emits deprecation warnings on any method call (except +inspect+).
     class DeprecatedInstanceVariableProxy < DeprecationProxy #:nodoc:
-      def initialize(instance, method, var = "@#{method}", deprecator = nil)
+      def initialize(instance, method, var = :"@#{method}", deprecator = nil)
         @instance = instance
         @method = method
         @var = var
