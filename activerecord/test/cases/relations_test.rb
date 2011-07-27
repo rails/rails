@@ -1013,4 +1013,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal posts(:thinking), comments(:more_greetings).post
     assert_equal posts(:welcome),  comments(:greetings).post
   end
+
+  def test_eager_loading_with_includes_and_select
+    scope = Post.select('author_id, COUNT(author_id) AS num_posts, authors.*').group('author_id').includes(:author)
+    result = scope.map do |post|
+      [post.num_posts, post.author.name]
+    end
+
+    expected = [[5, "David"], [3, "Mary"], [2, "Bob"]]
+    assert_equal expected, result
+    assert scope.eager_loading?, "should eager load authors"
+  end
 end
