@@ -1,5 +1,11 @@
 *Rails 3.1.0 (unreleased)*
 
+* Add a proxy_association method to association proxies, which can be called by association
+  extensions to access information about the association. This replaces proxy_owner etc with
+  proxy_association.owner.
+
+  [Jon Leighton]
+
 * Active Record's dynamic finder will now show a deprecation warning if you passing in less number of arguments than what you call in method signature. This behavior will raise ArgumentError in the next version of Rails [Prem Sichanugrist]
 
 * Deprecated the AssociationCollection constant. CollectionProxy is now the appropriate constant
