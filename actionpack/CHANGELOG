@@ -2270,7 +2270,7 @@ superclass' view_paths.  [Rick Olson]
 
 * Update documentation for erb trim syntax. #5651 [matt@mattmargolis.net]
 
-* Pass :id => nil or :class => nil to error_messages_for to supress that html attribute. #3586 [olivier_ansaldi@yahoo.com, sebastien@goetzilla.info]
+* Pass :id => nil or :class => nil to error_messages_for to supress that html attribute. #3586 [olivier_ansaldi@yahoo.com]
 
 * Reset @html_document between requests so assert_tag works. #4810 [Jarkko Laine, easleydp@gmail.com]
 
@@ -2867,7 +2867,7 @@ superclass' view_paths.  [Rick Olson]
 
 * Provide support for decimal columns to form helpers. Closes #5672. [Dave Thomas]
 
-* Pass :id => nil or :class => nil to error_messages_for to supress that html attribute. #3586 [olivier_ansaldi@yahoo.com, sebastien@goetzilla.info]
+* Pass :id => nil or :class => nil to error_messages_for to supress that html attribute. #3586 [olivier_ansaldi@yahoo.com]
 
 * Reset @html_document between requests so assert_tag works. #4810 [Jarkko Laine, easleydp@gmail.com]
 
