@@ -312,7 +312,7 @@ module ActiveRecord
         when String, Symbol
           o.to_s.split(',').collect do |s|
             s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+            (s if s =~ /\(/) || s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
         else
           o
