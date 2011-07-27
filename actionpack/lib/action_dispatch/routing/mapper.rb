@@ -105,13 +105,13 @@ module ActionDispatch
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
               # GET /admin/products/show/1
               # => { :controller => 'admin/products', :action => 'show', :id => '1' }
-              @options.reverse_merge!(:controller => /.+?/)
+              @options[:controller] ||= /.+?/
             end
 
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
             if path.match(WILDCARD_PATH) && @options[:format] != false
-              @options.reverse_merge!(:"#{$1}" => /.+?/)
+              @options[$1.to_sym] ||= /.+?/
             end
 
             if @options[:format] == false
@@ -264,7 +264,7 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          match '/', options.reverse_merge(:as => :root)
+          match '/', { :as => :root }.merge(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
