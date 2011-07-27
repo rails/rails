@@ -498,7 +498,7 @@ ActionController::TestCase.class_eval do
 end
 </ruby>
 
-Rails uses +alias_method_chain+ all over the code base. For example validations are added to +ActiveRecord::Base#save+ by wrapping the method that way in a separate module specialised in validations.
+Rails uses +alias_method_chain+ all over the code base. For example validations are added to +ActiveRecord::Base#save+ by wrapping the method that way in a separate module specialized in validations.
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 

@@ -42,10 +42,10 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal({"user_name" => "david", "login" => "XJ-122"}, req.cookies)
     assert_equal %w(login=XJ-122 user_name=david), req.env["HTTP_COOKIE"].split(/; /).sort
 
-		assert_nothing_raised do
-			req.cookies["login"] = nil
-			assert_equal({"user_name" => "david", "login" => nil}, req.cookies)
-			assert_equal %w(login= user_name=david), req.env["HTTP_COOKIE"].split(/; /).sort
-		end
-	end
+    assert_nothing_raised do
+      req.cookies["login"] = nil
+      assert_equal({"user_name" => "david", "login" => nil}, req.cookies)
+      assert_equal %w(login= user_name=david), req.env["HTTP_COOKIE"].split(/; /).sort
+    end
+  end
 end

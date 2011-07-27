@@ -1,5 +1,12 @@
+require 'active_support/deprecation'
+
 module ActiveRecord
   module Associations
+    AssociationCollection = ActiveSupport::Deprecation::DeprecatedConstantProxy.new(
+      'ActiveRecord::Associations::AssociationCollection',
+      'ActiveRecord::Associations::CollectionProxy'
+    )
+
     # Association proxies in Active Record are middlemen between the object that
     # holds the association, known as the <tt>@owner</tt>, and the actual associated
     # object, known as the <tt>@target</tt>. The kind of association any proxy is

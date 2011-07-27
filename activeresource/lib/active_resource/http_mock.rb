@@ -149,7 +149,7 @@ module ActiveResource
       # Note, by default, every time you call +respond_to+, any previous request and response pairs stored
       # in HttpMock will be deleted giving you a clean slate to work on.
       #
-      # If you want to override this behaviour, pass in +false+ as the last argument to +respond_to+
+      # If you want to override this behavior, pass in +false+ as the last argument to +respond_to+
       #
       # === Example
       #

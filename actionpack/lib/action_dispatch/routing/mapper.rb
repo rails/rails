@@ -116,6 +116,8 @@ module ActionDispatch
               path
             elsif path.include?(":format") || path.end_with?('/')
               path
+            elsif @options[:format] == true
+              "#{path}.:format"
             else
               "#{path}(.:format)"
             end
@@ -187,13 +189,12 @@ module ActionDispatch
           end
 
           def blocks
-            block = @scope[:blocks] || []
-
-            if @options[:constraints].present? && !@options[:constraints].is_a?(Hash)
-              block << @options[:constraints]
+            constraints = @options[:constraints]
+            if constraints.present? && !constraints.is_a?(Hash)
+              [constraints]
+            else
+              @scope[:blocks] || []
             end
-
-            block
           end
 
           def constraints

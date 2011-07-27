@@ -443,7 +443,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_image_tag_windows_behaviour
     old_asset_id, ENV["RAILS_ASSET_ID"] = ENV["RAILS_ASSET_ID"], "1"
-    # This simulates the behaviour of File#exist? on windows when testing a file ending in "."
+    # This simulates the behavior of File#exist? on windows when testing a file ending in "."
     # If the file "rails.png" exists, windows will return true when asked if "rails.png." exists (notice trailing ".")
     # OS X, linux etc will return false in this case.
     File.stubs(:exist?).with('template/../fixtures/public/images/rails.png.').returns(true)

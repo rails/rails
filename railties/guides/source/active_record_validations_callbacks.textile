@@ -848,7 +848,7 @@ The way form fields with errors are treated is defined by +ActionView::Base.fiel
 * A string with the HTML tag
 * An instance of +ActionView::Helpers::InstanceTag+.
 
-Here is a simple example where we change the Rails behaviour to always display the error messages in front of each of the form fields with errors. The error messages will be enclosed by a +span+ element with a +validation-error+ CSS class. There will be no +div+ element enclosing the +input+ element, so we get rid of that red border around the text field. You can use the +validation-error+ CSS class to style it anyway you want.
+Here is a simple example where we change the Rails behavior to always display the error messages in front of each of the form fields with errors. The error messages will be enclosed by a +span+ element with a +validation-error+ CSS class. There will be no +div+ element enclosing the +input+ element, so we get rid of that red border around the text field. You can use the +validation-error+ CSS class to style it anyway you want.
 
 <ruby>
 ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
@@ -941,7 +941,7 @@ The +after_initialize+ callback will be called whenever an Active Record object 
 
 The +after_find+ callback will be called whenever Active Record loads a record from the database. +after_find+ is called before +after_initialize+ if both are defined.
 
-The +after_initialize+ and +after_find+ callbacks are a bit different from the others. They have no +before_*+ counterparts, and the only way to register them is by defining them as regular methods. If you try to register +after_initialize+ or +after_find+ using macro-style class methods, they will just be ignored. This behaviour is due to performance reasons, since +after_initialize+ and +after_find+ will both be called for each record found in the database, significantly slowing down the queries.
+The +after_initialize+ and +after_find+ callbacks are a bit different from the others. They have no +before_*+ counterparts, and the only way to register them is by defining them as regular methods. If you try to register +after_initialize+ or +after_find+ using macro-style class methods, they will just be ignored. This behavior is due to performance reasons, since +after_initialize+ and +after_find+ will both be called for each record found in the database, significantly slowing down the queries.
 
 <ruby>
 class User < ActiveRecord::Base
@@ -1172,7 +1172,7 @@ As usual, settings in +config/environments+ take precedence over those in +confi
 
 h4. Sharing Observers
 
-By default, Rails will simply strip "Observer" from an observer's name to find the model it should observe. However, observers can also be used to add behaviour to more than one model, and so it's possible to manually specify the models that our observer should observe.
+By default, Rails will simply strip "Observer" from an observer's name to find the model it should observe. However, observers can also be used to add behavior to more than one model, and so it's possible to manually specify the models that our observer should observe.
 
 <ruby>
 class MailerObserver < ActiveRecord::Observer

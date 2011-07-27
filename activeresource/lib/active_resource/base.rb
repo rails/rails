@@ -395,7 +395,7 @@ module ActiveResource
         #   Subclass.site.user = 'david'
         #   Parent.site # => 'http://david@test.com'
         #
-        # Without superclass_delegating_reader (expected behaviour)
+        # Without superclass_delegating_reader (expected behavior)
         #
         #   Parent.site = 'http://anonymous@test.com'
         #   Subclass.site # => 'http://anonymous@test.com'

@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'date'
 require 'active_support/core_ext/time/publicize_conversion_methods'
 require 'active_support/core_ext/time/calculations'

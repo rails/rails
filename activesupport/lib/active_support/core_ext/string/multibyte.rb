@@ -35,7 +35,7 @@ class String
     # object. Interoperability problems can be resolved easily with a +to_s+ call.
     #
     # For more information about the methods defined on the Chars proxy see ActiveSupport::Multibyte::Chars. For
-    # information about how to change the default Multibyte behaviour see ActiveSupport::Multibyte.
+    # information about how to change the default Multibyte behavior see ActiveSupport::Multibyte.
     def mb_chars
       if ActiveSupport::Multibyte.proxy_class.consumes?(self)
         ActiveSupport::Multibyte.proxy_class.new(self)

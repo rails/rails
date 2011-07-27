@@ -23,6 +23,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
+require 'active_support/deprecation'
 require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
@@ -1056,6 +1057,13 @@ module ActiveRecord #:nodoc:
           if match = DynamicFinderMatch.match(method_id)
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
+            if arguments.size < attribute_names.size
+              ActiveSupport::Deprecation.warn(
+                "Calling dynamic finder with less number of arguments than the number of attributes in " \
+                "method name is deprecated and will raise an ArguementError in the next version of Rails. " \
+                "Please passing `nil' to the argument you want it to be nil."
+              )
+            end
             if match.finder?
               options = arguments.extract_options!
               relation = options.any? ? scoped(options) : scoped
@@ -1066,6 +1074,13 @@ module ActiveRecord #:nodoc:
           elsif match = DynamicScopeMatch.match(method_id)
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
+            if arguments.size < attribute_names.size
+              ActiveSupport::Deprecation.warn(
+                "Calling dynamic scope with less number of arguments than the number of attributes in " \
+                "method name is deprecated and will raise an ArguementError in the next version of Rails. " \
+                "Please passing `nil' to the argument you want it to be nil."
+              )
+            end
             if match.scope?
               self.class_eval <<-METHOD, __FILE__, __LINE__ + 1
                 def self.#{method_id}(*args)                                    # def self.scoped_by_user_name_and_password(*args)
@@ -1639,7 +1654,8 @@ MSG
         when new_record?
           "#{self.class.model_name.cache_key}/new"
         when timestamp = self[:updated_at]
-          "#{self.class.model_name.cache_key}/#{id}-#{timestamp.to_s(:number)}"
+          timestamp = timestamp.utc.to_s(:number)
+          "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
         else
           "#{self.class.model_name.cache_key}/#{id}"
         end
@@ -1750,7 +1766,7 @@ MSG
       end
 
       # Returns an <tt>#inspect</tt>-like string for the value of the
-      # attribute +attr_name+. String attributes are elided after 50
+      # attribute +attr_name+. String attributes are truncated upto 50
       # characters, and Date and Time attributes are returned in the
       # <tt>:db</tt> format. Other attributes return the value of
       # <tt>#inspect</tt> without modification.

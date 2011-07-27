@@ -155,6 +155,11 @@ module ActiveRecord
         end
       end
 
+      def type_cast(value, column) # :nodoc:
+        return super unless BigDecimal === value
+
+        value.to_f
+      end
 
       # DATABASE STATEMENTS ======================================
 

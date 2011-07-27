@@ -11,7 +11,7 @@ module Rails
   # == Initialization
   #
   # Rails::Application is responsible for executing all railties, engines and plugin
-  # initializers. Besides, it also executed some bootstrap initializers (check
+  # initializers. It also executes some bootstrap initializers (check
   # Rails::Application::Bootstrap) and finishing initializers, after all the others
   # are executed (check Rails::Application::Finisher).
   #
@@ -160,7 +160,9 @@ module Rails
         middleware.use ::Rails::Rack::Logger # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-        middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
+        if config.action_dispatch.x_sendfile_header.present?
+          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
+        end
         middleware.use ::ActionDispatch::Reloader unless config.cache_classes
         middleware.use ::ActionDispatch::Callbacks
         middleware.use ::ActionDispatch::Cookies
