@@ -192,7 +192,7 @@ module ActionController
           return false unless password
 
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
-          uri    = credentials[:uri][0,1] == '/' ? request.fullpath : request.url
+          uri    = credentials[:uri]
 
          [true, false].any? do |password_is_ha1|
            expected = expected_response(method, uri, credentials, password, password_is_ha1)
