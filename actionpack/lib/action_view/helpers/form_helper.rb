@@ -1227,12 +1227,12 @@ module ActionView
         parent_builder.multipart = multipart if parent_builder
       end
 
-      def self.to_path
+      def self._to_path
         @_to_path ||= name.demodulize.underscore.sub!(/_builder$/, '')
       end
 
       def to_path
-        self.class.to_path
+        self.class._to_path
       end
 
       def to_model
