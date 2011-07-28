@@ -206,6 +206,14 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer #:nodoc:
+    PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
+
+    def initialize(*)
+      super
+      @context_prefix = @lookup_context.prefixes.first
+      @partial_names = PARTIAL_NAMES[@context_prefix]
+    end
+
     def render(context, options, block)
       setup(context, options, block)
 
@@ -284,6 +292,7 @@ module ActionView
       else
         paths.map! { |path| retrieve_variable(path).unshift(path) }
       end
+
       if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
         raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
                                 "make sure your partial name starts with a letter or underscore, " +
@@ -352,21 +361,18 @@ module ActionView
       segments
     end
 
-    PARTIAL_PATHS = {}
-
     def partial_path(object = @object)
       object = object.to_model if object.respond_to?(:to_model)
 
       path = if object.respond_to?(:to_path)
-               object.to_path
-             else
-               ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_path directly instead."
-               object.class.model_name.partial_path
-             end
+        object.to_path
+      else
+        ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_path directly instead."
+        object.class.model_name.partial_path
+      end
 
-      prefix = @lookup_context.prefixes.first
-      PARTIAL_PATHS[ [path, prefix] ] ||= path.dup.tap do |object_path|
-        merge_prefix_into_object_path(prefix, object_path)
+      @partial_names[path] ||= path.dup.tap do |object_path|
+        merge_prefix_into_object_path(@context_prefix, object_path)
       end
     end
 
