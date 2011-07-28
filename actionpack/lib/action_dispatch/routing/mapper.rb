@@ -1,4 +1,3 @@
-require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/inclusion'
