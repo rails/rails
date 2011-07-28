@@ -18,14 +18,10 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 <% end -%>
 
-  # If your gem is dependent on a specific version (or higher) of Rails:
-  <%= '# ' if options.dev? || options.edge? -%>s.add_dependency "rails", ">= <%= Rails::VERSION::STRING %>"
-
-<% unless options[:skip_javascript] || !full? -%>
-  # If your gem contains any <%= "#{options[:javascript]}-specific" %> javascript:
+  <%= '# ' if options.dev? || options.edge? -%>s.add_dependency "rails", "~> <%= Rails::VERSION::STRING %>"
+<% if full? && !options[:skip_javascript] -%>
   # s.add_dependency "<%= "#{options[:javascript]}-rails" %>"
-
 <% end -%>
-  # Declare development-specific dependencies:
+
   s.add_development_dependency "<%= gem_for_database %>"
 end
