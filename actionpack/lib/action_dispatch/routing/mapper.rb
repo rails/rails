@@ -872,9 +872,9 @@ module ActionDispatch
 
           def initialize(entities, options = {})
             @name       = entities.to_s
-            @path       = (options.delete(:path) || @name).to_s
-            @controller = (options.delete(:controller) || @name).to_s
-            @as         = options.delete(:as)
+            @path       = (options[:path] || @name).to_s
+            @controller = (options[:controller] || @name).to_s
+            @as         = options[:as]
             @options    = options
           end
 
@@ -938,9 +938,9 @@ module ActionDispatch
           def initialize(entities, options)
             @as         = nil
             @name       = entities.to_s
-            @path       = (options.delete(:path) || @name).to_s
-            @controller = (options.delete(:controller) || plural).to_s
-            @as         = options.delete(:as)
+            @path       = (options[:path] || @name).to_s
+            @controller = (options[:controller] || plural).to_s
+            @as         = options[:as]
             @options    = options
           end
 

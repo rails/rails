@@ -91,6 +91,15 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_multiple_resources_with_options
+    expected_options = {:controller => 'threads', :action => 'index'}
+
+    with_restful_routing :messages, :comments, expected_options.slice(:controller) do
+      assert_recognizes(expected_options, :path => 'comments')
+      assert_recognizes(expected_options, :path => 'messages')
+    end
+  end
+
   def test_with_custom_conditions
     with_restful_routing :messages, :conditions => { :subdomain => 'app' } do
       assert @routes.recognize_path("/messages", :method => :get, :subdomain => 'app')
