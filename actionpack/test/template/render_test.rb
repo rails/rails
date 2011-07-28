@@ -201,6 +201,36 @@ module RenderTestCases
       @controller_view.render(customers, :greeting => "Hello")
   end
 
+  class CustomerWithDeprecatedPartialPath
+    attr_reader :name
+
+    def self.model_name
+      Struct.new(:partial_path).new("customers/customer")
+    end
+
+    def initialize(name)
+      @name = name
+    end
+  end
+
+  def test_render_partial_using_object_with_deprecated_partial_path
+    assert_deprecated(/#model_name.*#partial_path.*#to_path/) do
+      assert_equal "Hello: nertzy",
+        @controller_view.render(CustomerWithDeprecatedPartialPath.new("nertzy"), :greeting => "Hello")
+    end
+  end
+
+  def test_render_partial_using_collection_with_deprecated_partial_path
+    assert_deprecated(/#model_name.*#partial_path.*#to_path/) do
+      customers = [
+        CustomerWithDeprecatedPartialPath.new("nertzy"),
+        CustomerWithDeprecatedPartialPath.new("peeja")
+      ]
+      assert_equal "Hello: nertzyHello: peeja",
+        @controller_view.render(customers, :greeting => "Hello")
+    end
+  end
+
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_partial_and_fallback_to_layout
     assert_equal "Before (Josh)\n\nAfter", @view.render(:partial => "test/layout_for_partial", :locals => { :name => "Josh" })
