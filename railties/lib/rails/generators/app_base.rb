@@ -200,9 +200,11 @@ module Rails
 
       def assets_gemfile_entry
         <<-GEMFILE.strip_heredoc
+          # Gems used only for assets and not required
+          # in production environments by default.
           group :assets do
-            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails'
-            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails'
+            gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
+            gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
             gem 'uglifier'
           end
         GEMFILE
