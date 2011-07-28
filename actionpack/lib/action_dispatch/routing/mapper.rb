@@ -936,12 +936,11 @@ module ActionDispatch
           DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
 
           def initialize(entities, options)
+            super
+
             @as         = nil
-            @name       = entities.to_s
-            @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || plural).to_s
             @as         = options[:as]
-            @options    = options
           end
 
           def plural
