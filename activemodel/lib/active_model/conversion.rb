@@ -55,11 +55,13 @@ module ActiveModel
     # Returns a string identifying the path associated with the object.
     # ActionPack uses this to find a suitable partial to represent the object.
     def to_path
-      self.class.to_path
+      self.class._to_path
     end
 
-    module ClassMethods
-      def to_path
+    module ClassMethods #:nodoc:
+      # Provide a class level cache for the to_path. This is an
+      # internal method and should not be accessed directly.
+      def _to_path #:nodoc:
         @_to_path ||= begin
           element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self))
           collection = ActiveSupport::Inflector.tableize(self)
