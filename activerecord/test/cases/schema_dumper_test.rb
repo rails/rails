@@ -3,11 +3,20 @@ require 'stringio'
 
 
 class SchemaDumperTest < ActiveRecord::TestCase
+  def setup
+    @stream = StringIO.new
+  end
+
   def standard_dump
-    stream = StringIO.new
+    @stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = []
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
-    stream.string
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, @stream)
+    @stream.string
+  end
+
+  def test_magic_comment
+    skip "only test magic comments on 1.9" if RUBY_VERSION < '1.9'
+    assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
   end
 
   def test_schema_dump
