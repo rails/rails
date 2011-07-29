@@ -12,10 +12,8 @@ module Sprockets
       config.assets.paths.each { |path| app.assets.append_path(path) }
 
       if config.assets.compress
-        # temporarily hardcode default JS compressor to uglify. Soon, it will work
-        # the same as SCSS, where a default plugin sets the default.
         unless config.assets.js_compressor == false
-          app.assets.js_compressor = LazyCompressor.new { Sprockets::Compressors.registered_js_compressor(config.assets.js_compressor || :uglifier) }
+          app.assets.js_compressor = LazyCompressor.new { Sprockets::Compressors.registered_js_compressor(config.assets.js_compressor) }
         end
 
         unless config.assets.css_compressor == false

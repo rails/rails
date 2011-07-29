@@ -193,10 +193,10 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   :git => 'https://github.com/rails/sass-rails.git'
-              gem 'coffee-rails', :git => 'https://github.com/rails/coffee-rails.git'
+              gem 'sass-rails',     :git => 'https://github.com/rails/sass-rails.git'
+              gem 'coffee-rails',   :git => 'https://github.com/rails/coffee-rails.git'
               #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
-              gem 'uglifier', '>= 1.0.3'
+              gem 'uglifier-rails', :git => 'https://github.com/guilleiguaran/uglifier-rails.git'
             end
           GEMFILE
         else
@@ -204,10 +204,10 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sass-rails',   '~> 4.0.0.beta'
-              gem 'coffee-rails', '~> 4.0.0.beta'
+              gem 'sass-rails',     '~> 4.0.0.beta'
+              gem 'coffee-rails',   '~> 4.0.0.beta'
               #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
-              gem 'uglifier', '>= 1.0.3'
+              gem 'uglifier-rails', '~> 3.2.0.beta'
             end
           GEMFILE
         end
