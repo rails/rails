@@ -1,4 +1,12 @@
-*Rails 3.0.8 (unreleased)*
+* Rails 3.0.10 (unreleased)
+
+* Magic encoding comment added to schema.rb files
+
+* schema.rb is written as UTF-8 by default.
+
+*Rails 3.0.9 (June 16, 2011)*
+
+*Rails 3.0.8 (June 7, 2011)*
 
 * Fix various problems with using :primary_key and :foreign_key options in conjunction with
   :through associations. [Jon Leighton]
