@@ -25,10 +25,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
-  def default_files
-    ::DEFAULT_PLUGIN_FILES
-  end
-
   def test_invalid_plugin_name_raises_an_error
     content = capture(:stderr){ run_generator [File.join(destination_root, "43-things")] }
     assert_equal "Invalid plugin name 43-things. Please give a name which does not start with numbers.\n", content
@@ -176,6 +172,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers"
     assert_file "app/views"
     assert_file "app/helpers"
+    assert_file "app/mailers"
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
@@ -257,6 +254,10 @@ protected
     silence(:stdout){ generator.send(*args, &block) }
   end
 
+protected
+  def default_files
+    ::DEFAULT_PLUGIN_FILES
+  end
 end
 
 class CustomPluginGeneratorTest < Rails::Generators::TestCase
