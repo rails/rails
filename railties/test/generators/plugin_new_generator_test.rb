@@ -7,11 +7,13 @@ DEFAULT_PLUGIN_FILES = %w(
   .gitignore
   Gemfile
   Rakefile
+  README.rdoc
   bukkits.gemspec
   MIT-LICENSE
   lib
   lib/bukkits.rb
   lib/tasks/bukkits_tasks.rake
+  lib/bukkits/version.rb
   test/bukkits_test.rb
   test/test_helper.rb
   test/dummy
