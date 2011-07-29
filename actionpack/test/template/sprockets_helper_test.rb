@@ -97,7 +97,7 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "stylesheets served without a controller in scope cannot access the request" do
-    remove_instance_variable("@controller")
+    @controller = nil
     @config.action_controller.asset_host = Proc.new do |asset, request|
       fail "This should not have been called."
     end
@@ -107,7 +107,7 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "stylesheets served without a controller in do not use asset hosts when the default protocol is :request" do
-    remove_instance_variable("@controller")
+    @controller = nil
     @config.action_controller.asset_host = "assets-%d.example.com"
     @config.action_controller.default_asset_host_protocol = :request
     @config.action_controller.perform_caching = true
