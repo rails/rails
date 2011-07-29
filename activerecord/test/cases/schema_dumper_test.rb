@@ -14,9 +14,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @stream.string
   end
 
-  def test_magic_comment
-    skip "only test magic comments on 1.9" if RUBY_VERSION < '1.9'
-    assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
+  if @stream.respond_to?(:external_encoding)
+    def test_magic_comment
+      skip "only test magic comments on 1.9" if RUBY_VERSION < '1.9'
+      assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
+    end
   end
 
   def test_schema_dump
