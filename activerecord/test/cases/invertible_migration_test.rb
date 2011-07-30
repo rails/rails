@@ -54,13 +54,13 @@ module ActiveRecord
       end
     end
 
-    def test_up
+    def test_migrate_up
       migration = InvertibleMigration.new
       migration.migrate(:up)
       assert migration.connection.table_exists?("horses"), "horses should exist"
     end
 
-    def test_down
+    def test_migrate_down
       migration = InvertibleMigration.new
       migration.migrate :up
       migration.migrate :down
@@ -75,6 +75,17 @@ module ActiveRecord
     def test_legacy_down
       LegacyMigration.migrate :up
       LegacyMigration.migrate :down
+      assert !ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist"
+    end
+
+    def test_up
+      LegacyMigration.up
+      assert ActiveRecord::Base.connection.table_exists?("horses"), "horses should exist"
+    end
+
+    def test_down
+      LegacyMigration.up
+      LegacyMigration.down
       assert !ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist"
     end
   end
