@@ -1,0 +1,11 @@
+h2. Active Resource Basics
+
+This guide should provide you with all you need to get started managing the connection between business objects and RESTful web services. It implements a way to map web-based resources to local objects with CRUD semantics.
+
+endprologue.
+
+WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
+
+h3. Changelog
+
+* July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai
