@@ -49,7 +49,7 @@ can read more about Action Pack in its {README}[link:blob/master/actionpack/READ
 
    Run with <tt>--help</tt> for options.
 
-4. Go to http://localhost:3000/ and you'll see:
+4. Go to http://localhost:3000 and you'll see:
 
     "Welcome aboard: You're riding Ruby on Rails!"
 
