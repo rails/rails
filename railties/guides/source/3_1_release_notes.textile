@@ -55,6 +55,8 @@ h3. Rails Architectural Changes
 
 h4. Assets Pipeline
 
+TODO. point to assets guide, talk about rake assets:* tasks
+
 h3. Documentation
 
 The documentation in the Rails tree is being updated with all the API changes, additionally, the "Rails Edge Guides":http://edgeguides.rubyonrails.org/ are being updated one by one to reflect the changes in Rails 3.0. The guides at "guides.rubyonrails.org":http://guides.rubyonrails.org/ however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
@@ -65,7 +67,147 @@ h3. Internationalization
 
 h3. Railties
 
+* jQuery is the new default JavaScript library.
+
+* jQuery and prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
+
+* The application generator accepts an option -j which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
+
+* Generating an application or a plugin runs bundle install unless --skip-gemfile or --skip-bundle is specified.
+
+* The controller and resource generators will now automatically produce asset stubs (this can be turned off with --skip-assets). These stubs will use CoffeeScript and Sass, if those libraries are available.
+
+* Scaffold and app generators use the Ruby 1.9 style hash when running on Ruby 1.9. To generate old style hash, --old-style-hash can be passed.
+
+* Scaffold controller generator creates format block for JSON instead of XML.
+
+* Active Record logging is directed to STDOUT and shown inline in the console.
+
+* Added +config.force_ssl+ configuration which loads <tt>Rack::SSL</tt> middleware and force all requests to be under HTTPS protocol.
+
+* Added +rails plugin new+ command which generates a Rails plugin with gemspec, tests and a dummy application for testing.
+
+* Added <tt>Rack::Etag</tt> and <tt>Rack::ConditionalGet</tt> to the default middleware stack.
+
+* Added <tt>Rack::Cache</tt> to the default middleware stack.
+
+* TODO Engine related changes
+
 h3. Action Pack
+
+TODO split items into controller/view sections.
+
+* A warning is given out if the CSRF token authenticity cannot be verified.
+
+* Allows AM/PM format in datetime selectors.
+
+* auto_link has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
+
+* Added streaming support, you can enable it with:
+
+<ruby>
+class PostsController < ActionController::Base
+  stream :only => :index
+end
+</ruby>
+
+Please read the docs at <tt>ActionController::Streaming</tt> for more information. TODO add links to api docs.
+
+* Added <tt>ActionDispatch::Request.ignore_accept_header</tt> to ignore accept headers.
+
+* Created <tt>ActionView::Renderer</tt> and specified an API for <tt>ActionView::Context</tt>.
+
+* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default.  This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
+
+* Added Base.http_basic_authenticate_with to do simple http basic authentication with a single class method call.
+
+<ruby>
+class PostsController < ApplicationController
+  USER_NAME, PASSWORD = "dhh", "secret"
+
+  before_filter :authenticate, :except => [ :index ]
+
+  def index
+    render :text => "Everyone can see me!"
+  end
+
+  def edit
+    render :text => "I'm only accessible if you know the password"
+  end
+
+  private
+    def authenticate
+      authenticate_or_request_with_http_basic do |user_name, password|
+        user_name == USER_NAME && password == PASSWORD
+      end
+    end
+end
+</ruby>
+
+..can now be written as
+
+<ruby>
+class PostsController < ApplicationController
+  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+
+  def index
+    render :text => "Everyone can see me!"
+  end
+
+  def edit
+    render :text => "I'm only accessible if you know the password"
+  end
+end
+</ruby>
+
+* Specify +force_ssl+ in a controller to force the browser to transfer data via HTTPS protocol on that particular controller. To limit to specific actions, :only or :except can be used.
+
+* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(@post, remote: true, method: :delete)</tt> instead of <tt>form_for(@post, remote: true, html: { method: :delete })</tt>
+
+* Provided JavaScriptHelper#j() as an alias for JavaScriptHelper#escape_javascript(). This supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper.
+
+* Sensitive query string parameters specified in <tt>config.filter_parameters</tt> will now be filtered out from the request paths in the log.
+
+* URL parameters which return nil for +to_param+ are now removed from the query string.
+
+* <tt>ActionDispatch::MiddlewareStack</tt> now uses composition over inheritance and is no longer an array.
+
+* Added an :authenticity_token option to +form_tag+ for custom handling or to omit the token by passing <tt>:authenticity_token => false</tt>.
+
+* Added HTML5 button_tag helper.
+
+* Template lookup now searches further up in the inheritance chain.
+
+* <tt>config.action_view.cache_template_loading</tt> is brought back which allows to decide whether templates should be cached or not. TODO from which version?
+
+* url_for and named url helpers now accept :subdomain and :domain as options.
+
+* The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
+
+* Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to false will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
+
+* Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
+
+<plain>
+tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+# => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
+</plain>
+
+Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
+
+* The old template handler API is deprecated and the new API simply requires a template handler to respond to call.
+
+* rhtml and rxml are finally removed as template handlers.
+
+* Moved etag responsibility from <tt>ActionDispatch::Response</tt> to the middleware stack.
+
+* Rely on <tt>Rack::Session</tt> stores API for more compatibility across the Ruby world. This is backwards incompatible since <tt>Rack::Session</tt> expects #get_session to accept four arguments and requires #destroy_session instead of simply #destroy.
+
+* file_field automatically adds :multipart => true to the enclosing form.
+
+* +csrf_meta_tag+ is renamed to +csrf_meta_tags+ and aliases csrf_meta_tag for backwards compatibility.
+
+* Added <tt>Rack::Cache</tt> to the default stack.
 
 h4. Abstract Controller
 
