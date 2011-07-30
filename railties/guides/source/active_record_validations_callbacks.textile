@@ -569,11 +569,50 @@ end
 
 All validations inside of +with_options+ block will have automatically passed the condition +:if => :is_admin?+
 
-h3. Creating Custom Validation Methods
+h3. Performing Custom Validations
 
-When the built-in validation helpers are not enough for your needs, you can write your own validation methods.
+When the built-in validation helpers are not enough for your needs, you can write your own validators or validation methods as you prefer.
 
-Simply create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using one or more of the +validate+, +validate_on_create+ or +validate_on_update+ class methods, passing in the symbols for the validation methods' names.
+h4. Custom Validators
+
+Custom validators are classes that extend <tt>ActiveModel::Validator</tt>. These classes must implement a +validate+ method which takes a record as an argument and performs the validation on it. The custom validator is called using the +validates_with+ method.
+
+<ruby>
+class MyValidator < ActiveModel::Validator
+  def validate(record)
+    if record.name.starts_with? 'X'
+      record.errors[:name] << 'Need a name starting with X please!'
+    end
+  end
+end
+
+class Person
+  include ActiveModel::Validations
+  validates_with MyValidator
+end
+</ruby>
+
+The easiest way to add custom validators for validating individual attributes is with the convenient <tt>ActiveModel::EachValidator</tt>. In this case, the custom validator class must implement a +validate_each+ method which takes three arguments: record, attribute and value which correspond to the instance, the attribute to be validated and the value of the attribute in the passed instance.
+
+<ruby>
+class EmailValidator < ActiveModel::EachValidator
+  def validate_each(record, attribute, value)
+    unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+      record.errors[attribute] << (options[:message] || "is not an email")
+    end
+  end
+end
+
+class Person < ActiveRecord::Base
+  validates :email, :presence => true, :email => true
+end
+</ruby>
+
+As shown in the example, you can also combine standard validations with your own custom validators.
+
+h4. Custom Methods
+
+You can also create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using one or more of the +validate+, +validate_on_create+ or +validate_on_update+ class methods, passing in the symbols for the validation methods' names.
 
 You can pass more than one symbol for each class method and the respective validations will be run in the same order as they were registered.
 
@@ -583,13 +622,15 @@ class Invoice < ActiveRecord::Base
     :discount_cannot_be_greater_than_total_value
 
   def expiration_date_cannot_be_in_the_past
-    errors.add(:expiration_date, "can't be in the past") if
-      !expiration_date.blank? and expiration_date < Date.today
+    if !expiration_date.blank? and expiration_date < Date.today
+      errors.add(:expiration_date, "can't be in the past")
+    end
   end
 
   def discount_cannot_be_greater_than_total_value
-    errors.add(:discount, "can't be greater than total value") if
-      discount > total_value
+    if discount > total_value
+      errors.add(:discount, "can't be greater than total value")
+    end
   end
 end
 </ruby>
@@ -609,61 +650,6 @@ Simply reopen +ActiveRecord::Base+ and define a class method like that. You'd ty
 <ruby>
 class Movie < ActiveRecord::Base
   validates_as_choice :rating, 5
-end
-</ruby>
-
-h3. Shortcut helper
-
-There is a special method +validates+ that is a shortcut to all default validators and any custom validator classes ending in 'Validator'. Note that Rails default validators can be overridden inside specific classes by creating custom validator classes in their place such as +PresenceValidator+.
-
-h4. Multiple validations for a single attribue
-
-In cases where you want multiple validations for a single attribute you can do it with a one-liner.
-
-<ruby>
-class User < ActiveRecord::Base
-  validates :password, :presence => true, :confirmation => true, :length => { :minimum => 6 }
-end
-</ruby>
-
-h4. Combining standard validations with custom validators
-
-You can also combine standard validations with your own custom validators.
-
-<ruby>
-class EmailValidator < ActiveModel::EachValidator
-  def validate_each(record, attribute, value)
-    record.errors[attribute] << (options[:message] || "is not an email") unless
-      value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
-  end
-end
-
-class Person
-  include ActiveModel::Validations
-  attr_accessor :name, :email
-
-  validates :name, :presence => true, :uniqueness => true, :length => { :maximum => 100 }
-  validates :email, :presence => true, :email => true
-end
-</ruby>
-
-h4. Validating multiple attributes with the same criteria
-
-If you have a case where you want to apply the same validations to multiple attributes you can do that as well.
-
-<ruby>
-class BlogPost < ActiveRecord::Base
-  validates :title, :body, :presence => true
-end
-</ruby>
-
-h4. Using the standard options
-
-The shortcut syntax is also compatible with the standard options +:allow_nil+, +:allow_blank+, etc. as well as the conditional options +:if+ and +unless+.
-
-<ruby>
-class User < ActiveRecord::Base
-  validates :password, :presence => { :if => :password_required? }, :confirmation => true
 end
 </ruby>
 
