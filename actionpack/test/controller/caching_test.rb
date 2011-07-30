@@ -191,6 +191,7 @@ class ActionCachingTestController < CachingController
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
+  caches_action :with_format_and_http_param, :cache_path => Proc.new { |c| { :key => 'value' } } 
   caches_action :layout_false, :layout => false
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
 
@@ -216,6 +217,11 @@ class ActionCachingTestController < CachingController
     render :text => @cache_this, :layout => true
   end
 
+  def with_format_and_http_param
+    @cache_this = MockTime.now.to_f.to_s
+    render :text => @cache_this
+  end
+  
   def record_not_found
     raise ActiveRecord::RecordNotFound, "oops!"
   end
@@ -354,6 +360,13 @@ class ActionCacheTest < ActionController::TestCase
     get :index
     assert_response :success
     assert !fragment_exist?('hostname.com/action_caching_test')
+  end
+
+  def test_action_cache_with_format_and_http_param
+    get :with_format_and_http_param, :format => 'json'
+    assert_response :success
+    assert !fragment_exist?('hostname.com/action_caching_test/with_format_and_http_param.json?key=value.json')
+    assert fragment_exist?('hostname.com/action_caching_test/with_format_and_http_param.json?key=value')
   end
 
   def test_action_cache_with_store_options
