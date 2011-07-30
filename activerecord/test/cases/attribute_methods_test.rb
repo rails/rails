@@ -113,6 +113,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   # by inspecting it.
   def test_allocated_object_can_be_inspected
     topic = Topic.allocate
+    topic.instance_eval { @attributes = nil }
     assert_nothing_raised { topic.inspect }
     assert topic.inspect, "#<Topic not initialized>"
   end
