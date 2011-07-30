@@ -1,0 +1,136 @@
+h2. Ruby on Rails 3.1 Release Notes
+
+Highlights in Rails 3.1:
+
+* Streaming
+* Reversible Migrations
+* Assets Pipeline
+* jQuery as the default JavaScript library
+
+This release notes cover the major changes, but don't include every little bug fix and change. If you want to see everything, check out the "list of commits":https://github.com/rails/rails/commits/master in the main Rails repository on GitHub.
+
+endprologue.
+
+h3. Upgrading to Rails 3.1
+
+If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3 and make sure your application still runs as expected before attempting to update to Rails 3.1. Then take heed of the following changes:
+
+h4. Rails 3.1 requires at least Ruby 1.8.7
+
+Rails 3.1 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.1 is also compatible with Ruby 1.9.2.
+
+TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02 though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x jump on 1.9.2 for smooth sailing.
+
+TODO. What else?
+
+h3. Creating a Rails 3.1 application
+
+<shell>
+# You should have the 'rails' rubygem installed
+$ rails new myapp
+$ cd myapp
+</shell>
+
+h4. Vendoring Gems
+
+Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":https://github.com/carlhuda/bundler, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
+
+More information: - "bundler homepage":http://gembundler.com
+
+h4. Living on the Edge
+
++Bundler+ and +Gemfile+ makes freezing your Rails application easy as pie with the new dedicated <tt>bundle</tt> command. If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
+
+<shell>
+$ rails new myapp --edge
+</shell>
+
+If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the +--dev+ flag:
+
+<shell>
+$ ruby /path/to/rails/bin/rails new myapp --dev
+</shell>
+
+h3. Rails Architectural Changes
+
+h4. Assets Pipeline
+
+h3. Documentation
+
+The documentation in the Rails tree is being updated with all the API changes, additionally, the "Rails Edge Guides":http://edgeguides.rubyonrails.org/ are being updated one by one to reflect the changes in Rails 3.0. The guides at "guides.rubyonrails.org":http://guides.rubyonrails.org/ however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
+
+More Information: - "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects.
+
+h3. Internationalization
+
+h3. Railties
+
+h3. Action Pack
+
+h4. Abstract Controller
+
+h4. Action Controller
+
+h4. Action Dispatch
+
+h4. Action View
+
+h3. Active Record
+
+h3. Active Model
+
+The major changes in Active Model are:
+
+* +attr_accessible+ accepts an option +:as+ to specify a role.
+
+* +InclusionValidator+, +ExclusionValidator+, and +FormatValidator+ now accepts an option which can be a proc, a lambda, or anything that respond to +call+. This option will be called with the current record as an argument and returns an object which respond to +include?+ for +InclusionValidator+ and +ExclusionValidator+, and returns a regular expression object for +FormatValidator+.
+
+* Added <tt>ActiveModel::SecurePassword</tt> to encapsulate dead-simple password usage with BCrypt encryption and salting.
+
+* <tt>ActiveModel::AttributeMethods</tt> allows attributes to be defined on demand.
+
+h3. Active Resource
+
+The changes in Active Resource are:
+
+* The default format has been changed to JSON for all requests. If you want to continue to use XML you will need to set <tt>self.format = :xml</tt> in the class. For example,
+
+<ruby>
+class User < ActiveResource::Base
+  self.format = :xml
+end
+</ruby>
+
+h3. Active Support
+
+The main changes in Active Support are:
+
+* <tt>ActiveSupport::Dependencies</tt> now raises +NameError+ if it finds an existing constant in load_missing_constant.
+
+* Added a new reporting method <tt>Kernel#quietly</tt> which silences both STDOUT and STDERR.
+
+* Added <tt>String#inquiry</tt> as a convenience method for turning a String into a +StringInquirer+ object.
+
+* Added <tt>Object#in?</tt> to test if an object is included in another object.
+
+* LocalCache strategy is now a real middleware class and no longer an anonymous class.
+
+* <tt>ActiveSupport::Dependencies::ClassCache</tt> class has been introduced for holding references to reloadable classes.
+
+* <tt>ActiveSupport::Dependencies::Reference</tt> has been refactored to take direct advantage of the new ClassCache.
+
+* Backports <tt>Range#cover?</tt> as an alias for <tt>Range#include?</tt> in Ruby 1.8.
+
+* Added +weeks_ago+ and +prev_week+ to Date/DateTime/Time.
+
+* Added +before_remove_const+ callback to <tt>ActiveSupport::Dependencies.remove_unloadable_constants!</tt>
+
+Deprecations:
+
+* <tt>ActiveSupport::SecureRandom</tt> is deprecated in favor of +SecureRandom+ from the Ruby standard library.
+
+h3. Credits
+
+See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
+
+Rails 3.1 Release Notes were compiled by "Vijay Dev":https://github.com/vijaydev.
