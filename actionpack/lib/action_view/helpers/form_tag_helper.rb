@@ -417,7 +417,7 @@ module ActionView
           options["data-confirm"] = confirm
         end
 
-        tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
+        tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options)
       end
 
       # Creates a button element that defines a <tt>submit</tt> button,
@@ -503,7 +503,7 @@ module ActionView
           options["data-confirm"] = confirm
         end
 
-        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
+        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
       end
 
       # Creates a field set for grouping HTML form elements.
