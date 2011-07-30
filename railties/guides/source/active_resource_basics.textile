@@ -21,6 +21,15 @@ class Person < ActiveResource::Base
 end
 </ruby>
 
+Now the Person class is REST enabled and can invoke REST services very similarly to how Active Record invokes
+life cycle methods that operate against a persistent store.
+
+<ruby>
+# Find a person with id = 1
+ryan = Person.find(1)
+Person.exists?(1)  # => true
+</ruby>
+
 h3. Changelog
 
 * July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai
