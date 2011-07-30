@@ -6,6 +6,10 @@ endprologue.
 
 WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
 
+h3. Introduction
+
+Active Resource allows you to connect with RESTful web services. So, in Rails, Resource classes inherited from +ActiveResource::Base+ and live in  +app/models+.
+
 h3. Changelog
 
 * July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai
