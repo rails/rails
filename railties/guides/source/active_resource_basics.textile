@@ -10,6 +10,17 @@ h3. Introduction
 
 Active Resource allows you to connect with RESTful web services. So, in Rails, Resource classes inherited from +ActiveResource::Base+ and live in  +app/models+.
 
+h3. Configuration and Usage
+
+Putting Active Resource to use is very similar to Active Record.  It's as simple as creating a model class
+that inherits from ActiveResource::Base and providing a <tt>site</tt> class variable to it:
+
+<ruby>
+class Person < ActiveResource::Base
+  self.site = "http://api.people.com:3000/"
+end
+</ruby>
+
 h3. Changelog
 
 * July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai
