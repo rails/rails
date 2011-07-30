@@ -329,6 +329,7 @@ module ActiveRecord
     end
 
     def self.method_missing(name, *args, &block) # :nodoc:
+      self.delegate = self.new
       (delegate || superclass.delegate).send(name, *args, &block)
     end
 
