@@ -14,7 +14,7 @@ task :secret do
 end
 
 desc 'List versions of all Rails frameworks and the environment'
-task :about do
+task :about => :environment do
   puts Rails::Info
 end
 
