@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'stringio'
 
 
 class SchemaDumperTest < ActiveRecord::TestCase
