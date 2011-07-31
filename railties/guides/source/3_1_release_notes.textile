@@ -55,15 +55,23 @@ h3. Rails Architectural Changes
 
 h4. Assets Pipeline
 
-TODO. point to assets guide, talk about rake assets:* tasks
+The major change in Rails 3.1 is the Assets Pipeline. It makes CSS and JavaScript first-class code citizens and enables proper organization, including use in plugins and engines.
 
-h3. Documentation
+The assets pipeline is powered by "Sprockets":https://github.com/sstephenson/sprockets and is covered in the "Asset Pipeline":asset_pipeline.html guide.
 
-The documentation in the Rails tree is being updated with all the API changes, additionally, the "Rails Edge Guides":http://edgeguides.rubyonrails.org/ are being updated one by one to reflect the changes in Rails 3.0. The guides at "guides.rubyonrails.org":http://guides.rubyonrails.org/ however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
+h4. HTTP Streaming
 
-More Information: - "Rails Documentation Projects":http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects.
+HTTP Streaming is another change that is new in Rails 3.1. This lets the browser download your stylesheets and JavaScript files while the server is still generating the response. This requires Ruby 1.9.2, is opt-in and requires support from the web server as well, but the popular combo of nginx and unicorn is ready to take advantage of it.
 
-h3. Internationalization
+h4. Default JS library is now jQuery
+
+jQuery is the default JavaScript library that ships with Rails 3.1. But if you use Prototype, it's simple to switch.
+
+h4. Identity Map
+
+Active Record has an Identity Map in Rails 3.1. An identity map keeps previously instantiated records and returns the object associated with the record if accessed again. The identity map is created on a per-request basis and is flushed at request completion.
+
+Rails 3.1 comes with the identity map turned off by default.
 
 h3. Railties
 
@@ -95,13 +103,9 @@ h3. Railties
 
 h3. Action Pack
 
-TODO split items into controller/view sections.
+h4. Abstract Controller
 
-* A warning is given out if the CSRF token authenticity cannot be verified.
-
-* Allows AM/PM format in datetime selectors.
-
-* auto_link has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
+h4. Action Controller
 
 * Added streaming support, you can enable it with:
 
@@ -111,13 +115,25 @@ class PostsController < ActionController::Base
 end
 </ruby>
 
-Please read the docs at <tt>ActionController::Streaming</tt> for more information. TODO add links to api docs.
+Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
+
+* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default.  This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
+
+h4. Action Dispatch
 
 * Added <tt>ActionDispatch::Request.ignore_accept_header</tt> to ignore accept headers.
 
+h4. Action View
+
 * Created <tt>ActionView::Renderer</tt> and specified an API for <tt>ActionView::Context</tt>.
 
-* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default.  This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
+TODO
+
+* A warning is given out if the CSRF token authenticity cannot be verified.
+
+* Allows AM/PM format in datetime selectors.
+
+* auto_link has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
 
 * Added Base.http_basic_authenticate_with to do simple http basic authentication with a single class method call.
 
@@ -209,19 +225,148 @@ Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
 
 * Added <tt>Rack::Cache</tt> to the default stack.
 
-h4. Abstract Controller
-
-h4. Action Controller
-
-h4. Action Dispatch
-
-h4. Action View
-
 h3. Active Record
 
-h3. Active Model
+* Added a class method <tt>pluralize_table_names</tt> to singularize/pluralize table names of individual models. Previously this could only be set globally for all models through <tt>ActiveRecord::Base.pluralize_table_names</tt>.
+<ruby>
+class User < ActiveRecord::Base
+  self.pluralize_table_names = false
+end
+</ruby>
 
-The major changes in Active Model are:
+* Added block setting of attributes to singular associations. The block will get called after the instance is initialized.
+
+<ruby>
+class User < ActiveRecord::Base
+  has_one :account
+end
+
+user.build_account{ |a| a.credit_limit => 100.0 }
+</ruby>
+
+* Added <tt>ActiveRecord::Base.attribute_names</tt> to return a list of attribute names. This will return an empty array if the model is abstract or the table does not exist.
+
+* CSV Fixtures are deprecated and support will be removed in Rails 3.2.0
+
+* ActiveRecord#new, ActiveRecord#create and ActiveRecord#update_attributes all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of ActiveModel's new mass assignment capabilities:
+
+<ruby>
+class Post < ActiveRecord::Base
+  attr_accessible :title
+  attr_accessible :title, :published_at, :as => :admin
+end
+
+Post.new(params[:post], :as => :admin)
+</ruby>
+
+* default_scope can now take a block, lambda, or any other object which responds to call for lazy evaluation:
+
+* Default scopes are now evaluated at the latest possible moment, to avoid problems where scopes would be created which would implicitly contain the default scope, which would then be impossible to get rid of via Model.unscoped.
+
+* PostgreSQL adapter only supports PostgreSQL version 8.2 and higher.
+
+* ConnectionManagement middleware is changed to clean up the connection pool after the rack body has been flushed.
+
+* Added an update_column method on ActiveRecord. This new method updates a given attribute on an object, skipping validations and callbacks. It is recommended to use #update_attribute unless you are sure you do not want to execute any callback, including the modification of the updated_at column. It should not be called on new records.
+
+* Associations with a :through option can now use any association as the through or source association, including other associations which have a :through option and has_and_belongs_to_many associations.
+
+* The configuration for the current database connection is now accessible via ActiveRecord::Base.connection_config.
+
+* limits and offsets are removed from COUNT queries unless both are supplied.
+<ruby>
+People.limit(1).count           # => 'SELECT COUNT(*) FROM people'
+People.offset(1).count          # => 'SELECT COUNT(*) FROM people'
+People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET 1'
+</ruby>
+
+* <tt>ActiveRecord::Associations::AssociationProxy</tt> has been split. There is now an +Association+ class (and subclasses) which are responsible for operating on associations, and then a separate, thin wrapper +called+ CollectionProxy, which proxies collection associations. This prevents namespace pollution, separates concerns, and will allow further refactorings.
+
+* Singular associations (has_one, belongs_to) no longer have a proxy and simply returns the associated record or nil. This means that you should not use undocumented methods such as bob.mother.create - use bob.create_mother instead.
+
+* Support the :dependent option on has_many :through associations. For historical and practical reasons, :delete_all is the default deletion strategy employed by association.delete(*records), despite the fact that the default strategy is :nullify for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
+
+* The behavior of association.destroy for has_and_belongs_to_many and has_many :through is changed. From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link', not (necessarily) 'get rid of the associated records'.
+
+* Previously, has_and_belongs_to_many.destroy(*records) would destroy the records themselves. It would not delete any records in the join table. Now, it deletes the records in the join table.
+
+* Previously, has_many_through.destroy(*records) would destroy the records themselves, and the records in the join table. [Note: This has not always been the case; previous version of Rails only deleted the records themselves.] Now, it destroys only the records in the join table.
+
+* Note that this change is backwards-incompatible to an extent, but there is unfortunately no way to 'deprecate' it before changing it. The change is being made in order to have consistency as to the meaning of 'destroy' or 'delete' across the different types of associations. If you wish to destroy the records themselves, you can do records.association.each(&:destroy)
+
+* Add <tt>:bulk => true</tt> option to +change_table+ to make all the schema changes defined in a block using a single ALTER statement.
+
+<ruby>
+change_table(:users, :bulk => true) do |t|
+  t.string :company_name
+  t.change :birthdate, :datetime
+end
+</ruby>
+
+* Removed support for accessing attributes on a +has_and_belongs_to_many+ join table. <tt>has_many :through</tt> needs to be used.
+
+* Added a +create_association!+ method for +has_one+ and +belongs_to+ associations.
+
+* Migrations are now reversible, meaning that Rails will figure out how to reverse your migrations. To use reversible migrations, just define the +change+ method.
+<ruby>
+class MyMigration < ActiveRecord::Migration
+  def change
+    create_table(:horses) do
+      t.column :content, :text
+      t.column :remind_at, :datetime
+    end
+  end
+end
+</ruby>
+
+* Some things cannot be automatically reversed for you. If you know how to reverse those things, you should define 'up' and 'down' in your migration. If you define something in change that cannot be reversed, an +IrreversibleMigration+ exception will be raised when going down.
+
+* Migrations now use instance methods rather than class methods:
+<ruby>
+class FooMigration < ActiveRecord::Migration
+  def up # Not self.up
+    ...
+  end
+end
+</ruby>
+
+* Migration files generated from model and constructive migration generators (for example, add_name_to_users) use the reversible migration's change method instead of the ordinary up and down methods.
+
+* Removed support for interpolating string SQL conditions on associations. Instead, a proc should be used.
+
+<ruby>
+has_many :things, :conditions => 'foo = #{bar}'          # before
+has_many :things, :conditions => proc { "foo = #{bar}" } # after
+</ruby>
+
+Inside the proc, 'self' is the object which is the owner of the association, unless you are eager loading the association, in which case 'self' is the class which the association is within.
+
+You can have any "normal" conditions inside the proc, so the following will work too:
+<ruby>
+has_many :things, :conditions => proc { ["foo = ?", bar] }
+</ruby>
+
+* Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call 'record' to get the record being inserted or deleted. This is now passed as an argument to the proc.
+
+* Added <tt>ActiveRecord::Base#has_secure_password</tt> (via <tt>ActiveModel::SecurePassword</tt>) to encapsulate dead-simple password usage with BCrypt encryption and salting.
+<ruby>
+# Schema: User(name:string, password_digest:string, password_salt:string)
+class User < ActiveRecord::Base
+  has_secure_password
+end
+</ruby>
+
+* When a model is generated +add_index+ is added by default for +belongs_to+ or +references+ columns.
+
+* Setting the id of a belongs_to object will update the reference to the object.
+
+* ActiveRecord::Base#dup and ActiveRecord::Base#clone semantics have changed to closer match normal Ruby dup and clone semantics.
+
+* Calling ActiveRecord::Base#clone will result in a shallow copy of the record, including copying the frozen state. No callbacks will be called.
+
+* Calling ActiveRecord::Base#dup will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return true for new_record?, have a nil id field, and is saveable.
+
+h3. Active Model
 
 * +attr_accessible+ accepts an option +:as+ to specify a role.
 
@@ -233,8 +378,6 @@ The major changes in Active Model are:
 
 h3. Active Resource
 
-The changes in Active Resource are:
-
 * The default format has been changed to JSON for all requests. If you want to continue to use XML you will need to set <tt>self.format = :xml</tt> in the class. For example,
 
 <ruby>
@@ -244,8 +387,6 @@ end
 </ruby>
 
 h3. Active Support
-
-The main changes in Active Support are:
 
 * <tt>ActiveSupport::Dependencies</tt> now raises +NameError+ if it finds an existing constant in load_missing_constant.
 
