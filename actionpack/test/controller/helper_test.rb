@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/core_ext/kernel/reporting'
 
 ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
 

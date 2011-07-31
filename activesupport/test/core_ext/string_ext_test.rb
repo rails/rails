@@ -6,7 +6,6 @@ require 'inflector_test_cases'
 require 'active_support/inflector'
 require 'active_support/core_ext/string'
 require 'active_support/time'
-require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/string/strip'
 
 class StringInflectionsTest < Test::Unit::TestCase

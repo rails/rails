@@ -2,7 +2,6 @@
 
 require 'abstract_unit'
 require 'multibyte_test_helpers'
-require 'active_support/core_ext/kernel/reporting'
 
 class MultibyteUtilsTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
