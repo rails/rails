@@ -10,7 +10,7 @@ Mail gem.  It provides a way to make emails using templates in the same
 way that Action Controller renders views using templates.
 
 Additionally, an Action Mailer class can be used to process incoming email,
-such as allowing a weblog to accept new posts from an email (which could even
+such as allowing a blog to accept new posts from an email (which could even
 have been sent from a phone).
 
 == Sending emails
