@@ -291,7 +291,9 @@ module ActiveSupport
 
     # Preload information prior to freezing
     def freeze
-      tzinfo; utc_offset;
+      tzinfo
+      utc_offset
+
       super
     end
 
