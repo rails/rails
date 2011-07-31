@@ -39,11 +39,10 @@ class CodeStatistics #:nodoc:
 
         f = File.open(directory + "/" + file_name)
 
-        if file_name =~ /.*\.rb$/
-          comment_pattern = /^\s*#/
-        elsif file_name =~ /.*\.js$/
+        case file_name
+        when /.*\.js$/
           comment_pattern = /^\s*\/\//
-        elsif file_name =~ /.*\.coffee$/
+        else
           comment_pattern = /^\s*#/
         end
 
