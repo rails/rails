@@ -9,7 +9,7 @@ task :default => [ :test ]
 # Run the unit tests
 Rake::TestTask.new { |t|
   t.libs << "test"
-  t.pattern = 'test/**/*_test.rb'
+  t.test_files = Dir.glob('test/**/*_test.rb').sort
   t.warning = true
 }
 
