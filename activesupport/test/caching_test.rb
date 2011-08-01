@@ -194,6 +194,14 @@ module CacheStoreBehavior
     @cache.write('fud', 'biz')
     assert_equal({"foo" => "bar", "fu" => "baz"}, @cache.read_multi('foo', 'fu'))
   end
+  
+  def test_read_multi_with_expires
+    @cache.write('foo', 'bar', :expires_in => 0.001)
+    @cache.write('fu', 'baz')
+    @cache.write('fud', 'biz')
+    sleep(0.002)
+    assert_equal({"fu" => "baz"}, @cache.read_multi('foo', 'fu'))
+  end
 
   def test_read_and_write_compressed_small_data
     @cache.write('foo', 'bar', :compress => true)
