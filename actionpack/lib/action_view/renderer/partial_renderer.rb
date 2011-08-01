@@ -364,10 +364,10 @@ module ActionView
     def partial_path(object = @object)
       object = object.to_model if object.respond_to?(:to_model)
 
-      path = if object.respond_to?(:to_path)
-        object.to_path
+      path = if object.respond_to?(:to_partial_path)
+        object.to_partial_path
       else
-        ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_path directly instead."
+        ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_partial_path directly instead."
         object.class.model_name.partial_path
       end
 

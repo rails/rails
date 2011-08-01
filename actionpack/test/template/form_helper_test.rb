@@ -1895,7 +1895,7 @@ class FormHelperTest < ActionView::TestCase
     path = nil
 
     form_for(@post, :builder => LabelledFormBuilder) do |f|
-      path = f.to_path
+      path = f.to_partial_path
       ''
     end
 

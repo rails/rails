@@ -8,7 +8,7 @@ module ActiveModel
     attr_reader :singular, :plural, :element, :collection, :partial_path, :route_key, :param_key, :i18n_key
     alias_method :cache_key, :collection
 
-    deprecate :partial_path => "ActiveModel::Name#partial_path is deprecated. Call #to_path on model instances directly instead."
+    deprecate :partial_path => "ActiveModel::Name#partial_path is deprecated. Call #to_partial_path on model instances directly instead."
 
     def initialize(klass, namespace = nil, name = nil)
       name ||= klass.name

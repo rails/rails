@@ -214,14 +214,14 @@ module RenderTestCases
   end
 
   def test_render_partial_using_object_with_deprecated_partial_path
-    assert_deprecated(/#model_name.*#partial_path.*#to_path/) do
+    assert_deprecated(/#model_name.*#partial_path.*#to_partial_path/) do
       assert_equal "Hello: nertzy",
         @controller_view.render(CustomerWithDeprecatedPartialPath.new("nertzy"), :greeting => "Hello")
     end
   end
 
   def test_render_partial_using_collection_with_deprecated_partial_path
-    assert_deprecated(/#model_name.*#partial_path.*#to_path/) do
+    assert_deprecated(/#model_name.*#partial_path.*#to_partial_path/) do
       customers = [
         CustomerWithDeprecatedPartialPath.new("nertzy"),
         CustomerWithDeprecatedPartialPath.new("peeja")

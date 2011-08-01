@@ -4,7 +4,7 @@ require 'active_support/inflector'
 module ActiveModel
   # == Active Model Conversions
   #
-  # Handles default conversions: to_model, to_key, to_param, and to_path.
+  # Handles default conversions: to_model, to_key, to_param, and to_partial_path.
   #
   # Let's take for example this non-persisted object.
   #
@@ -54,15 +54,15 @@ module ActiveModel
 
     # Returns a string identifying the path associated with the object.
     # ActionPack uses this to find a suitable partial to represent the object.
-    def to_path
-      self.class._to_path
+    def to_partial_path
+      self.class._to_partial_path
     end
 
     module ClassMethods #:nodoc:
       # Provide a class level cache for the to_path. This is an
       # internal method and should not be accessed directly.
-      def _to_path #:nodoc:
-        @_to_path ||= begin
+      def _to_partial_path #:nodoc:
+        @_to_partial_path ||= begin
           element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self))
           collection = ActiveSupport::Inflector.tableize(self)
           "#{collection}/#{element}".freeze
