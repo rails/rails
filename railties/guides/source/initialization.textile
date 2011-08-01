@@ -71,7 +71,7 @@ module Rails
 end
 </ruby>
 
-The +rails/script_rails_loader+ file uses +RbConfig::Config+ to gather up the +bin_dir+ and +ruby_install_name+ values for the configuration which will result in a path such as +/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby+, which is the default path on Mac OS X. If you're running Windows the path may be something such as +C:/Ruby192/bin/ruby+. Anyway, the path on your system may be different, but the point of this is that it will point at the known ruby executable location for your install. The +RbConfig::CONFIG["EXEEXT"]+ will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in +exec_script_rails!+. As for the +SCRIPT_RAILS+ console, we'll see that when we get to the +in_rails_application?+ method.
+The +rails/script_rails_loader+ file uses +RbConfig::Config+ to gather up the +bin_dir+ and +ruby_install_name+ values for the configuration which will result in a path such as +/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby+, which is the default path on Mac OS X. If you're running Windows the path may be something such as +C:/Ruby192/bin/ruby+. Anyway, the path on your system may be different, but the point of this is that it will point at the known ruby executable location for your install. The +RbConfig::CONFIG["EXEEXT"]+ will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in +exec_script_rails!+. As for the +SCRIPT_RAILS+ constant, we'll see that when we get to the +in_rails_application?+ method.
 
 Back in +rails/cli+, the next line is this:
 
