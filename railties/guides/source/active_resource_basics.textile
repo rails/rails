@@ -24,10 +24,21 @@ end
 Now the Person class is REST enabled and can invoke REST services very similarly to how Active Record invokes
 life cycle methods that operate against a persistent store.
 
+h3. Reading and Writing Data
+
+Active Resource make request over HTTP using a standard JSON format. It mirrors the RESTful routing built into Action Controller but will also work with any other REST service that properly implements the protocol.
+
+h4. Read
+
+Read requests use the GET method and expect the JSON form of whatever resource/resources is/are being requested.
+
 <ruby>
 # Find a person with id = 1
 ryan = Person.find(1)
+# Check if a person exists with id = 1
 Person.exists?(1)  # => true
+# Get all resources of Person class
+Person.all
 </ruby>
 
 h3. Changelog
