@@ -60,6 +60,15 @@ person.name = 'Atrai'
 person.save
 </ruby>
 
+h4. Delete
+
+'destroy' method makes a HTTP DELETE request for an existing resource in JSON format to delete that resource.
+
+<ruby>
+person = Person.find(1)
+person.destroy
+</ruby>
+
 h3. Changelog
 
 * July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai
