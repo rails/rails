@@ -109,5 +109,19 @@ module ApplicationTests
       assert_match "alert()", last_response.body
       assert_equal nil, last_response.headers["Set-Cookie"]
     end
+
+    test "files in any assets/ directories are not added to Sprockets" do
+      %w[app lib vendor].each do |dir|
+        app_file "#{dir}/assets/#{dir}_test.erb", "testing"
+      end
+
+      app_file "app/assets/javascripts/demo.js", "alert();"
+
+      require "#{app_path}/config/environment"
+
+      get "/assets/demo.js"
+      assert_match "alert();", last_response.body
+      assert_equal 200, last_response.status
+    end
   end
 end
