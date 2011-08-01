@@ -347,7 +347,7 @@ module ActiveSupport
           entry = read_entry(key, options)
           if entry
             if entry.expired?
-              delete_entry(key)
+              delete_entry(key, options)
             else
               results[name] = entry.value
             end
