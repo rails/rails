@@ -34,11 +34,20 @@ Read requests use the GET method and expect the JSON form of whatever resource/r
 
 <ruby>
 # Find a person with id = 1
-ryan = Person.find(1)
+person = Person.find(1)
 # Check if a person exists with id = 1
 Person.exists?(1)  # => true
 # Get all resources of Person class
 Person.all
+</ruby>
+
+h4. Create
+
+Creating a new resource submits the JSON form of the resource as the body of the request with HTTP POST method and parse the response into Active Resource object.
+
+<ruby>
+person = Person.create(:name => 'Vishnu')
+person.id  # => 1
 </ruby>
 
 h3. Changelog
