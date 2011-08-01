@@ -50,6 +50,16 @@ person = Person.create(:name => 'Vishnu')
 person.id  # => 1
 </ruby>
 
+h4. Update
+
+To update an existing resource, 'save' method is used. This method make a HTTP PUT request in JSON format.
+
+<ruby>
+person = Person.find(1)
+person.name = 'Atrai'
+person.save
+</ruby>
+
 h3. Changelog
 
 * July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai
