@@ -23,6 +23,7 @@ class SerializationTest < ActiveModel::TestCase
 
   class Address
     include ActiveModel::Serialization
+    include ActiveModel::Serializers::JSON
 
     attr_accessor :street, :city, :state, :zip
 

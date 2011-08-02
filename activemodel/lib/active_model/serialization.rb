@@ -83,7 +83,7 @@ module ActiveModel
         hash[association] = if records.is_a?(Enumerable)
           records.map { |a| a.serializable_hash(opts) }
         else
-          records.serializable_hash(opts)
+          records.as_json(opts.merge(:root => false))
         end
       end
 
