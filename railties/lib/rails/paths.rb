@@ -193,9 +193,9 @@ module Rails
       def existent
         expanded.select { |f| File.exists?(f) }
       end
-      
+
       def existent_directories
-        expanded.select {|d| Dir.exists?(d) }
+        expanded.select { |d| File.directory?(d) }
       end
 
       def paths
