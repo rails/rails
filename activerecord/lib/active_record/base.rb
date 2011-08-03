@@ -1057,12 +1057,10 @@ module ActiveRecord #:nodoc:
           if match = DynamicFinderMatch.match(method_id)
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
-            if arguments.size < attribute_names.size
-              ActiveSupport::Deprecation.warn(
-                "Calling dynamic finder with less number of arguments than the number of attributes in " \
-                "method name is deprecated and will raise an ArguementError in the next version of Rails. " \
-                "Please passing `nil' to the argument you want it to be nil."
-              )
+            if !arguments.first.is_a?(Hash) && arguments.size < attribute_names.size
+              ActiveSupport::Deprecation.warn(<<-eowarn)
+Calling dynamic finder with less number of arguments than the number of attributes in method name is deprecated and will raise an ArguementError in the next version of Rails. Please passing `nil' to the argument you want it to be nil.
+                eowarn
             end
             if match.finder?
               options = arguments.extract_options!
