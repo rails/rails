@@ -477,7 +477,7 @@ Several methods are provided that allow you to control all this:
 
 For example, this migration
 
-<pre>
+<ruby>
 class CreateProducts < ActiveRecord::Migration
   def change
     suppress_messages do
@@ -496,7 +496,7 @@ class CreateProducts < ActiveRecord::Migration
     end
   end
 end
-</pre>
+</ruby>
 
 generates the following output
 
@@ -525,7 +525,7 @@ Bob goes on vacation.
 Alice creates a migration for the +products+ table which adds a new column and initializes it.
 She also adds a validation to the Product model for the new column.
 
-<pre>
+<ruby>
 # db/migrate/20100513121110_add_flag_to_product.rb
 
 class AddFlagToProduct < ActiveRecord::Migration
@@ -534,19 +534,19 @@ class AddFlagToProduct < ActiveRecord::Migration
     Product.all.each { |f| f.update_attributes!(:flag => 'false') }
   end
 end
-</pre>
+</ruby>
 
-<pre>
+<ruby>
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
   validates_presence_of :flag
 end
-</pre>
+</ruby>
 
 Alice adds a second migration which adds and initializes another column to the +products+ table and also adds a validation to the Product model for the new column.
 
-<pre>
+<ruby>
 # db/migrate/20100515121110_add_fuzz_to_product.rb
 
 class AddFuzzToProduct < ActiveRecord::Migration
@@ -555,16 +555,16 @@ class AddFuzzToProduct < ActiveRecord::Migration
     Product.all.each { |f| f.update_attributes! :fuzz => 'fuzzy' }
   end
 end
-</pre>
+</ruby>
 
-<pre>
+<ruby>
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
   validates_presence_of :flag
   validates_presence_of :fuzz
 end
-</pre>
+</ruby>
 
 Both migrations work for Alice.
 
@@ -575,12 +575,12 @@ Bob comes back from vacation and:
 
 The migration crashes because when the model attempts to save, it tries to validate the second added column, which is not in the database when the _first_ migration runs.
 
-<pre>
+<plain>
 rake aborted!
 An error has occurred, this and all later migrations canceled:
 
 undefined method `fuzz' for #<Product:0x000001049b14a0>
-</pre>
+</plain>
 
 A fix for this is to create a local model within the migration. This keeps rails from running the validations, so that the migrations run to completion.
 
@@ -588,7 +588,7 @@ When using a faux model, it's a good idea to call +Product.reset_column_informat
 
 If Alice had done this instead, there would have been no problem:
 
-<pre>
+<ruby>
 # db/migrate/20100513121110_add_flag_to_product.rb
 
 class AddFlagToProduct < ActiveRecord::Migration
@@ -600,9 +600,9 @@ class AddFlagToProduct < ActiveRecord::Migration
     Product.all.each { |f| f.update_attributes!(:flag => false) }
   end
 end
-</pre>
+</ruby>
 
-<pre>
+<ruby>
 # db/migrate/20100515121110_add_fuzz_to_product.rb
 
 class AddFuzzToProduct < ActiveRecord::Migration
@@ -614,7 +614,7 @@ class AddFuzzToProduct < ActiveRecord::Migration
     Product.all.each { |f| f.update_attributes! :fuzz => 'fuzzy' }
   end
 end
-</pre>
+</ruby>
 
 
 h3. Schema Dumping and You
