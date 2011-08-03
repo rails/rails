@@ -329,8 +329,11 @@ module ActiveRecord
     end
 
     def self.method_missing(name, *args, &block) # :nodoc:
-      self.delegate = self.new
       (delegate || superclass.delegate).send(name, *args, &block)
+    end
+
+    def self.migrate(direction)
+      new.migrate direction
     end
 
     cattr_accessor :verbose
