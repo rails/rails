@@ -43,6 +43,7 @@ module ActiveRecord
         @connection, @logger = connection, logger
         @query_cache_enabled = false
         @query_cache = Hash.new { |h,sql| h[sql] = {} }
+        @open_transactions = 0
         @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
@@ -177,12 +178,9 @@ module ActiveRecord
         @connection
       end
 
-      def open_transactions
-        @open_transactions ||= 0
-      end
+      attr_reader :open_transactions
 
       def increment_open_transactions
-        @open_transactions ||= 0
         @open_transactions += 1
       end
 
