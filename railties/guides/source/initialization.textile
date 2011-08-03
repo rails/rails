@@ -33,7 +33,7 @@ end
 
 This file will attempt to load +rails/cli+ and if it cannot find it then add the +railties/lib+ path to the load path (+$:+) and will then try to require it again.
 
-h4. +railites/lib/rails/cli.rb+
+h4. +railties/lib/rails/cli.rb+
 
 This file looks like this:
 
