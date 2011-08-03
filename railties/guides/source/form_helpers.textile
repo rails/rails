@@ -45,7 +45,7 @@ NOTE: Throughout this guide, the +div+ with the hidden input elements will be ex
 
 h4. A Generic Search Form
 
-One of the most basic forms you see on the web is a search form. This form contains:
+One of the most basic forms you will see on the web is a search form. This form contains:
 
 # a form element with "GET" method,
 # a label for the input,
@@ -807,3 +807,4 @@ h3. Authors
 
 * Mislav Marohnić <mislav.marohnic@gmail.com>
 * "Frederick Cheung":credits.html#fcheung
+
