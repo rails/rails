@@ -587,8 +587,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_preserves_existing_fixture_data
-    assert_equal(2.weeks.ago.utc.to_date, pirates(:redbeard).created_on.utc.to_date)
-    assert_equal(2.weeks.ago.utc.to_date, pirates(:redbeard).updated_on.utc.to_date)
+    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).created_on.to_date)
+    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).updated_on.to_date)
   end
 
   def test_generates_unique_ids
