@@ -4,8 +4,6 @@ gemspec
 
 if ENV['AREL']
   gem "arel", :path => ENV['AREL']
-else
-  gem "arel", '~> 2.1.3'
 end
 
 # This needs to be with require false to avoid
