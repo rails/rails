@@ -540,7 +540,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates_presence_of :flag
+  validates :flag, :presence => true
 end
 </ruby>
 
@@ -561,8 +561,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates_presence_of :flag
-  validates_presence_of :fuzz
+  validates :flag, :fuzz, :presence => true
 end
 </ruby>
 
@@ -594,9 +593,10 @@ If Alice had done this instead, there would have been no problem:
 class AddFlagToProduct < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
+
   def change
     add_column :products, :flag, :int
-    Product.reset_column_information  
+    Product.reset_column_information
     Product.all.each { |f| f.update_attributes!(:flag => false) }
   end
 end
