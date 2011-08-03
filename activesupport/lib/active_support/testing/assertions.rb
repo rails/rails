@@ -46,16 +46,17 @@ module ActiveSupport
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
         exps = Array.wrap(expression).map { |e|
-          e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
+          callee = e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
+          [e, callee]
         }
-        before = exps.map { |e| e.call }
+        before = exps.map { |_, block| block.call }
 
         yield
 
-        exps.each_with_index do |e, i|
-          error  = "#{e.inspect} didn't change by #{difference}"
+        exps.each_with_index do |(code, block), i|
+          error  = "#{code.inspect} didn't change by #{difference}"
           error  = "#{message}.\n#{error}" if message
-          assert_equal(before[i] + difference, e.call, error)
+          assert_equal(before[i] + difference, block.call, error)
         end
       end
 
