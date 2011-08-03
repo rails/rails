@@ -13,9 +13,13 @@ require "active_resource/railtie"
 <% end -%>
 
 # If you have a Gemfile, require the default gems, the ones in the
-# current environment and also include :assets gems if in development
-# or test environments.
-Bundler.require *Rails.groups(:assets) if defined?(Bundler)
+# current environment and also include :assets gems if you ...
+if defined?(Bundler)
+  # ... precompile your assets
+  Bundler.require *Rails.groups(:assets => %w(development test))
+  # ... want your assets to be lazily compiled also in production
+  # Bundler.require(:default, :assets, Rails.env)
+end
 
 module <%= app_const_base %>
   class Application < Rails::Application
