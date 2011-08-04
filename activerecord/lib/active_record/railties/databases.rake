@@ -310,6 +310,7 @@ db_namespace = namespace :db do
       all_fixtures     = (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.{yml,csv}"].map {|f| f[(fixtures_dir.size + 1)..-5] })
       ordered_fixtures = (ENV['FIXTURE_ORDER'] ? ENV['FIXTURE_ORDER'].split(/,/) : Rails.application.config.fixtures_load_order) || []
       (ordered_fixtures + (all_fixtures - ordered_fixtures)).each do |fixture_file|
+        puts "Loading #{fixture_file}" if ENV['VERBOSE']
         ActiveRecord::Fixtures.create_fixtures(fixtures_dir, fixture_file)
       end
     end
