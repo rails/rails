@@ -12,12 +12,10 @@ require "active_resource/railtie"
 <%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
 <% end -%>
 
-# If you have a Gemfile, require the default gems, the ones in the
-# current environment and also include :assets gems if you ...
 if defined?(Bundler)
-  # ... precompile your assets
+  # If you precompile assets before deploying to production, use this line
   Bundler.require *Rails.groups(:assets => %w(development test))
-  # ... want your assets to be lazily compiled also in production
+  # If you want your assets lazily compiled in production, use this line
   # Bundler.require(:default, :assets, Rails.env)
 end
 
