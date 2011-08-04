@@ -36,9 +36,14 @@ class Date
       ::Date.current.tomorrow
     end
 
-    # Returns Time.zone.today when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns Date.today.
+    # Returns Time.zone.today because <tt>config.time_zone</tt> is always set by default
     def current
-      ::Time.zone ? ::Time.zone.today : ::Date.today
+      ::Time.zone.today
+    end
+    
+    # Overrides the core Ruby Date.today by returning back Time.zone.today which allows yesterday, tomorrow, and today to all be based off of the same relative date
+    def today
+      ::Date.current
     end
   end
 
