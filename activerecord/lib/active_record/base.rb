@@ -63,9 +63,9 @@ module ActiveRecord #:nodoc:
   # == Conditions
   #
   # Conditions can either be specified as a string, array, or hash representing the WHERE-part of an SQL statement.
-  # The array form is to be used when the condition input is tainted and requires sanitization. The string and hash
-  # forms can be used for statements that don't involve tainted data. The hash form works much like the array form, 
-  # except only equality and range is possible. Examples:
+  # The array form is to be used when the condition input is tainted and requires sanitization. The string form can
+  # be used for statements that don't involve tainted data. The hash form works much like the array form, except
+  # only equality and range is possible. Examples:
   #
   #   class User < ActiveRecord::Base
   #     def self.authenticate_unsafely(user_name, password)
