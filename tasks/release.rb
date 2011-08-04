@@ -4,11 +4,11 @@ root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
 
-directory "dist"
+directory "pkg"
 
 (FRAMEWORKS + ['rails']).each do |framework|
   namespace framework do
-    gem     = "dist/#{framework}-#{version}.gem"
+    gem     = "pkg/#{framework}-#{version}.gem"
     gemspec = "#{framework}.gemspec"
 
     task :clean do
@@ -41,10 +41,10 @@ directory "dist"
       File.open(file, 'w') { |f| f.write ruby }
     end
 
-    task gem => %w(update_version_rb dist) do
+    task gem => %w(update_version_rb pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
-      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/dist/"
+      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 
@@ -104,14 +104,14 @@ namespace :all do
   end
 
   task :commit do
-    File.open('dist/commit_message.txt', 'w') do |f|
+    File.open('pkg/commit_message.txt', 'w') do |f|
       f.puts "# Preparing for #{version} release\n"
       f.puts
       f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
     end
 
-    sh "git add . && git commit --verbose --template=dist/commit_message.txt"
-    rm_f "dist/commit_message.txt"
+    sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
+    rm_f "pkg/commit_message.txt"
   end
 
   task :tag do
