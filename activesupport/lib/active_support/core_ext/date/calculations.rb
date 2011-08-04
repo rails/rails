@@ -40,6 +40,12 @@ class Date
     def current
       ::Time.zone ? ::Time.zone.today : ::Date.today
     end
+    
+    # Overrides the core Ruby Date.today by returning back Time.zone.today which allows yesterday, tomorrow, and today to all be based off of the same relative date
+    # or falls back to Time.now.to_date which is the same as Date.today
+    def today
+      ::Time.zone ? ::Time.zone.today : Time.now.to_date
+    end
   end
 
   # Returns true if the Date object's date lies in the past. Otherwise returns false.
