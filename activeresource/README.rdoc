@@ -36,7 +36,7 @@ Putting Active Resource to use is very similar to Active Record.  It's as simple
 that inherits from ActiveResource::Base and providing a <tt>site</tt> class variable to it:
 
    class Person < ActiveResource::Base
-     self.site = "http://api.people.com:3000/"
+     self.site = "http://api.people.com:3000"
    end
 
 Now the Person class is REST enabled and can invoke REST services very similarly to how Active Record invokes
