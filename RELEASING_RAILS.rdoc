@@ -9,25 +9,6 @@ really be considered as minimums.
 
 Today is mostly coordination tasks.  Here are the things you must do today:
 
-=== Contact the security team (either Koz or tenderlove)
-
-Let them know of your plans to release.  There may be security issues to be
-addressed, and that can impact your release date.
-
-=== Notify implementors.
-
-Ruby implementors have high stakes in making sure Rails works.  Be kind and
-give them a heads up that Rails will be released soonish.
-
-Send an email just giving a heads up about the upcoming release to these
-lists:
-
-* team@jruby.org
-* community@rubini.us
-* rubyonrails-core@googlegroups.com
-
-Implementors will love you and help you.
-
 === Is the CI green?  If not, make it green. (See "Fixing the CI")
 
 Do not release with a Red CI.  You can find the CI status here:
@@ -50,6 +31,25 @@ Having git dependencies indicates that we depend on unreleased code.
 Obviously rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suites them.
+
+=== Contact the security team (either Koz or tenderlove)
+
+Let them know of your plans to release.  There may be security issues to be
+addressed, and that can impact your release date.
+
+=== Notify implementors.
+
+Ruby implementors have high stakes in making sure Rails works.  Be kind and
+give them a heads up that Rails will be released soonish.
+
+Send an email just giving a heads up about the upcoming release to these
+lists:
+
+* team@jruby.org
+* community@rubini.us
+* rubyonrails-core@googlegroups.com
+
+Implementors will love you and help you.
 
 == 3 Days before release
 
