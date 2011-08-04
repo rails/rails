@@ -182,7 +182,7 @@ module ActiveRecord
         relation = relation.where(table[primary_key.name].eq(id)) if id
       end
 
-      connection.select_value(relation.to_sql) ? true : false
+      @klass.connection.select_value(relation.to_sql) ? true : false
     end
 
     protected
@@ -352,7 +352,7 @@ module ActiveRecord
 
     def column_aliases(join_dependency)
       join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
-          "#{connection.quote_table_name join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
+          "#{@klass.connection.quote_table_name join.aliased_table_name}.#{@klass.connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
     end
 
     def using_limitable_reflections?(reflections)
