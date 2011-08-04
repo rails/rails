@@ -48,10 +48,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
 
-  def test_simple_format_should_not_change_the_frozen_text_passed
+  def test_simple_format_should_not_change_the_text_passed
     text = "<b>Ok</b><script>code!</script>"
     text_clone = text.dup
-    simple_format(text.freeze)
+    simple_format(text)
     assert_equal text_clone, text
   end
 

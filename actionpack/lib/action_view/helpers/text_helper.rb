@@ -256,7 +256,7 @@ module ActionView
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options={}, options={})
         text = '' if text.nil?
-        text = text.dup if text.frozen?
+        text = text.dup
         start_tag = tag('p', html_options, true)
         text = sanitize(text) unless options[:sanitize] == false
         text = text.to_str
