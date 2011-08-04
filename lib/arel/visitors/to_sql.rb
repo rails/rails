@@ -90,6 +90,14 @@ key on UpdateManager using UpdateManager#key=
           o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
+      def visit_Arel_Nodes_True o
+        "TRUE"
+      end
+
+      def visit_Arel_Nodes_False o
+        "FALSE"
+      end
+
       def table_exists? name
         @pool.table_exists? name
       end

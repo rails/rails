@@ -2,6 +2,14 @@ module Arel
   ###
   # Methods for creating various nodes
   module FactoryMethods
+    def create_true
+      Arel::Nodes::True.new
+    end
+
+    def create_false
+      Arel::Nodes::False.new
+    end
+
     def create_table_alias relation, name
       Nodes::TableAlias.new(relation, name)
     end
