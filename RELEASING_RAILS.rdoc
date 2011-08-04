@@ -97,7 +97,7 @@ lists where you should announce:
 Use markdown format for your announcement.  Remember to ask people to report
 issues with the release candidate to the rails-core mailing list.
 
-IMPORTANT: If anything users experience regressions when using the release
+IMPORTANT: If any users experience regressions when using the release
 candidate, you *must* postpone the release.  Bugfix releases *should not*
 break existing applications.
 
