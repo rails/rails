@@ -16,7 +16,7 @@ namespace :assets do
   end
 
   desc "Remove compiled assets"
-  task :clean => :environment do
+  task :clean => [:environment, 'tmp:cache:clear'] do
     assets = Rails.application.config.assets
     public_asset_path = Rails.public_path + assets.prefix
     rm_rf public_asset_path, :secure => true
