@@ -297,7 +297,7 @@ The default matcher for compiling files will include +application.js+, +applicat
 If you have other manifests or individual stylesheets and JavaScript files to include, you can append them to the +precompile+ array:
 
 <erb>
-config.assets.precompile << ['admin.js', 'admin.css', 'swfObject.js']
+config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 </erb>
 
 Precompiled assets exist on the filesystem and are served directly by your webserver. They do not have far-future headers by default, so to get the benefit of fingerprinting you'll have to update your server configuration to add them.
