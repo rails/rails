@@ -90,6 +90,92 @@ person.to_key              #=> nil
 person.to_param            #=> nil
 </ruby>
 
+h4. Dirty
+
+An object becomes dirty when an object is gone through one or more changes to its attributes and not yet saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Lets consider a Person class with attributes first_name and last_name
+
+<ruby>
+require 'rubygems'
+require 'active_model'
+
+class Person
+  include ActiveModel::Dirty
+  define_attribute_methods [:first_name, :last_name]
+
+  def first_name
+    @first_name
+  end
+
+  def first_name=(value)
+    first_name_will_change!
+    @first_name = value
+  end
+
+  def last_name
+    @last_name
+  end
+
+  def last_name=(value)
+    last_name_will_change!
+    @last_name = value
+  end
+
+  def save
+    @previously_changed = changes
+  end
+
+end
+</ruby>
+
+h5. Querying object directly for its list of all changed attributes.
+
+<ruby>
+person = Person.new
+person.first_name = "First Name"
+
+person.first_name #=> "First Name"
+person.first_name = "First Name Changed"
+
+person.changed? #=> true
+
+#returns an list of fields arry which all has been changed before saved.
+person.changed #=> ["first_name"]
+
+#returns a hash of the fields that have changed with their original values.
+person.changed_attributes #=> {"first_name" => "First Name Changed"}
+
+#returns a hash of changes, with the attribute names as the keys, and the values will be an array of the old and new value for that field.
+person.changes #=> {"first_name" => ["First Name","First Name Changed"]}
+</ruby>
+
+h5. Attribute based accessor methods
+
+Track whether the particular attribute has been changed or not.
+
+<ruby>
+#attr_name_changed?
+person.first_name #=> "First Name"
+
+#assign some other value to first_name attribute
+person.first_name = "First Name 1"
+
+person.first_name_changed? #=> true
+</ruby>
+
+Track what was the previous value of the attribute.
+<ruby>
+#attr_name_was accessor
+person.first_name_was  #=> "First Name"
+</ruby>
+
+
+Track  both previous and current value of the changed attribute. Returns an array if changed else returns nil
+<ruby>
+#attr_name_change
+person.first_name_change #=> ["First Name", "First Name 1"]
+person.last_name_change #=> nil
+</ruby>
+
 h3. Changelog
 
 * August 5, 2011: Initial version by "Arun Agrawal":http://github.com/arunagw
