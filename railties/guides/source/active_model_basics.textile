@@ -176,6 +176,30 @@ person.first_name_change #=> ["First Name", "First Name 1"]
 person.last_name_change #=> nil
 </ruby>
 
+h4. Validations
+
+Validations module adds the ability to class objects to validate them in Active Record style.
+
+<ruby>
+class Person
+  include ActiveModel::Validations
+
+  attr_accessor :name, :email
+  
+  validates :name, :presence => true
+  validates_format_of :email, :with => /^([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})$/i  
+  
+end
+
+person = Person.new
+person.valid?                        #=> false
+person.name  = 'vishnu'
+person.email  = 'me'
+person.valid?                        #=> false
+person.email = 'me@vishnuatrai.com'
+person.valid?                        #=> true
+</ruby>
+
 h3. Changelog
 
 * August 5, 2011: Initial version by "Arun Agrawal":http://github.com/arunagw
