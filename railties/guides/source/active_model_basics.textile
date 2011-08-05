@@ -57,18 +57,14 @@ class Person
 
   def update
     _run_update_callbacks do
-      puts 'saving...'
+      # This will call when we are trying to call update on object.
     end
   end
 
   def reset_me
-    puts 'before saving...'
+    # This method will call when you are calling update on object as a before_update callback as defined.
   end
 end
-
-person = Person.new
-person.update # before saving...
-              # saving...
 </ruby>
 
 h3. Changelog
