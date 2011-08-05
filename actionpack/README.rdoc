@@ -283,7 +283,7 @@ methods:
 
 The last two lines are responsible for telling ActionController where the
 template files are located and actually running the controller on a new
-request from the web-server (like to be Apache).
+request from the web-server (e.g., Apache).
 
 And the templates look like this:
 
