@@ -45,7 +45,31 @@ person.age_highest?  # false
 
 h4. Callbacks
 
+Callbacks gives Active Record style callbacks. This provides the ability to define the callbacks and those will run at appropriate time. After defining a callbacks you can wrap with before, after and around custom methods.
 
+<ruby>
+class Person
+  extend ActiveModel::Callbacks
+
+  define_model_callbacks :update
+
+  before_update :reset_me
+
+  def update
+    _run_update_callbacks do
+      puts 'saving...'
+    end
+  end
+
+  def reset_me
+    puts 'before saving...'
+  end
+end
+
+person = Person.new
+person.update # before saving...
+              # saving...
+</ruby>
 
 h3. Changelog
 
