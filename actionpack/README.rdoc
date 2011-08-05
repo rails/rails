@@ -316,7 +316,7 @@ an URL such as /weblog/5 (where 5 is the id of the post).
 
 == Download and installation
 
-The latest version of Action Pack can be installed with Rubygems:
+The latest version of Action Pack can be installed with RubyGems:
 
   % [sudo] gem install actionpack
 

@@ -22,7 +22,7 @@ received and serialized into a usable Ruby object.
 
 == Download and installation
 
-The latest version of Active Support can be installed with Rubygems:
+The latest version of Active Support can be installed with RubyGems:
 
   % [sudo] gem install activeresource
 
