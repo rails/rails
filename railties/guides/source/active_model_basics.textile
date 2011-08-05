@@ -8,8 +8,33 @@ WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not 
 
 h3. Introduction
 
-Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. 
+Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below -  
 
+h4. AttributeMethods
+
+AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes, which methods on the object will use them.
+
+<ruby>
+class Person
+  include ActiveModel::AttributeMethods
+
+  attribute_method_prefix 'reset_'
+  attribute_method_suffix '_highest?'
+  define_attribute_methods ['age']
+
+  attr_accessor :age
+
+private
+  def reset_attribute(attribute)
+    send("#{attribute}=", 0)
+  end
+
+  def attribute_highest?(attribute)
+    attribute > 100 ? true : false
+  end
+  
+end
+</ruby>
 
 h3. Changelog
 
