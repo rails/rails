@@ -67,6 +67,29 @@ class Person
 end
 </ruby>
 
+h4. Conversion
+
+If a class defines persisted? and id methods then you can include Conversion module in that class and you can able to call Rails conversion methods to objects of that class.
+
+<ruby>
+class Person
+  include ActiveModel::Conversion
+
+  def persisted?
+    false
+  end
+
+  def id
+    nil
+  end
+end
+
+person = Person.new
+person.to_model == person  #=> true
+person.to_key              #=> nil
+person.to_param            #=> nil
+</ruby>
+
 h3. Changelog
 
 * August 5, 2011: Initial version by "Arun Agrawal":http://github.com/arunagw
