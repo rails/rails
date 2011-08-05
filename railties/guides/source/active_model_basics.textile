@@ -1,0 +1,16 @@
+h2. Active Model Basics
+
+This guide should provide you with all you need to get started using model classes. Active Model allow for Action Pack helpers to interact with non-ActiveRecord models. Active Model also helps building custom ORMs for use outside of the Rails framework.
+
+endprologue.
+
+WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
+
+h3. Introduction
+
+Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. 
+
+
+h3. Changelog
+
+* August 5, 2011: Initial version by "Arun Agrawal":http://github.com/arunagw
