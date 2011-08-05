@@ -67,6 +67,10 @@ h4. Default JS library is now jQuery
 
 jQuery is the default JavaScript library that ships with Rails 3.1. But if you use Prototype, it's simple to switch.
 
+<shell>
+$ ruby /path/to/rails/bin/rails new myapp -j prototype --dev
+</shell>
+
 h4. Identity Map
 
 Active Record has an Identity Map in Rails 3.1. An identity map keeps previously instantiated records and returns the object associated with the record if accessed again. The identity map is created on a per-request basis and is flushed at request completion.
@@ -417,3 +421,4 @@ h3. Credits
 See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
 Rails 3.1 Release Notes were compiled by "Vijay Dev":https://github.com/vijaydev.
+
