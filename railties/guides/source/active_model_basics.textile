@@ -30,11 +30,22 @@ private
   end
 
   def attribute_highest?(attribute)
-    attribute > 100 ? true : false
+    send(attribute) > 100 ? true : false
   end
   
 end
+
+person = Person.new
+person.age = 110
+person.age_highest?  # true
+person.reset_age     # 0
+person.age_highest?  # false 
+
 </ruby>
+
+h4. Callbacks
+
+
 
 h3. Changelog
 
