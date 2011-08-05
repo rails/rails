@@ -11,7 +11,7 @@ controller object, it would raise undefined method controller_name for nil [jero
 
 * Avoid extra call to Cache#read in case of a fragment cache hit
 
-*Rails 3.0.9 (unreleased)*
+*Rails 3.0.9 (June 16, 2011)*
 
 * json_escape will now return a SafeBuffer string if it receives SafeBuffer string [tenderlove]
 
