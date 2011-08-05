@@ -94,6 +94,14 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_no_difference('Ship.count') { pirate.save! }
   end
 
+  def test_reject_unless_method_without_arguments
+    Pirate.accepts_nested_attributes_for :ship, :reject_unless => :persisted?
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = { :name => 'Black Pearl' }
+    assert_no_difference('Ship.count') { pirate.save! }
+  end
+
   def test_reject_if_method_with_arguments
     Pirate.accepts_nested_attributes_for :ship, :reject_if => :reject_empty_ships_on_create
 
@@ -107,8 +115,27 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_difference('Ship.count') { pirate.save! }
   end
 
+  def test_reject_unless_method_with_arguments
+    Pirate.accepts_nested_attributes_for :ship, :reject_unless => :ship_has_all_caps_name?
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = {:name => "Red Pearl"}
+    assert_no_difference('Ship.count') { pirate.save! }
+
+    pirate.ship_attributes = { :name => 'RED PEARL' }
+    assert_difference('Ship.count') { pirate.save! }
+  end
+
   def test_reject_if_with_indifferent_keys
     Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:name].blank? }
+
+    pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
+    pirate.ship_attributes = { :name => 'Hello Pearl' }
+    assert_difference('Ship.count') { pirate.save! }
+  end
+
+  def test_reject_unless_with_indifferent_keys
+    Pirate.accepts_nested_attributes_for :ship, :reject_unless => proc {|attributes| attributes[:name].present? }
 
     pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
     pirate.ship_attributes = { :name => 'Hello Pearl' }

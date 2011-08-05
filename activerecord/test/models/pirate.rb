@@ -53,6 +53,10 @@ class Pirate < ActiveRecord::Base
     attributes.delete('_reject_me_if_new').present? && !persisted?
   end
 
+  def ship_has_all_caps_name?(attributes)
+    attributes[:name].chars.all? { |c| c.upcase == c }
+  end
+
   attr_accessor :cancel_save_from_callback
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback
   def cancel_save_callback_method

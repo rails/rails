@@ -240,6 +240,8 @@ module ActiveRecord
       #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank.
+      # [:reject_unless]
+      #   It works like <tt>:reject_if</tt> but with negative conditions.
       # [:limit]
       #   Allows you to specify the maximum number of the associated records that
       #   can be processed with the nested attributes. If the size of the
@@ -256,13 +258,15 @@ module ActiveRecord
       #   # creates avatar_attributes=
       #   accepts_nested_attributes_for :avatar, :reject_if => proc { |attributes| attributes['name'].blank? }
       #   # creates avatar_attributes=
+      #   accepts_nested_attributes_for :avatar, :reject_unless => proc { |attributes| attributes['name'].present? }
+      #   # creates avatar_attributes=
       #   accepts_nested_attributes_for :avatar, :reject_if => :all_blank
       #   # creates avatar_attributes= and posts_attributes=
       #   accepts_nested_attributes_for :avatar, :posts, :allow_destroy => true
       def accepts_nested_attributes_for(*attr_names)
         options = { :allow_destroy => false, :update_only => false }
         options.update(attr_names.extract_options!)
-        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
+        options.assert_valid_keys(:allow_destroy, :reject_if, :reject_unless, :limit, :update_only)
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
@@ -325,7 +329,7 @@ module ActiveRecord
 
       if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy], assignment_opts) unless call_reject_if(association_name, attributes)
+        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy], assignment_opts) unless call_reject_if_or_unless(association_name, attributes)
 
       elsif attributes['id'].present? && !assignment_opts[:without_protection]
         raise_nested_attributes_record_not_found(association_name, attributes['id'])
@@ -404,7 +408,7 @@ module ActiveRecord
             association.build(attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          unless association.loaded? || call_reject_if(association_name, attributes)
+          unless association.loaded? || call_reject_if_or_unless(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
             target_record = association.target.detect { |record| record == existing_record }
@@ -417,7 +421,7 @@ module ActiveRecord
 
           end
 
-          if !call_reject_if(association_name, attributes)
+          if !call_reject_if_or_unless(association_name, attributes)
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy], assignment_opts)
           end
         elsif assignment_opts[:without_protection]
@@ -444,12 +448,20 @@ module ActiveRecord
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
-      has_destroy_flag?(attributes) || call_reject_if(association_name, attributes)
+      has_destroy_flag?(attributes) || call_reject_if_or_unless(association_name, attributes)
     end
 
-    def call_reject_if(association_name, attributes)
+    def call_reject_if_or_unless(association_name, attributes)
       return false if has_destroy_flag?(attributes)
-      case callback = self.nested_attributes_options[association_name][:reject_if]
+      options = self.nested_attributes_options[association_name]
+      callback = options[:reject_if] || options[:reject_unless]
+      return false if callback.blank?
+      value = run_callback(callback, attributes)
+      options[:reject_if] ? value : !value
+    end
+
+    def run_callback(callback, attributes)
+      case callback
       when Symbol
         method(callback).arity == 0 ? send(callback) : send(callback, attributes)
       when Proc
