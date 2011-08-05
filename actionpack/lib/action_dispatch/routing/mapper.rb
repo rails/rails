@@ -437,7 +437,7 @@ module ActionDispatch
       #
       # or, for a single case
       # 
-      #   resources :posts, :path => "/admin"
+      #   resources :posts, :path => "/admin/posts"
       #
       # In each of these cases, the named routes remain the same as if you did
       # not use scope. In the last case, the following paths map to
@@ -997,7 +997,7 @@ module ActionDispatch
         #
         #   Set a path prefix for this resource.
         #
-        #     resources :posts, :path => "admin"
+        #     resources :posts, :path => "admin/posts"
         #
         #   All actions for this resource will now be at +/admin/posts+.
         def resources(*resources, &block)
