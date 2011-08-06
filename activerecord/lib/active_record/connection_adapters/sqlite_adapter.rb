@@ -238,15 +238,15 @@ module ActiveRecord
       end
 
       def begin_db_transaction #:nodoc:
-        @connection.transaction
+        log('begin transaction',nil) { @connection.transaction }
       end
 
       def commit_db_transaction #:nodoc:
-        @connection.commit
+        log('commit transaction',nil) { @connection.commit }
       end
 
       def rollback_db_transaction #:nodoc:
-        @connection.rollback
+        log('rollback transaction',nil) { @connection.rollback }
       end
 
       # SCHEMA STATEMENTS ========================================
