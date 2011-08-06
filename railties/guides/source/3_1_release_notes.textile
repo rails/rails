@@ -21,8 +21,6 @@ Rails 3.1 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby ve
 
 TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02 though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x jump on 1.9.2 for smooth sailing.
 
-TODO. What else?
-
 h3. Creating a Rails 3.1 application
 
 <shell>
@@ -68,7 +66,7 @@ h4. Default JS library is now jQuery
 jQuery is the default JavaScript library that ships with Rails 3.1. But if you use Prototype, it's simple to switch.
 
 <shell>
-$ ruby /path/to/rails/bin/rails new myapp -j prototype --dev
+$ rails new myapp -j prototype
 </shell>
 
 h4. Identity Map
@@ -103,41 +101,25 @@ h3. Railties
 
 * Added <tt>Rack::Cache</tt> to the default middleware stack.
 
-* TODO Engine related changes
+* Engines received a major update - You can mount them at any path, enable assets, run generators etc.
 
 h3. Action Pack
 
-h4. Abstract Controller
-
 h4. Action Controller
-
-* Added streaming support, you can enable it with:
-
-<ruby>
-class PostsController < ActionController::Base
-  stream :only => :index
-end
-</ruby>
-
-Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
-
-* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default.  This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
-
-h4. Action Dispatch
-
-* Added <tt>ActionDispatch::Request.ignore_accept_header</tt> to ignore accept headers.
-
-h4. Action View
-
-* Created <tt>ActionView::Renderer</tt> and specified an API for <tt>ActionView::Context</tt>.
-
-TODO
 
 * A warning is given out if the CSRF token authenticity cannot be verified.
 
-* Allows AM/PM format in datetime selectors.
+* Specify +force_ssl+ in a controller to force the browser to transfer data via HTTPS protocol on that particular controller. To limit to specific actions, :only or :except can be used.
 
-* auto_link has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
+* Sensitive query string parameters specified in <tt>config.filter_parameters</tt> will now be filtered out from the request paths in the log.
+
+* URL parameters which return nil for +to_param+ are now removed from the query string.
+
+* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default.  This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
+
+* Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to false will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
+
+* +url_for+ and named url helpers now accept +:subdomain+ and +:domain+ as options.
 
 * Added Base.http_basic_authenticate_with to do simple http basic authentication with a single class method call.
 
@@ -180,31 +162,43 @@ class PostsController < ApplicationController
 end
 </ruby>
 
-* Specify +force_ssl+ in a controller to force the browser to transfer data via HTTPS protocol on that particular controller. To limit to specific actions, :only or :except can be used.
+* Added streaming support, you can enable it with:
 
-* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(@post, remote: true, method: :delete)</tt> instead of <tt>form_for(@post, remote: true, html: { method: :delete })</tt>
+<ruby>
+class PostsController < ActionController::Base
+  stream :only => :index
+end
+</ruby>
 
-* Provided JavaScriptHelper#j() as an alias for JavaScriptHelper#escape_javascript(). This supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper.
-
-* Sensitive query string parameters specified in <tt>config.filter_parameters</tt> will now be filtered out from the request paths in the log.
-
-* URL parameters which return nil for +to_param+ are now removed from the query string.
-
-* <tt>ActionDispatch::MiddlewareStack</tt> now uses composition over inheritance and is no longer an array.
-
-* Added an :authenticity_token option to +form_tag+ for custom handling or to omit the token by passing <tt>:authenticity_token => false</tt>.
-
-* Added HTML5 button_tag helper.
-
-* Template lookup now searches further up in the inheritance chain.
-
-* <tt>config.action_view.cache_template_loading</tt> is brought back which allows to decide whether templates should be cached or not. TODO from which version?
-
-* url_for and named url helpers now accept :subdomain and :domain as options.
+Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
 
-* Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to false will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
+h4. Action Dispatch
+
+* <tt>ActionDispatch::MiddlewareStack</tt> now uses composition over inheritance and is no longer an array.
+
+* Added <tt>ActionDispatch::Request.ignore_accept_header</tt> to ignore accept headers.
+
+* Added <tt>Rack::Cache</tt> to the default stack.
+
+* Moved etag responsibility from <tt>ActionDispatch::Response</tt> to the middleware stack.
+
+* Rely on <tt>Rack::Session</tt> stores API for more compatibility across the Ruby world. This is backwards incompatible since <tt>Rack::Session</tt> expects #get_session to accept four arguments and requires #destroy_session instead of simply #destroy.
+
+* Template lookup now searches further up in the inheritance chain.
+
+h4. Action View
+
+* Added an :authenticity_token option to +form_tag+ for custom handling or to omit the token by passing <tt>:authenticity_token => false</tt>.
+
+* Created <tt>ActionView::Renderer</tt> and specified an API for <tt>ActionView::Context</tt>.
+
+* In place SafeBuffer mutation is prohibited in Rails 3.1.
+
+* Added HTML5 button_tag helper.
+
+* +file_field+ automatically adds <tt>:multipart => true</tt> to the enclosing form.
 
 * Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
 
@@ -215,19 +209,23 @@ tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
 
 Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
 
+* +csrf_meta_tag+ is renamed to +csrf_meta_tags+ and aliases csrf_meta_tag for backwards compatibility.
+
 * The old template handler API is deprecated and the new API simply requires a template handler to respond to call.
 
 * rhtml and rxml are finally removed as template handlers.
 
-* Moved etag responsibility from <tt>ActionDispatch::Response</tt> to the middleware stack.
+* <tt>config.action_view.cache_template_loading</tt> is brought back which allows to decide whether templates should be cached or not.
 
-* Rely on <tt>Rack::Session</tt> stores API for more compatibility across the Ruby world. This is backwards incompatible since <tt>Rack::Session</tt> expects #get_session to accept four arguments and requires #destroy_session instead of simply #destroy.
+* The submit form helper does not generate an id "object_name_id" anymore.
 
-* file_field automatically adds :multipart => true to the enclosing form.
+* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(@post, remote: true, method: :delete)</tt> instead of <tt>form_for(@post, remote: true, html: { method: :delete })</tt>
 
-* +csrf_meta_tag+ is renamed to +csrf_meta_tags+ and aliases csrf_meta_tag for backwards compatibility.
+* Provided JavaScriptHelper#j() as an alias for JavaScriptHelper#escape_javascript(). This supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper.
 
-* Added <tt>Rack::Cache</tt> to the default stack.
+* Allows AM/PM format in datetime selectors.
+
+* auto_link has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
 
 h3. Active Record
 
@@ -379,6 +377,8 @@ h3. Active Model
 * Added <tt>ActiveModel::SecurePassword</tt> to encapsulate dead-simple password usage with BCrypt encryption and salting.
 
 * <tt>ActiveModel::AttributeMethods</tt> allows attributes to be defined on demand.
+
+* Added support for selectively enabling and disabling observers.
 
 h3. Active Resource
 
