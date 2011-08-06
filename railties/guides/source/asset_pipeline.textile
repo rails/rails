@@ -276,17 +276,15 @@ The rake task is:
 rake assets:precompile
 </plain>
 
-You can run this as part of a Capistrano deployment:
+Capistrano (v2.8.0+) has a recipe to to handle this in deployment. Add the following line to +Capfile+:
 
 <erb>
-before 'deploy:symlink' do
-  run "cd #{release_path}; RAILS_ENV=#{rails_env} rake assets:precompile"
-end
+load 'deploy/assets'
 </erb>
 
-If you are not precompiling your assets, and you are using the default cache file store (which is the file system), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure in order to persist the cached file between deployments.
+This links the folder specified in +config.assets.prefix+ to +shared/assets+. If you already use this folder you'll need to write your own deployment task.
 
-TODO: Extend above task to allow for this and add task to set it up (See commits 8f0e0b6 and 704ee0df). Note: Capistrano folks are working on a recipe - update this when it available (see https://github.com/capistrano/capistrano/pull/35).
+It is important for this folder is shared between deployments so that remotely cached pages that reference the old compiled assets still work for the life of the cached page.
 
 The default matcher for compiling files will include +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
 
