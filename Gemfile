@@ -11,7 +11,7 @@ gem "jquery-rails"
 # it being automatically loaded by sprockets
 gem "uglifier", ">= 1.0.0", :require => false
 
-gem "rake",  ">= 0.8.7"
+gem "rake",  ">= 0.9.3.beta"
 gem "mocha", ">= 0.9.8"
 
 group :doc do
