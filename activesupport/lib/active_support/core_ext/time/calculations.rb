@@ -379,9 +379,10 @@ class Time
   # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
   # can be chronologically compared with a Time
   def compare_with_coercion(other)
+    other = other.comparable_time if other.respond_to?(:comparable_time)
     # we're avoiding Time#to_datetime cause it's expensive
     if other.is_a?(Time)
-      compare_without_coercion(other.to_time)
+      compare_without_coercion(other)
     else
       to_datetime <=> other
     end

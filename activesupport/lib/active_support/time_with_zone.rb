@@ -279,7 +279,7 @@ module ActiveSupport
 
     # A TimeWithZone acts like a Time, so just return +self+.
     def to_time
-      utc
+      self
     end
 
     def to_datetime
