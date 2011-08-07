@@ -36,7 +36,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_date
-    assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 21).to_date
+    date = Date.new(2005, 2, 21)
+
+    assert date.equal?(date)
   end
 
   def test_change
