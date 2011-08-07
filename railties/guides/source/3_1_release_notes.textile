@@ -121,7 +121,7 @@ h4. Action Controller
 
 * +url_for+ and named url helpers now accept +:subdomain+ and +:domain+ as options.
 
-* Added Base.http_basic_authenticate_with to do simple http basic authentication with a single class method call.
+* Added +Base.http_basic_authenticate_with+ to do simple http basic authentication with a single class method call.
 
 <ruby>
 class PostsController < ApplicationController
@@ -190,13 +190,13 @@ h4. Action Dispatch
 
 h4. Action View
 
-* Added an :authenticity_token option to +form_tag+ for custom handling or to omit the token by passing <tt>:authenticity_token => false</tt>.
+* Added an +:authenticity_token+ option to +form_tag+ for custom handling or to omit the token by passing <tt>:authenticity_token => false</tt>.
 
 * Created <tt>ActionView::Renderer</tt> and specified an API for <tt>ActionView::Context</tt>.
 
-* In place SafeBuffer mutation is prohibited in Rails 3.1.
+* In place +SafeBuffer+ mutation is prohibited in Rails 3.1.
 
-* Added HTML5 button_tag helper.
+* Added HTML5 +button_tag+ helper.
 
 * +file_field+ automatically adds <tt>:multipart => true</tt> to the enclosing form.
 
@@ -248,9 +248,9 @@ user.build_account{ |a| a.credit_limit => 100.0 }
 
 * Added <tt>ActiveRecord::Base.attribute_names</tt> to return a list of attribute names. This will return an empty array if the model is abstract or the table does not exist.
 
-* CSV Fixtures are deprecated and support will be removed in Rails 3.2.0
+* CSV Fixtures are deprecated and support will be removed in Rails 3.2.0.
 
-* ActiveRecord#new, ActiveRecord#create and ActiveRecord#update_attributes all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of ActiveModel's new mass assignment capabilities:
+* <tt>ActiveRecord#new</tt>, <tt>ActiveRecord#create</tt> and <tt>ActiveRecord#update_attributes</tt> all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of ActiveModel's new mass assignment capabilities:
 
 <ruby>
 class Post < ActiveRecord::Base
@@ -261,19 +261,19 @@ end
 Post.new(params[:post], :as => :admin)
 </ruby>
 
-* default_scope can now take a block, lambda, or any other object which responds to call for lazy evaluation:
+* +default_scope+ can now take a block, lambda, or any other object which responds to call for lazy evaluation:
 
 * Default scopes are now evaluated at the latest possible moment, to avoid problems where scopes would be created which would implicitly contain the default scope, which would then be impossible to get rid of via Model.unscoped.
 
 * PostgreSQL adapter only supports PostgreSQL version 8.2 and higher.
 
-* ConnectionManagement middleware is changed to clean up the connection pool after the rack body has been flushed.
+* +ConnectionManagement+ middleware is changed to clean up the connection pool after the rack body has been flushed.
 
-* Added an update_column method on ActiveRecord. This new method updates a given attribute on an object, skipping validations and callbacks. It is recommended to use #update_attribute unless you are sure you do not want to execute any callback, including the modification of the updated_at column. It should not be called on new records.
+* Added an +update_column+ method on Active Record. This new method updates a given attribute on an object, skipping validations and callbacks. It is recommended to use +update_attribute+ unless you are sure you do not want to execute any callback, including the modification of the +updated_at+ column. It should not be called on new records.
 
-* Associations with a :through option can now use any association as the through or source association, including other associations which have a :through option and has_and_belongs_to_many associations.
+* Associations with a +:through+ option can now use any association as the through or source association, including other associations which have a +:through+ option and +has_and_belongs_to_many+ associations.
 
-* The configuration for the current database connection is now accessible via ActiveRecord::Base.connection_config.
+* The configuration for the current database connection is now accessible via <tt>ActiveRecord::Base.connection_config</tt>.
 
 * limits and offsets are removed from COUNT queries unless both are supplied.
 <ruby>
@@ -286,9 +286,9 @@ People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET
 
 * Singular associations (has_one, belongs_to) no longer have a proxy and simply returns the associated record or nil. This means that you should not use undocumented methods such as bob.mother.create - use bob.create_mother instead.
 
-* Support the :dependent option on has_many :through associations. For historical and practical reasons, :delete_all is the default deletion strategy employed by association.delete(*records), despite the fact that the default strategy is :nullify for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
+* Support the <tt>:dependent</tt> option on <tt>has_many :through</tt> associations. For historical and practical reasons, :delete_all is the default deletion strategy employed by association.delete(*records), despite the fact that the default strategy is :nullify for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
 
-* The behavior of association.destroy for has_and_belongs_to_many and has_many :through is changed. From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link', not (necessarily) 'get rid of the associated records'.
+* The behavior of association.destroy for +has_and_belongs_to_many+ and <tt>has_many :through</tt> is changed. From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link', not (necessarily) 'get rid of the associated records'.
 
 * Previously, has_and_belongs_to_many.destroy(*records) would destroy the records themselves. It would not delete any records in the join table. Now, it deletes the records in the join table.
 
@@ -332,7 +332,7 @@ class FooMigration < ActiveRecord::Migration
 end
 </ruby>
 
-* Migration files generated from model and constructive migration generators (for example, add_name_to_users) use the reversible migration's change method instead of the ordinary up and down methods.
+* Migration files generated from model and constructive migration generators (for example, add_name_to_users) use the reversible migration's +change+ method instead of the ordinary +up+ and +down+ methods.
 
 * Removed support for interpolating string SQL conditions on associations. Instead, a proc should be used.
 
@@ -348,7 +348,7 @@ You can have any "normal" conditions inside the proc, so the following will work
 has_many :things, :conditions => proc { ["foo = ?", bar] }
 </ruby>
 
-* Previously :insert_sql and :delete_sql on has_and_belongs_to_many association allowed you to call 'record' to get the record being inserted or deleted. This is now passed as an argument to the proc.
+* Previously +:insert_sql+ and +:delete_sql+ on +has_and_belongs_to_many+ association allowed you to call 'record' to get the record being inserted or deleted. This is now passed as an argument to the proc.
 
 * Added <tt>ActiveRecord::Base#has_secure_password</tt> (via <tt>ActiveModel::SecurePassword</tt>) to encapsulate dead-simple password usage with BCrypt encryption and salting.
 <ruby>
@@ -360,13 +360,13 @@ end
 
 * When a model is generated +add_index+ is added by default for +belongs_to+ or +references+ columns.
 
-* Setting the id of a belongs_to object will update the reference to the object.
+* Setting the id of a +belongs_to+ object will update the reference to the object.
 
-* ActiveRecord::Base#dup and ActiveRecord::Base#clone semantics have changed to closer match normal Ruby dup and clone semantics.
+* <tt>ActiveRecord::Base#dup</tt> and <tt>ActiveRecord::Base#clone</tt> semantics have changed to closer match normal Ruby dup and clone semantics.
 
-* Calling ActiveRecord::Base#clone will result in a shallow copy of the record, including copying the frozen state. No callbacks will be called.
+* Calling <tt>ActiveRecord::Base#clone</tt> will result in a shallow copy of the record, including copying the frozen state. No callbacks will be called.
 
-* Calling ActiveRecord::Base#dup will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return true for new_record?, have a nil id field, and is saveable.
+* Calling <tt>ActiveRecord::Base#dup</tt> will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return true for <tt>new_record?</tt>, have a nil id field, and is saveable.
 
 h3. Active Model
 
@@ -394,13 +394,13 @@ h3. Active Support
 
 * <tt>ActiveSupport::Dependencies</tt> now raises +NameError+ if it finds an existing constant in load_missing_constant.
 
-* Added a new reporting method <tt>Kernel#quietly</tt> which silences both STDOUT and STDERR.
+* Added a new reporting method <tt>Kernel#quietly</tt> which silences both +STDOUT+ and +STDERR+.
 
 * Added <tt>String#inquiry</tt> as a convenience method for turning a String into a +StringInquirer+ object.
 
 * Added <tt>Object#in?</tt> to test if an object is included in another object.
 
-* LocalCache strategy is now a real middleware class and no longer an anonymous class.
+* +LocalCache+ strategy is now a real middleware class and no longer an anonymous class.
 
 * <tt>ActiveSupport::Dependencies::ClassCache</tt> class has been introduced for holding references to reloadable classes.
 
@@ -421,4 +421,3 @@ h3. Credits
 See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
 Rails 3.1 Release Notes were compiled by "Vijay Dev":https://github.com/vijaydev.
-
