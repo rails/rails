@@ -390,7 +390,8 @@ The X-Sendfile header is a directive to the server to ignore the response from t
 Apache and nginx support this option which is enabled in <tt>config/environments/production.rb</tt>.
 
 <erb>
-config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect' for nginx
+# config.action_dispatch.x_sendfile_header = "X-Sendfile" # for apache
+# config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for nginx
 </erb>
 
 WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+) and any other environment you define with production behavior.
