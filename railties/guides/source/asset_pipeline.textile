@@ -385,15 +385,13 @@ This is a handy option if you have any existing project (pre Rails 3.1) that alr
 
 h4. X-Sendfile Headers
 
-The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. In production Rails (via Sprockets) does not send the asset - just the location and a zero-length response - relying on the web server to do the file serving, which is usually faster. Both Apache and nginx support this option.
+The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. This option is off be default, but can be enabled if your server supports it. When enabled, this passes responsibility for serving the file to the web server, which is faster.
 
-The configuration is available in <tt>config/environments/production.rb</tt>.
+Apache and nginx support this option which is enabled in <tt>config/environments/production.rb</tt>.
 
 <erb>
 config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect' for nginx
 </erb>
-
-You should check that your server or hosting service actually supports this, otherwise comment it out.
 
 WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+) and any other environment you define with production behavior.
 
