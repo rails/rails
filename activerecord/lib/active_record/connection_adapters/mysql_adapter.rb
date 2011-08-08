@@ -505,6 +505,10 @@ module ActiveRecord
       end
       deprecate :add_limit_offset!
 
+      def join_to_update(update, select) #:nodoc:
+        update.table select.ast.cores.last.source
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump #:nodoc:

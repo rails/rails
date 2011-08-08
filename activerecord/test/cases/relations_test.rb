@@ -952,4 +952,12 @@ class RelationTest < ActiveRecord::TestCase
 
     assert scope.eager_loading?
   end
+
+  def test_update_all_with_joins
+    comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
+    count    = comments.count
+
+    assert_equal count, comments.update_all(:post_id => posts(:thinking).id)
+    assert_equal posts(:thinking), comments(:greetings).post
+  end
 end
