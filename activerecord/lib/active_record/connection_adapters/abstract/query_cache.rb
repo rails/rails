@@ -55,9 +55,10 @@ module ActiveRecord
         @query_cache.clear
       end
 
-      def select_all(sql, name = nil, binds = [])
+      def select_all(arel, name = nil, binds = [])
         if @query_cache_enabled
-          cache_sql(sql, binds) { super }
+          sql = to_sql(arel)
+          cache_sql(sql, binds) { super(sql, name, binds) }
         else
           super
         end

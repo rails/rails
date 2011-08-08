@@ -266,6 +266,10 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      def self.visitor_for(pool) # :nodoc:
+        Arel::Visitors::PostgreSQL.new(pool)
+      end
+
       # Clears the prepared statements cache.
       def clear_cache!
         @statements.each_value do |value|

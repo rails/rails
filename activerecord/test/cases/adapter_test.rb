@@ -146,4 +146,14 @@ class AdapterTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_deprecated_visitor_for
+    visitor_klass = Class.new(Arel::Visitors::ToSql)
+    Arel::Visitors::VISITORS['fuuu'] = visitor_klass
+    pool = stub(:spec => stub(:config => { :adapter => 'fuuu' }))
+    visitor = assert_deprecated {
+      ActiveRecord::ConnectionAdapters::AbstractAdapter.visitor_for(pool)
+    }
+    assert visitor.is_a?(visitor_klass)
+  end
 end

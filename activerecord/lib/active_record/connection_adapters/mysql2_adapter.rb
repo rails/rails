@@ -129,6 +129,10 @@ module ActiveRecord
         configure_connection
       end
 
+      def self.visitor_for(pool) # :nodoc:
+        Arel::Visitors::MySQL.new(pool)
+      end
+
       def adapter_name
         ADAPTER_NAME
       end
