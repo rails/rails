@@ -61,6 +61,29 @@ module ApplicationTests
       end
     end
 
+    test "precompile appends the md5 hash to files referenced with asset_path" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
+      assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
+    end
+
+    test "assets are cleaned up properly" do
+      app_file "public/assets/application.js", "alert();"
+      app_file "public/assets/application.css", "a { color: green; }"
+      app_file "public/assets/subdir/broken.png", "not really an image file"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean` }
+      end
+
+      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
+      assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
+    end
+
     test "does not stream session cookies back" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
 
