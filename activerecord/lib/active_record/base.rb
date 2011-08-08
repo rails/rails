@@ -937,17 +937,6 @@ module ActiveRecord #:nodoc:
         self.current_scope = nil
       end
 
-      # Specifies how the record is loaded by +Marshal+.
-      #
-      # +_load+ sets an instance variable for each key in the hash it takes as input.
-      # Override this method if you require more complex marshalling.
-      def _load(data)
-        record = allocate
-        record.init_with(Marshal.load(data))
-        record
-      end
-
-
       # Finder methods must instantiate through this method to work with the
       # single-table inheritance model that makes it possible to create
       # objects of different types from the same table.
@@ -1586,16 +1575,6 @@ MSG
         run_callbacks :initialize
 
         self
-      end
-
-      # Specifies how the record is dumped by +Marshal+.
-      #
-      # +_dump+ emits a marshalled hash which has been passed to +encode_with+. Override this
-      # method if you require more complex marshalling.
-      def _dump(level)
-        dump = {}
-        encode_with(dump)
-        Marshal.dump(dump)
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this

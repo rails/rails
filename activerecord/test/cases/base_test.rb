@@ -1813,6 +1813,19 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal expected.attributes, actual.attributes
   end
 
+  def test_marshal_new_record_round_trip
+    post = Marshal.load(Marshal.dump(Post.new))
+    assert post.new_record?, "should be a new record"
+  end
+
+  def test_marshalling_with_associations
+    post = Post.new
+    post.comments.build
+    post = Marshal.load(Marshal.dump(post))
+
+    assert_equal 1, post.comments.length
+  end
+
   def test_attribute_names
     assert_equal ["id", "type", "ruby_type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id"],
                  Company.attribute_names
