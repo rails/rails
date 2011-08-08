@@ -56,8 +56,6 @@ module ActiveRecord
         adapter = pool.spec.config[:adapter]
 
         if Arel::Visitors::VISITORS[adapter]
-          # TODO: Add a test for this
-
           ActiveSupport::Deprecation.warn(
             "Arel::Visitors::VISITORS is deprecated and will be removed. Database adapters " \
             "should define a visitor_for method which returns the appropriate visitor for " \
