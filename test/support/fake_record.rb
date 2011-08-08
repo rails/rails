@@ -3,9 +3,9 @@ module FakeRecord
   end
 
   class Connection
-    attr_reader :tables, :columns_hash
+    attr_reader :tables, :columns_hash, :visitor
 
-    def initialize
+    def initialize(visitor)
       @tables = %w{ users photos developers products}
       @columns = {
         'users' => [
@@ -27,6 +27,7 @@ module FakeRecord
         'users' => 'id',
         'products' => 'id'
       }
+      @visitor = visitor
     end
 
     def primary_key name
@@ -78,7 +79,7 @@ module FakeRecord
 
     def initialize
       @spec = Spec.new(:adapter => 'america')
-      @connection = Connection.new
+      @connection = Connection.new(Arel::Visitors::ToSql.new(self))
     end
 
     def with_connection

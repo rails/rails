@@ -8,7 +8,7 @@ module Arel
   module Visitors
     describe 'the to_sql visitor' do
       before do
-        @visitor = ToSql.new Table.engine
+        @visitor = ToSql.new Table.engine.connection_pool
         @table = Table.new(:users)
         @attr = @table[:id]
       end
@@ -220,7 +220,7 @@ module Arel
             end
           end
           in_node = Nodes::In.new @attr, %w{ a b c }
-          visitor = visitor.new(Table.engine)
+          visitor = visitor.new(Table.engine.connection_pool)
           visitor.expected = Table.engine.connection.columns(:users).find { |x|
             x.name == 'name'
           }
@@ -308,7 +308,7 @@ module Arel
             end
           end
           in_node = Nodes::NotIn.new @attr, %w{ a b c }
-          visitor = visitor.new(Table.engine)
+          visitor = visitor.new(Table.engine.connection_pool)
           visitor.expected = Table.engine.connection.columns(:users).find { |x|
             x.name == 'name'
           }

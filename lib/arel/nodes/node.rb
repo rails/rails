@@ -32,8 +32,7 @@ module Arel
       #
       # Maybe we should just use `Table.engine`?  :'(
       def to_sql engine = Table.engine
-        viz = Visitors.for engine
-        viz.accept self
+        engine.connection.visitor.accept self
       end
 
       # Iterate through AST, nodes will be yielded depth-first

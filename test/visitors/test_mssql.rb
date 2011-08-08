@@ -4,7 +4,7 @@ module Arel
   module Visitors
     describe 'the mssql visitor' do
       before do
-        @visitor = MSSQL.new Table.engine
+        @visitor = MSSQL.new Table.engine.connection_pool
         @table = Arel::Table.new "users"
       end
 

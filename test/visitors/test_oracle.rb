@@ -4,7 +4,7 @@ module Arel
   module Visitors
     describe 'the oracle visitor' do
       before do
-        @visitor = Oracle.new Table.engine
+        @visitor = Oracle.new Table.engine.connection_pool
       end
 
       it 'modifies order when there is distinct and first value' do

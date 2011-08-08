@@ -4,7 +4,7 @@ module Arel
   module Visitors
     describe 'the mysql visitor' do
       before do
-        @visitor = MySQL.new Table.engine
+        @visitor = MySQL.new Table.engine.connection_pool
       end
 
       it 'squashes parenthesis on multiple unions' do

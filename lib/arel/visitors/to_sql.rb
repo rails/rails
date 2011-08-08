@@ -4,17 +4,15 @@ require 'date'
 module Arel
   module Visitors
     class ToSql < Arel::Visitors::Visitor
-      def initialize engine
-        @engine         = engine
+      def initialize pool
+        @pool           = pool
         @connection     = nil
-        @pool           = nil
         @quoted_tables  = {}
         @quoted_columns = {}
       end
 
       def accept object
         self.last_column = nil
-        @pool = @engine.connection_pool
         @pool.with_connection do |conn|
           @connection = conn
           super

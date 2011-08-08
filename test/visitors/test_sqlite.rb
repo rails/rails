@@ -4,7 +4,7 @@ module Arel
   module Visitors
     describe 'the sqlite visitor' do
       before do
-        @visitor = SQLite.new Table.engine
+        @visitor = SQLite.new Table.engine.connection_pool
       end
 
       it 'defaults limit to -1' do

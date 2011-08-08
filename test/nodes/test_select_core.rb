@@ -23,7 +23,7 @@ module Arel
       def test_set_quantifier
         core = Arel::Nodes::SelectCore.new
         core.set_quantifier = Arel::Nodes::Distinct.new
-        viz = Arel::Visitors::ToSql.new Table.engine
+        viz = Arel::Visitors::ToSql.new Table.engine.connection_pool
         assert_match 'DISTINCT', viz.accept(core)
       end
     end

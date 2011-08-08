@@ -42,6 +42,10 @@ module Arel
       @engine.connection.tables
     end
 
+    def visitor
+      @engine.connection.visitor
+    end
+
     def execute sql, name = nil, *args
       @executed << sql
     end

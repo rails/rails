@@ -4,21 +4,23 @@ module Arel
     include Arel::Relation
     include Arel::FactoryMethods
 
-    attr_accessor :visitor
     attr_reader :ast, :engine
 
     def initialize engine
-      @engine  = engine
-      @visitor = Visitors.visitor_for @engine
-      @ctx     = nil
+      @engine = engine
+      @ctx    = nil
     end
 
     def to_dot
       Visitors::Dot.new.accept @ast
     end
 
+    def visitor
+      engine.connection.visitor
+    end
+
     def to_sql
-      @visitor.accept @ast
+      visitor.accept @ast
     end
 
     def initialize_copy other

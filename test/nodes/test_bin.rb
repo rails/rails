@@ -8,13 +8,13 @@ module Arel
       end
 
       def test_default_to_sql
-        viz  = Arel::Visitors::ToSql.new Table.engine
+        viz  = Arel::Visitors::ToSql.new Table.engine.connection_pool
         node = Arel::Nodes::Bin.new(Arel.sql('zomg'))
         assert_equal 'zomg', viz.accept(node)
       end
 
       def test_mysql_to_sql
-        viz  = Arel::Visitors::MySQL.new Table.engine
+        viz  = Arel::Visitors::MySQL.new Table.engine.connection_pool
         node = Arel::Nodes::Bin.new(Arel.sql('zomg'))
         assert_equal 'BINARY zomg', viz.accept(node)
       end
