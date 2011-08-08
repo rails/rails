@@ -80,7 +80,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bundle exec rake assets:clean` }
       end
 
-      files = Dir["#{app_path}/public/assets/**/*"]
+      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
     end
 
