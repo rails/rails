@@ -9,6 +9,10 @@ module Arel
       def initialize single_source, joinop = []
         super
       end
+
+      def empty?
+        !left && right.empty?
+      end
     end
   end
 end

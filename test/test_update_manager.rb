@@ -62,6 +62,19 @@ module Arel
         um = Arel::UpdateManager.new Table.engine
         um.table(Table.new(:users)).must_equal um
       end
+
+      it 'generates an update statement with joins' do
+        um = Arel::UpdateManager.new Table.engine
+
+        table = Table.new(:users)
+        join_source = Arel::Nodes::JoinSource.new(
+          table,
+          [table.create_join(Table.new(:posts))]
+        )
+
+        um.table join_source
+        um.to_sql.must_be_like %{ UPDATE "users" INNER JOIN "posts" }
+      end
     end
 
     describe 'where' do

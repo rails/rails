@@ -142,7 +142,7 @@ key on UpdateManager using UpdateManager#key=
           (visit(o.top) if o.top),
           (visit(o.set_quantifier) if o.set_quantifier),
           ("#{o.projections.map { |x| visit x }.join ', '}" unless o.projections.empty?),
-          (visit(o.source) if o.source),
+          ("FROM #{visit(o.source)}" if o.source && !o.source.empty?),
           ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
           ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?),
           (visit(o.having) if o.having),
@@ -288,10 +288,7 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Nodes_JoinSource o
-        return unless o.left || !o.right.empty?
-
         [
-          "FROM",
           (visit(o.left) if o.left),
           o.right.map { |j| visit j }.join(' ')
         ].compact.join ' '
