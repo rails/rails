@@ -151,6 +151,9 @@ class AdapterTest < ActiveRecord::TestCase
         else
           @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
         end
+        # should deleted created record as otherwise disable_referential_integrity will try to enable contraints after executed block
+        # and will fail (at least on Oracle)
+        @connection.execute "DELETE FROM fk_test_has_fk"
       end
     end
   end
