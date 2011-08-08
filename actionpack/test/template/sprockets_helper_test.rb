@@ -205,4 +205,17 @@ class SprocketsHelperTest < ActionView::TestCase
     stubs(:asset_environment).returns(assets)
     assert_match %r{/assets/style-[0-9a-f]+.css}, asset_path("style", "css")
   end
+
+  test "alternate hash based on environment" do
+    assets = Sprockets::Environment.new
+    assets.version = 'development'
+    assets.append_path(FIXTURES.join("sprockets/alternate/stylesheets"))
+    stubs(:asset_environment).returns(assets)
+    dev_path = asset_path("style", "css")
+
+    assets.version = 'production'
+    prod_path = asset_path("style", "css")
+
+    assert_not_equal prod_path, dev_path
+  end
 end
