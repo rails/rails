@@ -306,6 +306,15 @@ module ActiveRecord
         end
       end
 
+      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
+      # on mysql (even when aliasing the tables), but mysql allows using JOIN directly in
+      # an UPDATE statement, so in the mysql adapters we redefine this to do that.
+      def join_to_update(update, select) #:nodoc:
+        subselect = select.clone
+        subselect.ast.cores.last.projections = [update.ast.key]
+        update.wheres = [update.ast.key.in(subselect)]
+      end
+
       protected
         # Returns an array of record hashes with the column names as keys and
         # column values as values.

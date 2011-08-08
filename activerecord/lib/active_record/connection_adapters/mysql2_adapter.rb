@@ -577,6 +577,10 @@ module ActiveRecord
         where_sql
       end
 
+      def join_to_update(update, select) #:nodoc:
+        update.table select.ast.cores.last.source
+      end
+
       protected
         def quoted_columns_for_index(column_names, options = {})
           length = options[:length] if options.is_a?(Hash)

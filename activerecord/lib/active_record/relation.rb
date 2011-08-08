@@ -217,13 +217,18 @@ module ActiveRecord
         where(conditions).apply_finder_options(options.slice(:limit, :order)).update_all(updates)
       else
         stmt = arel.compile_update(Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)))
+        stmt.key = table[primary_key]
 
-        if limit = arel.limit
-          stmt.take limit
+        if joins_values.any?
+          @klass.connection.join_to_update(stmt, arel)
+        else
+          if limit = arel.limit
+            stmt.take limit
+          end
+
+          stmt.order(*arel.orders)
         end
 
-        stmt.order(*arel.orders)
-        stmt.key = table[primary_key]
         @klass.connection.update stmt, 'SQL', bind_values
       end
     end
