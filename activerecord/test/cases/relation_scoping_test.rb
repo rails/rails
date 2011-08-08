@@ -170,7 +170,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     Developer.where('salary = 80000').scoping do
       Developer.limit(10).scoping do
         devs = Developer.scoped
-        assert_match '(salary = 80000)', devs.arel.to_sql
+        assert_match '(salary = 80000)', devs.to_sql
         assert_equal 10, devs.taken
       end
     end

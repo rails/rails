@@ -26,7 +26,7 @@ module ActiveRecord
             join_table[reflection.association_foreign_key] => record.id
           )
 
-          owner.connection.insert stmt.to_sql
+          owner.connection.insert stmt
         end
 
         record
@@ -46,7 +46,7 @@ module ActiveRecord
             stmt = relation.where(relation[reflection.foreign_key].eq(owner.id).
               and(relation[reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
             ).compile_delete
-            owner.connection.delete stmt.to_sql
+            owner.connection.delete stmt
           end
         end
 

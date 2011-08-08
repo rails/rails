@@ -53,6 +53,10 @@ module ActiveRecord
         @config = config
       end
 
+      def self.visitor_for(pool) # :nodoc:
+        Arel::Visitors::SQLite.new(pool)
+      end
+
       def adapter_name #:nodoc:
         'SQLite'
       end

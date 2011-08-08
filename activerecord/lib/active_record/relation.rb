@@ -68,7 +68,7 @@ module ActiveRecord
       end
 
       conn.insert(
-        im.to_sql,
+        im,
         'SQL',
         primary_key,
         primary_key_value,
@@ -108,10 +108,10 @@ module ActiveRecord
 
       if default_scoped.equal?(self)
         @records = if @readonly_value.nil? && !@klass.locking_enabled?
-          eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+          eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
         else
           IdentityMap.without do
-            eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql, @bind_values)
+            eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
           end
         end
 
@@ -224,7 +224,7 @@ module ActiveRecord
 
         stmt.order(*arel.orders)
         stmt.key = table[primary_key]
-        @klass.connection.update stmt.to_sql, 'SQL', bind_values
+        @klass.connection.update stmt, 'SQL', bind_values
       end
     end
 
@@ -341,8 +341,7 @@ module ActiveRecord
         where(conditions).delete_all
       else
         statement = arel.compile_delete
-        affected = @klass.connection.delete(
-          statement.to_sql, 'SQL', bind_values)
+        affected = @klass.connection.delete(statement, 'SQL', bind_values)
 
         reset
         affected
@@ -388,7 +387,7 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= arel.to_sql
+      @to_sql ||= klass.connection.to_sql(arel)
     end
 
     def where_values_hash

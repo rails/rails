@@ -135,6 +135,10 @@ module ActiveRecord
           pool.with_connection
         end
       end
+
+      def test_pool_sets_connection_visitor
+        assert @pool.connection.visitor.is_a?(Arel::Visitors::ToSql)
+      end
     end
   end
 end
