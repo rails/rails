@@ -147,7 +147,9 @@ class AdapterTest < ActiveRecord::TestCase
         # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
         if @connection.prefetch_primary_key?
           id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-          @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
+          fk_id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_pk", "id"))
+          @connection.execute "INSERT INTO fk_test_has_pk (id) VALUES (#{fk_id_value})"
+          @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},#{fk_id_value})"
         else
           @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
         end
