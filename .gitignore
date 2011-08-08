@@ -6,3 +6,4 @@ debug.log
 pkg
 .bundle
 *.swp
+Gemfile.lock
