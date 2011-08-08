@@ -400,20 +400,18 @@ module ActiveSupport #:nodoc:
     def search_for_file(path_suffix)
       path_suffix = path_suffix.sub(/(\.rb)?$/, ".rb")
 
-      autoload_paths.each do |root|
+      autoload_paths.find do |root|
         path = File.join(root, path_suffix)
         return path if File.file? path
       end
-      nil # Gee, I sure wish we had first_match ;-)
     end
 
     # Does the provided path_suffix correspond to an autoloadable module?
     # Instead of returning a boolean, the autoload base for this module is returned.
     def autoloadable_module?(path_suffix)
-      autoload_paths.each do |load_path|
-        return load_path if File.directory? File.join(load_path, path_suffix)
+      autoload_paths.find do |load_path|
+        File.directory? File.join(load_path, path_suffix)
       end
-      nil
     end
 
     def load_once_path?(path)
