@@ -1,3 +1,11 @@
+== 2.1.5 / 2011-08-08
+
+* Bug Fixes
+
+  * The database connection caches visitors for generating SQL.
+  * FALSE and TRUE nodes can be constructed.
+  * Fixed ORDER BY / LIMIT clauses for UPDATE statements in Oracle.
+
 == 2.1.4 / 2011-07-25
 
 * Bug Fixes

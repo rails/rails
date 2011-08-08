@@ -1,5 +1,6 @@
 .autotest
 .gemtest
+Gemfile
 History.txt
 MIT-LICENSE.txt
 Manifest.txt
@@ -27,6 +28,7 @@ lib/arel/nodes/count.rb
 lib/arel/nodes/delete_statement.rb
 lib/arel/nodes/descending.rb
 lib/arel/nodes/equality.rb
+lib/arel/nodes/false.rb
 lib/arel/nodes/function.rb
 lib/arel/nodes/in.rb
 lib/arel/nodes/infix_operation.rb
@@ -43,6 +45,7 @@ lib/arel/nodes/sql_literal.rb
 lib/arel/nodes/string_join.rb
 lib/arel/nodes/table_alias.rb
 lib/arel/nodes/terminal.rb
+lib/arel/nodes/true.rb
 lib/arel/nodes/unary.rb
 lib/arel/nodes/unqualified_column.rb
 lib/arel/nodes/update_statement.rb
