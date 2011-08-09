@@ -241,7 +241,7 @@ module ActionView
 
       exts.each do |ext|
         query << "{"
-        ext.compact.each { |e| query << ".#{e}," }
+        ext.compact.uniq.each { |e| query << ".#{e}," }
         query << "}"
       end
 
