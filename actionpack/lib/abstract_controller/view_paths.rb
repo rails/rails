@@ -87,7 +87,7 @@ module AbstractController
       # * <tt>paths</tt> - If a PathSet is provided, use that;
       #   otherwise, process the parameter into a PathSet.
       def view_paths=(paths)
-        self._view_paths = ActionView::Base.process_view_paths(paths)
+        self._view_paths = ActionView::PathSet.new(Array.wrap(paths))
       end
     end
   end

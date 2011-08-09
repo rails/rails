@@ -380,7 +380,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # is not eager loaded
   def setup
     path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
-    view_paths = ActionView::Base.process_view_paths(path)
+    view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
     setup_view(view_paths)
   end
