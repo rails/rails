@@ -6,6 +6,7 @@ rvm:
   - jruby
   - 1.9.2
   - 1.9.3
+  - ruby-head
 notifications:
   email: false
   irc:
