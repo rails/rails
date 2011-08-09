@@ -339,6 +339,9 @@ module ActiveRecord
       def join_to_update(update, select) #:nodoc:
         subselect = select.clone
         subselect.ast.cores.last.projections = [update.ast.key]
+
+        update.ast.limit  = nil
+        update.ast.orders = []
         update.wheres = [update.ast.key.in(subselect)]
       end
 
