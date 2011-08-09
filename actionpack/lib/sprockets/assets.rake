@@ -1,5 +1,4 @@
 namespace :assets do
-  # Ensures the RAILS_GROUPS environment variable is set
   task :ensure_env do
     ENV["RAILS_GROUPS"] ||= "assets"
     ENV["RAILS_ENV"]    ||= "production"
