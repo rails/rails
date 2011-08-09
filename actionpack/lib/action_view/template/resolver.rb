@@ -131,21 +131,24 @@ module ActionView
 
     def query(path, details, formats)
       query = build_query(path, details)
-      templates = []
+
+      # deals with case-insensitive file systems.
       sanitizer = Hash.new { |h,dir| h[dir] = Dir["#{dir}/*"] }
 
-      Dir[query].each do |template|
-        next if File.directory?(template)
-        next unless sanitizer[File.dirname(template)].include?(template)
+      template_paths = Dir[query].reject { |filename|
+        File.directory?(filename) ||
+          !sanitizer[File.dirname(filename)].include?(filename)
+      }
 
+      template_paths.map { |template|
         handler, format = extract_handler_and_format(template, formats)
         contents = File.binread template
 
-        templates << Template.new(contents, File.expand_path(template), handler,
-          :virtual_path => path.virtual, :format => format, :updated_at => mtime(template))
-      end
-
-      templates
+        Template.new(contents, File.expand_path(template), handler,
+          :virtual_path => path.virtual,
+          :format       => format,
+          :updated_at   => mtime(template))
+      }
     end
 
     # Helper for building query glob string based on resolver's pattern.
