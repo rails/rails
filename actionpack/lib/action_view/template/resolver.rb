@@ -101,13 +101,12 @@ module ActionView
 
     if :symbol.respond_to?("<=>")
       def sort_locals(locals) #:nodoc:
-        locals.sort.freeze
+        locals.sort
       end
     else
       def sort_locals(locals) #:nodoc:
         locals = locals.map{ |l| l.to_s }
         locals.sort!
-        locals.freeze
       end
     end
   end
