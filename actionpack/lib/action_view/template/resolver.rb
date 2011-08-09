@@ -237,15 +237,10 @@ module ActionView
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
     def build_query(path, details)
       exts = EXTENSIONS.map { |ext| details[ext] }
-      query = File.join(@path, path)
 
-      exts.each do |ext|
-        query << "{"
-        ext.compact.uniq.each { |e| query << ".#{e}," }
-        query << "}"
-      end
-
-      query
+      File.join(@path, path) + exts.map { |ext|
+        "{#{ext.compact.uniq.map { |e| ".#{e}," }.join}}"
+      }.join
     end
   end
 
