@@ -132,10 +132,11 @@ module ActionView
     def query(path, details, formats)
       query = build_query(path, details)
       templates = []
-      sanitizer = Hash.new { |h,k| h[k] = Dir["#{File.dirname(k)}/*"] }
+      sanitizer = Hash.new { |h,dir| h[dir] = Dir["#{dir}/*"] }
 
       Dir[query].each do |template|
-        next if File.directory?(template) || !sanitizer[template].include?(template)
+        next if File.directory?(template)
+        next unless sanitizer[File.dirname(template)].include?(template)
 
         handler, format = extract_handler_and_format(template, formats)
         contents = File.binread template
