@@ -404,7 +404,7 @@ Will put the HTML part first, and the plain text part second.
 
 h4. Sending Emails with Attachments
 
-Attachments can be added by using the +attachment+ method:
+Attachments can be added by using the +attachments+ method:
 
 <ruby>
 class UserMailer < ActionMailer::Base
