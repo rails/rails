@@ -134,14 +134,14 @@ module ActionView
       templates = []
       sanitizer = Hash.new { |h,k| h[k] = Dir["#{File.dirname(k)}/*"] }
 
-      Dir[query].each do |p|
-        next if File.directory?(p) || !sanitizer[p].include?(p)
+      Dir[query].each do |template|
+        next if File.directory?(template) || !sanitizer[template].include?(template)
 
-        handler, format = extract_handler_and_format(p, formats)
-        contents = File.binread p
+        handler, format = extract_handler_and_format(template, formats)
+        contents = File.binread template
 
-        templates << Template.new(contents, File.expand_path(p), handler,
-          :virtual_path => path.virtual, :format => format, :updated_at => mtime(p))
+        templates << Template.new(contents, File.expand_path(template), handler,
+          :virtual_path => path.virtual, :format => format, :updated_at => mtime(template))
       end
 
       templates
