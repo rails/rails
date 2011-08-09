@@ -1,3 +1,5 @@
+require 'action_view/base'
+
 module AbstractController
   module ViewPaths
     extend ActiveSupport::Concern
