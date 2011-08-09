@@ -135,8 +135,8 @@ as the id of the ARes object.
 
 ==== Update
 
-'save' is also used to update an existing resource - and follows the same protocol as creating a resource
-with the exception that no response headers are needed - just an empty response when the update on the
+'save' is also used to update an existing resource and follows the same protocol as creating a resource
+with the exception that no response headers are needed -- just an empty response when the update on the
 server side was successful.
 
   # <person><first>Ryan</first></person>
