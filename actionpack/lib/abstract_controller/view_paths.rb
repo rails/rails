@@ -63,7 +63,7 @@ module AbstractController
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def append_view_path(path)
-        self.view_paths = view_paths.dup + Array(path)
+        self.view_paths = view_paths + Array(path)
       end
 
       # Prepend a path to the list of view paths for this controller.
@@ -73,7 +73,7 @@ module AbstractController
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def prepend_view_path(path)
-        self.view_paths = Array(path) + view_paths.dup
+        self.view_paths = Array(path) + view_paths
       end
 
       # A list of all of the default view paths for this controller.
