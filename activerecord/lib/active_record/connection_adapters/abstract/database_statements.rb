@@ -310,12 +310,10 @@ module ActiveRecord
       # on mysql (even when aliasing the tables), but mysql allows using JOIN directly in
       # an UPDATE statement, so in the mysql adapters we redefine this to do that.
       def join_to_update(update, select) #:nodoc:
-        subselect = select.clone
-        subselect.ast.cores.last.projections = [update.ast.key]
+        subselect = select.ast.clone
+        subselect.cores.last.projections = [update.ast.key]
 
-        update.ast.limit  = nil
-        update.ast.orders = []
-        update.wheres = [update.ast.key.in(subselect)]
+        update.where update.ast.key.in(subselect)
       end
 
       protected

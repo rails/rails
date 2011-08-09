@@ -508,11 +508,10 @@ module ActiveRecord
           subselect = Arel::SelectManager.new(select.engine, subsubselect)
           subselect.project(Arel::Table.new('__active_record_temp')[update.ast.key.name])
 
-          update.ast.limit  = nil
-          update.ast.orders = []
-          update.wheres = [update.ast.key.in(subselect)]
+          update.where update.ast.key.in(subselect)
         else
           update.table select.ast.cores.last.source
+          update.wheres = select.constraints
         end
       end
 
