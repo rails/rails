@@ -1,5 +1,6 @@
 require "pathname"
 require "active_support/core_ext/class"
+require "active_support/core_ext/io"
 require "action_view/template"
 
 module ActionView
@@ -137,7 +138,7 @@ module ActionView
         next if File.directory?(p) || !sanitizer[p].include?(p)
 
         handler, format = extract_handler_and_format(p, formats)
-        contents = File.open(p, "rb") { |io| io.read }
+        contents = File.binread p
 
         templates << Template.new(contents, File.expand_path(p), handler,
           :virtual_path => path.virtual, :format => format, :updated_at => mtime(p))
