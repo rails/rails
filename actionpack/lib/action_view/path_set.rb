@@ -25,8 +25,8 @@ module ActionView #:nodoc:
       []
     end
 
-    def exists?(*args)
-      find_all(*args).any?
+    def exists?(path, prefixes, *args)
+      find_all(path, prefixes, *args).any?
     end
 
   protected
