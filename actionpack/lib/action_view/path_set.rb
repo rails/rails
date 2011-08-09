@@ -69,13 +69,16 @@ module ActionView #:nodoc:
       find_all(path, prefixes, *args).any?
     end
 
-  protected
+    private
 
     def typecast(paths)
-      paths.each_with_index do |path, i|
-        path = path.to_s if path.is_a?(Pathname)
-        next unless path.is_a?(String)
-        paths[i] = OptimizedFileSystemResolver.new(path)
+      paths.map do |path|
+        case path
+        when Pathname, String
+          OptimizedFileSystemResolver.new path.to_s
+        else
+          path
+        end
       end
     end
   end
