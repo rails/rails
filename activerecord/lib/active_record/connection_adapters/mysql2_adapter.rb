@@ -591,8 +591,9 @@ module ActiveRecord
             '__active_record_temp'
           )
 
-          subselect = Arel::SelectManager.new(select.engine, subsubselect)
-          subselect.project(Arel::Table.new('__active_record_temp')[update.ast.key.name])
+          subselect = Arel::Nodes::SelectCore.new
+          subselect.from = subsubselect
+          subselect.projections << Arel::Table.new('__active_record_temp')[update.ast.key.name]
 
           update.where update.ast.key.in(subselect)
         else
