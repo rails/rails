@@ -6,8 +6,7 @@ module ActionView #:nodoc:
     attr_reader :paths
 
     def initialize(paths = [])
-      @paths = paths
-      typecast!
+      @paths = typecast paths
     end
 
     def initialize_copy(other)
@@ -17,10 +16,6 @@ module ActionView #:nodoc:
 
     def to_ary
       paths.dup
-    end
-
-    def +(array)
-      PathSet.new(paths + array)
     end
 
     def include?(item)
@@ -35,19 +30,22 @@ module ActionView #:nodoc:
       paths.size
     end
 
+    def each(&block)
+      paths.each(&block)
+    end
+
     def compact
       PathSet.new paths.compact
     end
 
-    def each(&block)
-      paths.each(&block)
+    def +(array)
+      PathSet.new(paths + array)
     end
 
     %w(<< concat push insert unshift).each do |method|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{method}(*args)
-          paths.#{method}(*args)
-          typecast!
+          paths.#{method}(*typecast(args))
         end
       METHOD
     end
@@ -73,7 +71,7 @@ module ActionView #:nodoc:
 
   protected
 
-    def typecast!
+    def typecast(paths)
       paths.each_with_index do |path, i|
         path = path.to_s if path.is_a?(Pathname)
         next unless path.is_a?(String)
