@@ -69,7 +69,7 @@ module ActionView
     # before returning it.
     def cached(key, path_info, details, locals) #:nodoc:
       name, prefix, partial = path_info
-      locals = sort_locals(locals)
+      locals = locals.map { |x| x.to_s }.sort!
 
       if key && caching?
         @cached[key][name][prefix][partial][locals] ||= decorate(yield, path_info, details, locals)
@@ -96,17 +96,6 @@ module ActionView
         t.locals         = locals
         t.formats        = details[:formats] || [:html] if t.formats.empty?
         t.virtual_path ||= (cached ||= build_path(*path_info))
-      end
-    end
-
-    if :symbol.respond_to?("<=>")
-      def sort_locals(locals) #:nodoc:
-        locals.sort
-      end
-    else
-      def sort_locals(locals) #:nodoc:
-        locals = locals.map{ |l| l.to_s }
-        locals.sort!
       end
     end
   end
