@@ -491,8 +491,29 @@ module ActiveRecord
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 
+      # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
+      # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
+      # these, we must use a subquery. However, MySQL is too stupid to create a
+      # temporary table for this automatically, so we have to give it some prompting
+      # in the form of a subsubquery. Ugh!
       def join_to_update(update, select) #:nodoc:
-        update.table select.ast.cores.last.source
+        if select.limit || select.offset || select.orders.any?
+          subsubselect = select.ast.clone
+          subsubselect.cores.last.projections = [update.ast.key]
+          subsubselect = Arel::Nodes::TableAlias.new(
+            Arel::Nodes::Grouping.new(subsubselect),
+            '__active_record_temp'
+          )
+
+          subselect = Arel::SelectManager.new(select.engine, subsubselect)
+          subselect.project(Arel::Table.new('__active_record_temp')[update.ast.key.name])
+
+          update.ast.limit  = nil
+          update.ast.orders = []
+          update.wheres = [update.ast.key.in(subselect)]
+        else
+          update.table select.ast.cores.last.source
+        end
       end
 
       # SCHEMA STATEMENTS ========================================
