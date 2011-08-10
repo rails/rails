@@ -1,4 +1,6 @@
 require 'active_record/connection_adapters/sqlite_adapter'
+
+gem 'sqlite3', '~> 1.3.4'
 require 'sqlite3'
 
 module ActiveRecord
