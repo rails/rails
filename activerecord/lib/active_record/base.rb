@@ -1273,8 +1273,9 @@ MSG
         # The @ignore_default_scope flag is used to prevent an infinite recursion situation where
         # a default scope references a scope which has a default scope which references a scope...
         def build_default_scope #:nodoc:
-          return if defined?(@ignore_default_scope) && @ignore_default_scope
-          @ignore_default_scope = true
+          # FIXME: rewrite the whole thing to not require using Thread.current
+          return if Thread.current[thread_key = :"#{self}_ignore_default_scope"]
+          Thread.current[thread_key] = true
 
           if method(:default_scope).owner != Base.singleton_class
             default_scope
@@ -1290,7 +1291,7 @@ MSG
             end
           end
         ensure
-          @ignore_default_scope = false
+          Thread.current[thread_key] = nil
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
