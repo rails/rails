@@ -2159,7 +2159,8 @@ module ActiveRecord
                 ]
               when :has_many, :has_one
                 if reflection.options[:through]
-                  join_table = Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, :engine => arel_engine)
+                  join_table = Arel::Table.new(through_reflection.klass.table_name, :as => aliased_join_table_name, 
+                                               :engine => arel_engine, :columns => through_reflection.klass.columns)
                   jt_as_conditions = through_reflection.options[:conditions] && process_conditions(through_reflection.options[:conditions], aliased_table_name)
                   jt_as_extra = jt_source_extra = jt_sti_extra = nil
                   first_key = second_key = as_extra = nil
