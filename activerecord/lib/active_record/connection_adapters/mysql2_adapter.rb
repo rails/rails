@@ -585,7 +585,7 @@ module ActiveRecord
       def join_to_update(update, select) #:nodoc:
         if select.limit || select.offset || select.orders.any?
           subsubselect = select.clone
-          subsubselect.ast.cores.last.projections = [update.key]
+          subsubselect.projections = [update.key]
 
           subselect = Arel::SelectManager.new(select.engine)
           subselect.project Arel.sql(update.key.name)
