@@ -95,5 +95,21 @@ module Arel
         um.where(table[:id].eq(1)).must_equal um
       end
     end
+
+    describe 'key' do
+      before do
+        @table = Table.new :users
+        @um = Arel::UpdateManager.new Table.engine
+        @um.key = @table[:foo]
+      end
+
+      it 'can be set' do
+        @um.ast.key.must_equal @table[:foo]
+      end
+
+      it 'can be accessed' do
+        @um.key.must_equal @table[:foo]
+      end
+    end
   end
 end

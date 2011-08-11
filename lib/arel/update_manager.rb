@@ -15,6 +15,10 @@ module Arel
       @ast.key = key
     end
 
+    def key
+      @ast.key
+    end
+
     def order *expr
       @ast.orders = expr
       self
