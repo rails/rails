@@ -956,5 +956,13 @@ module Arel
         manager.to_sql.must_be_like 'SELECT "users"."id" FROM "users"'
       end
     end
+
+    describe 'source' do
+      it 'returns the join source of the select core' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.source.must_equal manager.ast.cores.last.source
+      end
+    end
   end
 end
