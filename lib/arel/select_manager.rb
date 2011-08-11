@@ -135,6 +135,10 @@ module Arel
       self
     end
 
+    def projections= projections
+      @ctx.projections = projections
+    end
+
     def order *expr
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
       @ast.orders.concat expr.map { |x|

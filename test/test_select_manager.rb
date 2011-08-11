@@ -860,6 +860,15 @@ module Arel
       end
     end
 
+    describe 'projections=' do
+      it 'overwrites projections' do
+        manager = Arel::SelectManager.new Table.engine
+        manager.project Arel.sql('foo')
+        manager.projections = [Arel.sql('bar')]
+        manager.to_sql.must_be_like %{ SELECT bar }
+      end
+    end
+
     describe 'take' do
       it "knows take" do
         table   = Table.new :users
