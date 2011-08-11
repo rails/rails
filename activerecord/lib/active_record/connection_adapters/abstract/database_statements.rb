@@ -311,9 +311,9 @@ module ActiveRecord
       # an UPDATE statement, so in the mysql adapters we redefine this to do that.
       def join_to_update(update, select) #:nodoc:
         subselect = select.ast.clone
-        subselect.cores.last.projections = [update.ast.key]
+        subselect.cores.last.projections = [update.key]
 
-        update.where update.ast.key.in(subselect)
+        update.where update.key.in(subselect)
       end
 
       protected

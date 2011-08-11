@@ -584,18 +584,14 @@ module ActiveRecord
       # in the form of a subsubquery. Ugh!
       def join_to_update(update, select) #:nodoc:
         if select.limit || select.offset || select.orders.any?
-          subsubselect = select.ast.clone
-          subsubselect.cores.last.projections = [update.ast.key]
-          subsubselect = Arel::Nodes::TableAlias.new(
-            Arel::Nodes::Grouping.new(subsubselect),
-            '__active_record_temp'
-          )
+          subsubselect = select.clone
+          subsubselect.ast.cores.last.projections = [update.key]
 
-          subselect = Arel::Nodes::SelectCore.new
-          subselect.from = subsubselect
-          subselect.projections << Arel::Table.new('__active_record_temp')[update.ast.key.name]
+          subselect = Arel::SelectManager.new(select.engine)
+          subselect.project Arel.sql(update.key.name)
+          subselect.from subsubselect.as('__active_record_temp')
 
-          update.where update.ast.key.in(subselect)
+          update.where update.key.in(subselect)
         else
           update.table select.ast.cores.last.source
           update.wheres = select.constraints
