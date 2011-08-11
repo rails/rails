@@ -530,6 +530,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal options, { :option => "random_option" }
   end
 
+  def test_image_label_tag_options_symbolize_keys_side_effects
+    options = { :option => "random_option" }
+    actual = label_tag "submit source", "title", options
+    assert_equal options, { :option => "random_option" }
+  end
+
   def protect_against_forgery?
     false
   end
