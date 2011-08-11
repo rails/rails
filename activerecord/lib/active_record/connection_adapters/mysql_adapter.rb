@@ -507,7 +507,7 @@ module ActiveRecord
 
           update.where update.key.in(subselect)
         else
-          update.table select.ast.cores.last.source
+          update.table select.source
           update.wheres = select.constraints
         end
       end
