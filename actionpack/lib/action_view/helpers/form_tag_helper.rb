@@ -56,8 +56,8 @@ module ActionView
       #   form_tag('http://far.away.com/form', :authenticity_token => "cf50faa3fe97702ca1ae")
       #   # form with custom authenticity token
       #
-      def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
-        html_options = html_options_for_form(url_for_options, options, *parameters_for_url)
+      def form_tag(url_for_options = {}, options = {}, &block)
+        html_options = html_options_for_form(url_for_options, options)
         if block_given?
           form_tag_in_block(html_options, &block)
         else
@@ -598,12 +598,12 @@ module ActionView
       end
 
       private
-        def html_options_for_form(url_for_options, options, *parameters_for_url)
+        def html_options_for_form(url_for_options, options)
           options.stringify_keys.tap do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             # The following URL is unescaped, this is just a hash of options, and it is the
             # responsibility of the caller to escape all the values.
-            html_options["action"]  = url_for(url_for_options, *parameters_for_url)
+            html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
             html_options["data-remote"] = true if html_options.delete("remote")
             html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
