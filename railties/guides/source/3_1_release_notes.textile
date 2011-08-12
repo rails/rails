@@ -13,7 +13,7 @@ endprologue.
 
 h3. Upgrading to Rails 3.1
 
-If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3 and make sure your application still runs as expected before attempting to update to Rails 3.1. Then take heed of the following changes:
+If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3 in case you haven't and make sure your application still runs as expected before attempting to update to Rails 3.1. Then take heed of the following changes:
 
 h4. Rails 3.1 requires at least Ruby 1.8.7
 
@@ -31,13 +31,13 @@ $ cd myapp
 
 h4. Vendoring Gems
 
-Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":https://github.com/carlhuda/bundler, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
+Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":https://github.com/carlhuda/bundler gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
 More information: - "bundler homepage":http://gembundler.com
 
 h4. Living on the Edge
 
-+Bundler+ and +Gemfile+ makes freezing your Rails application easy as pie with the new dedicated <tt>bundle</tt> command. If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
++Bundler+ and +Gemfile+ makes freezing your Rails application easy as pie with the new dedicated +bundle+ command. If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
 
 <shell>
 $ rails new myapp --edge
@@ -79,11 +79,11 @@ h3. Railties
 
 * jQuery is the new default JavaScript library.
 
-* jQuery and prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
+* jQuery and Prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
 
 * The application generator accepts an option -j which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
 
-* Generating an application or a plugin runs bundle install unless --skip-gemfile or --skip-bundle is specified.
+* Generating an application or a plugin runs +bundle install+ unless --skip-gemfile or --skip-bundle is specified.
 
 * The controller and resource generators will now automatically produce asset stubs (this can be turned off with --skip-assets). These stubs will use CoffeeScript and Sass, if those libraries are available.
 
@@ -115,7 +115,7 @@ h4. Action Controller
 
 * URL parameters which return nil for +to_param+ are now removed from the query string.
 
-* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default.  This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
+* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default. This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
 
 * Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to false will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
 
@@ -184,7 +184,7 @@ h4. Action Dispatch
 
 * Moved etag responsibility from <tt>ActionDispatch::Response</tt> to the middleware stack.
 
-* Rely on <tt>Rack::Session</tt> stores API for more compatibility across the Ruby world. This is backwards incompatible since <tt>Rack::Session</tt> expects #get_session to accept four arguments and requires #destroy_session instead of simply #destroy.
+* Rely on <tt>Rack::Session</tt> stores API for more compatibility across the Ruby world. This is backwards incompatible since <tt>Rack::Session</tt> expects <tt>#get_session</tt> to accept four arguments and requires <tt>#destroy_session</tt> instead of simply <tt>#destroy</tt>.
 
 * Template lookup now searches further up in the inheritance chain.
 
@@ -209,7 +209,7 @@ tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
 
 Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
 
-* +csrf_meta_tag+ is renamed to +csrf_meta_tags+ and aliases csrf_meta_tag for backwards compatibility.
+* +csrf_meta_tag+ is renamed to +csrf_meta_tags+ and aliases +csrf_meta_tag+ for backwards compatibility.
 
 * The old template handler API is deprecated and the new API simply requires a template handler to respond to call.
 
@@ -219,13 +219,13 @@ Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
 
 * The submit form helper does not generate an id "object_name_id" anymore.
 
-* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(@post, remote: true, method: :delete)</tt> instead of <tt>form_for(@post, remote: true, html: { method: :delete })</tt>
+* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(@post, remote: true, method: :delete)</tt> instead of <tt>form_for(@post, remote: true, html: { method: :delete })</tt>.
 
-* Provided JavaScriptHelper#j() as an alias for JavaScriptHelper#escape_javascript(). This supersedes the Object#j() method that the JSON gem adds within templates using the JavaScriptHelper.
+* Provided <tt>JavaScriptHelper#j()</tt> as an alias for <tt>JavaScriptHelper#escape_javascript()</tt>. This supersedes the <tt>Object#j()</tt> method that the JSON gem adds within templates using the JavaScriptHelper.
 
 * Allows AM/PM format in datetime selectors.
 
-* auto_link has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
+* +auto_link+ has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
 
 h3. Active Record
 
@@ -261,7 +261,7 @@ end
 Post.new(params[:post], :as => :admin)
 </ruby>
 
-* +default_scope+ can now take a block, lambda, or any other object which responds to call for lazy evaluation:
+* +default_scope+ can now take a block, lambda, or any other object which responds to call for lazy evaluation.
 
 * Default scopes are now evaluated at the latest possible moment, to avoid problems where scopes would be created which would implicitly contain the default scope, which would then be impossible to get rid of via Model.unscoped.
 
@@ -282,19 +282,19 @@ People.offset(1).count          # => 'SELECT COUNT(*) FROM people'
 People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET 1'
 </ruby>
 
-* <tt>ActiveRecord::Associations::AssociationProxy</tt> has been split. There is now an +Association+ class (and subclasses) which are responsible for operating on associations, and then a separate, thin wrapper +called+ CollectionProxy, which proxies collection associations. This prevents namespace pollution, separates concerns, and will allow further refactorings.
+* <tt>ActiveRecord::Associations::AssociationProxy</tt> has been split. There is now an +Association+ class (and subclasses) which are responsible for operating on associations, and then a separate, thin wrapper called +CollectionProxy+, which proxies collection associations. This prevents namespace pollution, separates concerns, and will allow further refactorings.
 
 * Singular associations (has_one, belongs_to) no longer have a proxy and simply returns the associated record or nil. This means that you should not use undocumented methods such as bob.mother.create - use bob.create_mother instead.
 
-* Support the <tt>:dependent</tt> option on <tt>has_many :through</tt> associations. For historical and practical reasons, :delete_all is the default deletion strategy employed by association.delete(*records), despite the fact that the default strategy is :nullify for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
+* Support the <tt>:dependent</tt> option on <tt>has_many :through</tt> associations. For historical and practical reasons, +:delete_all+ is the default deletion strategy employed by <tt>association.delete(*records)</tt>, despite the fact that the default strategy is +:nullify+ for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
 
-* The behavior of association.destroy for +has_and_belongs_to_many+ and <tt>has_many :through</tt> is changed. From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link', not (necessarily) 'get rid of the associated records'.
+* The behavior of +association.destroy+ for +has_and_belongs_to_many+ and <tt>has_many :through</tt> is changed. From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link', not (necessarily) 'get rid of the associated records'.
 
-* Previously, has_and_belongs_to_many.destroy(*records) would destroy the records themselves. It would not delete any records in the join table. Now, it deletes the records in the join table.
+* Previously, <tt>has_and_belongs_to_many.destroy(*records)</tt> would destroy the records themselves. It would not delete any records in the join table. Now, it deletes the records in the join table.
 
-* Previously, has_many_through.destroy(*records) would destroy the records themselves, and the records in the join table. [Note: This has not always been the case; previous version of Rails only deleted the records themselves.] Now, it destroys only the records in the join table.
+* Previously, <tt>has_many_through.destroy(*records)</tt> would destroy the records themselves, and the records in the join table. [Note: This has not always been the case; previous version of Rails only deleted the records themselves.] Now, it destroys only the records in the join table.
 
-* Note that this change is backwards-incompatible to an extent, but there is unfortunately no way to 'deprecate' it before changing it. The change is being made in order to have consistency as to the meaning of 'destroy' or 'delete' across the different types of associations. If you wish to destroy the records themselves, you can do records.association.each(&:destroy)
+* Note that this change is backwards-incompatible to an extent, but there is unfortunately no way to 'deprecate' it before changing it. The change is being made in order to have consistency as to the meaning of 'destroy' or 'delete' across the different types of associations. If you wish to destroy the records themselves, you can do <tt>records.association.each(&:destroy)</tt>.
 
 * Add <tt>:bulk => true</tt> option to +change_table+ to make all the schema changes defined in a block using a single ALTER statement.
 
@@ -321,7 +321,7 @@ class MyMigration < ActiveRecord::Migration
 end
 </ruby>
 
-* Some things cannot be automatically reversed for you. If you know how to reverse those things, you should define 'up' and 'down' in your migration. If you define something in change that cannot be reversed, an +IrreversibleMigration+ exception will be raised when going down.
+* Some things cannot be automatically reversed for you. If you know how to reverse those things, you should define +up+ and +down+ in your migration. If you define something in change that cannot be reversed, an +IrreversibleMigration+ exception will be raised when going down.
 
 * Migrations now use instance methods rather than class methods:
 <ruby>
@@ -392,7 +392,7 @@ end
 
 h3. Active Support
 
-* <tt>ActiveSupport::Dependencies</tt> now raises +NameError+ if it finds an existing constant in load_missing_constant.
+* <tt>ActiveSupport::Dependencies</tt> now raises +NameError+ if it finds an existing constant in +load_missing_constant+.
 
 * Added a new reporting method <tt>Kernel#quietly</tt> which silences both +STDOUT+ and +STDERR+.
 
@@ -404,13 +404,13 @@ h3. Active Support
 
 * <tt>ActiveSupport::Dependencies::ClassCache</tt> class has been introduced for holding references to reloadable classes.
 
-* <tt>ActiveSupport::Dependencies::Reference</tt> has been refactored to take direct advantage of the new ClassCache.
+* <tt>ActiveSupport::Dependencies::Reference</tt> has been refactored to take direct advantage of the new +ClassCache+.
 
 * Backports <tt>Range#cover?</tt> as an alias for <tt>Range#include?</tt> in Ruby 1.8.
 
 * Added +weeks_ago+ and +prev_week+ to Date/DateTime/Time.
 
-* Added +before_remove_const+ callback to <tt>ActiveSupport::Dependencies.remove_unloadable_constants!</tt>
+* Added +before_remove_const+ callback to <tt>ActiveSupport::Dependencies.remove_unloadable_constants!</tt>.
 
 Deprecations:
 
