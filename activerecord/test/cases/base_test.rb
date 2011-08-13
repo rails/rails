@@ -1808,20 +1808,25 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_marshal_round_trip
     expected = posts(:welcome)
-    actual   = Marshal.load(Marshal.dump(expected))
+    marshalled = Marshal.dump(expected)
+    actual   = Marshal.load(marshalled)
 
     assert_equal expected.attributes, actual.attributes
   end
 
   def test_marshal_new_record_round_trip
-    post = Marshal.load(Marshal.dump(Post.new))
+    marshalled = Marshal.dump(Post.new)
+    post       = Marshal.load(marshalled)
+
     assert post.new_record?, "should be a new record"
   end
 
   def test_marshalling_with_associations
     post = Post.new
     post.comments.build
-    post = Marshal.load(Marshal.dump(post))
+
+    marshalled = Marshal.dump(post)
+    post       = Marshal.load(marshalled)
 
     assert_equal 1, post.comments.length
   end
