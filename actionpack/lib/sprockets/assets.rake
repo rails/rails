@@ -9,6 +9,8 @@ namespace :assets do
     Rake::Task["environment"].invoke
     Sprockets::Helpers::RailsHelper
 
+    assets_version = Rails.application.config.assets.version
+    Rails.application.assets.version = ENV["RAILS_ENV"] + "#{'-' + assets_version if assets_version.present?}"
     assets = Rails.application.config.assets.precompile
     # Always perform caching so that asset_path appends the timestamps to file references.
     Rails.application.config.action_controller.perform_caching = true
