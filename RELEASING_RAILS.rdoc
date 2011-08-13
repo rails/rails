@@ -30,7 +30,7 @@ Do not release with Red AWDwR tests.
 Having git dependencies indicates that we depend on unreleased code.
 Obviously rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
-suites them.
+suits them.
 
 === Contact the security team (either Koz or tenderlove)
 
