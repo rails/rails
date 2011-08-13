@@ -438,9 +438,9 @@ alias gcrails='~/rubygc/bin/rails'
 
 Don't forget to use your aliases from now on.
 
-h6. Install Rubygems (1.8 only!)
+h6. Install RubyGems (1.8 only!)
 
-Download "Rubygems":http://rubyforge.org/projects/rubygems and install it from source. Rubygem's README file should have necessary installation instructions. Please note that this step isn't necessary if you've installed Ruby 1.9 and above.
+Download "RubyGems":http://rubyforge.org/projects/rubygems and install it from source. Rubygem's README file should have necessary installation instructions. Please note that this step isn't necessary if you've installed Ruby 1.9 and above.
 
 h4. Using Ruby-Prof on MRI and REE
 

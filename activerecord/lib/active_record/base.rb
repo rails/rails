@@ -177,6 +177,10 @@ module ActiveRecord #:nodoc:
   # And instead of writing <tt>Person.where(:last_name => last_name).all</tt>, you just do
   # <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
+  # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an
+  # <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records, 
+  # like <tt>Person.find_by_last_name!</tt>.
+  #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
   #
   #  Person.where(:user_name => user_name, :password => password).first

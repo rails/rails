@@ -38,7 +38,7 @@ module ActionController #:nodoc:
     # <tt>:action => 'lists'</tt> is not the same as
     # <tt>:action => 'list', :format => :xml</tt>.
     #
-    # You can set modify the default action cache path by passing a
+    # You can modify the default action cache path by passing a
     # <tt>:cache_path</tt> option. This will be passed directly to
     # <tt>ActionCachePath.path_for</tt>. This is handy for actions with
     # multiple possible routes that should be cached differently. If a

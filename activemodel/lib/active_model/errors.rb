@@ -49,7 +49,7 @@ module ActiveModel
   #
   # The last three methods are required in your object for Errors to be
   # able to generate error messages correctly and also handle multiple
-  # languages. Of course, if you extend your object with ActiveModel::Translations
+  # languages. Of course, if you extend your object with ActiveModel::Translation
   # you will not need to implement the last two. Likewise, using
   # ActiveModel::Validations will handle the validation related methods
   # for you.

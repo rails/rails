@@ -186,7 +186,7 @@ modules:
 
 == Download and installation
 
-The latest version of Active Model can be installed with Rubygems:
+The latest version of Active Model can be installed with RubyGems:
 
   % [sudo] gem install activemodel
 

@@ -135,7 +135,7 @@ The Base class has the full list of configuration options. Here's an example:
 
 == Download and installation
 
-The latest version of Action Mailer can be installed with Rubygems:
+The latest version of Action Mailer can be installed with RubyGems:
 
   % [sudo] gem install actionmailer
 

@@ -381,6 +381,7 @@ Ruby version              1.8.7 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.1
 Rails version             3.1.0
+JavaScript Runtime        Node.js (V8)
 Active Record version     3.1.0
 Action Pack version       3.1.0
 Active Resource version   3.1.0
@@ -390,12 +391,12 @@ Middleware                ActionDispatch::Static, Rack::Lock, Rack::Runtime, Rai
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3
-Database schema version   0
+Database schema version   20110805173523
 </shell>
 
 h4. +assets+
 
-You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove compiled assets using <tt>rake assets:clean</tt>.
+You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove those compiled assets using <tt>rake assets:clean</tt>.
 
 h4. +db+
 
@@ -460,13 +461,18 @@ h4. +test+
 
 INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
 
-Rails comes with a test suite called Test::Unit. It is through the use of tests that Rails itself is so stable, and the slew of people working on Rails can prove that everything works as it should.
-
-The +test:+ namespace helps in running the different tests you will (hopefully!) write.
+Rails comes with a test suite called <tt>Test::Unit</tt>. Rails owes its stability to the use of tests. The tasks available in the +test:+ namespace helps in running the different tests you will hopefully write.
 
 h4. +tmp+
 
-The <tt>Rails.root/tmp</tt> directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions. The +tmp:+ namespace tasks will help you clear them if you need to if they've become overgrown, or create them in case of deletions gone awry.
+The <tt>Rails.root/tmp</tt> directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
+
+The +tmp:+ namespaced tasks will help you clear the <tt>Rails.root/tmp</tt> directory:
+
+* +rake tmp:cache:clear+ clears <tt>tmp/cache</tt>.
+* +rake tmp:sessions:clear+ clears <tt>tmp/sessions</tt>.
+* +rake tmp:sockets:clear+ clears <tt>tmp/sockets</tt>.
+* +rake tmp:clear+ clears all the three: cache, sessions and sockets.
 
 h4. Miscellaneous
 

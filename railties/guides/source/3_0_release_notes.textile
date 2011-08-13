@@ -59,12 +59,12 @@ The +config.gem+ method is gone and has been replaced by using +bundler+ and a +
 
 h4. Upgrade Process
 
-To help with the upgrade process, a plugin named "Rails Upgrade":http://github.com/jm/rails_upgrade has been created to automate part of it.
+To help with the upgrade process, a plugin named "Rails Upgrade":http://github.com/rails/rails_upgrade has been created to automate part of it.
 
 Simply install the plugin, then run +rake rails:upgrade:check+ to check your app for pieces that need to be updated (with links to information on how to update them). It also offers a task to generate a +Gemfile+ based on your current +config.gem+ calls and a task to generate a new routes file from your current one. To get the plugin, simply run the following:
 
 <shell>
-$ ruby script/plugin install git://github.com/jm/rails_upgrade.git
+$ ruby script/plugin install git://github.com/rails/rails_upgrade.git
 </shell>
 
 You can see an example of how that works at "Rails Upgrade is now an Official Plugin":http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin

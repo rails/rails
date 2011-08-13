@@ -276,17 +276,15 @@ The rake task is:
 rake assets:precompile
 </plain>
 
-You can run this as part of a Capistrano deployment:
+Capistrano (v2.8.0+) has a recipe to to handle this in deployment. Add the following line to +Capfile+:
 
 <erb>
-before 'deploy:symlink' do
-  run "cd #{release_path}; RAILS_ENV=#{rails_env} rake assets:precompile"
-end
+load 'deploy/assets'
 </erb>
 
-If you are not precompiling your assets, and you are using the default cache file store (which is the file system), you will need to symlink +rails_root/tmp/cache/assets+ from the shared folder that is part of the Capistrano deployment structure in order to persist the cached file between deployments.
+This links the folder specified in +config.assets.prefix+ to +shared/assets+. If you already use this folder you'll need to write your own deployment task.
 
-TODO: Extend above task to allow for this and add task to set it up (See commits 8f0e0b6 and 704ee0df). Note: Capistrano folks are working on a recipe - update this when it available (see https://github.com/capistrano/capistrano/pull/35).
+It is important for this folder is shared between deployments so that remotely cached pages that reference the old compiled assets still work for the life of the cached page.
 
 The default matcher for compiling files will include +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
 
@@ -297,7 +295,7 @@ The default matcher for compiling files will include +application.js+, +applicat
 If you have other manifests or individual stylesheets and JavaScript files to include, you can append them to the +precompile+ array:
 
 <erb>
-config.assets.precompile << ['admin.js', 'admin.css', 'swfObject.js']
+config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 </erb>
 
 Precompiled assets exist on the filesystem and are served directly by your webserver. They do not have far-future headers by default, so to get the benefit of fingerprinting you'll have to update your server configuration to add them.
@@ -387,15 +385,14 @@ This is a handy option if you have any existing project (pre Rails 3.1) that alr
 
 h4. X-Sendfile Headers
 
-The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. In production Rails (via Sprockets) does not send the asset - just the location and a zero-length response - relying on the web server to do the file serving, which is usually faster. Both Apache and nginx support this option.
+The X-Sendfile header is a directive to the server to ignore the response from the application, and instead serve the file specified in the headers. This option is off be default, but can be enabled if your server supports it. When enabled, this passes responsibility for serving the file to the web server, which is faster.
 
-The configuration is available in <tt>config/environments/production.rb</tt>.
+Apache and nginx support this option which is enabled in <tt>config/environments/production.rb</tt>.
 
 <erb>
-config.action_dispatch.x_sendfile_header = "X-Sendfile" # Use 'X-Accel-Redirect' for nginx
+# config.action_dispatch.x_sendfile_header = "X-Sendfile" # for apache
+# config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for nginx
 </erb>
-
-You should check that your server or hosting service actually supports this, otherwise comment it out.
 
 WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ (and not +application.rb+) and any other environment you define with production behavior.
 
