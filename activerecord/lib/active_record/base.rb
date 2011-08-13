@@ -1206,14 +1206,6 @@ MSG
           Thread.current["#{self}_current_scope"] = scope
         end
 
-        def ignore_default_scope? #:nodoc:
-          Thread.current["#{self}_ignore_default_scope"]
-        end
-
-        def ignore_default_scope=(ignore) #:nodoc:
-          Thread.current["#{self}_ignore_default_scope"] = ignore
-        end
-
         # Use this macro in your model to set a default scope for all operations on
         # the model.
         #
@@ -1264,17 +1256,11 @@ MSG
           self.default_scopes = default_scopes + [scope]
         end
 
-        # The @ignore_default_scope flag is used to prevent an infinite recursion situation where
-        # a default scope references a scope which has a default scope which references a scope...
         def build_default_scope #:nodoc:
-          return if ignore_default_scope?
-
-          begin
-            self.ignore_default_scope = true
-
-            if method(:default_scope).owner != Base.singleton_class
-              default_scope
-            elsif default_scopes.any?
+          if method(:default_scope).owner != Base.singleton_class
+            evaluate_default_scope { default_scope }
+          elsif default_scopes.any?
+            evaluate_default_scope do
               default_scopes.inject(relation) do |default_scope, scope|
                 if scope.is_a?(Hash)
                   default_scope.apply_finder_options(scope)
@@ -1285,6 +1271,25 @@ MSG
                 end
               end
             end
+          end
+        end
+
+        def ignore_default_scope? #:nodoc:
+          Thread.current["#{self}_ignore_default_scope"]
+        end
+
+        def ignore_default_scope=(ignore) #:nodoc:
+          Thread.current["#{self}_ignore_default_scope"] = ignore
+        end
+
+        # The ignore_default_scope flag is used to prevent an infinite recursion situation where
+        # a default scope references a scope which has a default scope which references a scope...
+        def evaluate_default_scope
+          return if ignore_default_scope?
+
+          begin
+            self.ignore_default_scope = true
+            yield
           ensure
             self.ignore_default_scope = false
           end
