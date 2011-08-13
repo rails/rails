@@ -111,7 +111,7 @@ module ActiveRecord
           callback_meth = :"_notify_#{observer_name}_for_#{callback}"
           unless klass.respond_to?(callback_meth)
             klass.send(:define_method, callback_meth) do |&block|
-              observer.send(callback, self, &block)
+              observer.update(callback, self, &block)
             end
             klass.send(callback, callback_meth)
           end
