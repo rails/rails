@@ -30,9 +30,12 @@ class Hash
     omit
   end
 
+  # Extracts the given keys from the hash and create a new Hash with the given 
+  # keys.  In other words, this is the opposite of slice!
   def extract!(*keys)
-    result = {}
-    keys.each {|key| result[key] = delete(key) }
+    keys = keys.map! { |key| convert_key(key) } if respond_to?(:convert_key)
+    result = self.class.new
+    keys.each {|k| result[k] = delete(k) if has_key?(k) }
     result
   end
 end
