@@ -14,6 +14,10 @@ module ActionView #:nodoc:
       self
     end
 
+    def [](i)
+      paths[i]
+    end
+
     def to_ary
       paths.dup
     end
