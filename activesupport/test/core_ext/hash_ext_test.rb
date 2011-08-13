@@ -487,6 +487,74 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 'bender', slice['login']
   end
 
+  def test_extract
+    original = { :a => 'x', :b => 'y', :c => 10 }
+    expected_extracted = { :a => 'x', :b => 'y' }
+    expected_remaining = { :c => 10 }
+
+    # Should extract only the given keys into a new array and remove the keys 
+    # from the original hash
+    extracted = original.extract!(:a, :b, :x)
+    assert_equal expected_extracted, extracted
+    assert_equal expected_remaining, original
+  end
+
+  def test_extract_with_an_array_key
+    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
+    expected_extracted = { [:a, :b] => "an array key", :c => 10 }
+    expected_remaining = { :a => 'x', :b => 'y' }
+
+    # Should extract only the given keys into a new array and remove the keys 
+    # from the original hash when given an array key.
+    extracted = original.extract!([:a, :b], :c, :x)
+    assert_equal expected_extracted, extracted
+    assert_equal expected_remaining, original
+  end
+
+  def test_extract_with_splatted_keys
+    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }
+    expected_extracted = { :a => 'x', :b => 'y' }
+    expected_remaining = { :c => 10, [:a, :b] => "an array key" }
+
+    # Should extract only the given keys into a new array and remove the keys 
+    # from the original hash
+    extracted = original.extract!(*[:a, :b, :x])
+    assert_equal expected_extracted, extracted
+    assert_equal expected_remaining, original
+  end
+
+  def test_indifferent_extract
+    original = { :a => 'x', :b => 'y', :c => 10 }.with_indifferent_access
+    expected_extracted = { :a => 'x', :b => 'y' }.with_indifferent_access
+    expected_remaining = { :c => 10 }.with_indifferent_access
+
+    # Should extract only the given keys into a new array and remove the keys 
+    # from the original hash
+    [['a', 'b', 'x'], [:a, :b, :x]].each do |keys|
+      original_dupped = original.dup
+      extracted = original_dupped.extract!(*keys)
+      assert_kind_of(HashWithIndifferentAccess, extracted)
+      assert_equal expected_extracted, extracted, keys.inspect
+      assert_equal expected_remaining, original_dupped
+    end
+  end
+
+  def test_indifferent_extract_with_an_array_key
+    original = { :a => 'x', :b => 'y', :c => 10, [:a, :b] => "an array key" }.with_indifferent_access
+    expected_extracted = { [:a, :b] => "an array key", :c => 10 }.with_indifferent_access
+    expected_remaining = { :a => 'x', :b => 'y' }.with_indifferent_access
+
+    # Should extract only the given keys into a new array and remove the keys 
+    # from the original hash
+    [[[:a, :b], 'c', 'x',], [[:a, :b], :c, :x]].each do |keys|
+      original_dupped = original.dup
+      extracted = original_dupped.extract!(*keys)
+      assert_kind_of(HashWithIndifferentAccess, extracted)
+      assert_equal expected_extracted, extracted, keys.inspect
+      assert_equal expected_remaining, original_dupped
+    end
+  end
+
   def test_except
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x', :b => 'y' }
