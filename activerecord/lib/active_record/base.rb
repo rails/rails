@@ -1206,6 +1206,14 @@ MSG
           Thread.current["#{self}_current_scope"] = scope
         end
 
+        def ignore_default_scope? #:nodoc:
+          Thread.current["#{self}_ignore_default_scope"]
+        end
+
+        def ignore_default_scope=(ignore) #:nodoc:
+          Thread.current["#{self}_ignore_default_scope"] = ignore
+        end
+
         # Use this macro in your model to set a default scope for all operations on
         # the model.
         #
@@ -1259,24 +1267,27 @@ MSG
         # The @ignore_default_scope flag is used to prevent an infinite recursion situation where
         # a default scope references a scope which has a default scope which references a scope...
         def build_default_scope #:nodoc:
-          return if defined?(@ignore_default_scope) && @ignore_default_scope
-          @ignore_default_scope = true
+          return if ignore_default_scope?
 
-          if method(:default_scope).owner != Base.singleton_class
-            default_scope
-          elsif default_scopes.any?
-            default_scopes.inject(relation) do |default_scope, scope|
-              if scope.is_a?(Hash)
-                default_scope.apply_finder_options(scope)
-              elsif !scope.is_a?(Relation) && scope.respond_to?(:call)
-                default_scope.merge(scope.call)
-              else
-                default_scope.merge(scope)
+          begin
+            self.ignore_default_scope = true
+
+            if method(:default_scope).owner != Base.singleton_class
+              default_scope
+            elsif default_scopes.any?
+              default_scopes.inject(relation) do |default_scope, scope|
+                if scope.is_a?(Hash)
+                  default_scope.apply_finder_options(scope)
+                elsif !scope.is_a?(Relation) && scope.respond_to?(:call)
+                  default_scope.merge(scope.call)
+                else
+                  default_scope.merge(scope)
+                end
               end
             end
+          ensure
+            self.ignore_default_scope = false
           end
-        ensure
-          @ignore_default_scope = false
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
