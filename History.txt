@@ -1,3 +1,11 @@
+== 2.2.1 / (unreleased)
+
+* Enhancements
+
+  * Added UpdateManager#key to access the key value
+  * Added SelectManager#projections= to override any existing projections
+  * Added SelectManager#source to get the source of the last select core in the AST
+
 == 2.2.0 / 2011-08-09
 
 * Bug Fixes
@@ -166,7 +174,7 @@
 
 == 2.0.0 / 2010-08-01
 * Enhancements
-  
+
   * Recreate library using the Visitor pattern.
     http://en.wikipedia.org/wiki/Visitor_pattern
 
