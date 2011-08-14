@@ -242,7 +242,7 @@ end
 
 h5. Sending Email To Multiple Recipients
 
-It is possible to send email to one or more recipients in one email (for e.g. informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The list of emails can be an array of email addresses or a single string with the addresses separated with commas.
+It is possible to send email to one or more recipients in one email (for e.g. informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The list of emails can be an array of email addresses or a single string with the addresses separated by commas.
 
 <ruby>
   class AdminMailer < ActionMailer::Base
