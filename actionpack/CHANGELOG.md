@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support multiple etags in If-None-Match header. *Travis Warlick*
+
 *   Allow to configure how unverified request will be handled using `:with`
     option in `protect_from_forgery` method.
 
