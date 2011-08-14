@@ -256,6 +256,8 @@ It is possible to send email to one or more recipients in one email (for e.g. in
   end
 </ruby>
 
+The same format can be used to set carbon copy (Cc:) and blind carbon copy (Bcc:) recipients, by using the <tt>:cc</tt> and <tt>:bcc</tt> keys respectively.
+
 h5. Sending Email With Name
 
 Sometimes you wish to show the name of the person instead of just their email address when they receive the email. The trick to doing that is
