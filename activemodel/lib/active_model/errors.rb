@@ -231,11 +231,11 @@ module ActiveModel
       end
     end
 
-    # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
+    # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?) and not false.
     def add_on_blank(attributes, options = {})
       [attributes].flatten.each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
-        add(attribute, :blank, options) if value.blank?
+        add(attribute, :blank, options) if value.blank? && value != false
       end
     end
 

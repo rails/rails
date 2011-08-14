@@ -32,6 +32,26 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert t.valid?
   end
 
+  def test_validates_booleans
+    Topic.validates_presence_of(:active)
+
+    t = Topic.new
+    assert t.invalid?
+    assert_equal ["can't be blank"], t.errors[:active]
+
+    t.active = false
+
+    assert t.valid?
+
+    t.active = true
+
+    assert t.valid?
+
+    t.active = nil
+
+    assert t.invalid?
+  end
+
   def test_accepts_array_arguments
     Topic.validates_presence_of %w(title content)
     t = Topic.new
