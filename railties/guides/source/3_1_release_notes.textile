@@ -166,15 +166,17 @@ end
 
 <ruby>
 class PostsController < ActionController::Base
-  stream :only => :index
+  stream
 end
 </ruby>
 
-Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
+You can restrict it to some actions by using +:only+ or +:except+. Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
 
 h4. Action Dispatch
+
+* <tt>config.action_dispatch.x_sendfile_header</tt> now defaults to +nil+ and <tt>config/environments/production.rb</tt> doesn't set any particular value for it. This allows servers to set it through <tt>X-Sendfile-Type</tt>.
 
 * <tt>ActionDispatch::MiddlewareStack</tt> now uses composition over inheritance and is no longer an array.
 
@@ -368,6 +370,8 @@ end
 
 * Calling <tt>ActiveRecord::Base#dup</tt> will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return +true+ for <tt>new_record?</tt>, have a +nil+ id field, and is saveable.
 
+* The query cache now works with prepared statements. No changes in the applications are required.
+
 h3. Active Model
 
 * +attr_accessible+ accepts an option +:as+ to specify a role.
@@ -379,6 +383,8 @@ h3. Active Model
 * <tt>ActiveModel::AttributeMethods</tt> allows attributes to be defined on demand.
 
 * Added support for selectively enabling and disabling observers.
+
+* Alternate <tt>I18n</tt> namespace lookup is no longer supported.
 
 h3. Active Resource
 
