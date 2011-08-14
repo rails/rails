@@ -219,7 +219,7 @@ Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
 
 * The submit form helper does not generate an id "object_name_id" anymore.
 
-* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(@post, remote: true, method: :delete)</tt> instead of <tt>form_for(@post, remote: true, html: { method: :delete })</tt>.
+* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(==@==post, remote: true, method: :delete)</tt> instead of <tt>form_for(==@==post, remote: true, html: { method: :delete })</tt>.
 
 * Provided <tt>JavaScriptHelper#j()</tt> as an alias for <tt>JavaScriptHelper#escape_javascript()</tt>. This supersedes the <tt>Object#j()</tt> method that the JSON gem adds within templates using the JavaScriptHelper.
 
