@@ -8,7 +8,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app
+      build_app(:initializers => true)
       boot_rails
     end
 
