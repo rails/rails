@@ -250,7 +250,7 @@ user.build_account{ |a| a.credit_limit => 100.0 }
 
 * CSV Fixtures are deprecated and support will be removed in Rails 3.2.0.
 
-* <tt>ActiveRecord#new</tt>, <tt>ActiveRecord#create</tt> and <tt>ActiveRecord#update_attributes</tt> all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of ActiveModel's new mass assignment capabilities:
+* <tt>ActiveRecord#new</tt>, <tt>ActiveRecord#create</tt> and <tt>ActiveRecord#update_attributes</tt> all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of Active Model's new mass assignment capabilities:
 
 <ruby>
 class Post < ActiveRecord::Base
