@@ -1,3 +1,4 @@
+require 'active_support/core_ext/object/public_send'
 class Module
   # Provides a delegate class method to easily expose contained objects' methods
   # as your own. Pass one or more methods (specified as symbols or strings)
