@@ -2696,6 +2696,18 @@ hash                   # => {:a => 1}
 
 NOTE: Defined in +active_support/core_ext/hash/slice.rb+.
 
+h4. Extracting
+
+The method +extract!+ removes and returns the key/value pairs matching the given keys.
+
+<ruby>
+hash = {:a => 1, :b => 2}
+rest = hash.extract!(:a) # => {:a => 1}
+hash                     # => {:b => 2}
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/hash/slice.rb+.
+
 h4. Indifferent Access
 
 The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
