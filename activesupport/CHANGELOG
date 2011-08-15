@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Added Array#prepend as an alias for Array#unshift and Array#append as an alias for Array#<< [DHH]
+
 * Removed support for using Module#delegate to delegate to non-public methods [Jon Leighton]
 
 * The definition of blank string for Ruby 1.9 has been extended to Unicode whitespace.
