@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveSupport
   # Notifications provides an instrumentation API for Ruby. To instrument an
   # action in Ruby you just need to do:
