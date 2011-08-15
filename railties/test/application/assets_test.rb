@@ -46,7 +46,7 @@ module ApplicationTests
       assert defined?(Uglifier)
     end
 
-    test "precompile creates the filem, gives it the original asset's content and run in production as default" do
+    test "precompile creates the file, gives it the original asset's content and run in production as default" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
 
