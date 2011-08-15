@@ -452,6 +452,30 @@ Examples of +in?+:
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
 
+h4. +public_send+
+
+This method is available by default in Ruby 1.9, and is backported to Ruby 1.8 by Active Support. Like the regular +send+ method, +public_send+ allows you to call a method when the name is not known until runtime. However, if the method is not public then a +NoMethodError+ exception will be raised.
+
+<ruby>
+class Greeter
+  def hello(who)
+    "Hello " + who
+  end
+
+  private
+
+  def secret
+    "sauce"
+  end
+end
+
+greeter = Greeter.new
+greeter.public_send(:hello, 'Jim') # => "Hello Jim"
+greeter.public_send(:secret)       # => NoMethodError
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/object/public_send.rb+.
+
 h3. Extensions to +Module+
 
 h4. +alias_method_chain+

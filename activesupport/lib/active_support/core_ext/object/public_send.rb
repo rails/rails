@@ -3,7 +3,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 class Object
   unless Object.public_method_defined?(:public_send)
     # Backports Object#public_send from 1.9
-    def public_send(method, *args, &block) # :nodoc:
+    def public_send(method, *args, &block)
       # Don't create a singleton class for the object if it doesn't already have one
       # (This also protects us from classes like Fixnum and Symbol, which cannot have a
       # singleton class.)
