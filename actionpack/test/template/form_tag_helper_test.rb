@@ -508,25 +508,25 @@ class FormTagHelperTest < ActionView::TestCase
   
   def test_text_area_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
-    actual = text_area_tag "body", "hello world", options
+    text_area_tag "body", "hello world", options
     assert_equal options, { :option => "random_option" }
   end
 
   def test_submit_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
-    actual = submit_tag "submit value", options
+    submit_tag "submit value", options
     assert_equal options, { :option => "random_option" }
   end
 
   def test_button_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
-    actual = button_tag "button value", options
+    button_tag "button value", options
     assert_equal options, { :option => "random_option" }
   end
 
   def test_image_submit_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
-    actual = image_submit_tag "submit source", options
+    image_submit_tag "submit source", options
     assert_equal options, { :option => "random_option" }
   end
 
