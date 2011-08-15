@@ -3,9 +3,9 @@ namespace :assets do
   task :precompile do
     # We need to do this dance because RAILS_GROUPS is used
     # too early in the boot process and changing here is already too late.
-    if ENV["RAILS_GROUPS"].to_s.empty?
-      ENV["RAILS_GROUPS"] = "assets"
-      ENV["RAILS_ENV"]  ||= "production"
+    if ENV["RAILS_GROUPS"].to_s.empty? || ENV["RAILS_ENV"].to_s.empty?
+      ENV["RAILS_GROUPS"] ||= "assets"
+      ENV["RAILS_ENV"]    ||= "production"
       Kernel.exec $0, *ARGV
     else
       Rake::Task["environment"].invoke
