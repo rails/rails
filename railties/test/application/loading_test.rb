@@ -285,6 +285,16 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal 'OK', last_response.body
   end
 
+  def test_initialize_can_be_called_at_any_time
+    require "#{app_path}/config/application"
+
+    assert !Rails.initialized?
+    assert !AppTemplate::Application.initialized?
+    Rails.initialize!
+    assert Rails.initialized?
+    assert AppTemplate::Application.initialized?
+  end
+
   protected
 
   def setup_ar!
