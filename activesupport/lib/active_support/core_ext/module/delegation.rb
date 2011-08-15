@@ -128,7 +128,7 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
-      module_eval(<<-EOS, file, line - 5)
+      module_eval(<<-EOS, file, line - 4)
         def #{prefix}#{method}(*args, &block)                                   # def customer_name(*args, &block)
           to = #{to}                                                            #   to = client
                                                                                 #
