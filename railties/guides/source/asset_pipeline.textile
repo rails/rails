@@ -166,7 +166,7 @@ The more generic form can also be used but the asset path and class must both be
 
 h4. Manifest Files and Directives
 
-Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ - instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets will load the files specified, process them if necessary, concatenate them into one single file and then compress them (if +Rails.application.config.assets.compress+ is set to +true+). By serving one file rather than many, a page's load time is greatly reduced as there is not as many requests to make for each file.
+Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ - instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets will load the files specified, process them if necessary, concatenate them into one single file and then compress them (if +Rails.application.config.assets.compress+ is set to +true+). By serving one file rather than many, the load time of pages are greatly reduced as there are not as many requests to make.
 
 For example, in the default Rails application there's a +app/assets/javascripts/application.js+ file which contains the following lines:
 
@@ -176,9 +176,11 @@ For example, in the default Rails application there's a +app/assets/javascripts/
 //= require_tree .
 </plain>
 
-In JavaScript files, directives begin with +//=+. In this case, the following file is using the +require+ directive and the +require_tree+ directive. The +require+ directive tells Sprockets that we would like to require a file called +jquery.js+ that is available somewhere in the search path for Sprockets. By default, this is located inside the +vendor/assets/javascripts+ directory contained within the +jquery-rails+ gem. An identical event takes place for the +jquery_ujs+ require
+In JavaScript files, the directives begin with +//=+. In this case, the file is using the +require+ and the +require_tree+ directives. The +require+ directive is used to tell Sprockets what are the files that we would like to require. Here, we are requiring the files +jquery.js+ and +jquery_ujs.js+ that are available somewhere in the search path for Sprockets. We need not supply the extensions explicitly. Sprockets will assume we are requiring a +.js+ file when done from within a +.js+ file.
 
-The +require_tree .+ directive tells Sprockets to include _all_ JavaScript files in this directory into the output. Only a path relative to the file can be specified.
+NOTE. In Rails 3.1, the +jquery.js+ and +jquery_ujs.js+ files are located inside the +vendor/assets/javascripts+ directory contained within the +jquery-rails+ gem.
+
+The +require_tree .+ directive tells Sprockets to include _all_ JavaScript files in this directory into the output. Only a path relative to the file can be specified. There is also a +require_directory+ directive which includes all JavaScript files only in the directory specified (no nesting).
 
 There's also a default +app/assets/stylesheets/application.css+ file which contains these lines:
 
@@ -344,10 +346,10 @@ Possible options for JavaScript compression are +:closure+, +:uglifier+ and +:yu
 
 The default Gemfile includes "uglifier":https://github.com/lautis/uglifier. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compress your code by removing white spaces and other magical things like changing your +if+ and +else+ statements to ternary operators where possible.
 
-The following line will invoke uglifier for JavaScript compression.
+The following line will invoke +uglifier+ for JavaScript compression.
 
 <erb>
-config.assets.js_compressor  = :uglifier
+config.assets.js_compressor = :uglifier
 </erb>
 
 The +config.assets.compress+ must be set to +true+ to enable JavaScript compression
