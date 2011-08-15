@@ -121,6 +121,8 @@ module ActionController
         _set_wrapper_defaults(_wrapper_options.slice(:format).merge(options), model)
       end
 
+      alias :wrap_parameters= :wrap_parameters
+
       # Sets the default wrapper key or model which will be used to determine
       # wrapper key and attribute names. Will be called automatically when the
       # module is inherited.
