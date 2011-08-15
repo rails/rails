@@ -126,24 +126,29 @@ class Module
       method = method.to_s
       call   = (method[-1..-1] == '=') ? "public_send(:#{method}, " : "#{method}("
 
-      on_nil =
-        if allow_nil
-          'return'
-        else
-          %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
-        end
+      if allow_nil
+        module_eval(<<-EOS, file, line - 2)
+          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
+            if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
+              #{to}.#{call}*args, &block)                     #     client.name(*args, &block)
+            end                                               #   end
+          end                                                 # end
+        EOS
+      else
+        exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
-      module_eval(<<-EOS, file, line - 1)
-        def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
-          #{to}.#{call}*args, &block)                       #   client.name(*args, &block)
-        rescue NoMethodError                                # rescue NoMethodError
-          if #{to}.nil?                                     #   if client.nil?
-            #{on_nil}                                       #     return # depends on :allow_nil
-          else                                              #   else
-            raise                                           #     raise
-          end                                               #   end
-        end                                                 # end
-      EOS
+        module_eval(<<-EOS, file, line - 1)
+          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
+            #{to}.#{call}*args, &block)                       #   client.name(*args, &block)
+          rescue NoMethodError                                # rescue NoMethodError
+            if #{to}.nil?                                     #   if client.nil?
+              #{exception}                                    #     # add helpful message to the exception
+            else                                              #   else
+              raise                                           #     raise
+            end                                               #   end
+          end                                                 # end
+        EOS
+      end
     end
   end
 end
