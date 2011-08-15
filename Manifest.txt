@@ -1,5 +1,6 @@
 .autotest
 .gemtest
+.travis.yml
 Gemfile
 History.txt
 MIT-LICENSE.txt
