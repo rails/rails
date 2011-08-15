@@ -38,9 +38,12 @@ Somewhere = Struct.new(:street, :city) do
   end
 end
 
-Someone   = Struct.new(:name, :place) do
+class Someone < Struct.new(:name, :place)
   delegate :street, :city, :to_f, :protected_method, :private_method, :to => :place
   delegate :upcase, :to => "place.city"
+
+  FAILED_DELEGATE_LINE = __LINE__ + 1
+  delegate :foo, :to => :place
 end
 
 Invoice   = Struct.new(:client) do
@@ -180,6 +183,15 @@ class ModuleTest < Test::Unit::TestCase
         end
       end
     end
+  end
+
+  def test_delegation_exception_backtrace
+    someone = Someone.new("foo", "bar")
+    someone.foo
+  rescue NoMethodError => e
+    file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE}"
+    assert e.backtrace.first.include?(file_and_line),
+           "[#{e.backtrace.first}] did not include [#{file_and_line}]"
   end
 
   def test_parent
