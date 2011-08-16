@@ -149,8 +149,7 @@ more explanation on a particular step, so the RC steps.
 
 You can do this, or ask the security team to do it.
 
-FIXME: I can't remember the email addresses, but we should list them here.
-FIXME: Possibly we should do this the day of the RC?
+Email the security reports to: rubyonrails-security@googlegroups.com
 
 * Apply security patches to the release branch
 * Update CHANGELOG with security fixes.
