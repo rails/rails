@@ -396,6 +396,14 @@ class TestController < ActionController::Base
     render :template => "test/hello_world"
   end
 
+  def render_with_explicit_unescaped_template
+    render :template => "test/h*llo_world"
+  end
+
+  def render_with_explicit_escaped_template
+    render :template => "test/hello_w*rld"
+  end
+
   def render_with_explicit_string_template
     render "test/hello_world"
   end
@@ -1055,6 +1063,12 @@ class RenderTest < ActionController::TestCase
   def test_render_with_explicit_template
     get :render_with_explicit_template
     assert_response :success
+  end
+
+  def test_render_with_explicit_unescaped_template
+    assert_raise(ActionView::MissingTemplate) { get :render_with_explicit_unescaped_template }
+    get :render_with_explicit_escaped_template
+    assert_equal "Hello w*rld!", @response.body
   end
 
   def test_render_with_explicit_string_template
