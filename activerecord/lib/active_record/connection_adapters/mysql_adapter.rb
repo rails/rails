@@ -238,7 +238,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        @quoted_column_names[name] ||= "`#{name}`"
+        @quoted_column_names[name] ||= "`#{name.to_s.gsub('`', '``')}`"
       end
 
       def quote_table_name(name) #:nodoc:
