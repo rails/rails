@@ -888,7 +888,9 @@ end
 
 It is shorter, and the intention more obvious.
 
-The macro accepts several methods:
+The method must be public in the target.
+
+The +delegate+ macro accepts several methods:
 
 <ruby>
 delegate :name, :age, :address, :twitter, :to => :profile
