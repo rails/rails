@@ -54,8 +54,8 @@ module ApplicationTests
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
       end
-      files = Dir["#{app_path}/public/assets/application-b29a188b3d9c74ef7cbb7ddf9e99f953.js"]
-      files << Dir["#{app_path}/public/assets/foo/application-b29a188b3d9c74ef7cbb7ddf9e99f953.js"].first
+      files = Dir["#{app_path}/public/assets/application-*.js"]
+      files << Dir["#{app_path}/public/assets/foo/application-*.js"].first
       files.each do |file|
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
         assert_equal "alert()", File.read(file)
@@ -68,7 +68,7 @@ module ApplicationTests
       # capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
       # end
-      file = Dir["#{app_path}/public/assets/application-4bd8b7059c5336ec7ad515c9dbd59974.css"].first
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
     end
 
@@ -79,7 +79,7 @@ module ApplicationTests
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
       end
-      file = Dir["#{app_path}/public/assets/application-8d301a938f1abfd789bbec87ed1ef770.css"].first
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
     end
 
