@@ -145,6 +145,11 @@ commits should be added to the release branch besides regression fixing commits.
 Many of these steps are the same as for the release candidate, so if you need
 more explanation on a particular step, so the RC steps.
 
+=== Release the gem.
+
+See steps for releasing the RC.  Make sure to release the gem before
+announcing security issues in the next step.
+
 === Email the rails security announce list, once for each vulnerability fixed.
 
 You can do this, or ask the security team to do it.
