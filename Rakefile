@@ -6,6 +6,7 @@ Hoe.plugins.delete :rubyforge
 Hoe.plugin :minitest
 Hoe.plugin :gemspec # `gem install hoe-gemspec`
 Hoe.plugin :git     # `gem install hoe-git`
+Hoe.plugin :bundler # `gem install hoe-bundler`
 
 Hoe.spec 'arel' do
   developer('Aaron Patterson', 'aaron@tenderlovemaking.com')
