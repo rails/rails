@@ -180,13 +180,6 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu', 'title' => 'Developer' }})
     end
   end
-
-  def test_assignment_alias
-    with_default_wrapper_options do
-      UsersController.wrap_parameters = { :format => [:foo] }
-      assert_equal({ :format => [:foo], :name => "user" }, UsersController._wrapper_options)
-    end
-  end
 end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase
