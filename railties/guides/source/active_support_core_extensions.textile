@@ -2069,6 +2069,30 @@ shape_types = [Circle, Square, Triangle].sample(2)
 
 NOTE: Defined in +active_support/core_ext/array/random_access.rb+.
 
+h4. Adding Elements
+
+h5. +prepend+
+
+This method is an alias of <tt>Array#unshift</tt>.
+
+<ruby>
+%w(a b c d).prepend('e')  # => %w(e a b c d)
+[].prepend(10)            # => [10]
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/array/prepend_and_append.rb+.
+
+h5. +append+
+
+This method is an alias of <tt>Array#<<</tt>.
+
+<ruby>
+%w(a b c d).append('e')  # => %w(a b c d e)
+[].append([1,2])         # => [[1,2]]
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/array/prepend_and_append.rb+.
+
 h4. Options Extraction
 
 When the last argument in a method call is a hash, except perhaps for a +&block+ argument, Ruby allows you to omit the brackets:
