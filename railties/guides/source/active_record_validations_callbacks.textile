@@ -751,8 +751,6 @@ class Person < ActiveRecord::Base
 end
 </ruby>
 
-
-
 h4. +errors.clear+
 
 The +clear+ method is used when you intentionally want to clear all the messages in the +errors+ collection. Of course, calling +errors.clear+ upon an invalid object won't actually make it valid: the +errors+ collection will now be empty, but the next time you call +valid?+ or any method that tries to save this object to the database, the validations will run again. If any of the validations fail, the +errors+ collection will be filled again.
@@ -799,6 +797,7 @@ h3. Displaying Validation Errors in the View
 Rails maintains an official plugin that provides helpers to display the error messages of your models in your view templates. You can install it as a plugin or as a Gem.
 
 h4. Installing as a plugin
+
 <shell>
 $ rails plugin install git://github.com/joelmoss/dynamic_form.git
 </shell>
@@ -806,6 +805,7 @@ $ rails plugin install git://github.com/joelmoss/dynamic_form.git
 h4. Installing as a Gem
 
 Add this line in your Gemfile:
+
 <ruby>
 gem "dynamic_form"
 </ruby>

@@ -81,13 +81,13 @@ h3. Railties
 
 * jQuery and Prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
 
-* The application generator accepts an option -j which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the Gemfile, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
+* The application generator accepts an option +-j+ which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the +Gemfile+, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
 
-* Generating an application or a plugin runs +bundle install+ unless --skip-gemfile or --skip-bundle is specified.
+* Generating an application or a plugin runs +bundle install+ unless +--skip-gemfile+ or +--skip-bundle+ is specified.
 
-* The controller and resource generators will now automatically produce asset stubs (this can be turned off with --skip-assets). These stubs will use CoffeeScript and Sass, if those libraries are available.
+* The controller and resource generators will now automatically produce asset stubs (this can be turned off with +--skip-assets+). These stubs will use CoffeeScript and Sass, if those libraries are available.
 
-* Scaffold and app generators use the Ruby 1.9 style hash when running on Ruby 1.9. To generate old style hash, --old-style-hash can be passed.
+* Scaffold and app generators use the Ruby 1.9 style hash when running on Ruby 1.9. To generate old style hash, +--old-style-hash+ can be passed.
 
 * Scaffold controller generator creates format block for JSON instead of XML.
 
@@ -109,15 +109,15 @@ h4. Action Controller
 
 * A warning is given out if the CSRF token authenticity cannot be verified.
 
-* Specify +force_ssl+ in a controller to force the browser to transfer data via HTTPS protocol on that particular controller. To limit to specific actions, :only or :except can be used.
+* Specify +force_ssl+ in a controller to force the browser to transfer data via HTTPS protocol on that particular controller. To limit to specific actions, +:only+ or +:except+ can be used.
 
 * Sensitive query string parameters specified in <tt>config.filter_parameters</tt> will now be filtered out from the request paths in the log.
 
-* URL parameters which return nil for +to_param+ are now removed from the query string.
+* URL parameters which return +nil+ for +to_param+ are now removed from the query string.
 
 * Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default. This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
 
-* Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to false will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
+* Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to +false+ will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
 
 * +url_for+ and named url helpers now accept +:subdomain+ and +:domain+ as options.
 
@@ -166,15 +166,17 @@ end
 
 <ruby>
 class PostsController < ActionController::Base
-  stream :only => :index
+  stream
 end
 </ruby>
 
-Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
+You can restrict it to some actions by using +:only+ or +:except+. Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
 
 h4. Action Dispatch
+
+* <tt>config.action_dispatch.x_sendfile_header</tt> now defaults to +nil+ and <tt>config/environments/production.rb</tt> doesn't set any particular value for it. This allows servers to set it through <tt>X-Sendfile-Type</tt>.
 
 * <tt>ActionDispatch::MiddlewareStack</tt> now uses composition over inheritance and is no longer an array.
 
@@ -200,7 +202,7 @@ h4. Action View
 
 * +file_field+ automatically adds <tt>:multipart => true</tt> to the enclosing form.
 
-* Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a :data hash of options:
+* Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a +:data+ hash of options:
 
 <plain>
 tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
@@ -219,7 +221,7 @@ Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
 
 * The submit form helper does not generate an id "object_name_id" anymore.
 
-* Allows <tt>FormHelper#form_for</tt> to specify the :method as a direct option instead of through the :html hash. <tt>form_for(@post, remote: true, method: :delete)</tt> instead of <tt>form_for(@post, remote: true, html: { method: :delete })</tt>.
+* Allows <tt>FormHelper#form_for</tt> to specify the +:method+ as a direct option instead of through the +:html+ hash. <tt>form_for(==@==post, remote: true, method: :delete)</tt> instead of <tt>form_for(==@==post, remote: true, html: { method: :delete })</tt>.
 
 * Provided <tt>JavaScriptHelper#j()</tt> as an alias for <tt>JavaScriptHelper#escape_javascript()</tt>. This supersedes the <tt>Object#j()</tt> method that the JSON gem adds within templates using the JavaScriptHelper.
 
@@ -250,7 +252,7 @@ user.build_account{ |a| a.credit_limit => 100.0 }
 
 * CSV Fixtures are deprecated and support will be removed in Rails 3.2.0.
 
-* <tt>ActiveRecord#new</tt>, <tt>ActiveRecord#create</tt> and <tt>ActiveRecord#update_attributes</tt> all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of ActiveModel's new mass assignment capabilities:
+* <tt>ActiveRecord#new</tt>, <tt>ActiveRecord#create</tt> and <tt>ActiveRecord#update_attributes</tt> all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of Active Model's new mass assignment capabilities:
 
 <ruby>
 class Post < ActiveRecord::Base
@@ -284,7 +286,7 @@ People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET
 
 * <tt>ActiveRecord::Associations::AssociationProxy</tt> has been split. There is now an +Association+ class (and subclasses) which are responsible for operating on associations, and then a separate, thin wrapper called +CollectionProxy+, which proxies collection associations. This prevents namespace pollution, separates concerns, and will allow further refactorings.
 
-* Singular associations (has_one, belongs_to) no longer have a proxy and simply returns the associated record or nil. This means that you should not use undocumented methods such as bob.mother.create - use bob.create_mother instead.
+* Singular associations (+has_one+, +belongs_to+) no longer have a proxy and simply returns the associated record or +nil+. This means that you should not use undocumented methods such as +bob.mother.create+ - use +bob.create_mother+ instead.
 
 * Support the <tt>:dependent</tt> option on <tt>has_many :through</tt> associations. For historical and practical reasons, +:delete_all+ is the default deletion strategy employed by <tt>association.delete(*records)</tt>, despite the fact that the default strategy is +:nullify+ for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
 
@@ -341,7 +343,7 @@ has_many :things, :conditions => 'foo = #{bar}'          # before
 has_many :things, :conditions => proc { "foo = #{bar}" } # after
 </ruby>
 
-Inside the proc, 'self' is the object which is the owner of the association, unless you are eager loading the association, in which case 'self' is the class which the association is within.
+Inside the proc, +self+ is the object which is the owner of the association, unless you are eager loading the association, in which case +self+ is the class which the association is within.
 
 You can have any "normal" conditions inside the proc, so the following will work too:
 <ruby>
@@ -366,7 +368,9 @@ end
 
 * Calling <tt>ActiveRecord::Base#clone</tt> will result in a shallow copy of the record, including copying the frozen state. No callbacks will be called.
 
-* Calling <tt>ActiveRecord::Base#dup</tt> will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return true for <tt>new_record?</tt>, have a nil id field, and is saveable.
+* Calling <tt>ActiveRecord::Base#dup</tt> will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return +true+ for <tt>new_record?</tt>, have a +nil+ id field, and is saveable.
+
+* The query cache now works with prepared statements. No changes in the applications are required.
 
 h3. Active Model
 
@@ -379,6 +383,8 @@ h3. Active Model
 * <tt>ActiveModel::AttributeMethods</tt> allows attributes to be defined on demand.
 
 * Added support for selectively enabling and disabling observers.
+
+* Alternate <tt>I18n</tt> namespace lookup is no longer supported.
 
 h3. Active Resource
 

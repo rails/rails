@@ -242,11 +242,11 @@ end
 
 h5. Sending Email To Multiple Recipients
 
-It is possible to send email to one or more recipients in one email (for e.g. informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The <tt>to:</tt> key however expects a string so you have join the list of recipients using a comma.
+It is possible to send email to one or more recipients in one email (for e.g. informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The list of emails can be an array of email addresses or a single string with the addresses separated by commas.
 
 <ruby>
   class AdminMailer < ActionMailer::Base
-    default :to => Admin.all.map(&:email).join(", "),
+    default :to => Admin.all.map(&:email),
             :from => "notification@example.com"
 
     def new_registration(user)
@@ -255,6 +255,8 @@ It is possible to send email to one or more recipients in one email (for e.g. in
     end
   end
 </ruby>
+
+The same format can be used to set carbon copy (Cc:) and blind carbon copy (Bcc:) recipients, by using the <tt>:cc</tt> and <tt>:bcc</tt> keys respectively.
 
 h5. Sending Email With Name
 

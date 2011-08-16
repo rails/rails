@@ -174,7 +174,7 @@ module ActiveModel
       to_a.size
     end
 
-    # Returns true if there are any errors, false if not.
+    # Returns true if no errors are found, false otherwise.
     def empty?
       all? { |k, v| v && v.empty? }
     end
