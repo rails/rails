@@ -145,9 +145,10 @@ class Module
           klass = to.singleton_methods.any? ? to.singleton_class : to.class     #   klass = to.singleton_methods.any? ? to.singleton_class : to.class
           unless klass.public_method_defined?(#{method.inspect})                #   unless klass.public_method_defined?(:name)
             ActiveSupport::Deprecation.warn(                                    #     ActiveSupport::Deprecation.warn(
-              "Using Module#delegate to delegate to non-public methods is " \   #       "..." \
-              "deprecated. Please declare your methods as public if they " \    #       "..." \
-              "are going to accessed from other classes."                       #       "..."
+              "Using Module#delegate to delegate to non-public methods is " +   #       "..." +
+              "deprecated. Please declare your methods as public if they "  +   #       "..." +
+              "are going to accessed from other classes.",                      #       "...",
+              [#{"#{file}:#{line}".inspect}]                                    #       ["app/models/firm.rb:16"]
             )                                                                   #     )
           end                                                                   #   end
                                                                                 #
