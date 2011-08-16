@@ -2,9 +2,16 @@
 require 'date'
 require 'abstract_unit'
 require 'inflector_test_cases'
+require 'active_support/core_ext/string/output_safety'
 
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
+
+  def test_erb_escape
+    string = [192, 60].pack('CC')
+    expected = 192.chr + "&lt;"
+    assert_equal expected, ERB::Util.html_escape(string)
+  end
 
   def test_pluralize
     SingularToPlural.each do |singular, plural|
