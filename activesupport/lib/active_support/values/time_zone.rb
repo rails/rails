@@ -195,12 +195,8 @@ module ActiveSupport
     # (GMT). Seconds were chosen as the offset unit because that is the unit that
     # Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
-      begin
-        require 'tzinfo'
-      rescue LoadError => e
-        $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
-        raise e
-      end
+      self.class.send(:require_tzinfo)
+
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
@@ -372,6 +368,15 @@ module ActiveSupport
         @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
 
+      protected
+
+        def require_tzinfo
+          require 'tzinfo'
+        rescue LoadError
+          $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
+          raise
+        end
+
       private
 
         def lookup(name)
@@ -379,6 +384,8 @@ module ActiveSupport
         end
 
         def lazy_zones_map
+          require_tzinfo
+
           @lazy_zones_map ||= Hash.new do |hash, place|
             hash[place] = create(place) if MAPPING.has_key?(place)
           end
