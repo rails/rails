@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/public_send'
+require 'active_support/core_ext/string/starts_ends_with'
 
 class Module
   # Provides a delegate class method to easily expose contained objects' methods
@@ -126,7 +127,7 @@ class Module
 
     methods.each do |method|
       method = method.to_s
-      call   = (method[-1..-1] == '=') ? "public_send(:#{method}, " : "#{method}("
+      call   = method.ends_with?('=') ? "public_send(:#{method}, " : "#{method}("
 
       if allow_nil
         module_eval(<<-EOS, file, line - 2)
