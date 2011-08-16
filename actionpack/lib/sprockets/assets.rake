@@ -9,7 +9,9 @@ namespace :assets do
       Kernel.exec $0, *ARGV
     else
       Rake::Task["environment"].invoke
-      Sprockets::Helpers::RailsHelper
+
+      # Ensure that action view is loaded and the appropriate sprockets hooks get executed
+      ActionView::Base
 
       assets = Rails.application.config.assets.precompile
       # Always perform caching so that asset_path appends the timestamps to file references.
