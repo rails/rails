@@ -4,20 +4,30 @@ require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_support/deprecation'
 
-# TODO: Autoload these files
-require 'active_record/connection_adapters/column'
-require 'active_record/connection_adapters/abstract/schema_definitions'
-require 'active_record/connection_adapters/abstract/schema_statements'
-require 'active_record/connection_adapters/abstract/database_statements'
-require 'active_record/connection_adapters/abstract/quoting'
-require 'active_record/connection_adapters/abstract/connection_pool'
-require 'active_record/connection_adapters/abstract/connection_specification'
-require 'active_record/connection_adapters/abstract/query_cache'
-require 'active_record/connection_adapters/abstract/database_limits'
-require 'active_record/result'
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
+    extend ActiveSupport::Autoload
+
+    autoload :Column
+
+    autoload_under 'abstract' do
+      autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+
+      autoload :SchemaStatements
+      autoload :DatabaseStatements
+      autoload :DatabaseLimits
+      autoload :Quoting
+
+      autoload :ConnectionPool
+      autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
+      autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
+      autoload :ConnectionSpecification
+
+      autoload :QueryCache
+    end
+
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an

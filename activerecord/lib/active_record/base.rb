@@ -178,7 +178,7 @@ module ActiveRecord #:nodoc:
   # <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
   # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an
-  # <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records, 
+  # <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records,
   # like <tt>Person.find_by_last_name!</tt>.
   #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
@@ -2163,4 +2163,5 @@ MSG
   end
 end
 
+require 'active_record/connection_adapters/abstract/connection_specification'
 ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
