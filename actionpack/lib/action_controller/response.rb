@@ -64,12 +64,13 @@ module ActionController # :nodoc:
     # the character set information will also be included in the content type
     # information.
     def content_type=(mime_type)
-      self.headers["Content-Type"] =
+      new_content_type =
         if mime_type =~ /charset/ || (c = charset).nil?
           mime_type.to_s
         else
           "#{mime_type}; charset=#{c}"
         end
+      self.headers["Content-Type"] = URI.escape(new_content_type, "\r\n")
     end
 
     # Returns the response's content MIME type, or nil if content type has been set.

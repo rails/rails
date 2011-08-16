@@ -46,6 +46,11 @@ class ContentTypeController < ActionController::Base
       format.rss  { render :text   => "hello world!", :content_type => Mime::XML }
     end
   end
+  
+  def render_content_type_from_user_input
+    response.content_type= params[:hello]
+    render :text=>"hello"
+  end
 
   def rescue_action(e) raise end
 end
@@ -128,6 +133,11 @@ class ContentTypeTest < ActionController::TestCase
     get :render_change_for_rxml
     assert_equal Mime::HTML, @response.content_type
     assert_equal "utf-8", @response.charset
+  end
+  
+  def test_user_supplied_value
+    get :render_content_type_from_user_input, :hello=>"hello/world\r\nAttack: true"
+    assert_equal "hello/world%0D%0AAttack: true", @response.content_type
   end
 end
 
