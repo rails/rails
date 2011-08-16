@@ -4,6 +4,18 @@
 
 * schema.rb is written as UTF-8 by default.
 
+* Ensuring an established connection when running `rake db:schema:dump`
+
+* Association conditions will not clobber join conditions.
+
+* Destroying a record will destroy the HABTM record before destroying itself.
+GH #402.
+
+* Make `ActiveRecord::Batches#find_each` to not return `self`.
+
+* Update `table_exists?` in PG to to always use current search_path or schema
+if explictly set.
+
 *Rails 3.0.9 (June 16, 2011)*
 
 *Rails 3.0.8 (June 7, 2011)*

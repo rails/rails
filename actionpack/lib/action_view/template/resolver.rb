@@ -63,7 +63,7 @@ module ActionView
     end
 
     def query(path, exts, formats)
-      query = File.join(@path, path)
+      query = escape_entry File.join(@path, path)
 
       exts.each do |ext|
         query << '{' << ext.map {|e| e && ".#{e}" }.join(',') << ',}'
@@ -86,6 +86,10 @@ module ActionView
       end
 
       templates
+    end
+
+    def escape_entry(entry)
+      entry.gsub(/(\*|\[|\]|\{|\}|\?)/, "\\\\\\1")
     end
 
     # Extract handler and formats from path. If a format cannot be a found neither

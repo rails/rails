@@ -115,7 +115,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        %Q("#{name}")
+        %Q("#{name.to_s.gsub('"', '""')}")
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds

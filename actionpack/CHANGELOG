@@ -3,7 +3,15 @@
 * Fixes an issue where cache sweepers with only after filters would have no
 controller object, it would raise undefined method controller_name for nil [jeroenj]
 
-*Rails 3.0.9 (unreleased)*
+* Ensure status codes are logged when exceptions are raised.
+
+* Subclasses of OutputBuffer are respected.
+
+* Fixed ActionView::FormOptionsHelper#select with :multiple => false
+
+* Avoid extra call to Cache#read in case of a fragment cache hit
+
+*Rails 3.0.9 (June 16, 2011)*
 
 * json_escape will now return a SafeBuffer string if it receives SafeBuffer string [tenderlove]
 
