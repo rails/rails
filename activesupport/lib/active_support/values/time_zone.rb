@@ -337,7 +337,12 @@ module ActiveSupport
       end
 
       def zones_map
-        @zones_map ||= Hash[MAPPING.map { |place, _| [place, create(place)] }]
+        @zones_map ||= begin
+          new_zones_names = MAPPING.keys - lazy_zones_map.keys
+          new_zones       = Hash[new_zones_names.map { |place| [place, create(place)] }]
+
+          lazy_zones_map.merge(new_zones)
+        end
       end
 
       # Locate a specific time zone object. If the argument is a string, it
@@ -349,7 +354,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            zones_map[arg] ||= lookup(arg).tap { |tz| tz.utc_offset }
+            lazy_zones_map[arg] ||= lookup(arg).tap { |tz| tz.utc_offset }
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
@@ -371,6 +376,12 @@ module ActiveSupport
 
         def lookup(name)
           (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
+        end
+
+        def lazy_zones_map
+          @lazy_zones_map ||= Hash.new do |hash, place|
+            hash[place] = create(place) if MAPPING.has_key?(place)
+          end
         end
     end
   end
