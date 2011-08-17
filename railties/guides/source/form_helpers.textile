@@ -342,7 +342,6 @@ output:
 
 When parsing POSTed data, Rails will take into account the special +_method+ parameter and acts as if the HTTP method was the one specified inside it ("PUT" in this example).
 
-
 h3. Making Select Boxes with Ease
 
 Select boxes in HTML require a significant amount of markup (one +OPTION+ element for each option to choose from), therefore it makes the most sense for them to be dynamically generated.

@@ -24,16 +24,12 @@ h4. Standard HTML communication vs AJAX
 
 How do 'standard' and AJAX requests differ, why does this matter for understanding AJAX on Rails (tie in for *_remote helpers, the next section)
 
-
-
-
-
-
 h3. Built-in Rails Helpers
 
 Rails' JavaScript framework of choice is "Prototype":http://www.prototypejs.org. Prototype is a generic-purpose JavaScript framework that aims to ease the development of dynamic web applications by offering DOM manipulation, AJAX and other JavaScript functionality ranging from utility functions to object oriented constructs. It is not specifically written for any language, so Rails provides a set of helpers to enable seamless integration of Prototype with your Rails views.
 
 To get access to these helpers, all you have to do is to include the prototype framework in your pages - typically in your master layout, application.html.erb - like so:
+
 <ruby>
 javascript_include_tag 'prototype'
 </ruby>
@@ -59,7 +55,6 @@ link_to_remote "Add to cart",
 </ruby>
 
 * The very first parameter, a string, is the text of the link which appears on the page.
-
 * The second parameter, the +options+ hash is the most interesting part as it has the AJAX specific stuff:
 ** *:url* This is the only parameter that is always required to generate the simplest remote link (technically speaking, it is not required, you can pass an empty +options+ hash to +link_to_remote+ - but in this case the URL used for the POST request will be equal to your current URL which is probably not your intention). This URL points to your AJAX action handler. The URL is typically specified by Rails REST view helpers, but you can use the +url_for+ format too.
 ** *:update* Specifying a DOM id of the element we would like to update. The above example demonstrates the simplest way of accomplishing this - however, we are in trouble if the server responds with an error message because that will be injected into the page too! However, Rails has a solution for this situation:
@@ -192,7 +187,6 @@ end
 (Note: if you want to test the above method, create a +link_to_remote+ with a single parameter - +:url+, pointing to the +javascript_test+ action)
 
 What happens here is that by specifying the Content-Type header variable, we instruct the browser to evaluate the text we are sending over (rather than displaying it as plain text, which is the default behavior).
-
 
 h3. Testing JavaScript
 

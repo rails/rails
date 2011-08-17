@@ -404,7 +404,6 @@ h3. Further reading
 
 * "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails
 
-
 h3. Changelog
 
 * Feb       17, 2011: Document 3.0.0 changes to ActiveSupport::Cache
@@ -415,4 +414,3 @@ h3. Changelog
 * December  27, 2008: Typo fixes
 * November  23, 2008: Incremental updates with various suggested changes and formatting cleanup
 * September 15, 2008: Initial version by Aditya Chadha
-

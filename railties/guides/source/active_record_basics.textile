@@ -204,7 +204,6 @@ Likewise, once retrieved an Active Record object can be destroyed which removes 
   user.destroy
 </ruby>
 
-
 h3. Validations
 
 Active Record allows you to validate the state of a model before it gets written into the database. There are several methods that you can use to check your models and validate that an attribute value is not empty, is unique and not already in the database, follows a specific format and many more. You can learn more about validations in the "Active Record Validations and Callbacks guide":active_record_validations_callbacks.html#validations-overview.

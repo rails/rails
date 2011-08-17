@@ -116,7 +116,6 @@ need to know anything about them to continue with this guide.
 * Active Support
 * Railties
 
-
 h5. Action Pack
 
 Action Pack is a single gem that contains Action Controller, Action View and
@@ -1632,7 +1631,6 @@ Now if you try to create a new post, you will be greeted with a basic HTTP
 Authentication challenge
 
 !images/challenge.png(Basic HTTP Authentication Challenge)!
-
 
 h3. Building a Multi-Model Form
 

@@ -27,7 +27,6 @@ config.assets.enabled = false
 
 It is recommended that you use the defaults for all new apps.
 
-
 h4. Main Features
 
 The first feature of the pipeline is to concatenate assets. This is important in a production environment, as it reduces the number of requests that a browser must make to render a web page. While Rails already has a feature to concatenate these types of assetsi -- by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+ -- many people do not use it.
@@ -79,7 +78,6 @@ More reading:
 
 * "Optimize caching":http://code.google.com/speed/page-speed/docs/caching.html
 * "Revving Filenames: don’t use querystring":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/
-
 
 h3. How to Use the Asset Pipeline
 
@@ -324,7 +322,6 @@ When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.
 
 TODO: Apache instructions
 
-
 h3. Customizing the Pipeline
 
 
@@ -371,7 +368,6 @@ To enable this, pass a +new+ Object to the config option in +application.rb+:
 <erb>
 config.assets.css_compressor = Transformer.new
 </erb>
-
 
 h4. Changing the _assets_ Path
 

@@ -104,7 +104,6 @@ $ cd railties
 $ TEST_DIR=generators rake test
 </shell>
 
-
 h4. Warnings
 
 The test suite runs with warnings enabled. Ideally Ruby on Rails should issue no warning, but there may be a few, and also some from third-party libraries. Please ignore (or fix!) them if any, and submit patches that do not issue new warnings.
