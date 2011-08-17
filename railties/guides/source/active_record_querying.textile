@@ -560,6 +560,7 @@ Client.where("orders_count > 10").order(:name).reverse_order
 </ruby>
 
 The SQL that would be executed:
+
 <sql>
 SELECT * FROM clients WHERE orders_count > 10 ORDER BY name DESC
 </sql>
@@ -571,6 +572,7 @@ Client.where("orders_count > 10").reverse_order
 </ruby>
 
 The SQL that would be executed:
+
 <sql>
 SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
 </sql>
@@ -620,8 +622,6 @@ c2.save # Raises a ActiveRecord::StaleObjectError
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.
 
 NOTE: You must ensure that your database schema defaults the +lock_version+ column to +0+.
-
-<br />
 
 This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
 
