@@ -58,6 +58,32 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_attributes_and_indices
+    migration = "add_title_with_index_and_body_to_posts"
+    run_generator [migration, "title:string:index", "body:text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/add_column :posts, :title, :string/, up)
+        assert_match(/add_column :posts, :body, :text/, up)
+      end
+      assert_match(/add_index :posts, :title/, content)
+    end
+  end
+
+  def test_add_migration_with_attributes_and_wrong_index_declaration
+    migration = "add_title_and_content_to_books"
+    run_generator [migration, "title:string:inex", "content:text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/add_column :books, :title, :string/, up)
+        assert_match(/add_column :books, :content, :text/, up)
+      end
+      assert_not_match(/add_index :books, :title/, content)
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove
     migration = "create_books"
     run_generator [migration, "title:string", "content:text"]

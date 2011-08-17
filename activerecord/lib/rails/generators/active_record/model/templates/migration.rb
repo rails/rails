@@ -13,5 +13,8 @@ class <%= migration_class_name %> < ActiveRecord::Migration
     add_index :<%= table_name %>, :<%= attribute.name %>_id
 <% end -%>
 <% end -%>
+<% attributes.select {|attr| attr.has_index? }.each do |attribute| -%>
+  add_index :<%= table_name %>, :<%= attribute.name %>
+<% end -%>
   end
 end

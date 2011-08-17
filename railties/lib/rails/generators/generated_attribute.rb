@@ -4,11 +4,11 @@ require 'active_support/core_ext/object/inclusion'
 module Rails
   module Generators
     class GeneratedAttribute
-      attr_accessor :name, :type
+      attr_accessor :name, :type, :has_index
 
-      def initialize(name, type)
+      def initialize(name, type, has_index = false)
         type = :string if type.blank?
-        @name, @type = name, type.to_sym
+        @name, @type, @has_index = name, type.to_sym, has_index.eql?("index")
       end
 
       def field_type
@@ -47,6 +47,10 @@ module Rails
 
       def reference?
         self.type.in?([:references, :belongs_to])
+      end
+      
+      def has_index?
+        @has_index
       end
     end
   end
