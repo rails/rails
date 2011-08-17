@@ -155,6 +155,12 @@ module Rails
         def parse_attributes! #:nodoc:
           self.attributes = (attributes || []).map do |key_value|
             name, type, has_index = key_value.split(':')
+            # if user provided "name:index" instead of "name:string:index" type should be set blank
+            # so GeneratedAttribute's constructor could set it to :string
+            if type.eql?("index")
+              has_index = type
+              type = nil
+            end
             Rails::Generators::GeneratedAttribute.new(name, type, has_index)
           end
         end
