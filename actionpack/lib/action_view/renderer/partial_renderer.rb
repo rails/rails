@@ -206,11 +206,12 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer #:nodoc:
-    PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }
+    PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
 
     def initialize(*)
       super
-      @partial_names = PARTIAL_NAMES[@lookup_context.prefixes.first]
+      @context_prefix = @lookup_context.prefixes.first
+      @partial_names = PARTIAL_NAMES[@context_prefix]
     end
 
     def render(context, options, block)
@@ -291,6 +292,7 @@ module ActionView
       else
         paths.map! { |path| retrieve_variable(path).unshift(path) }
       end
+
       if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
         raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
                                 "make sure your partial name starts with a letter or underscore, " +
@@ -360,27 +362,32 @@ module ActionView
     end
 
     def partial_path(object = @object)
-      @partial_names[object.class.name] ||= begin
-        object = object.to_model if object.respond_to?(:to_model)
-        object.class.model_name.partial_path.dup.tap do |partial|
-          path = @lookup_context.prefixes.first
-          merge_path_into_partial(path, partial)
-        end
+      object = object.to_model if object.respond_to?(:to_model)
+
+      path = if object.respond_to?(:to_partial_path)
+        object.to_partial_path
+      else
+        ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_partial_path directly instead."
+        object.class.model_name.partial_path
+      end
+
+      @partial_names[path] ||= path.dup.tap do |object_path|
+        merge_prefix_into_object_path(@context_prefix, object_path)
       end
     end
 
-    def merge_path_into_partial(path, partial)
-      if path.include?(?/) && partial.include?(?/)
+    def merge_prefix_into_object_path(prefix, object_path)
+      if prefix.include?(?/) && object_path.include?(?/)
         overlap = []
-        path_array = File.dirname(path).split('/')
-        partial_array = partial.split('/')[0..-3] # skip model dir & partial
+        prefix_array = File.dirname(prefix).split('/')
+        object_path_array = object_path.split('/')[0..-3] # skip model dir & partial
 
-        path_array.each_with_index do |dir, index|
-          overlap << dir if dir == partial_array[index]
+        prefix_array.each_with_index do |dir, index|
+          overlap << dir if dir == object_path_array[index]
         end
 
-        partial.gsub!(/^#{overlap.join('/')}\//,'')
-        partial.insert(0, "#{File.dirname(path)}/")
+        object_path.gsub!(/^#{overlap.join('/')}\//,'')
+        object_path.insert(0, "#{File.dirname(prefix)}/")
       end
     end
 

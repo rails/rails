@@ -49,7 +49,7 @@ module ActiveModel
   #
   # The last three methods are required in your object for Errors to be
   # able to generate error messages correctly and also handle multiple
-  # languages. Of course, if you extend your object with ActiveModel::Translations
+  # languages. Of course, if you extend your object with ActiveModel::Translation
   # you will not need to implement the last two. Likewise, using
   # ActiveModel::Validations will handle the validation related methods
   # for you.
@@ -86,7 +86,7 @@ module ActiveModel
 
     # Do the error messages include an error with key +error+?
     def include?(error)
-      messages.include? error
+      (v = messages[error]) && v.any?
     end
 
     # Get messages for +key+
@@ -174,7 +174,7 @@ module ActiveModel
       to_a.size
     end
 
-    # Returns true if there are any errors, false if not.
+    # Returns true if no errors are found, false otherwise.
     def empty?
       all? { |k, v| v && v.empty? }
     end

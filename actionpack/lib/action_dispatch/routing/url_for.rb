@@ -140,7 +140,7 @@ module ActionDispatch
         when String
           options
         when nil, Hash
-          _routes.url_for((options || {}).reverse_merge!(url_options).symbolize_keys)
+          _routes.url_for((options || {}).reverse_merge(url_options).symbolize_keys)
         else
           polymorphic_url(options)
         end

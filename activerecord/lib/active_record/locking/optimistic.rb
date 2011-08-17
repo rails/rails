@@ -70,7 +70,7 @@ module ActiveRecord
 
           # If the locking column has no default value set,
           # start the lock version at zero. Note we can't use
-          # <tt>locking_enabled?</tt> at this point as 
+          # <tt>locking_enabled?</tt> at this point as
           # <tt>@attributes</tt> may not have been initialized yet.
 
           if result.key?(self.class.locking_column) && lock_optimistically
@@ -100,7 +100,7 @@ module ActiveRecord
               )
             ).arel.compile_update(arel_attributes_values(false, false, attribute_names))
 
-            affected_rows = connection.update stmt.to_sql
+            affected_rows = connection.update stmt
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"

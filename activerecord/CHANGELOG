@@ -24,6 +24,12 @@ a URI that specifies the connection configuration.  For example:
 
 *Rails 3.1.0 (unreleased)*
 
+* Add a proxy_association method to association proxies, which can be called by association
+  extensions to access information about the association. This replaces proxy_owner etc with
+  proxy_association.owner.
+
+  [Jon Leighton]
+
 * ActiveRecord::MacroReflection::AssociationReflection#build_record has a new method signature.
 
   Before: def build_association(*options)

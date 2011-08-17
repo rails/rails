@@ -101,7 +101,7 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Validations
     #
-    #     validates :instance_validations
+    #     validate :instance_validations
     #
     #     def instance_validations
     #       validates_with MyValidator
@@ -116,7 +116,7 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Validations
     #
-    #     validates :instance_validations, :on => :create
+    #     validate :instance_validations, :on => :create
     #
     #     def instance_validations
     #       validates_with MyValidator, MyOtherValidator

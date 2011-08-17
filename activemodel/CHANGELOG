@@ -1,3 +1,5 @@
+* Deprecate "Model.model_name.partial_path" in favor of "model.to_partial_path" [Grant Hutchins, Peter Jaros]
+
 * Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior [Bogdan Gusiev]
 
 *Rails 3.1.0 (unreleased)*

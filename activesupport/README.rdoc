@@ -8,13 +8,13 @@ outside of Rails.
 
 == Download and installation
 
-The latest version of Active Support can be installed with Rubygems:
+The latest version of Active Support can be installed with RubyGems:
 
   % [sudo] gem install activesupport
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/activesupport/
+* https://github.com/rails/rails/tree/master/activesupport
 
 
 == License

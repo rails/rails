@@ -199,12 +199,20 @@ module CacheStoreBehavior
     @cache.write('fud', 'biz')
     assert_equal({"foo" => "bar", "fu" => "baz"}, @cache.read_multi('foo', 'fu'))
   end
+  
+  def test_read_multi_with_expires
+    @cache.write('foo', 'bar', :expires_in => 0.001)
+    @cache.write('fu', 'baz')
+    @cache.write('fud', 'biz')
+    sleep(0.002)
+    assert_equal({"fu" => "baz"}, @cache.read_multi('foo', 'fu'))
+  end
 
   def test_read_and_write_compressed_small_data
     @cache.write('foo', 'bar', :compress => true)
     raw_value = @cache.send(:read_entry, 'foo', {}).raw_value
     assert_equal 'bar', @cache.read('foo')
-    assert_equal 'bar', raw_value
+    assert_equal 'bar', Marshal.load(raw_value)
   end
 
   def test_read_and_write_compressed_large_data
@@ -270,10 +278,12 @@ module CacheStoreBehavior
     assert !@cache.exist?('foo')
   end
 
-  def test_store_objects_should_be_immutable
+  def test_read_should_return_a_different_object_id_each_time_it_is_called
     @cache.write('foo', 'bar')
-    assert_raise(ActiveSupport::FrozenObjectError) { @cache.read('foo').gsub!(/.*/, 'baz') }
-    assert_equal 'bar', @cache.read('foo')
+    assert_not_equal @cache.read('foo').object_id, @cache.read('foo').object_id
+    value = @cache.read('foo')
+    value << 'bingo'
+    assert_not_equal value, @cache.read('foo')
   end
 
   def test_original_store_objects_should_not_be_immutable
@@ -551,7 +561,8 @@ end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => 100)
+    @record_size = Marshal.dump("aaaaaaaaaa").bytesize
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10)
   end
 
   include CacheStoreBehavior
@@ -566,7 +577,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
     @cache.write(5, "eeeeeeeeee") && sleep(0.001)
     @cache.read(2) && sleep(0.001)
     @cache.read(4)
-    @cache.prune(30)
+    @cache.prune(@record_size * 3)
     assert_equal true, @cache.exist?(5)
     assert_equal true, @cache.exist?(4)
     assert_equal false, @cache.exist?(3)
@@ -719,7 +730,7 @@ class CacheEntryTest < ActiveSupport::TestCase
   def test_non_compress_values
     entry = ActiveSupport::Cache::Entry.new("value")
     assert_equal "value", entry.value
-    assert_equal "value", entry.raw_value
+    assert_equal "value", Marshal.load(entry.raw_value)
     assert_equal false, entry.compressed?
   end
 end

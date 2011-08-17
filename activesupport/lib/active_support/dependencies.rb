@@ -478,10 +478,6 @@ module ActiveSupport #:nodoc:
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
 
-      trace = caller.reject {|l| l =~ %r{#{Regexp.escape(__FILE__)}}}
-      name_error = NameError.new("uninitialized constant #{qualified_name}")
-      name_error.set_backtrace(trace)
-
       file_path = search_for_file(path_suffix)
 
       if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
@@ -500,11 +496,12 @@ module ActiveSupport #:nodoc:
           return parent.const_missing(const_name)
         rescue NameError => e
           raise unless e.missing_name? qualified_name_for(parent, const_name)
-          raise name_error
         end
-      else
-        raise name_error
       end
+
+      raise NameError,
+            "uninitialized constant #{qualified_name}",
+            caller.reject {|l| l.starts_with? __FILE__ }
     end
 
     # Remove the constants that have been autoloaded, and those that have been

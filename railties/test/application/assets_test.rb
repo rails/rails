@@ -8,7 +8,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app
+      build_app(:initializers => true)
       boot_rails
     end
 
@@ -46,10 +46,11 @@ module ApplicationTests
       assert defined?(Uglifier)
     end
 
-    test "assets are compiled properly" do
+    test "precompile creates the file, gives it the original asset's content and run in production as default" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
 
+      ENV["RAILS_ENV"] = nil
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
       end
@@ -57,8 +58,29 @@ module ApplicationTests
       files << Dir["#{app_path}/public/assets/foo/application-*.js"].first
       files.each do |file|
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
-        assert_equal "alert();\n", File.read(file)
+        assert_equal "alert()", File.read(file)
       end
+    end
+
+    test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      # capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
+      # end
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
+      assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
+    end
+
+    test "precompile appends the md5 hash to files referenced with asset_path and run in production as default even using RAILS_GROUPS=assets" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      ENV["RAILS_ENV"] = nil
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
+      end
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
+      assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
     end
 
     test "assets are cleaned up properly" do
@@ -70,7 +92,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bundle exec rake assets:clean` }
       end
 
-      files = Dir["#{app_path}/public/assets/**/*"]
+      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
     end
 
@@ -98,6 +120,20 @@ module ApplicationTests
       get "/assets/demo.js"
       assert_match "alert()", last_response.body
       assert_equal nil, last_response.headers["Set-Cookie"]
+    end
+
+    test "files in any assets/ directories are not added to Sprockets" do
+      %w[app lib vendor].each do |dir|
+        app_file "#{dir}/assets/#{dir}_test.erb", "testing"
+      end
+
+      app_file "app/assets/javascripts/demo.js", "alert();"
+
+      require "#{app_path}/config/environment"
+
+      get "/assets/demo.js"
+      assert_match "alert();", last_response.body
+      assert_equal 200, last_response.status
     end
   end
 end

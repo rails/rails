@@ -283,7 +283,7 @@ methods:
 
 The last two lines are responsible for telling ActionController where the
 template files are located and actually running the controller on a new
-request from the web-server (like to be Apache).
+request from the web-server (e.g., Apache).
 
 And the templates look like this:
 
@@ -316,13 +316,13 @@ an URL such as /weblog/5 (where 5 is the id of the post).
 
 == Download and installation
 
-The latest version of Action Pack can be installed with Rubygems:
+The latest version of Action Pack can be installed with RubyGems:
 
   % [sudo] gem install actionpack
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/actionpack/
+* https://github.com/rails/rails/tree/master/actionpack
 
 
 == License

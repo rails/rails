@@ -365,7 +365,7 @@ module ActionView
           apply_form_for_options!(record, options)
         end
 
-        options[:html][:remote] = options.delete(:remote)
+        options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
 
@@ -1227,8 +1227,12 @@ module ActionView
         parent_builder.multipart = multipart if parent_builder
       end
 
-      def self.model_name
-        @model_name ||= Struct.new(:partial_path).new(name.demodulize.underscore.sub!(/_builder$/, ''))
+      def self._to_partial_path
+        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, '')
+      end
+
+      def to_partial_path
+        self.class._to_partial_path
       end
 
       def to_model

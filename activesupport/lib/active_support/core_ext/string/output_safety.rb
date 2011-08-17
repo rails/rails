@@ -20,7 +20,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(/[&"><]/) { |special| HTML_ESCAPE[special] }.html_safe
+        s.to_s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
       end
     end
 
@@ -84,6 +84,12 @@ module ActiveSupport #:nodoc:
       def initialize
         super "Could not concatenate to the buffer because it is not html safe."
       end
+    end
+
+    def[](*args)
+      new_safe_buffer = super
+      new_safe_buffer.instance_eval { @dirty = false }
+      new_safe_buffer
     end
 
     def safe_concat(value)

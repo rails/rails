@@ -74,7 +74,7 @@ RDoc::Task.new do |rdoc|
     # since no autolinking happens there and RDoc displays the backslash
     # otherwise.
     rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
-    rdoc_main.gsub!(%r{link:blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
+    rdoc_main.gsub!(%r{link:/rails/rails/blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
 
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)

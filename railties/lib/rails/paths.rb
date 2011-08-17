@@ -172,6 +172,10 @@ module Rails
         expanded.select { |f| File.exists?(f) }
       end
 
+      def existent_directories
+        expanded.select { |d| File.directory?(d) }
+      end
+
       alias to_a expanded
     end
   end

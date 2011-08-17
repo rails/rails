@@ -58,23 +58,27 @@ module ActiveRecord
 
       alias_method :new, :build
 
+      def proxy_association
+        @association
+      end
+
       def respond_to?(name, include_private = false)
         super ||
         (load_target && target.respond_to?(name, include_private)) ||
-        @association.klass.respond_to?(name, include_private)
+        proxy_association.klass.respond_to?(name, include_private)
       end
 
       def method_missing(method, *args, &block)
         match = DynamicFinderMatch.match(method)
         if match && match.instantiator?
           send(:find_or_instantiator_by_attributes, match, match.attribute_names, *args) do |r|
-            @association.send :set_owner_attributes, r
-            @association.send :add_to_target, r
+            proxy_association.send :set_owner_attributes, r
+            proxy_association.send :add_to_target, r
             yield(r) if block_given?
           end
         end
 
-        if target.respond_to?(method) || (!@association.klass.respond_to?(method) && Class.respond_to?(method))
+        if target.respond_to?(method) || (!proxy_association.klass.respond_to?(method) && Class.respond_to?(method))
           if load_target
             if target.respond_to?(method)
               target.send(method, *args, &block)
@@ -104,7 +108,7 @@ module ActiveRecord
       alias_method :to_a, :to_ary
 
       def <<(*records)
-        @association.concat(records) && self
+        proxy_association.concat(records) && self
       end
       alias_method :push, :<<
 
@@ -114,7 +118,7 @@ module ActiveRecord
       end
 
       def reload
-        @association.reload
+        proxy_association.reload
         self
       end
     end

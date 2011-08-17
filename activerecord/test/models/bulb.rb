@@ -33,4 +33,9 @@ class Bulb < ActiveRecord::Base
 end
 
 class CustomBulb < Bulb
+  after_initialize :set_awesomeness
+
+  def set_awesomeness
+    self.frickinawesome = true if name == 'Dude'
+  end
 end

@@ -11,7 +11,7 @@ Railties is responsible to glue all frameworks together. Overall, it:
 
 == Download
 
-The latest version of Railties can be installed with Rubygems:
+The latest version of Railties can be installed with RubyGems:
 
 * gem install railties
 

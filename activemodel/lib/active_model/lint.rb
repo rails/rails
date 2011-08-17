@@ -43,6 +43,16 @@ module ActiveModel
         assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end
 
+      # == Responds to <tt>to_partial_path</tt>
+      #
+      # Returns a string giving a relative path.  This is used for looking up
+      # partials. For example, a BlogPost model might return "blog_posts/blog_post"
+      #
+      def test_to_partial_path
+        assert model.respond_to?(:to_partial_path), "The model should respond to to_partial_path"
+        assert_kind_of String, model.to_partial_path
+      end
+
       # == Responds to <tt>valid?</tt>
       #
       # Returns a boolean that specifies whether the object is in a valid or invalid
@@ -66,15 +76,14 @@ module ActiveModel
 
       # == Naming
       #
-      # Model.model_name must return a string with some convenience methods as
-      # :human and :partial_path. Check ActiveModel::Naming for more information.
+      # Model.model_name must return a string with some convenience methods:
+      # :human, :singular, and :plural. Check ActiveModel::Naming for more information.
       #
       def test_model_naming
         assert model.class.respond_to?(:model_name), "The model should respond to model_name"
         model_name = model.class.model_name
         assert_kind_of String, model_name
         assert_kind_of String, model_name.human
-        assert_kind_of String, model_name.partial_path
         assert_kind_of String, model_name.singular
         assert_kind_of String, model_name.plural
       end

@@ -265,6 +265,10 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      def self.visitor_for(pool) # :nodoc:
+        Arel::Visitors::PostgreSQL.new(pool)
+      end
+
       # Clears the prepared statements cache.
       def clear_cache!
         @statements.each_value do |value|
@@ -614,9 +618,11 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def recreate_database(name) #:nodoc:
+      # Drops the database specified on the +name+ attribute
+      # and creates it again using the provided +options+.
+      def recreate_database(name, options = {}) #:nodoc:
         drop_database(name)
-        create_database(name)
+        create_database(name, options)
       end
 
       # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,

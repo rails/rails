@@ -80,14 +80,12 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should escape dirty buffers on add" do
-    dirty = @buffer
     clean = "hello".html_safe
     @buffer.gsub!('', '<>')
     assert_equal "hello&lt;&gt;", clean + @buffer
   end
 
   test "Should concat as a normal string when dirty" do
-    dirty = @buffer
     clean = "hello".html_safe
     @buffer.gsub!('', '<>')
     assert_equal "<>hello", @buffer + clean
@@ -107,5 +105,11 @@ class SafeBufferTest < ActiveSupport::TestCase
   
   test "should not fail if the returned object is not a string" do
     assert_kind_of NilClass, @buffer.slice("chipchop")
+  end
+
+  test "Should initialize @dirty to false for new instance when sliced" do
+    dirty = @buffer[0,0].send(:dirty?)
+    assert_not_nil dirty
+    assert !dirty
   end
 end

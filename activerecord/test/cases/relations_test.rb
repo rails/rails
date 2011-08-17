@@ -963,6 +963,44 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_ordering_with_extra_spaces
-    assert_equal authors(:david), Author.order('organization_id ASC , owned_essay_id DESC').last
+    assert_equal authors(:david), Author.order('id DESC , name DESC').last
+  end
+
+  def test_update_all_with_joins
+    comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
+    count    = comments.count
+
+    assert_equal count, comments.update_all(:post_id => posts(:thinking).id)
+    assert_equal posts(:thinking), comments(:greetings).post
+  end
+
+  def test_update_all_with_joins_and_limit
+    comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).limit(1)
+    assert_equal 1, comments.update_all(:post_id => posts(:thinking).id)
+  end
+
+  def test_update_all_with_joins_and_limit_and_order
+    comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('comments.id').limit(1)
+    assert_equal 1, comments.update_all(:post_id => posts(:thinking).id)
+    assert_equal posts(:thinking), comments(:greetings).post
+    assert_equal posts(:welcome),  comments(:more_greetings).post
+  end
+
+  def test_update_all_with_joins_and_offset
+    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
+    count        = all_comments.count
+    comments     = all_comments.offset(1)
+
+    assert_equal count - 1, comments.update_all(:post_id => posts(:thinking).id)
+  end
+
+  def test_update_all_with_joins_and_offset_and_order
+    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('posts.id')
+    count        = all_comments.count
+    comments     = all_comments.offset(1)
+
+    assert_equal count - 1, comments.update_all(:post_id => posts(:thinking).id)
+    assert_equal posts(:thinking), comments(:more_greetings).post
+    assert_equal posts(:welcome),  comments(:greetings).post
   end
 end

@@ -2,21 +2,32 @@ require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
-
-# TODO: Autoload these files
-require 'active_record/connection_adapters/column'
-require 'active_record/connection_adapters/abstract/schema_definitions'
-require 'active_record/connection_adapters/abstract/schema_statements'
-require 'active_record/connection_adapters/abstract/database_statements'
-require 'active_record/connection_adapters/abstract/quoting'
-require 'active_record/connection_adapters/abstract/connection_pool'
-require 'active_record/connection_adapters/abstract/connection_specification'
-require 'active_record/connection_adapters/abstract/query_cache'
-require 'active_record/connection_adapters/abstract/database_limits'
-require 'active_record/result'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
+    extend ActiveSupport::Autoload
+
+    autoload :Column
+
+    autoload_under 'abstract' do
+      autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+
+      autoload :SchemaStatements
+      autoload :DatabaseStatements
+      autoload :DatabaseLimits
+      autoload :Quoting
+
+      autoload :ConnectionPool
+      autoload :ConnectionHandler,       'active_record/connection_adapters/abstract/connection_pool'
+      autoload :ConnectionManagement,    'active_record/connection_adapters/abstract/connection_pool'
+      autoload :ConnectionSpecification
+
+      autoload :QueryCache
+    end
+
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
@@ -38,12 +49,34 @@ module ActiveRecord
 
       define_callbacks :checkout, :checkin
 
+      attr_accessor :visitor
+
       def initialize(connection, logger = nil) #:nodoc:
         @active = nil
         @connection, @logger = connection, logger
         @query_cache_enabled = false
         @query_cache = Hash.new { |h,sql| h[sql] = {} }
+        @open_transactions = 0
         @instrumenter = ActiveSupport::Notifications.instrumenter
+        @visitor = nil
+      end
+
+      # Returns a visitor instance for this adaptor, which conforms to the Arel::ToSql interface
+      def self.visitor_for(pool) # :nodoc:
+        adapter = pool.spec.config[:adapter]
+
+        if Arel::Visitors::VISITORS[adapter]
+          ActiveSupport::Deprecation.warn(
+            "Arel::Visitors::VISITORS is deprecated and will be removed. Database adapters " \
+            "should define a visitor_for method which returns the appropriate visitor for " \
+            "the database. For example, MysqlAdapter.visitor_for(pool) returns " \
+            "Arel::Visitors::MySQL.new(pool)."
+          )
+
+          Arel::Visitors::VISITORS[adapter].new(pool)
+        else
+          Arel::Visitors::ToSql.new(pool)
+        end
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
@@ -177,12 +210,9 @@ module ActiveRecord
         @connection
       end
 
-      def open_transactions
-        @open_transactions ||= 0
-      end
+      attr_reader :open_transactions
 
       def increment_open_transactions
-        @open_transactions ||= 0
         @open_transactions += 1
       end
 

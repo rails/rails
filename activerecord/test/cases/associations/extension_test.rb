@@ -39,7 +39,9 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects.find_most_recent
 
-    david = Marshal.load(Marshal.dump(david))
+    marshalled = Marshal.dump(david)
+    david      = Marshal.load(marshalled)
+
     assert_equal projects(:action_controller), david.projects.find_most_recent
   end
 
@@ -47,7 +49,9 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects_extended_by_name.find_most_recent
 
-    david = Marshal.load(Marshal.dump(david))
+    marshalled = Marshal.dump(david)
+    david      = Marshal.load(marshalled)
+
     assert_equal projects(:action_controller), david.projects_extended_by_name.find_most_recent
   end
 
