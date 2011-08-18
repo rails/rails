@@ -386,6 +386,7 @@ ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 </ruby>
 
 Run +rake+ one final time and you should see:
+
 <shell>
 	7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
 </shell>
@@ -426,6 +427,7 @@ require 'yaffle'
 
 You can test this by changing to the Rails application that you added the plugin to and starting a rails console. Once in the
 console we can check to see if the String has an instance method of to_squawk.
+
 <shell>
 $ cd my_app
 $ rails console

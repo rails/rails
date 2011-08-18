@@ -168,7 +168,6 @@ Track what was the previous value of the attribute.
 person.first_name_was  #=> "First Name"
 </ruby>
 
-
 Track  both previous and current value of the changed attribute. Returns an array if changed else returns nil
 <ruby>
 #attr_name_change

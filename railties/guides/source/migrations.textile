@@ -300,6 +300,7 @@ change_table :products do |t|
   t.rename :upccode, :upc_code
 end
 </ruby>
+
 removes the +description+ and +name+ columns, creates a +part_number+ column and adds an index on it. Finally it renames the +upccode+ column. This is the same as doing
 
 <ruby>

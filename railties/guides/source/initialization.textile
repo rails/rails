@@ -761,7 +761,6 @@ def subclasses
 end
 </ruby>
 
-
 The +config+ method used at the top of +I18n::Railtie+ is defined on +Rails::Railtie+ and is defined like this:
 
 <ruby>
@@ -848,7 +847,7 @@ The +Collection+ class in +railties/lib/rails/initializable.rb+ inherits from +A
 
 The +initializers_chain+ method referenced in the +initializers_for+ method is defined like this:
 
-<rub>
+<ruby>
 def initializers_chain
   initializers = Collection.new
  ancestors.reverse_each do | klass |

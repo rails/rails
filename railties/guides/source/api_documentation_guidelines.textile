@@ -106,7 +106,6 @@ routes.rb                   # NO
 RAILS_ROOT/config/routes.rb # NO
 </plain>
 
-
 h3. Fonts
 
 h4. Fixed-width Font
@@ -188,4 +187,3 @@ self.class_eval %{
 h3. Changelog
 
 * July 17, 2010: ported from the docrails wiki and revised by "Xavier Noria":credits.html#fxn
-

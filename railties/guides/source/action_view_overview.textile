@@ -478,7 +478,6 @@ javascript_include_tag :monkey # =>
   <script type="text/javascript" src="/javascripts/tail.js"></script>
 </ruby>
 
-
 h5. register_stylesheet_expansion
 
 Register one or more stylesheet files to be included when symbol is passed to +stylesheet_link_tag+. This method is typically intended to be called from plugin initialization to register stylesheet files that the plugin installed in +public/stylesheets+.

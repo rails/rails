@@ -796,7 +796,6 @@ h5. Active Support Methods
 
 * +Array#to_sentence+ uses format settings as given in the "support.array":https://github.com/rails/rails/blob/master/activesupport/lib/active_support/locale/en.yml#L30 scope.
 
-
 h3. Customize your I18n Setup
 
 h4. Using Different Backends
