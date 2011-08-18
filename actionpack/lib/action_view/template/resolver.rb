@@ -157,7 +157,7 @@ module ActionView
     end
 
     def escape_entry(entry)
-      entry.gsub(/(\*|\[|\]|\{|\}|\?)/, "\\\\\\1")
+      entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
     end
 
     # Returns the file mtime from the filesystem.
