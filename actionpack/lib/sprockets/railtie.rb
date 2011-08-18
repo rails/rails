@@ -27,6 +27,10 @@ module Sprockets
         end
       end
 
+      if File.exist?(path = "#{app.assets.static_root}/manifest.yml")
+        config.assets.digests = YAML.load(File.read(path))
+      end
+
       ActiveSupport.on_load(:action_view) do
         include ::Sprockets::Helpers::RailsHelper
 

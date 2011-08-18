@@ -14,6 +14,7 @@ module Sprockets
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
           paths.asset_prefix      = asset_prefix
+          paths.asset_digests     = asset_digests
           paths
         end
       end
@@ -86,6 +87,10 @@ module Sprockets
         Rails.application.config.assets.prefix
       end
 
+      def asset_digests
+        Rails.application.config.assets.digests
+      end
+
       # Override to specify an alternative asset environment for asset
       # path generation. The environment should already have been mounted
       # at the prefix returned by +asset_prefix+.
@@ -94,7 +99,7 @@ module Sprockets
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        attr_accessor :asset_environment, :asset_prefix
+        attr_accessor :asset_environment, :asset_prefix, :asset_digests
 
         def compute_public_path(source, dir, ext=nil, include_host=true, protocol=nil)
           super(source, asset_prefix, ext, include_host, protocol)
@@ -112,11 +117,26 @@ module Sprockets
           asset_environment[source]
         end
 
+        def digest_for(logical_path)
+          if asset_digests && (digest = asset_digests[logical_path])
+            return digest
+          end
+
+          if asset = asset_environment[logical_path]
+            return logical_path.sub(/\.(\w+)$/) { |ext| "-#{asset.digest}#{ext}" }
+          end
+
+          logical_path
+        end
+
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            asset_environment.path(source, performing_caching?, dir)
+            source = digest_for(source) if performing_caching?
+            source = File.join(dir, source)
+            source = "/#{url}" unless source =~ /^\//
+            source
           end
         end
 
