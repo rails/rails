@@ -70,8 +70,8 @@ module Sprockets
 
     private
       def debug_assets?
-        params[:debug_assets] == '1' ||
-          params[:debug_assets] == 'true'
+        Rails.env.development? || Rails.env.test? ||
+          params[:debug_assets] == '1' || params[:debug_assets] == 'true'
       rescue NoMethodError
         false
       end
