@@ -955,7 +955,7 @@ module ActiveResource
           prefix_options, query_options = {}, {}
 
           (options || {}).each do |key, value|
-            next if key.blank?
+            next if key.blank? || [Fixnum, Date, Time, Float].include?(key.class)
             (prefix_parameters.include?(key.to_sym) ? prefix_options : query_options)[key.to_sym] = value
           end
 
