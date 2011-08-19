@@ -1,4 +1,4 @@
-lh2. Rails Internationalization (I18n) API
+h2. Rails Internationalization (I18n) API
 
 The Ruby I18n (shorthand for _internationalization_) gem which is shipped with Ruby on Rails (starting from Rails 2.2) provides an easy-to-use and extensible framework for *translating your application to a single custom language* other than English or for *providing multi-language support* in your application.
 
