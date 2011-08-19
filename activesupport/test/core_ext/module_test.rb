@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module'
-require 'active_support/testing/deprecation'
 
 module One
   Constant1 = "Hello World"
@@ -27,22 +26,10 @@ module Yz
   end
 end
 
-Somewhere = Struct.new(:street, :city) do
-  protected
-
-  def protected_method
-    "protected"
-  end
-
-  private
-
-  def private_method
-    "private"
-  end
-end
+Somewhere = Struct.new(:street, :city)
 
 class Someone < Struct.new(:name, :place)
-  delegate :street, :city, :to_f, :protected_method, :private_method, :to => :place
+  delegate :street, :city, :to_f, :to => :place
   delegate :upcase, :to => "place.city"
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
@@ -76,8 +63,6 @@ class Name
 end
 
 class ModuleTest < Test::Unit::TestCase
-  include ActiveSupport::Testing::Deprecation
-
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
   end
@@ -85,18 +70,6 @@ class ModuleTest < Test::Unit::TestCase
   def test_delegation_to_methods
     assert_equal "Paulina", @david.street
     assert_equal "Chicago", @david.city
-  end
-
-  def test_delegation_to_protected_method
-    assert_deprecated do
-      assert_equal "protected", @david.protected_method
-    end
-  end
-
-  def test_delegation_to_private_method
-    assert_deprecated do
-      assert_equal "private", @david.private_method
-    end
   end
 
   def test_delegation_down_hierarchy
