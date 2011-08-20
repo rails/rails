@@ -9,10 +9,9 @@ module ActionController
   # Wraps parameters hash into nested hash. This will allow client to submit
   # POST request without having to specify a root element in it.
   #
-  # By default this functionality won't be enabled. You can enable
-  # it globally by setting +ActionController::Base.wrap_parameters+:
-  #
-  #     ActionController::Base.wrap_parameters = [:json]
+  # This functionality is enabled in +config/initializers/wrap_parameters.rb+
+  # and can be customized. If you are upgrading to Rails 3.1, this file will
+  # need to be created for the functionality to be enabled.
   #
   # You could also turn it on per controller by setting the format array to
   # non-empty array:
