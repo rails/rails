@@ -247,6 +247,8 @@ When the +debug_assets+ parameter is set, this line is expanded out into three s
 
 This allows the individual parts of an asset to be rendered and debugged separately.
 
+NOTE. Assets debugging is turned on by default in development and test environments.
+
 h3. In Production
 
 In the production environment, assets are served slightly differently.
