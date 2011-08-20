@@ -63,7 +63,7 @@ module ActionController
   #
   # == Sessions
   #
-  # Sessions allows you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
+  # Sessions allow you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
   # such as a Signup object constructed in a multi-paged process, or objects that don't change much and are needed all the time, such
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
