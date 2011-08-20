@@ -550,6 +550,19 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_find_all_using_where_with_relation_does_not_alter_select_values
+    david = authors(:david)
+
+    subquery = Author.where(:id => david.id)
+
+    assert_queries(1) {
+      relation = Author.where(:id => subquery)
+      assert_equal [david], relation.all
+    }
+
+    assert_equal 0, subquery.select_values.size
+  end
+
   def test_find_all_using_where_with_relation_with_joins
     david = authors(:david)
     assert_queries(1) {
