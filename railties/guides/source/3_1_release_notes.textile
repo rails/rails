@@ -115,7 +115,7 @@ h4. Action Controller
 
 * URL parameters which return +nil+ for +to_param+ are now removed from the query string.
 
-* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default. This can be customized by setting <tt>ActionController::Base.wrap_parameters</tt> in <tt>config/initializer/wrap_parameters.rb</tt>.
+* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default. This can be customized in <tt>config/initializers/wrap_parameters.rb</tt>.
 
 * Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to +false+ will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
 
