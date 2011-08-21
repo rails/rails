@@ -112,11 +112,22 @@ module Sprockets
           asset_environment[source]
         end
 
+        def digest_for(logical_path)
+          if asset = asset_environment[logical_path]
+            return asset.digest_path
+          end
+
+          logical_path
+        end
+
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            asset_environment.path(source, performing_caching?, dir)
+            source = digest_for(source) if performing_caching?
+            source = File.join(dir, source)
+            source = "/#{url}" unless source =~ /^\//
+            source
           end
         end
 
