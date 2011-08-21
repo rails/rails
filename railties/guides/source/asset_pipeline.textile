@@ -224,7 +224,7 @@ If any of the files in the manifest have changed between requests, the server re
 
 h4. Debugging Assets
 
-You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL and Sprockets expands the lines which load the assets. For example, if you had an +app/assets/javascripts/application.js+ file containing these lines:
+You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL or set +config.assets.debug+ and Sprockets expands the lines which load the assets. For example, if you had an +app/assets/javascripts/application.js+ file containing these lines:
 
 <plain>
 //= require "projects"
