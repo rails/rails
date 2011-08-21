@@ -25,13 +25,19 @@ end
 class ForceSSLControllerLevelTest < ActionController::TestCase
   tests ForceSSLControllerLevel
 
+  def setup
+    Rails.env.stubs(:production?).returns(false)
+  end
+  
   def test_banana_redirects_to_https
+    Rails.env.stubs(:production?).returns(true)
     get :banana
     assert_response 301
     assert_equal "https://test.host/force_ssl_controller_level/banana", redirect_to_url
   end
 
   def test_cheeseburger_redirects_to_https
+    Rails.env.stubs(:production?).returns(true)
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_controller_level/cheeseburger", redirect_to_url
@@ -41,12 +47,18 @@ end
 class ForceSSLOnlyActionTest < ActionController::TestCase
   tests ForceSSLOnlyAction
 
+  def setup
+    Rails.env.stubs(:production?).returns(false)
+  end
+  
   def test_banana_not_redirects_to_https
+    Rails.env.stubs(:production?).returns(true)
     get :banana
     assert_response 200
   end
 
   def test_cheeseburger_redirects_to_https
+    Rails.env.stubs(:production?).returns(true)
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_only_action/cheeseburger", redirect_to_url
@@ -56,12 +68,18 @@ end
 class ForceSSLExceptActionTest < ActionController::TestCase
   tests ForceSSLExceptAction
 
+  def setup
+    Rails.env.stubs(:production?).returns(false)
+  end
+
   def test_banana_not_redirects_to_https
+    Rails.env.stubs(:production?).returns(true)
     get :banana
     assert_response 200
   end
 
   def test_cheeseburger_redirects_to_https
+    Rails.env.stubs(:production?).returns(true)
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_except_action/cheeseburger", redirect_to_url
@@ -77,6 +95,15 @@ class ForceSSLExcludeDevelopmentTest < ActionController::TestCase
 
   def test_development_environment_not_redirects_to_https
     Rails.env.stubs(:development?).returns(true)
+    get :banana
+    assert_response 200
+  end
+end
+
+class ForceSSLExcludeTestingTest < ActionController::TestCase
+  tests ForceSSLControllerLevel
+
+  def test_development_environment_not_redirects_to_https
     get :banana
     assert_response 200
   end
