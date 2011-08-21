@@ -40,7 +40,7 @@ module ActiveRecord
       def header(stream)
         define_params = @version ? ":version => #{@version}" : ""
 
-        if stream.respond_to?(:external_encoding)
+        if !stream.external_encoding.nil?
           stream.puts "# encoding: #{stream.external_encoding.name}"
         end
 
