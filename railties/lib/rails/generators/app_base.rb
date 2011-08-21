@@ -131,7 +131,7 @@ module Rails
       end
 
       def comment_if(value)
-        options[value] ? '#' : ''
+        options[value] ? '# ' : ''
       end
 
       def rails_gemfile_entry
