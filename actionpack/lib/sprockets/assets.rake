@@ -13,12 +13,16 @@ namespace :assets do
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
 
-      assets = Rails.application.config.assets.precompile
       # Always perform caching so that asset_path appends the timestamps to file references.
       Rails.application.config.action_controller.perform_caching = true
+
+      config = Rails.application.config
+      public_asset_path = File.join(Rails.public_path, config.assets.prefix)
+      assets = config.assets.precompile.dup
+      assets << {:to => public_asset_path}
       manifest = Rails.application.assets.precompile(*assets)
 
-      File.open("#{Rails.application.assets.static_root}/manifest.yml", 'w') do |f|
+      File.open("#{public_asset_path}/manifest.yml", 'w') do |f|
         YAML.dump(manifest, f)
       end
     end
@@ -26,8 +30,8 @@ namespace :assets do
 
   desc "Remove compiled assets"
   task :clean => [:environment, 'tmp:cache:clear'] do
-    assets = Rails.application.config.assets
-    public_asset_path = Rails.public_path + assets.prefix
+    config = Rails.application.config
+    public_asset_path = File.join(Rails.public_path, config.assets.prefix)
     rm_rf public_asset_path, :secure => true
   end
 end
