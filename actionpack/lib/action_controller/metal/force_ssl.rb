@@ -18,14 +18,14 @@ module ActionController
       # Force the request to this particular controller or specified actions to be
       # under HTTPS protocol.
       #
-      # Note that this method will not be effective on development environment.
+      # Note that this method will only be effective on production environment.
       #
       # ==== Options
       # * <tt>only</tt>   - The callback should be run only for this action
       # * <tt>except<tt>  - The callback should be run for all actions except this action
       def force_ssl(options = {})
         before_filter(options) do
-          if !request.ssl? && !Rails.env.development?
+          if !request.ssl? && Rails.env.production?
             redirect_to :protocol => 'https://', :status => :moved_permanently
           end
         end
