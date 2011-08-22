@@ -126,7 +126,7 @@ module Sprockets
           else
             source = digest_for(source) if performing_caching?
             source = File.join(dir, source)
-            source = "/#{url}" unless source =~ /^\//
+            source = "/#{source}" unless source =~ /^\//
             source
           end
         end
