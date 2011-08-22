@@ -13,7 +13,7 @@ module ActiveSupport
     def method_missing(method_name, *arguments)
       if method_name.to_s[-1,1] == "?"
         is_eql_to_self = (self == method_name.to_s[0..-2])
-        instance_eval "def #{method_name}; #{is_eql_to_self}; end"
+        self.class.send(:define_method, method_name) { is_eql_to_self }
         is_eql_to_self
       else
         super
