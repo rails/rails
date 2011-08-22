@@ -70,10 +70,12 @@ module Sprockets
 
     private
       def debug_assets?
-        Rails.env.development? || Rails.env.test? ||
-          params[:debug_assets] == '1' || params[:debug_assets] == 'true'
-      rescue NoMethodError
-        false
+        begin
+          params[:debug_assets] == '1' ||
+            params[:debug_assets] == 'true'
+        rescue NoMethodError
+          false
+        end || Rails.application.config.assets.debug
       end
 
       # Override to specify an alternative prefix for asset path generation.

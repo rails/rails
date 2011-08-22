@@ -141,8 +141,6 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "javascript include tag" do
-    Rails.env.stubs(:test?).returns(false)
-
     assert_match %r{<script src="/assets/application-[0-9a-f]+.js" type="text/javascript"></script>},
       javascript_include_tag(:application)
 
@@ -156,14 +154,12 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<script src=\"/assets/xmlhr-[0-9a-f]+.js" type=\"text/javascript\"></script>\n<script src=\"/assets/extra-[0-9a-f]+.js" type=\"text/javascript\"></script>},
       javascript_include_tag("xmlhr", "extra")
 
-    Rails.env.stubs(:test?).returns(true)
+    assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
+      javascript_include_tag(:application, :debug => true)
 
+    @config.assets.debug = true
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application)
-
-    assert_match %r{<script src="/assets/application-[0-9a-f]+.js\" type="text/javascript"></script>},
-      javascript_include_tag(:application, :debug => false)
-
   end
 
   test "stylesheet path" do
@@ -180,8 +176,6 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "stylesheet link tag" do
-    Rails.env.stubs(:test?).returns(false)
-
     assert_match %r{<link href="/assets/application-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application)
 
@@ -200,14 +194,12 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/extra-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag("style", "extra")
 
-    Rails.env.stubs(:test?).returns(true)
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag(:application, :debug => true)
 
+    @config.assets.debug = true
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application)
-
-    assert_match %r{<link href="/assets/application-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />},
-      stylesheet_link_tag(:application, :debug => false)
-
   end
 
   test "alternate asset prefix" do
