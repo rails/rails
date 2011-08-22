@@ -17,7 +17,7 @@ module ActiveSupport
     inflect.plural(/(x|ch|ss|sh)$/i, '\1es')
     inflect.plural(/(matr|vert|ind)(?:ix|ex)$/i, '\1ices')
     inflect.plural(/([m|l])ouse$/i, '\1ice')
-    inflect.plural(/([m|l])ice$/i, '\1ice')
+    inflect.plural(/^([m|l])ice$/i, '\1ice')
     inflect.plural(/^(ox)$/i, '\1en')
     inflect.plural(/^(oxen)$/i, '\1')
     inflect.plural(/(quiz)$/i, '\1zes')

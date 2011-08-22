@@ -103,7 +103,9 @@ module InflectorTestCases
     "edge"        => "edges",
 
     "cow"         => "kine",
-    "database"    => "databases"
+    "database"    => "databases",
+
+    "slice"       => "slices"
   }
 
   CamelToUnderscore = {
