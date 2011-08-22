@@ -431,8 +431,13 @@ module ActiveRecord
       end
     end
 
-    def inspect
-      to_a.inspect
+    def inspect(force = false)
+      c = count
+      if c > 100 and !force
+        "WARNING: #{c} #{@klass} objects would be inspected.\nUse .inspect(true) for an actual inspection."
+      else
+        to_a.inspect
+      end
     end
 
     def with_default_scope #:nodoc:
