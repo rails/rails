@@ -11,7 +11,7 @@ module Rails
                     :reload_plugins, :secret_token, :serve_static_assets,
                     :static_cache_control, :session_options, :time_zone, :whiny_nils
 
-      attr_writer :log_level
+      attr_writer :log_level, :ignore_force_ssl_filter
 
       def initialize(*)
         super
@@ -24,6 +24,7 @@ module Rails
         @serve_static_assets         = true
         @static_cache_control        = nil
         @force_ssl                   = false
+        @ignore_force_ssl_filter     = nil
         @session_store               = :cookie_store
         @session_options             = {}
         @time_zone                   = "UTC"
@@ -99,6 +100,11 @@ module Rails
 
       def log_level
         @log_level ||= Rails.env.production? ? :info : :debug
+      end
+      
+      def ignore_force_ssl_filter
+        @ignore_force_ssl_filter = !Rails.env.production? if @ignore_force_ssl_filter.nil?
+        @ignore_force_ssl_filter
       end
 
       def colorize_logging

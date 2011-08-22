@@ -76,7 +76,7 @@ class ForceSSLExcludeDevelopmentTest < ActionController::TestCase
   end
 
   def test_development_environment_not_redirects_to_https
-    Rails.env.stubs(:development?).returns(true)
+    Rails.configuration.stubs(:ignore_force_ssl_filter).returns(true)
     get :banana
     assert_response 200
   end

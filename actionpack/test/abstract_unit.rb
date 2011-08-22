@@ -43,6 +43,9 @@ module Rails
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
+    def configuration
+      @_configuration ||= FakeConfiguration.new
+    end
   end
 end
 
@@ -304,6 +307,14 @@ module ActionView
     setup do
       @routes = SharedTestRoutes
     end
+  end
+end
+
+
+class FakeConfiguration
+  attr_accessor :ignore_force_ssl_filter
+  def initialize
+    @ignore_force_ssl_filter = false
   end
 end
 

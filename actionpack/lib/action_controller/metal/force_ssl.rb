@@ -25,7 +25,7 @@ module ActionController
       # * <tt>except<tt>  - The callback should be run for all actions except this action
       def force_ssl(options = {})
         before_filter(options) do
-          if !request.ssl? && !Rails.env.development?
+          if !request.ssl? && !Rails.configuration.ignore_force_ssl_filter
             redirect_to :protocol => 'https://', :status => :moved_permanently
           end
         end
