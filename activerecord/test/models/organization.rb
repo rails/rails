@@ -8,5 +8,8 @@ class Organization < ActiveRecord::Base
   has_one :author, :primary_key => :name
   has_one :author_owned_essay_category, :through => :author, :source => :owned_essay_category
 
+  has_one :parent_connection, :foreign_key => :child_id, :class_name => "OrganizationConnection"
+  has_one :parent, :through => :parent_connection, :class_name => "Organization"
+
   scope :clubs, { :from => 'clubs' }
 end

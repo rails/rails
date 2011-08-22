@@ -405,6 +405,11 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :organization_connections, :force => true do |t|
+    t.integer :parent_id
+    t.integer :child_id
+  end
+
   create_table :owners, :primary_key => :owner_id ,:force => true do |t|
     t.string :name
     t.column :updated_at, :datetime

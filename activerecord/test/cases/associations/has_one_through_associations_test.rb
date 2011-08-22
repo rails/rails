@@ -15,10 +15,13 @@ require 'models/essay'
 require 'models/owner'
 require 'models/post'
 require 'models/comment'
+require 'models/organization'
+require 'models/organization_connection'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
-           :dashboards, :speedometers, :authors, :posts, :comments, :categories, :essays, :owners
+           :dashboards, :speedometers, :authors, :posts, :comments, :categories, :essays, :owners,
+           :organizations
 
   def setup
     @member = members(:groucho)
@@ -313,5 +316,16 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_with_custom_select_on_join_model_default_scope
     assert_equal clubs(:boring_club), members(:groucho).selected_club
+  end
+
+  def test_has_one_through_with_belongs_to_on_join_model
+    randax  = Organization.create(:name => "Randax")
+    kanware = Organization.create(:name => "Kanware")
+
+    randax.parent = kanware
+    randax.save
+
+    assert_equal kanware, randax.parent
+    assert_nil kanware.parent
   end
 end
