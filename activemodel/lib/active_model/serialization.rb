@@ -100,13 +100,13 @@ module ActiveModel
       #   +records+     - the association record(s) to be serialized
       #   +opts+        - options for the association records
       def serializable_add_includes(options = {})
-        return unless include = options[:include]
+        return unless included_assocs = options[:include]
 
-        unless include.is_a?(Hash)
-          include = Hash[Array.wrap(include).map { |n| [n, {}] }]
+        unless included_assocs.is_a?(Hash)
+          included_assocs = Hash[Array.wrap(included_assocs).map { |n| [n, {}] }]
         end
 
-        include.each do |association, opts|
+        included_assocs.each do |association, opts|
           if records = send(association)
             yield association, records, opts
           end
