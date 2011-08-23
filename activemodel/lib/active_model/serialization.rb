@@ -1,5 +1,7 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/array/wrap'
+
 
 module ActiveModel
   # == Active Model Serialization
