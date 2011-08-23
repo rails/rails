@@ -27,8 +27,10 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript( %(backslash\\test) )
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
-    assert_equal %(unicode &#x2028; newline), escape_javascript(%(unicode \342\200\250 newline))
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
+    if "ruby".encoding_aware?
+      assert_equal %(unicode &#x2028; u2028 newline), escape_javascript(%(unicode \u2028 u2028 newline))
+    end
   end
 
   def test_escape_javascript_with_safebuffer
