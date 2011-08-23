@@ -202,6 +202,8 @@ module ActionController #:nodoc:
         display resource
       elsif post?
         display resource, :status => :created, :location => api_location
+      elsif put?
+        display resource, :status => :ok
       elsif has_empty_resource_definition?
         display empty_resource, :status => :ok
       else
