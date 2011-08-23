@@ -180,7 +180,7 @@ module ActionController
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @symbolized_path_params = nil
       @method = @request_method = nil
-      @fullpath = @ip = @remote_ip = nil
+      @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}
       @set_cookies ||= {}
       @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
