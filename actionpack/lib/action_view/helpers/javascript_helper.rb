@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'action_view/helpers/tag_helper'
 
 module ActionView
@@ -19,6 +20,7 @@ module ActionView
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
+          javascript.force_encoding("UTF-8").encode! if javascript.encoding_aware?
           result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/) {|match| JS_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
