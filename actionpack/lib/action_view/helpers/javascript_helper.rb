@@ -20,17 +20,16 @@ module ActionView
         JS_ESCAPE_MAP["\342\200\250"] = '&#x2028;'
       end
 
-      # Escape carrier returns and single and double quotes for JavaScript segments.
+      # Escapes carriage returns and single and double quotes for JavaScript segments.
+      #
       # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
       #
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
-        if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
-          javascript.html_safe? ? result.html_safe : result
-        else
-          ''
-        end
+        return "" if javascript.empty?
+
+        result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
+        javascript.html_safe? ? result.html_safe : result
       end
 
       alias_method :j, :escape_javascript
