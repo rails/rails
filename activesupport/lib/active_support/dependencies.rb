@@ -233,7 +233,9 @@ module ActiveSupport #:nodoc:
       end
 
       def require(file, *)
-        load_dependency(file) { super }
+        result = false
+        load_dependency(file) { result = super }
+        result
       end
 
       # Mark the given constant as unloadable. Unloadable constants are removed each
