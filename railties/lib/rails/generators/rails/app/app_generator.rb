@@ -97,6 +97,7 @@ module Rails
 
     def public_directory
       directory "public", "public", :recursive => false
+      remove_file "public/index.html" if options[:skip_index_html]
     end
 
     def script

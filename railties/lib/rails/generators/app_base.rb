@@ -49,6 +49,9 @@ module Rails
         class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
                                           :desc => "Skip JavaScript files"
 
+        class_option :skip_index_html,    :type => :boolean, :aliases => "-i", :default => false,
+                                          :desc => "Skip public/index.html file"
+
         class_option :dev,                :type => :boolean, :default => false,
                                           :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
