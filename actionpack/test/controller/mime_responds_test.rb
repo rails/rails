@@ -498,7 +498,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
     assert_equal "text/html", @response.content_type
   end
-  
+
   def test_invalid_format
     get :using_defaults, :format => "invalidformat"
     assert_equal " ", @response.body
@@ -785,7 +785,7 @@ class RespondWithControllerTest < ActionController::TestCase
     put :using_resource
     assert_equal "application/xml", @response.content_type
     assert_equal 200, @response.status
-    assert_equal " ", @response.body
+    assert_equal "<name>david</name>", @response.body
   end
 
   def test_using_resource_for_put_with_json_yields_ok_on_success
@@ -794,7 +794,7 @@ class RespondWithControllerTest < ActionController::TestCase
     put :using_resource
     assert_equal "application/json", @response.content_type
     assert_equal 200, @response.status
-    assert_equal "{}", @response.body
+    assert_equal '{"name": "David"}', @response.body
   end
 
   def test_using_resource_for_put_with_xml_yields_unprocessable_entity_on_failure
