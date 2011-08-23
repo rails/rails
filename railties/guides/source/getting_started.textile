@@ -1890,6 +1890,7 @@ h3. Changelog
 
 * April 26, 2011: Change migration code from +up+, +down+ pair to +change+ method by "Prem Sichanugrist":http://sikachu.com
 * April 11, 2011: Change scaffold_controller generator to create format block for JSON instead of XML by "Sebastian Martinez":http://www.wyeworks.com
+* August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
 * May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
