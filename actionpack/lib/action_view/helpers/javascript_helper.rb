@@ -19,7 +19,13 @@ module ActionView
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|\u2028|[\n\r"'])/) {|match| JS_ESCAPE_MAP[match] }
+          if "ruby".encoding_aware?
+            regex = /(\\|<\/|\r\n|\u2028|[\n\r"'])/
+          else
+            regex = /(\\|<\/|\r\n|[\n\r"'])/
+          end
+
+          result = javascript.gsub(regex) {|match| JS_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
           ''
