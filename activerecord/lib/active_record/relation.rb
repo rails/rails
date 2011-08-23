@@ -433,7 +433,7 @@ module ActiveRecord
 
     def inspect(force = false)
       c = count
-      if c > 100 and !force
+      if c > 100 && !force
         "WARNING: #{c} #{@klass} objects would be inspected.\nUse .inspect(true) for an actual inspection."
       else
         to_a.inspect
