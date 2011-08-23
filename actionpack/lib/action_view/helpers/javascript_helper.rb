@@ -11,7 +11,7 @@ module ActionView
         "\r"    => '\n',
         '"'     => '\\"',
         "'"     => "\\'",
-        "\342\200\250" => '&#x2028;' }
+        "\u2028" => '&#x2028;' }
 
       # Escape carrier returns and single and double quotes for JavaScript segments.
       # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
@@ -19,7 +19,7 @@ module ActionView
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|[\n\r"'])/) {|match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|\u2028|[\n\r"'])/) {|match| JS_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
           ''
