@@ -50,6 +50,10 @@ class TestTest < ActionController::TestCase
       render :text => request.query_string
     end
 
+    def test_protocol
+      render :text => request.protocol
+    end
+
     def test_html_output
       render :text => <<HTML
 <html>
@@ -596,6 +600,19 @@ XML
     @request.recycle!
     get :test_params
     assert_nil @request.symbolized_path_parameters[:id]
+  end
+
+  def test_request_protocol_is_reset_after_request
+    get :test_protocol
+    assert_equal "http://", @response.body
+
+    @request.env["HTTPS"] = "on"
+    get :test_protocol
+    assert_equal "https://", @response.body
+
+    @request.env.delete("HTTPS")
+    get :test_protocol
+    assert_equal "http://", @response.body
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
