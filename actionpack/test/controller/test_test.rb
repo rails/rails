@@ -515,6 +515,12 @@ XML
     )
   end
 
+  def test_params_passing_doesnt_modify_in_place
+    page = {:name => "Page name", :month => 4, :year => 2004, :day => 6}
+    get :test_params, :page => page
+    assert_equal 2004, page[:year]
+  end
+
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
     assert_kind_of String, @request.path_parameters['id']
