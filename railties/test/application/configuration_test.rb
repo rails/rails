@@ -525,5 +525,17 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.secret_token'],     app.config.secret_token
       assert_equal      app.env_config['action_dispatch.show_exceptions'],  app.config.action_dispatch.show_exceptions
     end
+
+    test "config.ignore_force_ssl_filter = false in production" do
+      make_basic_app
+      Rails.env = "production"
+      assert_equal  false, app.config.ignore_force_ssl_filter
+    end
+    
+    test "config.ignore_force_ssl_filter = true in non production" do
+      make_basic_app
+      Rails.env = "development"
+      assert_equal  true, app.config.ignore_force_ssl_filter
+    end
   end
 end

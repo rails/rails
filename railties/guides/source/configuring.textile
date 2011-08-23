@@ -84,6 +84,8 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.force_ssl+ forces all requests to be under HTTPS protocol by using +Rack::SSL+ middleware.
 
+* +config.ignore_force_ssl_filter+ ignores the force_ssl controller filter. This option defaults to false for all modes except production.
+
 * +config.log_level+ defines the verbosity of the Rails logger. This option defaults to +:debug+ for all modes except production, where it defaults to +:info+.
 
 * +config.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby +Logger+ class. Defaults to an instance of +ActiveSupport::BufferedLogger+, with auto flushing off in production mode.
