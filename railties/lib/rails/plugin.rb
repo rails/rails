@@ -74,7 +74,8 @@ module Rails
     initializer :load_init_rb, :before => :load_config_initializers do |app|
       init_rb = File.expand_path("init.rb", root)
       if File.file?(init_rb)
-        config = app.config
+        # FIXME: do we call this for side effects??
+        app.config
         # TODO: think about evaling initrb in context of Engine (currently it's
         # always evaled in context of Rails::Application)
         eval(File.read(init_rb), binding, init_rb)

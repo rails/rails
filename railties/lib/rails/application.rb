@@ -55,6 +55,11 @@ module Rails
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
+    def initialize
+      super
+      @initialized = false
+    end
+
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
     # configuration.

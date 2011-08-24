@@ -38,6 +38,8 @@ module I18n
 
   protected
 
+    @i18n_inited = false
+
     # Setup i18n configuration
     def self.initialize_i18n(app)
       return if @i18n_inited
