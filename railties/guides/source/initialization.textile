@@ -1,6 +1,6 @@
 h2. The Rails Initialization Process
 
-This guide explains the internals of the initialization process in Rails works as of Rails 3.1. It is an extremely in-depth guide and recommended for advanced Rails developers.
+This guide explains the internals of the initialization process in Rails as of Rails 3.1. It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 * Using +rails server+
 * Using Passenger
