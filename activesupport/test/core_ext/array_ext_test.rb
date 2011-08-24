@@ -475,3 +475,21 @@ class ArrayPrependAppendTest < Test::Unit::TestCase
     assert_equal [2, 1], [1].prepend(2)
   end
 end
+
+class ArrayExtInclude < Test::Unit::TestCase
+  def test_include_all
+    assert [1,2,3].include_all?(1,2)
+  end
+
+  def test_include_all_false
+    assert ![1,2,3].include_all?(1,4)
+  end
+
+  def test_include_any
+    assert [1,2,3].include_any?(1,5)
+  end
+
+  def test_include_any_false
+    assert ![1,2,3].include_any?(4,5)
+  end
+end
