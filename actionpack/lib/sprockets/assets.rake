@@ -17,12 +17,29 @@ namespace :assets do
       Rails.application.config.action_controller.perform_caching = true
 
       config = Rails.application.config
-      public_asset_path = File.join(Rails.public_path, config.assets.prefix)
-      assets = config.assets.precompile.dup
-      assets << {:to => public_asset_path}
-      manifest = Rails.application.assets.precompile(*assets)
+      env    = Rails.application.assets
+      target = Rails.root.join(File.join('public', config.assets.prefix))
+      manifest = {}
 
-      File.open("#{public_asset_path}/manifest.yml", 'w') do |f|
+      config.assets.precompile.each do |path|
+        env.each_logical_path do |logical_path|
+          if path.is_a?(Regexp)
+            next unless path.match(logical_path)
+          else
+            next unless File.fnmatch(path.to_s, logical_path)
+          end
+
+          if asset = env.find_asset(logical_path)
+            manifest[logical_path] = asset.digest_path
+            filename = target.join(asset.digest_path)
+            mkdir_p filename.dirname
+            asset.write_to(filename)
+            asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
+          end
+        end
+      end
+
+      File.open("#{target}/manifest.yml", 'w') do |f|
         YAML.dump(manifest, f)
       end
     end

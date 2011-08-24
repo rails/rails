@@ -76,6 +76,9 @@ RDoc::Task.new do |rdoc|
     rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
     rdoc_main.gsub!(%r{link:/rails/rails/blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
 
+    # Remove Travis build status image from API pages. Only GitHub README page gets this image
+    rdoc_main.gsub!("http://travis-ci.org/rails/rails.png", "")
+
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)
     end
