@@ -7,12 +7,13 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
                     :cache_classes, :cache_store, :consider_all_requests_local,
-                    :dependency_loading, :encoding, :filter_parameters,
+                    :dependency_loading, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :preload_frameworks,
                     :reload_plugins, :secret_token, :serve_static_assets,
                     :static_cache_control, :session_options, :time_zone, :whiny_nils
 
       attr_writer :log_level
+      attr_reader :encoding
 
       def initialize(*)
         super
