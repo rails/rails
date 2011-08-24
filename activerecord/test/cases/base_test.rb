@@ -1625,6 +1625,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert !LooseDescendant.abstract_class?
   end
 
+  def test_abstract_class_table_name
+    assert_nil AbstractCompany.table_name
+  end
+
   def test_base_class
     assert_equal LoosePerson,     LoosePerson.base_class
     assert_equal LooseDescendant, LooseDescendant.base_class
