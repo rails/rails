@@ -26,7 +26,7 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              javascript_include_tag(dep, :debug => false, :body => true)
+              javascript_include_tag(dep, options.stringify_keys.merge!({ :debug => false, :body => true }))
             }
           else
             super(source.to_s, { 'src' => asset_path(source, 'js', body) }.merge!(options.stringify_keys))
@@ -38,15 +38,14 @@ module Sprockets
         options = sources.extract_options!
         debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body  = options.key?(:body)  ? options.delete(:body)  : false
-        media = options.key?(:media) ? options.delete(:media) : "screen"
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              stylesheet_link_tag(dep, :media => media, :debug => false, :body => true)
+              stylesheet_link_tag(dep, options.stringify_keys.merge!({ :debug => false, :body => true }))
             }
           else
-            super(source.to_s, { 'href' => asset_path(source, 'css', body, :request), 'media' => media }.merge!(options.stringify_keys))
+            super(source.to_s, { 'href' => asset_path(source, 'css', body, :request) }.merge!(options.stringify_keys))
           end
         end.join("\n").html_safe
       end
