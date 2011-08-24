@@ -368,7 +368,8 @@ module ActiveRecord
         return include_in_memory?(record) if record.new_record?
         load_target if @reflection.options[:finder_sql] && !loaded?
         return @target.include?(record) if loaded?
-        exists?(record)
+        return true if exists?(record)
+        include_in_memory?(record)
       end
 
       def proxy_respond_to?(method, include_private = false)
