@@ -17,9 +17,32 @@ namespace :assets do
       Rails.application.config.action_controller.perform_caching = true
 
       config = Rails.application.config
-      assets = config.assets.precompile.dup
-      assets << {:to => File.join(Rails.public_path, config.assets.prefix)}
-      Rails.application.assets.precompile(*assets)
+      env    = Rails.application.assets
+      target = Rails.root.join("public#{config.assets.prefix}")
+
+      if env.respond_to?(:each_logical_path)
+        config.assets.precompile.each do |path|
+          env.each_logical_path do |logical_path|
+            if path.is_a?(Regexp)
+              next unless path.match(logical_path)
+            else
+              next unless File.fnmatch(path.to_s, logical_path)
+            end
+
+            if asset = env.find_asset(logical_path)
+              filename = target.join(asset.digest_path)
+              mkdir_p filename.dirname
+              asset.write_to(filename)
+              asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
+            end
+          end
+        end
+      else
+        # TODO: Remove this once we're depending on sprockets beta 15
+        assets = config.assets.precompile.dup
+        assets << {:to => target}
+        env.precompile(*assets)
+      end
     end
   end
 
