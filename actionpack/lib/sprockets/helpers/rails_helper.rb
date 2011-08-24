@@ -29,12 +29,7 @@ module Sprockets
               javascript_include_tag(dep, :debug => false, :body => true)
             }
           else
-            tag_options = {
-              'type' => "text/javascript",
-              'src'  => asset_path(source, 'js', body)
-            }.merge(options.stringify_keys)
-
-            content_tag 'script', "", tag_options
+            super(source.to_s, { 'src' => asset_path(source, 'js', body) }.merge!(options.stringify_keys))
           end
         end.join("\n").html_safe
       end
@@ -51,14 +46,7 @@ module Sprockets
               stylesheet_link_tag(dep, :media => media, :debug => false, :body => true)
             }
           else
-            tag_options = {
-              'rel'   => "stylesheet",
-              'type'  => "text/css",
-              'media' => media,
-              'href'  => asset_path(source, 'css', body, :request)
-            }.merge(options.stringify_keys)
-
-            tag 'link', tag_options
+            super(source.to_s, { 'href' => asset_path(source, 'css', body, :request), 'media' => media }.merge!(options.stringify_keys))
           end
         end.join("\n").html_safe
       end
