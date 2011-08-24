@@ -1,4 +1,5 @@
 require 'active_support/core_ext/string/encoding'
+require 'active_support/core_ext/kernel/reporting'
 require 'rails/engine/configuration'
 
 module Rails
@@ -53,8 +54,10 @@ module Rails
       def encoding=(value)
         @encoding = value
         if "ruby".encoding_aware?
-          Encoding.default_external = value
-          Encoding.default_internal = value
+          silence_warnings do
+            Encoding.default_external = value
+            Encoding.default_internal = value
+          end
         else
           $KCODE = value
           if $KCODE == "NONE"
