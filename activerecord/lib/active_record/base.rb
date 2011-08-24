@@ -624,6 +624,8 @@ module ActiveRecord #:nodoc:
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
+        return if abstract_class?
+
         self.table_name = compute_table_name
       end
 
