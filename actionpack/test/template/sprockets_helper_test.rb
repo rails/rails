@@ -200,6 +200,9 @@ class SprocketsHelperTest < ActionView::TestCase
     @config.assets.debug = true
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application)
+
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="print" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="print" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag(:application, :media => "print")
   end
 
   test "alternate asset prefix" do

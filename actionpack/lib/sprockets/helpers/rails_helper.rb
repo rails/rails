@@ -43,17 +43,18 @@ module Sprockets
         options = sources.extract_options!
         debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body  = options.key?(:body)  ? options.delete(:body)  : false
+        media = options.key?(:media) ? options.delete(:media) : "screen"
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              stylesheet_link_tag(dep, :debug => false, :body => true)
+              stylesheet_link_tag(dep, :media => media, :debug => false, :body => true)
             }.join("\n").html_safe
           else
             tag_options = {
               'rel'   => "stylesheet",
               'type'  => "text/css",
-              'media' => "screen",
+              'media' => media,
               'href'  => asset_path(source, 'css', body, :request)
             }.merge(options.stringify_keys)
 
