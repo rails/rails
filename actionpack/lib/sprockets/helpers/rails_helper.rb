@@ -27,7 +27,7 @@ module Sprockets
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
               javascript_include_tag(dep, :debug => false, :body => true)
-            }.join("\n").html_safe
+            }
           else
             tag_options = {
               'type' => "text/javascript",
@@ -49,7 +49,7 @@ module Sprockets
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
               stylesheet_link_tag(dep, :media => media, :debug => false, :body => true)
-            }.join("\n").html_safe
+            }
           else
             tag_options = {
               'rel'   => "stylesheet",
