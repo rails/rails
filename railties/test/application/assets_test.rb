@@ -135,5 +135,47 @@ module ApplicationTests
       assert_match "alert();", last_response.body
       assert_equal 200, last_response.status
     end
+
+    test "assets are concatenated when debug is off and allow_debugging is off either if debug_assets param is provided" do
+      app_with_assets_in_view
+
+      # config.assets.debug and config.assets.allow_debugging are false for production environment
+      ENV["RAILS_ENV"] = "production"
+      require "#{app_path}/config/environment"
+
+      class ::PostsController < ActionController::Base ; end
+
+      # the debug_assets params isn't used if allow_debugging is off
+      get '/posts?debug_assets=true'
+      assert_match /<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body
+      assert_not_match /<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body
+    end
+
+    test "assets aren't concatened when allow_debugging is on and debug_assets params is true" do
+      app_with_assets_in_view
+      app_file "config/initializers/allow_debugging.rb", "Rails.application.config.assets.allow_debugging = true"
+
+      ENV["RAILS_ENV"] = "production"
+      require "#{app_path}/config/environment"
+
+      class ::PostsController < ActionController::Base ; end
+
+      get '/posts?debug_assets=true'
+      assert_match /<script src="\/assets\/application-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body
+      assert_match /<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body
+    end
+
+    private
+    def app_with_assets_in_view
+      app_file "app/assets/javascripts/application.js", "//= require_tree ."
+      app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
+      app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match '/posts', :to => "posts#index"
+        end
+      RUBY
+    end
   end
 end
