@@ -314,6 +314,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generated_environments_file_for_sanitizer
+    run_generator [destination_root, "--skip-active-record"]
+    ["config/environments/development.rb", "config/environments/test.rb"].each do |env_file|
+      assert_file env_file do |file|
+        assert_no_match(/config.active_record.mass_assignment_sanitizer = :strict/, file)
+      end
+    end
+  end
+
 protected
 
   def action(*args, &block)
