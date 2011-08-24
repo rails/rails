@@ -421,7 +421,8 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      autoload_once_paths.any? { |base| path.starts_with? base }
+      # to_s works around a ruby1.9 issue where #starts_with?(Pathname) will always return false
+      autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
 
     # Attempt to autoload the provided module name by searching for a directory
