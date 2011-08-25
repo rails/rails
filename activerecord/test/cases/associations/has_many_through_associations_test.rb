@@ -430,6 +430,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) {company.developer_ids= ids}
   end
 
+  def test_collection_singular_ids_with_conditions
+    david = authors(:david)
+    category = david.categories.create :name => "General"
+    other = david.categories.create :name => "other"
+    assert david.categories_like_general_ids.include? category.id
+    assert !david.categories_like_general_ids.include?(other.id)
+  end
+
   def test_build_a_model_from_hm_through_association_with_where_clause
     assert_nothing_raised { books(:awdr).subscribers.where(:nick => "marklazz").build }
   end
