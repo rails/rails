@@ -26,10 +26,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              javascript_include_tag(dep, options.stringify_keys.merge!({ :debug => false, :body => true }))
+              javascript_include_tag(dep, options.merge({ :debug => false, :body => true }))
             }
           else
-            super(source.to_s, { 'src' => asset_path(source, 'js', body) }.merge!(options.stringify_keys))
+            super(source.to_s, { :src => asset_path(source, 'js', body) }.merge!(options))
           end
         end.join("\n").html_safe
       end
@@ -42,10 +42,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              stylesheet_link_tag(dep, options.stringify_keys.merge!({ :debug => false, :body => true }))
+              stylesheet_link_tag(dep, options.merge({ :debug => false, :body => true }))
             }
           else
-            super(source.to_s, { 'href' => asset_path(source, 'css', body, :request) }.merge!(options.stringify_keys))
+            super(source.to_s, { :href => asset_path(source, 'css', body, :request) }.merge!(options))
           end
         end.join("\n").html_safe
       end
