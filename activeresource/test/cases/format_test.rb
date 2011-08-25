@@ -102,6 +102,18 @@ class FormatTest < Test::Unit::TestCase
     end
   end
 
+  def test_remove_root
+    assert_equal @matz, ActiveResource::Formats.remove_root({:person => @matz})
+  end
+
+  def test_remove_root_unwrapped
+    assert_equal @matz, ActiveResource::Formats.remove_root(@matz)
+  end
+
+  def test_remove_root_unwrapped_with_single_key
+    assert_equal({:id => 1}, ActiveResource::Formats.remove_root({:id => 1}))
+  end
+
   private
     def using_format(klass, mime_type_reference)
       previous_format = klass.format
