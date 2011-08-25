@@ -2,8 +2,6 @@
 
 * Added Array#prepend as an alias for Array#unshift and Array#append as an alias for Array#<< [DHH]
 
-* Removed support for using Module#delegate to delegate to non-public methods [Jon Leighton]
-
 * The definition of blank string for Ruby 1.9 has been extended to Unicode whitespace.
 Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira Matsuda, Damien Mathieu]
 
