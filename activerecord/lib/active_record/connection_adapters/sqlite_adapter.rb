@@ -159,10 +159,25 @@ module ActiveRecord
         end
       end
 
-      def type_cast(value, column) # :nodoc:
-        return super unless BigDecimal === value
+      if "<3".encoding_aware?
+        def type_cast(value, column) # :nodoc:
+          return value.to_f if BigDecimal === value
+          return super unless String === value
+          return super unless column && value
 
-        value.to_f
+          value = super
+          if column.type == :string && value.encoding == Encoding::ASCII_8BIT
+            @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
+            value.encode! 'utf-8'
+          end
+          value
+        end
+      else
+        def type_cast(value, column) # :nodoc:
+          return super unless BigDecimal === value
+
+          value.to_f
+        end
       end
 
       # DATABASE STATEMENTS ======================================
