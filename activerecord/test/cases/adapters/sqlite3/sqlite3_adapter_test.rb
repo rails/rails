@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "cases/helper"
+require 'models/owner'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -17,6 +18,21 @@ module ActiveRecord
             number integer
           )
         eosql
+      end
+
+      def test_column_types
+        return skip('only test encoding on 1.9') unless "<3".encoding_aware?
+
+        owner = Owner.create!(:name => "hello".encode('ascii-8bit'))
+        owner.reload
+        select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ', '
+        result = Owner.connection.exec_query <<-esql
+          SELECT #{select}
+          FROM   #{Owner.table_name}
+          WHERE  #{Owner.primary_key} = #{owner.id}
+        esql
+
+        assert(!result.rows.first.include?("blob"), "should not store blobs")
       end
 
       def test_exec_insert
