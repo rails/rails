@@ -101,7 +101,7 @@ module ActiveModel
         end
       end
 
-      # This method is used to define validation that can not be correcterized by end user 
+      # This method is used to define validation that can not be corrected by end user
       # and is considered exceptional. 
       # So each validator defined with bang or <tt>:strict</tt> option set to <tt>true</tt>
       # will always raise <tt>ActiveModel::InternalValidationFailed</tt> instead of adding error
