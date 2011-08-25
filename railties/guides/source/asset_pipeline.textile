@@ -247,7 +247,14 @@ When the +debug_assets+ parameter is set, this line is expanded out into three s
 
 This allows the individual parts of an asset to be rendered and debugged separately.
 
-NOTE. Assets debugging is turned on by default in development and test environments.
+Additionally if the +config.assets.debug+ is set to true you can debug your assets passing the +:debug+ option to the assets tags:
+
+<erb>
+<%= javascript_include_tag :application, :debug => true %>
+</erb>
+
+
+NOTE. Assets debugging is turned on by default in development and test environments. You can set +config.assets.allow_debugging+ to false to turn it off.
 
 h3. In Production
 
