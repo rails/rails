@@ -107,6 +107,8 @@ module ActiveModel
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
       #
       # The following checks can also be supplied with a proc or a symbol which corresponds to a method:
       # * <tt>:greater_than</tt>

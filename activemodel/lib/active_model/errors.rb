@@ -63,7 +63,7 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank]
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
 
     attr_reader :messages
 
@@ -218,6 +218,9 @@ module ActiveModel
       elsif message.is_a?(Proc)
         message = message.call
       end
+      if options[:strict]
+        raise ActiveModel::StrictValidationFailed,  message
+      end
 
       self[attribute] << message
     end
@@ -318,5 +321,8 @@ module ActiveModel
 
       I18n.translate(key, options)
     end
+  end
+
+  class StrictValidationFailed < StandardError
   end
 end
