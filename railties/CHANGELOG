@@ -1,6 +1,17 @@
-*Rails 3.0.10 (unreleased)*
+*Rails 3.0.11 (unreleased)*
+
+* Updated Prototype UJS to lastest version fixing multiples errors in IE [Guillermo Iguaran]
+
+
+*Rails 3.0.10 (August 16, 2011)*
+
+*No changes.
+
 
 *Rails 3.0.9 (June 16, 2011)*
+
+*No changes.
+
 
 *Rails 3.0.8 (June 7, 2011)*
 
