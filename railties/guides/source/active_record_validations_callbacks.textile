@@ -1270,7 +1270,6 @@ The +after_commit+ and +after_rollback+ callbacks are guaranteed to be called fo
 
 h3. Changelog
 
-* August 24, 2011: Add strict validation usage example. "Bogdan Gusiev":http://gusiev.com
 * February 17, 2011: Add description of transaction callbacks.
 * July 20, 2010: Fixed typos and rephrased some paragraphs for clarity. "Jaime Iniesta":http://jaimeiniesta.com
 * May 24, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
