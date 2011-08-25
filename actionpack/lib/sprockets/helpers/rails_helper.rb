@@ -22,35 +22,15 @@ module Sprockets
       end
 
       def javascript_include_tag(*sources)
-        options = sources.extract_options!
-        debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
-        body  = options.key?(:body)  ? options.delete(:body)  : false
-
-        sources.collect do |source|
-          if debug && asset = asset_paths.asset_for(source, 'js')
-            asset.to_a.map { |dep|
-              super(dep.to_s, { :src => asset_path(dep, 'js', true) }.merge!(options))
-            }
-          else
-            super(source.to_s, { :src => asset_path(source, 'js', body) }.merge!(options))
-          end
-        end.join("\n").html_safe
+        debug_enabled_asset_tag(sources, 'js') do |source, body, options|
+          super(source.to_s, {:src => asset_path(source, 'js', body)}.merge!(options))
+        end
       end
 
       def stylesheet_link_tag(*sources)
-        options = sources.extract_options!
-        debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
-        body  = options.key?(:body)  ? options.delete(:body)  : false
-
-        sources.collect do |source|
-          if debug && asset = asset_paths.asset_for(source, 'css')
-            asset.to_a.map { |dep|
-              super(dep.to_s, { :href => asset_path(dep, 'css', true, :request) }.merge!(options))
-            }
-          else
-            super(source.to_s, { :href => asset_path(source, 'css', body, :request) }.merge!(options))
-          end
-        end.join("\n").html_safe
+        debug_enabled_asset_tag(sources, 'css') do |source, body, options|
+          super(source.to_s, {:href => asset_path(source, 'css', body, :request)}.merge!(options))
+        end
       end
 
       def asset_path(source, default_ext = nil, body = false, protocol = nil)
@@ -60,6 +40,20 @@ module Sprockets
       end
 
     private
+      def debug_enabled_asset_tag(sources, ext)
+        options = sources.extract_options!
+        debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
+        body  = options.key?(:body)  ? options.delete(:body)  : false
+
+        sources.collect do |source|
+          if debug && asset = asset_paths.asset_for(source, ext)
+            asset.to_a.map {|dep| yield dep, true, options }
+          else
+            yield source, body, options
+          end
+        end.join("\n").html_safe
+      end
+
       def debug_assets?
         begin
           compile_assets? && (Rails.application.config.assets.debug || params[:debug_assets])
