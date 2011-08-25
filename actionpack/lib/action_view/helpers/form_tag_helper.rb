@@ -177,11 +177,14 @@ module ActionView
       #   label_tag 'name', nil, :class => 'small_label'
       #   # => <label for="name" class="small_label">Name</label>
       def label_tag(name = nil, content_or_options = nil, options = nil, &block)
-        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
-        options ||= {}
-        options = options.stringify_keys
+        if block_given? && content_or_options.is_a?(Hash)
+          options = content_or_options = content_or_options.stringify_keys
+        else
+          options ||= {}
+          options = options.stringify_keys
+        end
         options["for"] = sanitize_to_id(name) unless name.blank? || options.has_key?("for")
-        content_tag :label, content_or_options.is_a?(Hash) ? options : (content_or_options || name.to_s.humanize), options, &block
+        content_tag :label, content_or_options || name.to_s.humanize, options, &block
       end
 
       # Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or
