@@ -183,20 +183,23 @@ Validations module adds the ability to class objects to validate them in Active 
 class Person
   include ActiveModel::Validations
 
-  attr_accessor :name, :email
+  attr_accessor :name, :email, :token
   
   validates :name, :presence => true
   validates_format_of :email, :with => /^([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})$/i  
+  validates! :token, :presence => true
   
 end
 
-person = Person.new
+person = Person.new(:token => "2b1f325")
 person.valid?                        #=> false
 person.name  = 'vishnu'
 person.email  = 'me'
 person.valid?                        #=> false
 person.email = 'me@vishnuatrai.com'
 person.valid?                        #=> true
+person.token = nil
+person.valid?                        #=> raises ActiveModel::StrictValidationFailed
 </ruby>
 
 h3. Changelog

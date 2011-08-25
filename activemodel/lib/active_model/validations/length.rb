@@ -96,6 +96,8 @@ module ActiveModel
       # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
       #   count words as in above example.)
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
+      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end
