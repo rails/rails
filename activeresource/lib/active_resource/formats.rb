@@ -12,7 +12,7 @@ module ActiveResource
     end
 
     def self.remove_root(data)
-      if data.is_a?(Hash) && data.keys.size == 1
+      if data.is_a?(Hash) && data.keys.size == 1 && [Array,Hash].any?{ |c| data.first.last.is_a?(c) }
         data.values.first
       else
         data
