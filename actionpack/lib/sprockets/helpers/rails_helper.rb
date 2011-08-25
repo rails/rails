@@ -58,10 +58,10 @@ module Sprockets
 
     private
       def debug_assets?
-        Rails.application.config.assets.allow_debugging &&
-         (Rails.application.config.assets.debug ||
-          params[:debug_assets] == '1' ||
-          params[:debug_assets] == 'true')
+        config = Rails.application.config.assets
+        param  = params[:debug_assets]
+
+        config.allow_debugging && (config.debug || param == '1' || param == 'true')
       end
 
       # Override to specify an alternative prefix for asset path generation.
