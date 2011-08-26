@@ -200,9 +200,8 @@ key on UpdateManager using UpdateManager#key=
         ""
       end
 
-      # FIXME: this does nothing on SQLLite3, but should do things on other
-      # databases.
       def visit_Arel_Nodes_Lock o
+        visit o.expr
       end
 
       def visit_Arel_Nodes_Grouping o
