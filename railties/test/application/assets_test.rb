@@ -148,7 +148,7 @@ module ApplicationTests
       # the debug_assets params isn't used if allow_debugging is off
       get '/posts?debug_assets=true'
       assert_match /<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body
-      assert_not_match /<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body
+      assert_no_match /<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body
     end
 
     test "assets aren't concatened when allow_debugging is on and debug_assets params is true" do
