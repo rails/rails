@@ -143,6 +143,13 @@ module Arel
           ( SELECT * FROM users WHERE age > 10 MINUS SELECT * FROM users WHERE age > 20 )
         }
       end
+
+      describe 'locking' do
+        it 'defaults to FOR UPDATE when locking' do
+          node = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
+          @visitor.accept(node).must_be_like "FOR UPDATE"
+        end
+      end
     end
   end
 end
