@@ -3,10 +3,6 @@ module Arel
     class Oracle < Arel::Visitors::ToSql
       private
 
-      def visit_Arel_Nodes_Lock o
-        visit o.expr
-      end
-
       def visit_Arel_Nodes_SelectStatement o
         o = order_hacks(o)
 

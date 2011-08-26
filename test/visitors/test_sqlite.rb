@@ -13,6 +13,11 @@ module Arel
         sql = @visitor.accept(stmt)
         sql.must_be_like "SELECT LIMIT -1 OFFSET 1"
       end
+
+      it 'does not support locking' do
+        node = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
+        @visitor.accept(node).must_be_nil
+      end
     end
   end
 end

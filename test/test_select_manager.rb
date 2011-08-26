@@ -454,7 +454,7 @@ module Arel
       it 'adds a lock node' do
         table   = Table.new :users
         mgr = table.from table
-        mgr.lock.to_sql.must_be_like %{ SELECT FROM "users" }
+        mgr.lock.to_sql.must_be_like %{ SELECT FROM "users" FOR UPDATE }
       end
     end
 
