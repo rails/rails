@@ -21,7 +21,7 @@ gem "mocha", ">= 0.9.8"
 
 group :doc do
   gem "rdoc",  "~> 3.4"
-  gem "horo",  "= 1.0.3"
+  gem "sdoc",  "~> 0.3"
   gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
   gem "w3c_validators"
 end
