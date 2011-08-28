@@ -1,5 +1,17 @@
 *Rails 3.1.0 (unreleased)*
 
+* ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now
+return the value from `super` [Aaron Patterson]
+
+* Fixed ActiveSupport::Gzip to work properly in Ruby 1.8 [Guillermo Iguaran]
+
+* Kernel.require_library_or_gem was deprecated and will be removed in Rails 3.2.0 [Josh Kalderimis]
+
+* ActiveSupport::Duration#duplicable? was fixed for Ruby 1.8 [thedarkone]
+
+* ActiveSupport::BufferedLogger set log encoding to BINARY, but still use text
+mode to output portable newlines. [fxn]
+
 * ActiveSupport::Dependencies now raises NameError if it finds an existing constant in load_missing_constant. This better reflects the nature of the error which is usually caused by calling constantize on a nested constant. [Andrew White]
 
 * Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library [Jon Leighton]
