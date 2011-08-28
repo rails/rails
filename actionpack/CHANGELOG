@@ -30,6 +30,8 @@
 
 *Rails 3.1.0 (unreleased)*
 
+* Param values are `paramified` in controller tests. [David Chelimsky]
+
 * x_sendfile_header now defaults to nil and config/environments/production.rb doesn't set a particular value for it. This allows servers to set it through X-Sendfile-Type. [Santiago Pastorino]
 
 * The submit form helper does not generate an id "object_name_id" anymore. [fbrusatti]

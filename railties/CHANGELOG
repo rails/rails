@@ -12,6 +12,19 @@
 
 *Rails 3.1.0 (unreleased)*
 
+* The default database schema file is written as UTF-8. [Aaron Patterson]
+
+* Generated apps with --dev or --edge flags depend on git versions of
+sass-rails and coffee-rails. [Santiago Pastorino]
+
+* Rack::Sendfile middleware is used only if x_sendfile_header is present. [Santiago Pastorino]
+
+* Add JavaScript Runtime name to the Rails Info properties. [DHH]
+
+* Make pp enabled by default in Rails console. [Akira Matsuda]
+
+* Add alias `r` for rails runner. [Jordi Romero]
+
 * Make sprockets/railtie require explicit and add --skip-sprockets to app generator [José Valim]
 
 * Added Rails.groups that automatically handles Rails.env and ENV["RAILS_GROUPS"] [José Valim]
