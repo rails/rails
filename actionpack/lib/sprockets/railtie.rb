@@ -74,7 +74,7 @@ module Sprockets
           Closure::Compiler.new
         when :uglifier
           require 'uglifier'
-          Uglifier.new
+          Uglifier.new(:mangle => false)
         when :yui
           require 'yui/compressor'
           YUI::JavaScriptCompressor.new
