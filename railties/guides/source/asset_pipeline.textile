@@ -30,7 +30,7 @@ It is recommended that you use the defaults for all new apps.
 
 h4. Main Features
 
-The first feature of the pipeline is to concatenate assets. This is important in a production environment, as it reduces the number of requests that a browser must make to render a web page. While Rails already has a feature to concatenate these types of assetsi -- by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+ -- many people do not use it.
+The first feature of the pipeline is to concatenate assets. This is important in a production environment, as it reduces the number of requests that a browser must make to render a web page. While Rails already has a feature to concatenate these types of assets -- by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+ -- many people do not use it.
 
 The default behavior in Rails 3.1 and onward is to concatenate all files into one master file each for JS and CSS. However, you can separate files or groups of files if required (see below). In production, an MD5 fingerprint is inserted into each filename so that the file is cached by the web browser but can be invalidated if the fingerprint is altered.
 
@@ -135,7 +135,7 @@ Otherwise, Sprockets looks through the available paths until it finds a file tha
 If you want to use a "css data URI":http://en.wikipedia.org/wiki/Data_URI_scheme -- a method of embedding the image data directly into the CSS file -- you can use the +asset_data_uri+ helper.
 
 <plain>
-#logo { background: url(<%= asset_data_uri 'logo.png' %>)
+#logo { background: url(<%= asset_data_uri 'logo.png' %>) }
 </plain>
 
 This inserts a correctly-formatted data URI into the CSS source.
@@ -145,7 +145,7 @@ h5. CSS and ERB
 If you add an +erb+ extension to a CSS asset, making it something such as +application.css.erb+, then you can use the +asset_path+ helper in your CSS rules:
 
 <plain>
-.class{background-image:<%= asset_path 'image.png' %>}
+.class { background-image: <%= asset_path 'image.png' %> }
 </plain>
 
 This writes the path to the particular asset being referenced. In this example, it would make sense to have an image in one of the asset load paths, such as +app/assets/images/image.png+, which would be referenced here. If this image is already available in +public/assets+ as a fingerprinted file, then that path is referenced.
@@ -277,7 +277,7 @@ Rails comes bundled with a rake task to compile the manifests to files on disc. 
 The rake task is:
 
 <plain>
-rake assets:precompile
+bundle exec rake assets:precompile
 </plain>
 
 Capistrano (v2.8.0+) has a recipe to handle this in deployment. Add the following line to +Capfile+:
