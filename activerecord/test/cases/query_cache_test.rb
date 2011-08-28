@@ -36,7 +36,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
     assert_raises(RuntimeError) { mw.call({}) }
 
-    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
   end
 
   def test_middleware_delegates
