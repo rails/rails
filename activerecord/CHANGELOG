@@ -1,5 +1,11 @@
 *Rails 3.2.0 (unreleased)*
 
+* Add first_or_create, first_or_create!, first_or_build and first_or_new methods to Active Record. This is a better approach over the old find_or_create_by dynamic methods because it's clearer which arguments are used to find the record and which are used to create it:
+
+    User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson", :hot => true)
+    
+  [Andrés Mejía]
+
 * Support bulk change_table in mysql2 adapter, as well as the mysql one. [Jon Leighton]
 
 * If multiple parameters are sent representing a date, and some are blank, the
