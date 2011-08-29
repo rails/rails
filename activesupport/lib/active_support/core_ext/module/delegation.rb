@@ -126,16 +126,39 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
-      module_eval(<<-EOS, file, line - 1)
-        def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
-          #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
-        rescue NoMethodError                                # rescue NoMethodError
-          if #{to}.nil?                                     #   if client.nil?
-            #{on_nil}                                       #     return # depends on :allow_nil
-          else                                              #   else
-            raise                                           #     raise
-          end                                               #   end
-        end                                                 # end
+      if method.to_s =~ /[^]]=/
+        deprecation = <<-DEPRECATION
+          if args.length > 1
+            ActiveSupport::Deprecation.warn(
+              'Writer methods should only accept one argument. Support ' +
+              'for multiple arguments will be removed in the future.', caller)
+          end
+        DEPRECATION
+
+        definition = "args"
+      else
+        deprecation = ""
+        definition = "*args, &block"
+      end
+
+      module_eval(<<-EOS, file, line - 2)
+        def #{prefix}#{method}(#{definition})                                    # def customer_name(*args, &block)
+          #{deprecation}                                                         #
+          #{to}.#{method}(#{definition})                                         #   client.name(*args, &block)
+        rescue NoMethodError => e                                                # rescue NoMethodError => e
+          begin                                                                  #   begin
+            #{to}.__send__(#{method.inspect}, #{definition})                     #     client.__send__(:name, *args, &block)
+          rescue NoMethodError                                                   #   rescue NoMethodError
+            if #{to}.nil?                                                        #     if client.nil?
+              #{on_nil}                                                          #       return # depends on :allow_nil
+            else                                                                 #     else
+              raise(e)                                                           #       raise(e)
+            end                                                                  #     end
+          else                                                                   #   else
+            ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
+              'Delegating to private methods is deprecated.', caller)            #       'Delegating to private methods is deprecated.', caller)
+          end                                                                    #   end
+        end                                                                      # end
       EOS
     end
   end
