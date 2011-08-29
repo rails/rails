@@ -34,6 +34,16 @@ class Someone < Struct.new(:name, :place)
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
+
+  private
+  def something_private
+    "PRIVATE"
+  end
+
+  protected
+  def something_protected
+    "PROTECTED"
+  end
 end
 
 Invoice   = Struct.new(:client) do
@@ -52,6 +62,7 @@ end
 
 Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
+  delegate :something_private, :something_protected, :to => :client
 end
 
 class Name
@@ -62,7 +73,7 @@ class Name
   end
 end
 
-class ModuleTest < Test::Unit::TestCase
+class ModuleTest < ActiveSupport::TestCase
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
   end
@@ -87,6 +98,18 @@ class ModuleTest < Test::Unit::TestCase
     end
     assert_raise(ArgumentError) do
       Name.send :delegate, :noplace, :tos => :hollywood
+    end
+  end
+
+  def test_deprecates_delegation_to_private_methods
+    assert_deprecated do
+      Tester.new(@david).something_private
+    end
+  end
+
+  def test_deprecates_delegation_to_protected_methods
+    assert_deprecated do
+      Tester.new(@david).something_protected
     end
   end
 
