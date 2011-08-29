@@ -35,6 +35,10 @@ class Someone < Struct.new(:name, :place)
   FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
 
+  def raises_no_method_error
+    raise NoMethodError.new("no method!", :fizzle)
+  end
+
   def occupation=(a, b)
     "WRITER"
   end
@@ -42,6 +46,10 @@ class Someone < Struct.new(:name, :place)
   private
   def something_private
     "PRIVATE"
+  end
+
+  def raises_no_method_error_in_private
+    raise NoMethodError.new("no method!", :foodle)
   end
 
   protected
@@ -67,6 +75,7 @@ end
 Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
   delegate :something_private, :something_protected, :occupation=, :to => :client
+  delegate :raises_no_method_error, :raises_no_method_error_in_private, :to => :client
 end
 
 class Name
@@ -121,6 +130,22 @@ class ModuleTest < ActiveSupport::TestCase
     assert_deprecated do
       assert_equal "WRITER", Tester.new(@david).send(:occupation=, 1, 2)
     end
+  end
+
+  def test_does_not_swallow_no_method_errors
+    error = assert_raise(NoMethodError) do
+      Tester.new(@david).raises_no_method_error
+    end
+
+    assert_equal :fizzle, error.name
+  end
+
+  def test_does_not_swallow_no_method_errors_from_private_methods
+    error = assert_raise(NoMethodError) do
+      Tester.new(@david).raises_no_method_error_in_private
+    end
+
+    assert_equal :foodle, error.name
   end
 
   def test_delegation_prefix
