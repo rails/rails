@@ -9,6 +9,13 @@ module ActiveRecord
         assert_equal Object, coder.object_class
       end
 
+      def test_type_mismatch_on_different_classes_on_dump
+        coder = YAMLColumn.new(Array)
+        assert_raises(SerializationTypeMismatch) do
+          coder.dump("a")
+        end
+      end
+
       def test_type_mismatch_on_different_classes
         coder = YAMLColumn.new(Array)
         assert_raises(SerializationTypeMismatch) do
