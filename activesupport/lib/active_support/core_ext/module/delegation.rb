@@ -147,7 +147,7 @@ class Module
           #{to}.#{method}(#{definition})                                         #   client.name(*args, &block)
         rescue NoMethodError => e                                                # rescue NoMethodError => e
           begin                                                                  #   begin
-            #{to}.__send__(#{method.inspect}, #{definition})                     #     client.__send__(:name, *args, &block)
+            result = #{to}.__send__(#{method.inspect}, #{definition})            #     result = client.__send__(:name, *args, &block)
           rescue NoMethodError                                                   #   rescue NoMethodError
             if #{to}.nil?                                                        #     if client.nil?
               #{on_nil}                                                          #       return # depends on :allow_nil
@@ -157,6 +157,7 @@ class Module
           else                                                                   #   else
             ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
               'Delegating to non-public methods is deprecated.', caller)         #       'Delegating to non-public methods is deprecated.', caller)
+            result                                                               #     result
           end                                                                    #   end
         end                                                                      # end
       EOS

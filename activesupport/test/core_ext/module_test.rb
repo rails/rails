@@ -103,13 +103,13 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_deprecates_delegation_to_private_methods
     assert_deprecated do
-      Tester.new(@david).something_private
+      assert_equal "PRIVATE", Tester.new(@david).something_private
     end
   end
 
   def test_deprecates_delegation_to_protected_methods
     assert_deprecated do
-      Tester.new(@david).something_protected
+      assert_equal "PROTECTED", Tester.new(@david).something_protected
     end
   end
 
