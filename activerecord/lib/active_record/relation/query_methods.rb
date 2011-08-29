@@ -254,22 +254,18 @@ module ActiveRecord
 
       association_joins         = buckets['association_join'] || []
       stashed_association_joins = buckets['stashed_join'] || []
-      join_nodes                = buckets['join_node'] || []
+      join_nodes                = (buckets['join_node'] || []).uniq
       string_joins              = (buckets['string_join'] || []).map { |x|
         x.strip
       }.uniq
 
-      join_list = custom_join_ast(manager, string_joins)
+      join_list = join_nodes + custom_join_ast(manager, string_joins)
 
       join_dependency = ActiveRecord::Associations::JoinDependency.new(
         @klass,
         association_joins,
         join_list
       )
-
-      join_nodes.each do |join|
-        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
-      end
 
       join_dependency.graft(*stashed_association_joins)
 
@@ -280,7 +276,6 @@ module ActiveRecord
         association.join_to(manager)
       end
 
-      manager.join_sources.concat join_nodes.uniq
       manager.join_sources.concat join_list
 
       manager
