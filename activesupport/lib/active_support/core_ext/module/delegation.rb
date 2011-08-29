@@ -152,8 +152,10 @@ class Module
           <<-EOS
             if args.length > 1 || block_given?                                     #   if args.length > 1 || block_given?
               ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
-                'Writer methods should only accept one argument. Support ' +       #       'Writer methods should only accept one argument. Support ' +
-                'for multiple arguments will be removed in the future.', caller)   #       'for multiple arguments will be removed in the future.', caller)
+                "Support for using Module#delegate with writer methods and " +     #       "Support for using Module#delegate with writer methods and " +
+                "multiple arguments, or block arguments, is going to be " +        #       "multiple arguments, or block arguments, is going to be " +
+                "removed. If you need this functionality, please define your " +   #       "removed. If you need this functionality, please define your " +
+                "own delegation manually.", caller)                                #       "own delegation manually.", caller)
               #{to}.__send__(#{method_name}, *args, &block)                        #     client.__send__(:invoices=, *args, &block)
             else                                                                   #   else
               #{to}.#{method}(args.first)                                          #     client.invoices=(args.first)
