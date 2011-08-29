@@ -60,6 +60,14 @@ Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
 end
 
+class ParameterSet
+  delegate :[], :[]=, :to => :@params
+
+  def initialize
+    @params = {:foo => "bar"}
+  end
+end
+
 class Name
   delegate :upcase, :to => :@full_name
 
@@ -81,6 +89,17 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_to_assignment_method
     @david.place_name = "Fred"
     assert_equal "Fred", @david.place.name
+  end
+
+  def test_delegation_to_index_get_method
+    @params = ParameterSet.new
+    assert_equal "bar", @params[:foo]
+  end
+
+  def test_delegation_to_index_set_method
+    @params = ParameterSet.new
+    @params[:foo] = "baz"
+    assert_equal "baz", @params[:foo]
   end
 
   def test_delegation_down_hierarchy
