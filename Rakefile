@@ -93,6 +93,7 @@ RDoc::Task.new do |rdoc|
   rdoc.options << '-f' << 'sdoc'
   rdoc.options << '-T' << 'rails'
   rdoc.options << '-c' << 'utf-8'
+  rdoc.options << '-g' # SDoc flag, link methods to GitHub
   rdoc.options << '-m' << RDOC_MAIN
 
   rdoc.rdoc_files.include('railties/CHANGELOG')
