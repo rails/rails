@@ -1849,7 +1849,7 @@ MSG
 
         ensure_proper_type
         populate_with_current_scope_attributes
-        clear_timestamp_attributes
+        super
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
@@ -2111,14 +2111,6 @@ MSG
 
         self.class.scope_attributes.each do |att,value|
           send("#{att}=", value) if respond_to?("#{att}=")
-        end
-      end
-
-      # Clear attributes and changed_attributes
-      def clear_timestamp_attributes
-        all_timestamp_attributes_in_model.each do |attribute_name|
-          self[attribute_name] = nil
-          changed_attributes.delete(attribute_name)
         end
       end
   end
