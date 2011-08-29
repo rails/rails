@@ -821,4 +821,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert person.posts.loaded?, 'person.posts should be loaded'
     assert_equal [], person.posts
   end
+
+  def test_explicitly_joining_join_table
+    assert_equal owners(:blackbeard).toys, owners(:blackbeard).toys.with_pet
+  end
 end
