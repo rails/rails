@@ -26,7 +26,7 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              javascript_include_tag(dep, options.merge({ :debug => false, :body => true }))
+              super(dep.to_s, { :src => asset_path(dep, 'js', true) }.merge!(options))
             }
           else
             super(source.to_s, { :src => asset_path(source, 'js', body) }.merge!(options))
@@ -42,7 +42,7 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              stylesheet_link_tag(dep, options.merge({ :debug => false, :body => true }))
+              super(dep.to_s, { :href => asset_path(dep, 'css', true, :request) }.merge!(options))
             }
           else
             super(source.to_s, { :href => asset_path(source, 'css', body, :request) }.merge!(options))
