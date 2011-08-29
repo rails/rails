@@ -35,7 +35,17 @@ class Someone < Struct.new(:name, :place)
   FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
 
+  def raise_calls
+    @raise_calls
+  end
+
+  def initialize(*args)
+    @raise_calls = 0
+    super
+  end
+
   def raises_no_method_error
+    @raise_calls += 1
     raise NoMethodError.new("no method!", :fizzle)
   end
 
@@ -49,6 +59,7 @@ class Someone < Struct.new(:name, :place)
   end
 
   def raises_no_method_error_in_private
+    @raise_calls += 1
     raise NoMethodError.new("no method!", :foodle)
   end
 
@@ -133,19 +144,25 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_does_not_swallow_no_method_errors
+    @tester = Tester.new(@david)
+
     error = assert_raise(NoMethodError) do
-      Tester.new(@david).raises_no_method_error
+      @tester.raises_no_method_error
     end
 
     assert_equal :fizzle, error.name
+    assert_equal 1, @david.raise_calls
   end
 
   def test_does_not_swallow_no_method_errors_from_private_methods
+    @tester = Tester.new(@david)
+
     error = assert_raise(NoMethodError) do
-      Tester.new(@david).raises_no_method_error_in_private
+      @tester.raises_no_method_error_in_private
     end
 
     assert_equal :foodle, error.name
+    assert_equal 1, @david.raise_calls
   end
 
   def test_delegation_prefix

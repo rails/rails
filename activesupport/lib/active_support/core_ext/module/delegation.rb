@@ -145,9 +145,11 @@ class Module
           def #{prefix}#{method}(*args, &block)                                    # def customer_name(*args, &block)
             #{to}.#{method}(*args, &block)                                         #   client.name(*args, &block)
           rescue NoMethodError => e                                                # rescue NoMethodError => e
+            raise unless e.name == #{method.inspect}                               #   raise unless e.name == :name
             begin                                                                  #   begin
               result = #{to}.__send__(#{method.inspect}, *args, &block)            #     result = client.__send__(:name, *args, &block)
-            rescue NoMethodError                                                   #   rescue NoMethodError
+            rescue NoMethodError => e2                                             #   rescue NoMethodError => e2
+              raise unless e2.name == #{method.inspect}                            #     raise unless e2.name == :name
               if #{to}.nil?                                                        #     if client.nil?
                 #{on_nil}                                                          #       return # depends on :allow_nil
               else                                                                 #     else
