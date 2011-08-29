@@ -126,10 +126,28 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
-      if method.to_s =~ /[^\]]=/
-        # The method is an attribute writer, so we can't do `method=(*args)`.
-        module_eval(<<-EOS, file, line - 2)
-          def #{prefix}#{method}(*args, &block)                                    # def customer_name(*args, &block)
+      rescue_clause = <<-EOS
+        rescue NoMethodError => e                                                # rescue NoMethodError => e
+          raise unless e.name == #{method.inspect}                               #   raise unless e.name == :name
+          begin                                                                  #   begin
+            result = #{to}.__send__(#{method.inspect}, *args, &block)            #     result = client.__send__(:name, *args, &block)
+          rescue NoMethodError => e2                                             #   rescue NoMethodError => e2
+            raise unless e2.name == #{method.inspect}                            #     raise unless e2.name == :name
+            if #{to}.nil?                                                        #     if client.nil?
+              #{on_nil}                                                          #       return # depends on :allow_nil
+            else                                                                 #     else
+              raise(e)                                                           #       raise(e)
+            end                                                                  #     end
+          else                                                                   #   else
+            ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
+              'Delegating to non-public methods is deprecated.', caller)         #       'Delegating to non-public methods is deprecated.', caller)
+            result                                                               #     result
+          end                                                                    #   end
+      EOS
+
+      method_body =
+        if method.to_s =~ /[^\]]=/
+          <<-EOS
             if args.length > 1 || block_given?                                     #   if args.length > 1 || block_given?
               ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
                 'Writer methods should only accept one argument. Support ' +       #       'Writer methods should only accept one argument. Support ' +
@@ -138,47 +156,19 @@ class Module
             else                                                                   #   else
               #{to}.#{method}(args.first)                                          #     client.invoices=(args.first)
             end                                                                    #   end
-          rescue NoMethodError => e                                                # rescue NoMethodError => e
-            raise unless e.name == #{method.inspect}                               #   raise unless e.name == :name
-            begin                                                                  #   begin
-              result = #{to}.__send__(#{method.inspect}, *args, &block)            #     result = client.__send__(:name, *args, &block)
-            rescue NoMethodError => e2                                             #   rescue NoMethodError => e2
-              raise unless e2.name == #{method.inspect}                            #     raise unless e2.name == :name
-              if #{to}.nil?                                                        #     if client.nil?
-                #{on_nil}                                                          #       return # depends on :allow_nil
-              else                                                                 #     else
-                raise(e)                                                           #       raise(e)
-              end                                                                  #     end
-            else                                                                   #   else
-              ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
-                'Delegating to non-public methods is deprecated.', caller)         #       'Delegating to non-public methods is deprecated.', caller)
-              result                                                               #     result
-            end                                                                    #   end
-          end                                                                      # end
-        EOS
-      else
-        module_eval(<<-EOS, file, line - 1)
-          def #{prefix}#{method}(*args, &block)                                    # def customer_name(*args, &block)
+          EOS
+        else
+          <<-EOS
             #{to}.#{method}(*args, &block)                                         #   client.name(*args, &block)
-          rescue NoMethodError => e                                                # rescue NoMethodError => e
-            raise unless e.name == #{method.inspect}                               #   raise unless e.name == :name
-            begin                                                                  #   begin
-              result = #{to}.__send__(#{method.inspect}, *args, &block)            #     result = client.__send__(:name, *args, &block)
-            rescue NoMethodError => e2                                             #   rescue NoMethodError => e2
-              raise unless e2.name == #{method.inspect}                            #     raise unless e2.name == :name
-              if #{to}.nil?                                                        #     if client.nil?
-                #{on_nil}                                                          #       return # depends on :allow_nil
-              else                                                                 #     else
-                raise(e)                                                           #       raise(e)
-              end                                                                  #     end
-            else                                                                   #   else
-              ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
-                'Delegating to non-public methods is deprecated.', caller)         #       'Delegating to non-public methods is deprecated.', caller)
-              result                                                               #     result
-            end                                                                    #   end
-          end                                                                      # end
-        EOS
-      end
+          EOS
+        end
+
+      module_eval(<<-EOS, file, line - 1)
+        def #{prefix}#{method}(*args, &block)                                    # def customer_name(*args, &block)
+          #{method_body}
+          #{rescue_clause}
+        end                                                                      # end
+      EOS
     end
   end
 end
