@@ -954,6 +954,8 @@ module ActiveRecord
       end
 
       module Utils
+        extend self
+
         # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
         # +schema_name+ is nil if not specified in +name+.
         # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
@@ -964,7 +966,7 @@ module ActiveRecord
         # * <tt>schema_name.table_name</tt>
         # * <tt>schema_name."table.name"</tt>
         # * <tt>"schema.name"."table name"</tt>
-        def self.extract_schema_and_table(name)
+        def extract_schema_and_table(name)
           table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
           [schema, table]
         end
