@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/blank'
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
-      class Column < ConnectionAdapters::Column
+      class Column < ConnectionAdapters::Column # :nodoc:
         def extract_default(default)
           if sql_type =~ /blob/i || type == :text
             if default.blank?
@@ -23,7 +23,24 @@ module ActiveRecord
           super
         end
 
+        # Must return the relevant concrete adapter
+        def adapter
+          raise NotImplementedError
+        end
+
         private
+
+        def simplified_type(field_type)
+          return :boolean if adapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
+
+          case field_type
+          when /enum/i, /set/i then :string
+          when /year/i         then :integer
+          when /bit/i          then :binary
+          else
+            super
+          end
+        end
 
         def extract_limit(sql_type)
           case sql_type

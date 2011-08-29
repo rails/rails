@@ -21,22 +21,10 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
+
       class Column < AbstractMysqlAdapter::Column # :nodoc:
-        BOOL = "tinyint(1)"
-
-        private
-
-        # FIXME: Combine with the mysql version and move to abstract adapter
-        def simplified_type(field_type)
-          return :boolean if Mysql2Adapter.emulate_booleans && field_type.downcase.index(BOOL)
-
-          case field_type
-          when /enum/i, /set/i then :string
-          when /year/i         then :integer
-          when /bit/i          then :binary
-          else
-            super
-          end
+        def adapter
+          Mysql2Adapter
         end
       end
 

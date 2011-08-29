@@ -59,6 +59,7 @@ module ActiveRecord
     # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
     #
     class MysqlAdapter < AbstractMysqlAdapter
+
       class Column < AbstractMysqlAdapter::Column #:nodoc:
         def self.string_to_time(value)
           return super unless Mysql::Time === value
@@ -82,13 +83,8 @@ module ActiveRecord
           new_date(v.year, v.month, v.day)
         end
 
-        private
-
-        # FIXME: Combine with the mysql2 version and move to abstract adapter
-        def simplified_type(field_type)
-          return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
-          return :string  if field_type =~ /enum/i
-          super
+        def adapter
+          MysqlAdapter
         end
       end
 
