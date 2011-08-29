@@ -119,6 +119,8 @@ class Module
     line = line.to_i
 
     methods.each do |method|
+      method_name = ":#{method}"
+
       on_nil =
         if options[:allow_nil]
           'return'
@@ -128,11 +130,11 @@ class Module
 
       rescue_clause = <<-EOS
         rescue NoMethodError => e                                                # rescue NoMethodError => e
-          raise unless e.name == #{method.inspect}                               #   raise unless e.name == :name
+          raise unless e.name == #{method_name}                                  #   raise unless e.name == :name
           begin                                                                  #   begin
-            result = #{to}.__send__(#{method.inspect}, *args, &block)            #     result = client.__send__(:name, *args, &block)
+            result = #{to}.__send__(#{method_name}, *args, &block)               #     result = client.__send__(:name, *args, &block)
           rescue NoMethodError => e2                                             #   rescue NoMethodError => e2
-            raise unless e2.name == #{method.inspect}                            #     raise unless e2.name == :name
+            raise unless e2.name == #{method_name}                               #     raise unless e2.name == :name
             if #{to}.nil?                                                        #     if client.nil?
               #{on_nil}                                                          #       return # depends on :allow_nil
             else                                                                 #     else
@@ -152,7 +154,7 @@ class Module
               ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
                 'Writer methods should only accept one argument. Support ' +       #       'Writer methods should only accept one argument. Support ' +
                 'for multiple arguments will be removed in the future.', caller)   #       'for multiple arguments will be removed in the future.', caller)
-              #{to}.__send__(#{method.inspect}, *args, &block)                     #     client.__send__(:invoices=, *args, &block)
+              #{to}.__send__(#{method_name}, *args, &block)                        #     client.__send__(:invoices=, *args, &block)
             else                                                                   #   else
               #{to}.#{method}(args.first)                                          #     client.invoices=(args.first)
             end                                                                    #   end
