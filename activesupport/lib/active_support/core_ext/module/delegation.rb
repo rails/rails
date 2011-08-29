@@ -126,7 +126,7 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
-      if method.to_s =~ /[^]]=/
+      if method.to_s =~ /[^\]]=/
         # The method is an attribute writer, so we can't do `method=(*args)`.
         module_eval(<<-EOS, file, line - 2)
           def #{prefix}#{method}(*args, &block)                                    # def customer_name(*args, &block)
