@@ -35,6 +35,9 @@ class Someone < Struct.new(:name, :place)
   FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
 
+  def occupation=(a, b)
+  end
+
   private
   def something_private
     "PRIVATE"
@@ -62,7 +65,7 @@ end
 
 Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
-  delegate :something_private, :something_protected, :to => :client
+  delegate :something_private, :something_protected, :occupation=, :to => :client
 end
 
 class Name
@@ -110,6 +113,12 @@ class ModuleTest < ActiveSupport::TestCase
   def test_deprecates_delegation_to_protected_methods
     assert_deprecated do
       assert_equal "PROTECTED", Tester.new(@david).something_protected
+    end
+  end
+
+  def test_deprecates_delegation_to_attr_writer_with_multiple_args
+    assert_deprecated do
+      Tester.new(@david).send(:occupation=, 1, 2)
     end
   end
 
