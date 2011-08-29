@@ -97,11 +97,6 @@ module ActiveRecord
         connect
       end
 
-      # FIXME: Move to abstract adapter
-      def supports_bulk_alter? #:nodoc:
-        true
-      end
-
       # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
@@ -310,48 +305,6 @@ module ActiveRecord
         exec_without_stmt "BEGIN"
       rescue Mysql::Error
         # Transactions aren't supported
-      end
-
-      # SCHEMA STATEMENTS ========================================
-
-      def bulk_change_table(table_name, operations) #:nodoc:
-        sqls = operations.map do |command, args|
-          table, arguments = args.shift, args
-          method = :"#{command}_sql"
-
-          if respond_to?(method)
-            send(method, table, *arguments)
-          else
-            raise "Unknown method called : #{method}(#{arguments.inspect})"
-          end
-        end.flatten.join(", ")
-
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
-      end
-
-      protected
-
-      def remove_column_sql(table_name, *column_names)
-        columns_for_remove(table_name, *column_names).map {|column_name| "DROP #{column_name}" }
-      end
-      alias :remove_columns_sql :remove_column
-
-      def add_index_sql(table_name, column_name, options = {})
-        index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
-        "ADD #{index_type} INDEX #{index_name} (#{index_columns})"
-      end
-
-      def remove_index_sql(table_name, options = {})
-        index_name = index_name_for_remove(table_name, options)
-        "DROP INDEX #{index_name}"
-      end
-
-      def add_timestamps_sql(table_name)
-        [add_column_sql(table_name, :created_at, :datetime), add_column_sql(table_name, :updated_at, :datetime)]
-      end
-
-      def remove_timestamps_sql(table_name)
-        [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
       end
 
       private

@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Support bulk change_table in mysql2 adapter, as well as the mysql one. [Jon Leighton]
+
 * If multiple parameters are sent representing a date, and some are blank, the
 resulting object is nil. In previous releases those values defaulted to 1. This
 only affects existing but blank parameters, missing ones still raise an error.
