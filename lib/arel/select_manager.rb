@@ -51,7 +51,7 @@ module Arel
       if $VERBOSE
         warn "(#{caller.first}) where_clauses is deprecated and will be removed in arel 3.0.0 with no replacement"
       end
-      to_sql = Visitors::ToSql.new @engine
+      to_sql = Visitors::ToSql.new @engine.connection_pool
       @ctx.wheres.map { |c| to_sql.accept c }
     end
 
