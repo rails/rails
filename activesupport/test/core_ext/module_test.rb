@@ -36,6 +36,7 @@ class Someone < Struct.new(:name, :place)
   delegate :foo, :to => :place
 
   def occupation=(a, b)
+    "WRITER"
   end
 
   private
@@ -118,7 +119,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_deprecates_delegation_to_attr_writer_with_multiple_args
     assert_deprecated do
-      Tester.new(@david).send(:occupation=, 1, 2)
+      assert_equal "WRITER", Tester.new(@david).send(:occupation=, 1, 2)
     end
   end
 
