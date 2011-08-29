@@ -156,7 +156,7 @@ class Module
             end                                                                  #     end
           else                                                                   #   else
             ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
-              'Delegating to private methods is deprecated.', caller)            #       'Delegating to private methods is deprecated.', caller)
+              'Delegating to non-public methods is deprecated.', caller)         #       'Delegating to non-public methods is deprecated.', caller)
           end                                                                    #   end
         end                                                                      # end
       EOS
