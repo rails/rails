@@ -142,11 +142,7 @@ class RoutedRackApp
 end
 
 class BasicController
-  attr_accessor :request, :params
-
-  def initialize
-    @params = {}
-  end
+  attr_accessor :request
 
   def config
     @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
