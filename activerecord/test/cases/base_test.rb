@@ -70,7 +70,13 @@ class BasicsTest < ActiveRecord::TestCase
     }
 
     quoted = conn.quote_column_name "foo#{badchar}bar"
-    assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
+    if current_adapter?(:OracleAdapter)
+      # Oracle does not allow double quotes in table and column names at all
+      # therefore quoting removes them
+      assert_equal("#{badchar}foobar#{badchar}", quoted)
+    else
+      assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
+    end
   end
 
   def test_columns_should_obey_set_primary_key
