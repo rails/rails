@@ -21,6 +21,7 @@ namespace :assets do
       env    = Rails.application.assets
       target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
       manifest = {}
+      manifest_path = config.assets.manifest || target
 
       if env.respond_to?(:each_logical_path)
         config.assets.precompile.each do |path|
@@ -47,7 +48,7 @@ namespace :assets do
         env.precompile(*assets)
       end
 
-      File.open("#{target}/manifest.yml", 'w') do |f|
+      File.open("#{manifest_path}/manifest.yml", 'w') do |f|
         YAML.dump(manifest, f)
       end
     end
