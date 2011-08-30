@@ -52,6 +52,9 @@ module <%= app_const_base %>
 <% unless options.skip_sprockets? -%>
     # Enable the asset pipeline
     config.assets.enabled = true
+
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
 <% end -%>
   end
 end
