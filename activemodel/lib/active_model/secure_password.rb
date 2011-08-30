@@ -1,4 +1,4 @@
-require 'bcrypt'
+autoload :BCrypt, 'bcrypt'
 
 module ActiveModel
   module SecurePassword
