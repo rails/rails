@@ -1069,7 +1069,7 @@ NOTE: Be sure to check the extensive *Active Record Validations and Callbacks Gu
 
 h4. +first_or_new+
 
-The +first_or_new+ method will work just like +first_or_create+ but it will not call +create+ but the +new+. This means that a new model instance will be created in memory but won't be saved to the database. Continuing with the +first_or_create+ example, we now want the client named 'Nick':
+The +first_or_new+ method will work just like +first_or_create+ but it will not call +create+ but +new+. This means that a new model instance will be created in memory but won't be saved to the database. Continuing with the +first_or_create+ example, we now want the client named 'Nick':
 
 <ruby>
 nick = Client.where(:first_name => 'Nick').first_or_new(:locked => false)
