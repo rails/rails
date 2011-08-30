@@ -1,6 +1,6 @@
 h2. Asset Pipeline
 
-This guide covers the ideology of the asset pipeline introduced in Rails 3.1.
+This guide covers the asset pipeline introduced in Rails 3.1.
 By referring to this guide you will be able to:
 
 * Understand what the asset pipeline is and what it does
