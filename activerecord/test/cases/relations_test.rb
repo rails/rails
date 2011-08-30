@@ -1005,7 +1005,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_joins_and_offset_and_order
-    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('posts.id')
+    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('posts.id', 'comments.id')
     count        = all_comments.count
     comments     = all_comments.offset(1)
 
