@@ -108,12 +108,10 @@ module Sprockets
         end
 
         def digest_for(logical_path)
-          if asset_digests && (digest = asset_digests[logical_path])
+          if asset_digests
+            digest = asset_digests[logical_path]
+            raise AssetNotPrecompiledError unless digest
             return digest
-          end
-
-          if digest.nil? && Rails.application.config.assets.precompile_only
-            raise AssetNotPrecompiledError
           end
 
           if asset = asset_environment[logical_path]

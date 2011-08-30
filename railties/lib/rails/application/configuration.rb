@@ -42,8 +42,6 @@ module Rails
         @assets.version         = ''
         @assets.debug           = false
         @assets.allow_debugging = false
-        @assets.manifest        = true
-        @assets.precompile_only = false
         @assets.cache_store     = [ :file_store, "#{root}/tmp/cache/assets/" ]
         @assets.js_compressor   = nil
         @assets.css_compressor  = nil
