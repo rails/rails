@@ -79,6 +79,23 @@ module ApplicationTests
       assert_match /application-([0-z]+)\.css/, assets["application.css"]
     end
 
+    test "precompile creates a manifest file in a custom path with all the assets listed" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      app_file "app/assets/javascripts/application.js", "alert();"
+      FileUtils.mkdir "#{app_path}/shared"
+      app_file "config/initializers/manifest.rb", "Rails.application.config.assets.manifest = '#{app_path}/shared'"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      manifest = "#{app_path}/shared/manifest.yml"
+
+      assets = YAML.load_file(manifest)
+      assert_match /application-([0-z]+)\.js/, assets["application.js"]
+      assert_match /application-([0-z]+)\.css/, assets["application.css"]
+    end
+
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
 
