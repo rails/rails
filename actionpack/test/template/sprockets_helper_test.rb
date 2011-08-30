@@ -33,6 +33,8 @@ class SprocketsHelperTest < ActionView::TestCase
     @config = config
     @config.action_controller ||= ActiveSupport::InheritableOptions.new
     @config.perform_caching = true
+    @config.assets.digest = true
+    @config.assets.compile = true
   end
 
   def url_for(*args)
@@ -160,7 +162,7 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application, :debug => true)
 
-    @config.assets.allow_debugging = true
+    @config.assets.compile = true
     @config.assets.debug = true
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application)
@@ -201,7 +203,7 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application, :debug => true)
 
-    @config.assets.allow_debugging = true
+    @config.assets.compile = true
     @config.assets.debug = true
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application)
