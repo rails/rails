@@ -56,6 +56,9 @@ module <%= app_const_base %>
     # Create a manifest with the hashes of your assets when you run "rake assets:precompile".
     # Use this if you don't have a JavaScript engine in your production servers
     config.assets.manifest = true
+
+    # Use only precompiled assets and avoid fallback to assets pipeline when precompiled file is missed.
+    # config.assets.precompile_only = false
 <% end -%>
   end
 end
