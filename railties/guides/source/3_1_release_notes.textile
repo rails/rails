@@ -170,7 +170,7 @@ class PostsController < ActionController::Base
 end
 </ruby>
 
-You can restrict it to some actions by using +:only+ or +:except+. Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
+You can restrict it to some actions by using +:only+ or +:except+. Please read the docs at "<tt>ActionController::Streaming</tt>":http://api.rubyonrails.org/classes/ActionController/Streaming.html for more information.
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
 
