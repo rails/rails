@@ -26,11 +26,20 @@ module Yz
   end
 end
 
-Somewhere = Struct.new(:street, :city)
+Somewhere = Struct.new(:street, :city) do
+  attr_accessor :name
+end
 
-Someone   = Struct.new(:name, :place) do
+class Someone < Struct.new(:name, :place)
   delegate :street, :city, :to_f, :to => :place
+  delegate :name=, :to => :place, :prefix => true
   delegate :upcase, :to => "place.city"
+
+  FAILED_DELEGATE_LINE = __LINE__ + 1
+  delegate :foo, :to => :place
+
+  FAILED_DELEGATE_LINE_2 = __LINE__ + 1
+  delegate :bar, :to => :place, :allow_nil => true
 end
 
 Invoice   = Struct.new(:client) do
@@ -67,6 +76,11 @@ class ModuleTest < Test::Unit::TestCase
   def test_delegation_to_methods
     assert_equal "Paulina", @david.street
     assert_equal "Chicago", @david.city
+  end
+
+  def test_delegation_to_assignment_method
+    @david.place_name = "Fred"
+    assert_equal "Fred", @david.place.name
   end
 
   def test_delegation_down_hierarchy
@@ -162,6 +176,24 @@ class ModuleTest < Test::Unit::TestCase
         end
       end
     end
+  end
+
+  def test_delegation_exception_backtrace
+    someone = Someone.new("foo", "bar")
+    someone.foo
+  rescue NoMethodError => e
+    file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE}"
+    assert e.backtrace.first.include?(file_and_line),
+           "[#{e.backtrace.first}] did not include [#{file_and_line}]"
+  end
+
+  def test_delegation_exception_backtrace_with_allow_nil
+    someone = Someone.new("foo", "bar")
+    someone.bar
+  rescue NoMethodError => e
+    file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE_2}"
+    assert e.backtrace.first.include?(file_and_line),
+           "[#{e.backtrace.first}] did not include [#{file_and_line}]"
   end
 
   def test_parent

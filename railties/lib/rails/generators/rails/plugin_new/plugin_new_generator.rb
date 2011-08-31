@@ -11,8 +11,6 @@ module Rails
     def app
       if mountable?
         directory "app"
-        template "app/views/layouts/application.html.erb.tt",
-                 "app/views/layouts/#{name}/application.html.erb"
         empty_directory_with_gitkeep "app/assets/images/#{name}"
       elsif full?
         empty_directory_with_gitkeep "app/models"

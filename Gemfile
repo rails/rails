@@ -11,12 +11,17 @@ gem "jquery-rails"
 # it being automatically loaded by sprockets
 gem "uglifier", ">= 1.0.0", :require => false
 
-gem "rake",  ">= 0.8.7"
+# Temp fix until rake 0.9.3 is out
+if RUBY_VERSION >= "1.9.3"
+  gem "rake", "0.9.3.beta.1"
+else
+  gem "rake", ">= 0.8.7"
+end
 gem "mocha", ">= 0.9.8"
 
 group :doc do
   gem "rdoc",  "~> 3.4"
-  gem "horo",  "= 1.0.3"
+  gem "sdoc",  "~> 0.3"
   gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
   gem "w3c_validators"
 end

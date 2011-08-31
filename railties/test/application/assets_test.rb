@@ -46,10 +46,11 @@ module ApplicationTests
       assert defined?(Uglifier)
     end
 
-    test "precompile creates the file and gives it the original asset's content" do
+    test "precompile creates the file, gives it the original asset's content and run in production as default" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
 
+      ENV["RAILS_ENV"] = nil
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
       end
@@ -57,15 +58,26 @@ module ApplicationTests
       files << Dir["#{app_path}/public/assets/foo/application-*.js"].first
       files.each do |file|
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
-        assert_equal "alert();\n", File.read(file)
+        assert_equal "alert()", File.read(file)
       end
     end
 
-    test "precompile appends the md5 hash to files referenced with asset_path" do
+    test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
 
+      # capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
+      # end
+      file = Dir["#{app_path}/public/assets/application-*.css"].first
+      assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
+    end
+
+    test "precompile appends the md5 hash to files referenced with asset_path and run in production as default even using RAILS_GROUPS=assets" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      ENV["RAILS_ENV"] = nil
       capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
       end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
@@ -80,7 +92,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bundle exec rake assets:clean` }
       end
 
-      files = Dir["#{app_path}/public/assets/**/*"]
+      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
     end
 

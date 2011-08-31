@@ -58,8 +58,8 @@ module ActionController
     def redirect_to(*args)
       ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
         result = super
-        payload[:status]   = self.status
-        payload[:location] = self.location
+        payload[:status]   = response.status
+        payload[:location] = response.location
         result
       end
     end

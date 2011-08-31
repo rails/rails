@@ -325,6 +325,8 @@ h4. +rails destroy+
 
 Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it.
 
+You can also use the alias "d" to invoke the destroy command: <tt>rails d</tt>.
+
 <shell>
 $ rails generate model Oops
       exists  app/models/

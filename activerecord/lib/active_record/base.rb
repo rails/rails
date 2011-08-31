@@ -178,7 +178,7 @@ module ActiveRecord #:nodoc:
   # <tt>Person.find_all_by_last_name(last_name)</tt>.
   #
   # It's possible to add an exclamation point (!) on the end of the dynamic finders to get them to raise an
-  # <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records, 
+  # <tt>ActiveRecord::RecordNotFound</tt> error if they do not return any records,
   # like <tt>Person.find_by_last_name!</tt>.
   #
   # It's also possible to use multiple attributes in the same find by separating them with "_and_".
@@ -624,6 +624,8 @@ module ActiveRecord #:nodoc:
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
+        return if abstract_class?
+
         self.table_name = compute_table_name
       end
 
@@ -940,17 +942,6 @@ module ActiveRecord #:nodoc:
       def before_remove_const #:nodoc:
         self.current_scope = nil
       end
-
-      # Specifies how the record is loaded by +Marshal+.
-      #
-      # +_load+ sets an instance variable for each key in the hash it takes as input.
-      # Override this method if you require more complex marshalling.
-      def _load(data)
-        record = allocate
-        record.init_with(Marshal.load(data))
-        record
-      end
-
 
       # Finder methods must instantiate through this method to work with the
       # single-table inheritance model that makes it possible to create
@@ -1271,27 +1262,43 @@ MSG
           self.default_scopes = default_scopes + [scope]
         end
 
-        # The @ignore_default_scope flag is used to prevent an infinite recursion situation where
-        # a default scope references a scope which has a default scope which references a scope...
         def build_default_scope #:nodoc:
-          return if defined?(@ignore_default_scope) && @ignore_default_scope
-          @ignore_default_scope = true
-
           if method(:default_scope).owner != Base.singleton_class
-            default_scope
+            evaluate_default_scope { default_scope }
           elsif default_scopes.any?
-            default_scopes.inject(relation) do |default_scope, scope|
-              if scope.is_a?(Hash)
-                default_scope.apply_finder_options(scope)
-              elsif !scope.is_a?(Relation) && scope.respond_to?(:call)
-                default_scope.merge(scope.call)
-              else
-                default_scope.merge(scope)
+            evaluate_default_scope do
+              default_scopes.inject(relation) do |default_scope, scope|
+                if scope.is_a?(Hash)
+                  default_scope.apply_finder_options(scope)
+                elsif !scope.is_a?(Relation) && scope.respond_to?(:call)
+                  default_scope.merge(scope.call)
+                else
+                  default_scope.merge(scope)
+                end
               end
             end
           end
-        ensure
-          @ignore_default_scope = false
+        end
+
+        def ignore_default_scope? #:nodoc:
+          Thread.current["#{self}_ignore_default_scope"]
+        end
+
+        def ignore_default_scope=(ignore) #:nodoc:
+          Thread.current["#{self}_ignore_default_scope"] = ignore
+        end
+
+        # The ignore_default_scope flag is used to prevent an infinite recursion situation where
+        # a default scope references a scope which has a default scope which references a scope...
+        def evaluate_default_scope
+          return if ignore_default_scope?
+
+          begin
+            self.ignore_default_scope = true
+            yield
+          ensure
+            self.ignore_default_scope = false
+          end
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
@@ -1413,9 +1420,8 @@ MSG
           attrs = expand_hash_conditions_for_aggregates(attrs)
 
           table = Arel::Table.new(table_name).alias(default_table_name)
-          viz = Arel::Visitors.for(arel_engine)
           PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
-            viz.accept b
+            connection.visitor.accept b
           }.join(' AND ')
         end
         alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
@@ -1591,16 +1597,6 @@ MSG
         run_callbacks :initialize
 
         self
-      end
-
-      # Specifies how the record is dumped by +Marshal+.
-      #
-      # +_dump+ emits a marshalled hash which has been passed to +encode_with+. Override this
-      # method if you require more complex marshalling.
-      def _dump(level)
-        dump = {}
-        encode_with(dump)
-        Marshal.dump(dump)
       end
 
       # Returns a String, which Action Pack uses for constructing an URL to this
@@ -1853,7 +1849,7 @@ MSG
 
         ensure_proper_type
         populate_with_current_scope_attributes
-        clear_timestamp_attributes
+        super
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
@@ -2117,14 +2113,6 @@ MSG
           send("#{att}=", value) if respond_to?("#{att}=")
         end
       end
-
-      # Clear attributes and changed_attributes
-      def clear_timestamp_attributes
-        all_timestamp_attributes_in_model.each do |attribute_name|
-          self[attribute_name] = nil
-          changed_attributes.delete(attribute_name)
-        end
-      end
   end
 
   Base.class_eval do
@@ -2169,4 +2157,5 @@ MSG
   end
 end
 
+require 'active_record/connection_adapters/abstract/connection_specification'
 ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)

@@ -26,15 +26,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              javascript_include_tag(dep, :debug => false, :body => true)
-            }.join("\n").html_safe
+              super(dep.to_s, { :src => asset_path(dep, 'js', true) }.merge!(options))
+            }
           else
-            tag_options = {
-              'type' => "text/javascript",
-              'src'  => asset_path(source, 'js', body)
-            }.merge(options.stringify_keys)
-
-            content_tag 'script', "", tag_options
+            super(source.to_s, { :src => asset_path(source, 'js', body) }.merge!(options))
           end
         end.join("\n").html_safe
       end
@@ -47,17 +42,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              stylesheet_link_tag(dep, :debug => false, :body => true)
-            }.join("\n").html_safe
+              super(dep.to_s, { :href => asset_path(dep, 'css', true, :request) }.merge!(options))
+            }
           else
-            tag_options = {
-              'rel'   => "stylesheet",
-              'type'  => "text/css",
-              'media' => "screen",
-              'href'  => asset_path(source, 'css', body, :request)
-            }.merge(options.stringify_keys)
-
-            tag 'link', tag_options
+            super(source.to_s, { :href => asset_path(source, 'css', body, :request) }.merge!(options))
           end
         end.join("\n").html_safe
       end
@@ -70,10 +58,12 @@ module Sprockets
 
     private
       def debug_assets?
-        params[:debug_assets] == '1' ||
-          params[:debug_assets] == 'true'
-      rescue NoMethodError
-        false
+        begin
+          config = Rails.application.config.assets
+          config.allow_debugging && (config.debug || params[:debug_assets])
+        rescue NoMethodError
+          false
+        end
       end
 
       # Override to specify an alternative prefix for asset path generation.
@@ -112,11 +102,22 @@ module Sprockets
           asset_environment[source]
         end
 
+        def digest_for(logical_path)
+          if asset = asset_environment[logical_path]
+            return asset.digest_path
+          end
+
+          logical_path
+        end
+
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            asset_environment.path(source, performing_caching?, dir)
+            source = digest_for(source) if performing_caching?
+            source = File.join(dir, source)
+            source = "/#{source}" unless source =~ /^\//
+            source
           end
         end
 
@@ -128,9 +129,14 @@ module Sprockets
           end
         end
 
-        # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available
         def performing_caching?
-          config.action_controller.present? ? config.action_controller.perform_caching : config.perform_caching
+          # When included in Sprockets::Context, we need to ask the
+          # top-level config as the controller is not available.
+          if config.action_controller.present?
+            config.action_controller.perform_caching
+          else
+            config.perform_caching
+          end
         end
       end
     end

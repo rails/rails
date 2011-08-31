@@ -813,4 +813,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       assert !c.save
     end
   end
+
+  def test_preloading_empty_through_association_via_joins
+    person = Person.create!(:first_name => "Gaga")
+    person = Person.where(:id => person.id).where('readers.id = 1 or 1=1').includes(:posts).to_a.first
+
+    assert person.posts.loaded?, 'person.posts should be loaded'
+    assert_equal [], person.posts
+  end
+
+  def test_explicitly_joining_join_table
+    assert_equal owners(:blackbeard).toys, owners(:blackbeard).toys.with_pet
+  end
 end

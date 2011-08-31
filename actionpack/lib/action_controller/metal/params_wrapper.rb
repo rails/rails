@@ -6,31 +6,30 @@ require 'active_support/core_ext/module/anonymous'
 require 'action_dispatch/http/mime_types'
 
 module ActionController
-  # Wraps parameters hash into nested hash. This will allow client to submit
-  # POST request without having to specify a root element in it.
+  # Wraps the parameters hash into a nested hash. This will allow clients to submit
+  # POST requests without having to specify any root elements.
   #
-  # By default this functionality won't be enabled. You can enable
-  # it globally by setting +ActionController::Base.wrap_parameters+:
-  #
-  #     ActionController::Base.wrap_parameters = [:json]
+  # This functionality is enabled in +config/initializers/wrap_parameters.rb+
+  # and can be customized. If you are upgrading to \Rails 3.1, this file will
+  # need to be created for the functionality to be enabled.
   #
   # You could also turn it on per controller by setting the format array to
-  # non-empty array:
+  # a non-empty array:
   #
   #     class UsersController < ApplicationController
   #       wrap_parameters :format => [:json, :xml]
   #     end
   #
-  # If you enable +ParamsWrapper+ for +:json+ format. Instead of having to
+  # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
   # send JSON parameters like this:
   #
   #     {"user": {"name": "Konata"}}
   #
-  # You can now just send a parameters like this:
+  # You can send parameters like this:
   #
   #     {"name": "Konata"}
   #
-  # And it will be wrapped into a nested hash with the key name matching
+  # And it will be wrapped into a nested hash with the key name matching the
   # controller's name. For example, if you're posting to +UsersController+,
   # your new +params+ hash will look like this:
   #
@@ -82,7 +81,7 @@ module ActionController
       #
       # ==== Examples
       #   wrap_parameters :format => :xml
-      #     # enables the parmeter wrapper for XML format
+      #     # enables the parameter wrapper for XML format
       #
       #   wrap_parameters :person
       #     # wraps parameters into +params[:person]+ hash

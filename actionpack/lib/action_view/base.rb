@@ -4,6 +4,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/ordered_options'
 require 'action_view/log_subscriber'
+require 'active_support/core_ext/module/deprecation'
 
 module ActionView #:nodoc:
   # = Action View Base
@@ -161,6 +162,7 @@ module ActionView #:nodoc:
         value.is_a?(PathSet) ?
           value.dup : ActionView::PathSet.new(Array.wrap(value))
       end
+      deprecate :process_view_paths
 
       def xss_safe? #:nodoc:
         true

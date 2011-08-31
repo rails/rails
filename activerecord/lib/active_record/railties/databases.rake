@@ -94,7 +94,7 @@ db_namespace = namespace :db do
               "IDENTIFIED BY '#{config['password']}' WITH GRANT OPTION;"
             ActiveRecord::Base.establish_connection(config.merge(
                 'database' => nil, 'username' => 'root', 'password' => root_password))
-            ActiveRecord::Base.connection.create_database(config['database'], creation_options)
+            ActiveRecord::Base.connection.create_database(config['database'], mysql_creation_options(config))
             ActiveRecord::Base.connection.execute grant_statement
             ActiveRecord::Base.establish_connection(config)
           else

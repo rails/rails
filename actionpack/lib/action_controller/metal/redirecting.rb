@@ -45,7 +45,7 @@ module ActionController
     # integer, or a symbol representing the downcased, underscored and symbolized description.
     # Note that the status code must be a 3xx HTTP code, or redirection will not occur.
     #
-    # It is also possible to assign a flash message as part of the redirection. There are two special accessors for commonly used the flash names
+    # It is also possible to assign a flash message as part of the redirection. There are two special accessors for the commonly used flash names
     # +alert+ and +notice+ as well as a general purpose +flash+ bucket.
     #
     # Examples:
