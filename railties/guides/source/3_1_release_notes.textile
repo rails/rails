@@ -245,7 +245,7 @@ class User < ActiveRecord::Base
   has_one :account
 end
 
-user.build_account{ |a| a.credit_limit => 100.0 }
+user.build_account{ |a| a.credit_limit = 100.0 }
 </ruby>
 
 * Added <tt>ActiveRecord::Base.attribute_names</tt> to return a list of attribute names. This will return an empty array if the model is abstract or the table does not exist.
