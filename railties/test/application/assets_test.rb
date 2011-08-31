@@ -96,6 +96,19 @@ module ApplicationTests
       assert_match /application-([0-z]+)\.css/, assets["application.css"]
     end
 
+    test "the manifest file should be saved by default in the same assets folder" do
+      app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "config/initializers/manifest.rb", "Rails.application.config.assets.prefix = '/x'"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      manifest = "#{app_path}/public/x/manifest.yml"
+      assets = YAML.load_file(manifest)
+      assert_match /application-([0-z]+)\.js/, assets["application.js"]
+    end
+
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
 
