@@ -1,4 +1,4 @@
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.0 (August 30, 2011)*
 
 * Add a proxy_association method to association proxies, which can be called by association
   extensions to access information about the association. This replaces proxy_owner etc with

@@ -1,4 +1,4 @@
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.0 (August 30, 2011)*
 
 * Param values are `paramified` in controller tests. [David Chelimsky]
 
