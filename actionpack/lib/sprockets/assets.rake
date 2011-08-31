@@ -47,10 +47,8 @@ namespace :assets do
         env.precompile(*assets)
       end
 
-      if config.assets.manifest
-        File.open("#{target}/manifest.yml", 'w') do |f|
-          YAML.dump(manifest, f)
-        end
+      File.open("#{target}/manifest.yml", 'w') do |f|
+        YAML.dump(manifest, f)
       end
     end
   end

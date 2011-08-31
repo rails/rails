@@ -26,10 +26,8 @@ module Sprockets
         end
       end
 
-      if config.assets.manifest
-        if File.exist?(path = File.join(Rails.public_path, config.assets.prefix, "manifest.yml"))
-          config.assets.digests = YAML.load_file(path)
-        end
+      if File.exist?(path = File.join(Rails.public_path, config.assets.prefix, "manifest.yml"))
+        config.assets.digests = YAML.load_file(path)
       end
 
       ActiveSupport.on_load(:action_view) do

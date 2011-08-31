@@ -61,7 +61,7 @@ module Sprockets
       def debug_assets?
         begin
           config = Rails.application.config.assets
-          config.allow_debugging && (config.debug || params[:debug_assets])
+          config.compile && (config.debug || params[:debug_assets])
         rescue NoMethodError
           false
         end
@@ -114,22 +114,21 @@ module Sprockets
             return digest
           end
 
-          if digest.nil? && Rails.application.config.assets.precompile_only
-            raise AssetNotPrecompiledError
+          if Rails.application.config.assets.compile
+            if asset = asset_environment[logical_path]
+              return asset.digest_path
+            end
+            return logical_path
+          else
+            raise AssetNotPrecompiledError.new("#{logical_path} isn't precompiled")
           end
-
-          if asset = asset_environment[logical_path]
-            return asset.digest_path
-          end
-
-          logical_path
         end
 
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            source = digest_for(source) if performing_caching?
+            source = digest_for(source) if Rails.application.config.assets.digest
             source = File.join(dir, source)
             source = "/#{source}" unless source =~ /^\//
             source
@@ -141,16 +140,6 @@ module Sprockets
             "#{source}.#{ext}"
           else
             source
-          end
-        end
-
-        def performing_caching?
-          # When included in Sprockets::Context, we need to ask the
-          # top-level config as the controller is not available.
-          if config.action_controller.present?
-            config.action_controller.perform_caching
-          else
-            config.perform_caching
           end
         end
       end
