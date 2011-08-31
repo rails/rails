@@ -37,6 +37,8 @@ module ApplicationTests
 
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
+
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
 
@@ -62,8 +64,87 @@ module ApplicationTests
       end
     end
 
+    test "precompile creates a manifest file with all the assets listed" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      app_file "app/assets/javascripts/application.js", "alert();"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      manifest = "#{app_path}/public/assets/manifest.yml"
+
+      assets = YAML.load_file(manifest)
+      assert_match /application-([0-z]+)\.js/, assets["application.js"]
+      assert_match /application-([0-z]+)\.css/, assets["application.css"]
+    end
+
+    test "precompile creates a manifest file in a custom path with all the assets listed" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      app_file "app/assets/javascripts/application.js", "alert();"
+      FileUtils.mkdir "#{app_path}/shared"
+      app_file "config/initializers/manifest.rb", "Rails.application.config.assets.manifest = '#{app_path}/shared'"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      manifest = "#{app_path}/shared/manifest.yml"
+
+      assets = YAML.load_file(manifest)
+      assert_match /application-([0-z]+)\.js/, assets["application.js"]
+      assert_match /application-([0-z]+)\.css/, assets["application.css"]
+    end
+
+    test "assets do not require any assets group gem when manifest file is present" do
+      app_file "app/assets/javascripts/application.js", "alert();"
+
+      ENV["RAILS_ENV"] = "production"
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+      manifest = "#{app_path}/public/assets/manifest.yml"
+      assets = YAML.load_file(manifest)
+      asset_path = assets["application.js"]
+
+      require "#{app_path}/config/environment"
+
+      # Checking if Uglifier is defined we can know if Sprockets was reached or not
+      assert !defined?(Uglifier)
+      get "/assets/#{asset_path}"
+      assert_match "alert()", last_response.body
+      assert !defined?(Uglifier)
+    end
+
+    test "assets raise AssetNotPrecompiledError when manifest file is present and requested file isn't precompiled" do
+      app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'app' %>"
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match '/posts', :to => "posts#index"
+        end
+      RUBY
+
+      ENV["RAILS_ENV"] = "production"
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      # Create file after of precompile
+      app_file "app/assets/javascripts/app.js", "alert();"
+
+      require "#{app_path}/config/environment"
+      class ::PostsController < ActionController::Base ; end
+
+      get '/posts'
+      assert_match /AssetNotPrecompiledError/, last_response.body
+      assert_match /app.js isn't precompiled/, last_response.body
+    end
+
     test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      # digest is default in false, we must enable it for test environment
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
 
       # capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
@@ -74,6 +155,7 @@ module ApplicationTests
 
     test "precompile appends the md5 hash to files referenced with asset_path and run in production as default even using RAILS_GROUPS=assets" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
 
       ENV["RAILS_ENV"] = nil
       capture(:stdout) do
