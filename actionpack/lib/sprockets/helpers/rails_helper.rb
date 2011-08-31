@@ -14,6 +14,7 @@ module Sprockets
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
           paths.asset_prefix      = asset_prefix
+          paths.asset_digests     = asset_digests
           paths
         end
       end
@@ -60,7 +61,7 @@ module Sprockets
       def debug_assets?
         begin
           config = Rails.application.config.assets
-          config.allow_debugging && (config.debug || params[:debug_assets])
+          config.compile && (config.debug || params[:debug_assets])
         rescue NoMethodError
           false
         end
@@ -76,6 +77,10 @@ module Sprockets
         Rails.application.config.assets.prefix
       end
 
+      def asset_digests
+        Rails.application.config.assets.digests
+      end
+
       # Override to specify an alternative asset environment for asset
       # path generation. The environment should already have been mounted
       # at the prefix returned by +asset_prefix+.
@@ -84,7 +89,9 @@ module Sprockets
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        attr_accessor :asset_environment, :asset_prefix
+        attr_accessor :asset_environment, :asset_prefix, :asset_digests
+
+        class AssetNotPrecompiledError < StandardError; end
 
         def compute_public_path(source, dir, ext=nil, include_host=true, protocol=nil)
           super(source, asset_prefix, ext, include_host, protocol)
@@ -103,18 +110,25 @@ module Sprockets
         end
 
         def digest_for(logical_path)
-          if asset = asset_environment[logical_path]
-            return asset.digest_path
+          if asset_digests && (digest = asset_digests[logical_path])
+            return digest
           end
 
-          logical_path
+          if Rails.application.config.assets.compile
+            if asset = asset_environment[logical_path]
+              return asset.digest_path
+            end
+            return logical_path
+          else
+            raise AssetNotPrecompiledError.new("#{logical_path} isn't precompiled")
+          end
         end
 
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            source = digest_for(source) if performing_caching?
+            source = digest_for(source) if Rails.application.config.assets.digest
             source = File.join(dir, source)
             source = "/#{source}" unless source =~ /^\//
             source
@@ -126,16 +140,6 @@ module Sprockets
             "#{source}.#{ext}"
           else
             source
-          end
-        end
-
-        def performing_caching?
-          # When included in Sprockets::Context, we need to ask the
-          # top-level config as the controller is not available.
-          if config.action_controller.present?
-            config.action_controller.perform_caching
-          else
-            config.perform_caching
           end
         end
       end

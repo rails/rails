@@ -26,6 +26,16 @@ module Sprockets
         end
       end
 
+      if config.assets.manifest
+        path = File.join(config.assets.manifest, "manifest.yml")
+      else
+        path = File.join(Rails.public_path, config.assets.prefix, "manifest.yml")
+      end
+
+      if File.exist?(path)
+        config.assets.digests = YAML.load_file(path)
+      end
+
       ActiveSupport.on_load(:action_view) do
         include ::Sprockets::Helpers::RailsHelper
 

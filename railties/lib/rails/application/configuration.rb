@@ -41,11 +41,12 @@ module Rails
         @assets.prefix          = "/assets"
         @assets.version         = ''
         @assets.debug           = false
-        @assets.allow_debugging = false
-
-        @assets.cache_store    = [ :file_store, "#{root}/tmp/cache/assets/" ]
-        @assets.js_compressor  = nil
-        @assets.css_compressor = nil
+        @assets.compile         = true
+        @assets.digest          = false
+        @assets.manifest        = "#{root}/public#{@assets.prefix}"
+        @assets.cache_store     = [ :file_store, "#{root}/tmp/cache/assets/" ]
+        @assets.js_compressor   = nil
+        @assets.css_compressor  = nil
       end
 
       def compiled_asset_path

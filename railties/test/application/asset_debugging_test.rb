@@ -33,24 +33,33 @@ module ApplicationTests
       teardown_app
     end
 
-    test "assets are concatenated when debug is off and allow_debugging is off either if debug_assets param is provided" do
-      # config.assets.debug and config.assets.allow_debugging are false for production environment
+    test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
+      # config.assets.debug and config.assets.compile are false for production environment
+      ENV["RAILS_ENV"] = "production"
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
       require "#{app_path}/config/environment"
 
-      # the debug_assets params isn't used if allow_debugging is off
+      class ::PostsController < ActionController::Base ; end
+
+      # the debug_assets params isn't used if compile is off
       get '/posts?debug_assets=true'
-      assert_match %r{<script src="/assets/application-([0-z]+)\.js" type="text/javascript"></script>}, last_response.body
-      assert_no_match %r{<script src="/assets/xmlhr-([0-z]+)\.js" type="text/javascript"></script>}, last_response.body
+      assert_match /<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body
+      assert_no_match /<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body
     end
 
-    test "assets aren't concatened when allow_debugging is on and debug_assets params is true" do
-      app_file "config/initializers/allow_debugging.rb", "Rails.application.config.assets.allow_debugging = true"
+    test "assets aren't concatened when compile is true is on and debug_assets params is true" do
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
 
+      ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
 
+      class ::PostsController < ActionController::Base ; end
+
       get '/posts?debug_assets=true'
-      assert_match %r{<script src="/assets/application-([0-z]+)\.js\?body=1" type="text/javascript"></script>}, last_response.body
-      assert_match %r{<script src="/assets/xmlhr-([0-z]+)\.js\?body=1" type="text/javascript"></script>}, last_response.body
+      assert_match /<script src="\/assets\/application-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body
+      assert_match /<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body
     end
   end
 end
