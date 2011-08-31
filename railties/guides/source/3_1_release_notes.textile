@@ -170,7 +170,7 @@ class PostsController < ActionController::Base
 end
 </ruby>
 
-You can restrict it to some actions by using +:only+ or +:except+. Please read the docs at "<tt>ActionController::Streaming</tt>":http://edgeapi.rubyonrails.org/classes/ActionController/Streaming.html for more information.
+You can restrict it to some actions by using +:only+ or +:except+. Please read the docs at "<tt>ActionController::Streaming</tt>":http://api.rubyonrails.org/classes/ActionController/Streaming.html for more information.
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
 
@@ -346,6 +346,7 @@ has_many :things, :conditions => proc { "foo = #{bar}" } # after
 Inside the proc, +self+ is the object which is the owner of the association, unless you are eager loading the association, in which case +self+ is the class which the association is within.
 
 You can have any "normal" conditions inside the proc, so the following will work too:
+
 <ruby>
 has_many :things, :conditions => proc { ["foo = ?", bar] }
 </ruby>
@@ -353,6 +354,7 @@ has_many :things, :conditions => proc { ["foo = ?", bar] }
 * Previously +:insert_sql+ and +:delete_sql+ on +has_and_belongs_to_many+ association allowed you to call 'record' to get the record being inserted or deleted. This is now passed as an argument to the proc.
 
 * Added <tt>ActiveRecord::Base#has_secure_password</tt> (via <tt>ActiveModel::SecurePassword</tt>) to encapsulate dead-simple password usage with BCrypt encryption and salting.
+
 <ruby>
 # Schema: User(name:string, password_digest:string, password_salt:string)
 class User < ActiveRecord::Base
