@@ -112,7 +112,7 @@ module ActiveSupport
       end
     end
 
-    # Merges the instantized and the specified hashes together, giving precedence to the values from the second hash
+    # Merges the instantized and the specified hashes together, giving precedence to the values from the second hash.
     # Does not overwrite the existing hash.
     def merge(hash)
       self.dup.update(hash)
