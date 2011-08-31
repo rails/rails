@@ -742,11 +742,11 @@ module ActionView
           return source if is_uri?(source)
 
           source += ".#{ext}" if rewrite_extension?(source, dir, ext)
-          source  = "/#{dir}/#{source}" unless source[0] == ?/
+          source  = "/#{dir}/#{source}" unless source.start_with? '/'
           source = rewrite_asset_path(source, config.asset_path)
 
           has_request = controller.respond_to?(:request)
-          if has_request && include_host && source !~ %r{^#{controller.config.relative_url_root}/}
+          if has_request && include_host && !source.start_with?(controller.config.relative_url_root)
             source = "#{controller.config.relative_url_root}#{source}"
           end
           source = rewrite_host_and_protocol(source, has_request) if include_host
