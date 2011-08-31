@@ -13,8 +13,9 @@ namespace :assets do
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
 
-      # Always perform caching so that asset_path appends the timestamps to file references.
-      Rails.application.config.action_controller.perform_caching = true
+      # Always calculate digests and compile files
+      Rails.application.config.assets.digest = true
+      Rails.application.config.assets.compile = true
 
       config = Rails.application.config
       env    = Rails.application.assets
