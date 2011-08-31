@@ -340,9 +340,35 @@ TODO: nginx instructions
 
 When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disc. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the public/assets folder. The following configuration options can be used:
 
-TODO: Apache instructions
+For Apache:
 
-TODO: nginx instructions
+<plain>
+<LocationMatch "^/assets/.*$">
+  # 2 lines to serve pre-gzipped version
+  RewriteCond %{REQUEST_FILENAME}.gz -s
+  RewriteRule ^(.+) $1.gz [L]
+  
+  # without it, Content-Type will be "application/x-gzip"
+  <FilesMatch .*\.css.gz>
+      ForceType text/css
+  </FilesMatch>
+
+  <FilesMatch .*\.js.gz>
+      ForceType text/javascript
+  </FilesMatch>
+</LocationMatch>
+</plain>
+
+For nginx:
+
+<plain>
+location ~ ^/(assets)/  {
+  root /path/to/public;
+  gzip_static on; # to serve pre-gzipped version
+  expires max;
+  add_header  Cache-Control public;
+}
+</plain>
 
 By default Rails assumes that you have your files precompiled in the production environment, if you want use live compiling (compile your assets during runtime) in production you must set the +config.assets.compile+ to true. You can use this option to fallback to Sprockets when you are using precompiled assets but there are any missing precompiled files. If +config.assets.compile+ option is set to false and there are missing precompiled files you will get an "AssetNoPrecompiledError" indicating the name of the missing file.
 
