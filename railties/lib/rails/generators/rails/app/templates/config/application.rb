@@ -53,9 +53,8 @@ module <%= app_const_base %>
     # Enable the asset pipeline
     config.assets.enabled = true
 
-    # Create a manifest with the hashes of your assets when you run "rake assets:precompile".
-    # Use this if you don't have a JavaScript engine in your production servers
-    config.assets.manifest = true
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
 <% end -%>
   end
 end
