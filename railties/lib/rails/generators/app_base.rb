@@ -207,8 +207,8 @@ module Rails
           # Gems used only for assets and not required
           # in production environments by default.
           group :assets do
-            gem 'sass-rails', #{options.dev? || options.edge? ? "  :git => 'git://github.com/rails/sass-rails.git', :branch => '3-1-stable'" : "  ~> 3.1.0.rc".inspect}
-            gem 'coffee-rails', #{options.dev? || options.edge? ? ":git => 'git://github.com/rails/coffee-rails.git', :branch => '3-1-stable'" : "~> 3.1.0.rc".inspect}
+            gem 'sass-rails', #{options.dev? || options.edge? ? "  :git => 'git://github.com/rails/sass-rails.git', :branch => '3-1-stable'" : "  ~> 3.1.0".inspect}
+            gem 'coffee-rails', #{options.dev? || options.edge? ? ":git => 'git://github.com/rails/coffee-rails.git', :branch => '3-1-stable'" : "~> 3.1.0".inspect}
             gem 'uglifier'
           end
         GEMFILE
