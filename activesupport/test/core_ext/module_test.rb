@@ -60,7 +60,7 @@ class Someone < Struct.new(:name, :place)
 
   def raises_no_method_error_in_private
     @raise_calls += 1
-    raise NoMethodError.new("no method!", :foodle)
+    raise NoMethodError.new("no method!")
   end
 
   protected
@@ -158,10 +158,12 @@ class ModuleTest < ActiveSupport::TestCase
     @tester = Tester.new(@david)
 
     error = assert_raise(NoMethodError) do
-      @tester.raises_no_method_error_in_private
+      assert_deprecated do
+        @tester.raises_no_method_error_in_private
+      end
     end
 
-    assert_equal :foodle, error.name
+    assert_equal :raises_no_method_error_in_private, error.name
     assert_equal 1, @david.raise_calls
   end
 

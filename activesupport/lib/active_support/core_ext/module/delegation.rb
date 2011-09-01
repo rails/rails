@@ -128,23 +128,29 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
+      nil_clause = <<-EOS
+        if #{to}.nil?  # if client.nil?
+          #{on_nil}    #   return # depends on :allow_nil
+        else           # else
+          raise(e)     #   raise(e)
+        end            # end
+      EOS
+
       rescue_clause = <<-EOS
-        rescue NoMethodError => e                                                # rescue NoMethodError => e
-          raise unless e.name == #{method_name}                                  #   raise unless e.name == :name
-          begin                                                                  #   begin
-            result = #{to}.__send__(#{method_name}, *args, &block)               #     result = client.__send__(:name, *args, &block)
-          rescue NoMethodError => e2                                             #   rescue NoMethodError => e2
-            raise unless e2.name == #{method_name}                               #     raise unless e2.name == :name
-            if #{to}.nil?                                                        #     if client.nil?
-              #{on_nil}                                                          #       return # depends on :allow_nil
-            else                                                                 #     else
-              raise(e)                                                           #       raise(e)
-            end                                                                  #     end
-          else                                                                   #   else
-            ActiveSupport::Deprecation.warn(                                     #     ActiveSupport::Deprecation.warn(
-              'Delegating to non-public methods is deprecated.', caller)         #       'Delegating to non-public methods is deprecated.', caller)
-            result                                                               #     result
-          end                                                                    #   end
+        rescue NoMethodError => e                                                  # rescue NoMethodError => e
+          if e.name == #{method_name} &&                                           #   if e.name == :name &&
+             e.message =~ /(private|protected) method/ &&                          #      e.message =~ /(private|protected) method/ &&
+             e.backtrace.first.include?(__FILE__)                                  #      e.backtrace.first.include?(__FILE__)
+            begin                                                                  #     begin
+              ActiveSupport::Deprecation.warn(                                     #       ActiveSupport::Deprecation.warn(
+                'Delegating to non-public methods is deprecated.', caller)         #         'Delegating to non-public methods is deprecated.', caller)
+              #{to}.__send__(#{method_name}, *args, &block)                        #       client.__send__(:name, *args, &block)
+            rescue NoMethodError                                                   #     rescue NoMethodError
+              #{nil_clause}
+            end                                                                    #     end
+          else                                                                     #   else
+            #{nil_clause}
+          end                                                                      #   end
       EOS
 
       method_body =
