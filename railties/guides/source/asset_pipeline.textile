@@ -89,6 +89,8 @@ In previous versions of Rails, all assets were located in subdirectories of +pub
 
 This is not to say that assets can (or should) no longer be placed in +public+; they still can be and will be served as static files by the application or web server. You would only use +app/assets+ if you wish your files to undergo some pre-processing before they are served.
 
+In production, the default is to precompile these files to +public/assets+ so that they can be more efficiently delivered by the webserver.
+
 When a scaffold or controller is generated for the application, Rails also generates a JavaScript file (or CoffeeScript file if the +coffee-rails+ gem is in the +Gemfile+) and a Cascading Style Sheet file (or SCSS file if +sass-rails+ is in the +Gemfile+) for that controller.
 
 For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +<%= javascript_include_tag params[:controller] %>+ or +<%= stylesheet_link_tag params[:controller] %>+.
@@ -241,10 +243,12 @@ This manifest +application.js+:
 would generate this HTML:
 
 <html>
-<script src='/assets/core.js'></script>
-<script src='/assets/projects.js'></script>
-<script src='/assets/tickets.js'></script>
+<script src='/assets/core.js?body=1'></script>
+<script src='/assets/projects.js?body=1'></script>
+<script src='/assets/tickets.js?body=1'></script>
 </html>
+
+The +body+ param is required by Sprockets.
 
 h4. Turning Debugging off
 
@@ -264,7 +268,16 @@ Assets are compiled and cached on the first request after the server is started.
 
 If any of the files in the manifest have changed between requests, the server responds with a new compiled file.
 
-You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL to enable debug mode on-demand, and this will render indivudual tags for each file. This is useful for tracking down exact line numbers when debugging.
+You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL to enable debug mode on-demand, and this will render individual tags for each file. This is useful for tracking down exact line numbers when debugging.
+
+Debug can also be set in the Rails helper methods:
+
+<erb>
+<%= stylesheet_link_tag "application", :debug => true %>
+<%= javascript_include_tag "application", :debug => true %>
+</erb>
+
+Don't forget to remove this before deploying to production!
 
 You could potentially also enable compression in development mode as a sanity check, and disable it on-demand as required for debugging.
 
@@ -291,7 +304,7 @@ generates something like this:
 
 The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else).
 
-NOTE: Under normal circumstances the default options should not be changed. If there are no digests in the filenames, and far-future headers are set, remote clients will never know to refetch the files when their content changes.
+NOTE: Under normal circumstances the default option should not be changed. If there are no digests in the filenames, and far-future headers are set, remote clients will never know to refetch the files when their content changes.
 
 h4. Precompiling Assets
 
