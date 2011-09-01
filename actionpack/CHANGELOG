@@ -28,7 +28,16 @@
   for your test you need to do it before the cookie jar is created.
 
 
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.1 (unreleased)*
+
+* Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. [Guillermo Iguaran]
+
+* Manifest is correctly placed in assets path when default assets prefix is changed. [Guillermo Iguaran]
+
+* Fixed stylesheet_link_tag and javascript_include_tag to respect additional options passed by the users when debug is on. [Guillermo Iguaran]
+
+
+*Rails 3.1.0 (August 30, 2011)*
 
 * Param values are `paramified` in controller tests. [David Chelimsky]
 
