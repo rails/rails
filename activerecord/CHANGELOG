@@ -1,3 +1,8 @@
+*Rails 3.1.1 (unreleased)*
+
+* Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
+  GH #2731
+
 *Rails 3.1.0 (August 30, 2011)*
 
 * Add a proxy_association method to association proxies, which can be called by association
