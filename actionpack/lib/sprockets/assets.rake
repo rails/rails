@@ -23,29 +23,22 @@ namespace :assets do
       manifest = {}
       manifest_path = config.assets.manifest || target
 
-      if env.respond_to?(:each_logical_path)
-        config.assets.precompile.each do |path|
-          env.each_logical_path do |logical_path|
-            if path.is_a?(Regexp)
-              next unless path.match(logical_path)
-            else
-              next unless File.fnmatch(path.to_s, logical_path)
-            end
+      config.assets.precompile.each do |path|
+        env.each_logical_path do |logical_path|
+          if path.is_a?(Regexp)
+            next unless path.match(logical_path)
+          else
+            next unless File.fnmatch(path.to_s, logical_path)
+          end
 
-            if asset = env.find_asset(logical_path)
-              manifest[logical_path] = asset.digest_path
-              filename = target.join(asset.digest_path)
-              mkdir_p filename.dirname
-              asset.write_to(filename)
-              asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
-            end
+          if asset = env.find_asset(logical_path)
+            manifest[logical_path] = asset.digest_path
+            filename = target.join(asset.digest_path)
+            mkdir_p filename.dirname
+            asset.write_to(filename)
+            asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
           end
         end
-      else
-        # TODO: Remove this once we're depending on sprockets beta 15
-        assets = config.assets.precompile.dup
-        assets << {:to => target}
-        env.precompile(*assets)
       end
 
       File.open("#{manifest_path}/manifest.yml", 'w') do |f|
