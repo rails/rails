@@ -114,7 +114,7 @@ module ActiveRecord
     def first(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          to_a.first(*args)
+          limit(*args).to_a
         else
           apply_finder_options(args.first).first
         end

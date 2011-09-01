@@ -243,6 +243,15 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_first_with_integer_should_use_sql_limit
+    assert_sql(/LIMIT 2/) { Topic.first(2).entries }
+  end
+
+  def test_first_and_last_with_integer_should_return_an_array
+    assert_kind_of Array, Topic.first(5)
+    assert_kind_of Array, Topic.last(5)
+  end
+
   def test_unexisting_record_exception_handling
     assert_raise(ActiveRecord::RecordNotFound) {
       Topic.find(1).parent
