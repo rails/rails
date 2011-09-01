@@ -1036,12 +1036,12 @@ module ActionDispatch
         #
         # This generates the following comments routes:
         #
-        #   GET     /photos/:id/comments/new
-        #   POST    /photos/:id/comments
-        #   GET     /photos/:id/comments/:id
-        #   GET     /photos/:id/comments/:id/edit
-        #   PUT     /photos/:id/comments/:id
-        #   DELETE  /photos/:id/comments/:id
+        #   GET     /photos/:photo_id/comments/new
+        #   POST    /photos/:photo_id/comments
+        #   GET     /photos/:photo_id/comments/:id
+        #   GET     /photos/:photo_id/comments/:id/edit
+        #   PUT     /photos/:photo_id/comments/:id
+        #   DELETE  /photos/:photo_id/comments/:id
         #
         # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
