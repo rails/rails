@@ -305,10 +305,8 @@ module ActiveRecord
         when Arel::Nodes::Ordering
           o.reverse
         when String, Symbol
-          o.to_s.split(',').collect do |s|
-            s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
-          end
+          s = o.to_s.gsub(/\s((desc)|(asc))\s*(,|\Z)/i) { |m| " #{$2 ? 'ASC' : 'DESC'}#{$4}" }
+          s.match(/\s(de|a)sc\Z/i) ? s : s.concat(" DESC")
         else
           o
         end
