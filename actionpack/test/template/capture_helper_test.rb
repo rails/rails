@@ -47,6 +47,23 @@ class CaptureHelperTest < ActionView::TestCase
     assert ! content_for?(:something_else)
   end
 
+  def test_content_for_with_multiple_calls
+    assert ! content_for?(:title)
+    content_for :title, 'foo'
+    content_for :title, 'bar'
+    assert_equal 'foobar', content_for(:title)
+  end
+
+  def test_content_for_with_block
+    assert ! content_for?(:title)
+    content_for :title do
+      output_buffer << 'foo'
+      output_buffer << 'bar'
+      nil
+    end
+    assert_equal 'foobar', content_for(:title)
+  end
+
   def test_with_output_buffer_swaps_the_output_buffer_given_no_argument
     assert_nil @av.output_buffer
     buffer = @av.with_output_buffer do
