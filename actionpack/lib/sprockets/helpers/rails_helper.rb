@@ -15,6 +15,8 @@ module Sprockets
           paths.asset_environment = asset_environment
           paths.asset_prefix      = asset_prefix
           paths.asset_digests     = asset_digests
+          paths.compile_assets    = compile_assets?
+          paths.digest_assets     = digest_assets?
           paths
         end
       end
@@ -60,8 +62,7 @@ module Sprockets
     private
       def debug_assets?
         begin
-          config = Rails.application.config.assets
-          config.compile && (config.debug || params[:debug_assets])
+          compile_assets? && (Rails.application.config.assets.debug || params[:debug_assets])
         rescue NoMethodError
           false
         end
@@ -81,6 +82,14 @@ module Sprockets
         Rails.application.config.assets.digests
       end
 
+      def compile_assets?
+        Rails.application.config.assets.compile
+      end
+
+      def digest_assets?
+        Rails.application.config.assets.digest
+      end
+
       # Override to specify an alternative asset environment for asset
       # path generation. The environment should already have been mounted
       # at the prefix returned by +asset_prefix+.
@@ -89,7 +98,7 @@ module Sprockets
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        attr_accessor :asset_environment, :asset_prefix, :asset_digests
+        attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets, :digest_assets
 
         class AssetNotPrecompiledError < StandardError; end
 
@@ -114,7 +123,7 @@ module Sprockets
             return digest
           end
 
-          if Rails.application.config.assets.compile
+          if compile_assets
             if asset = asset_environment[logical_path]
               return asset.digest_path
             end
@@ -128,7 +137,7 @@ module Sprockets
           if source[0] == ?/
             source
           else
-            source = digest_for(source) if Rails.application.config.assets.digest
+            source = digest_for(source) if digest_assets
             source = File.join(dir, source)
             source = "/#{source}" unless source =~ /^\//
             source
