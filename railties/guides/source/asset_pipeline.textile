@@ -105,13 +105,17 @@ Assets can be placed inside an application in one of three locations: +app/asset
 
 +vendor/assets+ is for assets that are owned by outside entities, such as code for JavaScript plugins.
 
-All subdirectories that exist within these three locations are added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths are looked through to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and served.
+All subdirectories that exist within these three locations are added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths are traversed to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and served.
+
+You can add additional (fully qualified) paths to the pipeline in +application.rb+. For example:
+ 
+<erb>
+config.assets.paths << File.join(Rails.root, 'app', 'assets', 'flash')
+</erb>
 
 h4. Coding Links to Assets
 
-To access assets, you use the same tags that you are generally familiar with:
-
-Sprockets does not add any new methods to require your assets, you still use the familiar +javascript_include_tag+ and +stylesheet_link_tag+.
+Sprockets does not add any new methods to access your assets - you still use the familiar +javascript_include_tag+ and +stylesheet_link_tag+.
 
 <erb>
 <%= stylesheet_link_tag "application" %>
@@ -124,17 +128,17 @@ In regular views you can access images in the +assets/images+ directory like thi
 <%= image_tag "rails.png" %>
 </erb>
 
-Images can be organized into directories if required, and they can be accessed by specifying the directory's name in the tag:
+Provided that the pipeline is enabled within your application (and not disabled in the current environment context), this file is served by Sprockets. If a file exists at +public/assets/rails.png+ it is served by the webserver.
+
+Alternatively, a request for a file with an MD5 hash such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ is treated the same way. How these hashes are generated is covered in the "Production Assets":#production_assets section later on in this guide.
+
+Sprockets will also look through the paths specified in +config.assets.paths+ which includes the standard application paths and any path added by Rails engines.
+
+Images can also be organized into subdirectories if required, and they can be accessed by specifying the directory's name in the tag:
 
 <erb>
 <%= image_tag "icons/rails.png" %>
 </erb>
-
-Providing that assets are enabled within your application (+config.assets.enabled+ in the current environment's file is not set to +false+), this file is served by Sprockets unless a file at +public/assets/rails.png+ exists, in which case that file is served.
-
-Alternatively, a file with an MD5 hash after its name such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ is also picked up by Sprockets. How these hashes are generated is covered in the "Production Assets":#production_assets section later on in this guide.
-
-Otherwise, Sprockets looks through the available paths until it finds a file that matches the name and then serves it, first looking in the application's assets directories and then falling back to the various engines of the application.
 
 If you want to use a "css data URI":http://en.wikipedia.org/wiki/Data_URI_scheme -- a method of embedding the image data directly into the CSS file -- you can use the +asset_data_uri+ helper.
 
@@ -256,7 +260,7 @@ When debug mode is off Sprockets will concatenate and run the necessary preproce
 <script src='/assets/application.js'></script>
 </html>
 
-Assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ Cache-Control HTTP header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
+Assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ Cache-Control HTTP header to reduce request overhead on subsequent requests -- on these the browser gets a 304 (not-modified) response.
 
 If any of the files in the manifest have changed between requests, the server responds with a new compiled file.
 
@@ -285,7 +289,9 @@ generates something like this:
 <link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" type="text/css" />
 </html>
 
-The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else). under normal circumstances the default options should not be changed.
+The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else). 
+
+NOTE: Under normal circumstances the default options should not be changed. If there are no digests in the filenames, and far-future headers are set, remote clients will never know to refetch the files when their content changes.
 
 h4. Precompiling Assets
 
@@ -366,7 +372,7 @@ For Apache:
 
 TODO: nginx instructions
 
-When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disc. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the public/assets folder. The following configuration options can be used:
+When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disc. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the +public/assets+ folder. The following configuration options can be used:
 
 For Apache:
 
@@ -418,7 +424,7 @@ h3. Customizing the Pipeline
 
 h4. CSS Compression
 
-There is currently one option for compressing CSS - YUI. This Gem extends the CSS syntax and offers minification.
+There is currently one option for compressing CSS, YUI. This Gem extends the CSS syntax and offers minification.
 
 The following line enables YUI compression, and requires the +yui-compressor+ gem.
 
@@ -442,7 +448,7 @@ config.assets.js_compressor = :uglifier
 
 The +config.assets.compress+ must be set to +true+ to enable JavaScript compression
 
-NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme - supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have installed a JavaScript runtime in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
+NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme -- supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have installed a JavaScript runtime in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
 h4. Using Your Own Compressor
 
@@ -490,7 +496,7 @@ WARNING: If you are upgrading an existing application and intend to use this opt
 
 h3. How Caching Works
 
-Sprockets uses the default rails cache store to cache assets in dev and production. The only difference is file names are fingerprinted and get far-future headers in production.
+Sprockets uses the default rails cache store to cache assets in development and production.
 
 TODO: Add more about changing the default store.
 
@@ -544,11 +550,10 @@ config.assets.compress = true
 # config.assets.js_compressor  = :uglifier
 # config.assets.css_compressor = :yui
 
-
 # Don't fallback to assets pipeline if a precompiled asset is missed
 config.assets.compile = false
 
-# Generate digests for assets URLs
+# Generate digests for assets URLs.
 config.assets.digest = true
 
 # Defaults to Rails.root.join("public/assets")
@@ -558,7 +563,7 @@ config.assets.digest = true
 # config.assets.precompile += %w( search.js )
 </erb>
 
-There are no changes to +test.rb+. For test environment by default +config.assets.compile+ is true and +config.assets.compress+, +config.assets.debug+ and +config.assets.digest+ are false
+There are no changes to +test.rb+. The defaults in the test environment are: +config.assets.compile+ is true and +config.assets.compress+, +config.assets.debug+ and +config.assets.digest+ are false.
 
 The following should also be added to +Gemfile+:
 
