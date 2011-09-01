@@ -67,6 +67,8 @@ module ApplicationTests
     test "precompile creates a manifest file with all the assets listed" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
+      # digest is default in false, we must enable it for test environment
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
@@ -84,6 +86,8 @@ module ApplicationTests
       app_file "app/assets/javascripts/application.js", "alert();"
       FileUtils.mkdir "#{app_path}/shared"
       app_file "config/initializers/manifest.rb", "Rails.application.config.assets.manifest = '#{app_path}/shared'"
+      # digest is default in false, we must enable it for test environment
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
@@ -96,9 +100,12 @@ module ApplicationTests
       assert_match /application-([0-z]+)\.css/, assets["application.css"]
     end
 
+
     test "the manifest file should be saved by default in the same assets folder" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "config/initializers/manifest.rb", "Rails.application.config.assets.prefix = '/x'"
+      # digest is default in false, we must enable it for test environment
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
@@ -107,6 +114,25 @@ module ApplicationTests
       manifest = "#{app_path}/public/x/manifest.yml"
       assets = YAML.load_file(manifest)
       assert_match /application-([0-z]+)\.js/, assets["application.js"]
+    end
+
+    test "precompile does not append asset digests when config.assets.digest is false" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+      app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = false"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      assert File.exists?("#{app_path}/public/assets/application.js")
+      assert File.exists?("#{app_path}/public/assets/application.css")
+
+      manifest = "#{app_path}/public/assets/manifest.yml"
+
+      assets = YAML.load_file(manifest)
+      assert_equal "application.js", assets["application.js"]
+      assert_equal "application.css", assets["application.css"]
     end
 
     test "assets do not require any assets group gem when manifest file is present" do
