@@ -1,5 +1,5 @@
 class Module
-  # Provides a delegate class method to easily expose contained objects' methods
+  # Provides a delegate class method to easily expose contained objects' public methods
   # as your own. Pass one or more methods (specified as symbols or strings)
   # and the name of the target object via the <tt>:to</tt> option (also a symbol
   # or string). At least one method and the <tt>:to</tt> option are required.
