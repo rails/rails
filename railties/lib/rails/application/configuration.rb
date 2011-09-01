@@ -43,7 +43,7 @@ module Rails
         @assets.debug           = false
         @assets.compile         = true
         @assets.digest          = false
-        @assets.manifest        = "#{root}/public#{@assets.prefix}"
+        @assets.manifest        = nil
         @assets.cache_store     = [ :file_store, "#{root}/tmp/cache/assets/" ]
         @assets.js_compressor   = nil
         @assets.css_compressor  = nil
