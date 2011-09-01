@@ -282,7 +282,7 @@ generates something like this:
 
 <html>
 <script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js" type="text/javascript"></script>
-<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" type="text/css" /> 
+<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" type="text/css" />
 </html>
 
 The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else). under normal circumstances the default options should not be changed.
@@ -375,7 +375,7 @@ For Apache:
   # 2 lines to serve pre-gzipped version
   RewriteCond %{REQUEST_FILENAME}.gz -s
   RewriteRule ^(.+) $1.gz [L]
-  
+
   # without it, Content-Type will be "application/x-gzip"
   <FilesMatch .*\.css.gz>
       ForceType text/css
@@ -402,7 +402,7 @@ h4. Live Compilation
 
 In some circumstances you may wish to use live compilation. In this mode all requests for assets in the Pipeline are handled by Sprockets directly.
 
-To enable this options set:
+To enable this option set:
 
 <erb>
 config.assets.compile = true
@@ -442,7 +442,7 @@ config.assets.js_compressor = :uglifier
 
 The +config.assets.compress+ must be set to +true+ to enable JavaScript compression
 
-NOTE: You will need a  "ExecJS":https://github.com/sstephenson/execjs#readme - supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have installed a JavaScript runtime in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
+NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme - supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have installed a JavaScript runtime in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
 h4. Using Your Own Compressor
 
@@ -506,7 +506,7 @@ TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sproc
 
 h3. Upgrading from Old Versions of Rails
 
-There are two issues when upgrading. The first is moving the files to the new locations. See the section above for guidance on the correct locations for different file types. 
+There are two issues when upgrading. The first is moving the files to the new locations. See the section above for guidance on the correct locations for different file types.
 
 The second is updating the various environment files with the correct default options. The following changes reflect the defaults in version 3.1.0.
 
