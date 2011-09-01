@@ -13,8 +13,7 @@ namespace :assets do
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
 
-      # Always calculate digests and compile files
-      Rails.application.config.assets.digest = true
+      # Always compile files
       Rails.application.config.assets.compile = true
 
       config = Rails.application.config
@@ -32,8 +31,10 @@ namespace :assets do
           end
 
           if asset = env.find_asset(logical_path)
-            manifest[logical_path] = asset.digest_path
-            filename = target.join(asset.digest_path)
+            asset_path = config.assets.digest ? asset.digest_path : logical_path
+            manifest[logical_path] = asset_path
+            filename = target.join(asset_path)
+
             mkdir_p filename.dirname
             asset.write_to(filename)
             asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
