@@ -1,4 +1,9 @@
-* Rails 3.0.10 (unreleased)
+* Rails 3.0.11 (unreleased)
+
+* Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
+  GH #2731
+
+* Rails 3.0.10
 
 * Magic encoding comment added to schema.rb files
 
