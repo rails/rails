@@ -13,7 +13,7 @@ endprologue.
 
 h3. What is the Asset Pipeline?
 
-The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, SCSS and ERB.
+The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, Sass and ERB.
 
 Prior to Rails 3.1 these features were added through third-party Ruby libraries such as Jammit and Sprockets. Rails 3.1 is integrated with Sprockets through ActionPack which depends on the +sprockets+ gem, by default.
 
@@ -36,7 +36,7 @@ The default behavior in Rails 3.1 and onward is to concatenate all files into on
 
 The second feature is to minify or compress assets. For CSS, this usually involves removing whitespace and comments. For JavaScript, more complex processes can be applied. You can choose from a set of built in options or specify your own.
 
-The third feature is the ability to code these assets using another language, or language extension. These include SCSS or Sass for CSS, CoffeeScript for JavaScript, and ERB for both.
+The third feature is the ability to code these assets using another language, or language extension. These include Sass for CSS, CoffeeScript for JavaScript, and ERB for both.
 
 h4. What is Fingerprinting and Why Should I Care?
 
@@ -108,7 +108,7 @@ Assets can be placed inside an application in one of three locations: +app/asset
 All subdirectories that exist within these three locations are added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths are traversed to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and served.
 
 You can add additional (fully qualified) paths to the pipeline in +application.rb+. For example:
- 
+
 <erb>
 config.assets.paths << File.join(Rails.root, 'app', 'assets', 'flash')
 </erb>
@@ -160,7 +160,7 @@ This inserts a correctly-formatted data URI into the CSS source.
 
 Note that the closing tag cannot be of the style +-%>+.
 
-h5. CSS and SCSS
+h5. CSS and Sass
 
 When using the asset pipeline, paths to assets must be re-written and +sass-rails+ provides +_url+ and +_path+ helpers for the following asset classes: image, font, video, audio, javascript, stylesheet.
 
@@ -289,7 +289,7 @@ generates something like this:
 <link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" type="text/css" />
 </html>
 
-The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else). 
+The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else).
 
 NOTE: Under normal circumstances the default options should not be changed. If there are no digests in the filenames, and far-future headers are set, remote clients will never know to refetch the files when their content changes.
 
