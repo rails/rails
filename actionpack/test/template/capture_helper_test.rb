@@ -46,6 +46,34 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "bar", content_for(:bar)
   end
 
+  def test_content_for_with_multiple_calls
+    assert ! content_for?(:title)
+    content_for :title, 'foo'
+    content_for :title, 'bar'
+    assert_equal 'foobar', content_for(:title)
+  end
+
+  def test_content_for_with_block
+    assert ! content_for?(:title)
+    content_for :title do
+      output_buffer << 'foo'
+      output_buffer << 'bar'
+      nil
+    end
+    assert_equal 'foobar', content_for(:title)
+  end
+
+  def test_content_for_with_whitespace_block
+    assert ! content_for?(:title)
+    content_for :title, 'foo'
+    content_for :title do
+      output_buffer << "  \n  "
+      nil
+    end
+    content_for :title, 'bar'
+    assert_equal 'foobar', content_for(:title)
+  end
+
   def test_content_for_question_mark
     assert ! content_for?(:title)
     content_for :title, 'title'
