@@ -118,25 +118,16 @@ module ActionDispatch
         @host = host
         @secure = secure
         @closed = false
-        @cookies = {}
+        @cookies = HashWithIndifferentAccess.new
       end
 
-      attr_reader :closed
+      attr_reader :closed, :cookies
       alias :closed? :closed
       def close!; @closed = true end
 
-      def each(&block)
-        @cookies.each(&block)
-      end
-
-      # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
-      def [](name)
-        @cookies[name.to_s]
-      end
-
-      def key?(name)
-        @cookies.key?(name.to_s)
-      end
+      delegate :each, :to => :cookies
+      delegate :[], :to => :cookies
+      delegate :key?, :to => :cookies
       alias :has_key? :key?
 
       def update(other_hash)
