@@ -64,6 +64,14 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal 'foobar', content_for(:title)
   end
 
+  def test_content_for_returns_nil_when_writing
+    assert ! content_for?(:title)
+    assert_equal nil, content_for(:title, 'foo')
+    assert_equal nil, content_for(:title) { output_buffer << 'bar'; nil }
+    assert_equal nil, content_for(:title) { output_buffer << "  \n  "; nil }
+    assert_equal 'foobar', content_for(:title)
+  end
+
   def test_with_output_buffer_swaps_the_output_buffer_given_no_argument
     assert_nil @av.output_buffer
     buffer = @av.with_output_buffer do
