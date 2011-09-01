@@ -554,7 +554,7 @@ config.assets.digest = true
 # config.assets.precompile += %w( search.js )
 </erb>
 
-There are no changes to +test.rb+.
+There are no changes to +test.rb+. For test environment by default +config.assets.compile+ is true and +config.assets.compress+, +config.assets.debug+ and +config.assets.digest+ are false
 
 The following should also be added to +Gemfile+:
 
