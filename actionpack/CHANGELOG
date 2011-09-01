@@ -30,6 +30,8 @@
 
 *Rails 3.1.1 (unreleased)*
 
+* CookieJar is now Enumerable. Fixes #2795
+
 * Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. [Guillermo Iguaran]
 
 * Manifest is correctly placed in assets path when default assets prefix is changed. [Guillermo Iguaran]
