@@ -222,59 +222,76 @@ Keep in mind that the order of these pre-processors is important. For example, i
 
 h3. In Development
 
-In the development environment assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ Cache-Control HTTP header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
+In development mode assets are served as separate files in the order they are specified in the manifest file.
 
-If any of the files in the manifest have changed between requests, the server responds with a new compiled file.
-
-h4. Debugging Assets
-
-You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL or set +config.assets.debug+ and Sprockets expands the lines which load the assets. For example, if you had an +app/assets/javascripts/application.js+ file containing these lines:
+This manifest +application.js+:
 
 <plain>
-//= require "projects"
-//= require "tickets"
+//= require core
+//= require projects
+//= require tickets
 </plain>
 
-By default, this only renders this line when used with +<%= javascript_include_tag "application" %>+ in a view or layout:
+would generate this HTML:
 
 <html>
-<script src='/assets/application.js'></script>
-</html>
-
-When the +debug_assets+ parameter is set, this line is expanded out into three separate lines, separating out the combined file into their parts.
-
-<html>
-<script src='/assets/application.js'></script>
+<script src='/assets/core.js'></script>
 <script src='/assets/projects.js'></script>
 <script src='/assets/tickets.js'></script>
 </html>
 
-This allows the individual parts of an asset to be rendered and debugged separately.
+h4. Turning Debugging off
 
-NOTE. Assets debugging is turned on by default in development and test environments.
+You can turn off debug mode by updating +development.rb+ to include:
+
+<erb>
+config.assets.debug = false
+</erb>
+
+When debug mode is off Sprockets will concatenate and run the necessary preprocessors on all files, generating the following HTML:
+
+<html>
+<script src='/assets/application.js'></script>
+</html>
+
+Assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ Cache-Control HTTP header to reduce request overhead on subsequent requests - on these the browser gets a 304 (not-modified) response.
+
+If any of the files in the manifest have changed between requests, the server responds with a new compiled file.
+
+You can put +?debug_assets=true+ or +?debug_assets=1+ at the end of a URL to enable debug mode on-demand, and this will render indivudual tags for each file. This is useful for tracking down exact line numbers when debugging.
+
+You could potentially also enable compression in development mode as a sanity check, and disable it on-demand as required for debugging.
+
 
 h3. In Production
 
-In the production environment, assets are served slightly differently.
+In the production environment Rails uses the fingerprinting scheme outlined above. By default it is assumed that assets have been precompiled and will be served as static assets by your web server.
 
-On the first request the assets are compiled and cached as described above, however the manifest names are altered to include an MD5 hash. Files names typically look like these:
+During the precompilation phase an MD5 is generated from the contents of the compiled files, and inserted into the filenames as they are written to disc. These fingerprinted names are used by the Rails helpers in place of the manifest name.
 
-<plain>
-/assets/application-908e25f4bf641868d8683022a5b62f54.js
-/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css
-</plain>
+For example this:
 
-The MD5 is generated from the contents of the compiled files, and is included in the HTTP +Content-MD5+ header.
+<erb>
+<%= javascript_include_tag "application" %>
+<%= stylesheet_link_tag "application" %>
+</erb>
 
-Sprockets also sets the +Cache-Control+ HTTP header to +max-age=31536000+. This signals all caches between your server and the client browser that this content (the file served) can be cached for 1 year. The effect of this is to reduce the number of requests for this asset from your server; the asset has a good chance of being in the local browser cache or some intermediate cache.
+generates something like this:
 
-This behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else).
+<html>
+<script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js" type="text/javascript"></script>
+<link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" media="screen" rel="stylesheet" type="text/css" /> 
+</html>
+
+The fingerprinting behavior is controlled by the setting of +config.assets.digest+ setting in Rails (which is +true+ for production, +false+ for everything else). under normal circumstances the default options should not be changed.
 
 h4. Precompiling Assets
 
-Even though assets are served by Rack::Cache with far-future headers, in high traffic sites this may not be fast enough.
+Rails comes bundled with a rake task to compile the asset manifests and other files in the pipeline to disc.
 
-Rails comes bundled with a rake task to compile the manifests to files on disc. These are located in the +public/assets+ directory where they are served by your web server instead of the Rails application.
+Compiled assets are written to the location specified in +config.assets.prefix+. The default setting will use the +public/assets+ directory.
+
+You must use this task either during deployment or locally if you do not have write access to your production filesystem.
 
 The rake task is:
 
@@ -288,7 +305,7 @@ Capistrano (v2.8.0+) has a recipe to handle this in deployment. Add the followin
 load 'deploy/assets'
 </erb>
 
-This links the folder specified in +config.assets.prefix+ to +shared/assets+. If you already use this folder you'll need to write your own deployment task.
+This links the folder specified in +config.assets.prefix+ to +shared/assets+. If you already use this shared folder you'll need to write your own deployment task.
 
 It is important that this folder is shared between deployments so that remotely cached pages that reference the old compiled assets still work for the life of the cached page.
 
@@ -298,13 +315,13 @@ The default matcher for compiling files includes +application.js+, +application.
 [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
 </ruby>
 
-If you have other manifests or individual stylesheets and JavaScript files to include, you can append them to the +precompile+ array:
+If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the +precompile+ array:
 
 <erb>
 config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 </erb>
 
-The rake task also generates a +manifest.yml+ that contains a list with all your assets and their fingerprints, using this manifest file the assets helpers avoid hitting to Sprockets to recalculate MD5 hashes for files. Manifest file typically look like this:
+The rake task also generates a +manifest.yml+ that contains a list with all your assets and their respective fingerprints. This is used by the Rails helper methods and avoids handing the mapping requests back to Sprockets. Manifest file typically look like this:
 
 <plain>
 ---
@@ -315,8 +332,17 @@ application.js: application-3fdab497b8fb70d20cfc5495239dfc29.js
 application.css: application-8af74128f904600e41a6e39241464e03.css
 </plain>
 
-The manifest file is generated by default in same folder of your precompiled assets, you can change the location of the file setting the +config.assets.manifest+ option with the full path of the folder where you want save it.
+The default location for the manifest is the root of the location specified in +config.assets.prefix+ ('/assets' by default).
 
+This can be changed with the +config.assets.manifest+ option. A fully specified path is required:
+
+<erb>
+config.assets.manifest = '/path/to/some/other/location'
+</erb>
+
+NOTE: If there are missing precompiled files in production you will get an "AssetNoPrecompiledError" exception indicating the name of the missing file.
+
+h5. Server Configuration
 
 Precompiled assets exist on the filesystem and are served directly by your webserver. They do not have far-future headers by default, so to get the benefit of fingerprinting you'll have to update your server configuration to add them.
 
@@ -370,10 +396,23 @@ location ~ ^/(assets)/  {
 }
 </plain>
 
-By default Rails assumes that you have your files precompiled in the production environment, if you want use live compiling (compile your assets during runtime) in production you must set the +config.assets.compile+ to true. You can use this option to fallback to Sprockets when you are using precompiled assets but there are any missing precompiled files. If +config.assets.compile+ option is set to false and there are missing precompiled files you will get an "AssetNoPrecompiledError" indicating the name of the missing file.
+h4. Live Compilation
+
+In some circumstances you may wish to use live compilation. In this mode all requests for assets in the Pipeline are handled by Sprockets directly.
+
+To enable this options set:
+
+<erb>
+config.assets.compile = true
+</erb>
+
+On the first request the assets are compiled and cached as outlined in development above, and the manifest names used in the helpers are altered to include the MD5 hash.
+
+Sprockets also sets the +Cache-Control+ HTTP header to +max-age=31536000+. This signals all caches between your server and the client browser that this content (the file served) can be cached for 1 year. The effect of this is to reduce the number of requests for this asset from your server; the asset has a good chance of being in the local browser cache or some intermediate cache.
+
+This mode uses more memory and is lower performance than the default. It is not recommended.
 
 h3. Customizing the Pipeline
-
 
 h4. CSS Compression
 
@@ -475,6 +514,10 @@ config.assets.enabled = true
 
 # Version of your assets, change this if you want to expire all your assets
 config.assets.version = '1.0'
+
+# Change the path that assets are served from
+# config.assets.prefix     = "/assets"
+
 </erb>
 
 In +development.rb+:
@@ -493,6 +536,11 @@ And in +production.rb+:
 # Compress JavaScripts and CSS
 config.assets.compress = true
 
+# Choose the compressors to use
+# config.assets.js_compressor  = :uglifier
+# config.assets.css_compressor = :yui
+
+
 # Don't fallback to assets pipeline if a precompiled asset is missed
 config.assets.compile = false
 
@@ -507,3 +555,16 @@ config.assets.digest = true
 </erb>
 
 There are no changes to +test.rb+.
+
+The following should also be added to +Gemfile+:
+
+<plain>
+# Gems used only for assets and not required
+# in production environments by default.
+group :assets do
+  gem 'sass-rails', "  ~> 3.1.0"
+  gem 'coffee-rails', "~> 3.1.0"
+  gem 'uglifier'
+end
+</plain>
+
