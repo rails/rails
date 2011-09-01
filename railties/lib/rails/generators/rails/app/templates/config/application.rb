@@ -14,9 +14,9 @@ require "active_resource/railtie"
 
 if defined?(Bundler)
   # If you precompile assets before deploying to production, use this line
-  Bundler.require(*Rails.groups(:assets => %w(development test)))
+  Bundler.setup(*Rails.groups(:assets => %w(development test)))
   # If you want your assets lazily compiled in production, use this line
-  # Bundler.require(:default, :assets, Rails.env)
+  # Bundler.setup(:default, :assets, Rails.env)
 end
 
 module <%= app_const_base %>
