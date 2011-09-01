@@ -426,7 +426,7 @@ config.assets.css_compressor = :yui
 
 The +config.assets.compress+ must be set to +true+ to enable CSS compression
 
-h4. JavaScript
+h4. JavaScript Compression
 
 Possible options for JavaScript compression are +:closure+, +:uglifier+ and +:yui+. These require the use of the +closure-compiler+, +uglifier+ or +yui-compressor+ gems respectively.
 
@@ -439,6 +439,8 @@ config.assets.js_compressor = :uglifier
 </erb>
 
 The +config.assets.compress+ must be set to +true+ to enable JavaScript compression
+
+NOTE: You will need a  "ExecJS":https://github.com/sstephenson/execjs#readme - supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have a JavaScript engine in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
 h4. Using Your Own Compressor
 
