@@ -1,5 +1,4 @@
 require 'active_record/connection_adapters/abstract_adapter'
-require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/string/encoding'
 
 module ActiveRecord
