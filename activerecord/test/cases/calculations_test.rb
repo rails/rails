@@ -172,7 +172,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_group_by_summed_field_having_condition_from_select
     # Oracle does not allow use of aliases from SELECT in HAVING clause
-    return if current_adapter?(:OracleAdapter)
+    return skip "unsupported on Oracle" if current_adapter?(:OracleAdapter)
 
     c = Account.select("MIN(credit_limit) AS min_credit_limit").group(:firm_id).having("min_credit_limit > 50").sum(:credit_limit)
     assert_nil       c[1]
