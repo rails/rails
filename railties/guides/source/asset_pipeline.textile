@@ -437,7 +437,7 @@ h3. Customizing the Pipeline
 
 h4. CSS Compression
 
-There is currently one option for compressing CSS, YUI. This Gem extends the CSS syntax and offers minification.
+There is currently one option for compressing CSS, YUI. The "YUI CSS compressor":http://developer.yahoo.com/yui/compressor/css.html provides minification.
 
 The following line enables YUI compression, and requires the +yui-compressor+ gem.
 
