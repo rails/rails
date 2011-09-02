@@ -147,7 +147,7 @@ h5. CSS and ERB
 If you add an +erb+ extension to a CSS asset, making it something such as +application.css.erb+, then you can use the +asset_path+ helper in your CSS rules:
 
 <plain>
-.class { background-image: <%= asset_path 'image.png' %> }
+.class { background-image: url(<%= asset_path 'image.png' %>) }
 </plain>
 
 This writes the path to the particular asset being referenced. In this example, it would make sense to have an image in one of the asset load paths, such as +app/assets/images/image.png+, which would be referenced here. If this image is already available in +public/assets+ as a fingerprinted file, then that path is referenced.
