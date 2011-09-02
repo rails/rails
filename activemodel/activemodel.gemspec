@@ -19,5 +19,4 @@ Gem::Specification.new do |s|
   s.add_dependency('activesupport', version)
   s.add_dependency('builder',       '~> 3.0.0')
   s.add_dependency('i18n',          '~> 0.6')
-  s.add_dependency('bcrypt-ruby',   '~> 3.0.0')
 end
