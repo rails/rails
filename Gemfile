@@ -6,6 +6,7 @@ if ENV['AREL']
   gem "arel", :path => ENV['AREL']
 end
 
+gem "bcrypt-ruby", "~> 3.0.0"
 gem "jquery-rails"
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
