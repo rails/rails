@@ -97,7 +97,7 @@ module Rails
 
         in_root do
           if options[:env].nil?
-            inject_into_file 'config/application.rb', "\n  #{data}", :after => sentinel, :verbose => false
+            inject_into_file 'config/application.rb', "\n    #{data}", :after => sentinel, :verbose => false
           else
             Array.wrap(options[:env]).each do |env|
               inject_into_file "config/environments/#{env}.rb", "\n  #{data}", :after => env_file_sentinel, :verbose => false
