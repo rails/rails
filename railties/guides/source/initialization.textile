@@ -676,11 +676,11 @@ h4. Back to +railties/lib/rails/railtie.rb+
 
 Once the inflector files have been loaded, the +Rails::Railtie+ class is defined. This class includes a module called +Initializable+, which is actually +Rails::Initializable+. This module includes the +initializer+ method which is used later on for setting up initializers, amongst other methods.
 
-h4. +railties/lib/rails/initializable.rb+
+h4(#railties-lib-rails-initializable-rb-1). +railties/lib/rails/initializable.rb+
 
 When the module from this file (+Rails::Initializable+) is included, it extends the class it's included into with the +ClassMethods+ module inside of it. This module defines the +initializer+ method which is used to define initializers throughout all of the railties. This file completes the loading of +railties/lib/rails/railtie.rb+. Now we go back to +rails/engine.rb+.
 
-h4. +railties/lib/rails/engine.rb+
+h4(#railties-lib-rails-engine-rb-1). +railties/lib/rails/engine.rb+
 
 The next file required in +rails/engine.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":http://guides.rubyonrails.org/active_support_core_extensions.html#method-delegation.
 

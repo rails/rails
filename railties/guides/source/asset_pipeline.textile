@@ -62,11 +62,11 @@ This has several disadvantages:
 
 <ol>
   <li>
-    <strong>Not all caches will cache content with a query string</strong><br>
+    <strong>Not all caches will cache content with a query string</strong><br/>
     "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in these case 5-20% of requests will not be cached.
   </li>
   <li>
-    <strong>The file name can change between nodes in multi-server environments.</strong><br>
+    <strong>The file name can change between nodes in multi-server environments.</strong><br/>
     The query string in Rails is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
   </li>
 </ol>
@@ -93,7 +93,7 @@ In production, the default is to precompile these files to +public/assets+ so th
 
 When a scaffold or controller is generated for the application, Rails also generates a JavaScript file (or CoffeeScript file if the +coffee-rails+ gem is in the +Gemfile+) and a Cascading Style Sheet file (or SCSS file if +sass-rails+ is in the +Gemfile+) for that controller.
 
-For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +<%= javascript_include_tag params[:controller] %>+ or +<%= stylesheet_link_tag params[:controller] %>+.
+For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +&lt;%= javascript_include_tag params[:controller] %&gt;+ or +&lt;%= stylesheet_link_tag params[:controller] %&gt;+.
 
 NOTE: You will need a  "ExecJS":https://github.com/sstephenson/execjs#readme - supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
