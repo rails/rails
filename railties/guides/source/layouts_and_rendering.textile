@@ -515,7 +515,7 @@ h4. Using +redirect_to+
 Another way to handle returning responses to an HTTP request is with +redirect_to+. As you've seen, +render+ tells Rails which view (or other asset) to use in constructing a response. The +redirect_to+ method does something completely different: it tells the browser to send a new request for a different URL. For example, you could redirect from wherever you are in your code to the index of photos in your application with this call:
 
 <ruby>
-redirect_to photos_path
+redirect_to photos_url
 </ruby>
 
 You can use +redirect_to+ with any arguments that you could use with +link_to+ or +url_for+. In addition, there's a special redirect that sends the user back to the page they just came from:
