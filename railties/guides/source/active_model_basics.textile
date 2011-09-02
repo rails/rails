@@ -163,12 +163,14 @@ person.first_name_changed? #=> true
 </ruby>
 
 Track what was the previous value of the attribute.
+
 <ruby>
 #attr_name_was accessor
 person.first_name_was  #=> "First Name"
 </ruby>
 
 Track  both previous and current value of the changed attribute. Returns an array if changed else returns nil
+
 <ruby>
 #attr_name_change
 person.first_name_change #=> ["First Name", "First Name 1"]

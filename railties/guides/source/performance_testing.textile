@@ -207,7 +207,7 @@ GC Time measures the amount of time spent in GC for the performance test case.
 
 h5. Metric Availability
 
-h6. Benchmarking
+h6(#benchmarking_1). Benchmarking
 
 |_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
 |_.MRI        | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
@@ -215,7 +215,7 @@ h6. Benchmarking
 |_.Rubinius   | yes       | no           | no       | no        | yes    | yes     | yes     | yes     |
 |_.JRuby      | yes       | no           | no       | yes       | yes    | yes     | yes     | yes     |
 
-h6. Profiling
+h6(#profiling_1). Profiling
 
 |_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
 |_.MRI        | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
