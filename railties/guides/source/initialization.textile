@@ -33,7 +33,7 @@ end
 
 This file will attempt to load +rails/cli+ and if it cannot find it then add the +railties/lib+ path to the load path (+$:+) and will then try to require it again.
 
-h4. +railites/lib/rails/cli.rb+
+h4. +railties/lib/rails/cli.rb+
 
 This file looks like this:
 
@@ -71,7 +71,7 @@ module Rails
 end
 </ruby>
 
-The +rails/script_rails_loader+ file uses +RbConfig::Config+ to gather up the +bin_dir+ and +ruby_install_name+ values for the configuration which will result in a path such as +/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby+, which is the default path on Mac OS X. If you're running Windows the path may be something such as +C:/Ruby192/bin/ruby+. Anyway, the path on your system may be different, but the point of this is that it will point at the known ruby executable location for your install. The +RbConfig::CONFIG["EXEEXT"]+ will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in +exec_script_rails!+. As for the +SCRIPT_RAILS+ console, we'll see that when we get to the +in_rails_application?+ method.
+The +rails/script_rails_loader+ file uses +RbConfig::Config+ to gather up the +bin_dir+ and +ruby_install_name+ values for the configuration which will result in a path such as +/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby+, which is the default path on Mac OS X. If you're running Windows the path may be something such as +C:/Ruby192/bin/ruby+. Anyway, the path on your system may be different, but the point of this is that it will point at the known ruby executable location for your install. The +RbConfig::CONFIG["EXEEXT"]+ will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in +exec_script_rails!+. As for the +SCRIPT_RAILS+ constant, we'll see that when we get to the +in_rails_application?+ method.
 
 Back in +rails/cli+, the next line is this:
 
@@ -190,7 +190,8 @@ aliases = {
   "g"  => "generate",
   "c"  => "console",
   "s"  => "server",
-  "db" => "dbconsole"
+  "db" => "dbconsole",
+  "r"  => "runner"
 }
 
 command = ARGV.shift
@@ -760,7 +761,6 @@ def subclasses
 end
 </ruby>
 
-
 The +config+ method used at the top of +I18n::Railtie+ is defined on +Rails::Railtie+ and is defined like this:
 
 <ruby>
@@ -847,7 +847,7 @@ The +Collection+ class in +railties/lib/rails/initializable.rb+ inherits from +A
 
 The +initializers_chain+ method referenced in the +initializers_for+ method is defined like this:
 
-<rub>
+<ruby>
 def initializers_chain
   initializers = Collection.new
  ancestors.reverse_each do | klass |

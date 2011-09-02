@@ -174,7 +174,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
-  def test_generator_if_skip_active_record_is_given
+  def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
@@ -296,6 +296,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--old-style-hash"]
     assert_file "config/initializers/session_store.rb" do |file|
       assert_match(/config.session_store :cookie_store, :key => '_.+_session'/, file)
+    end
+  end
+
+  def test_generated_environments_file_for_sanitizer
+    run_generator [destination_root, "--skip-active-record"]
+    ["config/environments/development.rb", "config/environments/test.rb"].each do |env_file|
+      assert_file env_file do |file|
+        assert_no_match(/config.active_record.mass_assignment_sanitizer = :strict/, file)
+      end
     end
   end
 

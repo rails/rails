@@ -86,7 +86,7 @@ module ActiveModel
 
     # Do the error messages include an error with key +error+?
     def include?(error)
-      messages.include? error
+      (v = messages[error]) && v.any?
     end
 
     # Get messages for +key+
@@ -174,7 +174,7 @@ module ActiveModel
       to_a.size
     end
 
-    # Returns true if there are any errors, false if not.
+    # Returns true if no errors are found, false otherwise.
     def empty?
       all? { |k, v| v && v.empty? }
     end

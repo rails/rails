@@ -536,21 +536,8 @@ command in your terminal:
 $ rails generate scaffold Post name:string title:string content:text
 </shell>
 
-This will create a new database table called posts (plural of Post). The table
-will have three columns, name (type string), title (type string) and content
-(type text). It will also hook this new database up to Rails (details below).
-
-NOTE. While scaffolding will get you up and running quickly, the code it
-generates is unlikely to be a perfect fit for your application. You'll most
-probably want to customize the generated code. Many experienced Rails developers
-avoid scaffolding entirely, preferring to write all or most of their source code
-from scratch. Rails, however, makes it really simple to customize templates for
-generated models, controllers, views and other source files. You'll find more
-information in the "Creating and Customizing Rails Generators &
-Templates":generators.html guide.
-
-The scaffold generator will build 17 files in your application, along with some
-folders, and edit one more. Here's a quick overview of what it creates:
+The scaffold generator will build several files in your application, along with some
+folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it creates:
 
 |_.File                                       |_.Purpose|
 |db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
@@ -570,6 +557,15 @@ folders, and edit one more. Here's a quick overview of what it creates:
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
 |config/routes.rb                             |Edited to include routing information for posts|
+
+NOTE. While scaffolding will get you up and running quickly, the code it
+generates is unlikely to be a perfect fit for your application. You'll most
+probably want to customize the generated code. Many experienced Rails developers
+avoid scaffolding entirely, preferring to write all or most of their source code
+from scratch. Rails, however, makes it really simple to customize templates for
+generated models, controllers, views and other source files. You'll find more
+information in the "Creating and Customizing Rails Generators &
+Templates":generators.html guide.
 
 h4. Running a Migration
 
@@ -1896,7 +1892,7 @@ h3. Changelog
 
 * April 26, 2011: Change migration code from +up+, +down+ pair to +change+ method by "Prem Sichanugrist":http://sikachu.com
 * April 11, 2011: Change scaffold_controller generator to create format block for JSON instead of XML by "Sebastian Martinez":http://www.wyeworks.com
-* August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
+* August 30, 2010: Minor editing after Rails 3 release by Joost Baaij
 * July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
 * May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
 * April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com

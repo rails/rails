@@ -247,7 +247,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Category.where('comments.id' => comments(:more_greetings).id).order('comments.id'),
+      Category.where('comments.id' => comments(:more_greetings).id).order('categories.id'),
       [categories(:general), categories(:technology)], :post_comments
     )
   end

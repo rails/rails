@@ -268,7 +268,7 @@ module ActionView
       # to change the HTTP verb used to submit the form.
       #
       # ==== Options
-      # The +options+ hash accepts the same options as url_for.
+      # The +options+ hash accepts the same options as +url_for+.
       #
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,

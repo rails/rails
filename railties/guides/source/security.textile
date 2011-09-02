@@ -80,7 +80,6 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 * _(highlight)Critical data should not be stored in session_. If the user clears his cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
 
-
 h4. Session Storage
 
 -- _Rails provides several storage mechanisms for the session hashes. The most important are ActiveRecordStore and CookieStore._

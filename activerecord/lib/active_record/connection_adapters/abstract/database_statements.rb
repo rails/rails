@@ -3,30 +3,39 @@ require 'active_support/core_ext/module/deprecation'
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
+      # Converts an arel AST to SQL
+      def to_sql(arel)
+        if arel.respond_to?(:ast)
+          visitor.accept(arel.ast)
+        else
+          arel
+        end
+      end
+
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
-      def select_all(sql, name = nil, binds = [])
-        select(sql, name, binds)
+      def select_all(arel, name = nil, binds = [])
+        select(to_sql(arel), name, binds)
       end
 
       # Returns a record hash with the column names as keys and column values
       # as values.
-      def select_one(sql, name = nil)
-        result = select_all(sql, name)
+      def select_one(arel, name = nil)
+        result = select_all(arel, name)
         result.first if result
       end
 
       # Returns a single value from a record
-      def select_value(sql, name = nil)
-        if result = select_one(sql, name)
+      def select_value(arel, name = nil)
+        if result = select_one(arel, name)
           result.values.first
         end
       end
 
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
-      def select_values(sql, name = nil)
-        result = select_rows(sql, name)
+      def select_values(arel, name = nil)
+        result = select_rows(to_sql(arel), name)
         result.map { |v| v[0] }
       end
 
@@ -76,20 +85,20 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        sql, binds = sql_for_insert(sql, pk, id_value, sequence_name, binds)
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        sql, binds = sql_for_insert(to_sql(arel), pk, id_value, sequence_name, binds)
         value      = exec_insert(sql, name, binds)
         id_value || last_inserted_id(value)
       end
 
       # Executes the update statement and returns the number of rows affected.
-      def update(sql, name = nil, binds = [])
-        exec_update(sql, name, binds)
+      def update(arel, name = nil, binds = [])
+        exec_update(to_sql(arel), name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
-      def delete(sql, name = nil, binds = [])
-        exec_delete(sql, name, binds)
+      def delete(arel, name = nil, binds = [])
+        exec_delete(to_sql(arel), name, binds)
       end
 
       # Checks whether there is currently no transaction active. This is done
@@ -322,6 +331,16 @@ module ActiveRecord
         else
           Integer(limit)
         end
+      end
+
+      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
+      # on mysql (even when aliasing the tables), but mysql allows using JOIN directly in
+      # an UPDATE statement, so in the mysql adapters we redefine this to do that.
+      def join_to_update(update, select) #:nodoc:
+        subselect = select.clone
+        subselect.projections = [update.key]
+
+        update.where update.key.in(subselect)
       end
 
       protected

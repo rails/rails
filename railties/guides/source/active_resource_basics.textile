@@ -1,0 +1,74 @@
+h2. Active Resource Basics
+
+This guide should provide you with all you need to get started managing the connection between business objects and RESTful web services. It implements a way to map web-based resources to local objects with CRUD semantics.
+
+endprologue.
+
+WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
+
+h3. Introduction
+
+Active Resource allows you to connect with RESTful web services. So, in Rails, Resource classes inherited from +ActiveResource::Base+ and live in  +app/models+.
+
+h3. Configuration and Usage
+
+Putting Active Resource to use is very similar to Active Record.  It's as simple as creating a model class
+that inherits from ActiveResource::Base and providing a <tt>site</tt> class variable to it:
+
+<ruby>
+class Person < ActiveResource::Base
+  self.site = "http://api.people.com:3000/"
+end
+</ruby>
+
+Now the Person class is REST enabled and can invoke REST services very similarly to how Active Record invokes
+life cycle methods that operate against a persistent store.
+
+h3. Reading and Writing Data
+
+Active Resource make request over HTTP using a standard JSON format. It mirrors the RESTful routing built into Action Controller but will also work with any other REST service that properly implements the protocol.
+
+h4. Read
+
+Read requests use the GET method and expect the JSON form of whatever resource/resources is/are being requested.
+
+<ruby>
+# Find a person with id = 1
+person = Person.find(1)
+# Check if a person exists with id = 1
+Person.exists?(1)  # => true
+# Get all resources of Person class
+Person.all
+</ruby>
+
+h4. Create
+
+Creating a new resource submits the JSON form of the resource as the body of the request with HTTP POST method and parse the response into Active Resource object.
+
+<ruby>
+person = Person.create(:name => 'Vishnu')
+person.id  # => 1
+</ruby>
+
+h4. Update
+
+To update an existing resource, 'save' method is used. This method make a HTTP PUT request in JSON format.
+
+<ruby>
+person = Person.find(1)
+person.name = 'Atrai'
+person.save
+</ruby>
+
+h4. Delete
+
+'destroy' method makes a HTTP DELETE request for an existing resource in JSON format to delete that resource.
+
+<ruby>
+person = Person.find(1)
+person.destroy
+</ruby>
+
+h3. Changelog
+
+* July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai

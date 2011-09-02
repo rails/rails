@@ -193,6 +193,10 @@ module ActiveRecord
         connect
       end
 
+      def self.visitor_for(pool) # :nodoc:
+        Arel::Visitors::MySQL.new(pool)
+      end
+
       def adapter_name #:nodoc:
         ADAPTER_NAME
       end
@@ -247,7 +251,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        @quoted_column_names[name] ||= "`#{name}`"
+        @quoted_column_names[name] ||= "`#{name.to_s.gsub('`', '``')}`"
       end
 
       def quote_table_name(name) #:nodoc:
@@ -500,6 +504,27 @@ module ActiveRecord
         sql
       end
       deprecate :add_limit_offset!
+
+      # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
+      # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
+      # these, we must use a subquery. However, MySQL is too stupid to create a
+      # temporary table for this automatically, so we have to give it some prompting
+      # in the form of a subsubquery. Ugh!
+      def join_to_update(update, select) #:nodoc:
+        if select.limit || select.offset || select.orders.any?
+          subsubselect = select.clone
+          subsubselect.projections = [update.key]
+
+          subselect = Arel::SelectManager.new(select.engine)
+          subselect.project Arel.sql(update.key.name)
+          subselect.from subsubselect.as('__active_record_temp')
+
+          update.where update.key.in(subselect)
+        else
+          update.table select.source
+          update.wheres = select.constraints
+        end
+      end
 
       # SCHEMA STATEMENTS ========================================
 

@@ -14,6 +14,9 @@ module Sprockets
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
           paths.asset_prefix      = asset_prefix
+          paths.asset_digests     = asset_digests
+          paths.compile_assets    = compile_assets?
+          paths.digest_assets     = digest_assets?
           paths
         end
       end
@@ -26,15 +29,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              javascript_include_tag(dep, :debug => false, :body => true)
-            }.join("\n").html_safe
+              super(dep.to_s, { :src => asset_path(dep, 'js', true) }.merge!(options))
+            }
           else
-            tag_options = {
-              'type' => "text/javascript",
-              'src'  => asset_path(source, 'js', body)
-            }.merge(options.stringify_keys)
-
-            content_tag 'script', "", tag_options
+            super(source.to_s, { :src => asset_path(source, 'js', body) }.merge!(options))
           end
         end.join("\n").html_safe
       end
@@ -47,17 +45,10 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              stylesheet_link_tag(dep, :debug => false, :body => true)
-            }.join("\n").html_safe
+              super(dep.to_s, { :href => asset_path(dep, 'css', true, :request) }.merge!(options))
+            }
           else
-            tag_options = {
-              'rel'   => "stylesheet",
-              'type'  => "text/css",
-              'media' => "screen",
-              'href'  => asset_path(source, 'css', body, :request)
-            }.merge(options.stringify_keys)
-
-            tag 'link', tag_options
+            super(source.to_s, { :href => asset_path(source, 'css', body, :request) }.merge!(options))
           end
         end.join("\n").html_safe
       end
@@ -70,10 +61,14 @@ module Sprockets
 
     private
       def debug_assets?
-        params[:debug_assets] == '1' ||
-          params[:debug_assets] == 'true'
-      rescue NoMethodError
-        false
+        begin
+          compile_assets? &&
+            (Rails.application.config.assets.debug ||
+             params[:debug_assets] == '1' ||
+             params[:debug_assets] == 'true')
+        rescue NoMethodError
+          false
+        end
       end
 
       # Override to specify an alternative prefix for asset path generation.
@@ -86,6 +81,18 @@ module Sprockets
         Rails.application.config.assets.prefix
       end
 
+      def asset_digests
+        Rails.application.config.assets.digests
+      end
+
+      def compile_assets?
+        Rails.application.config.assets.compile
+      end
+
+      def digest_assets?
+        Rails.application.config.assets.digest
+      end
+
       # Override to specify an alternative asset environment for asset
       # path generation. The environment should already have been mounted
       # at the prefix returned by +asset_prefix+.
@@ -94,7 +101,9 @@ module Sprockets
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        attr_accessor :asset_environment, :asset_prefix
+        attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets, :digest_assets
+
+        class AssetNotPrecompiledError < StandardError; end
 
         def compute_public_path(source, dir, ext=nil, include_host=true, protocol=nil)
           super(source, asset_prefix, ext, include_host, protocol)
@@ -112,11 +121,29 @@ module Sprockets
           asset_environment[source]
         end
 
+        def digest_for(logical_path)
+          if asset_digests && (digest = asset_digests[logical_path])
+            return digest
+          end
+
+          if compile_assets
+            if asset = asset_environment[logical_path]
+              return asset.digest_path
+            end
+            return logical_path
+          else
+            raise AssetNotPrecompiledError.new("#{logical_path} isn't precompiled")
+          end
+        end
+
         def rewrite_asset_path(source, dir)
           if source[0] == ?/
             source
           else
-            asset_environment.path(source, performing_caching?, dir)
+            source = digest_for(source) if digest_assets
+            source = File.join(dir, source)
+            source = "/#{source}" unless source =~ /^\//
+            source
           end
         end
 
@@ -126,11 +153,6 @@ module Sprockets
           else
             source
           end
-        end
-
-        # When included in Sprockets::Context, we need to ask the top-level config as the controller is not available
-        def performing_caching?
-          config.action_controller.present? ? config.action_controller.perform_caching : config.perform_caching
         end
       end
     end

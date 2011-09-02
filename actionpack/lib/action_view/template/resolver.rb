@@ -149,14 +149,22 @@ module ActionView
     # Helper for building query glob string based on resolver's pattern.
     def build_query(path, details)
       query = @pattern.dup
-      query.gsub!(/\:prefix(\/)?/, path.prefix.empty? ? "" : "#{path.prefix}\\1") # prefix can be empty...
-      query.gsub!(/\:action/, path.partial? ? "_#{path.name}" : path.name)
+
+      prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
+      query.gsub!(/\:prefix(\/)?/, prefix)
+
+      partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
+      query.gsub!(/\:action/, partial)
 
       details.each do |ext, variants|
         query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
       end
 
       File.expand_path(query, @path)
+    end
+
+    def escape_entry(entry)
+      entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
     end
 
     # Returns the file mtime from the filesystem.
@@ -235,11 +243,11 @@ module ActionView
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
     def build_query(path, details)
       exts = EXTENSIONS.map { |ext| details[ext] }
-      query = File.join(@path, path)
+      query = escape_entry(File.join(@path, path))
 
       exts.each do |ext|
         query << "{"
-        ext.compact.each { |e| query << ".#{e}," }
+        ext.compact.uniq.each { |e| query << ".#{e}," }
         query << "}"
       end
 

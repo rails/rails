@@ -10,7 +10,7 @@ Mail gem.  It provides a way to make emails using templates in the same
 way that Action Controller renders views using templates.
 
 Additionally, an Action Mailer class can be used to process incoming email,
-such as allowing a weblog to accept new posts from an email (which could even
+such as allowing a blog to accept new posts from an email (which could even
 have been sent from a phone).
 
 == Sending emails
@@ -74,7 +74,7 @@ Or you can just chain the methods together like:
 
 == Setting defaults
 
-It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from ActionMailer::Base. This method accepts a Hash as the parameter. You can use any of the headers e-mail messages has, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you wont need to worry about that. Finally it is also possible to pass in a Proc that will get evaluated when it is needed.
+It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from ActionMailer::Base. This method accepts a Hash as the parameter. You can use any of the headers e-mail messages has, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you won't need to worry about that. Finally it is also possible to pass in a Proc that will get evaluated when it is needed.
 
 Note that every value you set with this method will get over written if you use the same key in your mailer method.
 
@@ -141,7 +141,7 @@ The latest version of Action Mailer can be installed with Rubygems:
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/actionmailer/
+* https://github.com/rails/rails/tree/master/actionmailer
 
 
 == License

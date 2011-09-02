@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
+require 'active_support/core_ext/string/encoding'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
@@ -52,6 +53,10 @@ module ActiveRecord
         super(connection, logger)
         @statements = {}
         @config = config
+      end
+
+      def self.visitor_for(pool) # :nodoc:
+        Arel::Visitors::SQLite.new(pool)
       end
 
       def adapter_name #:nodoc:
@@ -142,7 +147,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        %Q("#{name}")
+        %Q("#{name.to_s.gsub('"', '""')}")
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
@@ -155,10 +160,25 @@ module ActiveRecord
         end
       end
 
-      def type_cast(value, column) # :nodoc:
-        return super unless BigDecimal === value
+      if "<3".encoding_aware?
+        def type_cast(value, column) # :nodoc:
+          return value.to_f if BigDecimal === value
+          return super unless String === value
+          return super unless column && value
 
-        value.to_f
+          value = super
+          if column.type == :string && value.encoding == Encoding::ASCII_8BIT
+            @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
+            value.encode! 'utf-8'
+          end
+          value
+        end
+      else
+        def type_cast(value, column) # :nodoc:
+          return super unless BigDecimal === value
+
+          value.to_f
+        end
       end
 
       # DATABASE STATEMENTS ======================================

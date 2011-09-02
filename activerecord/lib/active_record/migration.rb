@@ -332,6 +332,10 @@ module ActiveRecord
       (delegate || superclass.delegate).send(name, *args, &block)
     end
 
+    def self.migrate(direction)
+      new.migrate direction
+    end
+
     cattr_accessor :verbose
 
     attr_accessor :name, :version
@@ -559,7 +563,7 @@ module ActiveRecord
 
       def get_all_versions
         table = Arel::Table.new(schema_migrations_table_name)
-        Base.connection.select_values(table.project(table['version']).to_sql).map{ |v| v.to_i }.sort
+        Base.connection.select_values(table.project(table['version'])).map{ |v| v.to_i }.sort
       end
 
       def current_version
@@ -716,11 +720,11 @@ module ActiveRecord
         if down?
           @migrated_versions.delete(version)
           stmt = table.where(table["version"].eq(version.to_s)).compile_delete
-          Base.connection.delete stmt.to_sql
+          Base.connection.delete stmt
         else
           @migrated_versions.push(version).sort!
           stmt = table.compile_insert table["version"] => version.to_s
-          Base.connection.insert stmt.to_sql
+          Base.connection.insert stmt
         end
       end
 

@@ -661,6 +661,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { Topic.find_or_create_by_title?("Nonexistent Title") }
   end
 
+  def test_dynamic_finder_with_hash
+    assert_not_deprecated do
+      topic = Topic.find_or_create_by_title_and_author_name(
+        :title => "hi aaron!",
+        :author_name => "Aaron"
+      )
+      assert_equal 'hi aaron!', topic.title
+    end
+  end
+
   def test_find_by_two_attributes
     assert_equal topics(:first), Topic.find_by_title_and_author_name("The First Topic", "David")
     assert_nil Topic.find_by_title_and_author_name("The First Topic", "Mary")

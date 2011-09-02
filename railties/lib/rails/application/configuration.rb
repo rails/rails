@@ -1,4 +1,5 @@
 require 'active_support/core_ext/string/encoding'
+require 'active_support/core_ext/kernel/reporting'
 require 'rails/engine/configuration'
 
 module Rails
@@ -6,12 +7,13 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets,
                     :cache_classes, :cache_store, :consider_all_requests_local,
-                    :dependency_loading, :encoding, :filter_parameters,
+                    :dependency_loading, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :preload_frameworks,
                     :reload_plugins, :secret_token, :serve_static_assets,
                     :static_cache_control, :session_options, :time_zone, :whiny_nils
 
       attr_writer :log_level
+      attr_reader :encoding
 
       def initialize(*)
         super
@@ -33,14 +35,18 @@ module Rails
         @cache_store                 = [ :file_store, "#{root}/tmp/cache/" ]
 
         @assets = ActiveSupport::OrderedOptions.new
-        @assets.enabled    = false
-        @assets.paths      = []
-        @assets.precompile = [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
-        @assets.prefix     = "/assets"
-
-        @assets.cache_store    = [ :file_store, "#{root}/tmp/cache/assets/" ]
-        @assets.js_compressor  = nil
-        @assets.css_compressor = nil
+        @assets.enabled         = false
+        @assets.paths           = []
+        @assets.precompile      = [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
+        @assets.prefix          = "/assets"
+        @assets.version         = ''
+        @assets.debug           = false
+        @assets.compile         = true
+        @assets.digest          = false
+        @assets.manifest        = nil
+        @assets.cache_store     = [ :file_store, "#{root}/tmp/cache/assets/" ]
+        @assets.js_compressor   = nil
+        @assets.css_compressor  = nil
       end
 
       def compiled_asset_path
@@ -50,8 +56,10 @@ module Rails
       def encoding=(value)
         @encoding = value
         if "ruby".encoding_aware?
-          Encoding.default_external = value
-          Encoding.default_internal = value
+          silence_warnings do
+            Encoding.default_external = value
+            Encoding.default_internal = value
+          end
         else
           $KCODE = value
           if $KCODE == "NONE"

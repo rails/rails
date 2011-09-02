@@ -126,7 +126,7 @@ class Module
           %(raise "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
         end
 
-      module_eval(<<-EOS, file, line - 5)
+      module_eval(<<-EOS, file, line - 1)
         def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
           #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
         rescue NoMethodError                                # rescue NoMethodError

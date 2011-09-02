@@ -1,4 +1,18 @@
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.1 (unreleased)*
+
+* Don't compute table name for abstract classes. Fixes problem with setting the primary key
+  in an abstract class. See GH #2791. [Akira Matsuda]
+
+* Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
+  GH #2731
+
+*Rails 3.1.0 (August 30, 2011)*
+
+* Add a proxy_association method to association proxies, which can be called by association
+  extensions to access information about the association. This replaces proxy_owner etc with
+  proxy_association.owner.
+
+  [Jon Leighton]
 
 * Active Record's dynamic finder will now show a deprecation warning if you passing in less number of arguments than what you call in method signature. This behavior will raise ArgumentError in the next version of Rails [Prem Sichanugrist]
 

@@ -131,7 +131,7 @@ module Rails
       end
 
       def comment_if(value)
-        options[value] ? '#' : ''
+        options[value] ? '# ' : ''
       end
 
       def rails_gemfile_entry
@@ -200,6 +200,18 @@ module Rails
 
       def javascript_gemfile_entry
         "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
+      end
+
+      def assets_gemfile_entry
+        <<-GEMFILE.strip_heredoc
+          # Gems used only for assets and not required
+          # in production environments by default.
+          group :assets do
+            gem 'sass-rails', #{options.dev? || options.edge? ? "  :git => 'git://github.com/rails/sass-rails.git', :branch => '3-1-stable'" : "  ~> 3.1.0".inspect}
+            gem 'coffee-rails', #{options.dev? || options.edge? ? ":git => 'git://github.com/rails/coffee-rails.git', :branch => '3-1-stable'" : "~> 3.1.0".inspect}
+            gem 'uglifier'
+          end
+        GEMFILE
       end
 
       def bundle_command(command)

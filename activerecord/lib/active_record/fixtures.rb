@@ -715,10 +715,16 @@ module ActiveRecord
         File.basename(@fixture_path).split(".").first
       end
 
+      RESCUE_ERRORS = [ ArgumentError ]
+
+      if defined?(Psych) && defined?(Psych::SyntaxError)
+        RESCUE_ERRORS << Psych::SyntaxError
+      end
+
       def parse_yaml_string(fixture_content)
         YAML::load(erb_render(fixture_content))
-      rescue => error
-        raise Fixture::FormatError, "a YAML error occurred parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}"
+      rescue *RESCUE_ERRORS => error
+        raise Fixture::FormatError, "a YAML error occurred parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
       end
 
       def erb_render(fixture_content)

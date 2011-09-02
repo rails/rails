@@ -55,6 +55,11 @@ module Rails
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
+    def initialize
+      super
+      @initialized = false
+    end
+
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
     # configuration.
@@ -160,9 +165,7 @@ module Rails
         middleware.use ::Rails::Rack::Logger # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-        if config.action_dispatch.x_sendfile_header.present?
-          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-        end
+        middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
         middleware.use ::ActionDispatch::Reloader unless config.cache_classes
         middleware.use ::ActionDispatch::Callbacks
         middleware.use ::ActionDispatch::Cookies

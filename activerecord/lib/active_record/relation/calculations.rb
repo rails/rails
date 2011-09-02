@@ -219,7 +219,7 @@ module ActiveRecord
         query_builder = relation.arel
       end
 
-      type_cast_calculated_value(@klass.connection.select_value(query_builder.to_sql), column_for(column_name), operation)
+      type_cast_calculated_value(@klass.connection.select_value(query_builder), column_for(column_name), operation)
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -246,6 +246,7 @@ module ActiveRecord
           operation,
           distinct).as(aggregate_alias)
       ]
+      select_values += @select_values unless @having_values.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
         "#{field} AS #{aliaz}"
@@ -254,7 +255,7 @@ module ActiveRecord
       relation = except(:group).group(group.join(','))
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation.to_sql)
+      calculated_data = @klass.connection.select_all(relation)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }

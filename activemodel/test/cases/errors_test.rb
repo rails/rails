@@ -38,6 +38,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors[:foo]
     assert person.errors.empty?
     assert person.errors.blank?
+    assert !person.errors.include?(:foo)
   end
 
   test "method validate! should work" do

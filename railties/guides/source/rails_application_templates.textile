@@ -148,7 +148,7 @@ The above creates +lib/tasks/bootstrap.rake+ with a +boot:strap+ rake task.
 
 h4. generate(what, args)
 
-Runs the supplied rails generator with given arguments. For example, I love to scaffold some whenever I’m playing with Rails:
+Runs the supplied rails generator with given arguments.
 
 <ruby>
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
@@ -174,12 +174,6 @@ You can also run rake tasks with a different Rails environment:
 
 <ruby>
 rake "db:migrate", :env => 'production'
-</ruby>
-
-Or even use sudo:
-
-<ruby>
-rake "gems:install", :sudo => true
 </ruby>
 
 h4. route(routing_code)

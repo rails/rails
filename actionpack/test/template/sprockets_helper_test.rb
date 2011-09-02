@@ -33,6 +33,8 @@ class SprocketsHelperTest < ActionView::TestCase
     @config = config
     @config.action_controller ||= ActiveSupport::InheritableOptions.new
     @config.perform_caching = true
+    @config.assets.digest = true
+    @config.assets.compile = true
   end
 
   def url_for(*args)
@@ -154,11 +156,16 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_equal '<script src="http://www.example.com/xmlhr" type="text/javascript"></script>',
       javascript_include_tag("http://www.example.com/xmlhr")
 
+    assert_match %r{<script src=\"/assets/xmlhr-[0-9a-f]+.js" type=\"text/javascript\"></script>\n<script src=\"/assets/extra-[0-9a-f]+.js" type=\"text/javascript\"></script>},
+      javascript_include_tag("xmlhr", "extra")
+
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application, :debug => true)
 
-    assert_match %r{<script src=\"/assets/xmlhr-[0-9a-f]+.js\" type=\"text/javascript\"></script>\n<script src=\"/assets/extra-[0-9a-f]+.js\" type=\"text/javascript\"></script>},
-      javascript_include_tag("xmlhr", "extra")
+    @config.assets.compile = true
+    @config.assets.debug = true
+    assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
+      javascript_include_tag(:application)
   end
 
   test "stylesheet path" do
@@ -190,11 +197,19 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css" media="print" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag("style", :media => "print")
 
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/extra-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag("style", "extra")
+
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application, :debug => true)
 
-    assert_match %r{<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/extra-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />},
-      stylesheet_link_tag("style", "extra")
+    @config.assets.compile = true
+    @config.assets.debug = true
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag(:application)
+
+    assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="print" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="print" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag(:application, :media => "print")
   end
 
   test "alternate asset prefix" do
@@ -207,5 +222,18 @@ class SprocketsHelperTest < ActionView::TestCase
     assets.append_path(FIXTURES.join("sprockets/alternate/stylesheets"))
     stubs(:asset_environment).returns(assets)
     assert_match %r{/assets/style-[0-9a-f]+.css}, asset_path("style", "css")
+  end
+
+  test "alternate hash based on environment" do
+    assets = Sprockets::Environment.new
+    assets.version = 'development'
+    assets.append_path(FIXTURES.join("sprockets/alternate/stylesheets"))
+    stubs(:asset_environment).returns(assets)
+    dev_path = asset_path("style", "css")
+
+    assets.version = 'production'
+    prod_path = asset_path("style", "css")
+
+    assert_not_equal prod_path, dev_path
   end
 end
