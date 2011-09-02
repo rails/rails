@@ -277,7 +277,7 @@ Debug can also be set in the Rails helper methods:
 <%= javascript_include_tag "application", :debug => true %>
 </erb>
 
-Don't forget to remove this before deploying to production!
+The +:debug+ option is ignored if the debug mode is off.
 
 You could potentially also enable compression in development mode as a sanity check, and disable it on-demand as required for debugging.
 
