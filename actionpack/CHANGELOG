@@ -1,5 +1,21 @@
 *Rails 3.2.0 (unreleased)*
 
+* content_tag_for and div_for can now take the collection of records. It will also yield the record as the first argument if you set a receiving argument in your block [Prem Sichanugrist]
+
+  So instead of having to do this:
+
+    @items.each do |item|
+      content_tag_for(:li, item) do
+         Title: <%= item.title %>
+      end
+    end
+
+  You can now do this:
+
+    content_tag_for(:li, @items) do |item|
+      Title: <%= item.title %>
+    end
+
 * send_file now guess the mime type [Esad Hajdarevic]
 
 * Mime type entries for PDF, ZIP and other formats were added [Esad Hajdarevic]
