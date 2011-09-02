@@ -126,7 +126,7 @@ class FixturesFileNotFound < StandardError; end
 # Some times you don't care about the content of the fixtures as much as you care about the volume. In these cases, you can
 # mix ERB in with your YAML fixtures to create a bunch of fixtures for load testing, like:
 #
-#   <% for i in 1..1000 %>
+#   <% (1..1000).each do |i| %>
 #   fix_<%= i %>:
 #     id: <%= i %>
 #     name: guy_<%= 1 %>
