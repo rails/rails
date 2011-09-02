@@ -4,11 +4,11 @@ require 'active_support/core_ext/object/inclusion'
 module Rails
   module Generators
     class GeneratedAttribute
-      attr_accessor :name, :type, :has_index
+      attr_accessor :name, :type, :has_index, :attr_options
 
       def initialize(name, type, has_index = false)
         type = :string if type.blank?
-        @name, @type, @has_index = name, type.to_sym, has_index.eql?("index")
+        @name, @type, @attr_options, @has_index = name, *parse_type_and_options(type), has_index.eql?("index")
       end
 
       def field_type
@@ -51,6 +51,23 @@ module Rails
       
       def has_index?
         @has_index
+      end
+
+      # parse possible attribute options like :limit for string/text/binary/integer or :precision/:scale for decimals
+      # when declaring options square brackets should be used since bash interpreter fails when parentheses are used
+      def parse_type_and_options(type)
+        attribute_options = case type 
+          when /(string|text|binary|integer)\[(\d+)\]/
+            {:limit => $2.to_i}
+          when /decimal\[(\d+)\.(\d+)\]/
+            {:precision => $1.to_i, :scale => $2.to_i}
+          else; {}
+        end
+        [type.to_s.gsub(/\[.*\]/,'').to_sym, attribute_options]
+      end
+
+      def inject_options
+        @attr_options.blank? ? '' : ", #{@attr_options.to_s.gsub(/[{}]/, '')}"
       end
     end
   end
