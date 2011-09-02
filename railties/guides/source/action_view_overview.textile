@@ -126,7 +126,7 @@ Rails supports multiple template systems and uses a file extension to distinguis
 
 h5. ERB
 
-Within an ERB template Ruby code can be included using both +&lt;% %&gt;+ and +&lt;%= %&gt;+ tags. The +&lt;% %&gt;+ are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the +&lt;%= %&gt;+ tags are used when you want output.
+Within an ERB template Ruby code can be included using both +<% %>+ and +<%= %>+ tags. The +<% %>+ are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the +<%= %>+ tags are used when you want output.
 
 Consider the following loop for names:
 
@@ -137,14 +137,14 @@ Consider the following loop for names:
 <% end %>
 </erb>
 
-The loop is setup in regular embedding tags +&lt;% %&gt;+ and the name is written using the output embedding tag +&lt;%= %&gt;+. Note that this is not just a usage suggestion, for Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
+The loop is setup in regular embedding tags +<% %>+ and the name is written using the output embedding tag +<%= %>+. Note that this is not just a usage suggestion, for Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
 
 <erb>
 <%# WRONG %>
 Hi, Mr. <% puts "Frodo" %>
 </erb>
 
-To suppress leading and trailing whitespaces, you can use +&lt;%-+ +-%&gt;+ interchangeably with +&lt;%+ and +%&gt;+.
+To suppress leading and trailing whitespaces, you can use +<%-+ +-%>+ interchangeably with +<%+ and +%>+.
 
 h5. Builder
 

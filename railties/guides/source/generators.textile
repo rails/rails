@@ -1,4 +1,4 @@
-h2. Creating and Customizing Rails Generators &amp; Templates
+h2. Creating and Customizing Rails Generators & Templates
 
 Rails generators are an essential tool if you plan to improve your workflow. With this guide you will learn how to create generators and customize existing ones.
 

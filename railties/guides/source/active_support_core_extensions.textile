@@ -190,7 +190,7 @@ WARNING: Fixnums and symbols have no singleton classes, +singleton_class+ raises
 
 NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
-h4. +class_eval(*args, &amp;block)+
+h4. +class_eval(*args, &block)+
 
 You can evaluate code in the context of any object's singleton class using +class_eval+:
 
@@ -2097,7 +2097,7 @@ NOTE: Defined in +active_support/core_ext/array/prepend_and_append.rb+.
 
 h4. Options Extraction
 
-When the last argument in a method call is a hash, except perhaps for a +&amp;block+ argument, Ruby allows you to omit the brackets:
+When the last argument in a method call is a hash, except perhaps for a +&block+ argument, Ruby allows you to omit the brackets:
 
 <ruby>
 User.exists?(:email => params[:email])
