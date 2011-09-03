@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/user'
+require 'models/user_without_password_confirmation'
 require 'models/visitor'
 require 'models/administrator'
 
@@ -26,7 +27,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal 1, @user.errors.size
   end
 
-  test "password must match confirmation" do
+  test "password must match confirmation when confirmation is required" do
     @user.password = "thiswillberight"
     @user.password_confirmation = "wrong"
 
@@ -35,6 +36,16 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password_confirmation = "thiswillberight"
 
     assert @user.valid?
+  end
+
+  test "password confirmation must no be asked" do
+    user = UserWithoutPasswordConfirmation.new
+
+    user.password = "thiswillberight"
+
+    assert !user.respond_to?(:password_confirmation)
+    
+    assert user.valid?
   end
 
   test "authenticate" do
