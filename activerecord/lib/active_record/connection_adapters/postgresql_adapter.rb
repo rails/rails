@@ -672,6 +672,7 @@ module ActiveRecord
 
       def table_exists?(name)
         schema, table = extract_schema_and_table(name.to_s)
+        return false unless table # Abstract classes is having nil table name
 
         binds = [[nil, table.gsub(/(^"|"$)/,'')]]
         binds << [nil, schema] if schema
