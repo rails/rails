@@ -8,6 +8,7 @@ module ActiveModel
       #
       # Validations for presence of password, confirmation of password (using
       # a "password_confirmation" attribute) are automatically added.
+      # You can disable confirmation of password validation by passing :password_confirmation => false
       # You can add more validations by hand if need be.
       #
       # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use has_secure_password:
@@ -31,6 +32,16 @@ module ActiveModel
       #   user.authenticate("mUc3m00RsqyRe")                             # => user
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
+      #
+      # Example with password confirmation validation disabled
+      #
+      #   class User < ActiveRecord::Base
+      #     has_secure_password :password_confirmation => false
+      #   end
+      #
+      #   user = User.new(:name => "david", :password => "secure")
+      #   user.save                        # => true
+      #   user.authenticate("secure")      # => user
       def has_secure_password(options = {})
         # Load bcrypt-ruby only when has_secured_password is used to avoid make ActiveModel
         # (and by extension the entire framework) dependent on a binary library.
