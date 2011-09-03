@@ -47,6 +47,11 @@ module ActiveSupport
       self
     end
 
+    # Returns true to make sure that this hash is extractable via <tt>Array#extract_options!</tt>
+    def extractable_options?
+      true
+    end
+
     # Hash is ordered in Ruby 1.9!
     if RUBY_VERSION < '1.9'
 
