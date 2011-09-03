@@ -1,3 +1,12 @@
+*Rails 3.1.1 (unreleased)*
+
+* Remove hard dependency on bcrypt-ruby to avoid make ActiveModel dependent on a binary library.
+  You must add the gem explicitly to your Gemfile if you want use ActiveModel::SecurePassword:
+
+  gem 'bcrypt-ruby', '~> 3.0.0'
+
+  See GH #2687. [Guillermo Iguaran]
+
 *Rails 3.1.0 (August 30, 2011)*
 
 * Alternate I18n namespace lookup is no longer supported.
