@@ -7,9 +7,12 @@ module ActionController
   # by default.
   #
   # In addition to using the standard template helpers provided, creating custom helpers to
-  # extract complicated logic or reusable functionality is strongly encouraged. By default, the controller will
-  # include a helper whose name matches that of the controller, e.g., <tt>MyController</tt> will automatically
-  # include <tt>MyHelper</tt>.
+  # extract complicated logic or reusable functionality is strongly encouraged. By default, each controller
+  # will include all helpers.
+  #
+  # In previous versions of \Rails the controller will include a helper whose
+  # name matches that of the controller, e.g., <tt>MyController</tt> will automatically
+  # include <tt>MyHelper</tt>. To return old behavior set +config.action_controller.include_all_helpers+ to +false+.
   #
   # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
   # controller which inherits from it.
