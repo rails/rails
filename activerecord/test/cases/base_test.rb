@@ -24,6 +24,7 @@ require 'models/joke'
 require 'models/bulb'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
+require 'bcrypt'
 
 class Category < ActiveRecord::Base; end
 class Categorization < ActiveRecord::Base; end
