@@ -10,6 +10,10 @@ module ActiveModel
       # a "password_confirmation" attribute) are automatically added.
       # You can add more validations by hand if need be.
       #
+      # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use has_secure_password:
+      #
+      #   gem 'bcrypt-ruby', '~> 3.0.0'
+      #
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
       #   # Schema: User(name:string, password_digest:string)
@@ -28,6 +32,8 @@ module ActiveModel
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
       def has_secure_password
+        # Load bcrypt-ruby only when has_secured_password is used to avoid make ActiveModel
+        # (and by extension the entire framework) dependent on a binary library.
         gem 'bcrypt-ruby', '~> 3.0.0'
         require 'bcrypt'
 
