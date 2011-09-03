@@ -32,9 +32,9 @@
 
 * CookieJar is now Enumerable. Fixes #2795
 
-* Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. [Guillermo Iguaran]
+* Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. See GH #2763 #2765 #2805 [Guillermo Iguaran]
 
-* Manifest is correctly placed in assets path when default assets prefix is changed. [Guillermo Iguaran]
+* Manifest is correctly placed in assets path when default assets prefix is changed. Fixes #2776 [Guillermo Iguaran]
 
 * Fixed stylesheet_link_tag and javascript_include_tag to respect additional options passed by the users when debug is on. [Guillermo Iguaran]
 
