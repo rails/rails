@@ -75,7 +75,7 @@ module RailtiesTest
         bukkits_migration_order = output.index(output.detect{|o| /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/ =~ o })
         assert_not_nil yaffle_migration_order, "Expected migration to be copied"
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
-        assert_equal((railties.index('acts_as_yaffle') > railties.index('bukkits')) , (yaffle_migration_order > bukkits_migration_order))
+        assert_equal(railties.index('acts_as_yaffle') > railties.index('bukkits'), yaffle_migration_order > bukkits_migration_order)
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
         output = `bundle exec rake railties:install:migrations`
