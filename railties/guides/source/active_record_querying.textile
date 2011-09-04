@@ -132,7 +132,7 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 <tt>Model.last</tt> returns +nil+ if no matching record is found. No exception will be raised.
 
-h5. +first!+
+h5(#first_1). +first!+
 
 <tt>Model.first!</tt> finds the first record. For example:
 
@@ -149,7 +149,7 @@ SELECT * FROM clients LIMIT 1
 
 <tt>Model.first!</tt> raises +RecordNotFound+ if no matching record is found.
 
-h5. +last!+
+h5(#last_1). +last!+
 
 <tt>Model.last!</tt> finds the last record. For example:
 

@@ -134,15 +134,15 @@ Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets wit
 
 * +config.assets.prefix+ defines the prefix where assets are served from. Defaults to +/assets+.
 
-* +config.assets.digest+ enables the use of MD5 fingerprints in asset names. Set to +true+ by default in +production.rb+
+* +config.assets.digest+ enables the use of MD5 fingerprints in asset names. Set to +true+ by default in +production.rb+.
 
-* +config.assets.debug+ disables the concatenation and compression of assets. Set to +false+ by default in +development.rb+
+* +config.assets.debug+ disables the concatenation and compression of assets. Set to +false+ by default in +development.rb+.
 
-* +config.assets.manifest+ defines the full path to be used for the asset precompiler's manifest file. Defaults to using +config.assets.prefix+
+* +config.assets.manifest+ defines the full path to be used for the asset precompiler's manifest file. Defaults to using +config.assets.prefix+.
 
 * +config.assets.cache_store+ defines the cache store that Sprockets will use. The default is the Rails file store.
 
-* +config.assets.version+ is an option string that is used in MD5 hash generation. This can be changed to force all files to be recompiled. 
+* +config.assets.version+ is an option string that is used in MD5 hash generation. This can be changed to force all files to be recompiled.
 
 * +config.assets.compile+ is a boolean that can be used to turn on live Sprockets compilation in production.
 

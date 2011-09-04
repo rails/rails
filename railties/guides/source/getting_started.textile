@@ -592,7 +592,7 @@ class CreatePosts < ActiveRecord::Migration
 end
 </ruby>
 
-The above migration creates a method name +change+ which will be called when you
+The above migration creates a method named +change+ which will be called when you
 run this migration. The action defined in that method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
 want to reverse it at later date. By default, when you run this migration it

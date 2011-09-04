@@ -15,11 +15,11 @@ h3. What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, Sass and ERB.
 
-Prior to Rails 3.1 these features were added through third-party Ruby libraries such as Jammit and Sprockets. Rails 3.1 is integrated with Sprockets through ActionPack which depends on the +sprockets+ gem, by default.
+Prior to Rails 3.1 these features were added through third-party Ruby libraries such as Jammit and Sprockets. Rails 3.1 is integrated with Sprockets through Action Pack which depends on the +sprockets+ gem, by default.
 
 By having this as a core feature of Rails, all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets. This is part of Rails' "Fast by default" strategy as outlined by DHH in his 2011 keynote at Railsconf.
 
-In new Rails 3.1 application the asset pipeline is enabled by default. It can be disabled in +application.rb+ by putting this line inside the +Application+ class definition:
+In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +application.rb+ by putting this line inside the +Application+ class definition:
 
 <plain>
 config.assets.enabled = false
@@ -308,7 +308,7 @@ NOTE: Under normal circumstances the default option should not be changed. If th
 
 h4. Precompiling Assets
 
-Rails comes bundled with a rake task to compile the asset manifests and other files in the pipeline to disc.
+Rails comes bundled with a rake task to compile the asset manifests and other files in the pipeline to the disk.
 
 Compiled assets are written to the location specified in +config.assets.prefix+. The default setting will use the +public/assets+ directory.
 
@@ -361,7 +361,7 @@ This can be changed with the +config.assets.manifest+ option. A fully specified 
 config.assets.manifest = '/path/to/some/other/location'
 </erb>
 
-NOTE: If there are missing precompiled files in production you will get an "AssetNoPrecompiledError" exception indicating the name of the missing file.
+NOTE: If there are missing precompiled files in production you will get an <tt>AssetNoPrecompiledError</tt> exception indicating the name of the missing file(s).
 
 h5. Server Configuration
 
@@ -385,7 +385,7 @@ For Apache:
 
 TODO: nginx instructions
 
-When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disc. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the +public/assets+ folder. The following configuration options can be used:
+When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disk. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the +public/assets+ folder. The following configuration options can be used:
 
 For Apache:
 
@@ -419,7 +419,7 @@ location ~ ^/(assets)/  {
 
 h4. Live Compilation
 
-In some circumstances you may wish to use live compilation. In this mode all requests for assets in the Pipeline are handled by Sprockets directly.
+In some circumstances you may wish to use live compilation. In this mode all requests for assets in the pipeline are handled by Sprockets directly.
 
 To enable this option set:
 
@@ -437,7 +437,7 @@ h3. Customizing the Pipeline
 
 h4. CSS Compression
 
-There is currently one option for compressing CSS, YUI. This Gem extends the CSS syntax and offers minification.
+There is currently one option for compressing CSS, YUI. The "YUI CSS compressor":http://developer.yahoo.com/yui/compressor/css.html provides minification.
 
 The following line enables YUI compression, and requires the +yui-compressor+ gem.
 
@@ -445,7 +445,7 @@ The following line enables YUI compression, and requires the +yui-compressor+ ge
 config.assets.css_compressor = :yui
 </erb>
 
-The +config.assets.compress+ must be set to +true+ to enable CSS compression
+The +config.assets.compress+ must be set to +true+ to enable CSS compression.
 
 h4. JavaScript Compression
 
@@ -539,8 +539,7 @@ config.assets.enabled = true
 config.assets.version = '1.0'
 
 # Change the path that assets are served from
-# config.assets.prefix     = "/assets"
-
+# config.assets.prefix = "/assets"
 </erb>
 
 In +development.rb+:
@@ -584,9 +583,8 @@ The following should also be added to +Gemfile+:
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do
-  gem 'sass-rails', "  ~> 3.1.0"
+  gem 'sass-rails',   "~> 3.1.0"
   gem 'coffee-rails', "~> 3.1.0"
   gem 'uglifier'
 end
 </plain>
-
