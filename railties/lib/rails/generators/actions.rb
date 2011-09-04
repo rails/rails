@@ -118,8 +118,8 @@ module Rails
         if command.is_a?(Symbol)
           run "git #{command}"
         else
-          command.each do |command, options|
-            run "git #{command} #{options}"
+          command.each do |cmd, options|
+            run "git #{cmd} #{options}"
           end
         end
       end
