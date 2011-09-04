@@ -61,11 +61,9 @@ module Sprockets
 
     private
       def debug_assets?
-        begin
-          compile_assets? && (Rails.application.config.assets.debug || params[:debug_assets])
-        rescue NoMethodError
-          false
-        end
+        compile_assets? && (Rails.application.config.assets.debug || params[:debug_assets])
+      rescue NoMethodError
+        false
       end
 
       # Override to specify an alternative prefix for asset path generation.
