@@ -77,8 +77,8 @@ module ApplicationTests
       manifest = "#{app_path}/public/assets/manifest.yml"
 
       assets = YAML.load_file(manifest)
-      assert_match /application-([0-z]+)\.js/, assets["application.js"]
-      assert_match /application-([0-z]+)\.css/, assets["application.css"]
+      assert_match(/application-([0-z]+)\.js/, assets["application.js"])
+      assert_match(/application-([0-z]+)\.css/, assets["application.css"])
     end
 
     test "precompile creates a manifest file in a custom path with all the assets listed" do
@@ -96,8 +96,8 @@ module ApplicationTests
       manifest = "#{app_path}/shared/manifest.yml"
 
       assets = YAML.load_file(manifest)
-      assert_match /application-([0-z]+)\.js/, assets["application.js"]
-      assert_match /application-([0-z]+)\.css/, assets["application.css"]
+      assert_match(/application-([0-z]+)\.js/, assets["application.js"])
+      assert_match(/application-([0-z]+)\.css/, assets["application.css"])
     end
 
 
@@ -113,7 +113,7 @@ module ApplicationTests
 
       manifest = "#{app_path}/public/x/manifest.yml"
       assets = YAML.load_file(manifest)
-      assert_match /application-([0-z]+)\.js/, assets["application.js"]
+      assert_match(/application-([0-z]+)\.js/, assets["application.js"])
     end
 
     test "precompile does not append asset digests when config.assets.digest is false" do
@@ -176,8 +176,8 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get '/posts'
-      assert_match /AssetNotPrecompiledError/, last_response.body
-      assert_match /app.js isn't precompiled/, last_response.body
+      assert_match(/AssetNotPrecompiledError/, last_response.body)
+      assert_match(/app.js isn't precompiled/, last_response.body)
     end
 
     test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
@@ -189,7 +189,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
       # end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
-      assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
+      assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
 
     test "precompile appends the md5 hash to files referenced with asset_path and run in production as default even using RAILS_GROUPS=assets" do
@@ -201,7 +201,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
       end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
-      assert_match /\/assets\/rails-([0-z]+)\.png/, File.read(file)
+      assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
 
     test "assets are cleaned up properly" do
