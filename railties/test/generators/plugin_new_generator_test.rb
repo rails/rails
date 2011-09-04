@@ -189,8 +189,8 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |contents|
       assert_match "<title>Bukkits</title>", contents
-      assert_match /stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents
-      assert_match /javascript_include_tag\s+['"]bukkits\/application['"]/, contents
+      assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
     end
   end
 
@@ -220,7 +220,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-test-unit"]
     assert_no_file "test"
     assert_file "bukkits.gemspec" do |contents|
-      assert_no_match /s.test_files = Dir\["test\/\*\*\/\*"\]/, contents
+      assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)
     end
   end
 
