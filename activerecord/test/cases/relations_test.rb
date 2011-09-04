@@ -934,11 +934,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'zyke', FastCar.order_using_old_style.limit(1).first.name
   end
 
-  def test_order_with_function_and_last
-    authors = Author.scoped
-    assert_equal authors(:bob), authors.order( "id asc, COALESCE( organization_id, owned_essay_id)" ).last
-  end
-  
   def test_order_using_scoping
     car1 = CoolCar.order('id DESC').scoping do
       CoolCar.find(:first, :order => 'id asc')
