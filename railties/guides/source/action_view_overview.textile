@@ -454,6 +454,83 @@ input("post", "title") # =>
   <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
 </ruby>
 
+h4. RecordTagHelper
+
+This module provides methods for generating a container tag, such as a +<div>+, for your record. This is the recommended way of creating a container for render your Active Record object, as it adds an appropriate class and id attributes to that container. You can then refer to those containers easily by following the convention, instead of having to think about which class or id attribute you should use.
+
+h5. content_tag_for
+
+Renders a container tag that relates to your Active Record Object.
+
+For example, given +@post+ is the object of +Post+ class, you can do:
+
+<ruby>
+<%= content_tag_for(:tr, @post) do %>
+  <td><%= @post.title %></td>
+<% end %>
+</ruby>
+
+This will generate this HTML output:
+
+<html>
+<tr id="post_1234" class="post">
+  <td>Hello World!</td>
+</tr>
+</html>
+
+You can also supply HTML attributes as an additional option hash. For example:
+
+<ruby>
+<%= content_tag_for(:tr, @post, :class => "frontpage") do %>
+  <td><%= @post.title %></td>
+<% end %>
+</ruby>
+
+Will generate this HTML output:
+
+<html>
+<tr id="post_1234" class="post frontpage">
+  <td>Hello World!</td>
+</tr>
+</html>
+
+You can pass a collection of Active Record objects. This method will loops through your objects and create a container for each of them. For example, given +@posts+ is an array of two +Post+ objects:
+
+<ruby>
+<%= content_tag_for(:tr, @posts) do |post| %>
+  <td><%= post.title %></td>
+<% end %>
+</ruby>
+
+Will generate this HTML output:
+
+<html>
+<tr id="post_1234" class="post">
+  <td>Hello World!</td>
+</tr>
+<tr id="post_1235" class="post">
+  <td>Ruby on Rails Rocks!</td>
+</tr>
+</html>
+
+h5. div_for
+
+This is actually a convenient method which calls +content_tag_for+ internally with +:div+ as the tag name. You can pass either an Active Record object or a collection of objects. For example:
+
+<ruby>
+<%= div_for(@post, :class => "frontpage") do %>
+  <td><%= @post.title %></td>
+<% end %>
+</ruby>
+
+Will generate this HTML output:
+
+<html>
+<div id="post_1234" class="post frontpage">
+  <td>Hello World!</td>
+</div>
+</html>
+
 h4. AssetTagHelper
 
 This module provides methods for generating HTML that links views to assets such as images, JavaScript files, stylesheets, and feeds.
