@@ -1436,7 +1436,7 @@ module ActionDispatch
             name_prefix = @scope[:as]
 
             if parent_resource
-              return nil if as.nil? && action.nil?
+              return nil unless as || action
 
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name

@@ -79,10 +79,10 @@ module ActionController
                 "expecting <?> but rendering with <?>",
                 options, rendered.keys.join(', '))
         assert_block(msg) do
-          if options.nil?
-            @templates.blank?
-          else
+          if options
             rendered.any? { |t,num| t.match(options) }
+          else
+            @templates.blank?
           end
         end
       when Hash
