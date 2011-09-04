@@ -449,6 +449,15 @@ The above code will put the following line into +Gemfile+:
 gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
 </ruby>
 
+h4. +gem_group+
+
+Wraps gem entries inside a group:
+
+<ruby>
+gem_group :development, :test do
+  gem "rspec-rails"
+end
+</ruby>
 
 h4. +add_source+
 
