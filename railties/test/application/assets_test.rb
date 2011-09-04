@@ -180,6 +180,32 @@ module ApplicationTests
       assert_match(/app.js isn't precompiled/, last_response.body)
     end
 
+    test "assets raise AssetNotPrecompiledError when manifest file is present and requested file isn't precompiled if digest is disabled" do
+      app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'app' %>"
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = false"
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match '/posts', :to => "posts#index"
+        end
+      RUBY
+
+      ENV["RAILS_ENV"] = "development"
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      # Create file after of precompile
+      app_file "app/assets/javascripts/app.js", "alert();"
+
+      require "#{app_path}/config/environment"
+      class ::PostsController < ActionController::Base ; end
+
+      get '/posts'
+      assert_match(/AssetNotPrecompiledError/, last_response.body)
+      assert_match(/app.js isn't precompiled/, last_response.body)
+    end
+
     test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       # digest is default in false, we must enable it for test environment
