@@ -1,5 +1,7 @@
 *Rails 3.1.1 (unreleased)*
 
+* Fixed find_in_batches method to not include order from default_scope. See GH #2832 [Arun Agrawal]
+
 * Don't compute table name for abstract classes. Fixes problem with setting the primary key
   in an abstract class. See GH #2791. [Akira Matsuda]
 
