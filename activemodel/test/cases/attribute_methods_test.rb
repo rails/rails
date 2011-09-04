@@ -24,7 +24,16 @@ end
 class ModelWithAttributes2
   include ActiveModel::AttributeMethods
 
+  attr_accessor :attributes
+
   attribute_method_suffix '_test'
+
+private
+  def attribute(name)
+    attributes[name.to_s]
+  end
+
+  alias attribute_test attribute
 end
 
 class ModelWithAttributesWithSpaces
@@ -128,5 +137,13 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert !ModelWithAttributes.new.respond_to?(:foo)
     assert_raises(NoMethodError) { ModelWithAttributes.new.foo }
+  end
+
+  test 'acessing a suffixed attribute' do
+    m = ModelWithAttributes2.new
+    m.attributes = { 'foo' => 'bar' }
+
+    assert_equal 'bar', m.foo
+    assert_equal 'bar', m.foo_test
   end
 end
