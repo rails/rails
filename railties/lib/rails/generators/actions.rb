@@ -68,7 +68,32 @@ module Rails
         end
 
         in_root do
-          append_file "Gemfile", "gem #{parts.join(", ")}\n", :verbose => false
+          str = "gem #{parts.join(", ")}\n"
+          str = "  " + str if @in_group
+          append_file "Gemfile", str, :verbose => false
+        end
+      end
+
+      # Wraps gem entries inside a group.
+      #
+      # ==== Example
+      #
+      #   gem_group :development, :test do
+      #     gem "rspec-rails"
+      #   end
+      #
+      def gem_group(*names, &block)
+        name = names.map(&:inspect).join(", ")
+        log :gemfile, "group #{name}"
+
+        in_root do
+          append_file "Gemfile", "\ngroup #{name} do\n", :force => true
+
+          @in_group = true
+          instance_eval &block
+          @in_group = false
+
+          append_file "Gemfile", "end\n", :force => true
         end
       end
 
