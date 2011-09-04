@@ -124,7 +124,7 @@ module Sprockets
           end
 
           if compile_assets
-            if asset = asset_environment[logical_path]
+            if digest_assets && asset = asset_environment[logical_path]
               return asset.digest_path
             end
             return logical_path
@@ -137,7 +137,7 @@ module Sprockets
           if source[0] == ?/
             source
           else
-            source = digest_for(source) if digest_assets
+            source = digest_for(source)
             source = File.join(dir, source)
             source = "/#{source}" unless source =~ /^\//
             source
