@@ -60,6 +60,18 @@ Please note that this will NOT install the gems for you and you will have to run
 bundle install
 </ruby>
 
+h4. gem_group(*names, &block)
+
+Wraps gem entries inside a group.
+
+For example, if you want to load +rspec-rails+ only in +development+ and +test+ group:
+
+<ruby>
+gem_group :development, :test do
+  gem "rspec-rails"
+end
+</ruby>
+
 h4. add_source(source, options = {})
 
 Adds the given source to the generated application's +Gemfile+.
