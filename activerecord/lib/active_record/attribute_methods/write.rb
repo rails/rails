@@ -17,6 +17,10 @@ module ActiveRecord
                 write_attribute(attr_name, new_value)
               end
             end
+
+            if attr_name == primary_key && attr_name != "id"
+              generated_attribute_methods.module_eval("alias :id= :'#{primary_key}='")
+            end
           end
       end
 
