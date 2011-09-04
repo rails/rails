@@ -400,7 +400,7 @@ module RailtiesTest
       boot_rails
 
       get("/bukkits/posts/new")
-      assert_match /name="post\[title\]"/, last_response.body
+      assert_match(/name="post\[title\]"/, last_response.body)
     end
 
     test "isolated engine should set correct route module prefix for nested namespace" do

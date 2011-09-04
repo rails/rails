@@ -79,9 +79,9 @@ module ApplicationTests
 
       silence_stderr do
         output = Dir.chdir(app_path){ `rake test` }
-        assert_match /Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output
-        assert_match /Errors running test:functionals! #<RuntimeError/, output
-        assert_match /Errors running test:integration! #<RuntimeError/, output
+        assert_match(/Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output)
+        assert_match(/Errors running test:functionals! #<RuntimeError/, output)
+        assert_match(/Errors running test:integration! #<RuntimeError/, output)
       end
     end
 
