@@ -656,7 +656,7 @@ module ActionView
           if token == false || !protect_against_forgery?
             ''
           else
-            token = form_authenticity_token if token.nil?
+            token ||= form_authenticity_token
             tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
           end
         end

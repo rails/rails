@@ -596,9 +596,7 @@ module ActionView
 
       private
         def convert_options_to_data_attributes(options, html_options)
-          if html_options.nil?
-            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
-          else
+          if html_options
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
@@ -611,6 +609,8 @@ module ActionView
             add_method_to_attributes!(html_options, method)   if method
 
             html_options
+          else
+            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
           end
         end
 
