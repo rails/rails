@@ -23,6 +23,7 @@ require 'models/edge'
 require 'models/joke'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
+require 'bcrypt'
 
 class Category < ActiveRecord::Base; end
 class Categorization < ActiveRecord::Base; end
