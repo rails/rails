@@ -71,7 +71,7 @@ module ActiveRecord
       end
 
       def invert_rename_index(args)
-        [:rename_index, args.reverse]
+        [:rename_index, [args.first] + args.last(2).reverse]
       end
 
       def invert_rename_column(args)
