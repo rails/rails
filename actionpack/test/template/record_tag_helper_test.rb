@@ -73,9 +73,6 @@ class RecordTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_content_tag_for_collection_is_html_safe
-  end
-
   def test_div_for_collection
     post_1 = Post.new.tap { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
     post_2 = Post.new.tap { |post| post.id = 102; post.body = "World!"; post.persisted = true }
