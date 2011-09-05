@@ -18,7 +18,7 @@ module ActionView
       #    <div id="person_123" class="person foo"> Joe Bloggs </div>
       #
       # You can also pass an array of Active Record objects, which will then
-      # get iterates over and yield each record as an argument for the block.
+      # get iterated over and yield each record as an argument for the block.
       # For example:
       #
       #    <%= div_for(@people, :class => "foo") do |person| %>
@@ -56,7 +56,7 @@ module ActionView
       #    <tr id="foo_person_123" class="person">...
       #
       # You can also pass an array of objects which this method will loop through
-      # and yield the current object to the supplied block, reduce the need for
+      # and yield the current object to the supplied block, reducing the need for
       # having to iterate through the object (using <tt>each</tt>) beforehand.
       # For example (assuming @people is an array of Person objects):
       #
