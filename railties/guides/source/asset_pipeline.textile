@@ -174,7 +174,7 @@ The more generic form can also be used but the asset path and class must both be
 * +asset-url("rails.png", image)+ becomes +url(/assets/rails.png)+
 * +asset-path("rails.png", image)+ becomes +"/assets/rails.png"+
 
-h5. JavaScript and ERB
+h5. JavaScript/CoffeeScript and ERB
 
 If you add an +erb+ extension to a JavaScript asset, making it something such as +application.js.erb+, then you can use the +asset_path+ helper in your JavaScript code:
 
@@ -185,6 +185,12 @@ $('#logo').attr({
 </plain>
 
 This writes the path to the particular asset being referenced.
+
+Similary, you can use the asset_path helper in CoffeeScript files with +erb+ extension (Eg. application.js.coffee.erb):
+
+<plain>
+$('#logo').attr src: "<% asset_path('logo.png') %>"
+</plain>
 
 h4. Manifest Files and Directives
 
