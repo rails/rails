@@ -343,6 +343,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal members(:groucho), sponsor.sponsorable
   end
 
+  def test_dont_find_target_when_foreign_key_is_null
+    tagging = taggings(:thinking_general)
+    queries = assert_sql { tagging.super_tag }
+    assert_equal 0, queries.length
+  end
+
   def test_field_name_same_as_foreign_key
     computer = Computer.find(1)
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up" # '
