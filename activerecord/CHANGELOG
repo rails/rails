@@ -8,6 +8,8 @@
 * Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
   GH #2731
 
+* Use the LIMIT word with the methods #last and #first. Fixes GH #2783 [Damien Mathieu]
+
 *Rails 3.1.0 (August 30, 2011)*
 
 * Add a proxy_association method to association proxies, which can be called by association
