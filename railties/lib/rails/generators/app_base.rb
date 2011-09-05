@@ -205,7 +205,7 @@ module Rails
           group :assets do
             gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
             gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
-            gem 'uglifier'
+            gem 'uglifier', '>= 1.0.3'
           end
         GEMFILE
       end
