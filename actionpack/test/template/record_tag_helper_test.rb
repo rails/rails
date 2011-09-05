@@ -5,6 +5,11 @@ class Post
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   attr_writer :id, :body
+  def initialize
+    @id = nil
+    @body = nil
+    super
+  end
   def id
      @id || 45
   end
