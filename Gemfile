@@ -10,7 +10,7 @@ gem "bcrypt-ruby", "~> 3.0.0"
 gem "jquery-rails"
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem "uglifier", ">= 1.0.0", :require => false
+gem "uglifier", ">= 1.0.3", :require => false
 
 # Temp fix until rake 0.9.3 is out
 if RUBY_VERSION >= "1.9.3"
