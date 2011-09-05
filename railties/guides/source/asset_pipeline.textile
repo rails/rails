@@ -348,6 +348,8 @@ This links the folder specified in +config.assets.prefix+ to +shared/assets+. If
 
 It is important that this folder is shared between deployments so that remotely cached pages that reference the old compiled assets still work for the life of the cached page.
 
+Note: If you are precompiling your assets locally you can use +bundle install --without assets+ when installing the gems on the server to avoid install of the assets gems (the gems in the assets group in the Gemfile).
+
 The default matcher for compiling files includes +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
 
 <ruby>
