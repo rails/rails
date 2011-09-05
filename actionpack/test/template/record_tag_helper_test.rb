@@ -83,4 +83,16 @@ class RecordTagHelperTest < ActionView::TestCase
     actual = div_for([post_1, post_2]) { |post| concat post.body }
     assert_dom_equal expected, actual
   end
+
+  def test_content_tag_for_single_record_is_html_safe
+    result = div_for(@post, :class => "bar") { concat @post.body }
+    assert result.html_safe?
+  end
+
+  def test_content_tag_for_collection_is_html_safe
+    post_1 = Post.new.tap { |post| post.id = 101; post.body = "Hello!"; post.persisted = true }
+    post_2 = Post.new.tap { |post| post.id = 102; post.body = "World!"; post.persisted = true }
+    result = content_tag_for(:li, [post_1, post_2]) { |post| concat post.body }
+    assert result.html_safe?
+  end
 end
