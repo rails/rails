@@ -6,9 +6,9 @@ class Post
   include ActiveModel::Conversion
   attr_writer :id, :body
   def initialize
-    super
     @id = nil
     @body = nil
+    super
   end
   def id
      @id || 45
