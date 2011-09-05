@@ -243,8 +243,25 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def test_first_with_integer_should_use_sql_limit
+  def test_first_and_last_with_integer_should_use_sql_limit
     assert_sql(/LIMIT 2/) { Topic.first(2).entries }
+    assert_sql(/LIMIT 5/) { Topic.last(5).entries }
+  end
+
+  def test_last_with_integer_and_order_should_keep_the_order
+    assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
+  end
+
+  def test_last_with_integer_and_order_should_not_use_sql_limit
+    query = assert_sql { Topic.order("title").last(5).entries }
+    assert_equal 1, query.length
+    assert_no_match(/LIMIT/, query.first)
+  end
+
+  def test_last_with_integer_and_reorder_should_not_use_sql_limit
+    query = assert_sql { Topic.reorder("title").last(5).entries }
+    assert_equal 1, query.length
+    assert_no_match(/LIMIT/, query.first)
   end
 
   def test_first_and_last_with_integer_should_return_an_array
