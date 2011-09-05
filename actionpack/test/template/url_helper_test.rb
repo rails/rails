@@ -304,8 +304,8 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "Showing", link_to_if(false, "Showing", url_hash)
   end
 
-  def request_for_url(url)
-    env = Rack::MockRequest.env_for("http://www.example.com#{url}")
+  def request_for_url(url, opts = {})
+    env = Rack::MockRequest.env_for("http://www.example.com#{url}", opts)
     ActionDispatch::Request.new(env)
   end
 
@@ -327,6 +327,12 @@ class UrlHelperTest < ActiveSupport::TestCase
 
     assert current_page?(hash_for([:order, "desc", :page, "1"]))
     assert current_page?("http://www.example.com/?order=desc&page=1")
+  end
+
+  def test_current_page_with_not_get_verb
+    @request = request_for_url("/events", :method => :post)
+
+    assert !current_page?('/events')
   end
 
   def test_link_unless_current
