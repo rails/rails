@@ -174,6 +174,18 @@ The more generic form can also be used but the asset path and class must both be
 * +asset-url("rails.png", image)+ becomes +url(/assets/rails.png)+
 * +asset-path("rails.png", image)+ becomes +"/assets/rails.png"+
 
+h5. JavaScript and ERB
+
+If you add an +erb+ extension to a JavaScript asset, making it something such as +application.js.erb+, then you can use the +asset_path+ helper in your JavaScript code:
+
+<plain>
+$('#logo').attr({
+  src: "<%= asset_path('logo.png') %>"
+});
+</plain>
+
+This writes the path to the particular asset being referenced.
+
 h4. Manifest Files and Directives
 
 Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ -- instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets loads the files specified, processes them if necessary, concatenates them into one single file and then compresses them (if +Rails.application.config.assets.compress+ is set to +true+). By serving one file rather than many, the load time of pages are greatly reduced as there are fewer requests to make.
