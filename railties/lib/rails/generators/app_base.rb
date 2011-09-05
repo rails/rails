@@ -209,7 +209,7 @@ module Rails
           group :assets do
             gem 'sass-rails', #{options.dev? || options.edge? ? "  :git => 'git://github.com/rails/sass-rails.git', :branch => '3-1-stable'" : "  ~> 3.1.0".inspect}
             gem 'coffee-rails', #{options.dev? || options.edge? ? ":git => 'git://github.com/rails/coffee-rails.git', :branch => '3-1-stable'" : "~> 3.1.0".inspect}
-            gem 'uglifier'
+            gem 'uglifier', '>= 1.0.3'
           end
         GEMFILE
       end
