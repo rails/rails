@@ -46,6 +46,9 @@
 
 *Rails 3.1.1 (unreleased)*
 
+* Fixed the behavior of asset pipeline when config.assets.digest and config.assets.compile are false and requested asset isn't precompiled.
+  Before the requested asset were compiled anyway ignoring that the config.assets.compile flag is false. [Guillermo Iguaran]
+
 * CookieJar is now Enumerable. Fixes #2795
 
 * Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. See GH #2763 #2765 #2805 [Guillermo Iguaran]
