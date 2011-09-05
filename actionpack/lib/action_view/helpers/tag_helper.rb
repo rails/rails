@@ -143,9 +143,18 @@ module ActionView
               elsif BOOLEAN_ATTRIBUTES.include?(key)
                 attrs << %(#{key}="#{key}") if value
               elsif !value.nil?
-                final_value = value.is_a?(Array) ? value.join(" ") : value
-                final_value = ERB::Util.html_escape(final_value) if escape
-                attrs << %(#{key}="#{final_value}")
+                empty = false
+                if value.is_a?(Array)
+                  if value.empty?
+                    empty = true
+                  else
+                    value = value.join(" ")
+                  end
+                end
+                unless empty
+                  value = ERB::Util.html_escape(value) if escape
+                  attrs << %(#{key}="#{value}")
+                end
               end
             end
             " #{attrs.sort * ' '}".html_safe unless attrs.empty?

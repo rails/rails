@@ -15,6 +15,16 @@ class TagHelperTest < ActionView::TestCase
     assert_match(/class="elsewhere"/, str)
   end
 
+  def test_tag_options_array
+    str = tag("p", "class" => ["show", "elsewhere"])
+    assert_match(/class="show elsewhere"/, str)
+  end
+
+  def test_tag_options_empty_array
+    str = tag("p", "class" => [])
+    assert_equal "<p />", str
+  end
+
   def test_tag_options_rejects_nil_option
     assert_equal "<p />", tag("p", :ignored => nil)
   end
