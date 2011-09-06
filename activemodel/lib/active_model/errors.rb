@@ -88,6 +88,7 @@ module ActiveModel
     def include?(error)
       (v = messages[error]) && v.any?
     end
+    alias :has_key? :include?
 
     # Get messages for +key+
     def get(key)

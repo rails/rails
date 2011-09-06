@@ -33,6 +33,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert errors.include?(:foo), 'errors should include :foo'
   end
 
+  def test_has_key?
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = 'omg'
+    assert errors.has_key?(:foo), 'errors should have key :foo'
+  end
+
   test "should return true if no errors" do
     person = Person.new
     person.errors[:foo]
