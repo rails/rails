@@ -62,7 +62,7 @@ can read more about Action Pack in its {README}[link:/rails/rails/blob/master/ac
 * The {API Documentation}[http://api.rubyonrails.org].
 
 
-== Contributing http://travis-ci.org/rails/rails.png
+== Contributing https://secure.travis-ci.org/rails/rails.png
 
 We encourage you to contribute to Ruby on Rails! Please check out the {Contributing to Rails
 guide}[http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how
