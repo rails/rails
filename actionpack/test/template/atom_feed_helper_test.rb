@@ -16,7 +16,7 @@ class ScrollsController < ActionController::Base
           feed.title("My great blog!")
           feed.updated((@scrolls.first.created_at))
 
-          @scrolls.each do |scroll| 
+          @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
               entry.title(scroll.title)
               entry.content(scroll.body, :type => 'html')

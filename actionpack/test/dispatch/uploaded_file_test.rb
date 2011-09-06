@@ -12,7 +12,7 @@ module ActionDispatch
       uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)
       assert_equal 'foo', uf.original_filename
     end
-    
+
     if "ruby".encoding_aware?
       def test_filename_should_be_in_utf_8
         uf = Http::UploadedFile.new(:filename => 'foo', :tempfile => Object.new)

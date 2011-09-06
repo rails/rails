@@ -134,7 +134,7 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected 
+      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
       # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
       # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
@@ -624,7 +624,7 @@ module ActionView
           add_default_name_and_id(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
           if html_options["multiple"]
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select 
+            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
           else
             select
           end

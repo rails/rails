@@ -493,7 +493,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   routes.draw do
     match '',    :to => 'application_integration_test/test#index', :as => :empty_string
-    
+
     match 'foo', :to => 'application_integration_test/test#index', :as => :foo
     match 'bar', :to => 'application_integration_test/test#index', :as => :bar
   end
@@ -511,7 +511,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   test "route helpers after controller access" do
     get '/'
     assert_equal '/', empty_string_path
-    
+
     get '/foo'
     assert_equal '/foo', foo_path
 

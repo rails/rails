@@ -360,7 +360,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "A fixnum is safe by default" do
     assert 5.html_safe?
   end
-  
+
   test "a float is safe by default" do
     assert 5.7.html_safe?
   end

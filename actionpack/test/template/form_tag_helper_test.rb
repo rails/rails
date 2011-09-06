@@ -505,7 +505,7 @@ class FormTagHelperTest < ActionView::TestCase
     expected = %(<fieldset class="format">Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
   end
-  
+
   def test_text_area_tag_options_symbolize_keys_side_effects
     options = { :option => "random_option" }
     text_area_tag "body", "hello world", options

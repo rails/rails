@@ -498,7 +498,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
     assert_equal "text/html", @response.content_type
   end
-  
+
   def test_invalid_format
     get :using_defaults, :format => "invalidformat"
     assert_equal " ", @response.body

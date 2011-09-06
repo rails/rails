@@ -16,7 +16,7 @@ module ActionController #:nodoc:
     #     caches_page :show, :new
     #   end
     #
-    # This will generate cache files such as <tt>weblog/show/5.html</tt> and <tt>weblog/new.html</tt>, which match the URLs used 
+    # This will generate cache files such as <tt>weblog/show/5.html</tt> and <tt>weblog/new.html</tt>, which match the URLs used
     # that would normally trigger dynamic page generation. Page caching works by configuring a web server to first check for the
     # existence of files on disk, and to serve them directly when found, without passing the request through to Action Pack.
     # This is much faster than handling the full dynamic request in the usual way.
