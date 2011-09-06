@@ -217,7 +217,8 @@ module ActiveRecord
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
         @statements = {}
-        @statements = StatementPool.new(@connection)
+        @statements = StatementPool.new(@connection,
+                                        config.fetch(:statement_limit) { 1000 })
         @client_encoding = nil
         connect
       end

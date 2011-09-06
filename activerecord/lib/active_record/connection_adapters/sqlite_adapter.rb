@@ -51,7 +51,7 @@ module ActiveRecord
       end
 
       class StatementPool < ConnectionAdapters::StatementPool
-        def initialize(connection, max = 1000)
+        def initialize(connection, max)
           super
           @cache = {}
         end
@@ -83,7 +83,8 @@ module ActiveRecord
 
       def initialize(connection, logger, config)
         super(connection, logger)
-        @statements = StatementPool.new(@connection)
+        @statements = StatementPool.new(@connection,
+                                        config.fetch(:statement_limit) { 1000 })
         @config = config
       end
 
