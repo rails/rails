@@ -323,7 +323,7 @@ module ActiveRecord
       end
 
       def add_to_target(record)
-        callback(:before_add, record)
+        callback(:before_add, record) {|return_value| return if return_value == false }
         yield(record) if block_given?
 
         if options[:uniq] && index = @target.index(record)
@@ -479,7 +479,7 @@ module ActiveRecord
 
         def callback(method, record)
           callbacks_for(method).each do |callback|
-            case callback
+            return_value = case callback
             when Symbol
               owner.send(callback, record)
             when Proc
@@ -487,6 +487,8 @@ module ActiveRecord
             else
               callback.send(method, owner, record)
             end
+
+            yield(return_value) if block_given?
           end
         end
 
