@@ -1,5 +1,8 @@
 *Rails 3.1.1 (unreleased)*
 
+* Fix clash between using 'preload' in a default scope and including the default scoped model
+  in a nested through association. (GH #2834.) [Jon Leighton]
+
 * Ensure we are not comparing a string with a symbol in HasManyAssociation#inverse_updates_counter_cache?.
   Fixes GH #2755, where a counter cache could be decremented twice as far as it was supposed to be.
 
