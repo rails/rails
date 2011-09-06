@@ -1,5 +1,8 @@
 *Rails 3.1.1 (unreleased)*
 
+* Don't send any queries to the database when the foreign key of a belongs_to is nil. Fixes
+  GH #2828. [Georg Friedrich]
+
 * Fixed find_in_batches method to not include order from default_scope. See GH #2832 [Arun Agrawal]
 
 * Don't compute table name for abstract classes. Fixes problem with setting the primary key
