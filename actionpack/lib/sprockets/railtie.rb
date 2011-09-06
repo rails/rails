@@ -71,7 +71,7 @@ module Sprockets
         mount app.assets => config.assets.prefix
       end
 
-      if config.action_controller.perform_caching
+      if config.assets.digest
         app.assets = app.assets.index
       end
     end
