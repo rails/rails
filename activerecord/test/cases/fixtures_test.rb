@@ -48,11 +48,11 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_broken_yaml_exception
     badyaml = Tempfile.new ['foo', '.yml']
-    badyaml.write 'a: !ruby.yaml.org,2002:str |\nfoo'
+    badyaml.write 'a: : '
     badyaml.flush
 
     dir  = File.dirname badyaml.path
-    name =File.basename badyaml.path, '.yml'
+    name = File.basename badyaml.path, '.yml'
     assert_raises(ActiveRecord::Fixture::FormatError) do
       ActiveRecord::Fixtures.create_fixtures(dir, name)
     end
