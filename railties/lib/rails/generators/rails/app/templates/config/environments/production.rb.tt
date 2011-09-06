@@ -22,7 +22,7 @@
 
   # Method to use to additionally create assets without digests
   # Valid values are :duplicate, :none, :symlink, :hardlink
-  # config.assets.digest = :duplicate
+  # config.assets.undigested_as = :duplicate
 
   # Defaults to Rails.root.join("public/assets")
   # config.assets.manifest = YOUR_PATH
