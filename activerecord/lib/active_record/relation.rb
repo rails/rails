@@ -99,32 +99,32 @@ module ActiveRecord
     # Expects arguments in the same format as <tt>Base.create</tt>.
     #
     # ==== Examples
-    #   # Find the first user named Scarlett or create a new one.
-    #   User.where(:first_name => 'Scarlett').first_or_create(:last_name => 'Johansson')
-    #   # => <User id: 1, first_name: 'Scarlett', last_name: 'Johansson'>
+    #   # Find the first user named Penélope or create a new one.
+    #   User.where(:first_name => 'Penélope').first_or_create
+    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
     #
-    #   # Find the first user named Scarlett or create one with a different last name.
-    #   # We already have one Scarlett, so she'll be returned.
+    #   # Find the first user named Penélope or create a new one.
+    #   # We already have one so the existing record will be returned.
+    #   User.where(:first_name => 'Penélope').first_or_create
+    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    #
+    #   # Find the first user named Scarlett or create a new one with a particular last name.
+    #   User.where(:first_name => 'Scarlett').first_or_create(:last_name => 'Johansson')
+    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
+    #
+    #   # Find the first user named Scarlett or create a new one with a different last name.
+    #   # We already have one so the existing record will be returned.
     #   User.where(:first_name => 'Scarlett').first_or_create do |user|
     #     user.last_name = "O'Hara"
     #   end
-    #   # => <User id: 1, first_name: 'Scarlett', last_name: 'Johansson'>
-    #
-    #   # Find the first user named Andy or create several at a time.
-    #   User.where(:first_name => 'Andy').first_or_create([{:last_name => 'García'}, {:last_name => 'Mejía'}])
-    #   # => [#<User id: 2, first_name: 'Andy', last_name: 'García'>,
-    #         #<User id: 3, first_name: 'Andy', last_name: 'Mejía'>]
-    #
-    #   # Find the first user with last name García or create several at a time.
-    #   User.where(:last_name => 'García').first_or_create([{:first_name => 'Jorge'}, {:first_name => 'Andy'}])
-    #   # => <User id: 2, first_name: 'Andy', last_name: 'García'>
+    #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
     def first_or_create(*args, &block)
       first || create(*args, &block)
     end
 
     # Like <tt>first_or_create</tt> but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
     #
-    # Expects arguments in the same format as <tt>Base.create</tt>.
+    # Expects arguments in the same format as <tt>Base.create!</tt>.
     def first_or_create!(*args, &block)
       first || create!(*args, &block)
     end
