@@ -238,7 +238,7 @@ module ActiveRecord
         if options[:counter_cache] == true
           "#{active_record.name.demodulize.underscore.pluralize}_count"
         elsif options[:counter_cache]
-          options[:counter_cache]
+          options[:counter_cache].to_s
         end
       end
 

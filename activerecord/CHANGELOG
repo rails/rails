@@ -1,5 +1,10 @@
 *Rails 3.1.1 (unreleased)*
 
+* Ensure we are not comparing a string with a symbol in HasManyAssociation#inverse_updates_counter_cache?.
+  Fixes GH #2755, where a counter cache could be decremented twice as far as it was supposed to be.
+
+  [Jon Leighton]
+
 * Don't send any queries to the database when the foreign key of a belongs_to is nil. Fixes
   GH #2828. [Georg Friedrich]
 
