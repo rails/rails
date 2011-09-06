@@ -414,16 +414,16 @@ For Apache:
   # 2 lines to serve pre-gzipped version
   RewriteCond %{REQUEST_FILENAME}.gz -s
   RewriteRule ^(.+) $1.gz [L]
-
-  # without it, Content-Type will be "application/x-gzip"
-  <FilesMatch .*\.css.gz>
-      ForceType text/css
-  </FilesMatch>
-
-  <FilesMatch .*\.js.gz>
-      ForceType text/javascript
-  </FilesMatch>
 </LocationMatch>
+ 
+# without these, Content-Type will be "application/x-gzip"
+<FilesMatch "^/assets/.*\.css.gz$">
+    ForceType text/css
+</FilesMatch>
+ 
+<FilesMatch "^/assets/.*\.js.gz$">
+    ForceType text/javascript
+</FilesMatch>
 </plain>
 
 For nginx:
