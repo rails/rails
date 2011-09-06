@@ -67,12 +67,14 @@ module Sprockets
         end
       end
 
-      app.routes.prepend do
-        mount app.assets => config.assets.prefix
-      end
+      if config.assets.compile
+        app.routes.prepend do
+          mount app.assets => config.assets.prefix
+        end
 
-      if config.action_controller.perform_caching
-        app.assets = app.assets.index
+        if config.action_controller.perform_caching
+          app.assets = app.assets.index
+        end
       end
     end
 
