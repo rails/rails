@@ -608,3 +608,11 @@ group :assets do
   gem 'uglifier'
 end
 </plain>
+
+Rails 3.1 requires "execjs":https://github.com/sstephenson/execjs - but it doesn't provide a default javascript runtime. When deploying a production app to a system without a pre-existing javascript runtime, you may want to add:
+
+<plain>
+group :production do
+  gem 'therubyracer'
+end
+</plain>
