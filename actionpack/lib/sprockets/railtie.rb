@@ -50,7 +50,7 @@ module Sprockets
     # are compiled, and so that other Railties have an opportunity to
     # register compressors.
     config.after_initialize do |app|
-      next unless app.assets
+      next unless app.assets && app.config.assets.compile
       config = app.config
 
       config.assets.paths.each { |path| app.assets.append_path(path) }
@@ -66,15 +66,13 @@ module Sprockets
           app.assets.css_compressor = LazyCompressor.new { expand_css_compressor(config.assets.css_compressor) }
         end
       end
-
-      if config.assets.compile
-        app.routes.prepend do
-          mount app.assets => config.assets.prefix
-        end
-
-        if config.action_controller.perform_caching
-          app.assets = app.assets.index
-        end
+      
+      app.routes.prepend do
+        mount app.assets => config.assets.prefix
+      end
+      
+      if config.action_controller.perform_caching
+        app.assets = app.assets.index
       end
     end
 
