@@ -44,9 +44,11 @@ namespace :assets do
             asset_path = config.assets.digest ? asset.digest_path : logical_path
             manifest[logical_path] = asset_path
             filename = target.join(asset_path)
+
             mkdir_p filename.dirname
             asset.write_to(filename)
             asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
+
             if config.assets.digest && undigested_as
               undigested = target.join(logical_path)
               case undigested_as
