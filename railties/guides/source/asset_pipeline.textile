@@ -166,13 +166,13 @@ h5. CSS and Sass
 
 When using the asset pipeline, paths to assets must be re-written and +sass-rails+ provides +_url+ and +_path+ helpers for the following asset classes: image, font, video, audio, javascript, stylesheet.
 
-* +image-url("rails.png")+ becomes +url(/assets/rails.png)+
-* +image-path("rails.png")+ becomes +"/assets/rails.png"+.
+* +image_url("rails.png")+ becomes +url(/assets/rails.png)+
+* +image_path("rails.png")+ becomes +"/assets/rails.png"+.
 
 The more generic form can also be used but the asset path and class must both be specified:
 
-* +asset-url("rails.png", image)+ becomes +url(/assets/rails.png)+
-* +asset-path("rails.png", image)+ becomes +"/assets/rails.png"+
+* +asset_url("rails.png", image)+ becomes +url(/assets/rails.png)+
+* +asset_path("rails.png", image)+ becomes +"/assets/rails.png"+
 
 h5. JavaScript/CoffeeScript and ERB
 
