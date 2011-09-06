@@ -168,7 +168,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
 
   def test_add_if_before_callback_returns_true
     assert !@david.conditionally_changeable_posts.include?(@authorless)
-    @david.changable = true
+    @david.changeable = true
     @david.conditionally_changeable_posts << @authorless
     assert !@david.post_log.empty?
     assert @david.conditionally_changeable_posts.include?(@authorless)
@@ -178,7 +178,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
 
   def test_add_if_before_callback_returns_object
     assert !@david.conditionally_changeable_posts.include?(@authorless)
-    @david.changable = @authorless
+    @david.changeable = @authorless
     @david.conditionally_changeable_posts << @authorless
     assert !@david.post_log.empty?
     assert @david.conditionally_changeable_posts.include?(@authorless)
@@ -188,7 +188,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
 
   def test_dont_add_if_before_callback_returns_false
     assert !@david.conditionally_changeable_posts.include?(@authorless)
-    @david.changable = false
+    @david.changeable = false
     @david.conditionally_changeable_posts << @authorless
     assert @david.post_log.empty?
     assert !@david.conditionally_changeable_posts.include?(@authorless)
@@ -198,7 +198,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
 
   def test_add_if_before_callback_returns_nil
     assert !@david.conditionally_changeable_posts.include?(@authorless)
-    @david.changable = nil
+    @david.changeable = nil
     @david.conditionally_changeable_posts << @authorless
     assert !@david.post_log.empty?
     assert @david.conditionally_changeable_posts.include?(@authorless)
