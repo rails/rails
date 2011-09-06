@@ -66,11 +66,11 @@ module Sprockets
           app.assets.css_compressor = LazyCompressor.new { expand_css_compressor(config.assets.css_compressor) }
         end
       end
-      
+
       app.routes.prepend do
         mount app.assets => config.assets.prefix
       end
-      
+
       if config.action_controller.perform_caching
         app.assets = app.assets.index
       end
