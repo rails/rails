@@ -67,8 +67,10 @@ module Sprockets
         end
       end
 
-      app.routes.prepend do
-        mount app.assets => config.assets.prefix
+      if config.assets.compile
+        app.routes.prepend do
+          mount app.assets => config.assets.prefix
+        end
       end
 
       if config.assets.digest
