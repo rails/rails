@@ -21,6 +21,16 @@ namespace :assets do
       target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
       manifest = {}
       manifest_path = config.assets.manifest || target
+      case config.assets.undigested_as
+      when NilClass
+        undigested_as = :duplicate
+      when :none, false
+        undigested_as = false
+      when :duplicate, :symlink, :hardlink
+        undigested_as = config.assets.undigested_as
+      else
+        raise "config.assets.undigested_as was '#{config.assets.undigested_as.inspect}'; must be one of: :duplicate, :symlink, :hardlink, :none, false"
+      end
 
       config.assets.precompile.each do |path|
         env.each_logical_path do |logical_path|
@@ -34,10 +44,20 @@ namespace :assets do
             asset_path = config.assets.digest ? asset.digest_path : logical_path
             manifest[logical_path] = asset_path
             filename = target.join(asset_path)
-
             mkdir_p filename.dirname
             asset.write_to(filename)
             asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
+            if config.assets.digest && undigested_as
+              undigested = target.join(logical_path)
+              case undigested_as
+              when :duplicate
+                asset.write_to(undigested)
+              when :symlink
+                symlink(filename, undigested, :force => true)
+              when :hardlink
+                link(filename, undigested, :force => true)
+              end
+            end
           end
         end
       end
