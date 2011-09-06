@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/object/blank'
+require 'active_record/connection_adapters/statement_pool'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -246,6 +247,43 @@ module ActiveRecord
         true
       end
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        def initialize(connection, max)
+          super
+          @counter = 0
+          @cache   = {}
+        end
+
+        def each(&block); @cache.each(&block); end
+        def key?(key);    @cache.key?(key); end
+        def [](key);      @cache[key]; end
+        def length;       @cache.length; end
+
+        def next_key
+          "a#{@counter + 1}"
+        end
+
+        def []=(sql, key)
+          while @max <= @cache.size
+            dealloc(@cache.shift.last)
+          end
+          @counter += 1
+          @cache[sql] = key
+        end
+
+        def clear
+          @cache.each_value do |stmt_key|
+            dealloc stmt_key
+          end
+          @cache.clear
+        end
+
+        private
+        def dealloc(key)
+          @connection.query "DEALLOCATE #{key}"
+        end
+      end
+
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
@@ -254,9 +292,10 @@ module ActiveRecord
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
         @table_alias_length = nil
-        @statements = {}
 
         connect
+        @statements = StatementPool.new @connection,
+                                        config.fetch(:statement_limit) { 1000 }
 
         if postgresql_version < 80200
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
@@ -271,9 +310,6 @@ module ActiveRecord
 
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.each_value do |value|
-          @connection.query "DEALLOCATE #{value}"
-        end
         @statements.clear
       end
 
@@ -996,7 +1032,7 @@ module ActiveRecord
 
         def exec_cache(sql, binds)
           unless @statements.key? sql
-            nextkey = "a#{@statements.length + 1}"
+            nextkey = @statements.next_key
             @connection.prepare nextkey, sql
             @statements[sql] = nextkey
           end
