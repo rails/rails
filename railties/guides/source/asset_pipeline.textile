@@ -112,7 +112,7 @@ All subdirectories that exist within these three locations are added to the sear
 You can add additional (fully qualified) paths to the pipeline in +application.rb+. For example:
 
 <erb>
-config.assets.paths << File.join(Rails.root, 'app', 'assets', 'flash')
+config.assets.paths << Rails.root.join('app', 'assets', 'flash')
 </erb>
 
 h4. Coding Links to Assets
