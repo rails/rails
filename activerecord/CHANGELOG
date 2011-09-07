@@ -4,8 +4,8 @@
   prepared statments on the database.  The limit defaults to 1000, but can
   be adjusted in your database config by changing 'statement_limit'.
 
-* Fix clash between using 'preload' in a default scope and including the default scoped model
-  in a nested through association. (GH #2834.) [Jon Leighton]
+* Fix clash between using 'preload', 'joins' or 'eager_load' in a default scope and including the
+  default scoped model in a nested through association. (GH #2834.) [Jon Leighton]
 
 * Ensure we are not comparing a string with a symbol in HasManyAssociation#inverse_updates_counter_cache?.
   Fixes GH #2755, where a counter cache could be decremented twice as far as it was supposed to be.
