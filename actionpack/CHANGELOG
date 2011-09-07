@@ -1,4 +1,9 @@
-*Rails 3.0.10 (unreleased)*
+*Rails 3.0.11 (unreleased)*
+
+* Fix assert_select_email
+
+
+*Rails 3.0.10 (August 31, 2011)*
 
 * Fixes an issue where cache sweepers with only after filters would have no
 controller object, it would raise undefined method controller_name for nil [jeroenj]
