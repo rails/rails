@@ -19,7 +19,7 @@ module ActionDispatch
       [:open, :path, :rewind, :size].each do |method|
         class_eval "def #{method}; @tempfile.#{method}; end"
       end
-      
+
       private
       def encode_filename(filename)
         # Encode the filename in the utf8 encoding, unless it is nil or we're in 1.8

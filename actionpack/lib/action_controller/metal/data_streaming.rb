@@ -115,7 +115,7 @@ module ActionController #:nodoc:
     private
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
-        
+
         options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
         [:type, :disposition].each do |arg|
           raise ArgumentError, ":#{arg} option required" if options[arg].nil?

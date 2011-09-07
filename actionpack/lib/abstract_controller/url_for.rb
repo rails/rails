@@ -2,7 +2,7 @@
 # has to provide a +RouteSet+ by implementing the <tt>_routes</tt> methods. Otherwise, an
 # exception will be raised.
 #
-# Note that this module is completely decoupled from HTTP - the only requirement is a valid 
+# Note that this module is completely decoupled from HTTP - the only requirement is a valid
 # <tt>_routes</tt> implementation.
 module AbstractController
   module UrlFor

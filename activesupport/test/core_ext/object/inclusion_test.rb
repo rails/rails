@@ -43,7 +43,7 @@ class InTest < Test::Unit::TestCase
     assert A.in?(C)
     assert !A.in?(A)
   end
-  
+
   def test_no_method_catching
     assert_raise(ArgumentError) { 1.in?(1) }
   end

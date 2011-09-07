@@ -99,7 +99,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,5,1,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(5)
     assert_equal DateTime.civil(2005,4,24,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(6)
     assert_equal DateTime.civil(2005,2,27,10),  DateTime.civil(2005,6,5,10,0,0).weeks_ago(14)
-    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)    
+    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)
   end
 
   def test_months_ago

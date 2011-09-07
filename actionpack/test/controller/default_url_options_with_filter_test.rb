@@ -16,7 +16,7 @@ class ControllerWithBeforeFilterAndDefaultUrlOptions < ActionController::Base
 
   def default_url_options
     {:locale => "de"}
-  end 
+  end
 end
 
 class ControllerWithBeforeFilterAndDefaultUrlOptionsTest < ActionController::TestCase
