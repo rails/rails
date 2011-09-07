@@ -719,12 +719,10 @@ module ActiveRecord
         binds << [nil, schema] if schema
 
         exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
-          SELECT COUNT(*)
-          FROM pg_class c
-          LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-          WHERE c.relkind in ('v','r')
-          AND c.relname = $1
-          AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
+            SELECT COUNT(*)
+            FROM pg_tables
+            WHERE tablename = $1
+           AND schemaname = #{schema ? "'#{schema}'" : "ANY (current_schemas(false))"}
         SQL
       end
 
