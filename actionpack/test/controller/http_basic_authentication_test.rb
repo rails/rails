@@ -85,6 +85,14 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     end
   end
 
+  def test_encode_credentials_has_no_newline
+    username = 'laskjdfhalksdjfhalkjdsfhalksdjfhklsdjhalksdjfhalksdjfhlakdsjfh'
+    password = 'kjfhueyt9485osdfasdkljfh4lkjhakldjfhalkdsjf'
+    result = ActionController::HttpAuthentication::Basic.encode_credentials(
+      username, password)
+    assert_no_match(/\n/, result)
+  end
+
   test "authentication request without credential" do
     get :display
 
