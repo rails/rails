@@ -421,7 +421,7 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(klass)
-        pool = @connection_pools[klass.name]
+        pool = @connection_pools.delete(klass.name)
         return nil unless pool
 
         pool.automatic_reconnect = false
