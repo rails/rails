@@ -13,6 +13,8 @@
 
 * Fixed stylesheet_link_tag and javascript_include_tag to respect additional options passed by the users when debug is on. [Guillermo Iguaran]
 
+* Fix ActiveRecord#exists? when passsed a nil value
+
 
 *Rails 3.1.0 (August 30, 2011)*
 
