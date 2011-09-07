@@ -61,12 +61,13 @@ can read more about Action Pack in its {README}[link:/rails/rails/blob/master/ac
 * The {Ruby on Rails Guides}[http://guides.rubyonrails.org].
 * The {API Documentation}[http://api.rubyonrails.org].
 
-
-== Contributing http://travis-ci.org/rails/rails.png
+== Contributing
 
 We encourage you to contribute to Ruby on Rails! Please check out the {Contributing to Rails
 guide}[http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how
 to proceed. {Join us}[http://contributors.rubyonrails.org]!
+
+== Travis Build Status {<img src="https://secure.travis-ci.org/rails/rails.png"/>}[https://secure.travis-ci.org/rails/rails.png]
 
 == License
 
