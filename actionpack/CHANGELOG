@@ -15,6 +15,8 @@
 
 * Fix ActiveRecord#exists? when passsed a nil value
 
+* Fix assert_select_email to work on multipart and non-multipart emails as the method stopped working correctly in Rails 3.x due to changes in the new mail gem.
+
 
 *Rails 3.1.0 (August 30, 2011)*
 
