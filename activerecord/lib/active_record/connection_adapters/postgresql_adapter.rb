@@ -251,34 +251,38 @@ module ActiveRecord
         def initialize(connection, max)
           super
           @counter = 0
-          @cache   = {}
+          @cache   = Hash.new { |h,pid| h[pid] = {} }
         end
 
-        def each(&block); @cache.each(&block); end
-        def key?(key);    @cache.key?(key); end
-        def [](key);      @cache[key]; end
-        def length;       @cache.length; end
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
 
         def next_key
           "a#{@counter + 1}"
         end
 
         def []=(sql, key)
-          while @max <= @cache.size
-            dealloc(@cache.shift.last)
+          while @max <= cache.size
+            dealloc(cache.shift.last)
           end
           @counter += 1
-          @cache[sql] = key
+          cache[sql] = key
         end
 
         def clear
-          @cache.each_value do |stmt_key|
+          cache.each_value do |stmt_key|
             dealloc stmt_key
           end
-          @cache.clear
+          cache.clear
         end
 
         private
+        def cache
+          @cache[$$]
+        end
+
         def dealloc(key)
           @connection.query "DEALLOCATE #{key}"
         end
