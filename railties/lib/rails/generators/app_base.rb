@@ -9,7 +9,7 @@ require 'uri'
 module Rails
   module Generators
     class AppBase < Base
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
 
@@ -154,12 +154,13 @@ module Rails
       end
 
       def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql jdbcsqlite3 jdbcpostgresql )
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
         when "oracle"     then "ruby-oci8"
         when "postgresql" then "pg"
         when "frontbase"  then "ruby-frontbase"
         when "mysql"      then "mysql2"
+        when "sqlserver"  then "activerecord-sqlserver-adapter"
         when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
         when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
         when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
