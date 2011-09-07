@@ -253,8 +253,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_first_and_last_with_integer_should_use_sql_limit
-    assert_sql(/LIMIT 2/) { Topic.first(2).entries }
-    assert_sql(/LIMIT 5/) { Topic.last(5).entries }
+    assert_sql(/LIMIT 2|ROWNUM <= 2/) { Topic.first(2).entries }
+    assert_sql(/LIMIT 5|ROWNUM <= 5/) { Topic.last(5).entries }
   end
 
   def test_last_with_integer_and_order_should_keep_the_order
