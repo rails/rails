@@ -37,7 +37,7 @@ module ApplicationTests
 
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
+      add_to_config "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -65,8 +65,9 @@ module ApplicationTests
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
-      app_file "config/initializers/digest.rb", "Rails.application.config.assets.digest = true"
-      app_file "config/initializers/caching.rb", "Rails.application.config.action_controller.perform_caching = false"
+      add_to_config "config.assets.digest = true"
+      add_to_config "config.action_controller.perform_caching = false"
+
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
 
@@ -77,7 +78,7 @@ module ApplicationTests
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
       # digest is default in false, we must enable it for test environment
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
+      add_to_config "config.assets.digest = true"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
@@ -93,10 +94,10 @@ module ApplicationTests
     test "precompile creates a manifest file in a custom path with all the assets listed" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
-      FileUtils.mkdir "#{app_path}/shared"
-      app_file "config/initializers/manifest.rb", "Rails.application.config.assets.manifest = '#{app_path}/shared'"
       # digest is default in false, we must enable it for test environment
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
+      add_to_config "config.assets.digest = true"
+      add_to_config "config.assets.manifest = '#{app_path}/shared'"
+      FileUtils.mkdir "#{app_path}/shared"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
@@ -112,9 +113,9 @@ module ApplicationTests
 
     test "the manifest file should be saved by default in the same assets folder" do
       app_file "app/assets/javascripts/application.js", "alert();"
-      app_file "config/initializers/manifest.rb", "Rails.application.config.assets.prefix = '/x'"
       # digest is default in false, we must enable it for test environment
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
+      add_to_config "config.assets.digest = true"
+      add_to_config "config.assets.prefix = '/x'"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
@@ -128,7 +129,7 @@ module ApplicationTests
     test "precompile does not append asset digests when config.assets.digest is false" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = false"
+      add_to_config "config.assets.digest = false"
 
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
@@ -191,7 +192,7 @@ module ApplicationTests
 
     test "assets raise AssetNotPrecompiledError when manifest file is present and requested file isn't precompiled if digest is disabled" do
       app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'app' %>"
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = false"
+      add_to_config "config.assets.compile = false"
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -218,7 +219,7 @@ module ApplicationTests
     test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       # digest is default in false, we must enable it for test environment
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.digest = true"
+      add_to_config "config.assets.digest = true"
 
       # capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
@@ -229,7 +230,7 @@ module ApplicationTests
 
     test "precompile appends the md5 hash to files referenced with asset_path and run in production as default even using RAILS_GROUPS=assets" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
+      add_to_config "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = nil
       capture(:stdout) do
