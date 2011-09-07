@@ -722,7 +722,7 @@ module ActiveRecord
             SELECT COUNT(*)
             FROM pg_tables
             WHERE tablename = $1
-           AND schemaname = #{schema ? "'#{schema}'" : "ANY (current_schemas(false))"}
+           AND schemaname = #{schema ? "$2" : "ANY (current_schemas(false))"}
         SQL
       end
 
