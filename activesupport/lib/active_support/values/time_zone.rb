@@ -373,7 +373,7 @@ module ActiveSupport
       protected
 
         def require_tzinfo
-          require 'tzinfo'
+          require 'tzinfo' unless defined?(::TZInfo)
         rescue LoadError
           $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
           raise
