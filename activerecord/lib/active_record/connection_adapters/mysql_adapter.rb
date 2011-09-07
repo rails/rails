@@ -94,27 +94,32 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max = 1000)
           super
-          @cache = {}
+          @cache = Hash.new { |h,pid| h[pid] = {} }
         end
 
-        def each(&block); @cache.each(&block); end
-        def key?(key);    @cache.key?(key); end
-        def [](key);      @cache[key]; end
-        def length;       @cache.length; end
-        def delete(key);  @cache.delete(key); end
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
+        def delete(key);  cache.delete(key); end
 
         def []=(sql, key)
-          while @max <= @cache.size
-            @cache.shift.last[:stmt].close
+          while @max <= cache.size
+            cache.shift.last[:stmt].close
           end
-          @cache[sql] = key
+          cache[sql] = key
         end
 
         def clear
-          @cache.values.each do |hash|
+          cache.values.each do |hash|
             hash[:stmt].close
           end
-          @cache.clear
+          cache.clear
+        end
+
+        private
+        def cache
+          @cache[$$]
         end
       end
 

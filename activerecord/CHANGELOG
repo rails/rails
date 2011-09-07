@@ -1,4 +1,8 @@
-*Rails 3.2.0 (unreleased)*
+Wed Sep  7 15:25:02 2011  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache
+	  keys are per process id.
+	* lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
 
 * Support bulk change_table in mysql2 adapter, as well as the mysql one. [Jon Leighton]
 
