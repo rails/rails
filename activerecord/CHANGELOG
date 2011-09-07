@@ -3,6 +3,8 @@
 * Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
   GH #2731
 
+* Backport "ActiveRecord::Persistence#touch should not use default_scope" (GH #1519)
+
 * Rails 3.0.10
 
 * Magic encoding comment added to schema.rb files
