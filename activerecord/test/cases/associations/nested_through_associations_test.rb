@@ -356,11 +356,13 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal categories(:general), members(:groucho).club_category
   end
 
-  def test_has_one_through_has_one_through_with_belongs_to_source_reflection_with_default_scope_preload_on_the_through_model
+  def test_joins_and_includes_from_through_models_not_included_in_association
     prev_default_scope = Club.default_scopes
-    Club.default_scopes = [Club.preload(:category)]
 
-    assert_equal categories(:general), members(:groucho).club_category
+    [:includes, :preload, :joins, :eager_load].each do |q|
+      Club.default_scopes = [Club.send(q, :category)]
+      assert_equal categories(:general), members(:groucho).reload.club_category
+    end
   ensure
     Club.default_scopes = prev_default_scope
   end
