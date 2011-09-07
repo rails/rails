@@ -1,6 +1,6 @@
 *Rails 3.0.11 (unreleased)*
 
-* Fix assert_select_email
+* Fix assert_select_email to work on multipart and non-multipart emails as the method stopped working correctly in Rails 3.x due to changes in the new mail gem.
 
 
 *Rails 3.0.10 (August 31, 2011)*
