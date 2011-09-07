@@ -1,10 +1,11 @@
 * Rails 3.0.11 (unreleased)
 
+* Backport "ActiveRecord::Persistence#touch should not use default_scope" (GH #1519)
+
 * Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
   GH #2731
 
 * Fix ActiveRecord#exists? when passsed a nil value
-
 
 * Rails 3.0.10
 
