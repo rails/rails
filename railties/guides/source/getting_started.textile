@@ -61,9 +61,9 @@ The Rails philosophy includes several guiding principles:
 
 * DRY - "Don't Repeat Yourself" - suggests that writing the same code over and over again is a bad thing.
 * Convention Over Configuration - means that Rails makes assumptions about what you want to do and how you're going to
-d o it, rather than requiring you to specify every little thing through endless configuration files.
+do it, rather than requiring you to specify every little thing through endless configuration files.
 * REST is the best pattern for web applications - organizing your application around resources and standard HTTP verbs
-i s the fastest way to go.
+is the fastest way to go.
 
 h4. The MVC Architecture
 
@@ -549,9 +549,9 @@ folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it 
 |app/views/posts/new.html.erb                 |A view to create a new post|
 |app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
 |app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
-|app/assets/stylesheets/scaffold.css.scss     |Cascading style sheet to make the scaffolded views look better|
-|app/assets/stylesheets/post.css.scss         |Cascading style sheet for the posts controller|
-|app/assets/javascripts/post.js.coffee        |CoffeeScript for the posts controller|
+|app/assets/stylesheets/scaffolds.css.scss     |Cascading style sheet to make the scaffolded views look better|
+|app/assets/stylesheets/posts.css.scss         |Cascading style sheet for the posts controller|
+|app/assets/javascripts/posts.js.coffee        |CoffeeScript for the posts controller|
 |test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|

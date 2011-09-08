@@ -95,7 +95,7 @@ When a scaffold or controller is generated for the application, Rails also gener
 
 For example, if a +ProjectsController+ is generated, there will be a new file at +app/assets/javascripts/projects.js.coffee+ and another at +app/assets/stylesheets/projects.css.scss+. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as +<%= javascript_include_tag params[:controller] %>+ or +<%= stylesheet_link_tag params[:controller] %>+.
 
-NOTE: You will need a  "ExecJS":https://github.com/sstephenson/execjs#readme - supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
+NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
 h4. Asset Organization
 
@@ -164,15 +164,33 @@ Note that the closing tag cannot be of the style +-%>+.
 
 h5. CSS and Sass
 
-When using the asset pipeline, paths to assets must be re-written and +sass-rails+ provides +_url+ and +_path+ helpers for the following asset classes: image, font, video, audio, javascript, stylesheet.
+When using the asset pipeline, paths to assets must be re-written and +sass-rails+ provides +_url+ and +_path+ helpers for the following asset classes: image, font, video, audio, JavaScript and stylesheet.
 
-* +image-url("rails.png")+ becomes +url(/assets/rails.png)+
-* +image-path("rails.png")+ becomes +"/assets/rails.png"+.
+* +image_url("rails.png")+ becomes +url(/assets/rails.png)+.
+* +image_path("rails.png")+ becomes +"/assets/rails.png"+.
 
 The more generic form can also be used but the asset path and class must both be specified:
 
-* +asset-url("rails.png", image)+ becomes +url(/assets/rails.png)+
-* +asset-path("rails.png", image)+ becomes +"/assets/rails.png"+
+* +asset_url("rails.png", image)+ becomes +url(/assets/rails.png)+.
+* +asset_path("rails.png", image)+ becomes +"/assets/rails.png"+.
+
+h5. JavaScript/CoffeeScript and ERB
+
+If you add an +erb+ extension to a JavaScript asset, making it something such as +application.js.erb+, then you can use the +asset_path+ helper in your JavaScript code:
+
+<plain>
+$('#logo').attr({
+  src: "<%= asset_path('logo.png') %>"
+});
+</plain>
+
+This writes the path to the particular asset being referenced.
+
+Similarly, you can use the +asset_path+ helper in CoffeeScript files with +erb+ extension (eg. application.js.coffee.erb):
+
+<plain>
+$('#logo').attr src: "<% asset_path('logo.png') %>"
+</plain>
 
 h4. Manifest Files and Directives
 
@@ -320,7 +338,7 @@ The rake task is:
 bundle exec rake assets:precompile
 </plain>
 
-Capistrano (v2.8.0+) has a recipe to handle this in deployment. Add the following line to +Capfile+:
+Capistrano (v2.8.0 and above) has a recipe to handle this in deployment. Add the following line to +Capfile+:
 
 <erb>
 load 'deploy/assets'
@@ -329,6 +347,8 @@ load 'deploy/assets'
 This links the folder specified in +config.assets.prefix+ to +shared/assets+. If you already use this shared folder you'll need to write your own deployment task.
 
 It is important that this folder is shared between deployments so that remotely cached pages that reference the old compiled assets still work for the life of the cached page.
+
+NOTE. If you are precompiling your assets locally, you can use +bundle install --without assets+ on the server to avoid installing the assets gems (the gems in the assets group in the Gemfile).
 
 The default matcher for compiling files includes +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
 
@@ -342,7 +362,7 @@ If you have other manifests or individual stylesheets and JavaScript files to in
 config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 </erb>
 
-The rake task also generates a +manifest.yml+ that contains a list with all your assets and their respective fingerprints. This is used by the Rails helper methods and avoids handing the mapping requests back to Sprockets. Manifest file typically look like this:
+The rake task also generates a +manifest.yml+ that contains a list with all your assets and their respective fingerprints. This is used by the Rails helper methods and avoids handing the mapping requests back to Sprockets. A typical manifest file looks like:
 
 <plain>
 ---
@@ -394,16 +414,16 @@ For Apache:
   # 2 lines to serve pre-gzipped version
   RewriteCond %{REQUEST_FILENAME}.gz -s
   RewriteRule ^(.+) $1.gz [L]
-
-  # without it, Content-Type will be "application/x-gzip"
-  <FilesMatch .*\.css.gz>
-      ForceType text/css
-  </FilesMatch>
-
-  <FilesMatch .*\.js.gz>
-      ForceType text/javascript
-  </FilesMatch>
 </LocationMatch>
+ 
+# without these, Content-Type will be "application/x-gzip"
+<FilesMatch "^/assets/.*\.css.gz$">
+    ForceType text/css
+</FilesMatch>
+ 
+<FilesMatch "^/assets/.*\.js.gz$">
+    ForceType text/javascript
+</FilesMatch>
 </plain>
 
 For nginx:
@@ -431,7 +451,15 @@ On the first request the assets are compiled and cached as outlined in developme
 
 Sprockets also sets the +Cache-Control+ HTTP header to +max-age=31536000+. This signals all caches between your server and the client browser that this content (the file served) can be cached for 1 year. The effect of this is to reduce the number of requests for this asset from your server; the asset has a good chance of being in the local browser cache or some intermediate cache.
 
-This mode uses more memory and is lower performance than the default. It is not recommended.
+This mode uses more memory, performs poorer than the default and is not recommended.
+
+When deploying a production application to a system without any pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
+
+<plain>
+group :production do
+  gem 'therubyracer'
+end
+</plain>
 
 h3. Customizing the Pipeline
 
@@ -461,7 +489,7 @@ config.assets.js_compressor = :uglifier
 
 The +config.assets.compress+ must be set to +true+ to enable JavaScript compression
 
-NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme -- supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have installed a JavaScript runtime in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
+NOTE: You will need a "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use +uglifier+. If you are using Mac OS X or Windows you have installed a JavaScript runtime in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
 
 h4. Using Your Own Compressor
 

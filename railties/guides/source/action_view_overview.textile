@@ -494,7 +494,7 @@ Will generate this HTML output:
 </tr>
 </html>
 
-You can pass a collection of Active Record objects. This method will loops through your objects and create a container for each of them. For example, given +@posts+ is an array of two +Post+ objects:
+You can pass a collection of Active Record objects. This method will loop through your objects and create a container for each of them. For example, given +@posts+ is an array of two +Post+ objects:
 
 <ruby>
 <%= content_tag_for(:tr, @posts) do |post| %>
