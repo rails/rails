@@ -16,7 +16,7 @@ module ActiveRecord
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :connection, :column_hash,:to => :klass
 
     attr_reader :table, :klass, :loaded
-    attr_accessor :extensions, :default_scoped
+    attr_accessor :extensions, :default_scoped, :proxy_association
     alias :loaded? :loaded
     alias :default_scoped? :default_scoped
 
