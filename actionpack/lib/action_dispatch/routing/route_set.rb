@@ -228,6 +228,13 @@ module ActionDispatch
         @append = []
         @prepend = []
         @disable_clear_and_finalize = false
+
+        @set    = Journey::Routes.new
+        @router = Journey::Router.new(@set, {
+          :parameters_key => PARAMETERS_KEY,
+          :request_class  => request_class})
+        @formatter = Journey::Formatter.new @set
+
         clear!
       end
 
@@ -270,11 +277,8 @@ module ActionDispatch
         @finalized = false
         routes.clear
         named_routes.clear
-        @set    = Journey::Routes.new
-        @router = Journey::Router.new(@set, {
-          :parameters_key => PARAMETERS_KEY,
-          :request_class  => request_class})
-        @formatter = Journey::Formatter.new @set
+        set.clear
+        formatter.clear
         @prepend.each { |blk| eval_block(blk) }
       end
 
@@ -343,7 +347,7 @@ module ActionDispatch
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
         route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
-        @set.add_route(route.app, route.conditions, route.defaults, route.name)
+        @set.add_route(app, route.conditions, defaults, name)
         named_routes[name] = route if name
         routes << route
         route
