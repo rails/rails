@@ -4,6 +4,12 @@ Wed Sep  7 15:25:02 2011  Aaron Patterson <aaron@tenderlovemaking.com>
 	  keys are per process id.
 	* lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
 
+* Add first_or_create, first_or_create!, first_or_build and first_or_new methods to Active Record. This is a better approach over the old find_or_create_by dynamic methods because it's clearer which arguments are used to find the record and which are used to create it:
+
+    User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson", :hot => true)
+    
+  [Andrés Mejía]
+
 * Support bulk change_table in mysql2 adapter, as well as the mysql one. [Jon Leighton]
 
 * If multiple parameters are sent representing a date, and some are blank, the
