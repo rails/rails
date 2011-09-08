@@ -157,13 +157,19 @@ module ActiveSupport #:nodoc:
 
     UNAVAILABLE_STRING_METHODS.each do |unavailable_method|
       class_eval <<-EOT, __FILE__, __LINE__
-        def #{unavailable_method}(*args)          # def gsub(*args)
+        # def gsub(*args)
+        #   raise NoMethodError, "gsub cannot be used with a Safe Buffer object. You should use object.to_str.gsub"
+        # end
+        def #{unavailable_method}(*args)
           raise NoMethodError, "#{unavailable_method} cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}"
-        end                                       # end
+        end
 
-        def #{unavailable_method}!(*args)         # def gsub!(*args)
-          raise NoMethodError, "#{unavailable_method} cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}"
-        end                                       # end
+        # def gsub!(*args)
+        #   raise NoMethodError, "gsub! cannot be used with a Safe Buffer object. You should use object.to_str.gsub!"
+        # end
+        def #{unavailable_method}!(*args)
+          raise NoMethodError, "#{unavailable_method}! cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}!"
+        end
       EOT
     end
 
