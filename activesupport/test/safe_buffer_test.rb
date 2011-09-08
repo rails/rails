@@ -114,13 +114,13 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   ["gsub", "sub"].each do |unavailable_method|
     test "should raise on #{unavailable_method}" do
-      assert_raise NoMethodError, "#{unavailable_method} cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}" do
+      assert_raise NoMethodError, "#{unavailable_method} cannot be used with a safe string. You should use object.to_str.#{unavailable_method}" do
         @buffer.send(unavailable_method, '', '<>')
       end
     end
 
     test "should raise on #{unavailable_method}!" do
-      assert_raise NoMethodError, "#{unavailable_method}! cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}!" do
+      assert_raise NoMethodError, "#{unavailable_method}! cannot be used with a safe string. You should use object.to_str.#{unavailable_method}!" do
         @buffer.send("#{unavailable_method}!", '', '<>')
       end
     end
