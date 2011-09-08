@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Safe strings no longer respond to sub, sub!, gsub, or gsub! [Damien Mathieu]
+
 * ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! [Prem Sichanugrist]
 
 * Added Array#prepend as an alias for Array#unshift and Array#append as an alias for Array#<< [DHH]
