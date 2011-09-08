@@ -1,4 +1,5 @@
-require 'rack/mount'
+require 'journey/router'
+require 'journey/backwards'
 require 'forwardable'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
