@@ -225,17 +225,16 @@ module ActionDispatch
         self.valid_conditions.delete(:id)
         self.valid_conditions.push(:controller, :action)
 
-        @append = []
-        @prepend = []
+        @append                     = []
+        @prepend                    = []
         @disable_clear_and_finalize = false
+        @finalized                  = false
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new(@set, {
           :parameters_key => PARAMETERS_KEY,
           :request_class  => request_class})
         @formatter = Journey::Formatter.new @set
-
-        clear!
       end
 
       def draw(&block)
