@@ -461,7 +461,7 @@ module ActiveRecord
 
     private
 
-    def references_eager_loaded_tables?
+    def references_eager_loaded_tables?(column_name = "")
       joined_tables = arel.join_sources.map do |join|
         if join.is_a?(Arel::Nodes::StringJoin)
           tables_in_string(join.left)
@@ -474,8 +474,7 @@ module ActiveRecord
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
-
-      (tables_in_string(to_sql) - joined_tables).any?
+      (tables_in_string(to_sql.to_s + column_name.to_s) - joined_tables).any?
     end
 
     def tables_in_string(string)

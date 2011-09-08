@@ -153,7 +153,7 @@ module ActiveRecord
         relation = with_default_scope
 
         if relation.equal?(self)
-          if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+          if eager_loading? || (includes_values.present? && references_eager_loaded_tables?(column_name))
             construct_relation_for_association_calculations.calculate(operation, column_name, options)
           else
             perform_calculation(operation, column_name, options)
