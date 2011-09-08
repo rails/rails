@@ -206,7 +206,7 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :set, :routes, :named_routes, :default_scope
+      attr_accessor :formatter, :set, :routes, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
 
@@ -270,10 +270,11 @@ module ActionDispatch
         @finalized = false
         routes.clear
         named_routes.clear
-        @set = ::Rack::Mount::RouteSet.new(
+        @set    = Journey::Routes.new
+        @router = Journey::Router.new(@set, {
           :parameters_key => PARAMETERS_KEY,
-          :request_class  => request_class
-        )
+          :request_class  => request_class})
+        @formatter = Journey::Formatter.new @set
         @prepend.each { |blk| eval_block(blk) }
       end
 
@@ -448,7 +449,7 @@ module ActionDispatch
         end
 
         def generate
-          path, params = @set.set.generate(:path_info, named_route, options, recall, PARAMETERIZE)
+          path, params = @set.formatter.generate(:path_info, named_route, options, recall, PARAMETERIZE)
 
           raise_routing_error unless path
 
@@ -527,7 +528,7 @@ module ActionDispatch
 
       def call(env)
         finalize!
-        @set.call(env)
+        @router.call(env)
       end
 
       def recognize_path(path, environment = {})
@@ -541,7 +542,7 @@ module ActionDispatch
         end
 
         req = @request_class.new(env)
-        @set.recognize(req) do |route, matches, params|
+        @router.recognize(req) do |route, matches, params|
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?
