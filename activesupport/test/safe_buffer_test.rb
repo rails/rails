@@ -67,42 +67,41 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "my_test", str
   end
 
-  test "Should not return safe buffer from gsub" do
-    altered_buffer = @buffer.gsub('', 'asdf')
-    assert_equal 'asdf', altered_buffer
+  test "Should not return safe buffer from capitalize" do
+    altered_buffer = "asdf".html_safe.capitalize
+    assert_equal 'Asdf', altered_buffer
     assert !altered_buffer.html_safe?
   end
 
   test "Should not return safe buffer from gsub!" do
-    @buffer.gsub!('', 'asdf')
-    assert_equal 'asdf', @buffer
-    assert !@buffer.html_safe?
+    string = "asdf"
+    string.capitalize!
+    assert_equal 'Asdf', string
+    assert !string.html_safe?
   end
 
   test "Should escape dirty buffers on add" do
     clean = "hello".html_safe
-    @buffer.gsub!('', '<>')
-    assert_equal "hello&lt;&gt;", clean + @buffer
+    assert_equal "hello&lt;&gt;", clean + '<>'
   end
 
   test "Should concat as a normal string when dirty" do
     clean = "hello".html_safe
-    @buffer.gsub!('', '<>')
-    assert_equal "<>hello", @buffer + clean
+    assert_equal "<>hello", '<>' + clean
   end
 
   test "Should preserve dirty? status on copy" do
-    @buffer.gsub!('', '<>')
-    assert !@buffer.dup.html_safe?
+    dirty = "<>"
+    assert !dirty.dup.html_safe?
   end
 
   test "Should raise an error when safe_concat is called on dirty buffers" do
-    @buffer.gsub!('', '<>')
+    @buffer.capitalize!
     assert_raise ActiveSupport::SafeBuffer::SafeConcatError do
       @buffer.safe_concat "BUSTED"
     end
   end
-  
+
   test "should not fail if the returned object is not a string" do
     assert_kind_of NilClass, @buffer.slice("chipchop")
   end
@@ -111,5 +110,19 @@ class SafeBufferTest < ActiveSupport::TestCase
     dirty = @buffer[0,0].send(:dirty?)
     assert_not_nil dirty
     assert !dirty
+  end
+
+  ["gsub", "sub"].each do |unavailable_method|
+    test "should raise on #{unavailable_method}" do
+      assert_raise NoMethodError, "#{unavailable_method} cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}" do
+        @buffer.send(unavailable_method, '', '<>')
+      end
+    end
+
+    test "should raise on #{unavailable_method}!" do
+      assert_raise NoMethodError, "#{unavailable_method}! cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}!" do
+        @buffer.send("#{unavailable_method}!", '', '<>')
+      end
+    end
   end
 end
