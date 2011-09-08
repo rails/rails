@@ -350,18 +350,16 @@ module ActionDispatch
       end
 
       class Generator #:nodoc:
-        PARAMETERIZE = {
-          :parameterize => lambda do |name, value|
-            if name == :controller
-              value
-            elsif value.is_a?(Array)
-              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
-            else
-              return nil unless param = value.to_param
-              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
-            end
+        PARAMETERIZE = lambda do |name, value|
+          if name == :controller
+            value
+          elsif value.is_a?(Array)
+            value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+          else
+            return nil unless param = value.to_param
+            param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
           end
-        }
+        end
 
         attr_reader :options, :recall, :set, :named_route
 
