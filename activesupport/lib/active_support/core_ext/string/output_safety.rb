@@ -76,7 +76,6 @@ end
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
-    UNAVAILABLE_STRING_METHODS = []
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -152,24 +151,6 @@ module ActiveSupport #:nodoc:
           @dirty = true                           #   @dirty = true
           super                                   #   super
         end                                       # end
-      EOT
-    end
-
-    UNAVAILABLE_STRING_METHODS.each do |unavailable_method|
-      class_eval <<-EOT, __FILE__, __LINE__
-        # def gsub(*args)
-        #   raise NoMethodError, "gsub cannot be used with a safe string. You should use object.to_str.gsub"
-        # end
-        def #{unavailable_method}(*args)
-          raise NoMethodError, "#{unavailable_method} cannot be used with a safe string. You should use object.to_str.#{unavailable_method}"
-        end
-
-        # def gsub!(*args)
-        #   raise NoMethodError, "gsub! cannot be used with a safe string. You should use object.to_str.gsub!"
-        # end
-        def #{unavailable_method}!(*args)
-          raise NoMethodError, "#{unavailable_method}! cannot be used with a safe string. You should use object.to_str.#{unavailable_method}!"
-        end
       EOT
     end
 
