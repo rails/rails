@@ -92,3 +92,10 @@ if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
     gem "activerecord-oracle_enhanced-adapter", :git => "git://github.com/rsim/oracle-enhanced.git"
   end
 end
+
+# enables ActiveSupport::TestCase to use the Test::Unit 2.x gem
+group :test do
+  if ENV['TEST_UNIT_VERSION']
+    gem "test-unit", ENV['TEST_UNIT_VERSION']
+  end
+end
