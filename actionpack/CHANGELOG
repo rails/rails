@@ -5,7 +5,7 @@
 * Fix url_for when passed a hash to prevent additional options (eg. :host, :protocol) from being added to the hash after calling it.
 
 
-*Rails 3.0.10 (August 31, 2011)*
+*Rails 3.0.10 (August 16, 2011)*
 
 * Fixes an issue where cache sweepers with only after filters would have no
 controller object, it would raise undefined method controller_name for nil [jeroenj]

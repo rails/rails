@@ -7,7 +7,8 @@
 
 * Fix ActiveRecord#exists? when passsed a nil value
 
-* Rails 3.0.10
+
+* Rails 3.0.10  (August 16, 2011)
 
 * Magic encoding comment added to schema.rb files
 
@@ -25,7 +26,11 @@ GH #402.
 * Update `table_exists?` in PG to to always use current search_path or schema
 if explictly set.
 
+
 *Rails 3.0.9 (June 16, 2011)*
+
+*No changes.
+
 
 *Rails 3.0.8 (June 7, 2011)*
 
