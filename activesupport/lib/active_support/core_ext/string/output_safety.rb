@@ -75,7 +75,8 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
+    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
+    UNAVAILABLE_STRING_METHODS = ["gsub", "sub"]
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -143,13 +144,25 @@ module ActiveSupport #:nodoc:
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       class_eval <<-EOT, __FILE__, __LINE__
-        def #{unsafe_method}(*args, &block)       # def gsub(*args, &block)
+        def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
           to_str.#{unsafe_method}(*args, &block)  #   to_str.gsub(*args, &block)
         end                                       # end
 
-        def #{unsafe_method}!(*args)              # def gsub!(*args)
+        def #{unsafe_method}!(*args)              # def capitalize!(*args)
           @dirty = true                           #   @dirty = true
           super                                   #   super
+        end                                       # end
+      EOT
+    end
+
+    UNAVAILABLE_STRING_METHODS.each do |unavailable_method|
+      class_eval <<-EOT, __FILE__, __LINE__
+        def #{unavailable_method}(*args)          # def gsub(*args)
+          raise NoMethodError, "#{unavailable_method} cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}"
+        end                                       # end
+
+        def #{unavailable_method}!(*args)         # def gsub!(*args)
+          raise NoMethodError, "#{unavailable_method} cannot be used with a Safe Buffer object. You should use object.to_str.#{unavailable_method}"
         end                                       # end
       EOT
     end

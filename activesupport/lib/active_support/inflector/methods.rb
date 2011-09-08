@@ -21,7 +21,7 @@ module ActiveSupport
     #   "words".pluralize            # => "words"
     #   "CamelOctopus".pluralize     # => "CamelOctopi"
     def pluralize(word)
-      result = word.to_s.dup
+      result = word.to_str.dup
 
       if word.empty? || inflections.uncountables.include?(result.downcase)
         result
@@ -40,7 +40,7 @@ module ActiveSupport
     #   "word".singularize             # => "word"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
-      result = word.to_s.dup
+      result = word.to_str.dup
 
       if inflections.uncountables.any? { |inflection| result =~ /\b(#{inflection})\Z/i }
         result
@@ -66,7 +66,7 @@ module ActiveSupport
     #
     #   "SSLError".underscore.camelize # => "SslError"
     def camelize(term, uppercase_first_letter = true)
-      string = term.to_s
+      string = term.to_str
       if uppercase_first_letter
         string = string.sub(/^[a-z\d]*/) { inflections.acronyms[$&] || $&.capitalize }
       else
@@ -88,7 +88,7 @@ module ActiveSupport
     #
     #   "SSLError".underscore.camelize # => "SslError"
     def underscore(camel_cased_word)
-      word = camel_cased_word.to_s.dup
+      word = camel_cased_word.to_str.dup
       word.gsub!(/::/, '/')
       word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
@@ -105,7 +105,7 @@ module ActiveSupport
     #   "employee_salary" # => "Employee salary"
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
-      result = lower_case_and_underscored_word.to_s.dup
+      result = lower_case_and_underscored_word.to_str.dup
       inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
       result.gsub!(/_id$/, "")
       result.gsub(/(_)?([a-z\d]*)/i) { "#{$1 && ' '}#{inflections.acronyms[$2] || $2.downcase}" }.gsub(/^\w/) { $&.upcase }
@@ -149,7 +149,7 @@ module ActiveSupport
     #   "business".classify     # => "Busines"
     def classify(table_name)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, '')))
+      camelize(singularize(table_name.to_str.sub(/.*\./, '')))
     end
 
     # Replaces underscores with dashes in the string.
@@ -157,7 +157,7 @@ module ActiveSupport
     # Example:
     #   "puni_puni" # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word.gsub(/_/, '-')
+      underscored_word.to_str.gsub(/_/, '-')
     end
 
     # Removes the module part from the expression in the string.
@@ -166,7 +166,7 @@ module ActiveSupport
     #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
     #   "Inflections".demodulize                                       # => "Inflections"
     def demodulize(class_name_in_module)
-      class_name_in_module.to_s.gsub(/^.*::/, '')
+      class_name_in_module.to_str.gsub(/^.*::/, '')
     end
 
     # Creates a foreign key name from a class name.
