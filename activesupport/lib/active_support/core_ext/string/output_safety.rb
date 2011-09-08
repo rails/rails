@@ -75,8 +75,8 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
-    UNAVAILABLE_STRING_METHODS = ["gsub", "sub"]
+    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
+    UNAVAILABLE_STRING_METHODS = []
 
     alias_method :original_concat, :concat
     private :original_concat

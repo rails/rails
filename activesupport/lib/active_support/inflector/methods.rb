@@ -21,8 +21,7 @@ module ActiveSupport
     #   "words".pluralize            # => "words"
     #   "CamelOctopus".pluralize     # => "CamelOctopi"
     def pluralize(word)
-      word = deprecate_symbol(word)
-      result = word.to_str.dup
+      result = word.to_s.dup
 
       if word.empty? || inflections.uncountables.include?(result.downcase)
         result
@@ -41,8 +40,7 @@ module ActiveSupport
     #   "word".singularize             # => "word"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
-      word = deprecate_symbol(word)
-      result = word.to_str.dup
+      result = word.to_s.dup
 
       if inflections.uncountables.any? { |inflection| result =~ /\b(#{inflection})\Z/i }
         result
@@ -68,8 +66,7 @@ module ActiveSupport
     #
     #   "SSLError".underscore.camelize # => "SslError"
     def camelize(term, uppercase_first_letter = true)
-      term = deprecate_symbol(term)
-      string = term.to_str
+      string = term.to_s
       if uppercase_first_letter
         string = string.sub(/^[a-z\d]*/) { inflections.acronyms[$&] || $&.capitalize }
       else
@@ -91,8 +88,7 @@ module ActiveSupport
     #
     #   "SSLError".underscore.camelize # => "SslError"
     def underscore(camel_cased_word)
-      camel_cased_word = deprecate_symbol(camel_cased_word)
-      word = camel_cased_word.to_str.dup
+      word = camel_cased_word.to_s.dup
       word.gsub!(/::/, '/')
       word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
@@ -109,8 +105,7 @@ module ActiveSupport
     #   "employee_salary" # => "Employee salary"
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
-      lower_case_and_underscored_word = deprecate_symbol(lower_case_and_underscored_word)
-      result = lower_case_and_underscored_word.to_str.dup
+      result = lower_case_and_underscored_word.to_s.dup
       inflections.humans.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
       result.gsub!(/_id$/, "")
       result.gsub(/(_)?([a-z\d]*)/i) { "#{$1 && ' '}#{inflections.acronyms[$2] || $2.downcase}" }.gsub(/^\w/) { $&.upcase }
@@ -153,9 +148,8 @@ module ActiveSupport
     # Singular names are not handled correctly:
     #   "business".classify     # => "Busines"
     def classify(table_name)
-      table_name = deprecate_symbol(table_name)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_str.sub(/.*\./, '')))
+      camelize(singularize(table_name.to_s.sub(/.*\./, '')))
     end
 
     # Replaces underscores with dashes in the string.
@@ -163,8 +157,7 @@ module ActiveSupport
     # Example:
     #   "puni_puni" # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word = deprecate_symbol(underscored_word)
-      underscored_word.to_str.gsub(/_/, '-')
+      underscored_word.gsub(/_/, '-')
     end
 
     # Removes the module part from the expression in the string.
@@ -173,8 +166,7 @@ module ActiveSupport
     #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
     #   "Inflections".demodulize                                       # => "Inflections"
     def demodulize(class_name_in_module)
-      class_name_in_module = deprecate_symbol(class_name_in_module)
-      class_name_in_module.to_str.gsub(/^.*::/, '')
+      class_name_in_module.to_s.gsub(/^.*::/, '')
     end
 
     # Creates a foreign key name from a class name.
@@ -253,14 +245,6 @@ module ActiveSupport
           else    "#{number}th"
         end
       end
-    end
-
-    def deprecate_symbol(symbol)
-      if symbol.is_a?(Symbol)
-        symbol = symbol.to_s
-        ActiveSupport::Deprecation.warn("Using symbols in inflections is deprecated. Please use to_s to have a string.")
-      end
-      symbol
     end
   end
 end

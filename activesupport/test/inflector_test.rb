@@ -10,7 +10,7 @@ module Ace
   end
 end
 
-class InflectorTest < ActiveSupport::TestCase
+class InflectorTest < Test::Unit::TestCase
   include InflectorTestCases
 
   def test_pluralize_plurals
@@ -248,6 +248,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_classify_with_symbol
+    assert_nothing_raised do
+      assert_equal 'FooBar', ActiveSupport::Inflector.classify(:foo_bars)
+    end
+  end
+
   def test_classify_with_leading_schema_name
     assert_equal 'FooBar', ActiveSupport::Inflector.classify('schema.foo_bar')
   end
@@ -313,6 +319,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_symbol_to_lower_camel
+    SymbolToLowerCamel.each do |symbol, lower_camel|
+      assert_equal(lower_camel, ActiveSupport::Inflector.camelize(symbol, false))
+    end
+  end
+
   %w{plurals singulars uncountables humans}.each do |inflection_type|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def test_clear_#{inflection_type}
@@ -366,14 +378,6 @@ class InflectorTest < ActiveSupport::TestCase
     ActiveSupport::Inflector.inflections.instance_variable_set :@singulars, cached_values[1]
     ActiveSupport::Inflector.inflections.instance_variable_set :@uncountables, cached_values[2]
     ActiveSupport::Inflector.inflections.instance_variable_set :@humans, cached_values[3]
-  end
-
-  [:pluralize, :singularize, :camelize, :underscore, :humanize, :titleize, :tableize, :classify, :dasherize, :demodulize].each do |method|
-    test "should deprecate symbols on #{method}" do
-      assert_deprecated(/Using symbols in inflections is deprecated/) do
-        ActiveSupport::Inflector.send(method, :foo)
-      end
-    end
   end
 
   Irregularities.each do |irregularity|
