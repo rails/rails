@@ -415,12 +415,12 @@ For Apache:
   RewriteCond %{REQUEST_FILENAME}.gz -s
   RewriteRule ^(.+) $1.gz [L]
 </LocationMatch>
- 
+
 # without these, Content-Type will be "application/x-gzip"
 <FilesMatch "^/assets/.*\.css.gz$">
     ForceType text/css
 </FilesMatch>
- 
+
 <FilesMatch "^/assets/.*\.js.gz$">
     ForceType text/javascript
 </FilesMatch>
