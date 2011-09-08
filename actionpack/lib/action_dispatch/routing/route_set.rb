@@ -264,7 +264,6 @@ module ActionDispatch
         return if @finalized
         @append.each { |blk| eval_block(blk) }
         @finalized = true
-        @set.freeze
       end
 
       def clear!
