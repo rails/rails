@@ -2,6 +2,8 @@
 
 * Fix assert_select_email to work on multipart and non-multipart emails as the method stopped working correctly in Rails 3.x due to changes in the new mail gem.
 
+* Fix url_for when passed a hash to prevent additional options (eg. :host, :protocol) from being added to the hash after calling it.
+
 
 *Rails 3.0.10 (August 31, 2011)*
 
