@@ -52,7 +52,6 @@ class ErrorsTest < ActiveModel::TestCase
     person.validate!
     assert_equal ["name can not be nil"], person.errors.full_messages
     assert_equal ["can not be nil"], person.errors[:name]
-
   end
 
   test 'should be able to assign error' do
@@ -78,7 +77,6 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, "can not be blank")
     person.errors.add(:name, "can not be nil")
     assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
-
   end
 
   test 'to_hash should return an ordered hash' do
@@ -86,4 +84,22 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, "can not be blank")
     assert_instance_of ActiveSupport::OrderedHash, person.errors.to_hash
   end
+
+  test 'full_messages should return an array of error messages, with the attribute name included' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "can not be nil")
+    assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
+  end
+
+  test 'full_message should return the given message if attribute equals :base' do
+    person = Person.new
+    assert_equal "press the button", person.errors.full_message(:base, "press the button")
+  end
+
+  test 'full_message should return the given message with the attribute name included' do
+    person = Person.new
+    assert_equal "name can not be blank", person.errors.full_message(:name, "can not be blank")
+  end
+
 end
