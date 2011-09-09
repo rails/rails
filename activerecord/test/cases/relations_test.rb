@@ -938,7 +938,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_first_or_create_bang_with_invalid_block
     assert_raise(ActiveRecord::RecordInvalid) do
-      parrot = Bird.where(:color => 'green').first_or_create! { |bird| bird.pirate_id = 1 }
+      Bird.where(:color => 'green').first_or_create! { |bird| bird.pirate_id = 1 }
     end
   end
 
