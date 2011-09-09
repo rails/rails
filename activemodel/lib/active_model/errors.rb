@@ -180,6 +180,7 @@ module ActiveModel
       all? { |k, v| v && v.empty? }
     end
     alias_method :blank?, :empty?
+
     # Returns an xml formatted representation of the Errors hash.
     #
     #   p.errors.add(:name, "can't be blank")
@@ -254,20 +255,22 @@ module ActiveModel
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
-      map { |attribute, message|
-        if attribute == :base
-          message
-        else
-          attr_name = attribute.to_s.gsub('.', '_').humanize
-          attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      map { |attribute, message| full_message(attribute, message) }
+    end
 
-          I18n.t(:"errors.format", {
-            :default   => "%{attribute} %{message}",
-            :attribute => attr_name,
-            :message   => message
-          })
-        end
-      }
+    # Returns a full message for a given attribute.
+    #
+    #   company.errors.full_message(:name, "is invalid")  # =>
+    #     "Name is invalid"
+    def full_message(attribute, message)
+      return message if attribute == :base
+      attr_name = attribute.to_s.gsub('.', '_').humanize
+      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      I18n.t(:"errors.format", {
+        :default   => "%{attribute} %{message}",
+        :attribute => attr_name,
+        :message   => message
+      })
     end
 
     # Translates an error message in its default scope
