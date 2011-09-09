@@ -66,11 +66,11 @@ class BaseLoadTest < Test::Unit::TestCase
   end
 
   def test_load_hash_with_integers_as_keys
-    assert_nothing_raised{person = @person.load(@books)}
+    assert_nothing_raised{@person.load(@books)}
   end
 
   def test_load_hash_with_dates_as_keys
-    assert_nothing_raised{person = @person.load(@books_date)}
+    assert_nothing_raised{@person.load(@books_date)}
   end
 
   def test_load_expects_hash
