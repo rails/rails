@@ -3,6 +3,12 @@ require 'abstract_unit'
 module ActiveSupport
   class TestCaseTest < ::Test::Unit::TestCase
 
+    @@moched_object = nil
+    def self.moched_object; @@moched_object; end
+    
+    @@callbacks_memo = nil
+    def self.callbacks_memo; @@callbacks_memo; end
+    
     if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
       
       class FakeRunner
@@ -19,6 +25,38 @@ module ActiveSupport
         def options
           nil
         end
+      end
+      
+      def test_callbacks
+        @@callbacks_memo = []
+        test_case = Class.new(TestCase) do
+          setup :setup_callback1
+          setup do
+            TestCaseTest.callbacks_memo << :setup_callback2
+          end
+          def setup_callback1
+            TestCaseTest.callbacks_memo << :setup_callback1
+          end
+          teardown do
+            TestCaseTest.callbacks_memo << :teardown_callback1
+          end
+          teardown :teardown_callback2
+          def teardown_callback2
+            TestCaseTest.callbacks_memo << :teardown_callback2
+          end          
+          def test_true; assert true end
+        end
+
+        test_name = 'test_true'
+        runner = FakeRunner.new
+
+        test = test_case.new test_name
+        test.run runner
+
+        assert_equal 4, @@callbacks_memo.size
+        assert_equal [ :setup_callback1, :setup_callback2, :teardown_callback2, :teardown_callback1 ], @@callbacks_memo
+      ensure
+        @@callbacks_memo = nil
       end
       
       def test_callback_with_exception
@@ -61,6 +99,36 @@ module ActiveSupport
       
     else # Test::Unit
       
+      def test_callbacks
+        @@callbacks_memo = []
+        test_case = Class.new(TestCase) do
+          setup :setup_callback1
+          setup do
+            TestCaseTest.callbacks_memo << :setup_callback2
+          end
+          def setup_callback1
+            TestCaseTest.callbacks_memo << :setup_callback1
+          end
+          teardown do
+            TestCaseTest.callbacks_memo << :teardown_callback1
+          end
+          teardown :teardown_callback2
+          def teardown_callback2
+            TestCaseTest.callbacks_memo << :teardown_callback2
+          end          
+          def test_true; assert true end
+        end
+
+        result = Test::Unit::TestResult.new
+        test = test_case.new "test_true"
+        test.run(result) { |channel, value| channel && value }
+
+        assert_equal 4, @@callbacks_memo.size
+        assert_equal [ :setup_callback1, :setup_callback2, :teardown_callback2, :teardown_callback1 ], @@callbacks_memo
+      ensure
+        @@callbacks_memo = nil
+      end
+      
       def test_callback_with_exception
         test_case = Class.new(TestCase) do
           setup :bad_callback
@@ -70,9 +138,7 @@ module ActiveSupport
 
         result = Test::Unit::TestResult.new
         test = test_case.new "test_true"
-        test.run(result) do |channel, value|
-          assert channel; assert value # don't care really
-        end
+        test.run(result) { |channel, value| channel && value }
         
         assert ! result.passed?
         assert_equal 1, result.error_count
@@ -90,9 +156,7 @@ module ActiveSupport
 
         result = Test::Unit::TestResult.new
         test = test_case.new "test_true"
-        test.run(result) do |channel, value|
-          assert channel; assert value # don't care really
-        end
+        test.run(result) { |channel, value| channel && value }
 
         assert ! result.passed?
         assert_equal 1, result.error_count
@@ -112,14 +176,13 @@ module ActiveSupport
         test.run(result) do |channel, value|
           yields << [ channel, value ]
         end
-
-        if new_test_unit?
-          assert_equal 4, yields.size
+        
+        if yields.size == 4 # Test::Unit since version 2.3 yields 4 times
           assert_equal Test::Unit::TestCase::STARTED, yields[0][0]
           assert_equal 'test_true()', yields[0][1]
           assert_equal Test::Unit::TestCase::FINISHED, yields[2][0]
           assert_equal 'test_true()', yields[2][1]
-        else
+        else # all Test::Unit < 2.3 yield 2 times
           assert_equal 2, yields.size
           assert_equal Test::Unit::TestCase::STARTED, yields[0][0]
           assert_equal 'test_true()', yields[0][1]
@@ -142,14 +205,13 @@ module ActiveSupport
         test.run(result) do |channel, value|
           yields << [ channel, value ]
         end
-
-        if new_test_unit?
-          assert_equal 4, yields.size
+        
+        if yields.size == 4 # Test::Unit since version 2.3 yields 4 times
           assert_equal Test::Unit::TestCase::STARTED, yields[0][0]
           assert_equal 'test_true()', yields[0][1]
           assert_equal Test::Unit::TestCase::FINISHED, yields[2][0]
           assert_equal 'test_true()', yields[2][1]
-        else
+        else # all Test::Unit < 2.3 yield 2 times
           assert_equal 2, yields.size
           assert_equal Test::Unit::TestCase::STARTED, yields[0][0]
           assert_equal 'test_true()', yields[0][1]
@@ -178,9 +240,6 @@ module ActiveSupport
           "not all expectations were satisfied\nunsatisfied expectations:\n- expected exactly once, not yet invoked"
         assert_equal mocha_failure, failure.message[0,mocha_failure.size]
       end
-
-      @@moched_object = nil
-      def self.moched_object; @@moched_object; end
       
       def test_mocha_teardown
         @@moched_object = Object.new
@@ -198,7 +257,7 @@ module ActiveSupport
 
         assert result.passed?
         assert_nothing_raised do
-          @@moched_object.hash
+          2.times { @@moched_object.hash }
         end
       ensure
         @@moched_object = nil

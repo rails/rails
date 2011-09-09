@@ -16,7 +16,7 @@ module ActiveSupport
           begin
             require 'test/unit/version'
           rescue LoadError
-          end
+          end unless defined?(Test::Unit::VERSION)
           if defined?(Test::Unit::VERSION) # Test::Unit 2.x gem
             include ForTestUnit
           else # "built-in" Test::Unit 1.2.3
