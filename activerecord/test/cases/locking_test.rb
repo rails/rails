@@ -6,6 +6,9 @@ require 'models/reader'
 require 'models/legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
+require 'models/car'
+require 'models/engine'
+require 'models/wheel'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -206,6 +209,15 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       p1.reload
       assert_equal lock_version, p1.lock_version
     end
+  end
+
+  def test_polymorphic_destroy_with_dependencies_and_lock_version
+    car = Car.create!
+    car.wheels << Wheel.create!
+    assert_equal 1, car.wheels.count
+    assert car.destroy
+    assert_equal 0, car.wheels.count
+    assert car.destroyed?
   end
 end
 

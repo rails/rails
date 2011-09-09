@@ -105,6 +105,7 @@ ActiveRecord::Schema.define do
     t.string  :name
     t.integer :engines_count
     t.integer :wheels_count
+    t.column :lock_version, :integer, :null => false, :default => 0
   end
 
   create_table :categories, :force => true do |t|

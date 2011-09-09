@@ -9,7 +9,7 @@ class Car < ActiveRecord::Base
 
   has_many :tyres
   has_many :engines, :dependent => :destroy
-  has_many :wheels, :as => :wheelable
+  has_many :wheels, :as => :wheelable, :dependent => :destroy
 
   scope :incl_tyres, includes(:tyres)
   scope :incl_engines, includes(:engines)
