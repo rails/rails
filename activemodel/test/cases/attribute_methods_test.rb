@@ -3,8 +3,6 @@ require 'cases/helper'
 class ModelWithAttributes
   include ActiveModel::AttributeMethods
 
-  attribute_method_suffix ''
-
   class << self
     define_method(:bar) do
       'original bar'
@@ -39,8 +37,6 @@ end
 class ModelWithAttributesWithSpaces
   include ActiveModel::AttributeMethods
 
-  attribute_method_suffix ''
-
   def attributes
     { :'foo bar' => 'value of foo bar'}
   end
@@ -53,8 +49,6 @@ end
 
 class ModelWithWeirdNamesAttributes
   include ActiveModel::AttributeMethods
-
-  attribute_method_suffix ''
 
   class << self
     define_method(:'c?d') do
@@ -145,5 +139,16 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_equal 'bar', m.foo
     assert_equal 'bar', m.foo_test
+  end
+
+  test 'explicitly specifying an empty prefix/suffix is deprecated' do
+    klass = Class.new(ModelWithAttributes)
+
+    assert_deprecated { klass.attribute_method_suffix '' }
+    assert_deprecated { klass.attribute_method_prefix '' }
+
+    klass.define_attribute_methods([:foo])
+
+    assert_equal 'value of foo', klass.new.foo
   end
 end

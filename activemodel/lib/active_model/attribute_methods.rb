@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/deprecation'
 
 module ActiveModel
   class MissingAttributeError < NoMethodError
@@ -365,6 +366,16 @@ module ActiveModel
 
           def initialize(options = {})
             options.symbolize_keys!
+
+            if options[:prefix] == '' || options[:suffix] == ''
+              ActiveSupport::Deprecation.warn(
+                "Specifying an empty prefix/suffix for an attribute method is no longer " \
+                "necessary. If the un-prefixed/suffixed version of the method has not been " \
+                "defined when `define_attribute_methods` is called, it will be defined " \
+                "automatically."
+              )
+            end
+
             @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
             @regex = /^(#{Regexp.escape(@prefix)})(.+?)(#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
