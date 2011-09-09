@@ -13,6 +13,13 @@ class AdapterTest < ActiveRecord::TestCase
     assert tables.include?("topics")
   end
 
+  def test_exception
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.execute 'this is bad sql'
+    end
+    assert ex.backtrace.grep(/rescue in/).empty?, 'bactrace should not include rescue'
+  end
+
   def test_table_exists?
     assert @connection.table_exists?("accounts")
     assert !@connection.table_exists?("nonexistingtable")

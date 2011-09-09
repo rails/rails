@@ -1,5 +1,7 @@
 * Rails 3.0.11 (unreleased)
 
+* Exceptions from database adapters should not lose their backtrace.
+
 * Backport "ActiveRecord::Persistence#touch should not use default_scope" (GH #1519)
 
 * Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
