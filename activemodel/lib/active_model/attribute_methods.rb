@@ -284,33 +284,25 @@ module ActiveModel
 
       def define_attribute_method(attr_name)
         attribute_method_matchers.each do |matcher|
-          unless instance_method_already_implemented?(matcher.method_name(attr_name))
-            generate_method = "define_method_#{matcher.prefix}attribute#{matcher.suffix}"
+          method_name = matcher.method_name(attr_name)
+
+          unless instance_method_already_implemented?(method_name)
+            generate_method = "define_method_#{matcher.method_missing_target}"
 
             if respond_to?(generate_method)
               send(generate_method, attr_name)
             else
-              method_name = matcher.method_name(attr_name)
+              if method_name =~ COMPILABLE_REGEXP
+                defn = "def #{method_name}(*args)"
+              else
+                defn = "define_method(:'#{method_name}') do |*args|"
+              end
 
               generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                if method_defined?('#{method_name}')
-                  undef :'#{method_name}'
+                #{defn}
+                  send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
                 end
               RUBY
-
-              if method_name.to_s =~ COMPILABLE_REGEXP
-                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                  def #{method_name}(*args)
-                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
-                  end
-                RUBY
-              else
-                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                  define_method('#{method_name}') do |*args|
-                    send('#{matcher.method_missing_target}', '#{attr_name}', *args)
-                  end
-                RUBY
-              end
             end
           end
         end
