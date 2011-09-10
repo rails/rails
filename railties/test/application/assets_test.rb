@@ -64,6 +64,34 @@ module ApplicationTests
       end
     end
 
+    test "precompile application.js and application.css and all other files not ending with .js or .css by default" do
+      app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "app/assets/stylesheets/application.css", "body{}"
+      app_file "app/assets/javascripts/something.min.js", "alert();"
+      app_file "app/assets/stylesheets/something.min.css", "body{}"
+
+      images_should_compile = ["a.png", "happyface.png", "happy_face.png", "happy.face.png",
+                               "happy-face.png", "happy.happy_face.png", "happy_happy.face.png", 
+                               "happy.happy.face.png", "happy", "happy.face", "-happyface",
+                               "-happy.png", "-happy.face.png", "_happyface", "_happy.face.png",
+                               "_happy.png"]
+      images_should_compile.each do |filename|
+        app_file "app/assets/images/#{filename}", "happy"
+      end
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      images_should_compile.each do |filename|
+        assert File.exists?("#{app_path}/public/assets/#{filename}")
+      end
+      assert File.exists?("#{app_path}/public/assets/application.js")
+      assert File.exists?("#{app_path}/public/assets/application.css")
+      assert !File.exists?("#{app_path}/public/assets/something.min.js")
+      assert !File.exists?("#{app_path}/public/assets/something.min.css")
+    end
+
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
       add_to_config "config.assets.digest = true"
       add_to_config "config.action_controller.perform_caching = false"
