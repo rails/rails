@@ -36,7 +36,7 @@ module ActiveRecord
 
         @@_defined_activerecord_methods ||= defined_activerecord_methods
         raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
-        @_defined_class_methods.include?(method_name)
+        @_defined_class_methods.include?(method_name) || generated_attribute_methods.method_defined?(method_name)
       end
 
       def defined_activerecord_methods
