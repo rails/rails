@@ -17,7 +17,7 @@ class AdapterTest < ActiveRecord::TestCase
     ex = assert_raises(ActiveRecord::StatementInvalid) do
       @connection.execute 'this is bad sql'
     end
-    assert ex.backtrace.grep(/rescue in/).empty?, 'bactrace should not include rescue'
+    assert ex.backtrace.grep(/rescue in/).empty?, 'backtrace should not include rescue'
   end
 
   def test_table_exists?
