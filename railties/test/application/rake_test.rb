@@ -150,6 +150,31 @@ module ApplicationTests
       assert_match(/down\s+\d{14}\s+Add email to users/, output)
     end
 
+    def test_migration_status_after_rollback_and_redo
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate migration add_email_to_users email:string`
+      end
+
+      Dir.chdir(app_path) { `rake db:migrate`}
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:rollback STEP=2` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/down\s+\d{14}\s+Create users/, output)
+      assert_match(/down\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:migrate:redo` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
+    end
+
     def test_loading_specific_fixtures
       Dir.chdir(app_path) do
         `rails generate model user username:string password:string`
