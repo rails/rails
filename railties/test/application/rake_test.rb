@@ -126,6 +126,30 @@ module ApplicationTests
       assert_match(/AddEmailToUsers: reverted/, output)
     end
 
+    def test_migration_status_when_schema_migrations_table_is_not_present
+      output = Dir.chdir(app_path){ `rake db:migrate:status` }
+      assert_equal "Schema migrations table does not exist yet.\n", output
+    end
+
+    def test_migration_status
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate migration add_email_to_users email:string`
+      end
+
+      Dir.chdir(app_path) { `rake db:migrate`}
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:rollback STEP=1` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/down\s+\d{14}\s+Add email to users/, output)
+    end
+
     def test_loading_specific_fixtures
       Dir.chdir(app_path) do
         `rails generate model user username:string password:string`
