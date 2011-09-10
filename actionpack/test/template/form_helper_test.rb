@@ -697,12 +697,11 @@ class FormHelperTest < ActionView::TestCase
     end
 
     expected =
-      "<form accept-charset='UTF-8' action='/posts/44' method='post'>" +
-      snowman +
-      "<label for='post_title'>The Title</label>" +
-      "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
-      "<input name='commit' id='post_submit' type='submit' value='Edit post' />" +
-      "</form>"
+      whole_form('/posts/44', "edit_blog_post_44", 'edit_blog_post', :method => 'put') do
+        "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
+        "<input name='commit' type='submit' value='Edit post' />"
+      end
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_symbol_object_name
