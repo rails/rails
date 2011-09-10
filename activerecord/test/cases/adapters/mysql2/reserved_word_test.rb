@@ -87,8 +87,8 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     assert_nothing_raised { x.save }
     x.order = 'y'
     assert_nothing_raised { x.save }
-    assert_nothing_raised { y = Group.find_by_order('y') }
-    assert_nothing_raised { y = Group.find(1) }
+    assert_nothing_raised { Group.find_by_order('y') }
+    assert_nothing_raised { Group.find(1) }
     x = Group.find(1)
   end
 

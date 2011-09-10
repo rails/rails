@@ -291,7 +291,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_cycle_class_with_no_arguments
-    assert_raise(ArgumentError) { value = Cycle.new() }
+    assert_raise(ArgumentError) { Cycle.new() }
   end
 
   def test_cycle
@@ -304,7 +304,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_cycle_with_no_arguments
-    assert_raise(ArgumentError) { value = cycle() }
+    assert_raise(ArgumentError) { cycle() }
   end
 
   def test_cycle_resets_with_new_values
