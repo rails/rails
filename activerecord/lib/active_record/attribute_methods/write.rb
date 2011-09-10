@@ -28,12 +28,16 @@ module ActiveRecord
       # for fixnum and float columns are turned into +nil+.
       def write_attribute(attr_name, value)
         attr_name = attr_name.to_s
-        attr_name = self.class.primary_key if attr_name == 'id'
+        attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
         @attributes_cache.delete(attr_name)
-        if (column = column_for_attribute(attr_name)) && column.number?
+        column = column_for_attribute(attr_name)
+
+        if column && column.number?
           @attributes[attr_name] = convert_number_column_value(value)
-        else
+        elsif column || @attributes.has_key?(attr_name)
           @attributes[attr_name] = value
+        else
+          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
         end
       end
       alias_method :raw_write_attribute, :write_attribute
