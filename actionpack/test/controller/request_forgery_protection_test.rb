@@ -168,7 +168,7 @@ module RequestForgeryProtectionTests
 
       assert_equal 1, logger.logged(:warn).size
       assert_match(/CSRF token authenticity/, logger.logged(:warn).last)
-    rescue
+    ensure
       ActionController::Base.logger = old_logger
     end
   end
