@@ -13,7 +13,15 @@ module ActiveSupport
         if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
           include ForMiniTest
         else
-          include ForClassicTestUnit
+          begin
+            require 'test/unit/version'
+          rescue LoadError
+          end unless defined?(Test::Unit::VERSION)
+          if defined?(Test::Unit::VERSION) # Test::Unit 2.x gem
+            include ForTestUnit
+          else # "built-in" Test::Unit 1.2.3
+            include ForClassicTestUnit
+          end
         end
       end
 
@@ -106,6 +114,42 @@ module ActiveSupport
         end
       end
 
+      module ForTestUnit
+
+        def run_setup
+          run_callbacks :setup
+          super
+        end
+        
+        def run_teardown
+          outcome = super
+          run_callbacks :teardown
+          mocha_counter = retrieve_mocha_counter
+          mocha_teardown if mocha_counter
+          outcome
+        end
+        
+        def run_test
+          outcome = super
+          mocha_counter = retrieve_mocha_counter
+          mocha_verify(mocha_counter) if mocha_counter
+          outcome
+        end
+
+        protected
+
+          def retrieve_mocha_counter #:nodoc:
+            if respond_to?(:mocha_verify) # using mocha
+              if defined?(Mocha::TestCaseAdapter::AssertionCounter)
+                Mocha::TestCaseAdapter::AssertionCounter.new(@_result)
+              else
+                Mocha::Integration::TestUnit::AssertionCounter.new(@_result)
+              end
+            end
+          end
+          
+      end
+      
     end
   end
 end
