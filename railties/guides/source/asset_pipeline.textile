@@ -282,7 +282,7 @@ When debug mode is off Sprockets will concatenate and run the necessary preproce
 <script src='/assets/application.js'></script>
 </html>
 
-Assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-validate+ Cache-Control HTTP header to reduce request overhead on subsequent requests -- on these the browser gets a 304 (not-modified) response.
+Assets are compiled and cached on the first request after the server is started. Sprockets sets a +must-revalidate+ Cache-Control HTTP header to reduce request overhead on subsequent requests -- on these the browser gets a 304 (not-modified) response.
 
 If any of the files in the manifest have changed between requests, the server responds with a new compiled file.
 
@@ -415,12 +415,12 @@ For Apache:
   RewriteCond %{REQUEST_FILENAME}.gz -s
   RewriteRule ^(.+) $1.gz [L]
 </LocationMatch>
- 
+
 # without these, Content-Type will be "application/x-gzip"
 <FilesMatch "^/assets/.*\.css.gz$">
     ForceType text/css
 </FilesMatch>
- 
+
 <FilesMatch "^/assets/.*\.js.gz$">
     ForceType text/javascript
 </FilesMatch>

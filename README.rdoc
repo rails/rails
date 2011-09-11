@@ -67,7 +67,7 @@ We encourage you to contribute to Ruby on Rails! Please check out the {Contribut
 guide}[http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how
 to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
-== Travis Build Status {<img src="https://secure.travis-ci.org/rails/rails.png"/>}[https://secure.travis-ci.org/rails/rails.png]
+== Travis Build Status {<img src="https://secure.travis-ci.org/rails/rails.png"/>}[http://travis-ci.org/rails/rails]
 
 == License
 
