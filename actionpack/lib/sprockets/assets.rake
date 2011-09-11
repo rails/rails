@@ -26,6 +26,8 @@ namespace :assets do
         env.each_logical_path do |logical_path|
           if path.is_a?(Regexp)
             next unless path.match(logical_path)
+          elsif path.is_a?(Proc)
+            next unless path.call(logical_path)
           else
             next unless File.fnmatch(path.to_s, logical_path)
           end

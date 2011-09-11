@@ -22,6 +22,7 @@ require 'models/person'
 require 'models/edge'
 require 'models/joke'
 require 'models/bulb'
+require 'models/bird'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 require 'bcrypt'
@@ -276,6 +277,37 @@ class BasicsTest < ActiveRecord::TestCase
     cb = CustomBulb.create {|c| c.name = 'Dude' }
     assert_equal('Dude', cb.name)
     assert_equal(true, cb.frickinawesome)
+  end
+
+  def test_first_or_create
+    parrot = Bird.first_or_create(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    the_same_parrot = Bird.first_or_create(:color => 'yellow', :name => 'macaw')
+    assert_equal parrot, the_same_parrot
+  end
+
+  def test_first_or_create_bang
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.first_or_create! }
+    parrot = Bird.first_or_create!(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    the_same_parrot = Bird.first_or_create!(:color => 'yellow', :name => 'macaw')
+    assert_equal parrot, the_same_parrot
+  end
+
+  def test_first_or_new
+    parrot = Bird.first_or_new(:color => 'green', :name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.new_record?
+    assert parrot.valid?
+  end
+
+  def test_first_or_build
+    parrot = Bird.first_or_build(:color => 'green', :name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.new_record?
+    assert parrot.valid?
   end
 
   def test_load

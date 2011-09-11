@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
 require 'active_support/core_ext/string/encoding'
 
 module ActiveRecord
@@ -48,9 +49,45 @@ module ActiveRecord
         end
       end
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        def initialize(connection, max)
+          super
+          @cache = Hash.new { |h,pid| h[pid] = {} }
+        end
+
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
+
+        def []=(sql, key)
+          while @max <= cache.size
+            dealloc(cache.shift.last[:stmt])
+          end
+          cache[sql] = key
+        end
+
+        def clear
+          cache.values.each do |hash|
+            dealloc hash[:stmt]
+          end
+          cache.clear
+        end
+
+        private
+        def cache
+          @cache[$$]
+        end
+
+        def dealloc(stmt)
+          stmt.close unless stmt.closed?
+        end
+      end
+
       def initialize(connection, logger, config)
         super(connection, logger)
-        @statements = {}
+        @statements = StatementPool.new(@connection,
+                                        config.fetch(:statement_limit) { 1000 })
         @config = config
       end
 
@@ -107,10 +144,6 @@ module ActiveRecord
 
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.values.map { |hash| hash[:stmt] }.each { |stmt|
-          stmt.close unless stmt.closed?
-        }
-
         @statements.clear
       end
 

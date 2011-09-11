@@ -698,8 +698,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/44", "edit_post_44" , "edit_post", :method => "put") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
-      "<input name='commit' type='submit' value='Edit post' />" +
-      "</form>"
+      "<input name='commit' type='submit' value='Edit post' />"
     end
 
     assert_dom_equal expected, output_buffer
