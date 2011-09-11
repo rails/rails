@@ -116,7 +116,12 @@ module ActiveSupport
 
       module ForTestUnit
 
+        # NOTE: mocha (already) does it's Test::Unit#run hook as we do not 
+        # override the #run method we do not need to worry about mocha here
+        
         def run_setup
+          # a lot of rails test code (e.g. from actionpack) depends on this 
+          # setup order (although it's logically not correct) thus keep it :
           run_callbacks :setup
           super
         end
@@ -124,29 +129,8 @@ module ActiveSupport
         def run_teardown
           outcome = super
           run_callbacks :teardown
-          mocha_counter = retrieve_mocha_counter
-          mocha_teardown if mocha_counter
           outcome
         end
-        
-        def run_test
-          outcome = super
-          mocha_counter = retrieve_mocha_counter
-          mocha_verify(mocha_counter) if mocha_counter
-          outcome
-        end
-
-        protected
-
-          def retrieve_mocha_counter #:nodoc:
-            if respond_to?(:mocha_verify) # using mocha
-              if defined?(Mocha::TestCaseAdapter::AssertionCounter)
-                Mocha::TestCaseAdapter::AssertionCounter.new(@_result)
-              else
-                Mocha::Integration::TestUnit::AssertionCounter.new(@_result)
-              end
-            end
-          end
           
       end
       

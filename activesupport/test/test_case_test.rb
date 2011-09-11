@@ -59,7 +59,7 @@ module ActiveSupport
         @@callbacks_memo = nil
       end
       
-      def test_callback_with_exception
+      def test_setup_callback_with_exception
         test_case = Class.new(TestCase) do
           setup :bad_callback
           def bad_callback; raise 'oh noes' end
@@ -129,7 +129,7 @@ module ActiveSupport
         @@callbacks_memo = nil
       end
       
-      def test_callback_with_exception
+      def test_setup_callback_with_exception
         test_case = Class.new(TestCase) do
           setup :bad_callback
           def bad_callback; raise 'oh noes' end
@@ -275,10 +275,6 @@ module ActiveSupport
           test_result.respond_to?(:failures) ? 
             test_result.failures : # Test::Unit 2.x
               test_result.instance_variable_get(:'@failures') # classic Test::Unit
-        end
-        
-        def new_test_unit?
-          Test::Unit::TestResult.new.respond_to?(:faults)
         end
         
     end
