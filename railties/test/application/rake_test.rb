@@ -125,5 +125,22 @@ module ApplicationTests
       assert_equal 2, ::AppTemplate::Application::Product.count
       assert_equal 0, ::AppTemplate::Application::User.count
     end
+
+    def test_assets_precompile_ignore_asset_host
+      add_to_config <<-RUBY
+        config.action_controller.asset_host = Proc.new { |source, request| "http://www.example.com/" }
+      RUBY
+
+      app_file "app/assets/javascripts/test.js.erb", <<-RUBY
+        alert("<%= asset_path "rails.png" %>");
+      RUBY
+
+      Dir.chdir(app_path) do
+        `rake assets:precompile`
+        open("public/assets/application.js") do |f|
+          assert_match(/\"\/assets\/rails.png\"/, f.read)
+        end
+      end
+    end
   end
 end
