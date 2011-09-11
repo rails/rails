@@ -11,17 +11,30 @@ module ActiveRecord
       # accessors, mutators and query methods.
       def define_attribute_methods
         return if attribute_methods_generated?
-        super(column_names)
-        @attribute_methods_generated = true
+
+        if base_class == self
+          super(column_names)
+          @attribute_methods_generated = true
+        else
+          base_class.define_attribute_methods
+        end
       end
 
       def attribute_methods_generated?
-        @attribute_methods_generated ||= false
+        if base_class == self
+          @attribute_methods_generated ||= false
+        else
+          base_class.attribute_methods_generated?
+        end
       end
 
       def undefine_attribute_methods(*args)
-        super
-        @attribute_methods_generated = false
+        if base_class == self
+          super
+          @attribute_methods_generated = false
+        else
+          base_class.undefine_attribute_methods(*args)
+        end
       end
 
       # Checks whether the method is defined in the model or any of its subclasses

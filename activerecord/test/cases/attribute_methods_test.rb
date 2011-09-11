@@ -659,6 +659,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal %w(preferences), Contact.serialized_attributes.keys
   end
 
+  def test_instance_method_should_be_defined_on_the_base_class
+    subklass = Class.new(Topic)
+
+    Topic.define_attribute_methods
+
+    instance = subklass.new
+    instance.id = 5
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+
+    Topic.undefine_attribute_methods
+
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+  end
+
   private
   def cached_columns
     @cached_columns ||= (time_related_columns_on_topic + serialized_columns_on_topic).map(&:name)

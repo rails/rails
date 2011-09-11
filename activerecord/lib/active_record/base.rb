@@ -1332,7 +1332,7 @@ MSG
         # Returns the class descending directly from ActiveRecord::Base or an
         # abstract class, if any, in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
-          if klass.superclass == Base || klass.superclass.abstract_class?
+          if klass == Base || klass.superclass == Base || klass.superclass.abstract_class?
             klass
           elsif klass.superclass.nil?
             raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
