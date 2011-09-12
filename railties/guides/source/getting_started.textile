@@ -1719,8 +1719,8 @@ This example shows another option of the render helper, being able to pass in
 local variables, in this case, we want the local variable +form+ in the partial
 to refer to the +post_form+ object.
 
-We also add a <tt>@post.tags.build</tt> at the top of this form, this is to make
-sure there is a new tag ready to have it's name filled in by the user. If you do
+We also add a <tt>@post.tags.build</tt> at the top of this form. This is to make
+sure there is a new tag ready to have its name filled in by the user. If you do
 not build the new tag, then the form will not appear as there is no new Tag
 object ready to create.
 
