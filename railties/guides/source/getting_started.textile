@@ -41,6 +41,9 @@ internet for learning Ruby, including:
 * "Programming Ruby":http://www.ruby-doc.org/docs/ProgrammingRuby/
 * "Why's (Poignant) Guide to Ruby":http://mislav.uniqpath.com/poignant-guide/
 
+Also, the example code for this guide is available in the rails github:https://github.com/rails/rails repository
+in rails/railties/guides/code/getting_started.
+
 h3. What is Rails?
 
 Rails is a web application development framework written in the Ruby language.
