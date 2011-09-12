@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.require_path       = 'lib'
 
   s.bindir             = 'bin'
-  s.executables        = ['rails']
+  s.executables        = []
 
   s.rdoc_options << '--exclude' << '.'
 
