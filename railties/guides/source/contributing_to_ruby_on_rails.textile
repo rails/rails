@@ -261,7 +261,7 @@ You can help improve the Rails guides by making them more coherent, adding missi
 
 If you're confident about your changes, you can push them yourself directly via "docrails":https://github.com/lifo/docrails. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
-If you are unsure of the documentation changes, you can create an issue in the "Rails":https://github.com/rails/rails repository on GitHub.
+If you are unsure of the documentation changes, you can create an issue in the "Rails":https://github.com/rails/rails/issues issues tracker on GitHub.
 
 When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
 
