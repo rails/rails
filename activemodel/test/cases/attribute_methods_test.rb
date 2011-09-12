@@ -187,4 +187,19 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert m.respond_to?(:protected_method)
     assert m.respond_to?(:protected_method, true)
   end
+
+  test 'should use attribute_missing to dispatch a missing attribute' do
+    m = ModelWithAttributes2.new
+    m.attributes = { 'foo' => 'bar' }
+
+    def m.attribute_missing(match, *args, &block)
+      match
+    end
+
+    match = m.foo_test
+
+    assert_equal 'foo',            match.attr_name
+    assert_equal 'attribute_test', match.target
+    assert_equal 'foo_test',       match.method_name
+  end
 end

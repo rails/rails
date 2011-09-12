@@ -362,7 +362,7 @@ module ActiveModel
         class AttributeMethodMatcher
           attr_reader :prefix, :suffix, :method_missing_target
 
-          AttributeMethodMatch = Struct.new(:target, :attr_name)
+          AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
             options.symbolize_keys!
@@ -384,7 +384,7 @@ module ActiveModel
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $2)
+              AttributeMethodMatch.new(method_missing_target, $2, method_name)
             else
               nil
             end
@@ -416,13 +416,16 @@ module ActiveModel
         super
       else
         match = match_attribute_method?(method.to_s)
-
-        if match
-          __send__(match.target, match.attr_name, *args, &block)
-        else
-          super
-        end
+        match ? attribute_missing(match, *args, &block) : super
       end
+    end
+
+    # attribute_missing is like method_missing, but for attributes. When method_missing is
+    # called we check to see if there is a matching attribute method. If so, we call
+    # attribute_missing to dispatch the attribute. This method can be overloaded to
+    # customise the behaviour.
+    def attribute_missing(match, *args, &block)
+      __send__(match.target, match.attr_name, *args, &block)
     end
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
