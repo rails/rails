@@ -1,3 +1,4 @@
+# coding:utf-8
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -200,5 +201,20 @@ module ApplicationTests
 
       assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
     end
+
+    def test_assets_precompile_with_utf8_filename
+      add_to_config <<-RUBY
+        config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]
+      RUBY
+
+      Dir.chdir(app_path) do
+        `cp app/assets/images/rails.png app/assets/images/レイルズ.png`
+        `rake assets:precompile`
+        open("public/assets/manifest.yml") do |f|
+          assert_match(/レイルズ.png/, f.read)
+        end
+      end
+    end
+
   end
 end
