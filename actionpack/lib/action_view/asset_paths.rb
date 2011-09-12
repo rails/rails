@@ -121,7 +121,6 @@ module ActionView
     def relative_url_root
       config = controller.config if controller.respond_to?(:config)
       config ||= config.action_controller if config.action_controller.present?
-      config ||= config
       config.relative_url_root
     end
 
