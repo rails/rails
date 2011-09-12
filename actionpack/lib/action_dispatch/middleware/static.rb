@@ -1,4 +1,4 @@
-require 'rack/utils'
+require 'cgi'
 
 module ActionDispatch
   class Static
@@ -10,7 +10,7 @@ module ActionDispatch
     end
 
     def call(env)
-      path   = Rack::Utils.unescape(env['PATH_INFO'].chomp('/'))
+      path   = CGI.unescape(env['PATH_INFO'].chomp('/'))
       method = env['REQUEST_METHOD']
 
       if FILE_METHODS.include?(method)
