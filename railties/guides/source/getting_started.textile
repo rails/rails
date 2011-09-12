@@ -1453,7 +1453,7 @@ comment to a local variable named the same as the partial, in this case
 
 h4. Rendering a Partial Form
 
-Lets also move that new comment section out to it's own partial, again, you
+Let's also move that new comment section out to its own partial. Again, you
 create a file +app/views/comments/_form.html.erb+ and in it you put:
 
 <erb>
