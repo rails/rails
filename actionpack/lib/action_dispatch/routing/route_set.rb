@@ -222,9 +222,15 @@ module ActionDispatch
         self.default_url_options = {}
 
         self.request_class = request_class
-        self.valid_conditions = request_class.public_instance_methods.map { |m| m.to_sym }
+        @valid_conditions = {}
+
+        request_class.public_instance_methods.each { |m|
+          @valid_conditions[m.to_sym] = true
+        }
+        @valid_conditions[:controller] = true
+        @valid_conditions[:action] = true
+
         self.valid_conditions.delete(:id)
-        self.valid_conditions.push(:controller, :action)
 
         @append                     = []
         @prepend                    = []
@@ -345,12 +351,43 @@ module ActionDispatch
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
-        foo = Route.new(valid_conditions, app, conditions, requirements, defaults, name, anchor)
-        path = foo.path
-        route = @set.add_route(app, path, foo.conditions, defaults, name)
+
+        path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
+        conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
+
+        route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name
         route
       end
+
+      def build_path(path, requirements, separators, anchor)
+        strexp = Journey::Router::Strexp.new(
+            path,
+            requirements,
+            SEPARATORS,
+            anchor)
+
+        Journey::Path::Pattern.new(strexp)
+      end
+      private :build_path
+
+      def build_conditions(current_conditions, req_predicates, path_values)
+        conditions = current_conditions.dup
+
+        verbs = conditions[:request_method] || []
+
+        # Rack-Mount requires that :request_method be a regular expression.
+        # :request_method represents the HTTP verb that matches this route.
+        #
+        # Here we munge values before they get sent on to rack-mount.
+        unless verbs.empty?
+          conditions[:request_method] = %r[^#{verbs.join('|')}$]
+        end
+        conditions.delete_if { |k,v| !(req_predicates.include?(k) || path_values.include?(k)) }
+
+        conditions
+      end
+      private :build_conditions
 
       class Generator #:nodoc:
         PARAMETERIZE = lambda do |name, value|
