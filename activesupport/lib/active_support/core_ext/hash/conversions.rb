@@ -95,7 +95,7 @@ class Hash
         case value.class.to_s
           when 'Hash'
             if value['type'] == 'array'
-              _, entries = Array.wrap(value.detect { |k,v| k != 'type' })
+              _, entries = Array.wrap(value.detect { |k,v| not v.is_a?(String) })
               if entries.nil? || (c = value['__content__'] && c.blank?)
                 []
               else
