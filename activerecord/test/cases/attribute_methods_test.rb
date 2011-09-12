@@ -675,6 +675,21 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert subklass.method_defined?(:id), "subklass is missing id method"
   end
 
+  def test_dispatching_column_attributes_through_method_missing_deprecated
+    Topic.define_attribute_methods
+
+    topic = Topic.new(:id => 5)
+    topic.id = 5
+
+    topic.method(:id).owner.send(:remove_method, :id)
+
+    assert_deprecated do
+      assert_equal 5, topic.id
+    end
+  ensure
+    Topic.undefine_attribute_methods
+  end
+
   private
   def cached_columns
     @cached_columns ||= (time_related_columns_on_topic + serialized_columns_on_topic).map(&:name)

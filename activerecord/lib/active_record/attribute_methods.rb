@@ -1,4 +1,5 @@
 require 'active_support/core_ext/enumerable'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -75,6 +76,20 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    def attribute_missing(match, *args, &block)
+      if self.class.columns_hash[match.attr_name]
+        ActiveSupport::Deprecation.warn(
+          "The method `#{match.method_name}', matching the attribute `#{match.attr_name}' has " \
+          "dispatched through method_missing. This shouldn't happen, because `#{match.attr_name}' " \
+          "is a column of the table. If this error has happened through normal usage of Active " \
+          "Record (rather than through your own code or external libraries), please report it as " \
+          "a bug."
+        )
+      end
+
+      super
     end
 
     def respond_to?(name, include_private = false)
