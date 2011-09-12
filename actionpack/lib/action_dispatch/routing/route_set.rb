@@ -206,16 +206,17 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :formatter, :set, :routes, :named_routes, :default_scope, :router
+      attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
+
+      alias :routes :set
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
 
       def initialize(request_class = ActionDispatch::Request)
-        self.routes = []
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.default_url_options = {}
@@ -274,7 +275,6 @@ module ActionDispatch
 
       def clear!
         @finalized = false
-        routes.clear
         named_routes.clear
         set.clear
         formatter.clear
@@ -346,9 +346,8 @@ module ActionDispatch
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
         route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
-        @set.add_route(app, route.conditions, defaults, name)
+        route = @set.add_route(app, route.conditions, defaults, name)
         named_routes[name] = route if name
-        routes << route
         route
       end
 

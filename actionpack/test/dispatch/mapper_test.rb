@@ -5,6 +5,7 @@ module ActionDispatch
     class MapperTest < ActiveSupport::TestCase
       class FakeSet
         attr_reader :routes
+        alias :set :routes
 
         def initialize
           @routes = []
