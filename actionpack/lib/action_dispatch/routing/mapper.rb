@@ -213,8 +213,8 @@ module ActionDispatch
           end
 
           def segment_keys
-            @segment_keys ||= Rack::Mount::RegexpWithNamedGroups.new(
-              Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
+            @segment_keys ||= Journey::Path::Pattern.new(
+              Journey::Router::Strexp.compile(@path, requirements, SEPARATORS)
             ).names
           end
 
@@ -235,7 +235,7 @@ module ActionDispatch
       # (:locale) becomes (/:locale) instead of /(:locale). Except
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
-        path = Rack::Mount::Utils.normalize_path(path)
+        path = Journey::Router::Utils.normalize_path(path)
         path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^/]+\)$}
         path
       end

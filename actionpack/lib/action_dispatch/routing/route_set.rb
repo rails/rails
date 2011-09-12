@@ -1,5 +1,4 @@
 require 'journey/router'
-require 'journey/backwards'
 require 'forwardable'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
@@ -394,10 +393,10 @@ module ActionDispatch
           if name == :controller
             value
           elsif value.is_a?(Array)
-            value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
+            value.map { |v| Journey::Router::Utils.escape_uri(v.to_param) }.join('/')
           else
             return nil unless param = value.to_param
-            param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
+            param.split('/').map { |v| Journey::Router::Utils.escape_uri(v) }.join("/")
           end
         end
 
@@ -496,7 +495,7 @@ module ActionDispatch
           return [path, params.keys] if @extras
 
           [path, params]
-        rescue Rack::Mount::RoutingError
+        rescue Journey::Router::RoutingError
           raise_routing_error
         end
 
@@ -573,7 +572,7 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Rack::Mount::Utils.normalize_path(path) unless path =~ %r{://}
+        path = Journey::Router::Utils.normalize_path(path) unless path =~ %r{://}
 
         begin
           env = Rack::MockRequest.env_for(path, {:method => method})
