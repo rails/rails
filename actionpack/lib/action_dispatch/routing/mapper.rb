@@ -1465,9 +1465,9 @@ module ActionDispatch
       end
 
       module Shorthand #:nodoc:
-        def match(*args)
-          if args.size == 1 && args.last.is_a?(Hash)
-            options  = args.pop
+        def match(path, *rest)
+          if rest.empty? && Hash === path
+            options  = path
             path, to = options.find { |name, value| name.is_a?(String) }
             options.merge!(:to => to).delete(path)
             super(path, options)
