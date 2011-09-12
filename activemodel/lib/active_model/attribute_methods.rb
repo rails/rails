@@ -431,15 +431,14 @@ module ActiveModel
     alias :respond_to_without_attributes? :respond_to?
     def respond_to?(method, include_private_methods = false)
       if super
-        return true
+        true
       elsif !include_private_methods && super(method, true)
         # If we're here then we haven't found among non-private methods
         # but found among all methods. Which means that the given method is private.
-        return false
-      elsif match_attribute_method?(method.to_s)
-        return true
+        false
+      else
+        !match_attribute_method?(method.to_s).nil?
       end
-      super
     end
 
     protected
