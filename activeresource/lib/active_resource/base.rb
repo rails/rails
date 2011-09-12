@@ -1357,7 +1357,9 @@ module ActiveResource
       end
 
       def load_attributes_from_response(response)
-        if !response['Content-Length'].blank? && response['Content-Length'] != "0" && !response.body.nil? && response.body.strip.size > 0
+        if (response_code_allows_body?(response.code) &&
+            (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
+            !response.body.nil? && response.body.strip.size > 0)
           load(self.class.format.decode(response.body), true)
           @persisted = true
         end
@@ -1381,6 +1383,12 @@ module ActiveResource
       end
 
     private
+
+      # Determine whether the response is allowed to have a body per HTTP 1.1 spec section 4.4.1
+      def response_code_allows_body?(c)
+        !((100..199).include?(c) || [204,304].include?(c))
+      end
+
       # Tries to find a resource for a given collection name; if it fails, then the resource is created
       def find_or_create_resource_for_collection(name)
         find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
