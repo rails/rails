@@ -42,7 +42,7 @@ namespace :assets do
         end
       end
 
-      File.open("#{manifest_path}/manifest.yml", 'w') do |f|
+      File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
         YAML.dump(manifest, f)
       end
     end
