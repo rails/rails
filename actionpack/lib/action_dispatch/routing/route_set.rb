@@ -346,7 +346,8 @@ module ActionDispatch
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
         route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
-        route = @set.add_route(app, route.conditions, defaults, name)
+        path = route.conditions[:path_info]
+        route = @set.add_route(app, path, route.conditions, defaults, name)
         named_routes[name] = route if name
         route
       end
