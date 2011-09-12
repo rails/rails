@@ -608,7 +608,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "The pros and cons of programming naked.")
     assert !topic.respond_to?(:title)
     exception = assert_raise(NoMethodError) { topic.title }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert_equal "I'm private", topic.send(:title)
   end
 
@@ -618,7 +618,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new
     assert !topic.respond_to?(:title=)
     exception = assert_raise(NoMethodError) { topic.title = "Pants"}
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     topic.send(:title=, "Very large pants")
   end
 
@@ -628,7 +628,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "Isaac Newton's pants")
     assert !topic.respond_to?(:title?)
     exception = assert_raise(NoMethodError) { topic.title? }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert topic.send(:title?)
   end
 

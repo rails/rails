@@ -411,13 +411,18 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a Client class
     # belonging to the clients table with a +master_id+ foreign key can
     # instantiate master through Client#master.
-    def method_missing(method_id, *args, &block)
-      method_name = method_id.to_s
-      if match = match_attribute_method?(method_name)
-        guard_private_attribute_method!(method_name, args)
-        return __send__(match.target, match.attr_name, *args, &block)
+    def method_missing(method, *args, &block)
+      if respond_to_without_attributes?(method, true)
+        super
+      else
+        match = match_attribute_method?(method.to_s)
+
+        if match
+          __send__(match.target, match.attr_name, *args, &block)
+        else
+          super
+        end
       end
-      super
     end
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
@@ -448,13 +453,6 @@ module ActiveModel
       def match_attribute_method?(method_name)
         match = self.class.send(:attribute_method_matcher, method_name)
         match && attribute_method?(match.attr_name) ? match : nil
-      end
-
-      # prevent method_missing from calling private methods with #send
-      def guard_private_attribute_method!(method_name, args)
-        if self.class.private_method_defined?(method_name)
-          raise NoMethodError.new("Attempt to call private method `#{method_name}'", method_name, args)
-        end
       end
 
       def missing_attribute(attr_name, stack)

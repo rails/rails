@@ -61,14 +61,17 @@ module ActiveRecord
       end
     end
 
-    def method_missing(method_id, *args, &block)
-      # If we haven't generated any methods yet, generate them, then
-      # see if we've created the method we're looking for.
-      if !self.class.attribute_methods_generated?
+    # If we haven't generated any methods yet, generate them, then
+    # see if we've created the method we're looking for.
+    def method_missing(method, *args, &block)
+      unless self.class.attribute_methods_generated?
         self.class.define_attribute_methods
-        method_name = method_id.to_s
-        guard_private_attribute_method!(method_name, args)
-        send(method_id, *args, &block)
+
+        if respond_to_without_attributes?(method)
+          send(method, *args, &block)
+        else
+          super
+        end
       else
         super
       end

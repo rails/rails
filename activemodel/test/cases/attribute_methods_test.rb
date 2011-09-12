@@ -32,6 +32,16 @@ private
   end
 
   alias attribute_test attribute
+
+  def private_method
+    "<3 <3"
+  end
+
+protected
+
+  def protected_method
+    "O_o O_o"
+  end
 end
 
 class ModelWithAttributesWithSpaces
@@ -150,5 +160,31 @@ class AttributeMethodsTest < ActiveModel::TestCase
     klass.define_attribute_methods([:foo])
 
     assert_equal 'value of foo', klass.new.foo
+  end
+
+  test 'should not interfere with method_missing if the attr has a private/protected method' do
+    m = ModelWithAttributes2.new
+    m.attributes = { 'private_method' => '<3', 'protected_method' => 'O_o' }
+
+    # dispatches to the *method*, not the attribute
+    assert_equal '<3 <3',   m.send(:private_method)
+    assert_equal 'O_o O_o', m.send(:protected_method)
+
+    # sees that a method is already defined, so doesn't intervene
+    assert_raises(NoMethodError) { m.private_method }
+    assert_raises(NoMethodError) { m.protected_method }
+  end
+
+  test 'should not interfere with respond_to? if the attribute has a private/protected method' do
+    m = ModelWithAttributes2.new
+    m.attributes = { 'private_method' => '<3', 'protected_method' => 'O_o' }
+
+    assert !m.respond_to?(:private_method)
+    assert m.respond_to?(:private_method, true)
+
+    # This is messed up, but it's how Ruby works at the moment. Apparently it will be changed
+    # in the future.
+    assert m.respond_to?(:protected_method)
+    assert m.respond_to?(:protected_method, true)
   end
 end
