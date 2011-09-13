@@ -119,9 +119,11 @@ module ActionView
     end
 
     def relative_url_root
-      config = controller.config if controller.respond_to?(:config)
-      config ||= config.action_controller if config.action_controller.present?
-      config.relative_url_root
+      if config.action_controller.present?
+        config.action_controller.relative_url_root
+      else
+        config.relative_url_root
+      end
     end
 
     def asset_host_config
