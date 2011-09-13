@@ -38,21 +38,12 @@ module ActiveRecord
         end
       end
 
-      # Checks whether the method is defined in the model or any of its subclasses
-      # that also derive from Active Record. Raises DangerousAttributeError if the
-      # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
         if dangerous_attribute_method?(method_name)
           raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord"
         end
 
-        method_name = method_name.to_s
-        index = ancestors.index(ActiveRecord::Base) || ancestors.length
-        @_defined_class_methods         ||= ancestors.first(index).map { |m|
-          m.instance_methods(false) | m.private_instance_methods(false)
-        }.flatten.map {|m| m.to_s }.to_set
-
-        @_defined_class_methods.include?(method_name) || generated_attribute_methods.method_defined?(method_name)
+        super
       end
 
       # A method name is 'dangerous' if it is already defined by Active Record, but
