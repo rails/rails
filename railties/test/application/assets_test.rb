@@ -38,7 +38,7 @@ module ApplicationTests
 
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      add_to_config "config.assets.compile = true"
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -178,6 +178,7 @@ module ApplicationTests
 
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "config/initializers/serve_static_assets.rb", "Rails.application.config.serve_static_assets = true"
 
       ENV["RAILS_ENV"] = "production"
       capture(:stdout) do
@@ -312,6 +313,17 @@ module ApplicationTests
 
       files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
+    end
+
+    test "assets routes are not drawn when compilation is disabled" do
+      app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
+      add_to_config "config.assets.compile = false"
+
+      ENV["RAILS_ENV"] = "production"
+      require "#{app_path}/config/environment"
+
+      get "/assets/demo.js"
+      assert_equal 404, last_response.status
     end
 
     test "does not stream session cookies back" do
