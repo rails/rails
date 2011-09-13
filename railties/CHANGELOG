@@ -12,6 +12,9 @@
 
 *Rails 3.1.0 (unreleased)*
 
+* Provide a way to access to assets without using the digest, useful for
+static files and emails. [Santiago Pastorino]
+
 * The default database schema file is written as UTF-8. [Aaron Patterson]
 
 * Generated apps with --dev or --edge flags depend on git versions of
