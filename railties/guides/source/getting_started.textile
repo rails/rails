@@ -1086,8 +1086,8 @@ def destroy
   @post.destroy
 
   respond_to do |format|
-    format.html  { redirect_to(posts_url) }
-    format.json  { render :json => {}, :status => :ok }
+    format.html { redirect_to posts_url }
+    format.json { head :ok }
   end
 end
 </ruby>
@@ -1456,7 +1456,7 @@ comment to a local variable named the same as the partial, in this case
 
 h4. Rendering a Partial Form
 
-Lets also move that new comment section out to it's own partial, again, you
+Let's also move that new comment section out to its own partial. Again, you
 create a file +app/views/comments/_form.html.erb+ and in it you put:
 
 <erb>
@@ -1722,8 +1722,8 @@ This example shows another option of the render helper, being able to pass in
 local variables, in this case, we want the local variable +form+ in the partial
 to refer to the +post_form+ object.
 
-We also add a <tt>@post.tags.build</tt> at the top of this form, this is to make
-sure there is a new tag ready to have it's name filled in by the user. If you do
+We also add a <tt>@post.tags.build</tt> at the top of this form. This is to make
+sure there is a new tag ready to have its name filled in by the user. If you do
 not build the new tag, then the form will not appear as there is no new Tag
 object ready to create.
 
