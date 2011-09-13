@@ -103,11 +103,7 @@ module Sprockets
         class AssetNotPrecompiledError < StandardError; end
 
         def compute_public_path(source, dir, ext = nil, include_host = true, protocol = nil)
-          public_path = super(source, asset_prefix, ext, include_host, protocol)
-          if !is_uri?(public_path) && relative_url_root
-            public_path = rewrite_relative_url_root(public_path, relative_url_root)
-          end
-          public_path
+          super(source, asset_prefix, ext, include_host, protocol)
         end
 
         # Return the filesystem path for the source

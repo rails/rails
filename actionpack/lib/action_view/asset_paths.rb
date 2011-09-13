@@ -27,7 +27,7 @@ module ActionView
 
       source = rewrite_extension(source, dir, ext) if ext
       source = rewrite_asset_path(source, dir)
-      source = rewrite_relative_url_root(source, relative_url_root) if has_request?
+      source = rewrite_relative_url_root(source, relative_url_root)
       source = rewrite_host_and_protocol(source, protocol) if include_host
       source
     end
