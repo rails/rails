@@ -207,7 +207,7 @@ config.middleware.clear
 
 <ruby>
 # config.ru
-use MyOwnStackFromStratch
+use MyOwnStackFromScratch
 run ActionController::Dispatcher.new
 </ruby>
 
