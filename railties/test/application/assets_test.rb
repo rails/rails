@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'isolation/abstract_unit'
 require 'active_support/core_ext/kernel/reporting'
 require 'rack/test'
@@ -266,6 +267,36 @@ module ApplicationTests
       end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
+    end
+
+    test "precompile ignore asset_host" do
+      app_file "app/assets/javascripts/application.css.erb", "<%= asset_path 'rails.png' %>"
+      add_to_config "config.action_controller.asset_host = Proc.new { |source, request| 'http://www.example.com/' }"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      file = Dir["#{app_path}/public/assets/application.css"].first
+      content = File.read(file)
+      assert_match(/\/assets\/rails-([0-z]+)\.png/, content)
+      assert_no_match(/www\.example\.com/, content)
+    end
+
+    test "precompile should handle utf8 filenames" do
+      app_file "app/assets/images/レイルズ.png", "not a image really"
+      add_to_config "config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      assert File.exists?("#{app_path}/public/assets/レイルズ.png")
+
+      manifest = "#{app_path}/public/assets/manifest.yml"
+
+      assets = YAML.load_file(manifest)
+      assert_equal "レイルズ.png", assets["レイルズ.png"]
     end
 
     test "assets are cleaned up properly" do
