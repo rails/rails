@@ -42,23 +42,29 @@ module ActiveRecord
       # that also derive from Active Record. Raises DangerousAttributeError if the
       # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
+        if dangerous_attribute_method?(method_name)
+          raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord"
+        end
+
         method_name = method_name.to_s
         index = ancestors.index(ActiveRecord::Base) || ancestors.length
         @_defined_class_methods         ||= ancestors.first(index).map { |m|
           m.instance_methods(false) | m.private_instance_methods(false)
         }.flatten.map {|m| m.to_s }.to_set
 
-        @@_defined_activerecord_methods ||= defined_activerecord_methods
-        raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
         @_defined_class_methods.include?(method_name) || generated_attribute_methods.method_defined?(method_name)
       end
 
-      def defined_activerecord_methods
+      # A method name is 'dangerous' if it is already defined by Active Record, but
+      # not by any ancestors. (So 'puts' is not dangerous but 'save' is.)
+      def dangerous_attribute_method?(method_name)
         active_record = ActiveRecord::Base
-        super_klass   = ActiveRecord::Base.superclass
-        methods = (active_record.instance_methods - super_klass.instance_methods) +
-                  (active_record.private_instance_methods - super_klass.private_instance_methods)
-        methods.map {|m| m.to_s }.to_set
+        superclass    = ActiveRecord::Base.superclass
+
+        (active_record.method_defined?(method_name) ||
+         active_record.private_method_defined?(method_name)) &&
+        !superclass.method_defined?(method_name) &&
+        !superclass.private_method_defined?(method_name)
       end
     end
 
