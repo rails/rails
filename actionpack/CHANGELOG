@@ -48,6 +48,8 @@
 
 *Rails 3.1.1 (unreleased)*
 
+* Set relative url root in assets when controller isn't available for Sprockets (eg. Sass files using asset_path). Fixes #2435 [Guillermo Iguaran]
+
 * Fixed the behavior of asset pipeline when config.assets.digest and config.assets.compile are false and requested asset isn't precompiled.
   Before the requested asset were compiled anyway ignoring that the config.assets.compile flag is false. [Guillermo Iguaran]
 

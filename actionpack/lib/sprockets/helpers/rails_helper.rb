@@ -17,6 +17,7 @@ module Sprockets
           paths.asset_digests     = asset_digests
           paths.compile_assets    = compile_assets?
           paths.digest_assets     = digest_assets?
+          paths.relative_url_root = config.action_controller.relative_url_root
           paths
         end
       end
@@ -96,12 +97,17 @@ module Sprockets
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets, :digest_assets
+        attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets,
+                      :digest_assets, :relative_url_root
 
         class AssetNotPrecompiledError < StandardError; end
 
-        def compute_public_path(source, dir, ext=nil, include_host=true, protocol=nil)
-          super(source, asset_prefix, ext, include_host, protocol)
+        def compute_public_path(source, dir, ext = nil, include_host = true, protocol = nil)
+          public_path = super(source, asset_prefix, ext, include_host, protocol)
+          if !is_uri?(public_path) && relative_url_root
+            public_path = rewrite_relative_url_root(public_path, relative_url_root)
+          end
+          public_path
         end
 
         # Return the filesystem path for the source
@@ -148,6 +154,10 @@ module Sprockets
           else
             source
           end
+        end
+
+        def relative_url_root
+          has_request? ? super : @relative_url_root
         end
       end
     end
