@@ -11,13 +11,14 @@ module Sprockets
           config     = self.config if respond_to?(:config)
           config   ||= Rails.application.config
           controller = self.controller if respond_to?(:controller)
+          relative_url_root = config.action_controller.relative_url_root if config.action_controller
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
           paths.asset_prefix      = asset_prefix
           paths.asset_digests     = asset_digests
           paths.compile_assets    = compile_assets?
           paths.digest_assets     = digest_assets?
-          paths.relative_url_root = config.action_controller.relative_url_root
+          paths.relative_url_root = relative_url_root
           paths
         end
       end
