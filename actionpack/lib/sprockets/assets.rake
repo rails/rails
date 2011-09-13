@@ -22,7 +22,7 @@ namespace :assets do
       config = Rails.application.config
       env    = Rails.application.assets
       target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
-      manifest = {}
+      config.assets.digests ||= {}
       manifest_path = config.assets.manifest || target
 
       config.assets.precompile.each do |path|
@@ -37,7 +37,7 @@ namespace :assets do
 
           if asset = env.find_asset(logical_path)
             asset_path = config.assets.digest ? asset.digest_path : logical_path
-            manifest[logical_path] = asset_path
+            config.assets.digests[logical_path] = asset_path
             filename = target.join(asset_path)
 
             mkdir_p filename.dirname
@@ -48,7 +48,7 @@ namespace :assets do
       end
 
       File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
-        YAML.dump(manifest, f)
+        YAML.dump(config.assets.digests, f)
       end
     end
   end
