@@ -38,7 +38,7 @@ module ApplicationTests
 
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      add_to_config "config.assets.compile = true"
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -317,7 +317,7 @@ module ApplicationTests
 
     test "assets routes are not drawn when compilation is disabled" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = false"
+      add_to_config "config.assets.compile = false"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
