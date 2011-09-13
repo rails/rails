@@ -28,7 +28,7 @@ module RailtiesTests
       if File.exist?("#{environment}.rb")
         require_environment = "-r #{environment}"
       end
-      `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/bin/rails #{cmd}`
+      `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{cmd}`
     end
 
     def build_engine(is_mountable=false)
