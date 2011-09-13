@@ -50,7 +50,7 @@ module Sprockets
     # are compiled, and so that other Railties have an opportunity to
     # register compressors.
     config.after_initialize do |app|
-      next unless app.assets
+      next unless app.assets && app.config.assets.compile
       config = app.config
 
       config.assets.paths.each { |path| app.assets.append_path(path) }
