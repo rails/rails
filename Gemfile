@@ -58,7 +58,6 @@ platforms :ruby do
   if ENV["RB_FSEVENT"]
     gem "rb-fsevent"
   end
-  gem "json"
   gem "yajl-ruby"
   gem "nokogiri", ">= 1.4.5"
 
@@ -74,7 +73,6 @@ end
 
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
-  gem "json"
   gem "activerecord-jdbcsqlite3-adapter"
 
   # This is needed by now to let tests work on JRuby
