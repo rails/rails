@@ -279,7 +279,7 @@ module ApplicationTests
 
       file = Dir["#{app_path}/public/assets/application.css"].first
       content = File.read(file)
-      assert_match(/\/assets\/rails-([0-z]+)\.png/, content)
+      assert_match(/\/assets\/rails.png/, content)
       assert_no_match(/www\.example\.com/, content)
     end
 
