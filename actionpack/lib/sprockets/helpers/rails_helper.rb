@@ -149,10 +149,6 @@ module Sprockets
             source
           end
         end
-
-        def relative_url_root
-          has_request? ? super : config.action_controller.relative_url_root
-        end
       end
     end
   end
