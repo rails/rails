@@ -124,6 +124,13 @@ class SprocketsHelperTest < ActionView::TestCase
      asset_path("/images/logo.gif")
   end
 
+  test "asset path with relative url root when controller isn't present but relative_url_root is" do
+    @controller = nil
+    @config.action_controller.relative_url_root = "/collaboration/hieraki"
+    assert_equal "/collaboration/hieraki/images/logo.gif",
+     asset_path("/images/logo.gif")
+  end
+
   test "javascript path" do
     assert_match %r{/assets/application-[0-9a-f]+.js},
       asset_path(:application, "js")
