@@ -89,6 +89,29 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal "value of foo", ModelWithAttributes.new.foo
   end
 
+  test '#define_attribute_method does not generate attribute method if already defined in attribute module' do
+    klass = Class.new(ModelWithAttributes)
+    klass.generated_attribute_methods.module_eval do
+      def foo
+        '<3'
+      end
+    end
+    klass.define_attribute_method(:foo)
+
+    assert_equal '<3', klass.new.foo
+  end
+
+  test '#define_attribute_method generates a method that is already defined on the host' do
+    klass = Class.new(ModelWithAttributes) do
+      def foo
+        super
+      end
+    end
+    klass.define_attribute_method(:foo)
+
+    assert_equal 'value of foo', klass.new.foo
+  end
+
   test '#define_attribute_method generates attribute method with invalid identifier characters' do
     ModelWithWeirdNamesAttributes.define_attribute_method(:'a?b')
 

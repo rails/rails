@@ -329,7 +329,7 @@ module ActiveModel
 
       protected
         def instance_method_already_implemented?(method_name)
-          method_defined?(method_name)
+          generated_attribute_methods.method_defined?(method_name)
         end
 
       private
