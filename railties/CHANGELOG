@@ -10,7 +10,7 @@
 
 * Removed old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API. [Guillermo Iguaran]
 
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.0 (August 30, 2011)*
 
 * The default database schema file is written as UTF-8. [Aaron Patterson]
 
