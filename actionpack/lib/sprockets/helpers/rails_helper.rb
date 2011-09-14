@@ -25,38 +25,40 @@ module Sprockets
         options = sources.extract_options!
         debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body  = options.key?(:body)  ? options.delete(:body)  : false
+        digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
-              super(dep.to_s, { :src => asset_path(dep, 'js', true) }.merge!(options))
+              super(dep.to_s, { :src => asset_path(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
             }
           else
-            super(source.to_s, { :src => asset_path(source, 'js', body) }.merge!(options))
+            super(source.to_s, { :src => asset_path(source, :ext => 'js', :body => body, :digest => digest) }.merge!(options))
           end
         end.join("\n").html_safe
       end
 
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!
-        debug = options.key?(:debug) ? options.delete(:debug) : debug_assets?
-        body  = options.key?(:body)  ? options.delete(:body)  : false
+        debug   = options.key?(:debug) ? options.delete(:debug) : debug_assets?
+        body    = options.key?(:body)  ? options.delete(:body)  : false
+        digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              super(dep.to_s, { :href => asset_path(dep, 'css', true, :request) }.merge!(options))
+              super(dep.to_s, { :href => asset_path(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
             }
           else
-            super(source.to_s, { :href => asset_path(source, 'css', body, :request) }.merge!(options))
+            super(source.to_s, { :href => asset_path(source, :ext => 'css', :body => body, :protocol => :request, :digest => digest) }.merge!(options))
           end
         end.join("\n").html_safe
       end
 
-      def asset_path(source, default_ext = nil, body = false, protocol = nil)
+      def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', default_ext, true, protocol)
-        body ? "#{path}?body=1" : path
+        path = asset_paths.compute_public_path(source, 'assets', options.merge(:body => true))
+        options[:body] ? "#{path}?body=1" : path
       end
 
     private
@@ -100,8 +102,8 @@ module Sprockets
 
         class AssetNotPrecompiledError < StandardError; end
 
-        def compute_public_path(source, dir, ext = nil, include_host = true, protocol = nil)
-          super(source, asset_prefix, ext, include_host, protocol)
+        def compute_public_path(source, dir, options = {})
+          super(source, asset_prefix, options)
         end
 
         # Return the filesystem path for the source
@@ -131,11 +133,11 @@ module Sprockets
           end
         end
 
-        def rewrite_asset_path(source, dir)
+        def rewrite_asset_path(source, dir, options = {})
           if source[0] == ?/
             source
           else
-            source = digest_for(source)
+            source = digest_for(source) unless options[:digest] == false
             source = File.join(dir, source)
             source = "/#{source}" unless source =~ /^\//
             source

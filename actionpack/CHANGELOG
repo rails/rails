@@ -48,6 +48,10 @@
 
 *Rails 3.1.1 (unreleased)*
 
+* Allow asset tag helper methods to accept :digest => false option in order to completely avoid the digest generation.
+Useful for linking assets from static html files or from emails when the user
+could probably look at an older html email with an older asset. [Santiago Pastorino]
+
 * Don't mount Sprockets server at config.assets.prefix if config.assets.compile is false. [Mark J. Titorenko]
 
 * Set relative url root in assets when controller isn't available for Sprockets (eg. Sass files using asset_path). Fixes #2435 [Guillermo Iguaran]
