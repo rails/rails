@@ -1248,12 +1248,3 @@ Client.sum("orders_count")
 </ruby>
 
 For options, please see the parent section, "Calculations":#calculations.
-
-h3. Changelog
-
-* June 26 2011: Added documentation for the +scoped+, +unscoped+ and +default+ methods. "Ryan Bigg":credits.html#radar
-* December 23 2010: Add documentation for the +scope+ method. "Ryan Bigg":credits.html#radar
-* April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* February 3, 2010: Update to Rails 3 by "James Miller":credits.html#bensie
-* February 7, 2009: Second version by "Pratik":credits.html#lifo
-* December 29 2008: Initial version by "Ryan Bigg":credits.html#radar

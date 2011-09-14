@@ -595,9 +595,3 @@ Rails has been lucky to have a few companies dedicated to Rails-specific perform
 
 * "New Relic":http://www.newrelic.com
 * "Scout":http://scoutapp.com
-
-h3. Changelog
-
-* March 30, 2011: Documented the recent improvements (multiple interpreters, options, etc) and necessary adjustments. Other minor improvements. "Gonçalo Silva":http://goncalossilva.com.
-* January 9, 2009: Complete rewrite by "Pratik":credits.html#lifo
-* September 6, 2008: Initial version by Matthew Bergman

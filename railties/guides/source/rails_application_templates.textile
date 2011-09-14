@@ -238,7 +238,3 @@ git :init
 git :add => "."
 git :commit => "-a -m 'Initial commit'"
 </ruby>
-
-h3. Changelog
-
-* April 29, 2009: Initial version by "Pratik":credits.html#lifo

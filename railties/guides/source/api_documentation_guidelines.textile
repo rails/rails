@@ -183,7 +183,3 @@ self.class_eval %{
   end
 }
 </ruby>
-
-h3. Changelog
-
-* July 17, 2010: ported from the docrails wiki and revised by "Xavier Noria":credits.html#fxn

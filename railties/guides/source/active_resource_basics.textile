@@ -118,7 +118,3 @@ This validates the resource with any local validations written in base class and
 h5. valid?
 
 Runs all the local validations and will return true if no errors.
-
-h3. Changelog
-
-* July 30, 2011: Initial version by "Vishnu Atrai":http://github.com/vatrai

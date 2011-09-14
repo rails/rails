@@ -232,8 +232,3 @@ h4. Learning Rack
 h4. Understanding Middlewares
 
 * "Railscast on Rack Middlewares":http://railscasts.com/episodes/151-rack-middleware
-
-h3. Changelog
-
-* February 7, 2009: Second version by "Pratik":credits.html#lifo
-* January 11, 2009: First version by "Pratik":credits.html#lifo

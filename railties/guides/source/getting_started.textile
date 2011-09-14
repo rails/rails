@@ -1888,24 +1888,3 @@ Two very common sources of data that are not UTF-8:
   is using Latin-1 internally, and your user enters a Russian, Hebrew, or Japanese
   character, the data will be lost forever once it enters the database. If possible,
   use UTF-8 as the internal storage of your database.
-
-h3. Changelog
-
-* April 26, 2011: Change migration code from +up+, +down+ pair to +change+ method by "Prem Sichanugrist":http://sikachu.com
-* April 11, 2011: Change scaffold_controller generator to create format block for JSON instead of XML by "Sebastian Martinez":http://www.wyeworks.com
-* August 30, 2010: Minor editing after Rails 3 release by Joost Baaij
-* July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
-* May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
-* April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
-* April 25, 2010: Couple of more minor fixups by "Mikel Lindsaar":credits.html#raasdnil
-* April 1, 2010: Fixed document to validate XHTML 1.0 Strict by "Jaime Iniesta":http://jaimeiniesta.com
-* February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits.html#raasdnil
-* January 24, 2010: Re-write for Rails 3.0 by "Mikel Lindsaar":credits.html#raasdnil
-* July 18, 2009: Minor cleanup in anticipation of Rails 2.3.3 by "Mike Gunderloy":credits.html#mgunderloy
-* February 1, 2009: Updated for Rails 2.3 by "Mike Gunderloy":credits.html#mgunderloy
-* November 3, 2008: Formatting patch from Dave Rothlisberger
-* November 1, 2008: First approved version by "Mike Gunderloy":credits.html#mgunderloy
-* October 16, 2008: Revised based on feedback from Pratik Naik by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* October 13, 2008: First complete draft by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* October 12, 2008: More detail, rearrangement, editing by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* September 8, 2008: initial version by "James Miller":credits.html#bensie (not yet approved for publication)
