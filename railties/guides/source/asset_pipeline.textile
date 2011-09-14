@@ -403,7 +403,21 @@ For Apache:
 </LocationMatch>
 </plain>
 
-TODO: nginx instructions
+For nginx:
+
+<plain>
+location ~ ^/assets/ {
+  expires 1y;
+  add_header Cache-Control public;
+
+  # Some browsers still send conditional-GET requests if there's a
+  # Last-Modified header or an ETag header even if they haven't
+  # reached the expiry date sent in the Expires header.
+  add_header Last-Modified "";
+  add_header ETag "";
+  break;
+}
+</plain>
 
 When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disk. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the +public/assets+ folder. The following configuration options can be used:
 
