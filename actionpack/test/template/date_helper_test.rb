@@ -664,6 +664,15 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), :start_year => 2003, :end_year => 2005, :prefix => "date[first]")
   end
 
+  def test_select_date_with_too_big_range_between_start_year_and_end_year
+    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), :start_year => 2000, :end_year => 20000, :prefix => "date[first]", :order => [:month, :day, :year]) }
+    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), :start_year => Date.today.year - 100.years, :end_year => 2000, :prefix => "date[first]", :order => [:month, :day, :year]) }
+  end
+
+  def test_select_date_can_have_more_then_1000_years_interval_if_forced_via_parameter
+    assert_nothing_raised { select_date(Time.mktime(2003, 8, 16), :start_year => 2000, :end_year => 3100, :max_years_allowed => 2000) }
+  end
+
   def test_select_date_with_order
     expected = %(<select id="date_first_month" name="date[first][month]">\n)
     expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
