@@ -200,11 +200,11 @@ You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql
 
 h4. Older versions of Ruby on Rails
 
-If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 2-3-stable branch:
+If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
 
 <shell>
-$ git branch --track 2-3-stable origin/2-3-stable
-$ git checkout 2-3-stable
+$ git branch --track 3-0-stable origin/3-0-stable
+$ git checkout 3-0-stable
 </shell>
 
 TIP: You may want to "put your git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
