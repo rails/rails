@@ -163,7 +163,7 @@ module ActiveRecord
     #   scope = Model.scoped.extending(Pagination)
     #   scope.page(params[:page])
     #
-    # This can also take a list of modules also:
+    # You can also pass a list of modules:
     #
     #   scope = Model.scoped.extending(Pagination, SomethingElse)
     #
