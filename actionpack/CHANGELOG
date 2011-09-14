@@ -48,7 +48,11 @@
 
 *Rails 3.1.1 (unreleased)*
 
+* Don't mount Sprockets server at config.assets.prefix if config.assets.compile is false. [Mark J. Titorenko]
+
 * Set relative url root in assets when controller isn't available for Sprockets (eg. Sass files using asset_path). Fixes #2435 [Guillermo Iguaran]
+
+* Fix basic auth credential generation to not make newlines. GH #2882
 
 * Fixed the behavior of asset pipeline when config.assets.digest and config.assets.compile are false and requested asset isn't precompiled.
   Before the requested asset were compiled anyway ignoring that the config.assets.compile flag is false. [Guillermo Iguaran]
