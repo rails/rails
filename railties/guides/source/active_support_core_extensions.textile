@@ -3599,8 +3599,3 @@ end
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/load_error.rb+.
-
-h3. Changelog
-
-* August 10, 2010: Starts to take shape, added to the index.
-* April 18, 2009: Initial version by "Xavier Noria":credits.html#fxn

@@ -63,7 +63,7 @@ This has several disadvantages:
 <ol>
   <li>
     <strong>Not all caches will cache content with a query string</strong><br>
-    "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in these case 5-20% of requests will not be cached.
+    "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached.
   </li>
   <li>
     <strong>The file name can change between nodes in multi-server environments.</strong><br>
@@ -132,7 +132,7 @@ In regular views you can access images in the +assets/images+ directory like thi
 
 Provided that the pipeline is enabled within your application (and not disabled in the current environment context), this file is served by Sprockets. If a file exists at +public/assets/rails.png+ it is served by the webserver.
 
-Alternatively, a request for a file with an MD5 hash such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ is treated the same way. How these hashes are generated is covered in the "Production Assets":#production_assets section later on in this guide.
+Alternatively, a request for a file with an MD5 hash such as +public/assets/rails-af27b6a414e6da00003503148be9b409.png+ is treated the same way. How these hashes are generated is covered in the "In Production":#in-production section later on in this guide.
 
 Sprockets will also look through the paths specified in +config.assets.paths+ which includes the standard application paths and any path added by Rails engines.
 
@@ -403,7 +403,21 @@ For Apache:
 </LocationMatch>
 </plain>
 
-TODO: nginx instructions
+For nginx:
+
+<plain>
+location ~ ^/assets/ {
+  expires 1y;
+  add_header Cache-Control public;
+
+  # Some browsers still send conditional-GET requests if there's a
+  # Last-Modified header or an ETag header even if they haven't
+  # reached the expiry date sent in the Expires header.
+  add_header Last-Modified "";
+  add_header ETag "";
+  break;
+}
+</plain>
 
 When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disk. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the +public/assets+ folder. The following configuration options can be used:
 
@@ -537,7 +551,7 @@ WARNING: If you are upgrading an existing application and intend to use this opt
 
 h3. How Caching Works
 
-Sprockets uses the default rails cache store to cache assets in development and production.
+Sprockets uses the default Rails cache store to cache assets in development and production.
 
 TODO: Add more about changing the default store.
 

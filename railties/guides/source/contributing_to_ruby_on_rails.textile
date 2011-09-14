@@ -200,11 +200,11 @@ You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql
 
 h4. Older versions of Ruby on Rails
 
-If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 2-3-stable branch:
+If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
 
 <shell>
-$ git branch --track 2-3-stable origin/2-3-stable
-$ git checkout 2-3-stable
+$ git branch --track 3-0-stable origin/3-0-stable
+$ git checkout 3-0-stable
 </shell>
 
 TIP: You may want to "put your git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
@@ -383,13 +383,3 @@ And then...think about your next contribution!
 h3. Rails Contributors
 
 All contributions, either via master or docrails, get credit in "Rails Contributors":http://contributors.rubyonrails.org.
-
-h3. Changelog
-
-* May 12, 2011: Modified to prefer topic branches instead of master branch for users contributions by "Guillermo Iguaran":http://quillarb.org
-* April 29, 2011: Reflect GitHub Issues and Pull Request workflow by "Dan Pickett":http://www.enlightsolutions.com
-* April 14, 2011: Modified Contributing to the Rails Code section to add '[#ticket_number state:commited]' on patches commit messages by "Sebastian Martinez":http://wyeworks.com
-* December 28, 2010: Complete revision by "Xavier Noria":credits.html#fxn
-* April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
-* March 2, 2009: Initial draft by "Mike Gunderloy":credits.html#mgunderloy

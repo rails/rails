@@ -1042,20 +1042,26 @@ INSERT INTO clients (created_at, first_name, locked, orders_count, updated_at) V
 COMMIT
 </sql>
 
-+first_or_create+ returns either the record that already existed or the new record. In our case, we didn't already have a client named Andy so the record was created an returned.
++first_or_create+ returns either the record that already exists or the new record. In our case, we didn't already have a client named Andy so the record is created and returned.
 
 The new record might not be saved to the database; that depends on whether validations passed or not (just like +create+).
 
 It's also worth noting that +first_or_create+ takes into account the arguments of the +where+ method. In the example above we didn't explicitly pass a +:first_name => 'Andy'+ argument to +first_or_create+. However, that was used when creating the new record because it was already passed before to the +where+ method.
 
-NOTE: On previous versions of Rails you could do a similar thing with the +find_or_create_by+ method. Following our example, you could also run something like +Client.find_or_create_by_first_name(:first_name => "Andy", :locked => false)+. This method still works, but it's encouraged to use +first_or_create+ because it's more explicit on what arguments are used to _find_ the record and what arguments are used to _create_ it, resulting in less confusion overall.
+You can do the same with the +find_or_create_by+ method:
+
+<ruby>
+Client.find_or_create_by_first_name(:first_name => "Andy", :locked => false)
+</ruby>
+
+This method still works, but it's encouraged to use +first_or_create+ because it's more explicit on which arguments are used to _find_ the record and which are used to _create_, resulting in less confusion overall.
 
 h4. +first_or_create!+
 
 You can also use +first_or_create!+ to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
 
 <ruby>
-    validates :orders_count, :presence => true
+validates :orders_count, :presence => true
 </ruby>
 
 to your +Client+ model. If you try to create a new +Client+ without passing an +orders_count+, the record will be invalid and an exception will be raised:
@@ -1065,14 +1071,12 @@ Client.where(:first_name => 'Andy').first_or_create!(:locked => false)
 # => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 </ruby>
 
-NOTE: Be sure to check the extensive *Active Record Validations and Callbacks Guide* for more information about validations.
+h4. +first_or_initialize+
 
-h4. +first_or_new+
-
-The +first_or_new+ method will work just like +first_or_create+ but it will not call +create+ but +new+. This means that a new model instance will be created in memory but won't be saved to the database. Continuing with the +first_or_create+ example, we now want the client named 'Nick':
+The +first_or_initialize+ method will work just like +first_or_create+ but it will not call +create+ but +new+. This means that a new model instance will be created in memory but won't be saved to the database. Continuing with the +first_or_create+ example, we now want the client named 'Nick':
 
 <ruby>
-nick = Client.where(:first_name => 'Nick').first_or_new(:locked => false)
+nick = Client.where(:first_name => 'Nick').first_or_initialize(:locked => false)
 # => <Client id: nil, first_name: "Nick", orders_count: 0, locked: false, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 
 nick.persisted?
@@ -1094,8 +1098,6 @@ When you want to save it to the database, just call +save+:
 nick.save
 # => true
 </ruby>
-
-Just like you can use *+build+* instead of *+new+*, you can use *+first_or_build+* instead of *+first_or_new+*.
 
 h3. Finding by SQL
 
@@ -1246,12 +1248,3 @@ Client.sum("orders_count")
 </ruby>
 
 For options, please see the parent section, "Calculations":#calculations.
-
-h3. Changelog
-
-* June 26 2011: Added documentation for the +scoped+, +unscoped+ and +default+ methods. "Ryan Bigg":credits.html#radar
-* December 23 2010: Add documentation for the +scope+ method. "Ryan Bigg":credits.html#radar
-* April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* February 3, 2010: Update to Rails 3 by "James Miller":credits.html#bensie
-* February 7, 2009: Second version by "Pratik":credits.html#lifo
-* December 29 2008: Initial version by "Ryan Bigg":credits.html#radar

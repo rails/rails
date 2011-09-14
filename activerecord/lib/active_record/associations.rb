@@ -1329,7 +1329,7 @@ module ActiveRecord
       #
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
-      #   from the association name. So <tt>has_one :author</tt> will by default be linked to the Author class, but
+      #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
       #   if the real class name is Person, you'll have to specify it with this option.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+

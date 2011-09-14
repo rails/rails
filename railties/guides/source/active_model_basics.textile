@@ -203,8 +203,3 @@ person.valid?                        #=> true
 person.token = nil
 person.valid?                        #=> raises ActiveModel::StrictValidationFailed
 </ruby>
-
-h3. Changelog
-
-* August 24, 2011: Add strict validation usage example. "Bogdan Gusiev":http://gusiev.com
-* August 5, 2011: Initial version by "Arun Agrawal":http://github.com/arunagw
