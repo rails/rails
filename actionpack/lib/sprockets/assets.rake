@@ -9,6 +9,7 @@ namespace :assets do
       Kernel.exec $0, *ARGV
     else
       Rake::Task["environment"].invoke
+      Rake::Task["tmp:cache:clear"].invoke
 
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
