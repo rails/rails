@@ -1863,7 +1863,7 @@ Extensions can refer to the internals of the association proxy using these three
 
 h3. Changelog
 
-* September 13, 2011: Removed mention of deprecated proxy methods in favor of using +proxy_association+.
+* September 13, 2011: Removed mention of deprecated proxy methods in favor of using +proxy_association+. "Dallas Reedy":https://github.com/dallas
 * April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
 * April 19, 2009: Added +:touch+ option to +belongs_to+ associations by "Mike Gunderloy":credits.html#mgunderloy
 * February 1, 2009: Added +:autosave+ option "Mike Gunderloy":credits.html#mgunderloy
