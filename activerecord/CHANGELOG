@@ -1,8 +1,12 @@
-Wed Sep  7 15:25:02 2011  Aaron Patterson <aaron@tenderlovemaking.com>
+*Rails 3.1.1 (unreleased)*
+
+* LRU cache in mysql and sqlite are now per-process caches.
 
 	* lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache
 	  keys are per process id.
 	* lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
+
+	[Aaron Patterson]
 
 * Database adapters use a statement pool for limiting the number of open
   prepared statments on the database.  The limit defaults to 1000, but can
