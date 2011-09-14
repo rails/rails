@@ -43,7 +43,6 @@ namespace :assets do
             mkdir_p filename.dirname
             asset.write_to(filename)
             asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
-            asset.write_to(target.join(logical_path))
           end
         end
       end
