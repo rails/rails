@@ -65,7 +65,7 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :written_on, :cost
   end
 
   def persisted?
-    @persisted
+    @persisted ||= false
   end
 
   attr_accessor :author
