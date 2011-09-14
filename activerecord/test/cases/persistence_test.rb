@@ -280,10 +280,21 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_update_sti_type
     assert_instance_of Reply, topics(:second)
 
-    topic = topics(:second).becomes(Topic)
+    topic = topics(:second).becomes!(Topic)
     assert_instance_of Topic, topic
     topic.save!
     assert_instance_of Topic, Topic.find(topic.id)
+  end
+
+  def test_preserve_original_sti_type
+    reply = topics(:second)
+    assert_equal "Reply", reply.type
+
+    topic = reply.becomes(Topic)
+    assert_equal "Reply", reply.type
+
+    assert_instance_of Topic, topic
+    assert_equal "Reply", topic.type
   end
 
   def test_delete
