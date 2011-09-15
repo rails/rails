@@ -485,6 +485,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, authors(:mary).popular_grouped_posts.length
   end
 
+  def test_default_select
+    assert_equal Comment.column_names, posts(:welcome).comments.first.attributes.keys
+  end
+
+  def test_select_query_method
+    assert_equal ['id'], posts(:welcome).comments.select(:id).first.attributes.keys
+  end
+
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")

@@ -42,10 +42,6 @@ module ActiveRecord
           select_value ||= options[:uniq] && "DISTINCT #{reflection.quoted_table_name}.*"
         end
 
-        if reflection.macro == :has_and_belongs_to_many
-          select_value ||= reflection.klass.arel_table[Arel.star]
-        end
-
         select_value
       end
 
