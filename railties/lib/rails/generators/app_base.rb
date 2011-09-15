@@ -50,7 +50,7 @@ module Rails
                                           :desc => "Skip JavaScript files"
 
         class_option :skip_index_html,    :type => :boolean, :aliases => "-I", :default => false,
-                                          :desc => "Skip public/index.html file"
+                                          :desc => "Skip public/index.html and app/assets/images/rails.png files"
 
         class_option :dev,                :type => :boolean, :default => false,
                                           :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
