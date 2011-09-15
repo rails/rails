@@ -37,8 +37,8 @@ class MessageVerifierTest < Test::Unit::TestCase
     @verifier.serializer = lambda { |value| ActiveSupport::JSON.encode(value) }
     @verifier.deserializer = lambda { |value| ActiveSupport::JSON.decode(value) }
     
-    message = @verifier.generate({ :foo => 123, 'bar' => Time.local(2010) })
-    assert_equal @verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00-05:00" }
+    message = @verifier.generate({ :foo => 123, 'bar' => Time.utc(2010) })
+    assert_equal @verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
 
   def assert_not_verified(message)

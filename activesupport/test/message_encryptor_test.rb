@@ -44,8 +44,8 @@ class MessageEncryptorTest < Test::Unit::TestCase
     @encryptor.serializer = lambda { |value| ActiveSupport::JSON.encode(value) }
     @encryptor.deserializer = lambda { |value| ActiveSupport::JSON.decode(value) }
     
-    message = @encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.local(2010) })
-    assert_equal @encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00-05:00" }
+    message = @encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
+    assert_equal @encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
 
   private
