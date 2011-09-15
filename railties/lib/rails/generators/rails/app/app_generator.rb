@@ -97,7 +97,11 @@ module Rails
 
     def public_directory
       directory "public", "public", :recursive => false
-      remove_file "public/index.html" if options[:skip_index_html]
+      if options[:skip_index_html]
+        remove_file "public/index.html"
+        remove_file 'app/assets/images/rails.png'
+        git_keep 'app/assets/images'
+      end
     end
 
     def script
