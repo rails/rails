@@ -132,10 +132,9 @@ module ActiveRecord
     # Like <tt>first_or_create</tt> but calls <tt>new</tt> instead of <tt>create</tt>.
     #
     # Expects arguments in the same format as <tt>Base.new</tt>.
-    def first_or_new(attributes = nil, options = {}, &block)
+    def first_or_initialize(attributes = nil, options = {}, &block)
       first || new(attributes, options, &block)
     end
-    alias :first_or_build :first_or_new
 
     def respond_to?(method, include_private = false)
       arel.respond_to?(method, include_private)     ||

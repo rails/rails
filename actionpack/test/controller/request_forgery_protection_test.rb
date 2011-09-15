@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'digest/sha1'
 require 'active_support/core_ext/string/strip'
+require "active_support/log_subscriber/test_helper"
 
 # common controller actions
 module RequestForgeryProtectionActions
@@ -155,6 +156,21 @@ module RequestForgeryProtectionTests
   def test_should_allow_put_with_token_in_header
     @request.env['HTTP_X_CSRF_TOKEN'] = @token
     assert_not_blocked { put :index }
+  end
+
+  def test_should_warn_on_missing_csrf_token
+    old_logger = ActionController::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    ActionController::Base.logger = logger
+
+    begin
+      assert_blocked { post :index }
+
+      assert_equal 1, logger.logged(:warn).size
+      assert_match(/CSRF token authenticity/, logger.logged(:warn).last)
+    ensure
+      ActionController::Base.logger = old_logger
+    end
   end
 
   def assert_blocked

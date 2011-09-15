@@ -4,7 +4,7 @@
 
 * Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior [Bogdan Gusiev]
 
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.0 (August 30, 2011)*
 
 * Alternate I18n namespace lookup is no longer supported.
   Instead of "activerecord.models.admins.post", do "activerecord.models.admins/post" instead [José Valim]

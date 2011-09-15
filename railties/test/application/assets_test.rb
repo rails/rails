@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'isolation/abstract_unit'
 require 'active_support/core_ext/kernel/reporting'
 require 'rack/test'
@@ -37,7 +38,7 @@ module ApplicationTests
 
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      add_to_config "config.assets.compile = true"
+      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -62,6 +63,34 @@ module ApplicationTests
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
         assert_equal "alert()", File.read(file)
       end
+    end
+
+    test "precompile application.js and application.css and all other files not ending with .js or .css by default" do
+      app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "app/assets/stylesheets/application.css", "body{}"
+      app_file "app/assets/javascripts/something.min.js", "alert();"
+      app_file "app/assets/stylesheets/something.min.css", "body{}"
+
+      images_should_compile = ["a.png", "happyface.png", "happy_face.png", "happy.face.png",
+                               "happy-face.png", "happy.happy_face.png", "happy_happy.face.png", 
+                               "happy.happy.face.png", "happy", "happy.face", "-happyface",
+                               "-happy.png", "-happy.face.png", "_happyface", "_happy.face.png",
+                               "_happy.png"]
+      images_should_compile.each do |filename|
+        app_file "app/assets/images/#{filename}", "happy"
+      end
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      images_should_compile.each do |filename|
+        assert File.exists?("#{app_path}/public/assets/#{filename}")
+      end
+      assert File.exists?("#{app_path}/public/assets/application.js")
+      assert File.exists?("#{app_path}/public/assets/application.css")
+      assert !File.exists?("#{app_path}/public/assets/something.min.js")
+      assert !File.exists?("#{app_path}/public/assets/something.min.css")
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
@@ -147,6 +176,7 @@ module ApplicationTests
 
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "config/initializers/serve_static_assets.rb", "Rails.application.config.serve_static_assets = true"
 
       ENV["RAILS_ENV"] = "production"
       capture(:stdout) do
@@ -240,6 +270,36 @@ module ApplicationTests
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
 
+    test "precompile ignore asset_host" do
+      app_file "app/assets/javascripts/application.css.erb", "<%= asset_path 'rails.png' %>"
+      add_to_config "config.action_controller.asset_host = Proc.new { |source, request| 'http://www.example.com/' }"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      file = Dir["#{app_path}/public/assets/application.css"].first
+      content = File.read(file)
+      assert_match(/\/assets\/rails.png/, content)
+      assert_no_match(/www\.example\.com/, content)
+    end
+
+    test "precompile should handle utf8 filenames" do
+      app_file "app/assets/images/レイルズ.png", "not a image really"
+      add_to_config "config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]"
+
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+
+      assert File.exists?("#{app_path}/public/assets/レイルズ.png")
+
+      manifest = "#{app_path}/public/assets/manifest.yml"
+
+      assets = YAML.load_file(manifest)
+      assert_equal "レイルズ.png", assets["レイルズ.png"]
+    end
+
     test "assets are cleaned up properly" do
       app_file "public/assets/application.js", "alert();"
       app_file "public/assets/application.css", "a { color: green; }"
@@ -251,6 +311,17 @@ module ApplicationTests
 
       files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
+    end
+
+    test "assets routes are not drawn when compilation is disabled" do
+      app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
+      add_to_config "config.assets.compile = false"
+
+      ENV["RAILS_ENV"] = "production"
+      require "#{app_path}/config/environment"
+
+      get "/assets/demo.js"
+      assert_equal 404, last_response.status
     end
 
     test "does not stream session cookies back" do

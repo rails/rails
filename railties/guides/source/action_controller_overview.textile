@@ -815,9 +815,3 @@ end
 </ruby>
 
 Please note that if you found yourself adding +force_ssl+ to many controllers, you may found yourself wanting to force the whole application to use HTTPS instead. In that case, you can set the +config.force_ssl+ in your environment file.
-
-h3. Changelog
-
-* February 17, 2009: Yet another proofread by Xavier Noria.
-
-* November 4, 2008: First release version by Tore Darell

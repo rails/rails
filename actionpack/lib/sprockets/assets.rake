@@ -9,12 +9,16 @@ namespace :assets do
       Kernel.exec $0, *ARGV
     else
       Rake::Task["environment"].invoke
+      Rake::Task["tmp:cache:clear"].invoke
 
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
 
       # Always compile files
       Rails.application.config.assets.compile = true
+
+      # Always ignore asset host
+      Rails.application.config.action_controller.asset_host = nil
 
       config = Rails.application.config
       env    = Rails.application.assets
@@ -26,6 +30,8 @@ namespace :assets do
         env.each_logical_path do |logical_path|
           if path.is_a?(Regexp)
             next unless path.match(logical_path)
+          elsif path.is_a?(Proc)
+            next unless path.call(logical_path)
           else
             next unless File.fnmatch(path.to_s, logical_path)
           end
@@ -42,7 +48,7 @@ namespace :assets do
         end
       end
 
-      File.open("#{manifest_path}/manifest.yml", 'w') do |f|
+      File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
         YAML.dump(manifest, f)
       end
     end

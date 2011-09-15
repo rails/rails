@@ -21,14 +21,15 @@ module ActionView
     # When :relative (default), the protocol will be determined by the client using current protocol
     # When :request, the protocol will be the request protocol
     # Otherwise, the protocol is used (E.g. :http, :https, etc)
-    def compute_public_path(source, dir, ext = nil, include_host = true, protocol = nil)
+    def compute_public_path(source, dir, options = {})
       source = source.to_s
       return source if is_uri?(source)
 
-      source = rewrite_extension(source, dir, ext) if ext
-      source = rewrite_asset_path(source, dir)
-      source = rewrite_relative_url_root(source, relative_url_root) if has_request?
-      source = rewrite_host_and_protocol(source, protocol) if include_host
+      options[:include_host] ||= true
+      source = rewrite_extension(source, dir, options[:ext]) if options[:ext]
+      source = rewrite_asset_path(source, dir, options)
+      source = rewrite_relative_url_root(source, relative_url_root)
+      source = rewrite_host_and_protocol(source, options[:protocol]) if options[:include_host]
       source
     end
 
@@ -119,10 +120,11 @@ module ActionView
     end
 
     def relative_url_root
-      config = controller.config if controller.respond_to?(:config)
-      config ||= config.action_controller if config.action_controller.present?
-      config ||= config
-      config.relative_url_root
+      if config.action_controller.present?
+        config.action_controller.relative_url_root
+      else
+        config.relative_url_root
+      end
     end
 
     def asset_host_config

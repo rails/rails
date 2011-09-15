@@ -431,30 +431,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert topic.is_test?
   end
 
-  def test_kernel_methods_not_implemented_in_activerecord
-    %w(test name display y).each do |method|
-      assert !ActiveRecord::Base.instance_method_already_implemented?(method), "##{method} is defined"
-    end
-  end
-
-  def test_defined_kernel_methods_implemented_in_model
-    %w(test name display y).each do |method|
-      klass = Class.new ActiveRecord::Base
-      klass.class_eval "def #{method}() 'defined #{method}' end"
-      assert klass.instance_method_already_implemented?(method), "##{method} is not defined"
-    end
-  end
-
-  def test_defined_kernel_methods_implemented_in_model_abstract_subclass
-    %w(test name display y).each do |method|
-      abstract = Class.new ActiveRecord::Base
-      abstract.class_eval "def #{method}() 'defined #{method}' end"
-      abstract.abstract_class = true
-      klass = Class.new abstract
-      assert klass.instance_method_already_implemented?(method), "##{method} is not defined"
-    end
-  end
-
   def test_raises_dangerous_attribute_error_when_defining_activerecord_method_in_model
     %w(save create_or_update).each do |method|
       klass = Class.new ActiveRecord::Base
@@ -608,7 +584,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "The pros and cons of programming naked.")
     assert !topic.respond_to?(:title)
     exception = assert_raise(NoMethodError) { topic.title }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert_equal "I'm private", topic.send(:title)
   end
 
@@ -618,7 +594,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new
     assert !topic.respond_to?(:title=)
     exception = assert_raise(NoMethodError) { topic.title = "Pants"}
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     topic.send(:title=, "Very large pants")
   end
 
@@ -628,7 +604,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "Isaac Newton's pants")
     assert !topic.respond_to?(:title?)
     exception = assert_raise(NoMethodError) { topic.title? }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert topic.send(:title?)
   end
 
@@ -657,6 +633,37 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_list_of_serialized_attributes
     assert_equal %w(content), Topic.serialized_attributes.keys
     assert_equal %w(preferences), Contact.serialized_attributes.keys
+  end
+
+  def test_instance_method_should_be_defined_on_the_base_class
+    subklass = Class.new(Topic)
+
+    Topic.define_attribute_methods
+
+    instance = subklass.new
+    instance.id = 5
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+
+    Topic.undefine_attribute_methods
+
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+  end
+
+  def test_dispatching_column_attributes_through_method_missing_deprecated
+    Topic.define_attribute_methods
+
+    topic = Topic.new(:id => 5)
+    topic.id = 5
+
+    topic.method(:id).owner.send(:remove_method, :id)
+
+    assert_deprecated do
+      assert_equal 5, topic.id
+    end
+  ensure
+    Topic.undefine_attribute_methods
   end
 
   private

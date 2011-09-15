@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/deprecation'
 
 module ActiveModel
   class MissingAttributeError < NoMethodError
@@ -60,7 +61,7 @@ module ActiveModel
 
     included do
       class_attribute :attribute_method_matchers, :instance_writer => false
-      self.attribute_method_matchers = []
+      self.attribute_method_matchers = [ClassMethods::AttributeMethodMatcher.new]
     end
 
     module ClassMethods
@@ -284,33 +285,25 @@ module ActiveModel
 
       def define_attribute_method(attr_name)
         attribute_method_matchers.each do |matcher|
-          unless instance_method_already_implemented?(matcher.method_name(attr_name))
-            generate_method = "define_method_#{matcher.prefix}attribute#{matcher.suffix}"
+          method_name = matcher.method_name(attr_name)
+
+          unless instance_method_already_implemented?(method_name)
+            generate_method = "define_method_#{matcher.method_missing_target}"
 
             if respond_to?(generate_method)
               send(generate_method, attr_name)
             else
-              method_name = matcher.method_name(attr_name)
+              if method_name =~ COMPILABLE_REGEXP
+                defn = "def #{method_name}(*args)"
+              else
+                defn = "define_method(:'#{method_name}') do |*args|"
+              end
 
               generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                if method_defined?('#{method_name}')
-                  undef :'#{method_name}'
+                #{defn}
+                  send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
                 end
               RUBY
-
-              if method_name.to_s =~ COMPILABLE_REGEXP
-                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                  def #{method_name}(*args)
-                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
-                  end
-                RUBY
-              else
-                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                  define_method('#{method_name}') do |*args|
-                    send('#{matcher.method_missing_target}', '#{attr_name}', *args)
-                  end
-                RUBY
-              end
             end
           end
         end
@@ -336,7 +329,7 @@ module ActiveModel
 
       protected
         def instance_method_already_implemented?(method_name)
-          method_defined?(method_name)
+          generated_attribute_methods.method_defined?(method_name)
         end
 
       private
@@ -357,8 +350,11 @@ module ActiveModel
           if attribute_method_matchers_cache.key?(method_name)
             attribute_method_matchers_cache[method_name]
           else
+            # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
+            # will match every time.
+            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
             match = nil
-            attribute_method_matchers.detect { |method| match = method.match(method_name) }
+            matchers.detect { |method| match = method.match(method_name) }
             attribute_method_matchers_cache[method_name] = match
           end
         end
@@ -366,10 +362,20 @@ module ActiveModel
         class AttributeMethodMatcher
           attr_reader :prefix, :suffix, :method_missing_target
 
-          AttributeMethodMatch = Struct.new(:target, :attr_name)
+          AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
             options.symbolize_keys!
+
+            if options[:prefix] == '' || options[:suffix] == ''
+              ActiveSupport::Deprecation.warn(
+                "Specifying an empty prefix/suffix for an attribute method is no longer " \
+                "necessary. If the un-prefixed/suffixed version of the method has not been " \
+                "defined when `define_attribute_methods` is called, it will be defined " \
+                "automatically."
+              )
+            end
+
             @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
             @regex = /^(#{Regexp.escape(@prefix)})(.+?)(#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
@@ -378,7 +384,7 @@ module ActiveModel
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $2)
+              AttributeMethodMatch.new(method_missing_target, $2, method_name)
             else
               nil
             end
@@ -386,6 +392,10 @@ module ActiveModel
 
           def method_name(attr_name)
             @method_name % attr_name
+          end
+
+          def plain?
+            prefix.empty? && suffix.empty?
           end
         end
     end
@@ -401,13 +411,21 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a Client class
     # belonging to the clients table with a +master_id+ foreign key can
     # instantiate master through Client#master.
-    def method_missing(method_id, *args, &block)
-      method_name = method_id.to_s
-      if match = match_attribute_method?(method_name)
-        guard_private_attribute_method!(method_name, args)
-        return __send__(match.target, match.attr_name, *args, &block)
+    def method_missing(method, *args, &block)
+      if respond_to_without_attributes?(method, true)
+        super
+      else
+        match = match_attribute_method?(method.to_s)
+        match ? attribute_missing(match, *args, &block) : super
       end
-      super
+    end
+
+    # attribute_missing is like method_missing, but for attributes. When method_missing is
+    # called we check to see if there is a matching attribute method. If so, we call
+    # attribute_missing to dispatch the attribute. This method can be overloaded to
+    # customise the behaviour.
+    def attribute_missing(match, *args, &block)
+      __send__(match.target, match.attr_name, *args, &block)
     end
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
@@ -416,15 +434,14 @@ module ActiveModel
     alias :respond_to_without_attributes? :respond_to?
     def respond_to?(method, include_private_methods = false)
       if super
-        return true
+        true
       elsif !include_private_methods && super(method, true)
         # If we're here then we haven't found among non-private methods
         # but found among all methods. Which means that the given method is private.
-        return false
-      elsif match_attribute_method?(method.to_s)
-        return true
+        false
+      else
+        !match_attribute_method?(method.to_s).nil?
       end
-      super
     end
 
     protected
@@ -438,13 +455,6 @@ module ActiveModel
       def match_attribute_method?(method_name)
         match = self.class.send(:attribute_method_matcher, method_name)
         match && attribute_method?(match.attr_name) ? match : nil
-      end
-
-      # prevent method_missing from calling private methods with #send
-      def guard_private_attribute_method!(method_name, args)
-        if self.class.private_method_defined?(method_name)
-          raise NoMethodError.new("Attempt to call private method `#{method_name}'", method_name, args)
-        end
       end
 
       def missing_attribute(attr_name, stack)

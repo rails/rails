@@ -1002,7 +1002,3 @@ The security landscape shifts and it is important to keep up to date, because mi
 * Subscribe to the Rails security "mailing list":http://groups.google.com/group/rubyonrails-security
 * "Keep up to date on the other application layers":http://secunia.com/ (they have a weekly newsletter, too)
 * A "good security blog":http://ha.ckers.org/blog/ including the "Cross-Site scripting Cheat Sheet":http://ha.ckers.org/xss.html
-
-h3. Changelog
-
-* November 1, 2008: First approved version by Heiko Webers

@@ -1267,14 +1267,3 @@ end
 </ruby>
 
 The +after_commit+ and +after_rollback+ callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.
-
-h3. Changelog
-
-* February 17, 2011: Add description of transaction callbacks.
-* July 20, 2010: Fixed typos and rephrased some paragraphs for clarity. "Jaime Iniesta":http://jaimeiniesta.com
-* May 24, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* May 15, 2010: Validation Errors section updated by "Emili Parreño":http://www.eparreno.com
-* March 7, 2009: Callbacks revision by Trevor Turk
-* February 10, 2009: Observers revision by Trevor Turk
-* February 5, 2009: Initial revision by Trevor Turk
-* January 9, 2009: Initial version by "Cássio Marques":credits.html#cmarques

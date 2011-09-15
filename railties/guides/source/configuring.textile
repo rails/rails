@@ -604,11 +604,3 @@ The error occurred while evaluating nil.each
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
 *+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to true and +config.dependency_loading+ is set to false.
-
-h3. Changelog
-
-* December 3, 2010: Added initialization events for Rails 3 ("Ryan Bigg":http://ryanbigg.com)
-* November 26, 2010: Removed all config settings not available in Rails 3 ("Ryan Bigg":http://ryanbigg.com)
-* August 13, 2009: Updated with config syntax and added general configuration options by "John Pignata"
-* January 3, 2009: First reasonably complete draft by "Mike Gunderloy":credits.html#mgunderloy
-* November 5, 2008: Rough outline by "Mike Gunderloy":credits.html#mgunderloy
