@@ -11,6 +11,17 @@ require 'active_support/time'
 require 'active_support/json'
 
 class MessageEncryptorTest < Test::Unit::TestCase
+  
+  class JSONSerializer
+    def dump(value)
+      ActiveSupport::JSON.encode(value)
+    end
+    
+    def load(value)
+      ActiveSupport::JSON.decode(value)
+    end
+  end
+  
   def setup
     @encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64))
     @data = { :some => "data", :now => Time.local(2010) }
@@ -41,9 +52,7 @@ class MessageEncryptorTest < Test::Unit::TestCase
   end
   
   def test_alternative_serialization_method
-    @encryptor.serializer = lambda { |value| ActiveSupport::JSON.encode(value) }
-    @encryptor.deserializer = lambda { |value| ActiveSupport::JSON.decode(value) }
-    
+    @encryptor.serializer = JSONSerializer.new
     message = @encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
     assert_equal @encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end

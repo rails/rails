@@ -11,6 +11,17 @@ require 'active_support/time'
 require 'active_support/json'
 
 class MessageVerifierTest < Test::Unit::TestCase
+  
+  class JSONSerializer
+    def dump(value)
+      ActiveSupport::JSON.encode(value)
+    end
+
+    def load(value)
+      ActiveSupport::JSON.decode(value)
+    end
+  end
+  
   def setup
     @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!")
     @data = { :some => "data", :now => Time.local(2010) }
@@ -34,9 +45,7 @@ class MessageVerifierTest < Test::Unit::TestCase
   end
   
   def test_alternative_serialization_method
-    @verifier.serializer = lambda { |value| ActiveSupport::JSON.encode(value) }
-    @verifier.deserializer = lambda { |value| ActiveSupport::JSON.decode(value) }
-    
+    @verifier.serializer = JSONSerializer.new
     message = @verifier.generate({ :foo => 123, 'bar' => Time.utc(2010) })
     assert_equal @verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
