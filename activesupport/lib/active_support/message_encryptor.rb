@@ -13,9 +13,13 @@ module ActiveSupport
     class InvalidMessage < StandardError; end
     OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
 
+    attr_accessor :serializer, :deserializer
+
     def initialize(secret, cipher = 'aes-256-cbc')
       @secret = secret
       @cipher = cipher
+      @serializer = lambda { |value| Marshal.dump(value) }
+      @deserializer = lambda { |value| Marshal.load(value) }
     end
 
     def encrypt(value)
@@ -27,7 +31,7 @@ module ActiveSupport
       cipher.key = @secret
       cipher.iv  = iv
 
-      encrypted_data = cipher.update(Marshal.dump(value))
+      encrypted_data = cipher.update(serializer.call(value))
       encrypted_data << cipher.final
 
       [encrypted_data, iv].map {|v| ActiveSupport::Base64.encode64s(v)}.join("--")
@@ -44,7 +48,7 @@ module ActiveSupport
       decrypted_data = cipher.update(encrypted_data)
       decrypted_data << cipher.final
 
-      Marshal.load(decrypted_data)
+      deserializer.call(decrypted_data)
     rescue OpenSSLCipherError, TypeError
       raise InvalidMessage
     end

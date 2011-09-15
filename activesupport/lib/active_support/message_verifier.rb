@@ -21,9 +21,13 @@ module ActiveSupport
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
+    attr_accessor :serializer, :deserializer
+    
     def initialize(secret, digest = 'SHA1')
       @secret = secret
       @digest = digest
+      @serializer = lambda { |value| Marshal.dump(value) }
+      @deserializer = lambda { |value| Marshal.load(value) }
     end
 
     def verify(signed_message)
@@ -31,14 +35,14 @@ module ActiveSupport
 
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
-        Marshal.load(ActiveSupport::Base64.decode64(data))
+        deserializer.call(ActiveSupport::Base64.decode64(data))
       else
         raise InvalidSignature
       end
     end
 
     def generate(value)
-      data = ActiveSupport::Base64.encode64s(Marshal.dump(value))
+      data = ActiveSupport::Base64.encode64s(serializer.call(value))
       "#{data}--#{generate_digest(data)}"
     end
 

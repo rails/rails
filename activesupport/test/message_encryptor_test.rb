@@ -8,6 +8,7 @@ rescue LoadError, NameError
 else
 
 require 'active_support/time'
+require 'active_support/json'
 
 class MessageEncryptorTest < Test::Unit::TestCase
   def setup
@@ -38,7 +39,14 @@ class MessageEncryptorTest < Test::Unit::TestCase
     message = @encryptor.encrypt_and_sign(@data)
     assert_equal @data, @encryptor.decrypt_and_verify(message)
   end
-
+  
+  def test_alternative_serialization_method
+    @encryptor.serializer = lambda { |value| ActiveSupport::JSON.encode(value) }
+    @encryptor.deserializer = lambda { |value| ActiveSupport::JSON.decode(value) }
+    
+    message = @encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
+    assert_equal @encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
+  end
 
   private
     def assert_not_decrypted(value)

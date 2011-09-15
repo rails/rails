@@ -8,6 +8,7 @@ rescue LoadError, NameError
 else
 
 require 'active_support/time'
+require 'active_support/json'
 
 class MessageVerifierTest < Test::Unit::TestCase
   def setup
@@ -30,6 +31,14 @@ class MessageVerifierTest < Test::Unit::TestCase
     assert_not_verified("#{data.reverse}--#{hash}")
     assert_not_verified("#{data}--#{hash.reverse}")
     assert_not_verified("purejunk")
+  end
+  
+  def test_alternative_serialization_method
+    @verifier.serializer = lambda { |value| ActiveSupport::JSON.encode(value) }
+    @verifier.deserializer = lambda { |value| ActiveSupport::JSON.decode(value) }
+    
+    message = @verifier.generate({ :foo => 123, 'bar' => Time.utc(2010) })
+    assert_equal @verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
 
   def assert_not_verified(message)
