@@ -198,6 +198,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
+  def test_generator_if_skip_public_assets_is_given
+    run_generator [destination_root, "--skip-public-assets"]
+    assert_no_file 'app/assets/images/rails.png'
+    assert_file 'app/assets/images/.gitkeep'
+  end
+
   def test_creation_of_a_test_directory
     run_generator
     assert_file 'test'

@@ -55,6 +55,10 @@ module Rails
 
     def app
       directory 'app'
+      if options[:skip_public_assets]
+        remove_file 'app/assets/images/rails.png'
+        git_keep 'app/assets/images'
+      end
       git_keep  'app/mailers'
       git_keep  'app/models'
     end
