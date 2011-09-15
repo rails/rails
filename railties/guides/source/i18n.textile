@@ -448,6 +448,7 @@ Covered are features like these:
 * looking up translations
 * interpolating data into translations
 * pluralizing translations
+* using safe HTML translations
 * localizing dates, numbers, currency, etc.
 
 h4. Looking up Translations
@@ -598,6 +599,27 @@ The +I18n.locale+ defaults to +I18n.default_locale+ which defaults to :+en+. The
 <ruby>
 I18n.default_locale = :de
 </ruby>
+
+h4. Using Safe HTML Translations
+
+Keys with a '_html' suffix and keys named 'html' are marked as HTML safe. Use them in views without escaping.
+
+<ruby>
+# config/locales/en.yml
+en:
+  welcome: <b>welcome!</b>
+  hello_html: <b>hello!</b>
+  title:
+    html: <b>title!</b>
+
+# app/views/home/index.html.erb
+<div><%= t('welcome') %></div>
+<div><%= raw t('welcome') %></div>
+<div><%= t('hello_html') %></div>
+<div><%= t('title.html') %></div>
+</ruby>
+
+!images/i18n/demo_html_safe.png(i18n demo html safe)!
 
 h3. How to Store your Custom Translations
 
