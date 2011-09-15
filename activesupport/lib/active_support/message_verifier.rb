@@ -18,6 +18,11 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
+  # By default it uses Marshal to serialize the message. If you want to use another 
+  # serialization method, you can set the serializer attribute to something that responds
+  # to dump and load, e.g.:
+  #
+  #   @verifier.serializer = YAML
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
