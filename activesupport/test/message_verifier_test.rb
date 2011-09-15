@@ -10,7 +10,7 @@ else
 require 'active_support/time'
 require 'active_support/json'
 
-class MessageVerifierTest < Test::Unit::TestCase
+class MessageVerifierTest < ActiveSupport::TestCase
   
   class JSONSerializer
     def dump(value)
@@ -48,6 +48,12 @@ class MessageVerifierTest < Test::Unit::TestCase
     verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", :serializer => JSONSerializer.new)
     message = verifier.generate({ :foo => 123, 'bar' => Time.utc(2010) })
     assert_equal verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
+  end
+  
+  def test_digest_algorithm_as_second_parameter_deprecation
+    assert_deprecated(/options hash/) do
+      ActiveSupport::MessageVerifier.new("secret", "SHA1")
+    end
   end
 
   def assert_not_verified(message)
