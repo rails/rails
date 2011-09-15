@@ -10,7 +10,7 @@ else
 require 'active_support/time'
 require 'active_support/json'
 
-class MessageEncryptorTest < Test::Unit::TestCase
+class MessageEncryptorTest < ActiveSupport::TestCase
   
   class JSONSerializer
     def dump(value)
@@ -52,11 +52,17 @@ class MessageEncryptorTest < Test::Unit::TestCase
   end
   
   def test_alternative_serialization_method
-    @encryptor.serializer = JSONSerializer.new
-    message = @encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
-    assert_equal @encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
+    encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), :serializer => JSONSerializer.new)
+    message = encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
+    assert_equal encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
 
+  def test_digest_algorithm_as_second_parameter_deprecation
+    assert_deprecated(/options hash/) do
+      ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), 'aes-256-cbc')
+    end
+  end
+  
   private
     def assert_not_decrypted(value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do

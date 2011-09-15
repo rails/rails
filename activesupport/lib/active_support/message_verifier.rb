@@ -26,12 +26,15 @@ module ActiveSupport
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
-    attr_accessor :serializer
-    
-    def initialize(secret, digest = 'SHA1', serializer = Marshal)
+    def initialize(secret, options = {})
+      unless options.is_a?(Hash)
+        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :digest => 'algorithm' to sepcify the digest algorithm."
+        options = { :digest => options }
+      end
+
       @secret = secret
-      @digest = digest
-      @serializer = serializer
+      @digest = options[:digest] || 'SHA1'
+      @serializer = options[:serializer] || Marshal
     end
 
     def verify(signed_message)
@@ -39,14 +42,14 @@ module ActiveSupport
 
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
-        serializer.load(ActiveSupport::Base64.decode64(data))
+        @serializer.load(ActiveSupport::Base64.decode64(data))
       else
         raise InvalidSignature
       end
     end
 
     def generate(value)
-      data = ActiveSupport::Base64.encode64s(serializer.dump(value))
+      data = ActiveSupport::Base64.encode64s(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
 
