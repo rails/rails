@@ -28,7 +28,7 @@ module ActiveSupport
 
     def initialize(secret, options = {})
       unless options.is_a?(Hash)
-        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :digest => 'algorithm' to sepcify the digest algorithm."
+        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :digest => 'algorithm' to specify the digest algorithm."
         options = { :digest => options }
       end
 
