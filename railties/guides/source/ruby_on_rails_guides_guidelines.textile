@@ -26,7 +26,7 @@ h5. When are Objects Saved?
 Use the same typography as in regular text:
 
 <plain>
-h6. The +:content_type+ Option
+h6. The <tt>:content_type</tt> Option
 </plain>
 
 h3. API Documentation Guidelines

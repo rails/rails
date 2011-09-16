@@ -296,7 +296,7 @@ This method escapes whatever is needed, both for the key and the value:
 
 <ruby>
 account.to_query('company[name]')
-# => "company%5Bname%5D=Johnson+%26+Johnson"
+# => "company%5Bname%5D=Johnson<plus>%26<plus>Johnson"
 </ruby>
 
 so its output is ready to be used in a query string.
@@ -3385,11 +3385,11 @@ They are analogous. Please refer to their documentation above and take into acco
 Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
-# In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
+# In Barcelona, 2010/03/28 02:00 <plus>0100 becomes 2010/03/28 03:00 <plus>0200 due to DST.
 t = Time.local_time(2010, 3, 28, 1, 59, 59)
-# => Sun Mar 28 01:59:59 +0100 2010
+# => Sun Mar 28 01:59:59 <plus>0100 2010
 t.advance(:seconds => 1)
-# => Sun Mar 28 03:00:00 +0200 2010
+# => Sun Mar 28 03:00:00 <plus>0200 2010
 </ruby>
 
 * If +since+ or +ago+ jump to a time that can't be expressed with +Time+ a +DateTime+ object is returned instead.
@@ -3406,24 +3406,24 @@ The method +all_day+ returns a range representing the whole day of the current t
 
 <ruby>
 now = Time.current
-# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+# => Mon, 09 Aug 2010 23:20:05 UTC <plus>00:00
 now.all_day
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Mon, 09 Aug 2010 23:59:59 UTC <plus>00:00
 </ruby>
 
 Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the purpose of generating time ranges.
 
 <ruby>
 now = Time.current
-# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+# => Mon, 09 Aug 2010 23:20:05 UTC <plus>00:00
 now.all_week
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Sun, 15 Aug 2010 23:59:59 UTC <plus>00:00
 now.all_month
-# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
+# => Sat, 01 Aug 2010 00:00:00 UTC <plus>00:00..Tue, 31 Aug 2010 23:59:59 UTC <plus>00:00
 now.all_quarter
-# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
+# => Thu, 01 Jul 2010 00:00:00 UTC <plus>00:00..Thu, 30 Sep 2010 23:59:59 UTC <plus>00:00
 now.all_year
-# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
+# => Fri, 01 Jan 2010 00:00:00 UTC <plus>00:00..Fri, 31 Dec 2010 23:59:59 UTC <plus>00:00
 </ruby>
 
 h4. Time Constructors
@@ -3434,7 +3434,7 @@ Active Support defines +Time.current+ to be +Time.zone.now+ if there's a user ti
 Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 Time.current
-# => Fri, 06 Aug 2010 17:11:58 CEST +02:00
+# => Fri, 06 Aug 2010 17:11:58 CEST <plus>02:00
 </ruby>
 
 Analogously to +DateTime+, the predicates +past?+, and +future?+ are relative to +Time.current+.
@@ -3445,7 +3445,7 @@ Use the +local_time+ class method to create time objects honoring the user time 
 Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 Time.local_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 +0200 2010
+# => Sun Aug 15 00:00:00 <plus>0200 2010
 </ruby>
 
 The +utc_time+ class method returns a time in UTC:
