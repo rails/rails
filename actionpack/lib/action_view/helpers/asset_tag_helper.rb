@@ -412,7 +412,7 @@ module ActionView
 
         if sources.is_a?(Array)
           content_tag("video", options) do
-            sources.map { |source| tag("source", :src => path_to_video(source)) }.join.html_safe
+            sources.map { |source| tag("source", :src => path_to_video(source), :type => Mime::Type.lookup_by_extension(source.gsub(/^.*\./, ""))) }.join.html_safe
           end
         else
           options[:src] = path_to_video(sources)
