@@ -25,10 +25,24 @@ module ActiveResource
       end
     end
 
+    def from_hash(messages, save_cache = false)
+      clear unless save_cache
+
+      messages.each do |(key,errors)|
+        errors.each do |error|
+          if @base.attributes.keys.include?(key)
+            add key, error
+          else
+            self[:base] << "#{key.humanize} #{error}"
+          end
+        end
+      end
+    end
+
     # Grabs errors from a json response.
     def from_json(json, save_cache = false)
-      array = Array.wrap(ActiveSupport::JSON.decode(json)['errors']) rescue []
-      from_array array, save_cache
+      hash = ActiveSupport::JSON.decode(json)['errors'] || {} rescue {}
+      from_hash hash, save_cache
     end
 
     # Grabs errors from an XML response.
