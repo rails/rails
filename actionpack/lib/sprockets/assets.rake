@@ -17,9 +17,6 @@ namespace :assets do
       # Always compile files
       Rails.application.config.assets.compile = true
 
-      # Always ignore asset host
-      Rails.application.config.action_controller.asset_host = nil
-
       config = Rails.application.config
       env    = Rails.application.assets
       target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
