@@ -15,7 +15,7 @@ module ActiveSupport
 
     def initialize(secret, options = {})
       unless options.is_a?(Hash)
-        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :cipher => 'algorithm' to sepcify the cipher algorithm."
+        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :cipher => 'algorithm' to specify the cipher algorithm."
         options = { :cipher => options }
       end
       
