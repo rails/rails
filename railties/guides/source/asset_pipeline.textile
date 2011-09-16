@@ -359,7 +359,7 @@ NOTE. If you are precompiling your assets locally, you can use +bundle install -
 The default matcher for compiling files includes +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
 
 <ruby>
-[ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
+[ /\w<plus>\.(?!js|css).<plus>/, /application.(css|js)$/ ]
 </ruby>
 
 If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the +precompile+ array:

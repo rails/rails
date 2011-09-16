@@ -328,7 +328,7 @@ This helper validates that your attributes have only numeric values. By default,
 If you set +:only_integer+ to +true+, then it will use the
 
 <ruby>
-/\A[+-]?\d+\Z/
+/\A[<plus>-]?\d<plus>\Z/
 </ruby>
 
 regular expression to validate the attribute's value. Otherwise, it will try to convert the value to a number using +Float+.
@@ -597,7 +597,7 @@ The easiest way to add custom validators for validating individual attributes is
 <ruby>
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+    unless value =~ /\A([^@\s]<plus>)@((?:[-a-z0-9]<plus>\.)+[a-z]{2,})\z/i
       record.errors[attribute] << (options[:message] || "is not an email")
     end
   end

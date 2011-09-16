@@ -450,7 +450,7 @@ run YourApp::Application
 The +Rack::Builder.parse_file+ method here takes the content from this +config.ru+ file and parses it using this code:
 
 <ruby>
-app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
+app = eval "Rack::Builder.new {( " <plus> cfgfile <plus> "\n )}.to_app",
     TOPLEVEL_BINDING, config
 </ruby>
 
