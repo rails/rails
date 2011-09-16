@@ -25,7 +25,7 @@ In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +a
 config.assets.enabled = false
 </plain>
 
-You can also disable it when you are creating a new application passing the --skip-sprockets parameter:
+You can also disable it while creating a new application by passing the <tt>--skip-sprockets</tt> option.
 
 <plain>
 rails new appname --skip-sprockets
