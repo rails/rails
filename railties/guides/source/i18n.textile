@@ -365,6 +365,20 @@ NOTE: You need to restart the server when you add new locale files.
 
 You may use YAML (+.yml+) or plain Ruby (+.rb+) files for storing your translations in SimpleStore. YAML is the preferred option among Rails developers. However, it has one big disadvantage. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application on first request, so you may easily find what's wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into a Ruby file.)
 
+h4. Passing variables into the translation
+
+You may use translation with parameters, if you want.
+
+<ruby>
+# app/views/home/index.html.erb
+<h1><%=t 'greet_username', :user => "Bill", :message => "Goodbye" %></h1>
+<h1><%=t 'greet_username', :user => "DHH", :message => "Hello" %></h1>
+
+# config/locales/en.yml
+en:
+  greet_username: "%{message}, %{user}!"
+</ruby>
+
 h4. Adding Date/Time Formats
 
 OK! Now let's add a timestamp to the view, so we can demo the *date/time localization* feature as well. To localize the time format you pass the Time object to +I18n.l+ or (preferably) use Rails' +#l+ helper. You can pick a format by passing the +:format+ option -- by default the +:default+ format is used.
