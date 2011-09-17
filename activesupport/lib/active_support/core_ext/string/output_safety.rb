@@ -142,7 +142,7 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
-      class_eval <<-EOT, __FILE__, __LINE__
+      class_eval <<-EOT, __FILE__, __LINE__ + 1
         def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
           to_str.#{unsafe_method}(*args, &block)  #   to_str.gsub(*args, &block)
         end                                       # end
