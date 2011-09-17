@@ -432,11 +432,11 @@ For Apache:
 
 # without these, Content-Type will be "application/x-gzip"
 <FilesMatch "^/assets/.*\.css.gz$">
-  ForceType text/css
+    ForceType text/css
 </FilesMatch>
 
 <FilesMatch "^/assets/.*\.js.gz$">
-  ForceType text/javascript
+    ForceType text/javascript
 </FilesMatch>
 </plain>
 
