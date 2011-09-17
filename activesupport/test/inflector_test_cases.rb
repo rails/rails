@@ -77,6 +77,7 @@ module InflectorTestCases
     "equipment"   => "equipment",
     "bus"         => "buses",
     "status"      => "statuses",
+    "bonus"       => "bonuses",
     "status_code" => "status_codes",
     "mouse"       => "mice",
 
