@@ -39,6 +39,8 @@ gem "memcache-client", ">= 1.8.5"
 
 platforms :mri_18 do
   gem "system_timer"
+  # linecache 0.46 depends on rbx-require-relative, which requires Ruby 1.9.2
+  gem "linecache", "<= 0.45"
   gem "ruby-debug", ">= 0.10.3" unless ENV['TRAVIS']
   gem "json"
 end
