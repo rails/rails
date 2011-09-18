@@ -9,7 +9,7 @@ require 'active_support/inflections'
 class HashExtTest < Test::Unit::TestCase
   class IndifferentHash < HashWithIndifferentAccess
   end
-  
+
   class SubclassingArray < Array
   end
 
@@ -272,14 +272,14 @@ class HashExtTest < Test::Unit::TestCase
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
   end
-  
+
   def test_should_preserve_array_subclass_when_value_is_array
     array = SubclassingArray.new
     array << { "address" => "1" }
     hash = { "urls" => { "url" => array }}.with_indifferent_access
     assert_equal SubclassingArray, hash[:urls][:url].class
   end
-  
+
   def test_should_preserve_array_class_when_hash_value_is_frozen_array
     array = SubclassingArray.new
     array << { "address" => "1" }
@@ -543,7 +543,7 @@ class HashExtToParamTests < Test::Unit::TestCase
   end
 
   def test_to_param_hash
-    assert_equal 'custom2=param2-1&custom=param-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
+    assert_equal 'custom-1=param-1&custom2-1=param2-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
   end
 
   def test_to_param_hash_escapes_its_keys_and_values
@@ -955,13 +955,13 @@ class HashToXmlTest < Test::Unit::TestCase
     hash = Hash.from_xml(xml)
     assert_equal "bacon is the best", hash['blog']['name']
   end
-  
+
   def test_empty_cdata_from_xml
     xml = "<data><![CDATA[]]></data>"
-    
+
     assert_equal "", Hash.from_xml(xml)["data"]
   end
-  
+
   def test_xsd_like_types_from_xml
     bacon_xml = <<-EOT
     <bacon>
@@ -1004,7 +1004,7 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
-  
+
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia[:new_key]
