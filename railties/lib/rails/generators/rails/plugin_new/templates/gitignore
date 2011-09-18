@@ -1,6 +1,6 @@
 .bundle/
 log/*.log
 pkg/
-test/dummy/db/*.sqlite3
-test/dummy/log/*.log
-test/dummy/tmp/
+<%= dummy_path %>/db/*.sqlite3
+<%= dummy_path %>/log/*.log
+<%= dummy_path %>/tmp/
