@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/to_query'
+require 'active_support/core_ext/string/output_safety.rb'
 
 class ToQueryTest < Test::Unit::TestCase
   def test_simple_conversion
@@ -9,6 +10,14 @@ class ToQueryTest < Test::Unit::TestCase
 
   def test_cgi_escaping
     assert_query_equal 'a%3Ab=c+d', 'a:b' => 'c d'
+  end
+
+  def test_html_safe_parameter_key
+    assert_query_equal 'a%3Ab=c+d', 'a:b'.html_safe => 'c d'
+  end
+
+  def test_html_safe_parameter_value
+    assert_query_equal 'a=%5B10%5D', 'a' => '[10]'.html_safe
   end
 
   def test_nil_parameter_value
