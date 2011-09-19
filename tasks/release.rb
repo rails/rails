@@ -22,21 +22,15 @@ directory "dist"
 
       file = Dir[glob].first
       ruby = File.read(file)
-
-      major, minor, tiny, pre = version.split('.')
-      pre = pre ? pre.inspect : "nil"
-
-      ruby.gsub! /^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}"
-      raise "Could not insert MAJOR in #{file}" unless $1
-
-      ruby.gsub! /^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}"
-      raise "Could not insert MINOR in #{file}" unless $1
-
-      ruby.gsub! /^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}"
-      raise "Could not insert TINY in #{file}" unless $1
-
-      ruby.gsub! /^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}"
-      raise "Could not insert PRE in #{file}" unless $1
+    
+      ver_parts = Hash.new
+      ver_parts[:MAJOR], ver_parts[:MINOR], ver_parts[:TINY], ver_parts[:PRE] = version.split('.')
+      ver_parts[:PRE] = ver_parts[:PRE] ? ver_parts[:PRE].inspect : "nil"
+      
+      ver_parts.each do |ver_name, ver_value|
+        ruby.gsub! /^(\s*)#{ver_name}(\s+)= .*?$/, "\\1#{ver_name}\\2= #{ver_value}"
+        raise "Could not insert #{ver_name} in #{file}" unless $1
+      end
 
       File.open(file, 'w') { |f| f.write ruby }
     end
