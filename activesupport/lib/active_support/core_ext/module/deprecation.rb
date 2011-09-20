@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 class Module
   # Declare that a method has been deprecated.
   #   deprecate :foo
