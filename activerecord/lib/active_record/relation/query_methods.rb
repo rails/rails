@@ -47,21 +47,21 @@ module ActiveRecord
     # converting them into an array and iterating through them using Array#select.
     #
     # Second: Modifies the SELECT statement for the query so that only certain
-    # fields are retreived:
+    # fields are retrieved:
     #
     #   >> Model.select(:field)
     #   => [#<Model field:value>]
     #
     # Although in the above example it looks as though this method returns an
-    # array, in actual fact it returns a relation object and can have other query
+    # array, it actually returns a relation object and can have other query
     # methods appended to it, such as the other methods in ActiveRecord::QueryMethods.
     #
     # This method will also take multiple parameters:
     #
     #   >> Model.select(:field, :other_field, :and_one_more)
-    #   => [#<Model field: "value", other_field: "value", :and_one_more: "value">]
+    #   => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
-    # Any attributes that do not have fields retreived by a select
+    # Any attributes that do not have fields retrieved by a select
     # will return `nil` when the getter method for that attribute is used:
     #
     #   >> Model.select(:field).first.other_field
