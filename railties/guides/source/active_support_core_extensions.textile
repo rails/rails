@@ -3518,8 +3518,8 @@ h4. +around_[level]+
 Takes two arguments, a +before_message+ and +after_message+ and calls the current level method on the +Logger+ instance, passing in the +before_message+, then the specified message, then the +after_message+:
 
 <ruby>
-  logger = Logger.new("log/development.log")
-  logger.around_info("before", "after") { |logger| logger.info("during") }
+logger = Logger.new("log/development.log")
+logger.around_info("before", "after") { |logger| logger.info("during") }
 </ruby>
 
 h4. +silence+
