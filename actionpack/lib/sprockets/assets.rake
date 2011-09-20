@@ -20,30 +20,10 @@ namespace :assets do
       config = Rails.application.config
       env    = Rails.application.assets
       target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
-      manifest = {}
       manifest_path = config.assets.manifest || target
 
-      config.assets.precompile.each do |path|
-        env.each_logical_path do |logical_path|
-          if path.is_a?(Regexp)
-            next unless path.match(logical_path)
-          elsif path.is_a?(Proc)
-            next unless path.call(logical_path)
-          else
-            next unless File.fnmatch(path.to_s, logical_path)
-          end
-
-          if asset = env.find_asset(logical_path)
-            asset_path = config.assets.digest ? asset.digest_path : logical_path
-            manifest[logical_path] = asset_path
-            filename = target.join(asset_path)
-
-            mkdir_p filename.dirname
-            asset.write_to(filename)
-            asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
-          end
-        end
-      end
+      static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
+      manifest = static_compiler.precompile(config.assets.precompile)
 
       File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
         YAML.dump(manifest, f)
