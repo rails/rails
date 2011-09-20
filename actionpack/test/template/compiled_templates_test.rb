@@ -42,7 +42,7 @@ class CompiledTemplatesTest < Test::Unit::TestCase
 
     def render_without_cache(*args)
       path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
-      view_paths = ActionView::Base.process_view_paths(path)
+      view_paths = ActionView::PathSet.new([path])
       ActionView::Base.new(view_paths, {}).render(*args)
     end
 

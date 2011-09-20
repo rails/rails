@@ -2,6 +2,7 @@ require 'rails/initializable'
 require 'rails/configuration'
 require 'active_support/inflector'
 require 'active_support/core_ext/module/introspection'
+require 'active_support/core_ext/module/delegation'
 
 module Rails
   # Railtie is the core of the Rails framework and provides several hooks to extend

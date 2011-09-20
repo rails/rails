@@ -61,6 +61,12 @@ module ActiveRecord
 
       status, headers, body = @app.call(env)
       [status, headers, BodyProxy.new(old, body)]
+    rescue Exception => e
+      ActiveRecord::Base.connection.clear_query_cache
+      unless old
+        ActiveRecord::Base.connection.disable_query_cache!
+      end
+      raise e
     end
   end
 end

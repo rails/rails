@@ -1,4 +1,3 @@
-require 'erb'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/inclusion'
@@ -51,7 +50,7 @@ module ActionDispatch
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         SHORTHAND_REGEX = %r{^/[\w/]+$}
-        WILDCARD_PATH = %r{\*([^/]+)$}
+        WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
         def initialize(set, scope, path, options)
           @set, @scope = set, scope
@@ -105,13 +104,13 @@ module ActionDispatch
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
               # GET /admin/products/show/1
               # => { :controller => 'admin/products', :action => 'show', :id => '1' }
-              @options.reverse_merge!(:controller => /.+?/)
+              @options[:controller] ||= /.+?/
             end
 
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
             if path.match(WILDCARD_PATH) && @options[:format] != false
-              @options.reverse_merge!(:"#{$1}" => /.+?/)
+              @options[$1.to_sym] ||= /.+?/
             end
 
             if @options[:format] == false
@@ -119,6 +118,8 @@ module ActionDispatch
               path
             elsif path.include?(":format") || path.end_with?('/')
               path
+            elsif @options[:format] == true
+              "#{path}.:format"
             else
               "#{path}(.:format)"
             end
@@ -190,13 +191,12 @@ module ActionDispatch
           end
 
           def blocks
-            block = @scope[:blocks] || []
-
-            if @options[:constraints].present? && !@options[:constraints].is_a?(Hash)
-              block << @options[:constraints]
+            constraints = @options[:constraints]
+            if constraints.present? && !constraints.is_a?(Hash)
+              [constraints]
+            else
+              @scope[:blocks] || []
             end
-
-            block
           end
 
           def constraints
@@ -223,19 +223,11 @@ module ActionDispatch
           end
 
           def default_controller
-            if @options[:controller]
-              @options[:controller]
-            elsif @scope[:controller]
-              @scope[:controller]
-            end
+            @options[:controller] || @scope[:controller]
           end
 
           def default_action
-            if @options[:action]
-              @options[:action]
-            elsif @scope[:action]
-              @scope[:action]
-            end
+            @options[:action] || @scope[:action]
           end
       end
 
@@ -263,7 +255,7 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          match '/', options.reverse_merge(:as => :root)
+          match '/', { :as => :root }.merge(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -460,7 +452,9 @@ module ActionDispatch
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
                 _route.segment_keys.each { |k| options.delete(k) }
-                _routes.url_helpers.send("#{name}_path", prefix_options)
+                prefix = _routes.url_helpers.send("#{name}_path", prefix_options)
+                prefix = '' if prefix == '/'
+                prefix
               end
             end
           end
@@ -659,13 +653,13 @@ module ActionDispatch
         #
         # This generates the following routes:
         #
-        #       admin_posts GET    /admin/posts(.:format)          {:action=>"index", :controller=>"admin/posts"}
-        #       admin_posts POST   /admin/posts(.:format)          {:action=>"create", :controller=>"admin/posts"}
-        #    new_admin_post GET    /admin/posts/new(.:format)      {:action=>"new", :controller=>"admin/posts"}
-        #   edit_admin_post GET    /admin/posts/:id/edit(.:format) {:action=>"edit", :controller=>"admin/posts"}
-        #        admin_post GET    /admin/posts/:id(.:format)      {:action=>"show", :controller=>"admin/posts"}
-        #        admin_post PUT    /admin/posts/:id(.:format)      {:action=>"update", :controller=>"admin/posts"}
-        #        admin_post DELETE /admin/posts/:id(.:format)      {:action=>"destroy", :controller=>"admin/posts"}
+        #       admin_posts GET    /admin/posts(.:format)          admin/posts#index
+        #       admin_posts POST   /admin/posts(.:format)          admin/posts#create
+        #    new_admin_post GET    /admin/posts/new(.:format)      admin/posts#new
+        #   edit_admin_post GET    /admin/posts/:id/edit(.:format) admin/posts#edit
+        #        admin_post GET    /admin/posts/:id(.:format)      admin/posts#show
+        #        admin_post PUT    /admin/posts/:id(.:format)      admin/posts#update
+        #        admin_post DELETE /admin/posts/:id(.:format)      admin/posts#destroy
         #
         # === Options
         #
@@ -879,9 +873,9 @@ module ActionDispatch
 
           def initialize(entities, options = {})
             @name       = entities.to_s
-            @path       = (options.delete(:path) || @name).to_s
-            @controller = (options.delete(:controller) || @name).to_s
-            @as         = options.delete(:as)
+            @path       = (options[:path] || @name).to_s
+            @controller = (options[:controller] || @name).to_s
+            @as         = options[:as]
             @options    = options
           end
 
@@ -943,12 +937,11 @@ module ActionDispatch
           DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
 
           def initialize(entities, options)
+            super
+
             @as         = nil
-            @name       = entities.to_s
-            @path       = (options.delete(:path) || @name).to_s
-            @controller = (options.delete(:controller) || plural).to_s
-            @as         = options.delete(:as)
-            @options    = options
+            @controller = (options[:controller] || plural).to_s
+            @as         = options[:as]
           end
 
           def plural
@@ -1045,12 +1038,12 @@ module ActionDispatch
         #
         # This generates the following comments routes:
         #
-        #   GET     /photos/:id/comments/new
-        #   POST    /photos/:id/comments
-        #   GET     /photos/:id/comments/:id
-        #   GET     /photos/:id/comments/:id/edit
-        #   PUT     /photos/:id/comments/:id
-        #   DELETE  /photos/:id/comments/:id
+        #   GET     /photos/:photo_id/comments/new
+        #   POST    /photos/:photo_id/comments
+        #   GET     /photos/:photo_id/comments/:id
+        #   GET     /photos/:photo_id/comments/:id/edit
+        #   PUT     /photos/:photo_id/comments/:id
+        #   DELETE  /photos/:photo_id/comments/:id
         #
         # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
@@ -1445,7 +1438,7 @@ module ActionDispatch
             name_prefix = @scope[:as]
 
             if parent_resource
-              return nil if as.nil? && action.nil?
+              return nil unless as || action
 
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name

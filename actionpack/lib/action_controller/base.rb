@@ -63,7 +63,7 @@ module ActionController
   #
   # == Sessions
   #
-  # Sessions allows you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
+  # Sessions allow you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
   # such as a Signup object constructed in a multi-paged process, or objects that don't change much and are needed all the time, such
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
@@ -212,16 +212,16 @@ module ActionController
       # also include them at the bottom.
       AbstractController::Callbacks,
 
+      # Append rescue at the bottom to wrap as much as possible.
+      Rescue,
+
       # Add instrumentations hooks at the bottom, to ensure they instrument
       # all the methods properly.
       Instrumentation,
 
       # Params wrapper should come before instrumentation so they are
       # properly showed in logs
-      ParamsWrapper,
-
-      # The same with rescue, append it at the end to wrap as much as possible.
-      Rescue
+      ParamsWrapper
     ]
 
     MODULES.each do |mod|

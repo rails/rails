@@ -67,7 +67,7 @@ module ActionController
     # This can be overwritten to customize the default generated string representation if desired.
     # If you need to read back a key from a dom_id in order to query for the underlying database record,
     # you should write a helper like 'person_record_from_dom_id' that will extract the key either based
-    # on the default implementation (which just joins all key attributes with '-') or on your own
+    # on the default implementation (which just joins all key attributes with '_') or on your own
     # overwritten version of the method. By default, this implementation passes the key string through a
     # method that replaces all characters that are invalid inside DOM ids, with valid ones. You need to
     # make sure yourself that your dom ids are valid, in case you overwrite this method.

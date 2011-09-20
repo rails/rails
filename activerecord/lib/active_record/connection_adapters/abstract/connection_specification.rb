@@ -46,9 +46,15 @@ module ActiveRecord
     #     "database"  => "path/to/dbfile"
     #   )
     #
+    # Or a URL:
+    #
+    #   ActiveRecord::Base.establish_connection(
+    #     "postgres://myuser:mypass@localhost/somedatabase"
+    #   )
+    #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
-    def self.establish_connection(spec = nil)
+    def self.establish_connection(spec = ENV["DATABASE_URL"])
       case spec
         when nil
           raise AdapterNotSpecified unless defined?(Rails.env)
@@ -58,6 +64,8 @@ module ActiveRecord
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
+          elsif spec.is_a?(String) && hash = connection_url_to_hash(spec)
+            establish_connection(hash)
           else
             raise AdapterNotSpecified, "#{spec} database is not configured"
           end
@@ -81,6 +89,24 @@ module ActiveRecord
       end
     end
 
+    def self.connection_url_to_hash(url) # :nodoc:
+      config = URI.parse url
+      adapter = config.scheme
+      adapter = "postgresql" if adapter == "postgres"
+      spec = { :adapter  => adapter,
+               :username => config.user,
+               :password => config.password,
+               :port     => config.port,
+               :database => config.path.sub(%r{^/},""),
+               :host     => config.host }
+      spec.reject!{ |_,value| !value }
+      if config.query
+        options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
+        spec.merge!(options)
+      end
+      spec
+    end
+
     class << self
       # Returns the connection currently associated with the class. This can
       # also be used to "borrow" the connection to do database work unrelated
@@ -100,7 +126,7 @@ module ActiveRecord
       end
 
       def connection_pool
-        connection_handler.retrieve_connection_pool(self)
+        connection_handler.retrieve_connection_pool(self) or raise ConnectionNotEstablished
       end
 
       def retrieve_connection

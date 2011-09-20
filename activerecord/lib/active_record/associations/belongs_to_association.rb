@@ -20,6 +20,10 @@ module ActiveRecord
 
       private
 
+        def find_target?
+          !loaded? && foreign_key_present? && klass
+        end
+
         def update_counters(record)
           counter_cache_name = reflection.counter_cache_column
 

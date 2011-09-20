@@ -20,6 +20,8 @@ module ApplicationTests
     end
 
     test "default middleware stack" do
+      add_to_config "config.action_dispatch.x_sendfile_header = 'X-Sendfile'"
+
       boot!
 
       assert_equal [
@@ -45,6 +47,12 @@ module ApplicationTests
         "Rack::ETag",
         "ActionDispatch::BestStandardsSupport"
       ], middleware
+    end
+
+    test "Rack::Sendfile is not included by default" do
+      boot!
+
+      assert !middleware.include?("Rack::Sendfile"), "Rack::Sendfile is not included in the default stack unless you set config.action_dispatch.x_sendfile_header"
     end
 
     test "Rack::Cache is present when action_controller.perform_caching is set" do

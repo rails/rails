@@ -21,8 +21,11 @@ require 'models/parrot'
 require 'models/person'
 require 'models/edge'
 require 'models/joke'
+require 'models/bulb'
+require 'models/bird'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
+require 'bcrypt'
 
 class Category < ActiveRecord::Base; end
 class Categorization < ActiveRecord::Base; end
@@ -65,6 +68,29 @@ end
 
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
+
+  def test_column_names_are_escaped
+    conn      = ActiveRecord::Base.connection
+    classname = conn.class.name[/[^:]*$/]
+    badchar   = {
+      'SQLite3Adapter'    => '"',
+      'MysqlAdapter'      => '`',
+      'Mysql2Adapter'     => '`',
+      'PostgreSQLAdapter' => '"',
+      'OracleAdapter'     => '"',
+    }.fetch(classname) {
+      raise "need a bad char for #{classname}"
+    }
+
+    quoted = conn.quote_column_name "foo#{badchar}bar"
+    if current_adapter?(:OracleAdapter)
+      # Oracle does not allow double quotes in table and column names at all
+      # therefore quoting removes them
+      assert_equal("#{badchar}foobar#{badchar}", quoted)
+    else
+      assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
+    end
+  end
 
   def test_columns_should_obey_set_primary_key
     pk = Subscriber.columns.find { |x| x.name == 'nick' }
@@ -141,25 +167,6 @@ class BasicsTest < ActiveRecord::TestCase
         "The last_read attribute should be of the Date class"
       )
     end
-  end
-
-  def test_use_table_engine_for_quoting_where
-    relation = Topic.where(Topic.arel_table[:id].eq(1))
-    engine = relation.table.engine
-
-    fakepool = Class.new(Struct.new(:spec)) {
-      def with_connection; yield self; end
-      def connection_pool; self; end
-      def table_exists?(name); false; end
-      def quote_table_name(*args); raise "lol quote_table_name"; end
-    }
-
-    relation.table.engine = fakepool.new(engine.connection_pool.spec)
-
-    error = assert_raises(RuntimeError) { relation.to_a }
-    assert_match('lol', error.message)
-  ensure
-    relation.table.engine = engine
   end
 
   def test_preserving_time_objects
@@ -258,6 +265,49 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal(1, ex.errors.size)
       assert_equal("last_read", ex.errors[0].attribute)
     end
+  end
+
+  def test_create_after_initialize_without_block
+    cb = CustomBulb.create(:name => 'Dude')
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
+  end
+
+  def test_create_after_initialize_with_block
+    cb = CustomBulb.create {|c| c.name = 'Dude' }
+    assert_equal('Dude', cb.name)
+    assert_equal(true, cb.frickinawesome)
+  end
+
+  def test_first_or_create
+    parrot = Bird.first_or_create(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    the_same_parrot = Bird.first_or_create(:color => 'yellow', :name => 'macaw')
+    assert_equal parrot, the_same_parrot
+  end
+
+  def test_first_or_create_bang
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.first_or_create! }
+    parrot = Bird.first_or_create!(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    the_same_parrot = Bird.first_or_create!(:color => 'yellow', :name => 'macaw')
+    assert_equal parrot, the_same_parrot
+  end
+
+  def test_first_or_new
+    parrot = Bird.first_or_new(:color => 'green', :name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.new_record?
+    assert parrot.valid?
+  end
+
+  def test_first_or_build
+    parrot = Bird.first_or_build(:color => 'green', :name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.new_record?
+    assert parrot.valid?
   end
 
   def test_load
@@ -488,11 +538,11 @@ class BasicsTest < ActiveRecord::TestCase
   def test_hashing
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
-  
+
   def test_comparison
     topic_1 = Topic.create!
     topic_2 = Topic.create!
-    
+
     assert_equal [topic_2, topic_1].sort, [topic_1, topic_2]
   end
 
@@ -540,7 +590,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(1, 6, 24), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_month
@@ -549,7 +599,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(2004, 1, 24), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_day
@@ -558,7 +608,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(2004, 6, 1), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_day_and_year
@@ -567,7 +617,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(1, 6, 1), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_day_and_month
@@ -576,7 +626,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(2004, 1, 1), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_empty_year_and_month
@@ -585,7 +635,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which
     # treats dates/times the same
-    assert_date_from_db Date.new(1, 1, 24), topic.last_read.to_date
+    assert_nil topic.last_read
   end
 
   def test_multiparameter_attributes_on_date_with_all_empty
@@ -678,12 +728,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal 1, topic.written_on.year
-    assert_equal 1, topic.written_on.month
-    assert_equal 1, topic.written_on.day
-    assert_equal 0, topic.written_on.hour
-    assert_equal 12, topic.written_on.min
-    assert_equal 2, topic.written_on.sec
+    assert_nil topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_will_ignore_date_if_empty
@@ -693,12 +738,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal 1, topic.written_on.year
-    assert_equal 1, topic.written_on.month
-    assert_equal 1, topic.written_on.day
-    assert_equal 16, topic.written_on.hour
-    assert_equal 24, topic.written_on.min
-    assert_equal 0, topic.written_on.sec
+    assert_nil topic.written_on
   end
   def test_multiparameter_attributes_on_time_with_seconds_will_ignore_date_if_empty
     attributes = {
@@ -707,12 +747,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal 1, topic.written_on.year
-    assert_equal 1, topic.written_on.month
-    assert_equal 1, topic.written_on.day
-    assert_equal 16, topic.written_on.hour
-    assert_equal 12, topic.written_on.min
-    assert_equal 02, topic.written_on.sec
+    assert_nil topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_with_utc
@@ -1111,6 +1146,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
+  end
+
+  def test_big_decimal_conditions
+    m = NumericData.new(
+      :bank_balance => 1586.43,
+      :big_bank_balance => BigDecimal("1000234000567.95"),
+      :world_population => 6000000000,
+      :my_house_population => 3
+    )
+    assert m.save
+    assert_equal 0, NumericData.where("bank_balance > ?", 2000.0).count
   end
 
   def test_numeric_fields
@@ -1618,6 +1664,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert !LooseDescendant.abstract_class?
   end
 
+  def test_abstract_class_table_name
+    assert_nil AbstractCompany.table_name
+  end
+
   def test_base_class
     assert_equal LoosePerson,     LoosePerson.base_class
     assert_equal LooseDescendant, LooseDescendant.base_class
@@ -1817,10 +1867,43 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_marshal_round_trip
+    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
+      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
+                  "to be a Ruby bug.")
+    end
+
     expected = posts(:welcome)
-    actual   = Marshal.load(Marshal.dump(expected))
+    marshalled = Marshal.dump(expected)
+    actual   = Marshal.load(marshalled)
 
     assert_equal expected.attributes, actual.attributes
+  end
+
+  def test_marshal_new_record_round_trip
+    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
+      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
+                  "to be a Ruby bug.")
+    end
+
+    marshalled = Marshal.dump(Post.new)
+    post       = Marshal.load(marshalled)
+
+    assert post.new_record?, "should be a new record"
+  end
+
+  def test_marshalling_with_associations
+    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
+      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
+                  "to be a Ruby bug.")
+    end
+
+    post = Post.new
+    post.comments.build
+
+    marshalled = Marshal.dump(post)
+    post       = Marshal.load(marshalled)
+
+    assert_equal 1, post.comments.length
   end
 
   def test_attribute_names
@@ -1834,5 +1917,30 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_attribtue_names_on_abstract_class
     assert_equal [], AbstractCompany.attribute_names
+  end
+
+  def test_cache_key_for_existing_record_is_not_timezone_dependent
+    ActiveRecord::Base.time_zone_aware_attributes = true
+
+    Time.zone = "UTC"
+    utc_key = Developer.first.cache_key
+
+    Time.zone = "EST"
+    est_key = Developer.first.cache_key
+
+    assert_equal utc_key, est_key
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = false
+  end
+
+  def test_cache_key_format_for_existing_record_with_updated_at
+    dev = Developer.first
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+  end
+
+  def test_cache_key_format_for_existing_record_with_nil_updated_at
+    dev = Developer.first
+    dev.update_attribute(:updated_at, nil)
+    assert_match(/\/#{dev.id}$/, dev.cache_key)
   end
 end

@@ -18,7 +18,7 @@
 #       @url        = root_path # named route from the application.
 #     end
 #   end
-# => 
+# 
 module ActionController
   module UrlFor
     extend ActiveSupport::Concern

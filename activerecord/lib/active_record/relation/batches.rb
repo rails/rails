@@ -62,15 +62,18 @@ module ActiveRecord
       start = options.delete(:start).to_i
       batch_size = options.delete(:batch_size) || 1000
 
-      relation = relation.except(:order).order(batch_order).limit(batch_size)
+      relation = relation.reorder(batch_order).limit(batch_size)
       records = relation.where(table[primary_key].gteq(start)).all
 
       while records.any?
+        records_size = records.size
+        primary_key_offset = records.last.id
+
         yield records
 
-        break if records.size < batch_size
+        break if records_size < batch_size
 
-        if primary_key_offset = records.last.id
+        if primary_key_offset
           records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
         else
           raise "Primary key not included in the custom select clause"

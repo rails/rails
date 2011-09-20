@@ -74,12 +74,12 @@ module ActionController #:nodoc:
       # The actual before_filter that is used. Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         unless verified_request?
-          logger.debug "WARNING: Can't verify CSRF token authenticity" if logger
+          logger.warn "WARNING: Can't verify CSRF token authenticity" if logger
           handle_unverified_request
         end
       end
 
-      # This is the method that defines the application behaviour when a request is found to be unverified.
+      # This is the method that defines the application behavior when a request is found to be unverified.
       # By default, \Rails resets the session when it finds an unverified request.
       def handle_unverified_request
         reset_session

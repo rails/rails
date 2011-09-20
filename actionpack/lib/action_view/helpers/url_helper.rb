@@ -55,8 +55,8 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will 
-      # trigger the named route for that record. The lookup will happen on the name of the class. So passing a 
+      # Passing a record (like an Active Record or Active Resource) instead of a Hash as the options parameter will
+      # trigger the named route for that record. The lookup will happen on the name of the class. So passing a
       # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
       #
@@ -113,7 +113,7 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of +options+.
-      # See the valid options in the documentation for +url_for+. It's also possible to 
+      # See the valid options in the documentation for +url_for+. It's also possible to
       # pass a String instead of an options hash, which generates a link tag that uses the
       # value of the String as the href for the link. Using a <tt>:back</tt> Symbol instead
       # of an options hash will generate a link to the referrer (a JavaScript back link
@@ -268,7 +268,7 @@ module ActionView
       # to change the HTTP verb used to submit the form.
       #
       # ==== Options
-      # The +options+ hash accepts the same options as url_for.
+      # The +options+ hash accepts the same options as +url_for+.
       #
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
@@ -278,7 +278,7 @@ module ActionView
       #   prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
       # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
-      #   submit behaviour. By default this behaviour is an ajax submit.
+      #   submit behavior. By default this behavior is an ajax submit.
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
       #
@@ -569,12 +569,20 @@ module ActionView
       #
       #   current_page?(:controller => 'library', :action => 'checkout')
       #   # => false
+      #
+      # Let's say we're in the <tt>/products</tt> action with method POST in case of invalid product.
+      #
+      #   current_page?(:controller => 'product', :action => 'index')
+      #   # => false
+      #
       def current_page?(options)
         unless request
           raise "You cannot use helpers that need to determine the current " \
                 "page unless your view context provides a Request object " \
                 "in a #request method"
         end
+
+        return false unless request.get?
 
         url_string = url_for(options)
 
@@ -596,9 +604,7 @@ module ActionView
 
       private
         def convert_options_to_data_attributes(options, html_options)
-          if html_options.nil?
-            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
-          else
+          if html_options
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
@@ -611,6 +617,8 @@ module ActionView
             add_method_to_attributes!(html_options, method)   if method
 
             html_options
+          else
+            link_to_remote_options?(options) ? {'data-remote' => 'true'} : {}
           end
         end
 

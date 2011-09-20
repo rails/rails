@@ -1,3 +1,5 @@
+require 'action_view/base'
+
 module AbstractController
   module ViewPaths
     extend ActiveSupport::Concern
@@ -63,7 +65,7 @@ module AbstractController
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def append_view_path(path)
-        self.view_paths = view_paths.dup + Array(path)
+        self._view_paths = view_paths + Array(path)
       end
 
       # Prepend a path to the list of view paths for this controller.
@@ -73,7 +75,7 @@ module AbstractController
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def prepend_view_path(path)
-        self.view_paths = Array(path) + view_paths.dup
+        self._view_paths = ActionView::PathSet.new(Array(path) + view_paths)
       end
 
       # A list of all of the default view paths for this controller.
@@ -87,8 +89,7 @@ module AbstractController
       # * <tt>paths</tt> - If a PathSet is provided, use that;
       #   otherwise, process the parameter into a PathSet.
       def view_paths=(paths)
-        self._view_paths = ActionView::Base.process_view_paths(paths)
-        self._view_paths.freeze
+        self._view_paths = ActionView::PathSet.new(Array.wrap(paths))
       end
     end
   end

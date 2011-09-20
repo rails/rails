@@ -14,6 +14,14 @@ module Fun
   end
 end
 
+module Quiz
+  class QuestionsController < ActionController::Base
+    def new
+      render :partial => Quiz::Question.new("Namespaced Partial")
+    end
+  end
+end
+
 class TestController < ActionController::Base
   protect_from_forgery
 
@@ -395,6 +403,14 @@ class TestController < ActionController::Base
   # :ported:
   def render_with_explicit_template
     render :template => "test/hello_world"
+  end
+
+  def render_with_explicit_unescaped_template
+    render :template => "test/h*llo_world"
+  end
+
+  def render_with_explicit_escaped_template
+    render :template => "test/hello,world"
   end
 
   def render_with_explicit_string_template
@@ -1049,6 +1065,12 @@ class RenderTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_render_with_explicit_unescaped_template
+    assert_raise(ActionView::MissingTemplate) { get :render_with_explicit_unescaped_template }
+    get :render_with_explicit_escaped_template
+    assert_equal "Hello w*rld!", @response.body
+  end
+
   def test_render_with_explicit_string_template
     get :render_with_explicit_string_template
     assert_equal "<html>Hello world!</html>", @response.body
@@ -1249,6 +1271,12 @@ class RenderTest < ActionController::TestCase
     get :nested_partial_with_form_builder
     assert_match(/<label/, @response.body)
     assert_template('fun/games/_form')
+  end
+
+  def test_namespaced_object_partial
+    @controller = Quiz::QuestionsController.new
+    get :new
+    assert_equal "Namespaced Partial", @response.body
   end
 
   def test_partial_collection

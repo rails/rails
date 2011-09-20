@@ -12,8 +12,7 @@ module ActionView
   #
   #  <%= render :partial => "account" %>
   #
-  # This would render "advertiser/_account.html.erb" and pass the instance variable @account in as a local variable
-  # +account+ to the template for display.
+  # This would render "advertiser/_account.html.erb".
   #
   # In another template for Advertiser#buy, we could have:
   #
@@ -28,32 +27,24 @@ module ActionView
   #
   # == The :as and :object options
   #
-  # By default <tt>ActionView::Partials::PartialRenderer</tt> has its object in a local variable with the same
-  # name as the template. So, given
-  #
-  #   <%= render :partial => "contract" %>
-  #
-  # within contract we'll get <tt>@contract</tt> in the local variable +contract+, as if we had written
-  #
-  #   <%= render :partial => "contract", :locals => { :contract  => @contract } %>
-  #
-  # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
-  # wanted it to be +agreement+ instead of +contract+ we'd do:
-  #
-  #   <%= render :partial => "contract", :as => 'agreement' %>
-  #
-  # The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial;
-  # useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
-  #
-  # Revisiting a previous example we could have written this code:
+  # By default <tt>ActionView::Partials::PartialRenderer</tt> doesn't have any local variables.
+  # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
   #
   #   <%= render :partial => "account", :object => @buyer %>
   #
-  #   <% @advertisements.each do |ad| %>
-  #     <%= render :partial => "ad", :object => ad %>
-  #   <% end %>
+  # would provide the +@buyer+ object to the partial, available under the local variable +account+ and is
+  # equivalent to:
   #
-  # The <tt>:object</tt> and <tt>:as</tt> options can be used together.
+  #   <%= render :partial => "account", :locals => { :account => @buyer } %>
+  #
+  # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
+  # wanted it to be +user+ instead of +account+ we'd do:
+  #
+  #   <%= render :partial => "account", :object => @buyer, :as => 'user' %>
+  #
+  # This is equivalent to
+  #
+  #   <%= render :partial => "account", :locals => { :user => @buyer } %>
   #
   # == Rendering a collection of partials
   #
@@ -215,11 +206,12 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer #:nodoc:
-    PARTIAL_NAMES = Hash.new {|h,k| h[k] = {} }
+    PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
 
     def initialize(*)
       super
-      @partial_names = PARTIAL_NAMES[@lookup_context.prefixes.first]
+      @context_prefix = @lookup_context.prefixes.first
+      @partial_names = PARTIAL_NAMES[@context_prefix]
     end
 
     def render(context, options, block)
@@ -301,6 +293,12 @@ module ActionView
         paths.map! { |path| retrieve_variable(path).unshift(path) }
       end
 
+      if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
+        raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
+                                "make sure your partial name starts with a letter or underscore, " +
+                                "and is followed by any combinations of letters, numbers, or underscores.")
+      end
+
       self
     end
 
@@ -364,13 +362,32 @@ module ActionView
     end
 
     def partial_path(object = @object)
-      @partial_names[object.class.name] ||= begin
-        object = object.to_model if object.respond_to?(:to_model)
+      object = object.to_model if object.respond_to?(:to_model)
 
-        object.class.model_name.partial_path.dup.tap do |partial|
-          path = @lookup_context.prefixes.first
-          partial.insert(0, "#{File.dirname(path)}/") if partial.include?(?/) && path.include?(?/)
+      path = if object.respond_to?(:to_partial_path)
+        object.to_partial_path
+      else
+        ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_partial_path directly instead."
+        object.class.model_name.partial_path
+      end
+
+      @partial_names[path] ||= path.dup.tap do |object_path|
+        merge_prefix_into_object_path(@context_prefix, object_path)
+      end
+    end
+
+    def merge_prefix_into_object_path(prefix, object_path)
+      if prefix.include?(?/) && object_path.include?(?/)
+        overlap = []
+        prefix_array = File.dirname(prefix).split('/')
+        object_path_array = object_path.split('/')[0..-3] # skip model dir & partial
+
+        prefix_array.each_with_index do |dir, index|
+          overlap << dir if dir == object_path_array[index]
         end
+
+        object_path.gsub!(/^#{overlap.join('/')}\//,'')
+        object_path.insert(0, "#{File.dirname(prefix)}/")
       end
     end
 

@@ -85,6 +85,7 @@ module ActionDispatch
     class CookieOverflow < StandardError; end
 
     class CookieJar #:nodoc:
+      include Enumerable
 
       # This regular expression is used to split the levels of a domain.
       # The top level domain can be any string without a period or
@@ -123,6 +124,10 @@ module ActionDispatch
       attr_reader :closed
       alias :closed? :closed
       def close!; @closed = true end
+
+      def each(&block)
+        @cookies.each(&block)
+      end
 
       # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
       def [](name)

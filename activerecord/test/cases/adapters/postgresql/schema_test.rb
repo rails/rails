@@ -91,6 +91,12 @@ class SchemaTest < ActiveRecord::TestCase
     end
   end
 
+  def test_table_exists_quoted_table
+    with_schema_search_path(SCHEMA_NAME) do
+        assert(@connection.table_exists?('"things.table"'), "table should exist")
+    end
+  end
+
   def test_with_schema_prefixed_table_name
     assert_nothing_raised do
       assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{TABLE_NAME}")
@@ -216,21 +222,6 @@ class SchemaTest < ActiveRecord::TestCase
       pk, seq = @connection.pk_and_sequence_for(given)
       assert_equal 'id', pk, "primary key should be found when table referenced as #{given}"
       assert_equal "#{SCHEMA_NAME}.#{PK_TABLE_NAME}_id_seq", seq, "sequence name should be found when table referenced as #{given}"
-    end
-  end
-
-  def test_extract_schema_and_table
-    {
-      %(table_name)            => [nil,'table_name'],
-      %("table.name")          => [nil,'table.name'],
-      %(schema.table_name)     => %w{schema table_name},
-      %("schema".table_name)   => %w{schema table_name},
-      %(schema."table_name")   => %w{schema table_name},
-      %("schema"."table_name") => %w{schema table_name},
-      %("even spaces".table)   => ['even spaces','table'],
-      %(schema."table.name")   => ['schema', 'table.name']
-    }.each do |given, expect|
-      assert_equal expect, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::Utils.extract_schema_and_table(given)
     end
   end
 

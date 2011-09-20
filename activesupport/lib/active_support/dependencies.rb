@@ -229,11 +229,15 @@ module ActiveSupport #:nodoc:
       end
 
       def load(file, *)
-        load_dependency(file) { super }
+        result = false
+        load_dependency(file) { result = super }
+        result
       end
 
       def require(file, *)
-        load_dependency(file) { super }
+        result = false
+        load_dependency(file) { result = super }
+        result
       end
 
       # Mark the given constant as unloadable. Unloadable constants are removed each
@@ -417,7 +421,8 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      autoload_once_paths.any? { |base| path.starts_with? base }
+      # to_s works around a ruby1.9 issue where #starts_with?(Pathname) will always return false
+      autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
 
     # Attempt to autoload the provided module name by searching for a directory
@@ -478,10 +483,6 @@ module ActiveSupport #:nodoc:
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
 
-      trace = caller.reject {|l| l =~ %r{#{Regexp.escape(__FILE__)}}}
-      name_error = NameError.new("uninitialized constant #{qualified_name}")
-      name_error.set_backtrace(trace)
-
       file_path = search_for_file(path_suffix)
 
       if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
@@ -500,11 +501,12 @@ module ActiveSupport #:nodoc:
           return parent.const_missing(const_name)
         rescue NameError => e
           raise unless e.missing_name? qualified_name_for(parent, const_name)
-          raise name_error
         end
-      else
-        raise name_error
       end
+
+      raise NameError,
+            "uninitialized constant #{qualified_name}",
+            caller.reject {|l| l.starts_with? __FILE__ }
     end
 
     # Remove the constants that have been autoloaded, and those that have been

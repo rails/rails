@@ -26,7 +26,9 @@ class NamingTest < ActiveModel::TestCase
   end
 
   def test_partial_path
-    assert_equal 'post/track_backs/track_back', @model_name.partial_path
+    assert_deprecated(/#partial_path.*#to_partial_path/) do
+      assert_equal 'post/track_backs/track_back', @model_name.partial_path
+    end
   end
 
   def test_human
@@ -56,7 +58,9 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
   end
 
   def test_partial_path
-    assert_equal 'blog/posts/post', @model_name.partial_path
+    assert_deprecated(/#partial_path.*#to_partial_path/) do
+      assert_equal 'blog/posts/post', @model_name.partial_path
+    end
   end
 
   def test_human
@@ -98,7 +102,9 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
   end
 
   def test_partial_path
-    assert_equal 'blog/posts/post', @model_name.partial_path
+    assert_deprecated(/#partial_path.*#to_partial_path/) do
+      assert_equal 'blog/posts/post', @model_name.partial_path
+    end
   end
 
   def test_human
@@ -136,7 +142,9 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
   end
 
   def test_partial_path
-    assert_equal 'articles/article', @model_name.partial_path
+    assert_deprecated(/#partial_path.*#to_partial_path/) do
+      assert_equal 'articles/article', @model_name.partial_path
+    end
   end
 
   def test_human

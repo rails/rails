@@ -4,6 +4,7 @@ ARGV << '--help' if ARGV.empty?
 
 aliases = {
   "g"  => "generate",
+  "d"  => "destroy",
   "c"  => "console",
   "s"  => "server",
   "db" => "dbconsole",
@@ -87,13 +88,13 @@ The most common rails commands are:
 
 In addition to those, there are:
  application  Generate the Rails application code
- destroy      Undo code generated with "generate"
+ destroy      Undo code generated with "generate" (short-cut alias: "d")
  benchmarker  See how fast a piece of code runs
  profiler     Get profile information from a piece of code
  plugin       Install a plugin
  runner       Run a piece of code in the application environment (short-cut alias: "r")
 
-All commands can be run with -h for more information.
+All commands can be run with -h (or --help) for more information.
   EOT
   exit(1)
 end

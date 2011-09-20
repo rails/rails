@@ -182,3 +182,30 @@ modules:
    p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
+  
+
+== Download and installation
+
+The latest version of Active Model can be installed with RubyGems:
+
+  % [sudo] gem install activemodel
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/activemodel
+
+
+== License
+
+Active Model is released under the MIT license.
+
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.org
+
+Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues

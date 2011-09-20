@@ -297,4 +297,37 @@ class ValidationsTest < ActiveModel::TestCase
 
     assert auto.valid?
   end
+
+  def test_strict_validation_in_validates
+    Topic.validates :title, :strict => true, :presence => true
+    assert_raises ActiveModel::StrictValidationFailed do
+      Topic.new.valid?
+    end
+  end
+
+  def test_strict_validation_not_fails
+    Topic.validates :title, :strict => true, :presence => true
+    assert Topic.new(:title => "hello").valid?
+  end
+
+  def test_strict_validation_particular_validator
+    Topic.validates :title,  :presence => {:strict => true}
+    assert_raises ActiveModel::StrictValidationFailed do
+      Topic.new.valid?
+    end
+  end
+
+  def test_strict_validation_in_custom_validator_helper
+    Topic.validates_presence_of :title, :strict => true
+    assert_raises ActiveModel::StrictValidationFailed do
+      Topic.new.valid?
+    end
+  end
+
+  def test_validates_with_bang
+    Topic.validates! :title,  :presence => true
+    assert_raises ActiveModel::StrictValidationFailed do
+      Topic.new.valid?
+    end
+  end
 end

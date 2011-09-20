@@ -4,24 +4,25 @@ gemspec
 
 if ENV['AREL']
   gem "arel", :path => ENV['AREL']
-else
-  gem "arel", '~> 2.1.3'
 end
 
+gem "bcrypt-ruby", "~> 3.0.0"
 gem "jquery-rails"
-gem "coffee-script"
-gem "sass"
-
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem "uglifier", ">= 1.0.0", :require => false
+gem "uglifier", ">= 1.0.3", :require => false
 
-gem "rake",  ">= 0.8.7"
+# Temp fix until rake 0.9.3 is out
+if RUBY_VERSION >= "1.9.3"
+  gem "rake", "0.9.3.beta.1"
+else
+  gem "rake", ">= 0.8.7"
+end
 gem "mocha", ">= 0.9.8"
 
 group :doc do
   gem "rdoc",  "~> 3.4"
-  gem "horo",  "= 1.0.3"
+  gem "sdoc",  "~> 0.3"
   gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
   gem "w3c_validators"
 end
@@ -31,13 +32,19 @@ gem "memcache-client", ">= 1.8.5"
 
 platforms :mri_18 do
   gem "system_timer"
-  gem "ruby-debug", ">= 0.10.3"
+  gem "ruby-debug", ">= 0.10.3" unless ENV['TRAVIS']
   gem "json"
 end
 
 platforms :mri_19 do
   # TODO: Remove the conditional when ruby-debug19 supports Ruby >= 1.9.3
-  gem "ruby-debug19", :require => "ruby-debug" if RUBY_VERSION < "1.9.3"
+  gem "ruby-debug19", :require => "ruby-debug" unless RUBY_VERSION > "1.9.2" || ENV['TRAVIS']
+end
+
+platforms :mri do
+  group :test do
+    gem "ruby-prof" if RUBY_VERSION < "1.9.3"
+  end
 end
 
 platforms :ruby do
@@ -48,15 +55,11 @@ platforms :ruby do
   gem "yajl-ruby"
   gem "nokogiri", ">= 1.4.5"
 
-  group :test do
-    gem "ruby-prof" if RUBY_VERSION < "1.9.3"
-
-  end
   # AR
   gem "sqlite3", "~> 1.3.3"
 
   group :db do
-    gem "pg", ">= 0.11.0"
+    gem "pg", ">= 0.11.0" unless ENV['TRAVIS'] # once pg is on travis this can be removed
     gem "mysql", ">= 2.8.1"
     gem "mysql2", ">= 0.3.6"
   end

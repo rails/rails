@@ -79,28 +79,19 @@ module ApplicationTests
 
       silence_stderr do
         output = Dir.chdir(app_path){ `rake test` }
-        assert_match /Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output
-        assert_match /Errors running test:functionals! #<RuntimeError/, output
-        assert_match /Errors running test:integration! #<RuntimeError/, output
+        assert_match(/Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output)
+        assert_match(/Errors running test:functionals! #<RuntimeError/, output)
+        assert_match(/Errors running test:integration! #<RuntimeError/, output)
       end
     end
 
-    def test_rake_routes_output_strips_anchors_from_http_verbs
+    def test_rake_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
           get '/cart', :to => 'cart#show'
         end
       RUBY
-      assert_match 'cart GET /cart(.:format)', Dir.chdir(app_path){ `rake routes` }
-    end
-
-    def test_rake_routes_shows_custom_assets
-      app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          get '/custom/assets', :to => 'custom_assets#show'
-        end
-      RUBY
-      assert_match 'custom_assets GET /custom/assets(.:format)', Dir.chdir(app_path){ `rake routes` }
+      assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
@@ -133,6 +124,55 @@ module ApplicationTests
       assert_match(/CreateUsers: reverted/, output)
       assert_match(/remove_column\("users", :email\)/, output)
       assert_match(/AddEmailToUsers: reverted/, output)
+    end
+
+    def test_migration_status_when_schema_migrations_table_is_not_present
+      output = Dir.chdir(app_path){ `rake db:migrate:status` }
+      assert_equal "Schema migrations table does not exist yet.\n", output
+    end
+
+    def test_migration_status
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate migration add_email_to_users email:string`
+      end
+
+      Dir.chdir(app_path) { `rake db:migrate`}
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:rollback STEP=1` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/down\s+\d{14}\s+Add email to users/, output)
+    end
+
+    def test_migration_status_after_rollback_and_redo
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate migration add_email_to_users email:string`
+      end
+
+      Dir.chdir(app_path) { `rake db:migrate`}
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:rollback STEP=2` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/down\s+\d{14}\s+Create users/, output)
+      assert_match(/down\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:migrate:redo` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
     end
 
     def test_loading_specific_fixtures

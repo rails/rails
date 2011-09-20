@@ -69,7 +69,7 @@ module ActionView
           host = "#{compute_protocol(protocol)}#{host}"
         end
       end
-      host.nil? ? source : "#{host}#{source}"
+      host ? "#{host}#{source}" : source
     end
 
     def compute_protocol(protocol)

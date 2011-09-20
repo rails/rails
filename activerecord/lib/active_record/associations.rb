@@ -460,6 +460,12 @@ module ActiveRecord
     # * <tt>record.association(:items).target</tt> - Returns the associated object for +belongs_to+ and +has_one+, or
     #   the collection of associated objects for +has_many+ and +has_and_belongs_to_many+.
     #
+    # However, inside the actual extension code, you will not have access to the <tt>record</tt> as
+    # above. In this case, you can access <tt>proxy_association</tt>. For example,
+    # <tt>record.association(:items)</tt> and <tt>record.items.proxy_association</tt> will return
+    # the same object, allowing you to make calls like <tt>proxy_association.owner</tt> inside
+    # association extensions.
+    #
     # === Association Join Models
     #
     # Has Many associations can be configured with the <tt>:through</tt> option to use an
@@ -1081,7 +1087,8 @@ module ActiveRecord
       #
       # [:finder_sql]
       #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
-      #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+
+      #   associations that depend on multiple tables. May be supplied as a string or a proc where interpolation is
+      #   required. Note: When this option is used, +find_in_collection+
       #   is _not_ added.
       # [:counter_sql]
       #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
@@ -1156,11 +1163,14 @@ module ActiveRecord
       #   has_many :tags, :as => :taggable
       #   has_many :reports, :readonly => true
       #   has_many :subscribers, :through => :subscriptions, :source => :user
-      #   has_many :subscribers, :class_name => "Person", :finder_sql =>
-      #       'SELECT DISTINCT people.* ' +
-      #       'FROM people p, post_subscriptions ps ' +
-      #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
-      #       'ORDER BY p.first_name'
+      #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
+      #       %Q{
+      #         SELECT DISTINCT people.*
+      #         FROM people p, post_subscriptions ps
+      #         WHERE ps.post_id = #{id} AND ps.person_id = p.id
+      #         ORDER BY p.first_name
+      #       }
+      #   }
       def has_many(name, options = {}, &extension)
         Builder::HasMany.build(self, name, options, &extension)
       end

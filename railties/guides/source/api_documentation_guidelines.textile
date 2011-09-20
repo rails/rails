@@ -35,7 +35,7 @@ Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite databa
 
 h3. English
 
-Please use American English (_color_, _center_, _modularize_, etc.). See "a list of American and British English spelling differences here":http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences.
+Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc.). See "a list of American and British English spelling differences here":http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences.
 
 h3. Example Code
 
@@ -78,14 +78,14 @@ The result of expressions follow them and are introduced by "# => ", vertically 
 If a line is too long, the comment may be placed on the next line:
 
 <ruby>
-  #   label(:post, :title)
-  #   # => <label for="post_title">Title</label>
-  #
-  #   label(:post, :title, "A short title")
-  #   # => <label for="post_title">A short title</label>
-  #
-  #   label(:post, :title, "A short title", :class => "title_label")
-  #   # => <label for="post_title" class="title_label">A short title</label>
+#   label(:post, :title)
+#   # => <label for="post_title">Title</label>
+#
+#   label(:post, :title, "A short title")
+#   # => <label for="post_title">A short title</label>
+#
+#   label(:post, :title, "A short title", :class => "title_label")
+#   # => <label for="post_title" class="title_label">A short title</label>
 </ruby>
 
 Avoid using any printing methods like +puts+ or +p+ for that purpose.
@@ -105,7 +105,6 @@ config/routes.rb            # YES
 routes.rb                   # NO
 RAILS_ROOT/config/routes.rb # NO
 </plain>
-
 
 h3. Fonts
 
@@ -188,4 +187,3 @@ self.class_eval %{
 h3. Changelog
 
 * July 17, 2010: ported from the docrails wiki and revised by "Xavier Noria":credits.html#fxn
-

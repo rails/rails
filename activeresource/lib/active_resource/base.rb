@@ -395,7 +395,7 @@ module ActiveResource
         #   Subclass.site.user = 'david'
         #   Parent.site # => 'http://david@test.com'
         #
-        # Without superclass_delegating_reader (expected behaviour)
+        # Without superclass_delegating_reader (expected behavior)
         #
         #   Parent.site = 'http://anonymous@test.com'
         #   Subclass.site # => 'http://anonymous@test.com'
@@ -955,7 +955,7 @@ module ActiveResource
           prefix_options, query_options = {}, {}
 
           (options || {}).each do |key, value|
-            next if key.blank?
+            next if key.blank? || !key.respond_to?(:to_sym)
             (prefix_parameters.include?(key.to_sym) ? prefix_options : query_options)[key.to_sym] = value
           end
 

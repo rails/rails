@@ -25,6 +25,40 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
+      class FakeBase < ActiveRecord::Base
+        def self.establish_connection spec
+          String === spec ? super : spec
+        end
+      end
+
+      def test_url_host_no_db
+        spec = FakeBase.establish_connection 'postgres://foo?encoding=utf8'
+        assert_equal({
+          :adapter  => "postgresql",
+          :database => "",
+          :host     => "foo",
+          :encoding => "utf8" }, spec)
+      end
+
+      def test_url_host_db
+        spec = FakeBase.establish_connection 'postgres://foo/bar?encoding=utf8'
+        assert_equal({
+          :adapter  => "postgresql",
+          :database => "bar",
+          :host     => "foo",
+          :encoding => "utf8" }, spec)
+      end
+
+      def test_url_port
+        spec = FakeBase.establish_connection 'postgres://foo:123?encoding=utf8'
+        assert_equal({
+          :adapter  => "postgresql",
+          :database => "",
+          :port     => 123,
+          :host     => "foo",
+          :encoding => "utf8" }, spec)
+      end
+
       def test_app_delegation
         manager = ConnectionManagement.new(@app)
 

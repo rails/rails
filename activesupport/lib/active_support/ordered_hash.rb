@@ -6,7 +6,7 @@ end
 require 'yaml'
 
 YAML.add_builtin_type("omap") do |type, val|
-  ActiveSupport::OrderedHash[val.map(&:to_a).map(&:first)]
+  ActiveSupport::OrderedHash[val.map{ |v| v.to_a.first }]
 end
 
 module ActiveSupport
@@ -45,6 +45,11 @@ module ActiveSupport
 
     def nested_under_indifferent_access
       self
+    end
+
+    # Returns true to make sure that this hash is extractable via <tt>Array#extract_options!</tt>
+    def extractable_options?
+      true
     end
 
     # Hash is ordered in Ruby 1.9!

@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/object/blank'
+require 'active_record/connection_adapters/statement_pool'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -246,6 +247,47 @@ module ActiveRecord
         true
       end
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        def initialize(connection, max)
+          super
+          @counter = 0
+          @cache   = Hash.new { |h,pid| h[pid] = {} }
+        end
+
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
+
+        def next_key
+          "a#{@counter + 1}"
+        end
+
+        def []=(sql, key)
+          while @max <= cache.size
+            dealloc(cache.shift.last)
+          end
+          @counter += 1
+          cache[sql] = key
+        end
+
+        def clear
+          cache.each_value do |stmt_key|
+            dealloc stmt_key
+          end
+          cache.clear
+        end
+
+        private
+        def cache
+          @cache[$$]
+        end
+
+        def dealloc(key)
+          @connection.query "DEALLOCATE #{key}"
+        end
+      end
+
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
@@ -254,9 +296,10 @@ module ActiveRecord
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
         @table_alias_length = nil
-        @statements = {}
 
         connect
+        @statements = StatementPool.new @connection,
+                                        config.fetch(:statement_limit) { 1000 }
 
         if postgresql_version < 80200
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
@@ -265,11 +308,12 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
+      def self.visitor_for(pool) # :nodoc:
+        Arel::Visitors::PostgreSQL.new(pool)
+      end
+
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.each_value do |value|
-          @connection.query "DEALLOCATE #{value}"
-        end
         @statements.clear
       end
 
@@ -614,9 +658,11 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def recreate_database(name) #:nodoc:
+      # Drops the database specified on the +name+ attribute
+      # and creates it again using the provided +options+.
+      def recreate_database(name, options = {}) #:nodoc:
         drop_database(name)
-        create_database(name)
+        create_database(name, options)
       end
 
       # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
@@ -677,12 +723,12 @@ module ActiveRecord
         binds << [nil, schema] if schema
 
         exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
-          SELECT COUNT(*)
-          FROM pg_class c
-          LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-          WHERE c.relkind in ('v','r')
-          AND c.relname = $1
-          AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
+            SELECT COUNT(*)
+            FROM pg_class c
+            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind in ('v','r')
+            AND c.relname = $1
+            AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
         SQL
       end
 
@@ -948,6 +994,8 @@ module ActiveRecord
       end
 
       module Utils
+        extend self
+
         # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
         # +schema_name+ is nil if not specified in +name+.
         # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
@@ -958,7 +1006,7 @@ module ActiveRecord
         # * <tt>schema_name.table_name</tt>
         # * <tt>schema_name."table.name"</tt>
         # * <tt>"schema.name"."table name"</tt>
-        def self.extract_schema_and_table(name)
+        def extract_schema_and_table(name)
           table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
           [schema, table]
         end
@@ -988,7 +1036,7 @@ module ActiveRecord
 
         def exec_cache(sql, binds)
           unless @statements.key? sql
-            nextkey = "a#{@statements.length + 1}"
+            nextkey = @statements.next_key
             @connection.prepare nextkey, sql
             @statements[sql] = nextkey
           end

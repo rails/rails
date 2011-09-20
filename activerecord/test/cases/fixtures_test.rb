@@ -20,6 +20,7 @@ require 'models/book'
 require 'models/admin'
 require 'models/admin/account'
 require 'models/admin/user'
+require 'tempfile'
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
@@ -43,6 +44,21 @@ class FixturesTest < ActiveRecord::TestCase
         }
       }
     end
+  end
+
+  def test_broken_yaml_exception
+    badyaml = Tempfile.new ['foo', '.yml']
+    badyaml.write 'a: !ruby.yaml.org,2002:str |\nfoo'
+    badyaml.flush
+
+    dir  = File.dirname badyaml.path
+    name =File.basename badyaml.path, '.yml'
+    assert_raises(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::Fixtures.create_fixtures(dir, name)
+    end
+  ensure
+    badyaml.close
+    badyaml.unlink
   end
 
   def test_create_fixtures
@@ -587,8 +603,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_preserves_existing_fixture_data
-    assert_equal(2.weeks.ago.utc.to_date, pirates(:redbeard).created_on.utc.to_date)
-    assert_equal(2.weeks.ago.utc.to_date, pirates(:redbeard).updated_on.utc.to_date)
+    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).created_on.to_date)
+    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).updated_on.to_date)
   end
 
   def test_generates_unique_ids

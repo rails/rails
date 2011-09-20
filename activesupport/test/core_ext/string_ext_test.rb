@@ -6,11 +6,17 @@ require 'inflector_test_cases'
 require 'active_support/inflector'
 require 'active_support/core_ext/string'
 require 'active_support/time'
-require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/string/strip'
+require 'active_support/core_ext/string/output_safety'
 
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
+
+  def test_erb_escape
+    string = [192, 60].pack('CC')
+    expected = 192.chr + "&lt;"
+    assert_equal expected, ERB::Util.html_escape(string)
+  end
 
   def test_strip_heredoc_on_an_empty_string
     assert_equal '', ''.strip_heredoc
@@ -158,7 +164,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:local)
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
     assert_equal Time.local_time(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
-    assert_equal Time.utc(2039, 2, 27, 23, 50), "2039-02-27 22:50 -0100".to_time
+    assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time
     assert_nil "".to_time
   end
 

@@ -698,8 +698,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/44", "edit_post_44" , "edit_post", :method => "put") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
-      "<input name='commit' type='submit' value='Edit post' />" +
-      "</form>"
+      "<input name='commit' type='submit' value='Edit post' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -776,6 +775,23 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote
     form_for(@post, :url => '/', :remote => true, :html => { :id => 'create-post', :method => :put }) do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+    end
+
+    expected =  whole_form("/", "create-post", "edit_post", :method => "put", :remote => true) do
+      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_remote_in_html
+    form_for(@post, :url => '/', :html => { :remote => true, :id => 'create-post', :method => :put }) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
@@ -1872,6 +1888,17 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_equal LabelledFormBuilder, klass
+  end
+
+  def test_form_for_with_labelled_builder_path
+    path = nil
+
+    form_for(@post, :builder => LabelledFormBuilder) do |f|
+      path = f.to_partial_path
+      ''
+    end
+
+    assert_equal 'labelled_form', path
   end
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end

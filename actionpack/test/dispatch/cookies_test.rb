@@ -148,6 +148,22 @@ class CookiesTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  def test_each
+    request.cookie_jar['foo'] = :bar
+    list = []
+    request.cookie_jar.each do |k,v|
+      list << [k, v]
+    end
+
+    assert_equal [['foo', :bar]], list
+  end
+
+  def test_enumerable
+    request.cookie_jar['foo'] = :bar
+    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
+    assert_equal [['foo', 'bar']], actual
+  end
+
   def test_key_methods
     assert !request.cookie_jar.key?(:foo)
     assert !request.cookie_jar.has_key?("foo")

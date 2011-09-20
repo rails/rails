@@ -15,7 +15,7 @@ end
 RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
   rdoc.title    = '<%= camelized %>'
-  rdoc.options << '--line-numbers' << '--inline-source'
+  rdoc.options << '--line-numbers'
   rdoc.rdoc_files.include('README.rdoc')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
@@ -23,4 +23,9 @@ end
 <% if full? && !options[:skip_active_record] -%>
 APP_RAKEFILE = File.expand_path("../<%= dummy_path -%>/Rakefile", __FILE__)
 load 'rails/tasks/engine.rake'
+<% end %>
+
+<% unless options[:skip_gemspec] -%>
+
+Bundler::GemHelper.install_tasks
 <% end %>

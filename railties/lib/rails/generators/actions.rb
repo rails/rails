@@ -68,7 +68,32 @@ module Rails
         end
 
         in_root do
-          append_file "Gemfile", "gem #{parts.join(", ")}\n", :verbose => false
+          str = "gem #{parts.join(", ")}\n"
+          str = "  " + str if @in_group
+          append_file "Gemfile", str, :verbose => false
+        end
+      end
+
+      # Wraps gem entries inside a group.
+      #
+      # ==== Example
+      #
+      #   gem_group :development, :test do
+      #     gem "rspec-rails"
+      #   end
+      #
+      def gem_group(*names, &block)
+        name = names.map(&:inspect).join(", ")
+        log :gemfile, "group #{name}"
+
+        in_root do
+          append_file "Gemfile", "\ngroup #{name} do\n", :force => true
+
+          @in_group = true
+          instance_eval &block
+          @in_group = false
+
+          append_file "Gemfile", "end\n", :force => true
         end
       end
 
@@ -92,14 +117,15 @@ module Rails
       #
       def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i
+        env_file_sentinel = /::Application\.configure do/
         data = block.call if !data && block_given?
 
         in_root do
           if options[:env].nil?
-            inject_into_file 'config/application.rb', "\n  #{data}", :after => sentinel, :verbose => false
+            inject_into_file 'config/application.rb', "\n    #{data}", :after => sentinel, :verbose => false
           else
-            Array.wrap(options[:env]).each do|env|
-              append_file "config/environments/#{env}.rb", "\n#{data}", :verbose => false
+            Array.wrap(options[:env]).each do |env|
+              inject_into_file "config/environments/#{env}.rb", "\n  #{data}", :after => env_file_sentinel, :verbose => false
             end
           end
         end
@@ -118,8 +144,8 @@ module Rails
         if commands.is_a?(Symbol)
           run "git #{commands}"
         else
-          commands.each do |command, options|
-            run "git #{command} #{options}"
+          commands.each do |cmd, options|
+            run "git #{cmd} #{options}"
           end
         end
       end

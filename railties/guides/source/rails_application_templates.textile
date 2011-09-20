@@ -11,22 +11,18 @@ endprologue.
 
 h3. Usage
 
-To apply a template, you need to provide the Rails generator with the location of the template you wish to apply, using -m option:
+To apply a template, you need to provide the Rails generator with the location of the template you wish to apply, using -m option. This can either be path to a file or a URL.
 
 <shell>
 $ rails new blog -m ~/template.rb
+$ rails new blog -m http://example.com/template.rb
 </shell>
 
-It's also possible to apply a template using a URL:
-
-<shell>
-$ rails new blog -m https://gist.github.com/755496.txt
-</shell>
-
-Alternatively, you can use the rake task +rails:template+ to apply a template to an existing Rails application:
+You can use the rake task +rails:template+ to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
 
 <shell>
 $ rake rails:template LOCATION=~/template.rb
+$ rake rails:template LOCATION=http://example.com/template.rb
 </shell>
 
 h3. Template API
@@ -62,6 +58,18 @@ Please note that this will NOT install the gems for you and you will have to run
 
 <ruby>
 bundle install
+</ruby>
+
+h4. gem_group(*names, &block)
+
+Wraps gem entries inside a group.
+
+For example, if you want to load +rspec-rails+ only in +development+ and +test+ group:
+
+<ruby>
+gem_group :development, :test do
+  gem "rspec-rails"
+end
 </ruby>
 
 h4. add_source(source, options = {})
@@ -152,7 +160,7 @@ The above creates +lib/tasks/bootstrap.rake+ with a +boot:strap+ rake task.
 
 h4. generate(what, args)
 
-Runs the supplied rails generator with given arguments. For example, I love to scaffold some whenever I’m playing with Rails:
+Runs the supplied rails generator with given arguments.
 
 <ruby>
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
@@ -178,12 +186,6 @@ You can also run rake tasks with a different Rails environment:
 
 <ruby>
 rake "db:migrate", :env => 'production'
-</ruby>
-
-Or even use sudo:
-
-<ruby>
-rake "gems:install", :sudo => true
 </ruby>
 
 h4. route(routing_code)

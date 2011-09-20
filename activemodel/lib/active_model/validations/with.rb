@@ -61,7 +61,9 @@ module ActiveModel
       #   (e.g. <tt>:unless => :skip_validation</tt>, or
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or false value.
-      #
+      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
+
       # If you pass any additional configuration options, they will be passed
       # to the class and available as <tt>options</tt>:
       #
@@ -101,7 +103,7 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Validations
     #
-    #     validates :instance_validations
+    #     validate :instance_validations
     #
     #     def instance_validations
     #       validates_with MyValidator
@@ -116,7 +118,7 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Validations
     #
-    #     validates :instance_validations, :on => :create
+    #     validate :instance_validations, :on => :create
     #
     #     def instance_validations
     #       validates_with MyValidator, MyOtherValidator

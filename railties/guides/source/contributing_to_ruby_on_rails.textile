@@ -104,7 +104,6 @@ $ cd railties
 $ TEST_DIR=generators rake test
 </shell>
 
-
 h4. Warnings
 
 The test suite runs with warnings enabled. Ideally Ruby on Rails should issue no warning, but there may be a few, and also some from third-party libraries. Please ignore (or fix!) them if any, and submit patches that do not issue new warnings.
@@ -285,7 +284,7 @@ $ cd rails
 $ git checkout -b my_new_branch
 </shell>
 
-It doesn’t really matter what name you use, because this branch will only exist on your local computer.
+It doesn’t really matter what name you use, because this branch will only exist on your local computer and your personal repository on Github. It won't be part of the Rails git repository.
 
 h4. Write Your Code
 

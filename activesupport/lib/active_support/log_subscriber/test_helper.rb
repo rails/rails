@@ -18,8 +18,8 @@ module ActiveSupport
     #       Developer.all
     #       wait
     #       assert_equal 1, @logger.logged(:debug).size
-    #       assert_match /Developer Load/, @logger.logged(:debug).last
-    #       assert_match /SELECT \* FROM "developers"/, @logger.logged(:debug).last
+    #       assert_match(/Developer Load/, @logger.logged(:debug).last)
+    #       assert_match(/SELECT \* FROM "developers"/, @logger.logged(:debug).last)
     #     end
     #   end
     #

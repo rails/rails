@@ -20,7 +20,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(/[&"><]/) { |special| HTML_ESCAPE[special] }.html_safe
+        s.to_s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
       end
     end
 
@@ -86,6 +86,12 @@ module ActiveSupport #:nodoc:
       end
     end
 
+    def[](*args)
+      new_safe_buffer = super
+      new_safe_buffer.instance_eval { @dirty = false }
+      new_safe_buffer
+    end
+
     def safe_concat(value)
       raise SafeConcatError if dirty?
       original_concat(value)
@@ -137,11 +143,11 @@ module ActiveSupport #:nodoc:
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       class_eval <<-EOT, __FILE__, __LINE__
-        def #{unsafe_method}(*args, &block)       # def gsub(*args, &block)
+        def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
           to_str.#{unsafe_method}(*args, &block)  #   to_str.gsub(*args, &block)
         end                                       # end
 
-        def #{unsafe_method}!(*args)              # def gsub!(*args)
+        def #{unsafe_method}!(*args)              # def capitalize!(*args)
           @dirty = true                           #   @dirty = true
           super                                   #   super
         end                                       # end

@@ -44,7 +44,12 @@ module ActiveModel
 
     class StrictSanitizer < Sanitizer
       def process_removed_attributes(attrs)
+        return if (attrs - insensitive_attributes).empty?
         raise ActiveModel::MassAssignmentSecurity::Error, "Can't mass-assign protected attributes: #{attrs.join(', ')}"
+      end
+
+      def insensitive_attributes
+        ['id']
       end
     end
 

@@ -7,11 +7,11 @@ source 'http://rubygems.org'
 <%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
 <%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
 
-# Gems used only for assets and not required
-# in production environments by default.
 <%= assets_gemfile_entry %>
-
 <%= javascript_gemfile_entry %>
+
+# To use ActiveModel has_secure_password
+# gem 'bcrypt-ruby', '~> 3.0.0'
 
 # Use unicorn as the web server
 # gem 'unicorn'

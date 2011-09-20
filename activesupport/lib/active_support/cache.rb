@@ -347,7 +347,7 @@ module ActiveSupport
           entry = read_entry(key, options)
           if entry
             if entry.expired?
-              delete_entry(key)
+              delete_entry(key, options)
             else
               results[name] = entry.value
             end
@@ -557,15 +557,14 @@ module ActiveSupport
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
         @created_at = Time.now.to_f
-        if defined?(value)
-          if should_compress?(value, options)
-            @value = Zlib::Deflate.deflate(Marshal.dump(value))
-            @compressed = true
-          else
-            @value = value
-          end
-        else
+        if value.nil?
           @value = nil
+        else
+          @value = Marshal.dump(value)
+          if should_compress?(value, options)
+            @value = Zlib::Deflate.deflate(@value)
+            @compressed = true
+          end
         end
       end
 
@@ -576,12 +575,8 @@ module ActiveSupport
 
       # Get the value stored in the cache.
       def value
-        if defined?(@value)
-          val = compressed? ? Marshal.load(Zlib::Inflate.inflate(@value)) : @value
-          unless val.frozen?
-            val.freeze rescue nil
-          end
-          val
+        if @value
+          Marshal.load(compressed? ? Zlib::Inflate.inflate(@value) : @value)
         end
       end
 
@@ -614,10 +609,8 @@ module ActiveSupport
       def size
         if @value.nil?
           0
-        elsif @value.respond_to?(:bytesize)
-          @value.bytesize
         else
-          Marshal.dump(@value).bytesize
+          @value.bytesize
         end
       end
 

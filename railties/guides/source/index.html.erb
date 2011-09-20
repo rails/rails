@@ -124,12 +124,16 @@ Ruby on Rails Guides
   <p>This guide covers the basic configuration settings for a Rails application.</p>
 <% end %>
 
-<%= guide("Rails Command Line Tools and Rake tasks", 'command_line.html', :work_in_progress => true) do %>
+<%= guide("Rails Command Line Tools and Rake tasks", 'command_line.html') do %>
   <p>This guide covers the command line tools and rake tasks provided by Rails.</p>
 <% end %>
 
 <%= guide("Caching with Rails", 'caching_with_rails.html', :work_in_progress => true) do %>
   <p>Various caching techniques provided by Rails.</p>
+<% end %>
+
+<%= guide('Asset Pipeline', 'asset_pipeline.html') do %>
+  <p>This guide documents the asset pipeline.</p>
 <% end %>
 </dl>
 
@@ -170,6 +174,10 @@ Ruby on Rails Guides
 <h3>Release Notes</h3>
 
 <dl>
+<%= guide("Ruby on Rails 3.1 Release Notes", '3_1_release_notes.html') do %>
+  <p>Release notes for Rails 3.1.</p>
+<% end %>
+
 <%= guide("Ruby on Rails 3.0 Release Notes", '3_0_release_notes.html') do %>
   <p>Release notes for Rails 3.0.</p>
 <% end %>

@@ -55,16 +55,14 @@ module ActionDispatch
       #   assert_redirected_to @customer
       #
       def assert_redirected_to(options = {}, message=nil)
-        validate_request!
-
         assert_response(:redirect, message)
         return true if options == @response.location
 
-        redirected_to_after_normalization = normalize_argument_to_redirection(@response.location)
-        options_after_normalization       = normalize_argument_to_redirection(options)
+        redirect_is       = normalize_argument_to_redirection(@response.location)
+        redirect_expected = normalize_argument_to_redirection(options)
 
-        if redirected_to_after_normalization != options_after_normalization
-          flunk "Expected response to be a redirect to <#{options_after_normalization}> but was a redirect to <#{redirected_to_after_normalization}>"
+        if redirect_is != redirect_expected
+          flunk "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
         end
       end
 

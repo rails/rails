@@ -118,8 +118,10 @@ module ActiveSupport
     # +titleize+ is also aliased as as +titlecase+.
     #
     # Examples:
-    #   "man from the boondocks".titleize # => "Man From The Boondocks"
-    #   "x-men: the last stand".titleize  # => "X Men: The Last Stand"
+    #   "man from the boondocks".titleize   # => "Man From The Boondocks"
+    #   "x-men: the last stand".titleize    # => "X Men: The Last Stand"
+    #   "TheManWithoutAPast".titleize       # => "The Man Without A Past"
+    #   "raiders_of_the_lost_ark".titleize  # => "Raiders Of The Lost Ark"
     def titleize(word)
       humanize(underscore(word)).gsub(/\b('?[a-z])/) { $1.capitalize }
     end

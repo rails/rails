@@ -1,6 +1,7 @@
 #!/usr/bin/env rake
 
 require 'rdoc/task'
+require 'sdoc'
 require 'net/http'
 
 $:.unshift File.expand_path('..', __FILE__)
@@ -74,7 +75,11 @@ RDoc::Task.new do |rdoc|
     # since no autolinking happens there and RDoc displays the backslash
     # otherwise.
     rdoc_main.gsub!(/^(?=\S).*?\b(?=Rails)\b/) { "#$&\\" }
-    rdoc_main.gsub!(%r{link:blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
+    rdoc_main.gsub!(%r{link:/rails/rails/blob/master/(\w+)/README\.rdoc}, "link:files/\\1/README_rdoc.html")
+
+    # Remove Travis build status image from API pages. Only GitHub README page gets this image
+    # https build image is used to avoid GitHub caching: http://about.travis-ci.org/docs/user/status-images
+    rdoc_main.gsub!(%r{^== Travis.*}, '')
 
     File.open(RDOC_MAIN, 'w') do |f|
       f.write(rdoc_main)
@@ -86,8 +91,10 @@ RDoc::Task.new do |rdoc|
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.title    = "Ruby on Rails Documentation"
 
-  rdoc.options << '-f' << 'horo'
+  rdoc.options << '-f' << 'sdoc'
+  rdoc.options << '-T' << 'rails'
   rdoc.options << '-c' << 'utf-8'
+  rdoc.options << '-g' # SDoc flag, link methods to GitHub
   rdoc.options << '-m' << RDOC_MAIN
 
   rdoc.rdoc_files.include('railties/CHANGELOG')

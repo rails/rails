@@ -49,7 +49,7 @@ module ActiveModel
   #
   # The last three methods are required in your object for Errors to be
   # able to generate error messages correctly and also handle multiple
-  # languages. Of course, if you extend your object with ActiveModel::Translations
+  # languages. Of course, if you extend your object with ActiveModel::Translation
   # you will not need to implement the last two. Likewise, using
   # ActiveModel::Validations will handle the validation related methods
   # for you.
@@ -63,7 +63,7 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank]
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
 
     attr_reader :messages
 
@@ -86,8 +86,9 @@ module ActiveModel
 
     # Do the error messages include an error with key +error+?
     def include?(error)
-      messages.include? error
+      (v = messages[error]) && v.any?
     end
+    alias :has_key? :include?
 
     # Get messages for +key+
     def get(key)
@@ -174,11 +175,12 @@ module ActiveModel
       to_a.size
     end
 
-    # Returns true if there are any errors, false if not.
+    # Returns true if no errors are found, false otherwise.
     def empty?
       all? { |k, v| v && v.empty? }
     end
     alias_method :blank?, :empty?
+
     # Returns an xml formatted representation of the Errors hash.
     #
     #   p.errors.add(:name, "can't be blank")
@@ -218,6 +220,9 @@ module ActiveModel
       elsif message.is_a?(Proc)
         message = message.call
       end
+      if options[:strict]
+        raise ActiveModel::StrictValidationFailed,  message
+      end
 
       self[attribute] << message
     end
@@ -250,20 +255,22 @@ module ActiveModel
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
-      map { |attribute, message|
-        if attribute == :base
-          message
-        else
-          attr_name = attribute.to_s.gsub('.', '_').humanize
-          attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      map { |attribute, message| full_message(attribute, message) }
+    end
 
-          I18n.t(:"errors.format", {
-            :default   => "%{attribute} %{message}",
-            :attribute => attr_name,
-            :message   => message
-          })
-        end
-      }
+    # Returns a full message for a given attribute.
+    #
+    #   company.errors.full_message(:name, "is invalid")  # =>
+    #     "Name is invalid"
+    def full_message(attribute, message)
+      return message if attribute == :base
+      attr_name = attribute.to_s.gsub('.', '_').humanize
+      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      I18n.t(:"errors.format", {
+        :default   => "%{attribute} %{message}",
+        :attribute => attr_name,
+        :message   => message
+      })
     end
 
     # Translates an error message in its default scope
@@ -318,5 +325,8 @@ module ActiveModel
 
       I18n.translate(key, options)
     end
+  end
+
+  class StrictValidationFailed < StandardError
   end
 end

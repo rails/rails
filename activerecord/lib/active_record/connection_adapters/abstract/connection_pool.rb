@@ -82,10 +82,11 @@ module ActiveRecord
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
 
-        @connections = []
-        @checked_out = []
+        @connections         = []
+        @checked_out         = []
         @automatic_reconnect = true
-        @tables = {}
+        @tables              = {}
+        @visitor             = nil
 
         @columns     = Hash.new do |h, table_name|
           h[table_name] = with_connection do |conn|
@@ -298,8 +299,18 @@ module ActiveRecord
         :connected?, :disconnect!, :with => :@connection_mutex
 
       private
+
       def new_connection
-        ActiveRecord::Base.send(spec.adapter_method, spec.config)
+        connection = ActiveRecord::Base.send(spec.adapter_method, spec.config)
+
+        # TODO: This is a bit icky, and in the long term we may want to change the method
+        #       signature for connections. Also, if we switch to have one visitor per
+        #       connection (and therefore per thread), we can get rid of the thread-local
+        #       variable in Arel::Visitors::ToSql.
+        @visitor ||= connection.class.visitor_for(self)
+        connection.visitor = @visitor
+
+        connection
       end
 
       def current_connection_id #:nodoc:
@@ -410,7 +421,7 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(klass)
-        pool = @connection_pools[klass.name]
+        pool = @connection_pools.delete(klass.name)
         return nil unless pool
 
         pool.automatic_reconnect = false

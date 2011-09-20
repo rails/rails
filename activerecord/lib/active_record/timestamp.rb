@@ -37,6 +37,10 @@ module ActiveRecord
       self.record_timestamps = true
     end
 
+    def initialize_dup(other)
+      clear_timestamp_attributes
+    end
+
   private
 
     def create #:nodoc:
@@ -95,6 +99,13 @@ module ActiveRecord
     def current_time_from_proper_timezone #:nodoc:
       self.class.default_timezone == :utc ? Time.now.utc : Time.now
     end
+
+    # Clear attributes and changed_attributes
+    def clear_timestamp_attributes
+      all_timestamp_attributes_in_model.each do |attribute_name|
+        self[attribute_name] = nil
+        changed_attributes.delete(attribute_name)
+      end
+    end
   end
 end
-

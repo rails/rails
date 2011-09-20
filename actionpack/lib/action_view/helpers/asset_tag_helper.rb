@@ -154,7 +154,7 @@ module ActionView
     #     "/release-#{RELEASE_NUMBER}#{asset_path}"
     #   }
     #
-    # This example would cause the following behaviour on all servers no
+    # This example would cause the following behavior on all servers no
     # matter when they were deployed:
     #
     #   image_tag("rails.png")

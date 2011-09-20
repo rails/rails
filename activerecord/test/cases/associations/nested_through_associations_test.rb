@@ -247,7 +247,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Category.where('comments.id' => comments(:more_greetings).id).order('comments.id'),
+      Category.where('comments.id' => comments(:more_greetings).id).order('categories.id'),
       [categories(:general), categories(:technology)], :post_comments
     )
   end
@@ -354,6 +354,17 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   # Through: has_one through
   def test_has_one_through_has_one_through_with_belongs_to_source_reflection
     assert_equal categories(:general), members(:groucho).club_category
+  end
+
+  def test_joins_and_includes_from_through_models_not_included_in_association
+    prev_default_scope = Club.default_scopes
+
+    [:includes, :preload, :joins, :eager_load].each do |q|
+      Club.default_scopes = [Club.send(q, :category)]
+      assert_equal categories(:general), members(:groucho).reload.club_category
+    end
+  ensure
+    Club.default_scopes = prev_default_scope
   end
 
   def test_has_one_through_has_one_through_with_belongs_to_source_reflection_preload

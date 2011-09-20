@@ -94,7 +94,7 @@ db_namespace = namespace :db do
               "IDENTIFIED BY '#{config['password']}' WITH GRANT OPTION;"
             ActiveRecord::Base.establish_connection(config.merge(
                 'database' => nil, 'username' => 'root', 'password' => root_password))
-            ActiveRecord::Base.connection.create_database(config['database'], creation_options)
+            ActiveRecord::Base.connection.create_database(config['database'], mysql_creation_options(config))
             ActiveRecord::Base.connection.execute grant_statement
             ActiveRecord::Base.establish_connection(config)
           else
@@ -115,7 +115,8 @@ db_namespace = namespace :db do
         end
       end
     else
-      $stderr.puts "#{config['database']} already exists"
+      # Bug with 1.9.2 Calling return within begin still executes else
+      $stderr.puts "#{config['database']} already exists" unless config['adapter'] =~ /sqlite/
     end
   end
 
@@ -340,7 +341,8 @@ db_namespace = namespace :db do
     desc 'Create a db/schema.rb file that can be portably used against any DB supported by AR'
     task :dump => :load_config do
       require 'active_record/schema_dumper'
-      File.open(ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb", "w") do |file|
+      filename = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
+      File.open(filename, "w:utf-8") do |file|
         ActiveRecord::Base.establish_connection(Rails.env)
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end

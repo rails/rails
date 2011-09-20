@@ -1,7 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'active_support/dependencies'
 require 'active_support/core_ext/object/with_options'
 
 class MilestonesController < ActionController::Base
@@ -1663,114 +1662,6 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'news', :action => 'index', :format => 'rss'}, @routes.recognize_path('/news.rss', :method => :get))
 
     assert_raise(ActionController::RoutingError) { @routes.recognize_path('/none', :method => :get) }
-  end
-
-  def test_generate
-    assert_equal '/admin/users', url_for(@routes, { :use_route => 'admin_users' })
-    assert_equal '/admin/users', url_for(@routes, { :controller => 'admin/users' })
-    assert_equal '/admin/users', url_for(@routes, { :controller => 'admin/users', :action => 'index' })
-    assert_equal '/admin/users', url_for(@routes, { :action => 'index' }, { :controller => 'admin/users' })
-    assert_equal '/admin/users', url_for(@routes, { :controller => 'users', :action => 'index' }, { :controller => 'admin/accounts' })
-    assert_equal '/people',      url_for(@routes, { :controller => '/people', :action => 'index' }, { :controller => 'admin/accounts' })
-
-    assert_equal '/admin/posts',     url_for(@routes, { :controller => 'admin/posts' })
-    assert_equal '/admin/posts/new', url_for(@routes, { :controller => 'admin/posts', :action => 'new' })
-
-    assert_equal '/blog/2009',     url_for(@routes, { :controller => 'posts', :action => 'show_date', :year => 2009 })
-    assert_equal '/blog/2009/1',   url_for(@routes, { :controller => 'posts', :action => 'show_date', :year => 2009, :month => 1 })
-    assert_equal '/blog/2009/1/1', url_for(@routes, { :controller => 'posts', :action => 'show_date', :year => 2009, :month => 1, :day => 1 })
-
-    assert_equal '/archive/2010', url_for(@routes, { :controller => 'archive', :action => 'index', :year => '2010' })
-    assert_equal '/archive',      url_for(@routes, { :controller => 'archive', :action => 'index' })
-    assert_equal '/archive?year=january', url_for(@routes, { :controller => 'archive', :action => 'index', :year => 'january' })
-
-    assert_equal '/people', url_for(@routes, { :controller => 'people', :action => 'index' })
-    assert_equal '/people', url_for(@routes, { :action => 'index' }, { :controller => 'people' })
-    assert_equal '/people', url_for(@routes, { :action => 'index' }, { :controller => 'people', :action => 'show', :id => '1' })
-    assert_equal '/people', url_for(@routes, { :controller => 'people', :action => 'index' }, { :controller => 'people', :action => 'show', :id => '1' })
-    assert_equal '/people', url_for(@routes, {}, { :controller => 'people', :action => 'index' })
-    assert_equal '/people/1',   url_for(@routes, { :controller => 'people', :action => 'show' }, { :controller => 'people', :action => 'show', :id => '1' })
-    assert_equal '/people/new', url_for(@routes, { :use_route => 'new_person' })
-    assert_equal '/people/new', url_for(@routes, { :controller => 'people', :action => 'new' })
-    assert_equal '/people/1',   url_for(@routes, { :use_route => 'person', :id => '1' })
-    assert_equal '/people/1',   url_for(@routes, { :controller => 'people', :action => 'show', :id => '1' })
-    assert_equal '/people/1.xml', url_for(@routes, { :controller => 'people', :action => 'show', :id => '1', :format => 'xml' })
-    assert_equal '/people/1', url_for(@routes, { :controller => 'people', :action => 'show', :id => 1 })
-    assert_equal '/people/1', url_for(@routes, { :controller => 'people', :action => 'show', :id => Model.new('1') })
-    assert_equal '/people/1', url_for(@routes, { :action => 'show', :id => '1' }, { :controller => 'people', :action => 'index' })
-    assert_equal '/people/1', url_for(@routes, { :action => 'show', :id => 1 }, { :controller => 'people', :action => 'show', :id => '1' })
-    assert_equal '/people',   url_for(@routes, { :controller => 'people', :action => 'index' }, { :controller => 'people', :action => 'show', :id => '1' })
-    assert_equal '/people/1', url_for(@routes, {}, { :controller => 'people', :action => 'show', :id => '1' })
-    assert_equal '/people/1', url_for(@routes, { :controller => 'people', :action => 'show' }, { :controller => 'people', :action => 'index', :id => '1' })
-    assert_equal '/people/1/edit',     url_for(@routes, { :controller => 'people', :action => 'edit', :id => '1' })
-    assert_equal '/people/1/edit.xml', url_for(@routes, { :controller => 'people', :action => 'edit', :id => '1', :format => 'xml' })
-    assert_equal '/people/1/edit',     url_for(@routes, { :use_route => 'edit_person', :id => '1' })
-    assert_equal '/people/1?legacy=true', url_for(@routes, { :controller => 'people', :action => 'show', :id => '1', :legacy => 'true' })
-    assert_equal '/people?legacy=true',   url_for(@routes, { :controller => 'people', :action => 'index', :legacy => 'true' })
-
-    assert_equal '/id_default/2', url_for(@routes, { :controller => 'foo', :action => 'id_default', :id => '2' })
-    assert_equal '/id_default',   url_for(@routes, { :controller => 'foo', :action => 'id_default', :id => '1' })
-    assert_equal '/id_default',   url_for(@routes, { :controller => 'foo', :action => 'id_default', :id => 1 })
-    assert_equal '/id_default',   url_for(@routes, { :controller => 'foo', :action => 'id_default' })
-    assert_equal '/optional/bar', url_for(@routes, { :controller => 'posts', :action => 'index', :optional => 'bar' })
-    assert_equal '/posts', url_for(@routes, { :controller => 'posts', :action => 'index' })
-
-    assert_equal '/project',    url_for(@routes, { :controller => 'project', :action => 'index' })
-    assert_equal '/projects/1', url_for(@routes, { :controller => 'project', :action => 'index', :project_id => '1' })
-    assert_equal '/projects/1', url_for(@routes, { :controller => 'project', :action => 'index'}, {:project_id => '1' })
-    assert_raise(ActionController::RoutingError) { url_for(@routes, { :use_route => 'project', :controller => 'project', :action => 'index' }) }
-    assert_equal '/projects/1', url_for(@routes, { :use_route => 'project', :controller => 'project', :action => 'index', :project_id => '1' })
-    assert_equal '/projects/1', url_for(@routes, { :use_route => 'project', :controller => 'project', :action => 'index' }, { :project_id => '1' })
-
-    assert_equal '/clients', url_for(@routes, { :controller => 'projects', :action => 'index' })
-    assert_equal '/clients?project_id=1', url_for(@routes, { :controller => 'projects', :action => 'index', :project_id => '1' })
-    assert_equal '/clients', url_for(@routes, { :controller => 'projects', :action => 'index' }, { :project_id => '1' })
-    assert_equal '/clients', url_for(@routes, { :action => 'index' }, { :controller => 'projects', :action => 'index', :project_id => '1' })
-
-    assert_equal '/comment/20',   url_for(@routes, { :id => 20 }, { :controller => 'comments', :action => 'show' })
-    assert_equal '/comment/20',   url_for(@routes, { :controller => 'comments', :id => 20, :action => 'show' })
-    assert_equal '/comments/boo', url_for(@routes, { :controller => 'comments', :action => 'boo' })
-
-    assert_equal '/ws/posts/show/1', url_for(@routes, { :controller => 'posts', :action => 'show', :id => '1', :ws => true })
-    assert_equal '/ws/posts',        url_for(@routes, { :controller => 'posts', :action => 'index', :ws => true })
-
-    assert_equal '/account',         url_for(@routes, { :controller => 'account', :action => 'subscription' })
-    assert_equal '/account/billing', url_for(@routes, { :controller => 'account', :action => 'billing' })
-
-    assert_equal '/pages/1/notes/show/1', url_for(@routes, { :page_id => '1', :controller => 'notes', :action => 'show', :id => '1' })
-    assert_equal '/pages/1/notes/list',   url_for(@routes, { :page_id => '1', :controller => 'notes', :action => 'list' })
-    assert_equal '/pages/1/notes', url_for(@routes, { :page_id => '1', :controller => 'notes', :action => 'index' })
-    assert_equal '/pages/1/notes', url_for(@routes, { :page_id => '1', :controller => 'notes' })
-    assert_equal '/notes',         url_for(@routes, { :page_id => nil, :controller => 'notes' })
-    assert_equal '/notes',         url_for(@routes, { :controller => 'notes' })
-    assert_equal '/notes/print',   url_for(@routes, { :controller => 'notes', :action => 'print' })
-    assert_equal '/notes/print',   url_for(@routes, {}, { :controller => 'notes', :action => 'print' })
-
-    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes' }, { :controller => 'notes', :id => '1' })
-    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes' }, { :controller => 'notes', :id => '1', :foo => 'bar' })
-    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes' }, { :controller => 'notes', :id => '1' })
-    assert_equal '/notes/index/1', url_for(@routes, { :action => 'index' }, { :controller => 'notes', :id => '1' })
-    assert_equal '/notes/index/1', url_for(@routes, {}, { :controller => 'notes', :id => '1' })
-    assert_equal '/notes/show/1',  url_for(@routes, {}, { :controller => 'notes', :action => 'show', :id => '1' })
-    assert_equal '/notes/index/1', url_for(@routes, { :controller => 'notes', :id => '1' }, { :foo => 'bar' })
-    assert_equal '/posts',      url_for(@routes, { :controller => 'posts' }, { :controller => 'notes', :action => 'show', :id => '1' })
-    assert_equal '/notes/list', url_for(@routes, { :action => 'list' }, { :controller => 'notes', :action => 'show', :id => '1' })
-
-    assert_equal '/posts/ping',    url_for(@routes, { :controller => 'posts', :action => 'ping' })
-    assert_equal '/posts/show/1',  url_for(@routes, { :controller => 'posts', :action => 'show', :id => '1' })
-    assert_equal '/posts',         url_for(@routes, { :controller => 'posts' })
-    assert_equal '/posts',         url_for(@routes, { :controller => 'posts', :action => 'index' })
-    assert_equal '/posts',         url_for(@routes, { :controller => 'posts' }, { :controller => 'posts', :action => 'index' })
-    assert_equal '/posts/create',  url_for(@routes, { :action => 'create' }, { :controller => 'posts' })
-    assert_equal '/posts?foo=bar', url_for(@routes, { :controller => 'posts', :foo => 'bar' })
-    assert_equal '/posts?foo%5B%5D=bar&foo%5B%5D=baz', url_for(@routes, { :controller => 'posts', :foo => ['bar', 'baz'] })
-    assert_equal '/posts?page=2',  url_for(@routes, { :controller => 'posts', :page => 2 })
-    assert_equal '/posts?q%5Bfoo%5D%5Ba%5D=b', url_for(@routes, { :controller => 'posts', :q => { :foo => { :a => 'b'}} })
-
-    assert_equal '/news.rss', url_for(@routes, { :controller => 'news', :action => 'index', :format => 'rss' })
-
-
-    assert_raise(ActionController::RoutingError) { url_for(@routes, { :action => 'index' }) }
   end
 
   def test_generate_extras

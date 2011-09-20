@@ -98,6 +98,15 @@ module RenderTestCases
     assert_equal "only partial", @view.render("test/partial_only", :counter_counter => 5)
   end
 
+  def test_render_partial_with_invalid_name
+    @view.render(:partial => "test/200")
+    flunk "Render did not raise ArgumentError"
+  rescue ArgumentError => e
+    assert_equal "The partial name (test/200) is not a valid Ruby identifier; " +
+                                "make sure your partial name starts with a letter or underscore, " +
+                                "and is followed by any combinations of letters, numbers, or underscores.", e.message
+  end
+
   def test_render_partial_with_errors
     @view.render(:partial => "test/raise")
     flunk "Render did not raise Template::Error"
@@ -190,6 +199,36 @@ module RenderTestCases
     customers = [ Customer.new("Amazon"), Customer.new("Yahoo") ]
     assert_equal "Hello: AmazonHello: Yahoo",
       @controller_view.render(customers, :greeting => "Hello")
+  end
+
+  class CustomerWithDeprecatedPartialPath
+    attr_reader :name
+
+    def self.model_name
+      Struct.new(:partial_path).new("customers/customer")
+    end
+
+    def initialize(name)
+      @name = name
+    end
+  end
+
+  def test_render_partial_using_object_with_deprecated_partial_path
+    assert_deprecated(/#model_name.*#partial_path.*#to_partial_path/) do
+      assert_equal "Hello: nertzy",
+        @controller_view.render(CustomerWithDeprecatedPartialPath.new("nertzy"), :greeting => "Hello")
+    end
+  end
+
+  def test_render_partial_using_collection_with_deprecated_partial_path
+    assert_deprecated(/#model_name.*#partial_path.*#to_partial_path/) do
+      customers = [
+        CustomerWithDeprecatedPartialPath.new("nertzy"),
+        CustomerWithDeprecatedPartialPath.new("peeja")
+      ]
+      assert_equal "Hello: nertzyHello: peeja",
+        @controller_view.render(customers, :greeting => "Hello")
+    end
   end
 
   # TODO: The reason for this test is unclear, improve documentation
@@ -341,7 +380,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # is not eager loaded
   def setup
     path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
-    view_paths = ActionView::Base.process_view_paths(path)
+    view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
     setup_view(view_paths)
   end
