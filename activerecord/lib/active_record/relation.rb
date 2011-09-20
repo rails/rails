@@ -143,6 +143,22 @@ module ActiveRecord
         super
     end
 
+    def explain
+      queries = []
+      callback = lambda do |*args|
+        payload = args.last
+        queries << payload[:sql] unless payload[:exception] || %w(SCHEMA EXPLAIN).include?(payload[:name])
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        to_a
+      end
+
+      queries.map do |sql|
+        @klass.connection.explain(sql)
+      end.join
+    end
+
     def to_a
       return @records if loaded?
 

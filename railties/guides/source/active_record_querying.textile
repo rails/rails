@@ -8,6 +8,7 @@ This guide covers different ways to retrieve data from the database using Active
 * Use dynamic finders methods
 * Check for the existence of particular records
 * Perform various calculations on Active Record models
+* Run EXPLAIN on relations
 
 endprologue.
 
@@ -1274,3 +1275,67 @@ Client.sum("orders_count")
 </ruby>
 
 For options, please see the parent section, "Calculations":#calculations.
+
+h3. Running EXPLAIN
+
+You can run EXPLAIN on the queries triggered by relations. For example,
+
+<ruby>
+User.where(:id => 1).joins(:posts).explain
+</ruby>
+
+may yield
+
+<plain>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+| id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+|  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
+|  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+2 rows in set (0.00 sec)
+</plain>
+
+under MySQL.
+
+Active Record performs a pretty printing that emulates the one of the database
+shells. So, the same query running with the PostreSQL adapter would yield instead
+
+<plain>
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Nested Loop Left Join  (cost=0.00..37.24 rows=8 width=0)
+   Join Filter: (posts.user_id = users.id)
+   ->  Index Scan using users_pkey on users  (cost=0.00..8.27 rows=1 width=4)
+         Index Cond: (id = 1)
+   ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
+         Filter: (posts.user_id = 1)
+(6 rows)
+</plain>
+
+Eager loading may trigger more than one query under the hood, and some queries
+may need the results of previous ones. Because of that, +explain+ actually
+executes the query, and then asks for the query plans. For example,
+
+<ruby>
+User.where(:id => 1).includes(:posts).explain
+</ruby>
+
+yields
+
+<plain>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------
+| id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra |
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------
+|  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |       |
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------
+1 row in set (0.00 sec)
++----+-------------+-------+------+---------------+------+---------+------+------+-------------
+| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra       |
++----+-------------+-------+------+---------------+------+---------+------+------+-------------
+|  1 | SIMPLE      | posts | ALL  | NULL          | NULL | NULL    | NULL |    1 | Using where |
++----+-------------+-------+------+---------------+------+---------+------+------+-------------
+1 row in set (0.00 sec)
+</plain>
+
+under MySQL.

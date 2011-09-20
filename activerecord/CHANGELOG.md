@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Implemented ActiveRecord::Relation#explain. *fxn*
+
 *   Add ActiveRecord::Relation#uniq for generating unique queries.
 
     Before:
