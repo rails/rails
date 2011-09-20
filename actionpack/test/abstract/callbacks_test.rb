@@ -265,28 +265,5 @@ module AbstractController
         assert_equal "Hello world Howdy!", controller.response_body
       end
     end
-
-
-    class CallbacksWithArgs < ControllerWithCallbacks
-      set_callback :process_action, :before, :first
-
-      def first
-        @text = "Hello world"
-      end
-
-      def index(text)
-        self.response_body = @text + text
-      end
-    end
-
-    class TestCallbacksWithArgs < ActiveSupport::TestCase
-      test "callbacks still work when invoking process with multiple args" do
-        controller = CallbacksWithArgs.new
-        controller.process(:index, " Howdy!")
-        assert_equal "Hello world Howdy!", controller.response_body
-      end
-    end
-
-
   end
 end

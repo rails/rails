@@ -267,23 +267,3 @@ class TestMissingTemplate < ActiveSupport::TestCase
   
 end
 
-class TestMissingTemplate < ActiveSupport::TestCase
-  def setup
-    @lookup_context = ActionView::LookupContext.new("/Path/to/views", {})
-    @details        = "{:handlers=>[:erb, :rjs, :builder], :formats=>[:html, :text, :js, :css, :ics, :csv, :xml, :rss, :atom, :yaml, :multipart_form, :url_encoded_form, :json], :locale=>[:en, :en]}"
-  end
-
-  test "if no template was found we get a helpful error message including the inheritance chain" do
-    e = assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(parent child))
-    end
-    assert_equal "Missing template parent/foo, child/foo with #{@details}. Searched in:\n  * \"/Path/to/views\"\n", e.message
-  end
-  
-  test "if no partial was found we get a helpful error message including the inheritance chain" do
-    e = assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(parent child), true)
-    end
-    assert_equal "Missing partial parent/foo, child/foo with #{@details}. Searched in:\n  * \"/Path/to/views\"\n", e.message
-  end
-end
