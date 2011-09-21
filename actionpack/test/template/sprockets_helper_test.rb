@@ -47,6 +47,16 @@ class SprocketsHelperTest < ActionView::TestCase
       asset_path("logo.png", :digest => false)
   end
 
+  test "custom_asset_path" do
+    @config.assets.prefix = '/s'
+    assert_match %r{/s/logo-[0-9a-f]+.png},
+      asset_path("logo.png")
+    assert_match %r{/s/logo-[0-9a-f]+.png},
+      asset_path("logo.png", :digest => true)
+    assert_match %r{/s/logo.png},
+      asset_path("logo.png", :digest => false)
+  end
+
   test "asset_path with root relative assets" do
     assert_equal "/images/logo",
       asset_path("/images/logo")

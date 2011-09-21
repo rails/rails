@@ -57,7 +57,7 @@ module Sprockets
 
       def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', options.merge(:body => true))
+        path = asset_paths.compute_public_path(source, asset_prefix, options.merge(:body => true))
         options[:body] ? "#{path}?body=1" : path
       end
 
