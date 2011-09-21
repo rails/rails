@@ -19,8 +19,8 @@ Gem::Specification.new do |s|
 <% end -%>
 
   <%= '# ' if options.dev? || options.edge? -%>s.add_dependency "rails", "~> <%= Rails::VERSION::STRING %>"
-<% if full? && !options[:skip_javascript] -%>
-  # s.add_dependency "<%= "#{options[:javascript]}-rails" %>"
+<% if (mountable? || full?) && !options[:skip_javascript] -%>
+  s.add_dependency "<%= "#{options[:javascript]}-rails" %>"
 <% end -%>
 
   s.add_development_dependency "<%= gem_for_database %>"
