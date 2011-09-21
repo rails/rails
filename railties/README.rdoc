@@ -6,7 +6,7 @@ Railties is responsible for gluing all frameworks together. Overall, it:
 
 * manages the +rails+ command line interface;
 
-* and provides Rails generators core.
+* and provides the Rails generators core.
 
 
 == Download
