@@ -296,7 +296,7 @@ This method escapes whatever is needed, both for the key and the value:
 
 <ruby>
 account.to_query('company[name]')
-# => "company%5Bname%5D=Johnson+%26+Johnson"
+# => "company%5Bname%5D=Johnson<plus>%26<plus>Johnson"
 </ruby>
 
 so its output is ready to be used in a query string.
@@ -3385,7 +3385,7 @@ They are analogous. Please refer to their documentation above and take into acco
 Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
-# In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
+# In Barcelona, 2010/03/28 02:00 <plus>0100 becomes 2010/03/28 03:00 <plus>0200 due to DST.
 t = Time.local_time(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
 t.advance(:seconds => 1)
@@ -3408,7 +3408,7 @@ The method +all_day+ returns a range representing the whole day of the current t
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_day
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Mon, 09 Aug 2010 23:59:59 UTC <plus>00:00
 </ruby>
 
 Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the purpose of generating time ranges.
@@ -3417,13 +3417,13 @@ Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_week
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Sun, 15 Aug 2010 23:59:59 UTC <plus>00:00
 now.all_month
-# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
+# => Sat, 01 Aug 2010 00:00:00 UTC <plus>00:00..Tue, 31 Aug 2010 23:59:59 UTC <plus>00:00
 now.all_quarter
-# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
+# => Thu, 01 Jul 2010 00:00:00 UTC <plus>00:00..Thu, 30 Sep 2010 23:59:59 UTC <plus>00:00
 now.all_year
-# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
+# => Fri, 01 Jan 2010 00:00:00 UTC <plus>00:00..Fri, 31 Dec 2010 23:59:59 UTC <plus>00:00
 </ruby>
 
 h4. Time Constructors
@@ -3518,8 +3518,8 @@ h4. +around_[level]+
 Takes two arguments, a +before_message+ and +after_message+ and calls the current level method on the +Logger+ instance, passing in the +before_message+, then the specified message, then the +after_message+:
 
 <ruby>
-  logger = Logger.new("log/development.log")
-  logger.around_info("before", "after") { |logger| logger.info("during") }
+logger = Logger.new("log/development.log")
+logger.around_info("before", "after") { |logger| logger.info("during") }
 </ruby>
 
 h4. +silence+

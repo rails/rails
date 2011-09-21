@@ -25,6 +25,12 @@ In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +a
 config.assets.enabled = false
 </plain>
 
+You can also disable it while creating a new application by passing the <tt>--skip-sprockets</tt> option.
+
+<plain>
+rails new appname --skip-sprockets
+</plain>
+
 It is recommended that you use the defaults for all new apps.
 
 
@@ -164,15 +170,15 @@ Note that the closing tag cannot be of the style +-%>+.
 
 h5. CSS and Sass
 
-When using the asset pipeline, paths to assets must be re-written and +sass-rails+ provides +_url+ and +_path+ helpers for the following asset classes: image, font, video, audio, JavaScript and stylesheet.
+When using the asset pipeline, paths to assets must be re-written and +sass-rails+ provides +-url+ and +-path+ helpers (hyphenated in Sass, underscored in Ruby) for the following asset classes: image, font, video, audio, JavaScript and stylesheet.
 
-* +image_url("rails.png")+ becomes +url(/assets/rails.png)+.
-* +image_path("rails.png")+ becomes +"/assets/rails.png"+.
+* +image-url("rails.png")+ becomes +url(/assets/rails.png)+
+* +image-path("rails.png")+ becomes +"/assets/rails.png"+.
 
 The more generic form can also be used but the asset path and class must both be specified:
 
-* +asset_url("rails.png", image)+ becomes +url(/assets/rails.png)+.
-* +asset_path("rails.png", image)+ becomes +"/assets/rails.png"+.
+* +asset-url("rails.png", image)+ becomes +url(/assets/rails.png)+
+* +asset-path("rails.png", image)+ becomes +"/assets/rails.png"+
 
 h5. JavaScript/CoffeeScript and ERB
 
@@ -353,7 +359,7 @@ NOTE. If you are precompiling your assets locally, you can use +bundle install -
 The default matcher for compiling files includes +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
 
 <ruby>
-[ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
+[ /\w<plus>\.(?!js|css).<plus>/, /application.(css|js)$/ ]
 </ruby>
 
 If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the +precompile+ array:
