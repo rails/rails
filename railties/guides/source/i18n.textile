@@ -12,7 +12,7 @@ So, in the process of _internationalizing_ your Rails application you have to:
 
 In the process of _localizing_ your application you'll probably want to do the following three things:
 
-* Replace or supplement Rails' default locale -- e.g. date and time formats, month names, Active Record model names, etc
+* Replace or supplement Rails' default locale -- e.g. date and time formats, month names, Active Record model names, etc.
 * Abstract strings in your application into keyed dictionaries -- e.g. flash messages, static text in your views, etc.
 * Store the resulting dictionaries somewhere
 
