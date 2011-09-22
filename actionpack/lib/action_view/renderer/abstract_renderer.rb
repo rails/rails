@@ -22,8 +22,6 @@ module ActionView
       details
     end
     
-    
-    
     def extract_format(value, details)
       if value.is_a?(String) && value.sub!(formats_regexp, "")
         ActiveSupport::Deprecation.warn "Passing the format in the template name is deprecated. " \

@@ -268,7 +268,7 @@ module ActionView
       @options = options
       @locals  = options[:locals] || {}
       @block   = block
-      @details = options.slice(:formats, :locale, :handlers)
+      @details = extract_details(options)
 
       if String === partial
         @object     = options[:object]
