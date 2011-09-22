@@ -42,8 +42,24 @@ module RenderTestCases
     assert_equal "<h1>No Comment</h1>", @view.render(:template => "comments/empty", :formats => [:html])
     assert_equal "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
   end
+  
+  def test_render_file_with_locale
+    assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => [:de])
+  end
+  
+  def test_render_template_with_locale
+    assert_equal "<h1>Kein Kommentar</h1>", @view.render(:template => "comments/empty", :locale => [:de])
+  end
+  
+  def test_render_file_with_handlers
+    assert_equal "<h1>No Comment</h1>\n", @view.render(:file => "comments/empty", :handlers => [:builder])
+  end
+  
+  def test_render_template_with_handlers
+    assert_equal "<h1>No Comment</h1>\n", @view.render(:template => "comments/empty", :handlers => [:builder])
+  end
 
-  def test_render_file_with_localization
+  def test_render_file_with_localization_on_context_level
     old_locale, @view.locale = @view.locale, :da
     assert_equal "Hey verden", @view.render(:file => "test/hello_world")
   ensure
