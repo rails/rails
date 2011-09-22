@@ -88,19 +88,17 @@ module ActiveModel
       #                    "title": "So I was thinking"}]}
 
       def as_json(options = nil)
-        hash = serializable_hash(options)
-
-        include_root = include_root_in_json
-        if options.try(:key?, :root)
-          include_root = options[:root]
+        opts_root = options[:root] if options.try(:key?, :root)
+        if opts_root
+          custom_root = opts_root == true ? self.class.model_name.element : opts_root
+          { custom_root => serializable_hash(options) }
+        elsif opts_root == false
+          serializable_hash(options)
+        elsif include_root_in_json
+          { self.class.model_name.element => serializable_hash(options) }
+        else
+          serializable_hash(options)
         end
-
-        if include_root
-          custom_root = options && options[:root]
-          hash = { custom_root || self.class.model_name.element => hash }
-        end
-
-        hash
       end
 
       def from_json(json, include_root=include_root_in_json)
