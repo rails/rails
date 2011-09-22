@@ -13,6 +13,7 @@ module ActiveSupport
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
+      FILENAME_MAX_SIZE = 230 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
 
       def initialize(cache_path, options = nil)
         super(options)
@@ -141,15 +142,13 @@ module ActiveSupport
           hash, dir_1 = hash.divmod(0x1000)
           dir_2 = hash.modulo(0x1000)
           fname_paths = []
-          # Make sure file name is < 255 characters so it doesn't exceed file system limits.
-          if fname.size <= 255
-            fname_paths << fname
-          else
-            while fname.size <= 255
-              fname_path << fname[0, 255]
-              fname = fname[255, -1]
-            end
-          end
+        
+          # Make sure file name doesn't exceed file system limits.
+          begin
+            fname_paths << fname[0...FILENAME_MAX_SIZE]
+            fname = fname[FILENAME_MAX_SIZE..-1]
+          end until fname.blank?
+        
           File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
         end
 
