@@ -1855,17 +1855,8 @@ class Customer < ActiveRecord::Base
 end
 </ruby>
 
-Extensions can refer to the internals of the association proxy using these three accessors:
+Extensions can refer to the internals of the association proxy using these three attributes of the +proxy_association+ accessor:
 
-* +proxy_owner+ returns the object that the association is a part of.
-* +proxy_reflection+ returns the reflection object that describes the association.
-* +proxy_target+ returns the associated object for +belongs_to+ or +has_one+, or the collection of associated objects for +has_many+ or +has_and_belongs_to_many+.
-
-h3. Changelog
-
-* April 7, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* April 19, 2009: Added +:touch+ option to +belongs_to+ associations by "Mike Gunderloy":credits.html#mgunderloy
-* February 1, 2009: Added +:autosave+ option "Mike Gunderloy":credits.html#mgunderloy
-* September 28, 2008: Corrected +has_many :through+ diagram, added polymorphic diagram, some reorganization by "Mike Gunderloy":credits.html#mgunderloy . First release version.
-* September 22, 2008: Added diagrams, misc. cleanup by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* September 14, 2008: initial version by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
+* +proxy_association.owner+ returns the object that the association is a part of.
+* +proxy_association.reflection+ returns the reflection object that describes the association.
+* +proxy_association.target+ returns the associated object for +belongs_to+ or +has_one+, or the collection of associated objects for +has_many+ or +has_and_belongs_to_many+.

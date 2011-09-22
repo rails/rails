@@ -200,11 +200,11 @@ You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql
 
 h4. Older versions of Ruby on Rails
 
-If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 2-3-stable branch:
+If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
 
 <shell>
-$ git branch --track 2-3-stable origin/2-3-stable
-$ git checkout 2-3-stable
+$ git branch --track 3-0-stable origin/3-0-stable
+$ git checkout 3-0-stable
 </shell>
 
 TIP: You may want to "put your git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
@@ -257,15 +257,17 @@ h3. Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: The guides help you to learn Ruby on Rails, and the API is a reference.
 
-You can create an issue in GitHub issues to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":https://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+You can help improve the Rails guides by making them more coherent, adding missing information, correcting factual errors, fixing typos, bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see "Translating Rails Guides":https://wiki.github.com/lifo/docrails/translating-rails-guides.
+
+If you're confident about your changes, you can push them yourself directly via "docrails":https://github.com/lifo/docrails. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+
+If you are unsure of the documentation changes, you can create an issue in the "Rails":https://github.com/rails/rails/issues issues tracker on GitHub.
 
 When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
 
-NOTE: As explained above, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
+NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
 
 WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
-
-If you have an idea for a new guide you can refer to the "contribution page":contribute.html for instructions on getting involved.
 
 h3. Contributing to the Rails Code
 
@@ -381,13 +383,3 @@ And then...think about your next contribution!
 h3. Rails Contributors
 
 All contributions, either via master or docrails, get credit in "Rails Contributors":http://contributors.rubyonrails.org.
-
-h3. Changelog
-
-* May 12, 2011: Modified to prefer topic branches instead of master branch for users contributions by "Guillermo Iguaran":http://quillarb.org
-* April 29, 2011: Reflect GitHub Issues and Pull Request workflow by "Dan Pickett":http://www.enlightsolutions.com
-* April 14, 2011: Modified Contributing to the Rails Code section to add '[#ticket_number state:commited]' on patches commit messages by "Sebastian Martinez":http://wyeworks.com
-* December 28, 2010: Complete revision by "Xavier Noria":credits.html#fxn
-* April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
-* March 2, 2009: Initial draft by "Mike Gunderloy":credits.html#mgunderloy

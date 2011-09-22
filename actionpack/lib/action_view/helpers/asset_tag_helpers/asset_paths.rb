@@ -41,7 +41,7 @@ module ActionView
 
         # Break out the asset path rewrite in case plugins wish to put the asset id
         # someplace other than the query string.
-        def rewrite_asset_path(source, dir)
+        def rewrite_asset_path(source, dir, options = nil)
           source = "/#{dir}/#{source}" unless source[0] == ?/
           path = config.asset_path
 

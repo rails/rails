@@ -8,6 +8,13 @@ end
 
 gem "bcrypt-ruby", "~> 3.0.0"
 gem "jquery-rails"
+
+if ENV['JOURNEY']
+  gem "journey", :path => ENV['JOURNEY']
+else
+  gem "journey", :git => "git://github.com/rails/journey"
+end
+
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem "uglifier", ">= 1.0.3", :require => false
@@ -68,7 +75,7 @@ end
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
   gem "json"
-  gem "activerecord-jdbcsqlite3-adapter"
+  gem "activerecord-jdbcsqlite3-adapter", ">= 1.2.0"
 
   # This is needed by now to let tests work on JRuby
   # TODO: When the JRuby guys merge jruby-openssl in
@@ -76,8 +83,8 @@ platforms :jruby do
   gem "jruby-openssl"
 
   group :db do
-    gem "activerecord-jdbcmysql-adapter"
-    gem "activerecord-jdbcpostgresql-adapter"
+    gem "activerecord-jdbcmysql-adapter", ">= 1.2.0"
+    gem "activerecord-jdbcpostgresql-adapter", ">= 1.2.0"
   end
 end
 

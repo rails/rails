@@ -20,7 +20,7 @@ Also, in 1.8 the ideographic space U+3000 is considered to be whitespace. [Akira
 * ActiveSupport::OrderedHash now has different behavior for #each and
 #each_pair when given a block accepting its parameters with a splat. [Andrew Radev]
 
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.0 (August 30, 2011)*
 
 * ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now
 return the value from `super` [Aaron Patterson]

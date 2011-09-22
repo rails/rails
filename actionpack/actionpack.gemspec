@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency('i18n',             '~> 0.6')
   s.add_dependency('rack',             '~> 1.3.2')
   s.add_dependency('rack-test',        '~> 0.6.1')
-  s.add_dependency('rack-mount',       '~> 0.8.2')
+  s.add_dependency('journey',      '~> 1.0.0')
   s.add_dependency('sprockets',        '~> 2.0.0')
   s.add_dependency('erubis',           '~> 2.7.0')
 

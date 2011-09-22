@@ -26,7 +26,7 @@ h5. When are Objects Saved?
 Use the same typography as in regular text:
 
 <plain>
-h6. The +:content_type+ Option
+h6. The <tt>:content_type</tt> Option
 </plain>
 
 h3. API Documentation Guidelines
@@ -77,8 +77,3 @@ bundle exec rake validate_guides
 </plain>
 
 Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set +WARNINGS=1+ when generating guides to detect them. The warning messages suggest a way to fix them.
-
-h3. Changelog
-
-* March 31, 2011: grammar tweaks by "Josiah Ivey":http://twitter.com/josiahivey
-* October 5, 2010: ported from the docrails wiki and revised by "Xavier Noria":credits.html#fxn

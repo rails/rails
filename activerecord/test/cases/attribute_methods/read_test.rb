@@ -35,6 +35,7 @@ module ActiveRecord
           end
 
           def self.serialized_attributes; {}; end
+          def self.base_class; self; end
         end
       end
 

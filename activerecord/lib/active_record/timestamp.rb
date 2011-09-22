@@ -48,7 +48,9 @@ module ActiveRecord
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
-          write_attribute(column.to_s, current_time) if respond_to?(column) && self.send(column).nil?
+          if respond_to?(column) && respond_to?("#{column}=") && self.send(column).nil?
+            write_attribute(column.to_s, current_time)
+          end
         end
       end
 

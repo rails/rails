@@ -956,8 +956,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').first_or_create!([ {:name => 'parrot'}, {:pirate_id => 1} ]) }
   end
 
-  def test_first_or_new
-    parrot = Bird.where(:color => 'green').first_or_new(:name => 'parrot')
+  def test_first_or_initialize
+    parrot = Bird.where(:color => 'green').first_or_initialize(:name => 'parrot')
     assert_kind_of Bird, parrot
     assert !parrot.persisted?
     assert parrot.valid?
@@ -966,8 +966,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'green', parrot.color
   end
 
-  def test_first_or_new_with_no_parameters
-    parrot = Bird.where(:color => 'green').first_or_new
+  def test_first_or_initialize_with_no_parameters
+    parrot = Bird.where(:color => 'green').first_or_initialize
     assert_kind_of Bird, parrot
     assert !parrot.persisted?
     assert !parrot.valid?
@@ -975,20 +975,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'green', parrot.color
   end
 
-  def test_first_or_new_with_block
-    parrot = Bird.where(:color => 'green').first_or_new { |bird| bird.name = 'parrot' }
+  def test_first_or_initialize_with_block
+    parrot = Bird.where(:color => 'green').first_or_initialize { |bird| bird.name = 'parrot' }
     assert_kind_of Bird, parrot
     assert !parrot.persisted?
     assert parrot.valid?
     assert parrot.new_record?
     assert_equal 'green', parrot.color
     assert_equal 'parrot', parrot.name
-  end
-
-  def test_first_or_build_is_alias_for_first_or_new
-    birds = Bird.scoped
-    assert birds.respond_to?(:first_or_build)
-    assert_equal birds.method(:first_or_new), birds.method(:first_or_build)
   end
 
   def test_explicit_create_scope

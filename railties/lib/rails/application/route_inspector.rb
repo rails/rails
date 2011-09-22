@@ -23,7 +23,8 @@ module Rails
             reqs = reqs.empty? ? constraints.inspect : "#{reqs} #{constraints.inspect}"
           end
 
-          {:name => route.name.to_s, :verb => route.verb.to_s, :path => route.path, :reqs => reqs}
+          verb = route.verb.source.gsub(/[$^]/, '')
+          {:name => route.name.to_s, :verb => verb, :path => route.path.spec.to_s, :reqs => reqs}
         end
 
         # Skip the route if it's internal info route

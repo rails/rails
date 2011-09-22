@@ -294,16 +294,8 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal parrot, the_same_parrot
   end
 
-  def test_first_or_new
-    parrot = Bird.first_or_new(:color => 'green', :name => 'parrot')
-    assert_kind_of Bird, parrot
-    assert !parrot.persisted?
-    assert parrot.new_record?
-    assert parrot.valid?
-  end
-
-  def test_first_or_build
-    parrot = Bird.first_or_build(:color => 'green', :name => 'parrot')
+  def test_first_or_initialize
+    parrot = Bird.first_or_initialize(:color => 'green', :name => 'parrot')
     assert_kind_of Bird, parrot
     assert !parrot.persisted?
     assert parrot.new_record?
