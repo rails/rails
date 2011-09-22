@@ -27,7 +27,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_render_file_template
-    @view.render(:file => "test/hello_world.erb")
+    @view.render(:file => "test/hello_world")
     wait
 
     assert_equal 1, @logger.logged(:info).size

@@ -163,14 +163,14 @@ class TestController < ActionController::Base
   # :ported:
   def render_file_with_instance_variables
     @secret = 'in the sauce'
-    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb')
+    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar')
     render :file => path
   end
 
   # :ported:
   def render_file_as_string_with_instance_variables
     @secret = 'in the sauce'
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar'))
     render path
   end
 
@@ -187,21 +187,21 @@ class TestController < ActionController::Base
 
   def render_file_using_pathname
     @secret = 'in the sauce'
-    render :file => Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar.erb')
+    render :file => Pathname.new(File.dirname(__FILE__)).join('..', 'fixtures', 'test', 'dot.directory', 'render_file_with_ivar')
   end
 
   def render_file_from_template
     @secret = 'in the sauce'
-    @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.erb'))
+    @path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar'))
   end
 
   def render_file_with_locals
-    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb')
+    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals')
     render :file => path, :locals => {:secret => 'in the sauce'}
   end
 
   def render_file_as_string_with_locals
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.erb'))
+    path = File.expand_path(File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals'))
     render path, :locals => {:secret => 'in the sauce'}
   end
 
@@ -453,17 +453,13 @@ class TestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
-  # :deprecated:
-  # Tests being able to pick a .builder template over a .erb
-  # For instance, being able to have hello.xml.builder and hello.xml.erb
-  # and select one via "hello.builder" or "hello.erb"
   def hello_world_from_rxml_using_action
-    render :action => "hello_world_from_rxml.builder"
+    render :action => "hello_world_from_rxml", :handlers => [:builder]
   end
 
   # :deprecated:
   def hello_world_from_rxml_using_template
-    render :template => "test/hello_world_from_rxml.builder"
+    render :template => "test/hello_world_from_rxml", :handlers => [:builder]
   end
 
   def action_talk_to_layout
@@ -525,8 +521,8 @@ class TestController < ActionController::Base
     render :action => "using_layout_around_block", :layout => "layouts/block_with_layout"
   end
 
-  def partial_dot_html
-    render :partial => 'partial.html.erb'
+  def partial_formats_html
+    render :partial => 'partial', :formats => [:html]
   end
 
   def partial
@@ -1235,8 +1231,8 @@ class RenderTest < ActionController::TestCase
     assert_equal 'partial html', @response.body
   end
 
-  def test_should_render_html_partial_with_dot
-    get :partial_dot_html
+  def test_should_render_html_partial_with_formats
+    get :partial_formats_html
     assert_equal 'partial html', @response.body
   end
 

@@ -197,7 +197,7 @@ class ActionCachingTestController < CachingController
   caches_action :layout_false, :layout => false
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
 
-  layout 'talk_from_action.erb'
+  layout 'talk_from_action'
 
   def index
     @cache_this = MockTime.now.to_f.to_s
