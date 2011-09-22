@@ -93,14 +93,13 @@ module ActionView
       # the execution of the block and reverted to the previous value after.
       def update_details(new_details)
         if block_given?
-          old_details = @details.dup
+          old_details, old_key = @details.dup, @details_key
           super
 
           begin
             yield
           ensure
-            @details_key = nil
-            @details = old_details
+            @details, @details_key = old_details, old_key
           end
         else
           super
