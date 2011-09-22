@@ -2,6 +2,7 @@ module Sprockets
   autoload :Helpers, "sprockets/helpers"
   autoload :LazyCompressor, "sprockets/compressors"
   autoload :NullCompressor, "sprockets/compressors"
+  autoload :StaticCompiler, "sprockets/static_compiler"
 
   # TODO: Get rid of config.assets.enabled
   class Railtie < ::Rails::Railtie
