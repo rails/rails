@@ -56,6 +56,16 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
+  test "should include root in json (option) even if the default is set to false" do
+    begin
+      Contact.include_root_in_json = false
+      json = @contact.to_json(:root => true)
+      assert_match %r{^\{"contact":\{}, json
+    ensure
+      Contact.include_root_in_json = true
+    end
+  end
+
   test "should not include root in json (option)" do
 
     json = @contact.to_json(:root => false)
