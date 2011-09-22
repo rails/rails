@@ -125,17 +125,17 @@ module ActionView
         @view_paths = ActionView::PathSet.new(Array.wrap(paths))
       end
 
-      def find(name, prefixes = [], partial = false, keys = [])
-        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys))
+      def find(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :find_template :find
 
-      def find_all(name, prefixes = [], partial = false, keys = [])
-        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys))
+      def find_all(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
       end
 
-      def exists?(name, prefixes = [], partial = false, keys = [])
-        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys))
+      def exists?(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :template_exists? :exists?
 
@@ -154,9 +154,17 @@ module ActionView
 
     protected
 
-      def args_for_lookup(name, prefixes, partial, keys) #:nodoc:
+      def args_for_lookup(name, prefixes, partial, keys, details_options) #:nodoc:
         name, prefixes = normalize_name(name, prefixes)
-        [name, prefixes, partial || false, @details, details_key, keys]
+        details, details_key = detail_args_for(details_options)
+        [name, prefixes, partial || false, details, details_key, keys]
+      end
+
+      # Compute details hash and key according to user options (e.g. passed from #render).
+      def detail_args_for(options)
+        return @details, details_key if options.empty? # most common path.
+        user_details = @details.merge(options)
+        [user_details, DetailsKey.get(user_details)]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb
