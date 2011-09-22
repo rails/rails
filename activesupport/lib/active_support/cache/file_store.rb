@@ -130,13 +130,13 @@ module ActiveSupport
           hash, dir_1 = hash.divmod(0x1000)
           dir_2 = hash.modulo(0x1000)
           fname_paths = []
-        
+
           # Make sure file name doesn't exceed file system limits.
           begin
-            fname_paths << fname[0...FILENAME_MAX_SIZE]
+            fname_paths << fname[0, FILENAME_MAX_SIZE]
             fname = fname[FILENAME_MAX_SIZE..-1]
           end until fname.blank?
-        
+
           File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
         end
 
