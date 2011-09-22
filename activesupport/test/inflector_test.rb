@@ -2,16 +2,11 @@ require 'abstract_unit'
 require 'active_support/inflector'
 
 require 'inflector_test_cases'
-
-module Ace
-  module Base
-    class Case
-    end
-  end
-end
+require 'constantize_test_cases'
 
 class InflectorTest < Test::Unit::TestCase
   include InflectorTestCases
+  include ConstantizeTestCases
 
   def test_pluralize_plurals
     assert_equal "plurals", ActiveSupport::Inflector.pluralize("plurals")
@@ -282,17 +277,15 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   def test_constantize
-    assert_nothing_raised { assert_equal Ace::Base::Case, ActiveSupport::Inflector.constantize("Ace::Base::Case") }
-    assert_nothing_raised { assert_equal Ace::Base::Case, ActiveSupport::Inflector.constantize("::Ace::Base::Case") }
-    assert_nothing_raised { assert_equal InflectorTest, ActiveSupport::Inflector.constantize("InflectorTest") }
-    assert_nothing_raised { assert_equal InflectorTest, ActiveSupport::Inflector.constantize("::InflectorTest") }
-    assert_raise(NameError) { ActiveSupport::Inflector.constantize("UnknownClass") }
-    assert_raise(NameError) { ActiveSupport::Inflector.constantize("An invalid string") }
-    assert_raise(NameError) { ActiveSupport::Inflector.constantize("InvalidClass\n") }
+    run_constantize_tests_on do |string|
+      ActiveSupport::Inflector.constantize(string)
+    end
   end
-
-  def test_constantize_does_lexical_lookup
-    assert_raise(NameError) { ActiveSupport::Inflector.constantize("Ace::Base::InflectorTest") }
+  
+  def test_safe_constantize
+    run_safe_constantize_tests_on do |string|
+      ActiveSupport::Inflector.safe_constantize(string)
+    end
   end
 
   def test_ordinal
