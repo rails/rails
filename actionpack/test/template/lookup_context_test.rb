@@ -31,16 +31,6 @@ class LookupContextTest < ActiveSupport::TestCase
     assert @lookup_context.formats.frozen?
   end
 
-  test "allows me to change some details to execute an specific block of code" do
-    formats = Mime::SET
-    @lookup_context.update_details(:locale => :pt) do
-      assert_equal formats, @lookup_context.formats
-      assert_equal :pt, @lookup_context.locale
-    end
-    assert_equal formats, @lookup_context.formats
-    assert_equal :en, @lookup_context.locale
-  end
-
   test "provides getters and setters for formats" do
     @lookup_context.formats = [:html]
     assert_equal [:html], @lookup_context.formats

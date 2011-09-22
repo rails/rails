@@ -26,6 +26,11 @@ namespace :test do
   Rake::TestTask.new(:isolated) do |t|
     t.pattern = 'test/ts_isolated.rb'
   end
+
+  Rake::TestTask.new(:template) do |t|
+    t.libs << 'test'
+    t.pattern = 'test/template/**/*.rb'
+  end
 end
 
 desc 'ActiveRecord Integration Tests'

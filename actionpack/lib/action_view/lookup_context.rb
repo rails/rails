@@ -20,29 +20,22 @@ module ActionView
 
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
-
       initialize = registered_details.map { |n| "self.#{n} = details[:#{n}]" }
-      update     = registered_details.map { |n| "self.#{n} = details[:#{n}] if details.key?(:#{n})" }
 
-      Accessors.send :define_method, :"_#{name}_defaults", &block
+      Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
           @details[:#{name}]
         end
 
         def #{name}=(value)
-          value = Array.wrap(value.presence || _#{name}_defaults)
+          value = Array.wrap(value.presence || default_#{name})
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
 
         remove_possible_method :initialize_details
         def initialize_details(details)
           #{initialize.join("\n")}
-        end
-
-        remove_possible_method :update_details
-        def update_details(details)
-          #{update.join("\n")}
         end
       METHOD
     end
@@ -51,8 +44,9 @@ module ActionView
     module Accessors #:nodoc:
     end
 
-    register_detail(:formats) { Mime::SET.symbols }
     register_detail(:locale)  { [I18n.locale, I18n.default_locale] }
+    register_detail(:formats) { Mime::SET.symbols }
+    register_detail(:handlers){ Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
       alias :eql? :equal?
@@ -88,25 +82,6 @@ module ActionView
         @cache = old_value
       end
 
-      # Update the details keys by merging the given hash into the current
-      # details hash. If a block is given, the details are modified just during
-      # the execution of the block and reverted to the previous value after.
-      def update_details(new_details)
-        if block_given?
-          old_details = @details.dup
-          super
-
-          begin
-            yield
-          ensure
-            @details_key = nil
-            @details = old_details
-          end
-        else
-          super
-        end
-      end
-
     protected
 
       def _set_detail(key, value)
@@ -126,17 +101,17 @@ module ActionView
         @view_paths = ActionView::PathSet.new(Array.wrap(paths))
       end
 
-      def find(name, prefixes = [], partial = false, keys = [])
-        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys))
+      def find(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :find_template :find
 
-      def find_all(name, prefixes = [], partial = false, keys = [])
-        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys))
+      def find_all(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
       end
 
-      def exists?(name, prefixes = [], partial = false, keys = [])
-        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys))
+      def exists?(name, prefixes = [], partial = false, keys = [], options = {})
+        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :template_exists? :exists?
 
@@ -155,9 +130,17 @@ module ActionView
 
     protected
 
-      def args_for_lookup(name, prefixes, partial, keys) #:nodoc:
+      def args_for_lookup(name, prefixes, partial, keys, details_options) #:nodoc:
         name, prefixes = normalize_name(name, prefixes)
-        [name, prefixes, partial || false, @details, details_key, keys]
+        details, details_key = detail_args_for(details_options)
+        [name, prefixes, partial || false, details, details_key, keys]
+      end
+
+      # Compute details hash and key according to user options (e.g. passed from #render).
+      def detail_args_for(options)
+        return @details, details_key if options.empty? # most common path.
+        user_details = @details.merge(options)
+        [user_details, DetailsKey.get(user_details)]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb
@@ -177,10 +160,6 @@ module ActionView
         return name, prefixes
       end
 
-      def default_handlers #:nodoc:
-        @@default_handlers ||= Template::Handlers.extensions
-      end
-
       def handlers_regexp #:nodoc:
         @@handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
@@ -191,7 +170,7 @@ module ActionView
     include ViewPaths
 
     def initialize(view_paths, details = {}, prefixes = [])
-      @details, @details_key = { :handlers => default_handlers }, nil
+      @details, @details_key = {}, nil
       @frozen_formats, @skip_default_locale = false, false
       @cache = true
       @prefixes = prefixes
@@ -213,7 +192,7 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(_formats_defaults) if values.delete "*/*"
+        values.concat(default_formats) if values.delete "*/*"
         values << :html if values == [:js]
       end
       super(values)
@@ -239,7 +218,7 @@ module ActionView
         config.locale = value
       end
 
-      super(@skip_default_locale ? I18n.locale : _locale_defaults)
+      super(@skip_default_locale ? I18n.locale : default_locale)
     end
 
     # A method which only uses the first format in the formats array for layout lookup.
