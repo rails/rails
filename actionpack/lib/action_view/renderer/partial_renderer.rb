@@ -216,18 +216,15 @@ module ActionView
 
     def render(context, options, block)
       setup(context, options, block)
+      identifier = (@template = find_partial) ? @template.identifier : @path
 
-      wrap_formats(@path) do
-        identifier = ((@template = find_partial) ? @template.identifier : @path)
-
-        if @collection
-          instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
-            render_collection
-          end
-        else
-          instrument(:partial, :identifier => identifier) do
-            render_partial
-          end
+      if @collection
+        instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
+          render_collection
+        end
+      else
+        instrument(:partial, :identifier => identifier) do
+          render_partial
         end
       end
     end
@@ -271,6 +268,7 @@ module ActionView
       @options = options
       @locals  = options[:locals] || {}
       @block   = block
+      @details = options.slice(:formats, :locale, :handlers)
 
       if String === partial
         @object     = options[:object]
@@ -299,6 +297,7 @@ module ActionView
                                 "and is followed by any combinations of letters, numbers, or underscores.")
       end
 
+      extract_format(@path, @details)
       self
     end
 
@@ -326,7 +325,7 @@ module ActionView
 
     def find_template(path=@path, locals=@locals.keys)
       prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
-      @lookup_context.find_template(path, prefixes, true, locals)
+      @lookup_context.find_template(path, prefixes, true, locals, @details)
     end
 
     def collection_with_template

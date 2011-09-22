@@ -20,29 +20,22 @@ module ActionView
 
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
-
       initialize = registered_details.map { |n| "self.#{n} = details[:#{n}]" }
-      update     = registered_details.map { |n| "self.#{n} = details[:#{n}] if details.key?(:#{n})" }
 
-      Accessors.send :define_method, :"_#{name}_defaults", &block
+      Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
           @details[:#{name}]
         end
 
         def #{name}=(value)
-          value = Array.wrap(value.presence || _#{name}_defaults)
+          value = Array.wrap(value.presence || default_#{name})
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
 
         remove_possible_method :initialize_details
         def initialize_details(details)
           #{initialize.join("\n")}
-        end
-
-        remove_possible_method :update_details
-        def update_details(details)
-          #{update.join("\n")}
         end
       METHOD
     end
@@ -86,24 +79,6 @@ module ActionView
         yield
       ensure
         @cache = old_value
-      end
-
-      # Update the details keys by merging the given hash into the current
-      # details hash. If a block is given, the details are modified just during
-      # the execution of the block and reverted to the previous value after.
-      def update_details(new_details)
-        if block_given?
-          old_details, old_key = @details.dup, @details_key
-          super
-
-          begin
-            yield
-          ensure
-            @details, @details_key = old_details, old_key
-          end
-        else
-          super
-        end
       end
 
     protected
@@ -220,7 +195,7 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(_formats_defaults) if values.delete "*/*"
+        values.concat(default_formats) if values.delete "*/*"
         values << :html if values == [:js]
       end
       super(values)
@@ -246,7 +221,7 @@ module ActionView
         config.locale = value
       end
 
-      super(@skip_default_locale ? I18n.locale : _locale_defaults)
+      super(@skip_default_locale ? I18n.locale : default_locale)
     end
 
     # A method which only uses the first format in the formats array for layout lookup.

@@ -797,7 +797,9 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_file
-    get :hello_world_file
+    assert_deprecated do
+      get :hello_world_file
+    end
     assert_equal "Hello world!", @response.body
   end
 
