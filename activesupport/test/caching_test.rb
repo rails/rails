@@ -357,7 +357,7 @@ module CacheStoreBehavior
 
   def test_really_long_keys
     key = ""
-    1000.times{key << "x"}
+    900.times{key << "x"}
     assert_equal true, @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
     assert_equal "bar", @cache.fetch(key)
