@@ -63,7 +63,7 @@ platforms :ruby do
   gem "nokogiri", ">= 1.4.5"
 
   # AR
-  gem "sqlite3", "~> 1.3.3"
+  gem "sqlite3", "~> 1.3.4"
 
   group :db do
     gem "pg", ">= 0.11.0" unless ENV['TRAVIS'] # once pg is on travis this can be removed
