@@ -224,6 +224,33 @@ module ActiveSupport
       end
     end
 
+    # Tries to find a constant with the name specified in the argument string:
+    #
+    #   "Module".safe_constantize     # => Module
+    #   "Test::Unit".safe_constantize # => Test::Unit
+    #
+    # The name is assumed to be the one of a top-level constant, no matter whether
+    # it starts with "::" or not. No lexical context is taken into account:
+    #
+    #   C = 'outside'
+    #   module M
+    #     C = 'inside'
+    #     C                    # => 'inside'
+    #     "C".safe_constantize # => 'outside', same as ::C
+    #   end
+    #
+    # nil is returned when the name is not in CamelCase or the constant is
+    # unknown.
+    #
+    #   "blargle".safe_constantize  # => nil
+    def safe_constantize(camel_cased_word)
+      begin
+        camel_cased_word.constantize
+      rescue NameError
+        nil
+      end
+    end
+    
     # Turns a number into an ordinal string used to denote the position in an
     # ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
