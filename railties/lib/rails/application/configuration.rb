@@ -38,7 +38,7 @@ module Rails
         @assets.enabled         = false
         @assets.paths           = []
         @assets.precompile      = [ Proc.new{ |path| !File.extname(path).in?(['.js', '.css']) },
-                                    /application.(css|js)$/ ]
+                                    /(?:\/|\\|\A)application\.(css|js)$/ ]
         @assets.prefix          = "/assets"
         @assets.version         = ''
         @assets.debug           = false
