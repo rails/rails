@@ -68,6 +68,10 @@ module ApplicationTests
     test "precompile application.js and application.css and all other files not ending with .js or .css by default" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/stylesheets/application.css", "body{}"
+
+      app_file "app/assets/javascripts/someapplication.js", "alert();"
+      app_file "app/assets/stylesheets/someapplication.css", "body{}"
+
       app_file "app/assets/javascripts/something.min.js", "alert();"
       app_file "app/assets/stylesheets/something.min.css", "body{}"
 
@@ -87,8 +91,13 @@ module ApplicationTests
       images_should_compile.each do |filename|
         assert File.exists?("#{app_path}/public/assets/#{filename}")
       end
+
       assert File.exists?("#{app_path}/public/assets/application.js")
       assert File.exists?("#{app_path}/public/assets/application.css")
+
+      assert !File.exists?("#{app_path}/public/assets/someapplication.js")
+      assert !File.exists?("#{app_path}/public/assets/someapplication.css")
+
       assert !File.exists?("#{app_path}/public/assets/something.min.js")
       assert !File.exists?("#{app_path}/public/assets/something.min.css")
     end
