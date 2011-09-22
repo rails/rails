@@ -17,8 +17,13 @@ namespace :test do
     dir = ENV["TEST_DIR"] || "**"
     Dir["test/#{dir}/*_test.rb"].each do |file|
       next true if file.include?("fixtures")
-      ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-      sh(ruby, '-Itest', "-I#{File.dirname(__FILE__)}/../activesupport/lib", file)
+      dash_i = [
+        'test',
+        'lib',
+        "#{File.dirname(__FILE__)}/../activesupport/lib",
+        "#{File.dirname(__FILE__)}/../actionpack/lib"
+      ]
+      ruby "-I#{dash_i.join ':'}", file
     end
   end
 end

@@ -63,7 +63,7 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank]
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
 
     attr_reader :messages
 
@@ -88,6 +88,7 @@ module ActiveModel
     def include?(error)
       (v = messages[error]) && v.any?
     end
+    alias :has_key? :include?
 
     # Get messages for +key+
     def get(key)
@@ -179,6 +180,7 @@ module ActiveModel
       all? { |k, v| v && v.empty? }
     end
     alias_method :blank?, :empty?
+
     # Returns an xml formatted representation of the Errors hash.
     #
     #   p.errors.add(:name, "can't be blank")
@@ -218,6 +220,9 @@ module ActiveModel
       elsif message.is_a?(Proc)
         message = message.call
       end
+      if options[:strict]
+        raise ActiveModel::StrictValidationFailed,  message
+      end
 
       self[attribute] << message
     end
@@ -250,20 +255,22 @@ module ActiveModel
     #   company.errors.full_messages # =>
     #     ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
-      map { |attribute, message|
-        if attribute == :base
-          message
-        else
-          attr_name = attribute.to_s.gsub('.', '_').humanize
-          attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      map { |attribute, message| full_message(attribute, message) }
+    end
 
-          I18n.t(:"errors.format", {
-            :default   => "%{attribute} %{message}",
-            :attribute => attr_name,
-            :message   => message
-          })
-        end
-      }
+    # Returns a full message for a given attribute.
+    #
+    #   company.errors.full_message(:name, "is invalid")  # =>
+    #     "Name is invalid"
+    def full_message(attribute, message)
+      return message if attribute == :base
+      attr_name = attribute.to_s.gsub('.', '_').humanize
+      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      I18n.t(:"errors.format", {
+        :default   => "%{attribute} %{message}",
+        :attribute => attr_name,
+        :message   => message
+      })
     end
 
     # Translates an error message in its default scope
@@ -318,5 +325,8 @@ module ActiveModel
 
       I18n.translate(key, options)
     end
+  end
+
+  class StrictValidationFailed < StandardError
   end
 end

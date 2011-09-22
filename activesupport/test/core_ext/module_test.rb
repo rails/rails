@@ -28,20 +28,10 @@ end
 
 Somewhere = Struct.new(:street, :city) do
   attr_accessor :name
-
-  protected
-
-  def protected_method
-  end
-
-  private
-
-  def private_method
-  end
 end
 
 class Someone < Struct.new(:name, :place)
-  delegate :street, :city, :to_f, :protected_method, :private_method, :to => :place
+  delegate :street, :city, :to_f, :to => :place
   delegate :name=, :to => :place, :prefix => true
   delegate :upcase, :to => "place.city"
 
@@ -91,14 +81,6 @@ class ModuleTest < Test::Unit::TestCase
   def test_delegation_to_assignment_method
     @david.place_name = "Fred"
     assert_equal "Fred", @david.place.name
-  end
-
-  def test_delegation_to_protected_method
-    assert_raise(NoMethodError) { @david.protected_method }
-  end
-
-  def test_delegation_to_private_method
-    assert_raise(NoMethodError) { @david.private_method }
   end
 
   def test_delegation_down_hierarchy
@@ -201,8 +183,9 @@ class ModuleTest < Test::Unit::TestCase
     someone.foo
   rescue NoMethodError => e
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE}"
-    assert e.backtrace.first.include?(file_and_line),
-           "[#{e.backtrace.first}] did not include [#{file_and_line}]"
+    # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
+    assert e.backtrace.any?{|a| a.include?(file_and_line)},
+           "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
   def test_delegation_exception_backtrace_with_allow_nil
@@ -210,8 +193,9 @@ class ModuleTest < Test::Unit::TestCase
     someone.bar
   rescue NoMethodError => e
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE_2}"
-    assert e.backtrace.first.include?(file_and_line),
-           "[#{e.backtrace.first}] did not include [#{file_and_line}]"
+    # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
+    assert e.backtrace.any?{|a| a.include?(file_and_line)},
+           "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
   def test_parent

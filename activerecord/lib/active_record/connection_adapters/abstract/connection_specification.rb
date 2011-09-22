@@ -126,7 +126,7 @@ module ActiveRecord
       end
 
       def connection_pool
-        connection_handler.retrieve_connection_pool(self)
+        connection_handler.retrieve_connection_pool(self) or raise ConnectionNotEstablished
       end
 
       def retrieve_connection

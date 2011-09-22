@@ -3,7 +3,6 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/inclusion'
-require 'active_support/core_ext/object/public_send'
 
 require 'active_support/core_ext/object/conversions'
 require 'active_support/core_ext/object/instance_variables'

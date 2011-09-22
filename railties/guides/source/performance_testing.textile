@@ -207,7 +207,7 @@ GC Time measures the amount of time spent in GC for the performance test case.
 
 h5. Metric Availability
 
-h6. Benchmarking
+h6(#benchmarking_1). Benchmarking
 
 |_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
 |_.MRI        | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
@@ -215,7 +215,7 @@ h6. Benchmarking
 |_.Rubinius   | yes       | no           | no       | no        | yes    | yes     | yes     | yes     |
 |_.JRuby      | yes       | no           | no       | yes       | yes    | yes     | yes     | yes     |
 
-h6. Profiling
+h6(#profiling_1). Profiling
 
 |_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
 |_.MRI        | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
@@ -595,9 +595,3 @@ Rails has been lucky to have a few companies dedicated to Rails-specific perform
 
 * "New Relic":http://www.newrelic.com
 * "Scout":http://scoutapp.com
-
-h3. Changelog
-
-* March 30, 2011: Documented the recent improvements (multiple interpreters, options, etc) and necessary adjustments. Other minor improvements. "Gonçalo Silva":http://goncalossilva.com.
-* January 9, 2009: Complete rewrite by "Pratik":credits.html#lifo
-* September 6, 2008: Initial version by Matthew Bergman

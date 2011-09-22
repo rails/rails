@@ -79,10 +79,10 @@ module ActionController
                 "expecting <?> but rendering with <?>",
                 options, rendered.keys.join(', '))
         assert_block(msg) do
-          if options.nil?
-            @templates.blank?
-          else
+          if options
             rendered.any? { |t,num| t.match(options) }
+          else
+            @templates.blank?
           end
         end
       when Hash
@@ -180,7 +180,7 @@ module ActionController
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @symbolized_path_params = nil
       @method = @request_method = nil
-      @fullpath = @ip = @remote_ip = nil
+      @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}
       @set_cookies ||= {}
       @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
@@ -401,9 +401,7 @@ module ActionController
       def paramify_values(hash_or_array_or_value)
         case hash_or_array_or_value
         when Hash
-          hash_or_array_or_value.each do |key, value|
-            hash_or_array_or_value[key] = paramify_values(value)
-          end
+          Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
         when Array
           hash_or_array_or_value.map {|i| paramify_values(i)}
         when Rack::Test::UploadedFile
@@ -416,7 +414,7 @@ module ActionController
       def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
-        paramify_values(parameters)
+        parameters = paramify_values(parameters)
 
         # Sanity check for required instance variables so we can give an
         # understandable error message.
@@ -450,7 +448,7 @@ module ActionController
         @controller.params.merge!(parameters)
         build_request_uri(action, parameters)
         @controller.class.class_eval { include Testing }
-        @controller.recycle! 
+        @controller.recycle!
         @controller.process_with_new_base_test(@request, @response)
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?

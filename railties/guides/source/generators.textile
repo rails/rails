@@ -449,6 +449,15 @@ The above code will put the following line into +Gemfile+:
 gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
 </ruby>
 
+h4. +gem_group+
+
+Wraps gem entries inside a group:
+
+<ruby>
+gem_group :development, :test do
+  gem "rspec-rails"
+end
+</ruby>
 
 h4. +add_source+
 
@@ -610,14 +619,3 @@ Output the contents of a file in the template's +source_path+, usually a README.
 <ruby>
 readme("README")
 </ruby>
-
-h3. Changelog
-
-* December 1, 2010: Documenting the available methods and options for generators and templates by "Ryan Bigg":http://ryanbigg.com
-* December 1, 2010: Addition of Rails application templates by "Ryan Bigg":http://ryanbigg.com
-
-* August 23, 2010: Edit pass by "Xavier Noria":credits.html#fxn
-
-* April 30, 2010: Reviewed by José Valim
-
-* November 20, 2009: First version by José Valim

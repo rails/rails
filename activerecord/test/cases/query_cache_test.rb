@@ -13,6 +13,32 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.disable_query_cache!
   end
 
+  def test_exceptional_middleware_clears_and_disables_cache_on_error
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      Task.find 1
+      Task.find 1
+      assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+      raise "lol borked"
+    }
+    assert_raises(RuntimeError) { mw.call({}) }
+
+    assert_equal 0, ActiveRecord::Base.connection.query_cache.length
+    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+  end
+
+  def test_exceptional_middleware_leaves_enabled_cache_alone
+    ActiveRecord::Base.connection.enable_query_cache!
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      raise "lol borked"
+    }
+    assert_raises(RuntimeError) { mw.call({}) }
+
+    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
+  end
+
   def test_middleware_delegates
     called = false
     mw = ActiveRecord::QueryCache.new lambda { |env|
@@ -121,13 +147,16 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_does_not_wrap_string_results_in_arrays
-    require 'sqlite3/version' if current_adapter?(:SQLite3Adapter)
+    if current_adapter?(:SQLite3Adapter)
+      require 'sqlite3/version'
+      sqlite3_version = RUBY_PLATFORM =~ /java/ ? Jdbc::SQLite3::VERSION : SQLite3::VERSION
+    end
 
     Task.cache do
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
         assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      elsif current_adapter?(:SQLite3Adapter) && SQLite3::VERSION > '1.2.5' || current_adapter?(:Mysql2Adapter) || current_adapter?(:MysqlAdapter)
+      elsif current_adapter?(:SQLite3Adapter) && sqlite3_version > '1.2.5' || current_adapter?(:Mysql2Adapter) || current_adapter?(:MysqlAdapter)
         # Future versions of the sqlite3 adapter will return numeric
         assert_instance_of Fixnum,
          Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")

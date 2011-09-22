@@ -442,6 +442,7 @@ module ActiveRecord #:nodoc:
 
     class << self # Class methods
       delegate :find, :first, :first!, :last, :last!, :all, :exists?, :any?, :many?, :to => :scoped
+      delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :scoped
       delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
       delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
@@ -624,6 +625,8 @@ module ActiveRecord #:nodoc:
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
+        return if abstract_class?
+
         self.table_name = compute_table_name
       end
 
@@ -1329,7 +1332,7 @@ MSG
         # Returns the class descending directly from ActiveRecord::Base or an
         # abstract class, if any, in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
-          if klass.superclass == Base || klass.superclass.abstract_class?
+          if klass == Base || klass.superclass == Base || klass.superclass.abstract_class?
             klass
           elsif klass.superclass.nil?
             raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
@@ -1847,7 +1850,7 @@ MSG
 
         ensure_proper_type
         populate_with_current_scope_attributes
-        clear_timestamp_attributes
+        super
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
@@ -2109,14 +2112,6 @@ MSG
 
         self.class.scope_attributes.each do |att,value|
           send("#{att}=", value) if respond_to?("#{att}=")
-        end
-      end
-
-      # Clear attributes and changed_attributes
-      def clear_timestamp_attributes
-        all_timestamp_attributes_in_model.each do |attribute_name|
-          self[attribute_name] = nil
-          changed_attributes.delete(attribute_name)
         end
       end
   end

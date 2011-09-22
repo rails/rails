@@ -13,9 +13,15 @@ module ActiveSupport
     class InvalidMessage < StandardError; end
     OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
 
-    def initialize(secret, cipher = 'aes-256-cbc')
+    def initialize(secret, options = {})
+      unless options.is_a?(Hash)
+        ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :cipher => 'algorithm' to specify the cipher algorithm."
+        options = { :cipher => options }
+      end
+      
       @secret = secret
-      @cipher = cipher
+      @cipher = options[:cipher] || 'aes-256-cbc'
+      @serializer = options[:serializer] || Marshal
     end
 
     def encrypt(value)
@@ -27,7 +33,7 @@ module ActiveSupport
       cipher.key = @secret
       cipher.iv  = iv
 
-      encrypted_data = cipher.update(Marshal.dump(value))
+      encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final
 
       [encrypted_data, iv].map {|v| ActiveSupport::Base64.encode64s(v)}.join("--")
@@ -44,7 +50,7 @@ module ActiveSupport
       decrypted_data = cipher.update(encrypted_data)
       decrypted_data << cipher.final
 
-      Marshal.load(decrypted_data)
+      @serializer.load(decrypted_data)
     rescue OpenSSLCipherError, TypeError
       raise InvalidMessage
     end

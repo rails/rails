@@ -139,6 +139,7 @@ module Rails
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
+    JOURNEY_DEV_PATH = File.expand_path("../../../../../../../journey", File.dirname(__FILE__))
 
     RESERVED_NAMES = %w[application destroy benchmarker profiler plugin runner test]
 

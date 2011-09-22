@@ -14,6 +14,7 @@ module ActiveRecord
       autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
       autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
       autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :Table,            'active_record/connection_adapters/abstract/schema_definitions'
 
       autoload :SchemaStatements
       autoload :DatabaseStatements

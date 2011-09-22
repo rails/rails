@@ -1,4 +1,4 @@
-require 'rack/mount'
+require 'journey/router'
 require 'forwardable'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
@@ -205,29 +205,42 @@ module ActionDispatch
           end
       end
 
-      attr_accessor :set, :routes, :named_routes, :default_scope
+      attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
+
+      alias :routes :set
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
 
       def initialize(request_class = ActionDispatch::Request)
-        self.routes = []
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.default_url_options = {}
 
         self.request_class = request_class
-        self.valid_conditions = request_class.public_instance_methods.map { |m| m.to_sym }
-        self.valid_conditions.delete(:id)
-        self.valid_conditions.push(:controller, :action)
+        @valid_conditions = {}
 
-        @append = []
-        @prepend = []
+        request_class.public_instance_methods.each { |m|
+          @valid_conditions[m.to_sym] = true
+        }
+        @valid_conditions[:controller] = true
+        @valid_conditions[:action] = true
+
+        self.valid_conditions.delete(:id)
+
+        @append                     = []
+        @prepend                    = []
         @disable_clear_and_finalize = false
-        clear!
+        @finalized                  = false
+
+        @set    = Journey::Routes.new
+        @router = Journey::Router.new(@set, {
+          :parameters_key => PARAMETERS_KEY,
+          :request_class  => request_class})
+        @formatter = Journey::Formatter.new @set
       end
 
       def draw(&block)
@@ -263,17 +276,13 @@ module ActionDispatch
         return if @finalized
         @append.each { |blk| eval_block(blk) }
         @finalized = true
-        @set.freeze
       end
 
       def clear!
         @finalized = false
-        routes.clear
         named_routes.clear
-        @set = ::Rack::Mount::RouteSet.new(
-          :parameters_key => PARAMETERS_KEY,
-          :request_class  => request_class
-        )
+        set.clear
+        formatter.clear
         @prepend.each { |blk| eval_block(blk) }
       end
 
@@ -341,26 +350,55 @@ module ActionDispatch
 
       def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
-        route = Route.new(self, app, conditions, requirements, defaults, name, anchor)
-        @set.add_route(route.app, route.conditions, route.defaults, route.name)
+
+        path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
+        conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
+
+        route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name
-        routes << route
         route
       end
 
+      def build_path(path, requirements, separators, anchor)
+        strexp = Journey::Router::Strexp.new(
+            path,
+            requirements,
+            SEPARATORS,
+            anchor)
+
+        Journey::Path::Pattern.new(strexp)
+      end
+      private :build_path
+
+      def build_conditions(current_conditions, req_predicates, path_values)
+        conditions = current_conditions.dup
+
+        verbs = conditions[:request_method] || []
+
+        # Rack-Mount requires that :request_method be a regular expression.
+        # :request_method represents the HTTP verb that matches this route.
+        #
+        # Here we munge values before they get sent on to rack-mount.
+        unless verbs.empty?
+          conditions[:request_method] = %r[^#{verbs.join('|')}$]
+        end
+        conditions.delete_if { |k,v| !(req_predicates.include?(k) || path_values.include?(k)) }
+
+        conditions
+      end
+      private :build_conditions
+
       class Generator #:nodoc:
-        PARAMETERIZE = {
-          :parameterize => lambda do |name, value|
-            if name == :controller
-              value
-            elsif value.is_a?(Array)
-              value.map { |v| Rack::Mount::Utils.escape_uri(v.to_param) }.join('/')
-            else
-              return nil unless param = value.to_param
-              param.split('/').map { |v| Rack::Mount::Utils.escape_uri(v) }.join("/")
-            end
+        PARAMETERIZE = lambda do |name, value|
+          if name == :controller
+            value
+          elsif value.is_a?(Array)
+            value.map { |v| Journey::Router::Utils.escape_uri(v.to_param) }.join('/')
+          else
+            return nil unless param = value.to_param
+            param.split('/').map { |v| Journey::Router::Utils.escape_uri(v) }.join("/")
           end
-        }
+        end
 
         attr_reader :options, :recall, :set, :named_route
 
@@ -450,14 +488,14 @@ module ActionDispatch
         end
 
         def generate
-          path, params = @set.set.generate(:path_info, named_route, options, recall, PARAMETERIZE)
+          path, params = @set.formatter.generate(:path_info, named_route, options, recall, PARAMETERIZE)
 
           raise_routing_error unless path
 
           return [path, params.keys] if @extras
 
           [path, params]
-        rescue Rack::Mount::RoutingError
+        rescue Journey::Router::RoutingError
           raise_routing_error
         end
 
@@ -529,12 +567,12 @@ module ActionDispatch
 
       def call(env)
         finalize!
-        @set.call(env)
+        @router.call(env)
       end
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Rack::Mount::Utils.normalize_path(path) unless path =~ %r{://}
+        path = Journey::Router::Utils.normalize_path(path) unless path =~ %r{://}
 
         begin
           env = Rack::MockRequest.env_for(path, {:method => method})
@@ -543,7 +581,7 @@ module ActionDispatch
         end
 
         req = @request_class.new(env)
-        @set.recognize(req) do |route, matches, params|
+        @router.recognize(req) do |route, matches, params|
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY) if value.encoding_aware?

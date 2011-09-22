@@ -51,7 +51,26 @@ class BaseLoadTest < Test::Unit::TestCase
         :votes => [ true, false, true ],
         :places => [ "Columbia City", "Unknown" ]}}}
 
+
+    # List of books formated as [{timestamp_of_publication => name}, ...]
+    @books = {:books => [
+        {1009839600 => "Ruby in a Nutshell"},
+        {1199142000 => "The Ruby Programming Language"}
+      ]}
+
+    @books_date = {:books => [
+        {Time.at(1009839600) => "Ruby in a Nutshell"},
+        {Time.at(1199142000) => "The Ruby Programming Language"}
+    ]}
     @person = Person.new
+  end
+
+  def test_load_hash_with_integers_as_keys
+    assert_nothing_raised{@person.load(@books)}
+  end
+
+  def test_load_hash_with_dates_as_keys
+    assert_nothing_raised{@person.load(@books_date)}
   end
 
   def test_load_expects_hash

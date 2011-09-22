@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title><%= yield(:page_title) || 'Ruby on Rails guides' %></title>
+<title><%= yield(:page_title) || 'Ruby on Rails Guides' %></title>
 
 <link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
 <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
@@ -71,6 +71,7 @@
               <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
               <dd><a href="command_line.html">Rails Command Line Tools and Rake Tasks</a></dd>
               <dd><a href="caching_with_rails.html">Caching with Rails</a></dd>
+              <dd><a href="asset_pipeline.html">Asset Pipeline</a></dd>
 
               <dt>Extending Rails</dt>
               <dd><a href="plugins.html">The Basics of Creating Rails Plugins</a></dd>
@@ -83,13 +84,14 @@
               <dd><a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a></dd>
 
               <dt>Release Notes</dt>
+              <dd><a href="3_1_release_notes.html">Ruby on Rails 3.1 Release Notes</a></dd>
               <dd><a href="3_0_release_notes.html">Ruby on Rails 3.0 Release Notes</a></dd>
               <dd><a href="2_3_release_notes.html">Ruby on Rails 2.3 Release Notes</a></dd>
               <dd><a href="2_2_release_notes.html">Ruby on Rails 2.2 Release Notes</a></dd>
             </dl>
           </div>
         </li>
-        <li><a href="contribute.html">Contribute</a></li>
+        <li><a href="contributing_to_ruby_on_rails.html">Contribute</a></li>
         <li><a href="credits.html">Credits</a></li>
       </ul>
     </div>
@@ -126,6 +128,10 @@
           Please do add any missing documentation for master. Check the
           <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
           for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <%= link_to 'open an issue', 'https://github.com/rails/rails/issues' %>.
         </p>
         <p>And last but not least, any kind of discussion regarding Ruby on Rails
           documentation is very welcome in the <%= link_to 'rubyonrails-docs mailing list', 'http://groups.google.com/group/rubyonrails-docs' %>.

@@ -213,8 +213,8 @@ module ActionDispatch
           end
 
           def segment_keys
-            @segment_keys ||= Rack::Mount::RegexpWithNamedGroups.new(
-              Rack::Mount::Strexp.compile(@path, requirements, SEPARATORS)
+            @segment_keys ||= Journey::Path::Pattern.new(
+              Journey::Router::Strexp.compile(@path, requirements, SEPARATORS)
             ).names
           end
 
@@ -235,7 +235,7 @@ module ActionDispatch
       # (:locale) becomes (/:locale) instead of /(:locale). Except
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
-        path = Rack::Mount::Utils.normalize_path(path)
+        path = Journey::Router::Utils.normalize_path(path)
         path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^/]+\)$}
         path
       end
@@ -452,7 +452,9 @@ module ActionDispatch
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
                 _route.segment_keys.each { |k| options.delete(k) }
-                _routes.url_helpers.send("#{name}_path", prefix_options)
+                prefix = _routes.url_helpers.send("#{name}_path", prefix_options)
+                prefix = '' if prefix == '/'
+                prefix
               end
             end
           end
@@ -1036,12 +1038,12 @@ module ActionDispatch
         #
         # This generates the following comments routes:
         #
-        #   GET     /photos/:id/comments/new
-        #   POST    /photos/:id/comments
-        #   GET     /photos/:id/comments/:id
-        #   GET     /photos/:id/comments/:id/edit
-        #   PUT     /photos/:id/comments/:id
-        #   DELETE  /photos/:id/comments/:id
+        #   GET     /photos/:photo_id/comments/new
+        #   POST    /photos/:photo_id/comments
+        #   GET     /photos/:photo_id/comments/:id
+        #   GET     /photos/:photo_id/comments/:id/edit
+        #   PUT     /photos/:photo_id/comments/:id
+        #   DELETE  /photos/:photo_id/comments/:id
         #
         # === Options
         # Takes same options as <tt>Base#match</tt> as well as:
@@ -1436,7 +1438,7 @@ module ActionDispatch
             name_prefix = @scope[:as]
 
             if parent_resource
-              return nil if as.nil? && action.nil?
+              return nil unless as || action
 
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name
@@ -1463,9 +1465,9 @@ module ActionDispatch
       end
 
       module Shorthand #:nodoc:
-        def match(*args)
-          if args.size == 1 && args.last.is_a?(Hash)
-            options  = args.pop
+        def match(path, *rest)
+          if rest.empty? && Hash === path
+            options  = path
             path, to = options.find { |name, value| name.is_a?(String) }
             options.merge!(:to => to).delete(path)
             super(path, options)

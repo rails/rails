@@ -1,5 +1,23 @@
 *Rails 3.2.0 (unreleased)*
 
+* Changed log level of warning for missing CSRF token from :debug to :warn. [Mike Dillon]
+
+* content_tag_for and div_for can now take the collection of records. It will also yield the record as the first argument if you set a receiving argument in your block [Prem Sichanugrist]
+
+  So instead of having to do this:
+
+    @items.each do |item|
+      content_tag_for(:li, item) do
+         Title: <%= item.title %>
+      end
+    end
+
+  You can now do this:
+
+    content_tag_for(:li, @items) do |item|
+      Title: <%= item.title %>
+    end
+
 * send_file now guess the mime type [Esad Hajdarevic]
 
 * Mime type entries for PDF, ZIP and other formats were added [Esad Hajdarevic]
@@ -28,7 +46,33 @@
   for your test you need to do it before the cookie jar is created.
 
 
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.1 (unreleased)*
+
+* Allow asset tag helper methods to accept :digest => false option in order to completely avoid the digest generation.
+Useful for linking assets from static html files or from emails when the user
+could probably look at an older html email with an older asset. [Santiago Pastorino]
+
+* Don't mount Sprockets server at config.assets.prefix if config.assets.compile is false. [Mark J. Titorenko]
+
+* Set relative url root in assets when controller isn't available for Sprockets (eg. Sass files using asset_path). Fixes #2435 [Guillermo Iguaran]
+
+* Fix basic auth credential generation to not make newlines. GH #2882
+
+* Fixed the behavior of asset pipeline when config.assets.digest and config.assets.compile are false and requested asset isn't precompiled.
+  Before the requested asset were compiled anyway ignoring that the config.assets.compile flag is false. [Guillermo Iguaran]
+
+* CookieJar is now Enumerable. Fixes #2795
+
+* Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. See GH #2763 #2765 #2805 [Guillermo Iguaran]
+
+* Manifest is correctly placed in assets path when default assets prefix is changed. Fixes #2776 [Guillermo Iguaran]
+
+* Fixed stylesheet_link_tag and javascript_include_tag to respect additional options passed by the users when debug is on. [Guillermo Iguaran]
+
+
+*Rails 3.1.0 (August 30, 2011)*
+
+* Param values are `paramified` in controller tests. [David Chelimsky]
 
 * x_sendfile_header now defaults to nil and config/environments/production.rb doesn't set a particular value for it. This allows servers to set it through X-Sendfile-Type. [Santiago Pastorino]
 

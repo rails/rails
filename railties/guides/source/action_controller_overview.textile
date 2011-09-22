@@ -684,9 +684,11 @@ end
 
 This will read and stream the file 4kB at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the +:stream+ option or adjust the block size with the +:buffer_size+ option.
 
+If +:type+ is not specified, it will be guessed from the file extension specified in +:filename+. If the content type is not registered for the extension, <tt>application/octet-stream</tt> will be used.
+
 WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
 
-TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack. Although if you do need the request to go through Rails for some reason, you can set the +:x_sendfile+ option to true, and Rails will let the web server handle sending the file to the user, freeing up the Rails process to do other things. Note that your web server needs to support the +X-Sendfile+ header for this to work.
+TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
 
 h4. RESTful Downloads
 
@@ -813,9 +815,3 @@ end
 </ruby>
 
 Please note that if you found yourself adding +force_ssl+ to many controllers, you may found yourself wanting to force the whole application to use HTTPS instead. In that case, you can set the +config.force_ssl+ in your environment file.
-
-h3. Changelog
-
-* February 17, 2009: Yet another proofread by Xavier Noria.
-
-* November 4, 2008: First release version by Tore Darell

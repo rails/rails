@@ -9,17 +9,25 @@ namespace :assets do
       Kernel.exec $0, *ARGV
     else
       Rake::Task["environment"].invoke
+      Rake::Task["tmp:cache:clear"].invoke
 
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
 
-      # Always perform caching so that asset_path appends the timestamps to file references.
-      Rails.application.config.action_controller.perform_caching = true
+      # Always compile files
+      Rails.application.config.assets.compile = true
 
       config = Rails.application.config
-      assets = config.assets.precompile.dup
-      assets << {:to => File.join(Rails.public_path, config.assets.prefix)}
-      Rails.application.assets.precompile(*assets)
+      env    = Rails.application.assets
+      target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
+      manifest_path = config.assets.manifest || target
+
+      static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
+      manifest = static_compiler.precompile(config.assets.precompile)
+
+      File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
+        YAML.dump(manifest, f)
+      end
     end
   end
 

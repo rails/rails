@@ -1,4 +1,18 @@
-*Rails 3.2.0 (unreleased)*
+Wed Sep  7 15:25:02 2011  Aaron Patterson <aaron@tenderlovemaking.com>
+
+	* lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache
+	  keys are per process id.
+	* lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
+
+* Add first_or_create, first_or_create!, first_or_initialize methods to Active Record. This is a
+  better approach over the old find_or_create_by dynamic methods because it's clearer which
+  arguments are used to find the record and which are used to create it:
+
+    User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
+
+  [Andrés Mejía]
+
+* Support bulk change_table in mysql2 adapter, as well as the mysql one. [Jon Leighton]
 
 * If multiple parameters are sent representing a date, and some are blank, the
 resulting object is nil. In previous releases those values defaulted to 1. This
@@ -22,7 +36,7 @@ a URI that specifies the connection configuration.  For example:
 
   [Prem Sichanugrist]
 
-*Rails 3.1.0 (unreleased)*
+*Rails 3.1.0 (August 30, 2011)*
 
 * Add a proxy_association method to association proxies, which can be called by association
   extensions to access information about the association. This replaces proxy_owner etc with

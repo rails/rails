@@ -41,6 +41,9 @@ internet for learning Ruby, including:
 * "Programming Ruby":http://www.ruby-doc.org/docs/ProgrammingRuby/
 * "Why's (Poignant) Guide to Ruby":http://mislav.uniqpath.com/poignant-guide/
 
+Also, the example code for this guide is available in the rails github:https://github.com/rails/rails repository
+in rails/railties/guides/code/getting_started.
+
 h3. What is Rails?
 
 Rails is a web application development framework written in the Ruby language.
@@ -61,9 +64,9 @@ The Rails philosophy includes several guiding principles:
 
 * DRY - "Don't Repeat Yourself" - suggests that writing the same code over and over again is a bad thing.
 * Convention Over Configuration - means that Rails makes assumptions about what you want to do and how you're going to
-d o it, rather than requiring you to specify every little thing through endless configuration files.
+do it, rather than requiring you to specify every little thing through endless configuration files.
 * REST is the best pattern for web applications - organizing your application around resources and standard HTTP verbs
-i s the fastest way to go.
+is the fastest way to go.
 
 h4. The MVC Architecture
 
@@ -549,9 +552,9 @@ folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it 
 |app/views/posts/new.html.erb                 |A view to create a new post|
 |app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
 |app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
-|app/assets/stylesheets/scaffold.css.scss     |Cascading style sheet to make the scaffolded views look better|
-|app/assets/stylesheets/post.css.scss         |Cascading style sheet for the posts controller|
-|app/assets/javascripts/post.js.coffee        |CoffeeScript for the posts controller|
+|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
+|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
+|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
 |test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
@@ -592,7 +595,7 @@ class CreatePosts < ActiveRecord::Migration
 end
 </ruby>
 
-The above migration creates a method name +change+ which will be called when you
+The above migration creates a method named +change+ which will be called when you
 run this migration. The action defined in that method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
 want to reverse it at later date. By default, when you run this migration it
@@ -821,8 +824,8 @@ this layout in your editor and modify the +body+ tag:
 <html>
 <head>
   <title>Blog</title>
-  <%= stylesheet_link_tag :all %>
-  <%= javascript_include_tag :defaults %>
+  <%= stylesheet_link_tag "application" %>
+  <%= javascript_include_tag "application" %>
   <%= csrf_meta_tags %>
 </head>
 <body style="background: #EEEEEE;">
@@ -1083,8 +1086,8 @@ def destroy
   @post.destroy
 
   respond_to do |format|
-    format.html  { redirect_to(posts_url) }
-    format.json  { render :json => {}, :status => :ok }
+    format.html { redirect_to posts_url }
+    format.json { head :ok }
   end
 end
 </ruby>
@@ -1453,7 +1456,7 @@ comment to a local variable named the same as the partial, in this case
 
 h4. Rendering a Partial Form
 
-Lets also move that new comment section out to it's own partial, again, you
+Let's also move that new comment section out to its own partial. Again, you
 create a file +app/views/comments/_form.html.erb+ and in it you put:
 
 <erb>
@@ -1604,7 +1607,7 @@ action, except for +index+ and +show+, so we write that:
 <ruby>
 class PostsController < ApplicationController
 
-  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => [:index, :show]
 
   # GET /posts
   # GET /posts.json
@@ -1719,8 +1722,8 @@ This example shows another option of the render helper, being able to pass in
 local variables, in this case, we want the local variable +form+ in the partial
 to refer to the +post_form+ object.
 
-We also add a <tt>@post.tags.build</tt> at the top of this form, this is to make
-sure there is a new tag ready to have it's name filled in by the user. If you do
+We also add a <tt>@post.tags.build</tt> at the top of this form. This is to make
+sure there is a new tag ready to have its name filled in by the user. If you do
 not build the new tag, then the form will not appear as there is no new Tag
 object ready to create.
 
@@ -1885,24 +1888,3 @@ Two very common sources of data that are not UTF-8:
   is using Latin-1 internally, and your user enters a Russian, Hebrew, or Japanese
   character, the data will be lost forever once it enters the database. If possible,
   use UTF-8 as the internal storage of your database.
-
-h3. Changelog
-
-* April 26, 2011: Change migration code from +up+, +down+ pair to +change+ method by "Prem Sichanugrist":http://sikachu.com
-* April 11, 2011: Change scaffold_controller generator to create format block for JSON instead of XML by "Sebastian Martinez":http://www.wyeworks.com
-* August 30, 2010: Minor editing after Rails 3 release by "Joost Baaij":http://www.spacebabies.nl
-* July 12, 2010: Fixes, editing and updating of code samples by "Jaime Iniesta":http://jaimeiniesta.com
-* May 16, 2010: Added a section on configuration gotchas to address common encoding problems that people might have by "Yehuda Katz":http://www.yehudakatz.com
-* April 30, 2010: Fixes, editing and updating of code samples by "Rohit Arondekar":http://rohitarondekar.com
-* April 25, 2010: Couple of more minor fixups by "Mikel Lindsaar":credits.html#raasdnil
-* April 1, 2010: Fixed document to validate XHTML 1.0 Strict by "Jaime Iniesta":http://jaimeiniesta.com
-* February 8, 2010: Full re-write for Rails 3.0-beta, added helpers and before_filters, refactored code by "Mikel Lindsaar":credits.html#raasdnil
-* January 24, 2010: Re-write for Rails 3.0 by "Mikel Lindsaar":credits.html#raasdnil
-* July 18, 2009: Minor cleanup in anticipation of Rails 2.3.3 by "Mike Gunderloy":credits.html#mgunderloy
-* February 1, 2009: Updated for Rails 2.3 by "Mike Gunderloy":credits.html#mgunderloy
-* November 3, 2008: Formatting patch from Dave Rothlisberger
-* November 1, 2008: First approved version by "Mike Gunderloy":credits.html#mgunderloy
-* October 16, 2008: Revised based on feedback from Pratik Naik by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* October 13, 2008: First complete draft by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* October 12, 2008: More detail, rearrangement, editing by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* September 8, 2008: initial version by "James Miller":credits.html#bensie (not yet approved for publication)

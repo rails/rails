@@ -102,11 +102,25 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /gem "rspec-rails"$/
   end
 
+  def test_gem_group_should_wrap_gems_in_a_group
+    run_generator
+
+    action :gem_group, :development, :test do
+      gem 'rspec-rails'
+    end
+
+    action :gem_group, :test do
+      gem 'fakeweb'
+    end
+
+    assert_file 'Gemfile', /\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend/
+  end
+
   def test_environment_should_include_data_in_environment_initializer_block
     run_generator
     autoload_paths = 'config.autoload_paths += %w["#{Rails.root}/app/extras"]'
     action :environment, autoload_paths
-    assert_file 'config/application.rb', /#{Regexp.escape(autoload_paths)}/
+    assert_file 'config/application.rb', /  class Application < Rails::Application\n    #{Regexp.escape(autoload_paths)}/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block_with_env_option

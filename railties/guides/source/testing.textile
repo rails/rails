@@ -931,7 +931,7 @@ class UserControllerTest < ActionController::TestCase
 
     assert_equal "You have been invited by me@example.com", invite_email.subject
     assert_equal 'friend@example.com', invite_email.to[0]
-    assert_match /Hi friend@example.com/, invite_email.body
+    assert_match(/Hi friend@example.com/, invite_email.body)
   end
 end
 </ruby>
@@ -945,11 +945,3 @@ The built-in +test/unit+ based testing is not the only way to test Rails applica
 * "Machinist":https://github.com/notahat/machinist/tree/master, another replacement for fixtures.
 * "Shoulda":http://www.thoughtbot.com/projects/shoulda, an extension to +test/unit+ with additional helpers, macros, and assertions.
 * "RSpec":http://relishapp.com/rspec, a behavior-driven development framework
-
-h3. Changelog
-
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* November 13, 2008: Revised based on feedback from Pratik Naik by "Akshay Surve":credits.html#asurve (not yet approved for publication)
-* October 14, 2008: Edit and formatting pass by "Mike Gunderloy":credits.html#mgunderloy (not yet approved for publication)
-* October 12, 2008: First draft by "Akshay Surve":credits.html#asurve (not yet approved for publication)
-

@@ -2,6 +2,7 @@ module Sprockets
   autoload :Helpers, "sprockets/helpers"
   autoload :LazyCompressor, "sprockets/compressors"
   autoload :NullCompressor, "sprockets/compressors"
+  autoload :StaticCompiler, "sprockets/static_compiler"
 
   # TODO: Get rid of config.assets.enabled
   class Railtie < ::Rails::Railtie
@@ -24,6 +25,16 @@ module Sprockets
         if config.assets.cache_store != false
           env.cache = ActiveSupport::Cache.lookup_store(config.assets.cache_store) || ::Rails.cache
         end
+      end
+
+      if config.assets.manifest
+        path = File.join(config.assets.manifest, "manifest.yml")
+      else
+        path = File.join(Rails.public_path, config.assets.prefix, "manifest.yml")
+      end
+
+      if File.exist?(path)
+        config.assets.digests = YAML.load_file(path)
       end
 
       ActiveSupport.on_load(:action_view) do
@@ -57,11 +68,13 @@ module Sprockets
         end
       end
 
-      app.routes.prepend do
-        mount app.assets => config.assets.prefix
+      if config.assets.compile
+        app.routes.prepend do
+          mount app.assets => config.assets.prefix
+        end
       end
 
-      if config.action_controller.perform_caching
+      if config.assets.digest
         app.assets = app.assets.index
       end
     end

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/enumerable'
+require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -11,54 +12,81 @@ module ActiveRecord
       # accessors, mutators and query methods.
       def define_attribute_methods
         return if attribute_methods_generated?
-        super(column_names)
-        @attribute_methods_generated = true
+
+        if base_class == self
+          super(column_names)
+          @attribute_methods_generated = true
+        else
+          base_class.define_attribute_methods
+        end
       end
 
       def attribute_methods_generated?
-        @attribute_methods_generated ||= false
+        if base_class == self
+          @attribute_methods_generated ||= false
+        else
+          base_class.attribute_methods_generated?
+        end
       end
 
       def undefine_attribute_methods(*args)
-        super
-        @attribute_methods_generated = false
+        if base_class == self
+          super
+          @attribute_methods_generated = false
+        else
+          base_class.undefine_attribute_methods(*args)
+        end
       end
 
-      # Checks whether the method is defined in the model or any of its subclasses
-      # that also derive from Active Record. Raises DangerousAttributeError if the
-      # method is defined by Active Record though.
       def instance_method_already_implemented?(method_name)
-        method_name = method_name.to_s
-        index = ancestors.index(ActiveRecord::Base) || ancestors.length
-        @_defined_class_methods         ||= ancestors.first(index).map { |m|
-          m.instance_methods(false) | m.private_instance_methods(false)
-        }.flatten.map {|m| m.to_s }.to_set
+        if dangerous_attribute_method?(method_name)
+          raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord"
+        end
 
-        @@_defined_activerecord_methods ||= defined_activerecord_methods
-        raise DangerousAttributeError, "#{method_name} is defined by ActiveRecord" if @@_defined_activerecord_methods.include?(method_name)
-        @_defined_class_methods.include?(method_name)
+        super
       end
 
-      def defined_activerecord_methods
+      # A method name is 'dangerous' if it is already defined by Active Record, but
+      # not by any ancestors. (So 'puts' is not dangerous but 'save' is.)
+      def dangerous_attribute_method?(method_name)
         active_record = ActiveRecord::Base
-        super_klass   = ActiveRecord::Base.superclass
-        methods = (active_record.instance_methods - super_klass.instance_methods) +
-                  (active_record.private_instance_methods - super_klass.private_instance_methods)
-        methods.map {|m| m.to_s }.to_set
+        superclass    = ActiveRecord::Base.superclass
+
+        (active_record.method_defined?(method_name) ||
+         active_record.private_method_defined?(method_name)) &&
+        !superclass.method_defined?(method_name) &&
+        !superclass.private_method_defined?(method_name)
       end
     end
 
-    def method_missing(method_id, *args, &block)
-      # If we haven't generated any methods yet, generate them, then
-      # see if we've created the method we're looking for.
-      if !self.class.attribute_methods_generated?
+    # If we haven't generated any methods yet, generate them, then
+    # see if we've created the method we're looking for.
+    def method_missing(method, *args, &block)
+      unless self.class.attribute_methods_generated?
         self.class.define_attribute_methods
-        method_name = method_id.to_s
-        guard_private_attribute_method!(method_name, args)
-        send(method_id, *args, &block)
+
+        if respond_to_without_attributes?(method)
+          send(method, *args, &block)
+        else
+          super
+        end
       else
         super
       end
+    end
+
+    def attribute_missing(match, *args, &block)
+      if self.class.columns_hash[match.attr_name]
+        ActiveSupport::Deprecation.warn(
+          "The method `#{match.method_name}', matching the attribute `#{match.attr_name}' has " \
+          "dispatched through method_missing. This shouldn't happen, because `#{match.attr_name}' " \
+          "is a column of the table. If this error has happened through normal usage of Active " \
+          "Record (rather than through your own code or external libraries), please report it as " \
+          "a bug."
+        )
+      end
+
+      super
     end
 
     def respond_to?(name, include_private = false)

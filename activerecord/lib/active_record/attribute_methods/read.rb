@@ -6,8 +6,6 @@ module ActiveRecord
       ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
       included do
-        attribute_method_suffix ""
-
         cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
         self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
 

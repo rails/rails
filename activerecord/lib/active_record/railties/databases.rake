@@ -94,7 +94,7 @@ db_namespace = namespace :db do
               "IDENTIFIED BY '#{config['password']}' WITH GRANT OPTION;"
             ActiveRecord::Base.establish_connection(config.merge(
                 'database' => nil, 'username' => 'root', 'password' => root_password))
-            ActiveRecord::Base.connection.create_database(config['database'], creation_options)
+            ActiveRecord::Base.connection.create_database(config['database'], mysql_creation_options(config))
             ActiveRecord::Base.connection.execute grant_statement
             ActiveRecord::Base.establish_connection(config)
           else
@@ -203,11 +203,13 @@ db_namespace = namespace :db do
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
       file_list = []
-      Dir.foreach(File.join(Rails.root, 'db', 'migrate')) do |file|
-        # only files matching "20091231235959_some_name.rb" pattern
-        if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
-          status = db_list.delete(match_data[1]) ? 'up' : 'down'
-          file_list << [status, match_data[1], match_data[2].humanize]
+      ActiveRecord::Migrator.migrations_paths.each do |path|
+        Dir.foreach(path) do |file|
+          # only files matching "20091231235959_some_name.rb" pattern
+          if match_data = /^(\d{14})_(.+)\.rb$/.match(file)
+            status = db_list.delete(match_data[1]) ? 'up' : 'down'
+            file_list << [status, match_data[1], match_data[2].humanize]
+          end
         end
       end
       db_list.map! do |version|

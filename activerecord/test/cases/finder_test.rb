@@ -48,6 +48,15 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.exists?
   end
 
+  # exists? should handle nil for id's that come from URLs and always return false
+  # (example: Topic.exists?(params[:id])) where params[:id] is nil
+  def test_exists_with_nil_arg
+    assert !Topic.exists?(nil)
+    assert Topic.exists?
+    assert !Topic.first.replies.exists?(nil)
+    assert Topic.first.replies.exists?
+  end
+
   def test_does_not_exist_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
@@ -241,6 +250,32 @@ class FinderTest < ActiveRecord::TestCase
       Topic.delete_all
       Topic.last!
     end
+  end
+
+  def test_first_and_last_with_integer_should_use_sql_limit
+    assert_sql(/LIMIT 2|ROWNUM <= 2/) { Topic.first(2).entries }
+    assert_sql(/LIMIT 5|ROWNUM <= 5/) { Topic.last(5).entries }
+  end
+
+  def test_last_with_integer_and_order_should_keep_the_order
+    assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
+  end
+
+  def test_last_with_integer_and_order_should_not_use_sql_limit
+    query = assert_sql { Topic.order("title").last(5).entries }
+    assert_equal 1, query.length
+    assert_no_match(/LIMIT/, query.first)
+  end
+
+  def test_last_with_integer_and_reorder_should_not_use_sql_limit
+    query = assert_sql { Topic.reorder("title").last(5).entries }
+    assert_equal 1, query.length
+    assert_no_match(/LIMIT/, query.first)
+  end
+
+  def test_first_and_last_with_integer_should_return_an_array
+    assert_kind_of Array, Topic.first(5)
+    assert_kind_of Array, Topic.last(5)
   end
 
   def test_unexisting_record_exception_handling

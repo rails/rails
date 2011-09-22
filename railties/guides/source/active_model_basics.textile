@@ -163,12 +163,14 @@ person.first_name_changed? #=> true
 </ruby>
 
 Track what was the previous value of the attribute.
+
 <ruby>
 #attr_name_was accessor
 person.first_name_was  #=> "First Name"
 </ruby>
 
 Track  both previous and current value of the changed attribute. Returns an array if changed else returns nil
+
 <ruby>
 #attr_name_change
 person.first_name_change #=> ["First Name", "First Name 1"]
@@ -183,22 +185,21 @@ Validations module adds the ability to class objects to validate them in Active 
 class Person
   include ActiveModel::Validations
 
-  attr_accessor :name, :email
+  attr_accessor :name, :email, :token
   
   validates :name, :presence => true
   validates_format_of :email, :with => /^([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})$/i  
+  validates! :token, :presence => true
   
 end
 
-person = Person.new
+person = Person.new(:token => "2b1f325")
 person.valid?                        #=> false
 person.name  = 'vishnu'
 person.email  = 'me'
 person.valid?                        #=> false
 person.email = 'me@vishnuatrai.com'
 person.valid?                        #=> true
+person.token = nil
+person.valid?                        #=> raises ActiveModel::StrictValidationFailed
 </ruby>
-
-h3. Changelog
-
-* August 5, 2011: Initial version by "Arun Agrawal":http://github.com/arunagw
