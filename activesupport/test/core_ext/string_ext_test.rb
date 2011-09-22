@@ -179,6 +179,9 @@ class StringInflectionsTest < Test::Unit::TestCase
   def test_string_to_date
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
     assert_nil "".to_date
+    assert_raise(ArgumentError, "invalid date") do
+      "hello world".to_date
+    end
   end
 
   def test_access
