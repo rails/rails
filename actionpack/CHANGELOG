@@ -1,5 +1,13 @@
 *Rails 3.2.0 (unreleased)*
 
+* Passing formats or handlers to render :template and friends is deprecated. For example: [Nick Sutterer & José Valim]
+
+    render :template => "foo.html.erb"
+
+  Instead, you can provide :handlers and :formats directly as option:
+  
+    render :template => "foo", :formats => [:html, :js], :handlers => :erb
+
 * Changed log level of warning for missing CSRF token from :debug to :warn. [Mike Dillon]
 
 * content_tag_for and div_for can now take the collection of records. It will also yield the record as the first argument if you set a receiving argument in your block [Prem Sichanugrist]
