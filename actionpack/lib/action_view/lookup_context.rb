@@ -44,8 +44,9 @@ module ActionView
     module Accessors #:nodoc:
     end
 
-    register_detail(:formats) { Mime::SET.symbols }
     register_detail(:locale)  { [I18n.locale, I18n.default_locale] }
+    register_detail(:formats) { Mime::SET.symbols }
+    register_detail(:handlers){ Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
       alias :eql? :equal?
@@ -159,10 +160,6 @@ module ActionView
         return name, prefixes
       end
 
-      def default_handlers #:nodoc:
-        @@default_handlers ||= Template::Handlers.extensions
-      end
-
       def handlers_regexp #:nodoc:
         @@handlers_regexp ||= /\.(?:#{default_handlers.join('|')})$/
       end
@@ -173,7 +170,7 @@ module ActionView
     include ViewPaths
 
     def initialize(view_paths, details = {}, prefixes = [])
-      @details, @details_key = { :handlers => default_handlers }, nil
+      @details, @details_key = {}, nil
       @frozen_formats, @skip_default_locale = false, false
       @cache = true
       @prefixes = prefixes
