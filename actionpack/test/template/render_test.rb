@@ -36,6 +36,7 @@ module RenderTestCases
   def test_render_file_with_format
     assert_equal "<h1>No Comment</h1>", @view.render(:file => "comments/empty", :formats => [:html])
     assert_equal "<error>No Comment</error>", @view.render(:file => "comments/empty", :formats => [:xml])
+    assert_equal "<error>No Comment</error>", @view.render(:file => "comments/empty", :formats => :xml)
   end
 
   def test_render_template_with_format
@@ -45,6 +46,7 @@ module RenderTestCases
   
   def test_render_file_with_locale
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => [:de])
+    assert_equal "<h1>Kein Kommentar</h1>", @view.render(:file => "comments/empty", :locale => :de)
   end
   
   def test_render_template_with_locale
@@ -53,6 +55,7 @@ module RenderTestCases
   
   def test_render_file_with_handlers
     assert_equal "<h1>No Comment</h1>\n", @view.render(:file => "comments/empty", :handlers => [:builder])
+    assert_equal "<h1>No Comment</h1>\n", @view.render(:file => "comments/empty", :handlers => :builder)
   end
   
   def test_render_template_with_handlers

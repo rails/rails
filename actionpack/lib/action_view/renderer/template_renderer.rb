@@ -5,7 +5,7 @@ module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
     def render(context, options)
       @view    = context
-      @details = options.slice(:formats, :locale, :handlers)
+      @details = extract_details(options)
       extract_format(options[:file] || options[:template], @details)
       template = determine_template(options)
       freeze_formats(template.formats, true)
