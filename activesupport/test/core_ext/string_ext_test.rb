@@ -476,3 +476,16 @@ class StringExcludeTest < ActiveSupport::TestCase
     assert_equal true, 'foo'.exclude?('p')
   end
 end
+
+class StringIsAClassNameTest < ActiveSupport::TestCase
+  test 'returns true if it is a valid classname' do
+    assert_equal true, 'String'.is_a_class_name?
+    assert_equal true, 'Object'.is_a_class_name?
+    assert_equal true, 'Fixnum'.is_a_class_name?
+  end
+  
+  test 'return false if it is not a valid class name' do
+    assert_equal false, 'blargle'.is_a_class_name?
+    assert_equal false, ''.is_a_class_name?
+  end
+end
