@@ -34,14 +34,14 @@ module RenderTestCases
 
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.
   def test_render_file_with_format
-    assert_equal "<h1>No Comment</h1>", @view.render(:file => "comments/empty", :formats => [:html])
-    assert_equal "<error>No Comment</error>", @view.render(:file => "comments/empty", :formats => [:xml])
-    assert_equal "<error>No Comment</error>", @view.render(:file => "comments/empty", :formats => :xml)
+    assert_match "<h1>No Comment</h1>", @view.render(:file => "comments/empty", :formats => [:html])
+    assert_match "<error>No Comment</error>", @view.render(:file => "comments/empty", :formats => [:xml])
+    assert_match "<error>No Comment</error>", @view.render(:file => "comments/empty", :formats => :xml)
   end
 
   def test_render_template_with_format
-    assert_equal "<h1>No Comment</h1>", @view.render(:template => "comments/empty", :formats => [:html])
-    assert_equal "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
+    assert_match "<h1>No Comment</h1>", @view.render(:template => "comments/empty", :formats => [:html])
+    assert_match "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
   end
   
   def test_render_file_with_locale
@@ -108,6 +108,11 @@ module RenderTestCases
 
   def test_render_partial_with_format
     assert_equal 'partial html', @view.render(:partial => 'test/partial')
+  end
+
+  def test_render_partial_with_selected_format
+    assert_equal 'partial html', @view.render(:partial => 'test/partial', :formats => :html)
+    assert_equal 'partial js', @view.render(:partial => 'test/partial', :formats => [:js])
   end
 
   def test_render_partial_at_top_level
