@@ -86,16 +86,12 @@ module ActiveModel
       #                    "title": "Welcome to the weblog"},
       #                   {"comments": [{"body": "Don't think too hard"}],
       #                    "title": "So I was thinking"}]}
-
       def as_json(options = nil)
-        opts_root = options[:root] if options.try(:key?, :root)
-        if opts_root
-          custom_root = opts_root == true ? self.class.model_name.element : opts_root
-          { custom_root => serializable_hash(options) }
-        elsif opts_root == false
-          serializable_hash(options)
-        elsif include_root_in_json
-          { self.class.model_name.element => serializable_hash(options) }
+        root = include_root_in_json
+        root = options[:root] if options.try(:key?, :root)
+        if root
+          root = self.class.model_name.element if root == true
+          { root => serializable_hash(options) }
         else
           serializable_hash(options)
         end
