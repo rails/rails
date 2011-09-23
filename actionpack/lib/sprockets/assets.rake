@@ -11,8 +11,9 @@ namespace :assets do
       ENV["RAILS_ENV"]    ||= "production"
       Kernel.exec $0, *ARGV
     else
-      Rake::Task["environment"].invoke
       Rake::Task["tmp:cache:clear"].invoke
+      Rails.application.initialize!(:assets)
+      Sprockets::Bootstrap.new(Rails.application).run
 
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base

@@ -21,6 +21,12 @@ module ApplicationTests
       @app ||= Rails.application
     end
 
+    def precompile!
+      capture(:stdout) do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+    end
+
     test "assets routes have higher priority" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
 
@@ -38,7 +44,7 @@ module ApplicationTests
 
     test "assets do not require compressors until it is used" do
       app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
+      add_to_env_config "production", "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
@@ -54,9 +60,8 @@ module ApplicationTests
       app_file "app/assets/javascripts/foo/application.js", "alert();"
 
       ENV["RAILS_ENV"] = nil
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
+
       files = Dir["#{app_path}/public/assets/application-*.js"]
       files << Dir["#{app_path}/public/assets/foo/application-*.js"].first
       files.each do |file|
@@ -80,13 +85,12 @@ module ApplicationTests
                                "happy.happy.face.png", "happy", "happy.face", "-happyface",
                                "-happy.png", "-happy.face.png", "_happyface", "_happy.face.png",
                                "_happy.png"]
+
       images_should_compile.each do |filename|
         app_file "app/assets/images/#{filename}", "happy"
       end
 
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
 
       images_should_compile.each do |filename|
         assert File.exists?("#{app_path}/public/assets/#{filename}")
@@ -103,11 +107,12 @@ module ApplicationTests
     end
 
     test "precompile sets flag notifying rails its precompiling" do
-      compile = <<COMPILE
-raise "ENV RAILS_ASSETS_PRECOMPILE not set" unless ENV["RAILS_ASSETS_PRECOMPILE"]
-COMPILE
-      app_file "config/initializers/compile.rb", compile
-      Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      add_to_config = <<-RUBY
+        initializer :check_assets_precompile, :group => :assets do
+          raise "ENV RAILS_ASSETS_PRECOMPILE not set" unless ENV["RAILS_ASSETS_PRECOMPILE"]
+        end
+      RUBY
+      precompile!
       assert $?.success?
     end
 
@@ -127,9 +132,7 @@ COMPILE
       # digest is default in false, we must enable it for test environment
       add_to_config "config.assets.digest = true"
 
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
 
       manifest = "#{app_path}/public/assets/manifest.yml"
 
@@ -146,9 +149,7 @@ COMPILE
       add_to_config "config.assets.manifest = '#{app_path}/shared'"
       FileUtils.mkdir "#{app_path}/shared"
 
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
 
       manifest = "#{app_path}/shared/manifest.yml"
 
@@ -164,9 +165,7 @@ COMPILE
       add_to_config "config.assets.digest = true"
       add_to_config "config.assets.prefix = '/x'"
 
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
 
       manifest = "#{app_path}/public/x/manifest.yml"
       assets = YAML.load_file(manifest)
@@ -178,9 +177,7 @@ COMPILE
       app_file "app/assets/javascripts/application.js", "alert();"
       add_to_config "config.assets.digest = false"
 
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
 
       assert File.exists?("#{app_path}/public/assets/application.js")
       assert File.exists?("#{app_path}/public/assets/application.css")
@@ -194,12 +191,11 @@ COMPILE
 
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
-      app_file "config/initializers/serve_static_assets.rb", "Rails.application.config.serve_static_assets = true"
+      add_to_env_config "production", "config.serve_static_assets = true"
 
       ENV["RAILS_ENV"] = "production"
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
+
       manifest = "#{app_path}/public/assets/manifest.yml"
       assets = YAML.load_file(manifest)
       asset_path = assets["application.js"]
@@ -223,9 +219,7 @@ COMPILE
       RUBY
 
       ENV["RAILS_ENV"] = "production"
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
 
       # Create file after of precompile
       app_file "app/assets/javascripts/app.js", "alert();"
@@ -249,9 +243,7 @@ COMPILE
       RUBY
 
       ENV["RAILS_ENV"] = "development"
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
+      precompile!
 
       # Create file after of precompile
       app_file "app/assets/javascripts/app.js", "alert();"
@@ -292,10 +284,7 @@ COMPILE
       app_file "app/assets/images/レイルズ.png", "not a image really"
       add_to_config "config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]"
 
-      capture(:stdout) do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
-      end
-
+      precompile!
       assert File.exists?("#{app_path}/public/assets/レイルズ.png")
 
       manifest = "#{app_path}/public/assets/manifest.yml"
@@ -366,6 +355,51 @@ COMPILE
       get "/assets/demo.js"
       assert_match "alert();", last_response.body
       assert_equal 200, last_response.status
+    end
+
+    test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
+      app_with_assets_in_view
+
+      # config.assets.debug and config.assets.compile are false for production environment
+      ENV["RAILS_ENV"] = "production"
+      precompile!
+
+      require "#{app_path}/config/environment"
+
+      class ::PostsController < ActionController::Base ; end
+
+      # the debug_assets params isn't used if compile is off
+      get '/posts?debug_assets=true'
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
+      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
+    end
+
+    test "assets aren't concatened when compile is true is on and debug_assets params is true" do
+      app_with_assets_in_view
+      add_to_env_config "production", "config.assets.compile  = true"
+      add_to_env_config "production", "config.assets.allow_debugging = true"
+
+      ENV["RAILS_ENV"] = "production"
+      require "#{app_path}/config/environment"
+
+      class ::PostsController < ActionController::Base ; end
+
+      get '/posts?debug_assets=true'
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
+    end
+
+    private
+    def app_with_assets_in_view
+      app_file "app/assets/javascripts/application.js", "//= require_tree ."
+      app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
+      app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
+
+      app_file "config/routes.rb", <<-RUBY
+        AppTemplate::Application.routes.draw do
+          match '/posts', :to => "posts#index"
+        end
+      RUBY
     end
   end
 end
