@@ -245,12 +245,15 @@ module ActiveSupport
     #   "blargle".safe_constantize  # => nil
     def safe_constantize(camel_cased_word)
       begin
-        camel_cased_word.constantize
-      rescue NameError
-        nil
+        constantize(camel_cased_word)
+      rescue NameError => e
+        raise unless e.message =~ /uninitialized constant #{const_regexp(camel_cased_word)}$/ ||
+          e.name.to_s == camel_cased_word.to_s
+      rescue ArgumentError => e
+        raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
       end
     end
-    
+
     # Turns a number into an ordinal string used to denote the position in an
     # ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
@@ -271,6 +274,19 @@ module ActiveSupport
           when 3; "#{number}rd"
           else    "#{number}th"
         end
+      end
+    end
+
+    private
+
+    # Mount a regular expression that will match part by part of the constant.
+    # For instance, Foo::Bar::Baz will generate Foo(::Bar(::Baz)?)?
+    def const_regexp(camel_cased_word) #:nodoc:
+      parts = camel_cased_word.split("::")
+      last  = parts.pop
+
+      parts.reverse.inject(last) do |acc, part|
+        part.empty? ? acc : "#{part}(::#{acc})?"
       end
     end
   end

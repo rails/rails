@@ -12,8 +12,11 @@ module ConstantizeTestCases
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("ConstantizeTestCases") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("::ConstantizeTestCases") }
     assert_raise(NameError) { yield("UnknownClass") }
+    assert_raise(NameError) { yield("UnknownClass::Ace") }
+    assert_raise(NameError) { yield("UnknownClass::Ace::Base") }
     assert_raise(NameError) { yield("An invalid string") }
     assert_raise(NameError) { yield("InvalidClass\n") }
+    assert_raise(NameError) { yield("Ace::ConstantizeTestCases") }
     assert_raise(NameError) { yield("Ace::Base::ConstantizeTestCases") }
   end
   
@@ -23,9 +26,12 @@ module ConstantizeTestCases
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("ConstantizeTestCases") }
     assert_nothing_raised { assert_equal ConstantizeTestCases, yield("::ConstantizeTestCases") }
     assert_nothing_raised { assert_equal nil, yield("UnknownClass") }
+    assert_nothing_raised { assert_equal nil, yield("UnknownClass::Ace") }
+    assert_nothing_raised { assert_equal nil, yield("UnknownClass::Ace::Base") }
     assert_nothing_raised { assert_equal nil, yield("An invalid string") }
     assert_nothing_raised { assert_equal nil, yield("InvalidClass\n") }
     assert_nothing_raised { assert_equal nil, yield("blargle") }
+    assert_nothing_raised { assert_equal nil, yield("Ace::ConstantizeTestCases") }
     assert_nothing_raised { assert_equal nil, yield("Ace::Base::ConstantizeTestCases") }
   end
 end
