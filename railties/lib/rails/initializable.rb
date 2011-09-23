@@ -21,6 +21,10 @@ module Rails
         @options[:after]
       end
 
+      def belongs_to?(group)
+        @options[:group] == group || @options[:group] == :all
+      end
+
       def run(*args)
         @context.instance_exec(*args, &block)
       end
@@ -44,10 +48,10 @@ module Rails
       end
     end
 
-    def run_initializers(*args)
+    def run_initializers(group=nil, *args)
       return if instance_variable_defined?(:@ran)
       initializers.tsort.each do |initializer|
-        initializer.run(*args)
+        initializer.run(*args) if group.nil? || initializer.belongs_to?(group)
       end
       @ran = true
     end

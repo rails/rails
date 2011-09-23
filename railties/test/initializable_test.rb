@@ -216,7 +216,7 @@ module InitializableTests
   class WithArgsTest < ActiveSupport::TestCase
     test "running initializers with args" do
       $with_arg = nil
-      WithArgs.new.run_initializers('foo')
+      WithArgs.new.run_initializers(nil, 'foo')
       assert_equal 'foo', $with_arg
     end
   end
