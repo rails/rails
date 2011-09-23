@@ -54,10 +54,8 @@ module ActionView
         end
 
         def determine_default_helper_class(name)
-          mod = name.sub(/Test$/, '').constantize
+          mod = name.sub(/Test$/, '').safe_constantize
           mod.is_a?(Class) ? nil : mod
-        rescue NameError
-          nil
         end
 
         def helper_method(*methods)
