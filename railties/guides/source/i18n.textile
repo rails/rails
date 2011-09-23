@@ -8,7 +8,7 @@ So, in the process of _internationalizing_ your Rails application you have to:
 
 * Ensure you have support for i18n
 * Tell Rails where to find locale dictionaries
-* Tell Rails how to set, preserve and switch locale
+* Tell Rails how to set, preserve and switch locales
 
 In the process of _localizing_ your application you'll probably want to do the following three things:
 
@@ -16,7 +16,7 @@ In the process of _localizing_ your application you'll probably want to do the f
 * Abstract strings in your application into keyed dictionaries -- e.g. flash messages, static text in your views, etc.
 * Store the resulting dictionaries somewhere
 
-This guide will walk you through the I18n API and contains a tutorial how to internationalize a Rails application from the start.
+This guide will walk you through the I18n API and contains a tutorial on how to internationalize a Rails application from the start.
 
 endprologue.
 
