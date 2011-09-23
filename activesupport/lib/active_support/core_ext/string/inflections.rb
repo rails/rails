@@ -36,9 +36,9 @@ class String
   # or is not initialized.  See ActiveSupport::Inflector.constantize
   #
   # Examples
-  #   "Module".constantize       # => Module
-  #   "Class".constantize        # => Class
-  #   "blargle".safe_constantize # => NameError: wrong constant name blargle
+  #   "Module".constantize  # => Module
+  #   "Class".constantize   # => Class
+  #   "blargle".constantize # => NameError: wrong constant name blargle
   def constantize
     ActiveSupport::Inflector.constantize(self)
   end
