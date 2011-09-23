@@ -239,10 +239,13 @@ module ActiveSupport
     #     "C".safe_constantize # => 'outside', same as ::C
     #   end
     #
-    # nil is returned when the name is not in CamelCase or the constant is
+    # nil is returned when the name is not in CamelCase or the constant (or part of it) is
     # unknown.
     #
     #   "blargle".safe_constantize  # => nil
+    #   "UnknownModule".safe_constantize  # => nil
+    #   "UnknownModule::Foo::Bar".safe_constantize  # => nil
+    #
     def safe_constantize(camel_cased_word)
       begin
         constantize(camel_cased_word)
