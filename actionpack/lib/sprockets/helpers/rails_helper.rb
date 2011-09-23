@@ -13,7 +13,6 @@ module Sprockets
           controller = self.controller if respond_to?(:controller)
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
-          paths.asset_prefix      = asset_prefix
           paths.asset_digests     = asset_digests
           paths.compile_assets    = compile_assets?
           paths.digest_assets     = digest_assets?
@@ -101,10 +100,6 @@ module Sprockets
         attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets, :digest_assets
 
         class AssetNotPrecompiledError < StandardError; end
-
-        def compute_public_path(source, dir, options = {})
-          super(source, asset_prefix, options)
-        end
 
         # Return the filesystem path for the source
         def compute_source_path(source, ext)
