@@ -106,16 +106,6 @@ module ApplicationTests
       assert !File.exists?("#{app_path}/public/assets/something.min.css")
     end
 
-    test "precompile sets flag notifying rails its precompiling" do
-      add_to_config = <<-RUBY
-        initializer :check_assets_precompile, :group => :assets do
-          raise "ENV RAILS_ASSETS_PRECOMPILE not set" unless ENV["RAILS_ASSETS_PRECOMPILE"]
-        end
-      RUBY
-      precompile!
-      assert $?.success?
-    end
-
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
       add_to_config "config.assets.digest = true"
       add_to_config "config.action_controller.perform_caching = false"
