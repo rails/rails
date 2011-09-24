@@ -101,7 +101,7 @@ class ObjectTryTest < Test::Unit::TestCase
     assert !@string.respond_to?(method)
     assert_nil @string.try(method)
   end
-  
+
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
@@ -137,5 +137,70 @@ class ObjectTryTest < Test::Unit::TestCase
     ran = false
     nil.try { ran = true }
     assert_equal false, ran
+  end
+end
+
+class ObjectReturnIfTest < Test::Unit::TestCase
+  def setup
+    @string = "Hello"
+  end
+
+  def test_nonexisting_method
+    assert !@string.respond_to?(:undefined_method)
+    assert_nil @string.return_if(:undefined_method)
+  end
+
+  def test_return_if_only_block_when_true
+    assert_equal @string, @string.return_if { |str| str == "Hello" }
+  end
+
+  def test_return_if_only_block_when_false
+    assert_nil @string.return_if { |str| str == "Not Hello" }
+  end
+
+  def test_return_if_only_block_nil
+    assert_nil nil.return_if { true }
+  end
+
+  def test_return_if_method_passed_when_true
+    assert_equal "", "".return_if(:empty?)
+  end
+
+  def test_return_if_method_passed_when_false
+    assert !@string.empty?
+    assert_nil @string.return_if(:empty?)
+  end
+
+  def test_return_if_method_passed_nil
+    assert_nil nil.return_if(:undefined_method)
+  end
+
+  def test_return_if_method_passed_with_arguments
+    assert_equal @string, @string.return_if(:==, @string)
+  end
+
+  def test_return_if_method_passed_with_block_when_true
+    assert_equal [1,2,3], [1,2,3].return_if(:all?) { |c| c > 0 }
+  end
+
+  def test_return_if_method_passed_with_block_when_false
+    assert_nil [1,2,3].return_if(:any?) { |c| c < 0 }
+  end
+
+  def test_return_if_method_passed_with_block_nil
+    assert_nil nil.return_if(:all?) { |obj| obj.amazing? }
+  end
+
+  def test_return_if_scope_passed_when_true
+    arr = ('a'..'z')
+    assert_equal arr, arr.return_if("to_a.join.chop.chop.clear.empty?")
+  end
+
+  def test_return_if_scope_passed_when_false
+    assert_nil ['a', 'b'].return_if("join.empty?")
+  end
+
+  def test_return_if_scope_passed_nil
+    assert_nil nil.return_if("to_s.clear.empty?")
   end
 end
