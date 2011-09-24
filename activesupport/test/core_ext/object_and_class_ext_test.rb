@@ -101,7 +101,7 @@ class ObjectTryTest < Test::Unit::TestCase
     assert !@string.respond_to?(method)
     assert_nil @string.try(method)
   end
-  
+
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
@@ -137,5 +137,23 @@ class ObjectTryTest < Test::Unit::TestCase
     ran = false
     nil.try { ran = true }
     assert_equal false, ran
+  end
+end
+
+class ObjectReturnIfTest < Test::Unit::TestCase
+  def setup
+    @string = "Hello"
+  end
+
+  def test_return_if_only_block_when_true
+    assert_equal @string, @string.return_if { |str| str == "Hello" }
+  end
+
+  def test_return_if_only_block_when_false
+    assert_nil @string.return_if { |str| str == "Not Hello" }
+  end
+
+  def test_return_if_only_block_nil
+    assert_nil nil.return_if { true }
   end
 end
