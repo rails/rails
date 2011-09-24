@@ -167,6 +167,7 @@ class ObjectReturnIfTest < Test::Unit::TestCase
   end
 
   def test_return_if_method_passed_when_false
+    assert !@string.empty?
     assert_nil @string.return_if(:empty?)
   end
 
@@ -186,8 +187,8 @@ class ObjectReturnIfTest < Test::Unit::TestCase
     assert_nil [1,2,3].return_if(:any?) { |c| c < 0 }
   end
 
-  def test_return_if_nil_method_passed_with_block
-    assert_nil nil.return_if(:all?) { |nothing| nothing.amazing? }
+  def test_return_if_method_passed_with_block_nil
+    assert_nil nil.return_if(:all?) { |obj| obj.amazing? }
   end
 
   def test_return_if_scope_passed_when_true
@@ -199,7 +200,7 @@ class ObjectReturnIfTest < Test::Unit::TestCase
     assert_nil ['a', 'b'].return_if("join.empty?")
   end
 
-  def test_return_if_nil_scope_passed
+  def test_return_if_scope_passed_nil
     assert_nil nil.return_if("to_s.clear.empty?")
   end
 end
