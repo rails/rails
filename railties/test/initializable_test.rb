@@ -61,7 +61,7 @@ module InitializableTests
   class Instance
     include Rails::Initializable
 
-    initializer :one do
+    initializer :one, :group => :assets do
       $arr << 1
     end
 
@@ -69,7 +69,7 @@ module InitializableTests
       $arr << 2
     end
 
-    initializer :three do
+    initializer :three, :group => :all do
       $arr << 3
     end
 
@@ -210,6 +210,13 @@ module InitializableTests
       instance = Instance.new
       instance.run_initializers
       assert_equal [1, 2, 3, 4], $arr
+    end
+
+    test "running locals with groups" do
+      $arr = []
+      instance = Instance.new
+      instance.run_initializers(:assets)
+      assert_equal [1, 3], $arr
     end
   end
 
