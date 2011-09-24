@@ -17,6 +17,27 @@ class Object
 end
 
 class NilClass
+  # Calling +return_if+ on +nil+ always returns +nil+.
+  # It becomes specially helpful when combining predicates that may return +false+, and thus +return_if+ would return +nil+.
+  #
+  # === Examples
+  #
+  #   nil.return_if(:valid?) # => nil
+  #   nil.return_if('children.include?', joe) # => nil
+  #
+  # Without +return_if+
+  #   if @person && @person.valid?
+  #     @person
+  #   else
+  #     nil
+  #   end
+  #
+  # Slightly better with +try+
+  #   @person.try(:valid?) && @person
+  #
+  # With +return_if+
+  #   @person.return_if(:valid?)
+  #
   def return_if(*args, &block)
     nil
   end
