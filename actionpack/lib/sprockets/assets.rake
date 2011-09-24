@@ -1,9 +1,6 @@
 namespace :assets do
   desc "Compile all the assets named in config.assets.precompile"
   task :precompile do
-    # let rails know we're precompiling assets
-    ENV["RAILS_ASSETS_PRECOMPILE"] = 'true'
-
     # We need to do this dance because RAILS_GROUPS is used
     # too early in the boot process and changing here is already too late.
     if ENV["RAILS_GROUPS"].to_s.empty? || ENV["RAILS_ENV"].to_s.empty?
