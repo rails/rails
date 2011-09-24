@@ -1,6 +1,7 @@
 module Sprockets
   autoload :Bootstrap,      "sprockets/bootstrap"
   autoload :Helpers,        "sprockets/helpers"
+  autoload :Compressors,    "sprockets/compressors"
   autoload :LazyCompressor, "sprockets/compressors"
   autoload :NullCompressor, "sprockets/compressors"
   autoload :StaticCompiler, "sprockets/static_compiler"
