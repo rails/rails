@@ -101,7 +101,7 @@ module ActionView
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
-      #   <%= link_to_function "alert('Hello there!')", :class => "nav_link" %>
+      #   <%= link_to_function "alert('Hello there!')", :class => "nav_link" do %>
       #     Hello, <strong><%= @profile.name %></strong>
       #   <% end %>
       #   # => <a class="nav_link" href="#" onclick="alert('Hello there!'); return false;">
