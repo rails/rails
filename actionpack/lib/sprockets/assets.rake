@@ -8,9 +8,14 @@ namespace :assets do
       ENV["RAILS_ENV"]    ||= "production"
       Kernel.exec $0, *ARGV
     else
+      require "fileutils"
       Rake::Task["tmp:cache:clear"].invoke
       Rails.application.initialize!(:assets)
       Sprockets::Bootstrap.new(Rails.application).run
+
+      unless Rails.application.config.assets.enabled
+        raise "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
+      end
 
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
@@ -20,11 +25,13 @@ namespace :assets do
 
       config = Rails.application.config
       env    = Rails.application.assets
-      target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
-      manifest_path = config.assets.manifest || target
 
+      target = File.join(Rails.public_path, config.assets.prefix)
       static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
+
       manifest = static_compiler.precompile(config.assets.precompile)
+      manifest_path = config.assets.manifest || target
+      FileUtils.mkdir_p(manifest_path)
 
       File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
         YAML.dump(manifest, f)
