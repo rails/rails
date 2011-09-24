@@ -6,7 +6,7 @@ namespace :assets do
     if ENV["RAILS_GROUPS"].to_s.empty? || ENV["RAILS_ENV"].to_s.empty?
       ENV["RAILS_GROUPS"] ||= "assets"
       ENV["RAILS_ENV"]    ||= "production"
-      Kernel.exec $0, *ARGV
+      ruby $0, *ARGV
     else
       require "fileutils"
       Rake::Task["tmp:cache:clear"].invoke
