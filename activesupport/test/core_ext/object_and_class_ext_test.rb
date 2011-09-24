@@ -157,19 +157,19 @@ class ObjectReturnIfTest < Test::Unit::TestCase
     assert_nil nil.return_if { true }
   end
 
-  def test_return_if_method_symbol_passed_when_true
-    assert_equal "", "".return_if( :empty? )
+  def test_return_if_method_passed_when_true
+    assert_equal "", "".return_if(:empty?)
   end
 
-  def test_return_if_method_symbol_passed_when_false
-    assert_nil @string.return_if( :empty? )
+  def test_return_if_method_passed_when_false
+    assert_nil @string.return_if(:empty?)
   end
 
-  def test_return_if_method_symbol_passed_nil
-    assert_nil nil.return_if( :empty? )
+  def test_return_if_method_passed_nil
+    assert_nil nil.return_if(:empty?)
   end
 
-  def test_return_if_method_symbol_passed_with_arguments
-    assert_equal @string, @string.return_if( :==, @string )
+  def test_return_if_method_passed_with_arguments
+    assert_equal @string, @string.return_if(:==, @string)
   end
 end
