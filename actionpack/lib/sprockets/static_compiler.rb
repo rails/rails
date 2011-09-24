@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'pathname'
 
 module Sprockets
   class StaticCompiler
@@ -26,8 +25,8 @@ module Sprockets
 
     def compile(asset)
       asset_path = digest_asset(asset)
-      filename = target.join(asset_path)
-      FileUtils.mkdir_p filename.dirname
+      filename = File.join(target, asset_path)
+      FileUtils.mkdir_p File.dirname(filename)
       asset.write_to(filename)
       asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
       asset_path
