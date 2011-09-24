@@ -522,11 +522,10 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     assert_raise(NameError) { missing_path }
   end
 
-  test "process reuse the env we pass as argument" do
+  test "process do not modify the env passed as argument" do
     env = { :SERVER_NAME => 'server', 'action_dispatch.custom' => 'custom' }
+    old_env = env.dup
     get '/foo', nil, env
-    assert_equal :get, env[:method]
-    assert_equal 'server', env[:SERVER_NAME]
-    assert_equal 'custom', env['action_dispatch.custom']
+    assert_equal old_env, env
   end
 end
