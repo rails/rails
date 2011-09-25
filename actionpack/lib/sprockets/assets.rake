@@ -19,11 +19,12 @@ namespace :assets do
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
 
-      # Always compile files
-      Rails.application.config.assets.compile = true
-
       config = Rails.application.config
       env    = Rails.application.assets
+
+      # Always compile files and avoid use of existing precompiled assets
+      config.assets.compile = true
+      config.assets.digests = {}
 
       target = File.join(Rails.public_path, config.assets.prefix)
       static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
