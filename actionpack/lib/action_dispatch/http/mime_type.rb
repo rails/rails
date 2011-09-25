@@ -253,7 +253,7 @@ module Mime
     end
 
     def html?
-      @@html_types.include?(to_sym) || @string =~ /html/
+      @@html_types.include?(to_sym) || (@string =~ /html/).to_i > 0
     end
 
     def respond_to?(method, include_private = false) #:nodoc:

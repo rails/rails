@@ -1820,6 +1820,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       assert_equal true, @request.format.json?
       assert_equal '/api/1.0/users.json', api_users_path(:version => '1.0', :format => :json)
 
+      get '/api/1.0/users', {}, {'HTTP_ACCEPT' => "application/json", 'CONTENT_TYPE' => "application/json"}
+      assert_equal 'api/users#index', @response.body
+      assert_equal true, @request.format.json?
+      assert_equal false, @request.format.xml?
+      assert_equal false, @request.format.html?
+
       get '/api/1.0/users/first.last'
       assert_equal 'api/users#show', @response.body
       assert_equal 'first.last', @request.params[:id]
