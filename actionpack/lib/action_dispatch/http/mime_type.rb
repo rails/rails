@@ -256,6 +256,10 @@ module Mime
       @@html_types.include?(to_sym) || @string =~ /html/
     end
 
+    def respond_to?(method, include_private = false) #:nodoc:
+      super || method.to_s =~ /(\w+)\?$/
+    end
+
     private
       def method_missing(method, *args)
         if method.to_s =~ /(\w+)\?$/
