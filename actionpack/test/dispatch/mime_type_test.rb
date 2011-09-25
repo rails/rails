@@ -107,8 +107,10 @@ class MimeTypeTest < ActiveSupport::TestCase
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
     types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
 
+
     types.each do |type|
       mime = Mime.const_get(type.to_s.upcase)
+      assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html) if Mime::Type.html_types.include?(type)
