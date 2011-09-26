@@ -256,6 +256,24 @@ module ApplicationTests
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
 
+    test "precompile shouldn't use the digests present in manifest.yml" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      ENV["RAILS_ENV"] = "production"
+      precompile!
+
+      manifest = "#{app_path}/public/assets/manifest.yml"
+      assets = YAML.load_file(manifest)
+      asset_path = assets["application.css"]
+
+      app_file "app/assets/images/rails.png", "image changed"
+
+      precompile!
+      assets = YAML.load_file(manifest)
+
+      assert_not_equal asset_path, assets["application.css"]
+    end
+
     test "precompile appends the md5 hash to files referenced with asset_path and run in production as default even using RAILS_GROUPS=assets" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       add_to_config "config.assets.compile = true"
