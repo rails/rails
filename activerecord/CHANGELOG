@@ -1,5 +1,9 @@
 *Rails 3.1.1 (unreleased)*
 
+* Don't require a DB connection when loading a model that uses set_primary_key. GH #2807.
+
+  [Jon Leighton]
+
 * Fix using select() with a habtm association, e.g. Person.friends.select(:name). GH #3030 and
   #2923.
 
