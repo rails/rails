@@ -271,7 +271,7 @@ class SprocketsHelperTest < ActionView::TestCase
     Rails.application.config.assets.digests = {'logo.png' => 'logo-d1g3st.png'}
     @config.assets.digest = false
 
-    assert_match %r{/assets/logo.png},
+    assert_equal '/assets/logo.png',
       asset_path("logo.png")
   end
 end
