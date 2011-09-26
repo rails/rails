@@ -1,5 +1,10 @@
 *Rails 3.1.1 (unreleased)*
 
+* CollectionProxy#replace should change the DB records rather than just mutating the array.
+  Fixes #3020.
+
+  [Jon Leighton]
+
 * LRU cache in mysql and sqlite are now per-process caches.
 
 	* lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache

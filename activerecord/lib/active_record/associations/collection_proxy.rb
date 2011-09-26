@@ -53,7 +53,7 @@ module ActiveRecord
 
       delegate :select, :find, :first, :last,
                :build, :create, :create!,
-               :concat, :delete_all, :destroy_all, :delete, :destroy, :uniq,
+               :concat, :replace, :delete_all, :destroy_all, :delete, :destroy, :uniq,
                :sum, :count, :size, :length, :empty?,
                :any?, :many?, :include?,
                :to => :@association
