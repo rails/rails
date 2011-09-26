@@ -68,7 +68,12 @@ module ActiveRecord
           end
 
           if reflection.source_macro == :belongs_to
-            key         = reflection.association_primary_key
+            if reflection.options[:polymorphic]
+              key = reflection.association_primary_key(klass)
+            else
+              key = reflection.association_primary_key
+            end
+
             foreign_key = reflection.foreign_key
           else
             key         = reflection.foreign_key

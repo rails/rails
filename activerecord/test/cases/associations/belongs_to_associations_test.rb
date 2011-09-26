@@ -13,6 +13,7 @@ require 'models/comment'
 require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
+require 'models/toy'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -686,5 +687,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal nil, comment.reload.parent
     assert_equal 0, comments(:greetings).reload.children_count
+  end
+
+  def test_polymorphic_with_custom_primary_key
+    toy = Toy.create!
+    sponsor = Sponsor.create!(:sponsorable => toy)
+
+    assert_equal toy, sponsor.reload.sponsorable
   end
 end
