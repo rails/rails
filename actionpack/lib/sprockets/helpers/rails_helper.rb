@@ -60,6 +60,10 @@ module Sprockets
         options[:body] ? "#{path}?body=1" : path
       end
 
+      def path_to_image(source)
+        asset_paths.compute_public_path(source, asset_prefix)
+      end
+
     private
       def debug_assets?
         compile_assets? && (Rails.application.config.assets.debug || params[:debug_assets])

@@ -122,6 +122,10 @@ class SprocketsHelperTest < ActionView::TestCase
     end
   end
 
+  test "image_tag" do
+    assert_dom_equal '<img alt="Xml" src="/assets/xml.png" />', image_tag("xml.png")
+  end
+
   test "stylesheets served without a controller in do not use asset hosts when the default protocol is :request" do
     @controller = nil
     @config.action_controller.asset_host = "assets-%d.example.com"
