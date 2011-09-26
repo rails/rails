@@ -1,5 +1,10 @@
 *Rails 3.1.1 (unreleased)*
 
+* Fix using select() with a habtm association, e.g. Person.friends.select(:name). GH #3030 and
+  #2923.
+
+  [Hendy Tanata]
+
 * Fix belongs_to polymorphic with custom primary key on target. GH #3104.
 
   [Jon Leighton]
