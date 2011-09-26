@@ -78,8 +78,10 @@ module ActiveModel
         attribute_names -= Array.wrap(except).map(&:to_s)
       end
 
+      hash = attributes.slice(*attribute_names)
+
       method_names = Array.wrap(options[:methods]).select { |n| respond_to?(n) }
-      hash = Hash[(attribute_names + method_names).map { |n| [n, send(n)] }]
+      method_names.each { |n| hash[n] = send(n) }
 
       serializable_add_includes(options) do |association, records, opts|
         hash[association] = if records.is_a?(Enumerable)
