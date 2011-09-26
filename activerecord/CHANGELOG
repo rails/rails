@@ -1,5 +1,9 @@
 *Rails 3.1.1 (unreleased)*
 
+* Fix belongs_to polymorphic with custom primary key on target. GH #3104.
+
+  [Jon Leighton]
+
 * CollectionProxy#replace should change the DB records rather than just mutating the array.
   Fixes #3020.
 
