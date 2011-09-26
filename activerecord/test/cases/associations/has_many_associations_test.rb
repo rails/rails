@@ -1516,7 +1516,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
   end
 
-<<<<<<< HEAD
   def test_overriding_reflection_build_association_with_deprecated_method_signature
     ActiveRecord::Reflection::AssociationReflection.class_eval do
       alias_method :old_build_association, :build_association
