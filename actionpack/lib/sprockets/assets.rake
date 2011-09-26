@@ -19,10 +19,10 @@ namespace :assets do
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       ActionView::Base
 
-      # Always compile files
-      Rails.application.config.assets.compile = true
-
       config = Rails.application.config
+      config.assets.compile = true
+      config.assets.digest = false if ENV["RAILS_ASSETS_NONDIGEST"]
+
       env    = Rails.application.assets
 
       target = File.join(Rails.public_path, config.assets.prefix)
@@ -32,8 +32,12 @@ namespace :assets do
       manifest_path = config.assets.manifest || target
       FileUtils.mkdir_p(manifest_path)
 
-      File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
-        YAML.dump(manifest, f)
+      unless ENV["RAILS_ASSETS_NONDIGEST"]
+        File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
+          YAML.dump(manifest, f)
+        end
+        ENV["RAILS_ASSETS_NONDIGEST"] = "true"
+        ruby $0, *ARGV
       end
     end
   end
