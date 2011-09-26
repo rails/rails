@@ -1578,4 +1578,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
   end
+
+  def test_replace
+    car = Car.create(:name => 'honda')
+    bulb1 = car.bulbs.create
+    bulb2 = Bulb.create
+
+    assert_equal [bulb1], car.bulbs
+    car.bulbs.replace([bulb2])
+    assert_equal [bulb2], car.bulbs
+    assert_equal [bulb2], car.reload.bulbs
+  end
 end
