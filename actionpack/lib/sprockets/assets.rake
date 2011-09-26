@@ -10,8 +10,7 @@ namespace :assets do
     else
       require "fileutils"
       Rake::Task["tmp:cache:clear"].invoke
-      Rails.application.initialize!(:assets)
-      Sprockets::Bootstrap.new(Rails.application).run
+      Rake::Task["assets:environment"].invoke
 
       unless Rails.application.config.assets.enabled
         raise "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
@@ -40,9 +39,14 @@ namespace :assets do
   end
 
   desc "Remove compiled assets"
-  task :clean => [:environment, 'tmp:cache:clear'] do
+  task :clean => ['assets:environment', 'tmp:cache:clear'] do
     config = Rails.application.config
     public_asset_path = File.join(Rails.public_path, config.assets.prefix)
     rm_rf public_asset_path, :secure => true
+  end
+
+  task :environment do
+    Rails.application.initialize!(:assets)
+    Sprockets::Bootstrap.new(Rails.application).run
   end
 end
