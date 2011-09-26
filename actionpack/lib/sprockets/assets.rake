@@ -25,6 +25,10 @@ namespace :assets do
 
       env    = Rails.application.assets
 
+      # Always compile files and avoid use of existing precompiled assets
+      config.assets.compile = true
+      config.assets.digests = {}
+
       target = File.join(Rails.public_path, config.assets.prefix)
       static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
 
