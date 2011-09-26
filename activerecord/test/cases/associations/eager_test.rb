@@ -1060,4 +1060,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
     end
   end
+
+  def test_deprecated_preload_associations
+    post = Post.first
+
+    assert_deprecated do
+      Post.send(:preload_associations, [post], :comments)
+    end
+
+    assert_no_queries do
+      post.comments.to_a
+    end
+  end
 end

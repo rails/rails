@@ -5,6 +5,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/deprecation'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -1573,6 +1574,17 @@ module ActiveRecord
       #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
       def has_and_belongs_to_many(name, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, options, &extension)
+      end
+
+      protected
+
+      def preload_associations(records, associations, options = {}) #:nodoc:
+        ActiveSupport::Deprecation.warn(
+          "preload_associations(records, associations, options = {}) is deprecated. Use " \
+          "ActiveRecord::Associations::Preloader.new(records, associations, options = {}).run " \
+          "instead."
+        )
+        Preloader.new(records, associations, options).run
       end
     end
   end
