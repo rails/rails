@@ -15,8 +15,31 @@ class RenderJsonTest < ActionController::TestCase
     end
   end
 
+  class JsonSerializer
+    def initialize(object, scope)
+      @object, @scope = object, scope
+    end
+
+    def as_json(*)
+      { :object => @object.as_json, :scope => @scope.as_json }
+    end
+  end
+
+  class JsonSerializable
+    def active_model_serializer
+      JsonSerializer
+    end
+
+    def as_json(*)
+      { :serializable_object => true }
+    end
+  end
+
   class TestController < ActionController::Base
     protect_from_forgery
+
+    serialization_scope :current_user
+    attr_reader :current_user
 
     def self.controller_path
       'test'
@@ -60,6 +83,11 @@ class RenderJsonTest < ActionController::TestCase
 
     def render_json_without_options
       render :json => JsonRenderable.new
+    end
+
+    def render_json_with_serializer
+      @current_user = Struct.new(:as_json).new(:current_user => true)
+      render :json => JsonSerializable.new
     end
   end
 
@@ -131,5 +159,11 @@ class RenderJsonTest < ActionController::TestCase
   def test_render_json_calls_to_json_from_object
     get :render_json_without_options
     assert_equal '{"a":"b"}', @response.body
+  end
+
+  def test_render_json_with_serializer
+    get :render_json_with_serializer
+    assert_match '"scope":{"current_user":true}', @response.body
+    assert_match '"object":{"serializable_object":true}', @response.body
   end
 end
