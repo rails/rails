@@ -266,4 +266,12 @@ class SprocketsHelperTest < ActionView::TestCase
 
     assert_not_equal prod_path, dev_path
   end
+
+  test "precedence of `config.digest = false` over manifest.yml asset digests" do
+    Rails.application.config.assets.digests = {'logo.png' => 'logo-d1g3st.png'}
+    @config.assets.digest = false
+
+    assert_match %r{/assets/logo.png},
+      asset_path("logo.png")
+  end
 end
