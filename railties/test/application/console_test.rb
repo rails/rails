@@ -108,4 +108,16 @@ class ConsoleTest < Test::Unit::TestCase
     load_environment
     assert_nothing_raised { User }
   end
+
+  def test_console_rc_should_be_loaded_if_present
+    app_file "config/console_rc.rb", <<-METHOD
+      def blargle
+        "blargle"
+      end
+    METHOD
+
+    load_environment
+
+    assert_equal "blargle", blargle
+  end
 end

@@ -204,6 +204,7 @@ module Rails
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
+      require "rails/console/rc"
     end
   end
 end
