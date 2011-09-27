@@ -17,13 +17,13 @@ The asset pipeline provides a framework to concatenate and minify or compress Ja
 
 Prior to Rails 3.1 these features were added through third-party Ruby libraries such as Jammit and Sprockets. Rails 3.1 is integrated with Sprockets through Action Pack which depends on the +sprockets+ gem, by default.
 
-By having this as a core feature of Rails, all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets. This is part of Rails' "Fast by default" strategy as outlined by DHH in his 2011 keynote at Railsconf.
+By having this as a core feature of Rails, all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets. This is part of Rails' "fast by default" strategy as outlined by DHH in his keynote at RailsConf 2011.
 
-In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +application.rb+ by putting this line inside the +Application+ class definition:
+In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +config/application.rb+ by putting this line inside the application class definition:
 
-<plain>
+<ruby>
 config.assets.enabled = false
-</plain>
+</ruby>
 
 You can also disable it while creating a new application by passing the <tt>--skip-sprockets</tt> option.
 
@@ -36,7 +36,9 @@ It is recommended that you use the defaults for all new apps.
 
 h4. Main Features
 
-The first feature of the pipeline is to concatenate assets. This is important in a production environment, as it reduces the number of requests that a browser must make to render a web page. While Rails already has a feature to concatenate these types of assets -- by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+ -- many people do not use it.
+The first feature of the pipeline is to concatenate assets. This is important in a production environment, as it reduces the number of requests that a browser must make to render a web page.
+
+While Rails already has a feature to concatenate these types of assets -- by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+ --, it has a series of limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
 
 The default behavior in Rails 3.1 and onward is to concatenate all files into one master file each for JS and CSS. However, you can separate files or groups of files if required (see below). In production, an MD5 fingerprint is inserted into each filename so that the file is cached by the web browser but can be invalidated if the fingerprint is altered.
 
@@ -46,14 +48,14 @@ The third feature is the ability to code these assets using another language, or
 
 h4. What is Fingerprinting and Why Should I Care?
 
-Fingerprinting is a technique whereby the filenames of content that is static or infrequently updated is altered to be unique to the content contained in the file.
+Fingerprinting is a technique whereby the filenames of content that is static or infrequently updated are altered to be unique to the content contained in the file.
 
-When a filename is unique and based on its content, HTTP headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep their own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cachebusting_.
+When a filename is unique and based on its content, HTTP headers can be set to encourage caches everywhere (at ISPs, in browsers) to keep their own copy of the content. When the content is updated, the fingerprint will change and the remote clients will request the new file. This is generally known as _cache busting_.
 
-The most effective technique is to insert a hash of the content into the name, usually at the end. For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the hash.
+The most effective technique is to insert a hash of the content into the name, usually at the end. For example a CSS file +global.css+ is hashed and the filename is updated to incorporate the digest, for example becoming:
 
 <plain>
-global.css => global-908e25f4bf641868d8683022a5b62f54.css
+global-908e25f4bf641868d8683022a5b62f54.css
 </plain>
 
 This is the strategy adopted by the Rails asset pipeline.
@@ -68,8 +70,8 @@ This has several disadvantages:
 
 <ol>
   <li>
-    <strong>Not all caches will cache content with a query string</strong><br>
-    "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached.
+    <strong>Not all caches will cache content with a query string</strong>.<br>
+    "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
   </li>
   <li>
     <strong>The file name can change between nodes in multi-server environments.</strong><br>
@@ -77,9 +79,9 @@ This has several disadvantages:
   </li>
 </ol>
 
-The other problem is that when static assets are deployed with each new release of code, the mtime of *all* these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
+The other problem is that when static assets are deployed with each new release of code, the mtime of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
-Fingerprinting avoids all these problems by ensuring filenames are consistent based on their content.
+Fingerprinting fixes these problems by avoiding query strings, and by ensuring filenames are consistent based on their content.
 
 Fingerprinting is enabled by default for production and disabled for all the others environments. You can enable or disable it in your configuration through the +config.assets.digest+ option.
 
@@ -95,7 +97,7 @@ In previous versions of Rails, all assets were located in subdirectories of +pub
 
 This is not to say that assets can (or should) no longer be placed in +public+; they still can be and will be served as static files by the application or web server. You would only use +app/assets+ if you wish your files to undergo some pre-processing before they are served.
 
-In production, the default is to precompile these files to +public/assets+ so that they can be more efficiently delivered by the webserver.
+In production, the default is to precompile these files to +public/assets+ so that they can be more efficiently delivered by the web server.
 
 When a scaffold or controller is generated for the application, Rails also generates a JavaScript file (or CoffeeScript file if the +coffee-rails+ gem is in the +Gemfile+) and a Cascading Style Sheet file (or SCSS file if +sass-rails+ is in the +Gemfile+) for that controller.
 
@@ -115,11 +117,11 @@ Assets can be placed inside an application in one of three locations: +app/asset
 
 All subdirectories that exist within these three locations are added to the search path for Sprockets (visible by calling +Rails.application.config.assets.paths+ in a console). When an asset is requested, these paths are traversed to see if they contain an asset matching the name specified. Once an asset has been found, it's processed by Sprockets and served.
 
-You can add additional (fully qualified) paths to the pipeline in +application.rb+. For example:
+You can add additional (fully qualified) paths to the pipeline in +config/application.rb+. For example:
 
-<erb>
-config.assets.paths << File.join(Rails.root, 'app', 'assets', 'flash')
-</erb>
+<ruby>
+config.assets.paths << "#{Rails.root}/app/assets/flash"
+</ruby>
 
 h4. Coding Links to Assets
 
@@ -150,10 +152,10 @@ Images can also be organized into subdirectories if required, and they can be ac
 
 h5. CSS and ERB
 
-If you add an +erb+ extension to a CSS asset, making it something such as +application.css.erb+, then you can use the +asset_path+ helper in your CSS rules:
+If you add an +erb+ extension to a CSS asset, making it something such as +application.css.erb+, then helpers like +image_path+ are available in your CSS rules:
 
 <plain>
-.class { background-image: url(<%= asset_path 'image.png' %>) }
+.class { background-image: url(<%= image_path 'image.png' %>) }
 </plain>
 
 This writes the path to the particular asset being referenced. In this example, it would make sense to have an image in one of the asset load paths, such as +app/assets/images/image.png+, which would be referenced here. If this image is already available in +public/assets+ as a fingerprinted file, then that path is referenced.
