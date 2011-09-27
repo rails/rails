@@ -100,12 +100,12 @@ module ActionMailer #:nodoc:
   # You can even use Action Pack helpers in these views. For example:
   #
   #   You got a new note!
-  #   <%= truncate(@note.body, 25) %>
+  #   <%= truncate(@note.body, :length => 25) %>
   #
   # If you need to access the subject, from or the recipients in the view, you can do that through message object:
   #
   #   You got a new note from <%= message.from %>!
-  #   <%= truncate(@note.body, 25) %>
+  #   <%= truncate(@note.body, :length => 25) %>
   #
   #
   # = Generating URLs

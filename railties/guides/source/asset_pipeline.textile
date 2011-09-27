@@ -249,8 +249,8 @@ h4. Preprocessing
 The file extensions used on an asset determine what preprocessing is applied. When a controller or a scaffold is generated with the default Rails gemset, a CoffeeScript file and a SCSS file are generated in place of a regular JavaScript and CSS file. The example used before was a controller called "projects", which generated an +app/assets/javascripts/projects.js.coffee+ and a +app/assets/stylesheets/projects.css.scss+ file.
 
 When these files are requested, they are processed by the processors provided by the +coffee-script+ and +sass-rails+ gems and then sent back to the browser as JavaScript and CSS respectively.
-
 Additional layers of pre-processing can be requested by adding other extensions, where each extension is processed in a right-to-left manner. These should be used in the order the processing should be applied. For example, a stylesheet called +app/assets/stylesheets/projects.css.scss.erb+ is first processed as ERB, then SCSS and finally served as CSS. The same applies to a JavaScript file -- +app/assets/javascripts/projects.js.coffee.erb+ is processed as ERB, CoffeeScript and served as JavaScript.
+
 
 Keep in mind that the order of these pre-processors is important. For example, if you called your JavaScript file +app/assets/javascripts/projects.js.erb.coffee+ then it is processed with the CoffeeScript interpreter first, which wouldn't understand ERB and therefore you would run into problems.
 
@@ -638,3 +638,22 @@ group :assets do
   gem 'uglifier'
 end
 </plain>
+
+If you use the +assets+ group with Bundler, please make sure that your +config/application.rb+ has the following Bundler require statement.
+
+<ruby>
+if defined?(Bundler)
+  # If you precompile assets before deploying to production, use this line
+  Bundler.require *Rails.groups(:assets => %w(development test))
+  # If you want your assets lazily compiled in production, use this line
+  # Bundler.require(:default, :assets, Rails.env)
+end
+</ruby>
+
+Instead of the old Rails 3.0 one
+
+<ruby>
+# If you have a Gemfile, require the gems listed there, including any gems
+# you've limited to :test, :development, or :production.
+Bundler.require(:default, Rails.env) if defined?(Bundler)
+</ruby>
