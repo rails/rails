@@ -219,7 +219,7 @@ NOTE. In Rails 3.1 the +jquery-rails+ gem provides the +jquery.js+ and +jquery_u
 
 The +require_tree+ directive tells Sprockets to recursively include _all_ JavaScript files in this directory into the output. Only a path relative to the manifest file can be specified. There is also a +require_directory+ directive which includes all JavaScript files only in the directory specified (no nesting).
 
-Directives are processed top to bottom, but the order in which files are included by +require_tree+ is unespecified. You should not rely on any particular among those. If you need to ensure some particular JavaScript ends up above some other, require it before in the manifest. Note that the family of +require+ directives prevents files from being included twice in the output.
+Directives are processed top to bottom, but the order in which files are included by +require_tree+ is unespecified. You should not rely on any particular order among those. If you need to ensure some particular JavaScript ends up above some other, require it before in the manifest. Note that the family of +require+ directives prevents files from being included twice in the output.
 
 There's also a default +app/assets/stylesheets/application.css+ file which contains these lines:
 
