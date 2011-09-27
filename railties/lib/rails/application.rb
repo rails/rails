@@ -154,7 +154,7 @@ module Rails
 
         if config.force_ssl
           require "rack/ssl"
-          middleware.use ::Rack::SSL
+          middleware.use ::Rack::SSL, config.ssl_options
         end
 
         if config.serve_static_assets
