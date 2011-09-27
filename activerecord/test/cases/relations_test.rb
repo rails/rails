@@ -876,6 +876,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_except_with_default_scope
     # We compare attributes because the class names will be different
     assert_equal DeveloperCalledDavid.except(:where).all.collect(&:attributes), Developer.all.collect(&:attributes)
+    assert_equal DeveloperCalledDavid.except(:order).all, DeveloperCalledDavid.all
   end
 
   def test_extensions_with_except
@@ -896,6 +897,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_only_with_default_scope
     # We compare attributes because the class names will be different
     assert_equal DeveloperCalledDavid.scoped.only(:order).all.collect(&:attributes), Developer.all.collect(&:attributes)
+    assert_equal DeveloperCalledDavid.scoped.only(:except).all, DeveloperCalledDavid.all
   end
 
   def test_extensions_with_only
