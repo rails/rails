@@ -29,7 +29,7 @@ module ActiveModel
       serializable_hash
     end
 
-    def serializable_hash(*)
+    def serializable_hash
       attributes
     end
 

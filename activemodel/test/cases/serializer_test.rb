@@ -21,7 +21,7 @@ class SerializerTest < ActiveModel::TestCase
   class User2Serializer < ActiveModel::Serializer
     attributes :first_name, :last_name
 
-    def serializable_hash(*)
+    def serializable_hash
       attributes.merge(:ok => true).merge(scope)
     end
   end
@@ -29,7 +29,7 @@ class SerializerTest < ActiveModel::TestCase
   class MyUserSerializer < ActiveModel::Serializer
     attributes :first_name, :last_name
 
-    def serializable_hash(*)
+    def serializable_hash
       hash = attributes
       hash = hash.merge(:super_user => true) if my_user.super_user?
       hash
