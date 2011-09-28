@@ -153,9 +153,9 @@ class PostSerializerTest < ActiveSupport::TestCase
     json = PostSerializer.new(post, god).to_json
     hash = JSON.parse(json)
 
-    assert_equal post.title, hash["title"]
-    assert_equal post.body, hash["body"]
-    assert_equal post.email, hash["email"]
+    assert_equal post.title, hash.delete("title")
+    assert_equal post.body, hash.delete("body")
+    assert_equal post.email, hash.delete("email")
     assert_empty hash
   end
 end
@@ -255,7 +255,7 @@ the comments with the current post.
 
 <ruby>
 class PostSerializer < ActiveModel::Serializer
-  attributes :title. :body
+  attributes :title, :body
   has_many :comments
 
 private
@@ -361,7 +361,7 @@ build up the hash manually.
 
 For example, let's say our front-end expects the posts and comments in the following format:
 
-<javascript>
+<plain>
 {
   post: {
     id: 1
@@ -382,7 +382,7 @@ For example, let's say our front-end expects the posts and comments in the follo
     }
   ]
 }
-</javascript>
+</plain>
 
 We could achieve this with a custom +as_json+ method. We will also need to define a serializer for comments.
 
@@ -394,7 +394,7 @@ class CommentSerializer < ActiveModel::Serializer
 end
 
 class PostSerializer < ActiveModel::Serializer
-  attributes :title. :body
+  attributes :title, :body
   has_many :comments
 
   def as_json
@@ -558,7 +558,7 @@ as the root).
 
 For example, an Array of post objects would serialize as:
 
-<javascript>
+<plain>
 {
   posts: [
     {
@@ -570,7 +570,7 @@ For example, an Array of post objects would serialize as:
     }
   ]
 }
-</javascript>
+</plain>
 
 If you want to change the behavior of serialized Arrays, you need to create
 a custom Array serializer.
