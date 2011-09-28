@@ -238,8 +238,11 @@ module ActiveResource
       def digest_auth_header(http_method, uri)
         params = extract_params_from_response
 
+        request_uri = uri.path
+        request_uri << "?#{uri.query}" if uri.query
+
         ha1 = Digest::MD5.hexdigest("#{@user}:#{params['realm']}:#{@password}")
-        ha2 = Digest::MD5.hexdigest("#{http_method.to_s.upcase}:#{uri.path}")
+        ha2 = Digest::MD5.hexdigest("#{http_method.to_s.upcase}:#{request_uri}")
 
         params.merge!('cnonce' => client_nonce)
         request_digest = Digest::MD5.hexdigest([ha1, params['nonce'], "0", params['cnonce'], params['qop'], ha2].join(":"))
