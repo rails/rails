@@ -86,6 +86,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_remote_and_form_options
+    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"custom-class\" data-remote=\"true\" data-type=\"json\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com", :remote => true, :form => { :class => "custom-class", "data-type" => "json" } )
+  end
+  
   def test_button_to_with_remote_and_javascript_confirm
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
