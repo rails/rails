@@ -9,14 +9,25 @@ require 'active_support/inflector/transliterate'
 class String
   # Returns the plural form of the word in the string.
   #
+  # If the optional parameter +count+ is specified,
+  # the singular form will be returned if <tt>count == 1</tt>.
+  # For any other value of +count+ the plural will be returned.
+  #
+  # ==== Examples
   #   "post".pluralize             # => "posts"
   #   "octopus".pluralize          # => "octopi"
   #   "sheep".pluralize            # => "sheep"
   #   "words".pluralize            # => "words"
   #   "the blue mailman".pluralize # => "the blue mailmen"
   #   "CamelOctopus".pluralize     # => "CamelOctopi"
-  def pluralize
-    ActiveSupport::Inflector.pluralize(self)
+  #   "apple".pluralize(1)         # => "apple"
+  #   "apple".pluralize(2)         # => "apples"
+  def pluralize(count = nil)
+    if count == 1
+      self
+    else
+      ActiveSupport::Inflector.pluralize(self)
+    end
   end
 
   # The reverse of +pluralize+, returns the singular form of a word in a string.
@@ -42,7 +53,7 @@ class String
   def constantize
     ActiveSupport::Inflector.constantize(self)
   end
-  
+
   # +safe_constantize+ tries to find a declared constant with the name specified
   # in the string. It returns nil when the name is not in CamelCase
   # or is not initialized.  See ActiveSupport::Inflector.safe_constantize
