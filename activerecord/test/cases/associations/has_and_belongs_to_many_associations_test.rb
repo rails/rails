@@ -651,7 +651,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_habtm_selects_all_columns_by_default
-    assert_equal Project.column_names, developers(:david).projects.first.attributes.keys
+    assert_equal Project.column_names.sort, developers(:david).projects.first.attributes.keys.sort
   end
 
   def test_habtm_respects_select_query_method
