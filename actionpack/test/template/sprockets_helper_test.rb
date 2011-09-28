@@ -134,6 +134,22 @@ class SprocketsHelperTest < ActionView::TestCase
       path_to_image("logo.png")
   end
 
+  test "javascript_path" do
+    assert_match %r{/assets/application-[0-9a-f]+.js},
+      javascript_path("application.js")
+
+    assert_match %r{/assets/application-[0-9a-f]+.js},
+      path_to_javascript("application.js")
+  end
+
+  test "stylesheet_path" do
+    assert_match %r{/assets/application-[0-9a-f]+.css},
+      stylesheet_path("application.css")
+
+    assert_match %r{/assets/application-[0-9a-f]+.css},
+      path_to_stylesheet("application.css")
+  end
+
   test "stylesheets served without a controller in do not use asset hosts when the default protocol is :request" do
     @controller = nil
     @config.action_controller.asset_host = "assets-%d.example.com"
@@ -157,7 +173,7 @@ class SprocketsHelperTest < ActionView::TestCase
      asset_path("/images/logo.gif")
   end
 
-  test "javascript path" do
+  test "javascript path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.js},
       asset_path(:application, :ext => "js")
 
@@ -202,7 +218,7 @@ class SprocketsHelperTest < ActionView::TestCase
       javascript_include_tag(:application)
   end
 
-  test "stylesheet path" do
+  test "stylesheet path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.css}, asset_path(:application, :ext => "css")
 
     assert_match %r{/assets/style-[0-9a-f]+.css}, asset_path("style", :ext => "css")
