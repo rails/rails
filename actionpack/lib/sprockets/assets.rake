@@ -30,7 +30,7 @@ namespace :assets do
       config.assets.digests = {}
 
       target = File.join(Rails.public_path, config.assets.prefix)
-      static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
+      static_compiler = config.assets.compiler.new(env, target, :digest => config.assets.digest)
 
       manifest = static_compiler.precompile(config.assets.precompile)
       manifest_path = config.assets.manifest || target
