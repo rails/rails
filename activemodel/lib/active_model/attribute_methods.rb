@@ -92,10 +92,10 @@ module ActiveModel
       #
       # Provides you with:
       #
-      #   AttributePerson.primary_key
+      #   Person.primary_key
       #   # => "sysid"
-      #   AttributePerson.inheritance_column = 'address'
-      #   AttributePerson.inheritance_column
+      #   Person.inheritance_column = 'address'
+      #   Person.inheritance_column
       #   # => 'address_id'
       def define_attr_method(name, value=nil, &block)
         sing = singleton_class
