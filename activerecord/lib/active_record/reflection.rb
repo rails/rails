@@ -212,8 +212,8 @@ module ActiveRecord
       end
 
       # klass option is necessary to support loading polymorphic associations
-      def association_primary_key(klass = self.klass)
-        options[:primary_key] || klass.primary_key
+      def association_primary_key(klass = nil)
+        options[:primary_key] || (klass || self.klass).primary_key
       end
 
       def active_record_primary_key
