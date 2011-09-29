@@ -1,5 +1,9 @@
 *Rails 3.1.1 (unreleased)*
 
+* Add deprecation for the preload_associations method. Fixes #3022.
+
+  [Jon Leighton]
+
 * Don't require a DB connection when loading a model that uses set_primary_key. GH #2807.
 
   [Jon Leighton]
