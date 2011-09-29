@@ -189,6 +189,22 @@ class ActionsTest < Rails::Generators::TestCase
     action :rake, 'log:clear', :env => 'production'
   end
 
+  def test_rake_with_rails_env_variable_should_run_rake_command_in_env
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
+    old_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "production"
+    action :rake, 'log:clear'
+  ensure
+    ENV["RAILS_ENV"] = old_env
+  end
+
+  def test_env_option_should_win_over_rails_env_variable_when_running_rake
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
+    old_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "staging"
+    action :rake, 'log:clear', :env => 'production'
+  ensure
+    ENV["RAILS_ENV"] = old_env
+  end
+
   def test_rake_with_sudo_option_should_run_rake_command_with_sudo
     generator.expects(:run).once.with('sudo rake log:clear RAILS_ENV=development', :verbose => false)
     action :rake, 'log:clear', :sudo => true
