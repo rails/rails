@@ -223,9 +223,9 @@ module ActiveRecord
         @association_foreign_key ||= options[:association_foreign_key] || class_name.foreign_key
       end
 
-      # klass option is necessary to support loading polymorphic associations
-      def association_primary_key(klass = self.klass)
-        options[:primary_key] || klass.primary_key
+      # passed_class option is necessary to support loading polymorphic associations
+      def association_primary_key(passed_class = nil)
+        options[:primary_key] || (passed_class && passed_class.primary_key) || self.klass.primary_key
       end
 
       def active_record_primary_key
