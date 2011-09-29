@@ -1,4 +1,28 @@
-Wed Sep  7 15:25:02 2011  Aaron Patterson <aaron@tenderlovemaking.com>
+*Rails 3.1.1 (unreleased)*
+
+* Add deprecation for the preload_associations method. Fixes #3022.
+
+  [Jon Leighton]
+
+* Don't require a DB connection when loading a model that uses set_primary_key. GH #2807.
+
+  [Jon Leighton]
+
+* Fix using select() with a habtm association, e.g. Person.friends.select(:name). GH #3030 and
+  #2923.
+
+  [Hendy Tanata]
+
+* Fix belongs_to polymorphic with custom primary key on target. GH #3104.
+
+  [Jon Leighton]
+
+* CollectionProxy#replace should change the DB records rather than just mutating the array.
+  Fixes #3020.
+
+  [Jon Leighton]
+
+* LRU cache in mysql and sqlite are now per-process caches.
 
 	* lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache
 	  keys are per process id.
