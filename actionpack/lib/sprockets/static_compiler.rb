@@ -2,12 +2,13 @@ require 'fileutils'
 
 module Sprockets
   class StaticCompiler
-    attr_accessor :env, :target, :digest
+    attr_accessor :env, :target, :digest, :digest_exclusions
 
     def initialize(env, target, options = {})
       @env = env
       @target = target
-      @digest = options.key?(:digest) ? options.delete(:digest) : true
+      @digest = options.key?(:digest) ? options[:digest] : true
+      @digest_exclusions = options.key?(:digest_exclusions) ? Array(options[:digest_exclusions]) : []
     end
 
     def precompile(paths)
@@ -24,7 +25,7 @@ module Sprockets
     end
 
     def compile(asset)
-      asset_path = digest_asset(asset)
+      asset_path = digest_asset?(asset) ? asset.digest_path : asset.logical_path
       filename = File.join(target, asset_path)
       FileUtils.mkdir_p File.dirname(filename)
       asset.write_to(filename)
@@ -33,20 +34,22 @@ module Sprockets
     end
 
     def precompile_path?(logical_path, paths)
-      paths.each do |path|
-        if path.is_a?(Regexp)
-          return true if path.match(logical_path)
-        elsif path.is_a?(Proc)
-          return true if path.call(logical_path)
-        else
-          return true if File.fnmatch(path.to_s, logical_path)
-        end
-      end
-      false
+      paths.any? { |path| match_path?(path, logical_path) }
     end
 
-    def digest_asset(asset)
-      digest ? asset.digest_path : asset.logical_path
+    def digest_asset?(asset)
+      digest && digest_exclusions.none? { |path| match_path?(path, asset.logical_path) }
+    end
+
+  private
+    def match_path?(matcher, path)
+      if matcher.is_a?(Regexp)
+        matcher.match(path)
+      elsif matcher.is_a?(Proc)
+        matcher.call(path)
+      else
+        File.fnmatch(matcher.to_s, path)
+      end
     end
   end
 end
