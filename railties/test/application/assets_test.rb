@@ -286,6 +286,23 @@ module ApplicationTests
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
 
+    test "precompile can be done with a custom compiler" do
+      add_to_config <<-RUBY
+        class TestCompiler < Sprockets::StaticCompiler
+          def precompile(paths)
+            return {"test.txt" => "test-123456789.txt"}
+          end
+        end
+        config.assets.compiler = TestCompiler
+      RUBY
+
+      precompile!
+      manifest = "#{app_path}/public/assets/manifest.yml"
+      assets = YAML.load_file(manifest)
+
+      assert_equal "test-123456789.txt", assets["test.txt"]
+    end
+
     test "precompile should handle utf8 filenames" do
       app_file "app/assets/images/レイルズ.png", "not a image really"
       add_to_config "config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]"
