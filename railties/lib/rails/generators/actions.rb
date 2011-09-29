@@ -252,7 +252,7 @@ module Rails
       #
       def rake(command, options={})
         log :rake, command
-        env  = options[:env] || 'development'
+        env  = options[:env] || ENV["RAILS_ENV"] || 'development'
         sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
         in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", :verbose => false) }
       end
