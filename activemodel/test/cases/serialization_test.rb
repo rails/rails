@@ -77,12 +77,12 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected , @user.serializable_hash(:methods => [:bar])
   end
 
-  def test_should_not_call_methods_for_attributes
-    def @user.name
+  def test_should_use_read_attribute_for_serialization
+    def @user.read_attribute_for_serialization(n)
       "Jon"
     end
 
-    expected = { "name" => "David" }
+    expected = { "name" => "Jon" }
     assert_equal expected, @user.serializable_hash(:only => :name)
   end
 
