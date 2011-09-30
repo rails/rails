@@ -90,7 +90,7 @@ module Rails
           append_file "Gemfile", "\ngroup #{name} do\n", :force => true
 
           @in_group = true
-          instance_eval &block
+          instance_eval(&block)
           @in_group = false
 
           append_file "Gemfile", "end\n", :force => true
