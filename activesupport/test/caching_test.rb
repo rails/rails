@@ -566,6 +566,13 @@ class FileStoreTest < ActiveSupport::TestCase
     assert path.split('/').all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}
     assert_equal 'B', File.basename(path)
   end
+
+  def test_search_dir_when_directory_does_not_exist
+    ActiveSupport::Cache::FileStore.new('test').send(:search_dir, 'dir_does_not_exist') do |path|
+      flunk "search_dir yielded but should have done nothing"
+    end
+    assert true
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
