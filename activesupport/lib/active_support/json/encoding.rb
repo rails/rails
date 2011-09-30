@@ -38,7 +38,7 @@ module ActiveSupport
         attr_reader :options
 
         def initialize(options = nil)
-          @options = options
+          @options = options || {}
           @seen = Set.new
         end
 
@@ -59,7 +59,7 @@ module ActiveSupport
         def options_for(value)
           if value.is_a?(Array) || value.is_a?(Hash)
             # hashes and arrays need to get encoder in the options, so that they can detect circular references
-            (options || {}).merge(:encoder => self)
+            options.merge(:encoder => self)
           else
             options
           end
