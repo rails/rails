@@ -50,6 +50,7 @@ module Rails
         @assets.cache_store     = [ :file_store, "#{root}/tmp/cache/assets/" ]
         @assets.js_compressor   = nil
         @assets.css_compressor  = nil
+        @assets.digest_exclusions = []
       end
 
       def compiled_asset_path

@@ -177,6 +177,32 @@ module ApplicationTests
       assert_equal "application.css", assets["application.css"]
     end
 
+    test "precompile does not append asset digests to files matched by config.assets.digest_exclusions" do
+      app_file "app/assets/stylesheets/nodigest.css.erb", "<%= asset_path('rails.png') %>"
+      app_file "app/assets/javascripts/stripdigest.js", "alert();"
+      app_file "app/assets/javascripts/ignoredigest.js", "alert();"
+      app_file "app/assets/javascripts/keepdigest.js", "alert();"
+
+      add_to_config "config.assets.precompile = ['*']"
+      add_to_config "config.assets.digest = true"
+      add_to_config "config.assets.digest_exclusions = ['nodigest.*', /stripdigest/, Proc.new { |path| path.starts_with?('ignoredigest') } ]"
+
+      precompile!
+
+      manifest = "#{app_path}/public/assets/manifest.yml"
+
+      assets = YAML.load_file(manifest)
+      assert_equal "nodigest.css", assets["nodigest.css"]
+      assert_equal "stripdigest.js", assets["stripdigest.js"]
+      assert_equal "ignoredigest.js", assets["ignoredigest.js"]
+      assert_match(/keepdigest-([0-z]+)\.js/, assets["keepdigest.js"])
+
+      assert File.exists?("#{app_path}/public/assets/#{assets['keepdigest.js']}")
+      assert File.exists?("#{app_path}/public/assets/nodigest.css")
+      assert File.exists?("#{app_path}/public/assets/stripdigest.js")
+      assert File.exists?("#{app_path}/public/assets/ignoredigest.js")
+    end
+
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
       add_to_env_config "production", "config.serve_static_assets = true"

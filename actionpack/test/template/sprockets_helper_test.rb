@@ -298,4 +298,13 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_equal '/assets/logo.png',
       asset_path("logo.png")
   end
+
+  test "asset path matches config.assets.digest_exclusions" do
+    @config.assets.digest_exclusions = ["logo.*", /style/, Proc.new { |path| path.starts_with?('extra') } ]
+
+    assert_equal "/assets/logo.png", asset_path("logo.png")
+    assert_equal "/assets/style.css", asset_path("style.css")
+    assert_equal "/assets/extra.js", asset_path("extra.js")
+    assert_match %r{/assets/application-[0-9a-f]+.js}, asset_path("application.js")
+  end
 end

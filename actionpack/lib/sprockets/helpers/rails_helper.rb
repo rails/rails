@@ -16,6 +16,7 @@ module Sprockets
           paths.asset_digests     = asset_digests
           paths.compile_assets    = compile_assets?
           paths.digest_assets     = digest_assets?
+          paths.digest_exclusions = digest_exclusions
           paths
         end
       end
@@ -104,6 +105,10 @@ module Sprockets
         Rails.application.config.assets.digest
       end
 
+      def digest_exclusions
+        Rails.application.config.assets.digest_exclusions
+      end
+
       # Override to specify an alternative asset environment for asset
       # path generation. The environment should already have been mounted
       # at the prefix returned by +asset_prefix+.
@@ -112,7 +117,7 @@ module Sprockets
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
-        attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets, :digest_assets
+        attr_accessor :asset_environment, :asset_prefix, :asset_digests, :compile_assets, :digest_assets, :digest_exclusions
 
         class AssetNotPrecompiledError < StandardError; end
 
@@ -134,7 +139,7 @@ module Sprockets
           end
 
           if compile_assets
-            if digest_assets && asset = asset_environment[logical_path]
+            if digest_path?(logical_path) && asset = asset_environment[logical_path]
               return asset.digest_path
             end
             return logical_path
@@ -159,6 +164,22 @@ module Sprockets
             "#{source}.#{ext}"
           else
             source
+          end
+        end
+
+      private
+        def digest_path?(logical_path)
+          return false unless digest_assets
+          return true if digest_exclusions.blank?
+
+          digest_exclusions.none? do |path|
+            if path.is_a?(Regexp)
+              path.match(logical_path)
+            elsif path.is_a?(Proc)
+              path.call(logical_path)
+            else
+              File.fnmatch(path.to_s, logical_path)
+            end
           end
         end
       end
