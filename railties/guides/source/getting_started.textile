@@ -599,7 +599,7 @@ The above migration creates a method named +change+ which will be called when yo
 run this migration. The action defined in that method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
 want to reverse it at later date. By default, when you run this migration it
-will creates a +posts+ table with two string columns and a text column. It also
+creates a +posts+ table with two string columns and a text column. It also
 creates two timestamp fields to track record creation and updating. More
 information about Rails migrations can be found in the "Rails Database
 Migrations":migrations.html guide.
@@ -620,9 +620,9 @@ table.
 ==  CreatePosts: migrated (0.0020s) ===========================================
 </shell>
 
-NOTE. Because you're working in the development environment by default, this
+NOTE. Because by default you're working in the development environment, this
 command will apply to the database defined in the +development+ section of your
-+config/database.yml+ file. If you would like to execute migrations in other
++config/database.yml+ file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
 invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
@@ -704,8 +704,8 @@ $ rails console
 </shell>
 
 TIP: The default console will make changes to your database. You can instead
-open a console that will roll back any changes you make by using +rails console
---sandbox+.
+open a console that will roll back any changes you make by using <tt>rails console
+--sandbox</tt> .
 
 After the console loads, you can use it to work with your application's models:
 
@@ -783,7 +783,8 @@ Here's +app/views/posts/index.html.erb+:
     <td><%= post.content %></td>
     <td><%= link_to 'Show', post %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
-    <td><%= link_to 'Destroy', post, :confirm => 'Are you sure?', :method => :delete %></td>
+    <td><%= link_to 'Destroy', post, :confirm => 'Are you sure?',
+                                     :method => :delete %></td>
   </tr>
 <% end %>
 </table>
@@ -867,10 +868,10 @@ The +new.html.erb+ view displays this empty Post to the user:
 
 The +&lt;%= render 'form' %&gt;+ line is our first introduction to _partials_ in
 Rails. A partial is a snippet of HTML and Ruby code that can be reused in
-multiple locations. In this case, the form used to make a new post, is basically
-identical to a form used to edit a post, both have text fields for the name and
-title and a text area for the content with a button to make a new post or update
-the existing post.
+multiple locations. In this case, the form used to make a new post is basically
+identical to the form used to edit a post, both having text fields for the name and
+title, a text area for the content, and a button to create the new post or to update
+the existing one.
 
 If you take a look at +views/posts/_form.html.erb+ file, you will see the
 following:
@@ -879,7 +880,8 @@ following:
 <%= form_for(@post) do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
+	    this post from being saved:</h2>
     <ul>
     <% @post.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
@@ -907,15 +909,15 @@ following:
 </erb>
 
 This partial receives all the instance variables defined in the calling view
-file, so in this case, the controller assigned the new Post object to +@post+
-and so, this is available in both the view and partial as +@post+.
+file. In this case, the controller assigned the new +Post+ object to +@post+,
+which will thus be available in both the view and the partial as +@post+.
 
 For more information on partials, refer to the "Layouts and Rendering in
 Rails":layouts_and_rendering.html#using-partials guide.
 
 The +form_for+ block is used to create an HTML form. Within this block, you have
 access to methods to build various controls on the form. For example,
-+f.text_field :name+ tells Rails to create a text input on the form, and to hook
++f.text_field :name+ tells Rails to create a text input on the form and to hook
 it up to the +name+ attribute of the instance being displayed. You can only use
 these methods with attributes of the model that the form is based on (in this
 case +name+, +title+, and +content+). Rails uses +form_for+ in preference to
@@ -931,9 +933,9 @@ to a model, you should use the +form_tag+ method, which provides shortcuts for
 building forms that are not necessarily tied to a model instance.
 
 When the user clicks the +Create Post+ button on this form, the browser will
-send information back to the +create+ method of the controller (Rails knows to
-call the +create+ method because the form is sent with an HTTP POST request;
-that's one of the conventions that I mentioned earlier):
+send information back to the +create+ action of the controller (Rails knows to
+call the +create+ action because the form is sent with an HTTP POST request;
+that's one of the conventions that were mentioned earlier):
 
 <ruby>
 def create
@@ -965,12 +967,12 @@ If the post was not successfully saved, due to a validation error, then the
 controller returns the user back to the +new+ action with any error messages so
 that the user has the chance to fix the error and try again.
 
-The "Post was successfully created." message is stored inside of the Rails
-+flash+ hash, (usually just called _the flash_) so that messages can be carried
+The "Post was successfully created." message is stored in the Rails
++flash+ hash (usually just called _the flash_), so that messages can be carried
 over to another action, providing the user with useful information on the status
 of their request. In the case of +create+, the user never actually sees any page
-rendered during the Post creation process, because it immediately redirects to
-the new Post as soon Rails saves the record. The Flash carries over a message to
+rendered during the post creation process, because it immediately redirects to
+the new +Post+ as soon as Rails saves the record. The Flash carries over a message to
 the next action, so that when the user is redirected back to the +show+ action,
 they are presented with a message saying "Post was successfully created."
 
@@ -1043,9 +1045,9 @@ it:
 <%= link_to 'Back', posts_path %>
 </erb>
 
-Again, as with the +new+ action, the +edit+ action is using the +form+ partial,
-this time however, the form will do a PUT action to the PostsController and the
-submit button will display "Update Post"
+Again, as with the +new+ action, the +edit+ action is using the +form+ partial.
+This time, however, the form will do a PUT action to the +PostsController+ and the
+submit button will display "Update Post".
 
 Submitting the form created by this view will invoke the +update+ action within
 the controller:
@@ -1070,9 +1072,9 @@ end
 
 In the +update+ action, Rails first uses the +:id+ parameter passed back from
 the edit view to locate the database record that's being edited. The
-+update_attributes+ call then takes the rest of the parameters from the request
-and applies them to this record. If all goes well, the user is redirected to the
-post's +show+ view. If there are any problems, it's back to the +edit+ view to
++update_attributes+ call then takes the +post+ parameter (a hash) from the request
+and applies it to this record. If all goes well, the user is redirected to the
+post's +show+ action. If there are any problems, it's back to the +edit+ action to
 correct them.
 
 h4. Destroying a Post
@@ -1094,8 +1096,8 @@ end
 
 The +destroy+ method of an Active Record model instance removes the
 corresponding record from the database. After that's done, there isn't any
-record to display, so Rails redirects the user's browser to the index view for
-the model.
+record to display, so Rails redirects the user's browser to the index action of
+the controller.
 
 h3. Adding a Second Model
 
