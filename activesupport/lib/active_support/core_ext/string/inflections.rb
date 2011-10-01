@@ -33,13 +33,26 @@ class String
 
   # +constantize+ tries to find a declared constant with the name specified
   # in the string. It raises a NameError when the name is not in CamelCase
-  # or is not initialized.
+  # or is not initialized.  See ActiveSupport::Inflector.constantize
   #
   # Examples
-  #   "Module".constantize # => Module
-  #   "Class".constantize  # => Class
+  #   "Module".constantize  # => Module
+  #   "Class".constantize   # => Class
+  #   "blargle".constantize # => NameError: wrong constant name blargle
   def constantize
     ActiveSupport::Inflector.constantize(self)
+  end
+  
+  # +safe_constantize+ tries to find a declared constant with the name specified
+  # in the string. It returns nil when the name is not in CamelCase
+  # or is not initialized.  See ActiveSupport::Inflector.safe_constantize
+  #
+  # Examples
+  #   "Module".safe_constantize  # => Module
+  #   "Class".safe_constantize   # => Class
+  #   "blargle".safe_constantize # => nil
+  def safe_constantize
+    ActiveSupport::Inflector.safe_constantize(self)
   end
 
   # By default, +camelize+ converts strings to UpperCamelCase. If the argument to camelize

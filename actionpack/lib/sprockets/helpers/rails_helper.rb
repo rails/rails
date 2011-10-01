@@ -13,7 +13,6 @@ module Sprockets
           controller = self.controller if respond_to?(:controller)
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
-          paths.asset_prefix      = asset_prefix
           paths.asset_digests     = asset_digests
           paths.compile_assets    = compile_assets?
           paths.digest_assets     = digest_assets?
@@ -57,9 +56,24 @@ module Sprockets
 
       def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
-        path = asset_paths.compute_public_path(source, 'assets', options.merge(:body => true))
+        path = asset_paths.compute_public_path(source, asset_prefix, options.merge(:body => true))
         options[:body] ? "#{path}?body=1" : path
       end
+
+      def image_path(source)
+        asset_path(source)
+      end
+      alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
+
+      def javascript_path(source)
+        asset_path(source)
+      end
+      alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with an javascript_path named route
+
+      def stylesheet_path(source)
+        asset_path(source)
+      end
+      alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with an stylesheet_path named route
 
     private
       def debug_assets?
@@ -102,10 +116,6 @@ module Sprockets
 
         class AssetNotPrecompiledError < StandardError; end
 
-        def compute_public_path(source, dir, options = {})
-          super(source, asset_prefix, options)
-        end
-
         # Return the filesystem path for the source
         def compute_source_path(source, ext)
           asset_for(source, ext)
@@ -119,7 +129,7 @@ module Sprockets
         end
 
         def digest_for(logical_path)
-          if asset_digests && (digest = asset_digests[logical_path])
+          if digest_assets && asset_digests && (digest = asset_digests[logical_path])
             return digest
           end
 

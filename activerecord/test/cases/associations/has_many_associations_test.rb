@@ -485,6 +485,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, authors(:mary).popular_grouped_posts.length
   end
 
+  def test_default_select
+    assert_equal Comment.column_names.sort, posts(:welcome).comments.first.attributes.keys.sort
+  end
+
+  def test_select_query_method
+    assert_equal ['id'], posts(:welcome).comments.select(:id).first.attributes.keys
+  end
+
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")
@@ -1577,5 +1585,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb = car.bulbs.build
 
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
+  end
+
+  def test_replace
+    car = Car.create(:name => 'honda')
+    bulb1 = car.bulbs.create
+    bulb2 = Bulb.create
+
+    assert_equal [bulb1], car.bulbs
+    car.bulbs.replace([bulb2])
+    assert_equal [bulb2], car.bulbs
+    assert_equal [bulb2], car.reload.bulbs
   end
 end

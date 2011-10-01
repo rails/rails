@@ -11,23 +11,28 @@ module ActionView
       raise NotImplementedError
     end
 
-    # Checks if the given path contains a format and if so, change
-    # the lookup context to take this new format into account.
-    def wrap_formats(value)
-      return yield unless value.is_a?(String)
-
-      if value.sub!(formats_regexp, "")
-        update_details(:formats => [$1.to_sym]){ yield }
-      else
-        yield
+    protected
+    
+    def extract_details(options)
+      details = {}
+      @lookup_context.registered_details.each do |key|
+        next unless value = options[key]
+        details[key] = Array.wrap(value)
+      end
+      details
+    end
+    
+    def extract_format(value, details)
+      if value.is_a?(String) && value.sub!(formats_regexp, "")
+        ActiveSupport::Deprecation.warn "Passing the format in the template name is deprecated. " \
+          "Please pass render with :formats => [:#{$1}] instead.", caller
+        details[:formats] ||= [$1.to_sym]
       end
     end
 
     def formats_regexp
       @@formats_regexp ||= /\.(#{Mime::SET.symbols.join('|')})$/
     end
-
-    protected
 
     def instrument(name, options={})
       ActiveSupport::Notifications.instrument("render_#{name}.action_view", options){ yield }

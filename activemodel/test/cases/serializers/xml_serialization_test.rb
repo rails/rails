@@ -33,6 +33,12 @@ class Address
   end
 end
 
+class SerializableContact < Contact
+  def serializable_hash(options={})
+    super(options.merge(:only => [:name, :age]))
+  end
+end
+
 class XmlSerializationTest < ActiveModel::TestCase
   def setup
     @contact = Contact.new
@@ -94,6 +100,17 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{^<xmlContact>},  @xml
     assert_match %r{</xmlContact>$}, @xml
     assert_match %r{<createdAt},     @xml
+  end
+
+  test "should use serialiable hash" do
+    @contact = SerializableContact.new
+    @contact.name = 'aaron stack'
+    @contact.age = 25
+
+    @xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, @xml
+    assert_match %r{<age type="integer">25</age>}, @xml
+    assert_no_match %r{<awesome>}, @xml
   end
 
   test "should allow skipped types" do

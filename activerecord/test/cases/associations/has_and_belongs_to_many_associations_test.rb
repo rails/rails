@@ -650,6 +650,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_respond_to categories(:technology).select_testing_posts.find(:first), :correctness_marker
   end
 
+  def test_habtm_selects_all_columns_by_default
+    assert_equal Project.column_names.sort, developers(:david).projects.first.attributes.keys.sort
+  end
+
+  def test_habtm_respects_select_query_method
+    assert_equal ['id'], developers(:david).projects.select(:id).first.attributes.keys
+  end
+
   def test_join_table_alias
     assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL').size
   end

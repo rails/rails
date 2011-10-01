@@ -1384,6 +1384,10 @@ module ActiveResource
 
     private
 
+      def read_attribute_for_serialization(n)
+        attributes[n]
+      end
+
       # Determine whether the response is allowed to have a body per HTTP 1.1 spec section 4.4.1
       def response_code_allows_body?(c)
         !((100..199).include?(c) || [204,304].include?(c))

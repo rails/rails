@@ -79,7 +79,7 @@ class DefaultLayoutController < LayoutTest
 end
 
 class AbsolutePathLayoutController < LayoutTest
-  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test.erb')
+  layout File.expand_path(File.expand_path(__FILE__) + '/../../fixtures/layout_tests/layouts/layout_test')
 end
 
 class HasOwnLayoutController < LayoutTest
@@ -184,7 +184,7 @@ class RenderWithTemplateOptionController < LayoutTest
 end
 
 class SetsNonExistentLayoutFile < LayoutTest
-  layout "nofile.erb"
+  layout "nofile"
 end
 
 class LayoutExceptionRaised < ActionController::TestCase

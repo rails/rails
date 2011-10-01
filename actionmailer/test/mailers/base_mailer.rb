@@ -113,6 +113,6 @@ class BaseMailer < ActionMailer::Base
   end
 
   def email_with_translations
-    mail :body => render("email_with_translations.html")
+    mail :body => render("email_with_translations", :formats => [:html])
   end
 end

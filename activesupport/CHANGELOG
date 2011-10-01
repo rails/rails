@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Added safe_constantize that constantizes a string but returns nil instead of an exception if the constant (or part of it) does not exist [Ryan Oblak]
+
 * ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! [Prem Sichanugrist]
 
 * Added Array#prepend as an alias for Array#unshift and Array#append as an alias for Array#<< [DHH]

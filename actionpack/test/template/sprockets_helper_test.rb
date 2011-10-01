@@ -47,6 +47,16 @@ class SprocketsHelperTest < ActionView::TestCase
       asset_path("logo.png", :digest => false)
   end
 
+  test "custom_asset_path" do
+    @config.assets.prefix = '/s'
+    assert_match %r{/s/logo-[0-9a-f]+.png},
+      asset_path("logo.png")
+    assert_match %r{/s/logo-[0-9a-f]+.png},
+      asset_path("logo.png", :digest => true)
+    assert_match %r{/s/logo.png},
+      asset_path("logo.png", :digest => false)
+  end
+
   test "asset_path with root relative assets" do
     assert_equal "/images/logo",
       asset_path("/images/logo")
@@ -112,6 +122,34 @@ class SprocketsHelperTest < ActionView::TestCase
     end
   end
 
+  test "image_tag" do
+    assert_dom_equal '<img alt="Xml" src="/assets/xml.png" />', image_tag("xml.png")
+  end
+
+  test "image_path" do
+    assert_match %r{/assets/logo-[0-9a-f]+.png},
+      image_path("logo.png")
+
+    assert_match %r{/assets/logo-[0-9a-f]+.png},
+      path_to_image("logo.png")
+  end
+
+  test "javascript_path" do
+    assert_match %r{/assets/application-[0-9a-f]+.js},
+      javascript_path("application.js")
+
+    assert_match %r{/assets/application-[0-9a-f]+.js},
+      path_to_javascript("application.js")
+  end
+
+  test "stylesheet_path" do
+    assert_match %r{/assets/application-[0-9a-f]+.css},
+      stylesheet_path("application.css")
+
+    assert_match %r{/assets/application-[0-9a-f]+.css},
+      path_to_stylesheet("application.css")
+  end
+
   test "stylesheets served without a controller in do not use asset hosts when the default protocol is :request" do
     @controller = nil
     @config.action_controller.asset_host = "assets-%d.example.com"
@@ -135,7 +173,7 @@ class SprocketsHelperTest < ActionView::TestCase
      asset_path("/images/logo.gif")
   end
 
-  test "javascript path" do
+  test "javascript path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.js},
       asset_path(:application, :ext => "js")
 
@@ -180,7 +218,7 @@ class SprocketsHelperTest < ActionView::TestCase
       javascript_include_tag(:application)
   end
 
-  test "stylesheet path" do
+  test "stylesheet path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.css}, asset_path(:application, :ext => "css")
 
     assert_match %r{/assets/style-[0-9a-f]+.css}, asset_path("style", :ext => "css")
@@ -251,5 +289,13 @@ class SprocketsHelperTest < ActionView::TestCase
     prod_path = asset_path("style", :ext => "css")
 
     assert_not_equal prod_path, dev_path
+  end
+
+  test "precedence of `config.digest = false` over manifest.yml asset digests" do
+    Rails.application.config.assets.digests = {'logo.png' => 'logo-d1g3st.png'}
+    @config.assets.digest = false
+
+    assert_equal '/assets/logo.png',
+      asset_path("logo.png")
   end
 end

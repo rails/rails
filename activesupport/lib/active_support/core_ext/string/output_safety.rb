@@ -20,7 +20,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.to_s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
+        s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
       end
     end
 
@@ -142,9 +142,9 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
-      class_eval <<-EOT, __FILE__, __LINE__
+      class_eval <<-EOT, __FILE__, __LINE__ + 1
         def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
-          to_str.#{unsafe_method}(*args, &block)  #   to_str.gsub(*args, &block)
+          to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
         end                                       # end
 
         def #{unsafe_method}!(*args)              # def capitalize!(*args)

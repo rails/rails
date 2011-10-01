@@ -86,8 +86,8 @@ module ActionDispatch
           :framework_trace => framework_trace(exception),
           :full_trace => full_trace(exception)
         )
-        file = "rescues/#{@@rescue_templates[exception.class.name]}.erb"
-        body = template.render(:file => file, :layout => 'rescues/layout.erb')
+        file = "rescues/#{@@rescue_templates[exception.class.name]}"
+        body = template.render(:template => file, :layout => 'rescues/layout')
         render(status_code(exception), body)
       end
 

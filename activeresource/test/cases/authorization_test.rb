@@ -131,6 +131,12 @@ class AuthorizationTest < Test::Unit::TestCase
     assert_equal blank_digest_auth_header("/people/2.json", "fad396f6a34aeba28e28b9b96ddbb671"), authorization_header['Authorization']
   end
 
+  def test_authorization_header_with_query_string_if_auth_type_is_digest
+    @authenticated_conn.auth_type = :digest
+    authorization_header = @authenticated_conn.__send__(:authorization_header, :get, URI.parse('/people/2.json?only=name'))
+    assert_equal blank_digest_auth_header("/people/2.json?only=name", "f8457b0b5d21b6b80737a386217afb24"), authorization_header['Authorization']
+  end
+
   def test_get
     david = decode(@authenticated_conn.get("/people/2.json"))
     assert_equal "David", david["name"]

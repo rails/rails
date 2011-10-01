@@ -50,7 +50,7 @@ module AbstractController
       end
 
       def index_to_string
-        self.response_body = render_to_string "index.erb"
+        self.response_body = render_to_string "index"
       end
 
       def action_with_ivars
@@ -63,11 +63,11 @@ module AbstractController
       end
 
       def rendering_to_body
-        self.response_body = render_to_body :template => "naked_render.erb"
+        self.response_body = render_to_body :template => "naked_render"
       end
 
       def rendering_to_string
-        self.response_body = render_to_string :template => "naked_render.erb"
+        self.response_body = render_to_string :template => "naked_render"
       end
     end
 

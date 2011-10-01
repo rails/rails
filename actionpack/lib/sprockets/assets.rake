@@ -6,58 +6,55 @@ namespace :assets do
     if ENV["RAILS_GROUPS"].to_s.empty? || ENV["RAILS_ENV"].to_s.empty?
       ENV["RAILS_GROUPS"] ||= "assets"
       ENV["RAILS_ENV"]    ||= "production"
-      Kernel.exec $0, *ARGV
+      ruby $0, *ARGV
     else
-      Rake::Task["environment"].invoke
+      require "fileutils"
       Rake::Task["tmp:cache:clear"].invoke
+      Rake::Task["assets:environment"].invoke
 
-      # Ensure that action view is loaded and the appropriate sprockets hooks get executed
-      ActionView::Base
-
-      # Always compile files
-      Rails.application.config.assets.compile = true
-
-      # Always ignore asset host
-      Rails.application.config.action_controller.asset_host = nil
-
-      config = Rails.application.config
-      env    = Rails.application.assets
-      target = Pathname.new(File.join(Rails.public_path, config.assets.prefix))
-      manifest = {}
-      manifest_path = config.assets.manifest || target
-
-      config.assets.precompile.each do |path|
-        env.each_logical_path do |logical_path|
-          if path.is_a?(Regexp)
-            next unless path.match(logical_path)
-          elsif path.is_a?(Proc)
-            next unless path.call(logical_path)
-          else
-            next unless File.fnmatch(path.to_s, logical_path)
-          end
-
-          if asset = env.find_asset(logical_path)
-            asset_path = config.assets.digest ? asset.digest_path : logical_path
-            manifest[logical_path] = asset_path
-            filename = target.join(asset_path)
-
-            mkdir_p filename.dirname
-            asset.write_to(filename)
-            asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
-          end
-        end
+      unless Rails.application.config.assets.enabled
+        raise "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
       end
 
-      File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
-        YAML.dump(manifest, f)
+      # Ensure that action view is loaded and the appropriate sprockets hooks get executed
+      _ = ActionView::Base
+
+      config = Rails.application.config
+      config.assets.compile = true
+      config.assets.digest = false if ENV["RAILS_ASSETS_NONDIGEST"]
+
+      env    = Rails.application.assets
+
+      # Always compile files and avoid use of existing precompiled assets
+      config.assets.compile = true
+      config.assets.digests = {}
+
+      target = File.join(Rails.public_path, config.assets.prefix)
+      static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
+
+      manifest = static_compiler.precompile(config.assets.precompile)
+      manifest_path = config.assets.manifest || target
+      FileUtils.mkdir_p(manifest_path)
+
+      unless ENV["RAILS_ASSETS_NONDIGEST"]
+        File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
+          YAML.dump(manifest, f)
+        end
+        ENV["RAILS_ASSETS_NONDIGEST"] = "true"
+        ruby $0, *ARGV
       end
     end
   end
 
   desc "Remove compiled assets"
-  task :clean => [:environment, 'tmp:cache:clear'] do
+  task :clean => ['assets:environment', 'tmp:cache:clear'] do
     config = Rails.application.config
     public_asset_path = File.join(Rails.public_path, config.assets.prefix)
     rm_rf public_asset_path, :secure => true
+  end
+
+  task :environment do
+    Rails.application.initialize!(:assets)
+    Sprockets::Bootstrap.new(Rails.application).run
   end
 end
