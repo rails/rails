@@ -130,16 +130,18 @@ module ActiveSupport #:nodoc:
     end
 
     for unsafe_method in UNSAFE_STRING_METHODS
-      class_eval <<-EOT, __FILE__, __LINE__
-        def #{unsafe_method}(*args)
-          super.to_str
-        end
+      if 'String'.respond_to?(unsafe_method)
+        class_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{unsafe_method}(*args)
+            super.to_str
+          end
 
-        def #{unsafe_method}!(*args)
-          @dirty = true
-          super
-        end
-      EOT
+          def #{unsafe_method}!(*args)
+            @dirty = true
+            super
+          end
+        EOT
+      end
     end
 
     protected
