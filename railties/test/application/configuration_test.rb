@@ -306,7 +306,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
     end
@@ -319,7 +319,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
     end
@@ -332,7 +332,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
@@ -345,7 +345,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end

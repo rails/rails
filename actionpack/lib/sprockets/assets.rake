@@ -17,7 +17,7 @@ namespace :assets do
       end
 
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
-      ActionView::Base
+      _ = ActionView::Base
 
       config = Rails.application.config
       config.assets.compile = true
