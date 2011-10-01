@@ -1109,19 +1109,20 @@ h4. Generating a Model
 
 Models in Rails use a singular name, and their corresponding database tables use
 a plural name. For the model to hold comments, the convention is to use the name
-Comment. Even if you don't want to use the entire apparatus set up by
++Comment+. Even if you don't want to use the entire apparatus set up by
 scaffolding, most Rails developers still use generators to make things like
 models and controllers. To create the new model, run this command in your
 terminal:
 
 <shell>
-$ rails generate model Comment commenter:string body:text post:references
+$ rails generate model Comment commenter:string body:text \
+> post:references
 </shell>
 
 This command will generate four files:
 
-* +app/models/comment.rb+ - The model
-* +db/migrate/20100207235629_create_comments.rb+ - The migration
+* +app/models/comment.rb+ - The model.
+* +db/migrate/20100207235629_create_comments.rb+ - The migration.
 * +test/unit/comment_test.rb+ and +test/fixtures/comments.yml+ - The test harness.
 
 First, take a look at +comment.rb+:
@@ -1179,8 +1180,8 @@ Active Record associations let you easily declare the relationship between two
 models. In the case of comments and posts, you could write out the relationships
 this way:
 
-* Each comment belongs to one post
-* One post can have many comments
+* Each comment belongs to one post.
+* One post can have many comments.
 
 In fact, this is very close to the syntax that Rails uses to declare this
 association. You've already seen the line of code inside the Comment model that
@@ -1206,7 +1207,7 @@ end
 
 These two declarations enable a good bit of automatic behavior. For example, if
 you have an instance variable +@post+ containing a post, you can retrieve all
-the comments belonging to that post as the array +@post.comments+.
+the comments belonging to that post as an array using +@post.comments+.
 
 TIP: For more information on Active Record associations, see the "Active Record
 Associations":association_basics.html guide.
@@ -1215,9 +1216,9 @@ h4. Adding a Route for Comments
 
 As with the +home+ controller, we will need to add a route so that Rails knows
 where we would like to navigate to see +comments+. Open up the
-+config/routes.rb+ file again, you will see an entry that was added
-automatically for +posts+ near the top by the scaffold generator, +resources
-:posts+, edit it as follows:
++config/routes.rb+ file again. Near the top, you will see the entry for +posts+
+that was added automatically by the scaffold generator: <tt>resources
+:posts</tt>. Edit it as follows:
 
 <ruby>
 resources :posts do
@@ -1243,19 +1244,19 @@ $ rails generate controller Comments
 
 This creates six files and one empty directory:
 
-* +app/controllers/comments_controller.rb+ - The controller
-* +app/helpers/comments_helper.rb+ - A view helper file
-* +test/functional/comments_controller_test.rb+ - The functional tests for the controller
-* +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper
-* +app/views/comments/+ - Views of the controller are stored here
-* +app/assets/stylesheets/comment.css.scss+ - Cascading style sheet for the controller
-* +app/assets/javascripts/comment.js.coffee+ - CoffeeScript for the controller
+* +app/controllers/comments_controller.rb+ - The controller.
+* +app/helpers/comments_helper.rb+ - A view helper file.
+* +test/functional/comments_controller_test.rb+ - The functional tests for the controller.
+* +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper.
+* +app/views/comments/+ - Views of the controller are stored here.
+* +app/assets/stylesheets/comment.css.scss+ - Cascading style sheet for the controller.
+* +app/assets/javascripts/comment.js.coffee+ - CoffeeScript for the controller.
 
 Like with any blog, our readers will create their comments directly after
 reading the post, and once they have added their comment, will be sent back to
 the post show page to see their comment now listed. Due to this, our
 +CommentsController+ is there to provide a method to create comments and delete
-SPAM comments when they arrive.
+spam comments when they arrive.
 
 So first, we'll wire up the Post show template
 (+/app/views/posts/show.html.erb+) to let us make a new comment:
@@ -1297,8 +1298,8 @@ So first, we'll wire up the Post show template
 <%= link_to 'Back to Posts', posts_path %> |
 </erb>
 
-This adds a form on the Post show page that creates a new comment, which will
-call the +CommentsController+ +create+ action, so let's wire that up:
+This adds a form on the +Post+ show page that creates a new comment by
+calling the +CommentsController+ +create+ action. Let's wire that up:
 
 <ruby>
 class CommentsController < ApplicationController
@@ -1311,9 +1312,9 @@ end
 </ruby>
 
 You'll see a bit more complexity here than you did in the controller for posts.
-That's a side-effect of the nesting that you've set up; each request for a
+That's a side-effect of the nesting that you've set up. Each request for a
 comment has to keep track of the post to which the comment is attached, thus the
-initial find action to the Post model to get the post in question.
+initial call to the +find+ method of the +Post+ model to get the post in question.
 
 In addition, the code takes advantage of some of the methods available for an
 association. We use the +create+ method on +@post.comments+ to create and save
@@ -1383,9 +1384,9 @@ right places.
 
 h3. Refactoring
 
-Now that we have Posts and Comments working, if we take a look at the
-+app/views/posts/show.html.erb+ template, it's getting long and awkward. We can
-use partials to clean this up.
+Now that we have posts and comments working, take a look at the
++app/views/posts/show.html.erb+ template. It is getting long and awkward. We can
+use partials to clean it up.
 
 h4. Rendering Partial Collections
 
@@ -1405,7 +1406,7 @@ following into it:
 </p>
 </erb>
 
-Then in the +app/views/posts/show.html.erb+ you can change it to look like the
+Then you can change +app/views/posts/show.html.erb+ to look like the
 following:
 
 <erb>
@@ -1458,8 +1459,8 @@ comment to a local variable named the same as the partial, in this case
 
 h4. Rendering a Partial Form
 
-Let's also move that new comment section out to its own partial. Again, you
-create a file +app/views/comments/_form.html.erb+ and in it you put:
+Let us also move that new comment section out to its own partial. Again, you
+create a file +app/views/comments/_form.html.erb+ containing:
 
 <erb>
 <%= form_for([@post, @post.comments.build]) do |f| %>
@@ -1510,7 +1511,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 </erb>
 
 The second render just defines the partial template we want to render,
-<tt>comments/form</tt>, Rails is smart enough to spot the forward slash in that
+<tt>comments/form</tt>. Rails is smart enough to spot the forward slash in that
 string and realize that you want to render the <tt>_form.html.erb</tt> file in
 the <tt>app/views/comments</tt> directory.
 
@@ -1519,7 +1520,7 @@ defined it as an instance variable.
 
 h3. Deleting Comments
 
-Another important feature on a blog is being able to delete SPAM comments. To do
+Another important feature of a blog is being able to delete SPAM comments. To do
 this, we need to implement a link of some sort in the view and a +DELETE+ action
 in the +CommentsController+.
 
