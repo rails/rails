@@ -17,7 +17,8 @@
 
 * Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. [Santiago Pastorino]
 
-* `rake assets:precompile` loads the application but does not initialize it.
+* Add config.assets.initialize_on_precompile which, when set to false, forces
+  `rake assets:precompile` to load the application but does not initialize it.
 
   To the app developer, this means configuration add in
   config/initializers/* will not be executed.

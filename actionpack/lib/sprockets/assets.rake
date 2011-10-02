@@ -54,7 +54,11 @@ namespace :assets do
   end
 
   task :environment do
-    Rails.application.initialize!(:assets)
-    Sprockets::Bootstrap.new(Rails.application).run
+    if Rails.application.config.assets.initialize_on_precompile
+      Rake::Task["environment"].invoke
+    else
+      Rails.application.initialize!(:assets)
+      Sprockets::Bootstrap.new(Rails.application).run
+    end
   end
 end

@@ -395,7 +395,30 @@ module ApplicationTests
       assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
     end
 
+    test "assets can access model information when precompiling" do
+      app_file "app/models/post.rb", "class Post; end"
+      app_file "app/assets/javascripts/application.js", "//= require_tree ."
+      app_file "app/assets/javascripts/xmlhr.js.erb", "<%= Post.name %>"
+
+      add_to_config "config.assets.digest = false"
+      precompile!
+      assert_equal "Post;\n", File.read("#{app_path}/public/assets/application.js")
+    end
+
+    test "assets can't access model information when precompiling if not initializing the app" do
+      app_file "app/models/post.rb", "class Post; end"
+      app_file "app/assets/javascripts/application.js", "//= require_tree ."
+      app_file "app/assets/javascripts/xmlhr.js.erb", "<%= defined?(Post) || :NoPost %>"
+
+      add_to_config "config.assets.digest = false"
+      add_to_config "config.assets.initialize_on_precompile = false"
+
+      precompile!
+      assert_equal "NoPost;\n", File.read("#{app_path}/public/assets/application.js")
+    end
+
     private
+
     def app_with_assets_in_view
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
