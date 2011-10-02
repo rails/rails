@@ -567,11 +567,12 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal 'B', File.basename(path)
   end
 
-  def test_search_dir_when_directory_does_not_exist
-    ActiveSupport::Cache::FileStore.new('test').send(:search_dir, 'dir_does_not_exist') do |path|
-      flunk "search_dir yielded but should have done nothing"
+  # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist
+  # Ensure delete_matched gracefully handles this case
+  def test_delete_matched_when_cache_directory_does_not_exist
+    assert_nothing_raised(Exception) do
+      ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
     end
-    assert true
   end
 end
 
