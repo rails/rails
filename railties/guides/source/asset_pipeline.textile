@@ -346,6 +346,13 @@ The rake task is:
 bundle exec rake assets:precompile
 </plain>
 
+Asset templates in general have access to application objects. You may prevent application
+initialization in precompilation setting +config.assets.initialize_on_precompile+ to false.
+
+WARNING: Application objects may still be in scope in asset templates in develoment mode.
+If +config.assets.initialize_on_precompile+ is set to false it is your responsability not
+to use them at all.
+
 Capistrano (v2.8.0 and above) has a recipe to handle this in deployment. Add the following line to +Capfile+:
 
 <erb>
