@@ -566,6 +566,14 @@ class FileStoreTest < ActiveSupport::TestCase
     assert path.split('/').all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}
     assert_equal 'B', File.basename(path)
   end
+
+  # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist
+  # Ensure delete_matched gracefully handles this case
+  def test_delete_matched_when_cache_directory_does_not_exist
+    assert_nothing_raised(Exception) do
+      ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
+    end
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
