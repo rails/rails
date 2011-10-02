@@ -249,9 +249,9 @@ module ApplicationTests
       # digest is default in false, we must enable it for test environment
       add_to_config "config.assets.digest = true"
 
-      # capture(:stdout) do
+      capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
-      # end
+      end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
