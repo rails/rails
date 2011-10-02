@@ -13,6 +13,7 @@ else
   if File.exist?(railsrc)
     extra_args_string = File.open(railsrc).read
     extra_args = extra_args_string.split(/\n+/).map {|l| l.split}.flatten
+    puts "Using #{extra_args.join(" ")} from #{railsrc}"
     ARGV << extra_args
     ARGV.flatten!
   end
