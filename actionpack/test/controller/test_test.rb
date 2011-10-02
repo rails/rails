@@ -146,6 +146,17 @@ XML
     end
   end
 
+  class ViewAssignsController < ActionController::Base
+    def test_assigns
+      @foo = "foo"
+      render :nothing => true
+    end
+
+    def view_assigns
+      { "bar" => "bar" }
+    end
+  end
+
   def test_raw_post_handling
     params = ActiveSupport::OrderedHash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
@@ -254,6 +265,15 @@ XML
     assert_equal "foo", assigns("foo")
     assert_equal "foo", assigns[:foo]
     assert_equal "foo", assigns["foo"]
+  end
+
+  def test_view_assigns
+    @controller = ViewAssignsController.new
+    process :test_assigns
+    assert_equal nil, assigns(:foo)
+    assert_equal nil, assigns[:foo]
+    assert_equal "bar", assigns(:bar)
+    assert_equal "bar", assigns[:bar]
   end
 
   def test_assert_tag_tag
