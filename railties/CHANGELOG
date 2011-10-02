@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Default options to `rails new` can be set in ~/.railsrc [Guillermo Iguaran]
+
 * Added destroy alias to Rails engines. [Guillermo Iguaran]
 
 * Added destroy alias for Rails command line. This allows the following: `rails d model post`. [Andrey Ognevsky]
