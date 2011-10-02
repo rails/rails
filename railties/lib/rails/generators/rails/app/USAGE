@@ -2,6 +2,12 @@ Description:
     The 'rails new' command creates a new Rails application with a default
     directory structure and configuration at the path you specify.
 
+    You can specify extra command-line arguments to be used every time
+    'rails new' runs in the .railsrc configuration file in your home directory.
+
+    Note that the arguments specified in the .railsrc file don't affect the
+    defaults values shown above in this help message.
+
 Example:
     rails new ~/Code/Ruby/weblog
 
