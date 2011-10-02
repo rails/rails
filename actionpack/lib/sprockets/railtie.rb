@@ -14,7 +14,7 @@ module Sprockets
       load "sprockets/assets.rake"
     end
 
-    initializer "sprockets.environment", :group => :assets do |app|
+    initializer "sprockets.environment", :group => :all do |app|
       config = app.config
       next unless config.assets.enabled
 
