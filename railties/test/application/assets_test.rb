@@ -244,7 +244,7 @@ module ApplicationTests
       assert_match(/app.js isn't precompiled/, last_response.body)
     end
 
-    test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
+    test "precompile properly refers files referenced with asset_path and and run in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       # digest is default in false, we must enable it for test environment
       add_to_config "config.assets.digest = true"
@@ -252,6 +252,8 @@ module ApplicationTests
       capture(:stdout) do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
       end
+      file = Dir["#{app_path}/public/assets/application.css"].first
+      assert_match(/\/assets\/rails\.png/, File.read(file))
       file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
