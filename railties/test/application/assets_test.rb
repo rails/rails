@@ -160,23 +160,6 @@ module ApplicationTests
       assert_match(/application-([0-z]+)\.js/, assets["application.js"])
     end
 
-    test "precompile does not append asset digests when config.assets.digest is false" do
-      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
-      app_file "app/assets/javascripts/application.js", "alert();"
-      add_to_config "config.assets.digest = false"
-
-      precompile!
-
-      assert File.exists?("#{app_path}/public/assets/application.js")
-      assert File.exists?("#{app_path}/public/assets/application.css")
-
-      manifest = "#{app_path}/public/assets/manifest.yml"
-
-      assets = YAML.load_file(manifest)
-      assert_equal "application.js", assets["application.js"]
-      assert_equal "application.css", assets["application.css"]
-    end
-
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
       add_to_env_config "production", "config.serve_static_assets = true"

@@ -9,6 +9,7 @@ namespace :assets do
       ruby $0, *ARGV
     else
       require "fileutils"
+
       Rake::Task["tmp:cache:clear"].invoke
       Rake::Task["assets:environment"].invoke
 
@@ -19,30 +20,27 @@ namespace :assets do
       # Ensure that action view is loaded and the appropriate sprockets hooks get executed
       _ = ActionView::Base
 
-      config = Rails.application.config
-      config.assets.compile = true
-      config.assets.digest = false if ENV["RAILS_ASSETS_NONDIGEST"]
-
-      env    = Rails.application.assets
-
       # Always compile files and avoid use of existing precompiled assets
+      config = Rails.application.config
+      config.assets.digest  = true
       config.assets.compile = true
       config.assets.digests = {}
 
       target = File.join(Rails.public_path, config.assets.prefix)
-      static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
+      static_compiler = Sprockets::StaticCompiler.new(Rails.application.assets, target, :digest => config.assets.digest)
 
+      # Compile assets with digests
       manifest = static_compiler.precompile(config.assets.precompile)
       manifest_path = config.assets.manifest || target
-      FileUtils.mkdir_p(manifest_path)
 
-      unless ENV["RAILS_ASSETS_NONDIGEST"]
-        File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
-          YAML.dump(manifest, f)
-        end
-        ENV["RAILS_ASSETS_NONDIGEST"] = "true"
-        ruby $0, *ARGV
+      FileUtils.mkdir_p(manifest_path)
+      File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
+        YAML.dump(manifest, f)
       end
+
+      # Compile assets without digests
+      static_compiler.digest = false
+      static_compiler.precompile(config.assets.precompile)
     end
   end
 
