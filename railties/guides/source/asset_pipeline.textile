@@ -346,12 +346,14 @@ The rake task is:
 bundle exec rake assets:precompile
 </plain>
 
-Asset templates in general have access to application objects. You may prevent application
-initialization in precompilation setting +config.assets.initialize_on_precompile+ to false.
+For faster asset precompiles, you can partially load your application by setting
++config.assets.initialize_on_precompile+ to false, though in that case templates
+cannot see application objects or methods. *Heroku requires this to be false.*
 
-WARNING: Application objects may still be in scope in asset templates in develoment mode.
-If +config.assets.initialize_on_precompile+ is set to false it is your responsability not
-to use them at all.
+WARNING: If you set +config.assets.initialize_on_precompile+ to false, be sure to
+test +rake assets:precompile+ locally before deploying. It may expose bugs where
+your assets reference application objects or methods, since those are still
+in scope in development mode regardless of the value of this flag.
 
 Capistrano (v2.8.0 and above) has a recipe to handle this in deployment. Add the following line to +Capfile+:
 
