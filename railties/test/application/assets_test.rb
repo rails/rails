@@ -425,6 +425,19 @@ module ApplicationTests
       assert_equal 1, output.scan("enhancement").size
     end
 
+    test "digested assets are not mistakenly removed" do
+      app_file "public/assets/application.js", "alert();"
+      add_to_config "config.assets.compile = true"
+      add_to_config "config.assets.digest = true"
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean assets:precompile` }
+      end
+
+      files = Dir["#{app_path}/public/assets/application-*.js"]
+      assert_equal 1, files.length, "Expected digested application.js asset to be generated, but none found"
+    end
+
     private
 
     def app_with_assets_in_view
