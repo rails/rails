@@ -28,7 +28,7 @@ h4. Why Use Validations?
 
 Validations are used to ensure that only valid data is saved into your database. For example, it may be important to your application to ensure that every user provides a valid email address and mailing address.
 
-There are several ways to validate data before it is saved into your database, including native database constraints, client-side validations, controller-level validations, and model-level validations.
+There are several ways to validate data before it is saved into your database, including native database constraints, client-side validations, controller-level validations, and model-level validations:
 
 * Database constraints and/or stored procedures make the validation mechanisms database-dependent and can make testing and maintenance more difficult. However, if your database is used by other applications, it may be a good idea to use some constraints at the database level. Additionally, database-level validations can safely handle some things (such as uniqueness in heavily-used tables) that can be difficult to implement otherwise.
 * Client-side validations can be useful, but are generally unreliable if used alone. If they are implemented using JavaScript, they may be bypassed if JavaScript is turned off in the user's browser. However, if combined with other techniques, client-side validation can be a convenient way to provide users with immediate feedback as they use your site.
@@ -94,7 +94,7 @@ Note that +save+ also has the ability to skip validations if passed +:validate =
 
 h4. +valid?+ and +invalid?+
 
-To verify whether or not an object is valid, Rails uses the +valid?+ method. You can also use this method on your own. +valid?+ triggers your validations and returns true if no errors were added to the object, and false otherwise.
+To verify whether or not an object is valid, Rails uses the +valid?+ method. You can also use this method on your own. +valid?+ triggers your validations and returns true if no errors were found in the object, and false otherwise.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -105,7 +105,7 @@ Person.create(:name => "John Doe").valid? # => true
 Person.create(:name => nil).valid? # => false
 </ruby>
 
-When Active Record is performing validations, any errors found can be accessed through the +errors+ instance method. By definition an object is valid if this collection is empty after running validations.
+After Active Record performing validations, any errors found can be accessed through the +errors+ instance method, which returns a collection of errors. By definition an object is valid if this collection is empty after running validations.
 
 Note that an object instantiated with +new+ will not report errors even if it's technically invalid, because validations are not run when using +new+.
 
@@ -139,7 +139,7 @@ end
 => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 </ruby>
 
-+invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations and returns true if any errors were added to the object, and false otherwise.
++invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations, returning true if any errors were found in the object, and false otherwise.
 
 h4(#validations_overview-errors). +errors[]+
 
@@ -160,7 +160,7 @@ We'll cover validation errors in greater depth in the "Working with Validation E
 
 h3. Validation Helpers
 
-Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers provide common validation rules. Every time a validation fails, an error message is added to the object's +errors+ collection, and this message is associated with the field being validated.
+Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers provide common validation rules. Every time a validation fails, an error message is added to the object's +errors+ collection, and this message is associated with the attribute being validated.
 
 Each helper accepts an arbitrary number of attribute names, so with a single line of code you can add the same kind of validation to several attributes.
 
@@ -428,6 +428,8 @@ class GoodnessValidator < ActiveModel::Validator
 end
 </ruby>
 
+NOTE: Errors added to +record.errors[:base]+ relate to the state of the record as a whole, and not to a specific attribute.
+
 The +validates_with+ helper takes a class, or a list of classes to use for validation. There is no default error message for +validates_with+. You must manually add errors to the record's errors collection in the validator class.
 
 To implement the validate method, you must have a +record+ parameter defined, which is the record to be validated.
@@ -454,13 +456,13 @@ This helper validates attributes against a block. It doesn't have a predefined v
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_each :name, :surname do |model, attr, value|
-    model.errors.add(attr, 'must start with upper case') if value =~ /\A[a-z]/
+  validates_each :name, :surname do |record, attr, value|
+    record.errors.add(attr, 'must start with upper case') if value =~ /\A[a-z]/
   end
 end
 </ruby>
 
-The block receives the model, the attribute's name and the attribute's value. You can do anything you like to check for valid data within the block. If your validation fails, you can add an error message to the model, therefore making it invalid.
+The block receives the record, the attribute's name and the attribute's value. You can do anything you like to check for valid data within the block. If your validation fails, you should add an error message to the model, therefore making it invalid.
 
 h3. Common Validation Options
 
@@ -580,7 +582,7 @@ Custom validators are classes that extend <tt>ActiveModel::Validator</tt>. These
 <ruby>
 class MyValidator < ActiveModel::Validator
   def validate(record)
-    if record.name.starts_with? 'X'
+    unless record.name.starts_with? 'X'
       record.errors[:name] << 'Need a name starting with X please!'
     end
   end
@@ -661,7 +663,7 @@ The following is a list of the most commonly used methods. Please refer to the +
 
 h4(#working_with_validation_errors-errors). +errors+
 
-Returns an OrderedHash with all errors. Each key is the attribute name and the value is an array of strings with all errors.
+Returns an instance of the class +ActiveModel::Errors+ (which behaves like an ordered hash) containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -741,7 +743,7 @@ Another way to do this is using +[]=+ setter
 
 h4. +errors[:base]+
 
-You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to the array and uses it as the error message.
+You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to it and it will be used as an error message.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -785,7 +787,7 @@ end
 
 person = Person.new
 person.valid? # => false
-person.errors.size # => 3
+person.errors.size # => 2
 
 person = Person.new(:name => "Andrea", :email => "andrea@example.com")
 person.valid? # => true
@@ -871,10 +873,10 @@ h4. Customizing the Error Messages CSS
 The selectors to customize the style of error messages are:
 
 * +.field_with_errors+ - Style for the form fields and labels with errors.
-* +#errorExplanation+ - Style for the +div+ element with the error messages.
-* +#errorExplanation h2+ - Style for the header of the +div+ element.
-* +#errorExplanation p+ - Style for the paragraph that holds the message that appears right below the header of the +div+ element.
-* +#errorExplanation ul li+ - Style for the list items with individual error messages.
+* +#error_explanation+ - Style for the +div+ element with the error messages.
+* +#error_explanation h2+ - Style for the header of the +div+ element.
+* +#error_explanation p+ - Style for the paragraph that holds the message that appears right below the header of the +div+ element.
+* +#error_explanation ul li+ - Style for the list items with individual error messages.
 
 Scaffolding for example generates +app/assets/stylesheets/scaffold.css.scss+, which later compiles to +app/assets/stylesheets/scaffold.css+ and defines the red-based style you saw above.
 
