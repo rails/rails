@@ -100,5 +100,5 @@ if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
   end
 end
 
-# A gem necessary for ActiveRecord tests with Oracle database
+# A gem necessary for ActiveRecord tests with IBM DB
 gem "ibm_db" if ENV['IBM_DB']
