@@ -65,7 +65,7 @@ module ActionView
           methods.flatten.each do |method|
             _helpers.module_eval <<-end_eval
               def #{method}(*args, &block)                    # def current_user(*args, &block)
-                _test_case.send(%(#{method}), *args, &block)  #   test_case.send(%(current_user), *args, &block)
+                _test_case.send(%(#{method}), *args, &block)  #   _test_case.send(%(current_user), *args, &block)
               end                                             # end
             end_eval
           end
