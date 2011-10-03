@@ -50,7 +50,12 @@ module ActionView
 
       module ClassMethods
         def tests(helper_class)
-          self.helper_class = helper_class
+          case helper_class
+          when String, Symbol
+            self.helper_class = "#{helper_class.to_s.underscore}_helper".camelize.safe_constantize
+          when Module
+            self.helper_class = helper_class
+          end
         end
 
         def determine_default_helper_class(name)
