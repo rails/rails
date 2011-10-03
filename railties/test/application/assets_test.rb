@@ -22,7 +22,7 @@ module ApplicationTests
     end
 
     def precompile!
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
       end
     end
@@ -249,7 +249,7 @@ module ApplicationTests
       # digest is default in false, we must enable it for test environment
       add_to_config "config.assets.digest = true"
 
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
       end
       file = Dir["#{app_path}/public/assets/application.css"].first
@@ -281,7 +281,7 @@ module ApplicationTests
       add_to_config "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = nil
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
       end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
@@ -306,7 +306,7 @@ module ApplicationTests
       app_file "public/assets/application.css", "a { color: green; }"
       app_file "public/assets/subdir/broken.png", "not really an image file"
 
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:clean` }
       end
 
@@ -417,6 +417,12 @@ module ApplicationTests
 
       precompile!
       assert_equal "NoPost;\n", File.read("#{app_path}/public/assets/application.js")
+    end
+
+    test "enhancements to assets:precompile should only run once" do
+      app_file "lib/tasks/enhance.rake", "Rake::Task['assets:precompile'].enhance { puts 'enhancement' }"
+      output = precompile!
+      assert_equal 1, output.scan("enhancement").size
     end
 
     private
