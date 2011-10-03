@@ -6,7 +6,7 @@ namespace :assets do
     if ENV["RAILS_GROUPS"].to_s.empty? || ENV["RAILS_ENV"].to_s.empty?
       ENV["RAILS_GROUPS"] ||= "assets"
       ENV["RAILS_ENV"]    ||= "production"
-      ruby $0, *ARGV
+      ruby $0, 'assets:precompile'
       exit
     else
       require "fileutils"
@@ -42,7 +42,7 @@ namespace :assets do
           YAML.dump(manifest, f)
         end
         ENV["RAILS_ASSETS_NONDIGEST"] = "true"
-        ruby $0, *ARGV
+        ruby $0, 'assets:precompile'
         exit
       end
     end
