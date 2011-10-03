@@ -4,9 +4,15 @@ namespace :assets do
     # We need to do this dance because RAILS_GROUPS is used
     # too early in the boot process and changing here is already too late.
     if ENV["RAILS_GROUPS"].to_s.empty? || ENV["RAILS_ENV"].to_s.empty?
+      unless ARGV.index('assets:precompile') == (ARGV.length - 1)
+        # assets:precompile is not the last task, but we're about to
+        # exit early, so let's fail fast here and show an explanatory
+        # message.
+        raise "The assets:precompile may not be followed by other tasks. Please run multiple rake invocations instead."
+      end
       ENV["RAILS_GROUPS"] ||= "assets"
       ENV["RAILS_ENV"]    ||= "production"
-      ruby $0, 'assets:precompile'
+      ruby $0, *([Rake.application.options.trace ? '--trace' : nil, 'assets:precompile'].compact)
       exit
     else
       require "fileutils"
@@ -42,7 +48,7 @@ namespace :assets do
           YAML.dump(manifest, f)
         end
         ENV["RAILS_ASSETS_NONDIGEST"] = "true"
-        ruby $0, 'assets:precompile'
+        ruby $0, *([Rake.application.options.trace ? '--trace' : nil, 'assets:precompile'].compact)
         exit
       end
     end
