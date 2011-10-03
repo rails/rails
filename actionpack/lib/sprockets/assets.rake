@@ -7,6 +7,7 @@ namespace :assets do
       ENV["RAILS_GROUPS"] ||= "assets"
       ENV["RAILS_ENV"]    ||= "production"
       ruby $0, *ARGV
+      exit
     else
       require "fileutils"
       Rake::Task["tmp:cache:clear"].invoke
@@ -42,6 +43,7 @@ namespace :assets do
         end
         ENV["RAILS_ASSETS_NONDIGEST"] = "true"
         ruby $0, *ARGV
+        exit
       end
     end
   end

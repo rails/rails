@@ -419,6 +419,12 @@ module ApplicationTests
       assert_equal "NoPost;\n", File.read("#{app_path}/public/assets/application.js")
     end
 
+    test "enhancements to assets:precompile should only run once" do
+      app_file "lib/tasks/enhance.rake", "Rake::Task['assets:precompile'].enhance { puts 'enhancement' }"
+      output = precompile!
+      assert_equal 1, output.scan("enhancement").size
+    end
+
     private
 
     def app_with_assets_in_view
