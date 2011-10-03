@@ -774,6 +774,22 @@ class CrazyNameTest < ActionController::TestCase
   end
 end
 
+class CrazySymbolNameTest < ActionController::TestCase
+  tests :content
+
+  def test_set_controller_class_using_symbol
+    assert_equal ContentController, self.class.controller_class
+  end
+end
+
+class CrazyStringNameTest < ActionController::TestCase
+  tests 'content'
+
+  def test_set_controller_class_using_string
+    assert_equal ContentController, self.class.controller_class
+  end
+end
+
 class NamedRoutesControllerTest < ActionController::TestCase
   tests ContentController
 
