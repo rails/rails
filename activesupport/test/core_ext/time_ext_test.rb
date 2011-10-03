@@ -764,7 +764,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_case_equality
     assert Time === Time.utc(2000)
     assert Time === ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC'])
+    assert Time === Class.new(Time).utc(2000)
     assert_equal false, Time === DateTime.civil(2000)
+    assert_equal false, Class.new(Time) === Time.utc(2000)
+    assert_equal false, Class.new(Time) === ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC'])
   end
 
   def test_all_day
