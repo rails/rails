@@ -22,7 +22,7 @@ module ApplicationTests
     end
 
     def precompile!
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
       end
     end
@@ -249,7 +249,7 @@ module ApplicationTests
       # digest is default in false, we must enable it for test environment
       add_to_config "config.assets.digest = true"
 
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
       end
       file = Dir["#{app_path}/public/assets/application.css"].first
@@ -281,7 +281,7 @@ module ApplicationTests
       add_to_config "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = nil
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
       end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
@@ -306,7 +306,7 @@ module ApplicationTests
       app_file "public/assets/application.css", "a { color: green; }"
       app_file "public/assets/subdir/broken.png", "not really an image file"
 
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:clean` }
       end
 
