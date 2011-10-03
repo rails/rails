@@ -364,9 +364,7 @@ module ActionController
         end
 
         def determine_default_controller_class(name)
-          name.sub(/Test$/, '').constantize
-        rescue NameError
-          nil
+          name.sub(/Test$/, '').safe_constantize
         end
 
         def prepare_controller_class(new_class)
