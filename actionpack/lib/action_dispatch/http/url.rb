@@ -64,7 +64,7 @@ module ActionDispatch
         end
 
         def host_or_subdomain_and_domain(options)
-          return options[:host] unless options[:subdomain] || options[:subdomain] == false || options[:domain]
+          return options[:host] if options[:subdomain].nil? && options[:domain].nil? #options[:subdomain] || options[:subdomain] == false || options[:domain]
 
           tld_length = options[:tld_length] || @@tld_length
 
