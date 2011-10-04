@@ -2,15 +2,15 @@ require "fileutils"
 
 namespace :assets do
   def ruby_rake_task(task)
-    args = [$0, task]
+    env = ENV['RAILS_ENV'] || 'production'
+    groups = ENV['RAILS_GROUPS'] || 'assets'
+    args = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
     args << "--trace" if Rake.application.options.trace
     ruby *args
   end
 
   desc "Compile all the assets named in config.assets.precompile"
   task :precompile do
-    ENV["RAILS_GROUPS"] ||= "assets"
-    ENV["RAILS_ENV"]    ||= "production"
     ruby_rake_task "assets:precompile:all"
   end
 
@@ -58,8 +58,6 @@ namespace :assets do
 
   desc "Remove compiled assets"
   task :clean do
-    ENV["RAILS_GROUPS"] ||= "assets"
-    ENV["RAILS_ENV"]    ||= "production"
     ruby_rake_task "assets:clean:all"
   end
 
