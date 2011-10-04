@@ -43,11 +43,11 @@ namespace :assets do
     end
 
     task :all do
-      Rake::Task["assets:precompile:digest"].invoke
-      ruby_rake_task "assets:precompile:nondigest"
+      Rake::Task["assets:precompile:primary"].invoke
+      ruby_rake_task "assets:precompile:nondigest" if Rails.application.config.assets.digest
     end
 
-    task :digest => ["assets:environment", "tmp:cache:clear"] do
+    task :primary => ["assets:environment", "tmp:cache:clear"] do
       internal_precompile
     end
 
