@@ -28,8 +28,8 @@ namespace :assets do
       @assets_config ||= app.config.assets
     end
 
-    def compiler(mode)
-      Sprockets::StaticCompiler.compiler_for(assets, app.assets, mode)
+    def compile(mode)
+      Sprockets::StaticCompiler.compiler_for(assets, app.assets, mode).compile
     end
 
     def invoke_digestless?
@@ -51,12 +51,12 @@ namespace :assets do
 
     task :compile, [:mode] => ["assets:internal:environment", "tmp:cache:clear"] do |t, args|
       mode = args[:mode] || 'primary'
-      compiler(mode).compile
+      compile(mode)
       if mode == 'primary' && invoke_digestless?
         # We need to reinvoke in order to run the secondary asset
         # compilation run - a fresh Sprockets environment is
         # required in order to compile digestless assets.
-        reinvoke_for("compile[digestless]") if invoke_digestless?
+        reinvoke_for("compile[digestless]")
       end
     end
 
