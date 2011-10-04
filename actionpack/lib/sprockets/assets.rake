@@ -2,23 +2,27 @@ require "fileutils"
 
 namespace :assets do
   def ruby_rake_task(task)
-    env = ENV['RAILS_ENV'] || 'production'
+    env    = ENV['RAILS_ENV'] || 'production'
     groups = ENV['RAILS_GROUPS'] || 'assets'
-    args = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
+    args   = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
     args << "--trace" if Rake.application.options.trace
     ruby *args
   end
 
+  # We are currently running with no explicit bundler group
+  # and/or no explicit environment - we have to reinvoke rake to
+  # execute this task.
+  def invoke_or_reboot_rake_task(task)
+    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty?
+      ruby_rake_task task
+    else
+      Rake::Task[task].invoke
+    end
+  end
+
   desc "Compile all the assets named in config.assets.precompile"
   task :precompile do
-    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty?
-      # We are currently running with no explicit bundler group
-      # and/or no explicit environment - we have to reinvoke rake to
-      # execute this task.
-      ruby_rake_task "assets:precompile:all"
-    else
-      Rake::Task["assets:precompile:all"].invoke
-    end
+    invoke_or_reboot_rake_task "assets:precompile:all"
   end
 
   namespace :precompile do
@@ -70,14 +74,7 @@ namespace :assets do
 
   desc "Remove compiled assets"
   task :clean do
-    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty?
-      # We are currently running with no explicit bundler group
-      # and/or no explicit environment - we have to reinvoke rake to
-      # execute this task.
-      ruby_rake_task "assets:clean:all"
-    else
-      Rake::Task["assets:clean:all"].invoke
-    end
+    invoke_or_reboot_rake_task "assets:clean:all"
   end
 
   namespace :clean do
