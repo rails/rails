@@ -2,41 +2,50 @@ require 'fileutils'
 
 module Sprockets
   class StaticCompiler
-    attr_accessor :env, :target, :digest
+    attr_accessor :env, :target, :paths
 
-    def initialize(env, target, options = {})
+    def initialize(env, target, paths, options = {})
       @env = env
       @target = target
+      @paths = paths
       @digest = options.key?(:digest) ? options.delete(:digest) : true
+      @manifest = options.key?(:manifest) ? options.delete(:manifest) : true
+      @manifest_path = options.delete(:manifest_path) || target
     end
 
-    def precompile(paths)
-      Rails.application.config.assets.digest = digest
+    def compile
       manifest = {}
-
       env.each_logical_path do |logical_path|
-        next unless precompile_path?(logical_path, paths)
+        next unless compile_path?(logical_path)
         if asset = env.find_asset(logical_path)
-          manifest[logical_path] = compile(asset)
+          manifest[logical_path] = write_asset(asset)
         end
       end
-      manifest
+      write_manifest(manifest) if @manifest
     end
 
-    def compile(asset)
-      asset_path = digest_asset(asset)
-      filename = File.join(target, asset_path)
-      FileUtils.mkdir_p File.dirname(filename)
-      asset.write_to(filename)
-      asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
-      asset_path
+    def write_manifest(manifest)
+      FileUtils.mkdir_p(@manifest_path)
+      File.open("#{@manifest_path}/manifest.yml", 'wb') do |f|
+        YAML.dump(manifest, f)
+      end
     end
 
-    def precompile_path?(logical_path, paths)
+    def write_asset(asset)
+      path_for(asset).tap do |path|
+        filename = File.join(target, path)
+        FileUtils.mkdir_p File.dirname(filename)
+        asset.write_to(filename)
+        asset.write_to("#{filename}.gz") if filename.to_s =~ /\.(css|js)$/
+      end
+    end
+
+    def compile_path?(logical_path)
       paths.each do |path|
-        if path.is_a?(Regexp)
+        case path
+        when Regexp
           return true if path.match(logical_path)
-        elsif path.is_a?(Proc)
+        when Proc
           return true if path.call(logical_path)
         else
           return true if File.fnmatch(path.to_s, logical_path)
@@ -45,8 +54,8 @@ module Sprockets
       false
     end
 
-    def digest_asset(asset)
-      digest ? asset.digest_path : asset.logical_path
+    def path_for(asset)
+      @digest ? asset.digest_path : asset.logical_path
     end
   end
 end
