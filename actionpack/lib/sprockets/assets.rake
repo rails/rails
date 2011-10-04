@@ -11,7 +11,14 @@ namespace :assets do
 
   desc "Compile all the assets named in config.assets.precompile"
   task :precompile do
-    ruby_rake_task "assets:precompile:all"
+    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty?
+      # We are currently running with no explicit bundler group
+      # and/or no explicit environment - we have to reinvoke rake to
+      # execute this task.
+      ruby_rake_task "assets:precompile:all"
+    else
+      Rake::Task["assets:precompile:all"].invoke
+    end
   end
 
   namespace :precompile do
@@ -58,7 +65,14 @@ namespace :assets do
 
   desc "Remove compiled assets"
   task :clean do
-    ruby_rake_task "assets:clean:all"
+    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty?
+      # We are currently running with no explicit bundler group
+      # and/or no explicit environment - we have to reinvoke rake to
+      # execute this task.
+      ruby_rake_task "assets:clean:all"
+    else
+      Rake::Task["assets:clean:all"].invoke
+    end
   end
 
   namespace :clean do
