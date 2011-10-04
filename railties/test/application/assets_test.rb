@@ -247,7 +247,7 @@ module ApplicationTests
     test "precompile properly refers files referenced with asset_path and and run in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       # digest is default in false, we must enable it for test environment
-      add_to_config "config.assets.digest = true"
+      add_to_env_config "test", "config.assets.digest = true"
 
       quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
