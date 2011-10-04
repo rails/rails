@@ -51,6 +51,11 @@ namespace :assets do
 
     task :all do
       Rake::Task["assets:precompile:primary"].invoke
+      # We need to reinvoke in order to run the secondary digestless
+      # asset compilation run - a fresh Sprockets environment is
+      # required in order to compile digestless assets as the
+      # environment has already cached the assets on the primary
+      # run.
       ruby_rake_task "assets:precompile:nondigest" if Rails.application.config.assets.digest
     end
 
