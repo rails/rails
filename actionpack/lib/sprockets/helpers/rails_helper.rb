@@ -8,8 +8,7 @@ module Sprockets
 
       def asset_paths
         @asset_paths ||= begin
-          config     = self.config if respond_to?(:config)
-          config   ||= Rails.application.config
+          config     = Rails.application.config
           controller = self.controller if respond_to?(:controller)
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
