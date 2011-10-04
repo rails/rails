@@ -15,7 +15,7 @@ module ActiveModel
         self.include_root_in_json = true
       end
 
-      # Returns a JSON string representing the model. Some configuration can be
+      # Returns a hash representing the model. Some configuration can be
       # passed through +options+.
       #
       # The option <tt>include_root_in_json</tt> controls the top-level behavior
