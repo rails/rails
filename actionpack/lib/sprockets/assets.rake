@@ -28,12 +28,18 @@ namespace :assets do
       config = Rails.application.config
       config.assets.compile = true
       config.assets.digest  = digest unless digest.nil?
+
       config.assets.digests = {}
 
       env    = Rails.application.assets
       target = File.join(Rails.public_path, config.assets.prefix)
-      static_compiler = Sprockets::StaticCompiler.new(env, target, :digest => config.assets.digest)
-      static_compiler.precompile(config.assets.precompile)
+      compiler = Sprockets::StaticCompiler.new(env, 
+                                               target,
+                                               config.assets.precompile,
+                                               :manifest_path => config.assets.manifest,
+                                               :digest => config.assets.digest,
+                                               :manifest => digest.nil?)
+      compiler.compile
     end
 
     task :all do
@@ -42,14 +48,7 @@ namespace :assets do
     end
 
     task :digest => ["assets:environment", "tmp:cache:clear"] do
-      manifest      = internal_precompile
-      config        = Rails.application.config
-      manifest_path = config.assets.manifest || File.join(Rails.public_path, config.assets.prefix)
-      FileUtils.mkdir_p(manifest_path)
-
-      File.open("#{manifest_path}/manifest.yml", 'wb') do |f|
-        YAML.dump(manifest, f)
-      end
+      internal_precompile
     end
 
     task :nondigest => ["assets:environment", "tmp:cache:clear"] do
