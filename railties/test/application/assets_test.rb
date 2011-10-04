@@ -426,7 +426,7 @@ module ApplicationTests
     end
 
     test "digested assets are not mistakenly removed" do
-      app_file "public/assets/application.js", "alert();"
+      app_file "app/assets/application.js", "alert();"
       add_to_config "config.assets.compile = true"
       add_to_config "config.assets.digest = true"
 
@@ -436,6 +436,19 @@ module ApplicationTests
 
       files = Dir["#{app_path}/public/assets/application-*.js"]
       assert_equal 1, files.length, "Expected digested application.js asset to be generated, but none found"
+    end
+
+    test "digested assets are removed from configured path" do
+      app_file "public/production_assets/application.js", "alert();"
+      add_to_env_config "production", "config.assets.prefix = 'production_assets'"
+
+      ENV["RAILS_ENV"] = nil
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean` }
+      end
+
+      files = Dir["#{app_path}/public/production_assets/application.js"]
+      assert_equal 0, files.length, "Expected application.js asset to be removed, but still exists"
     end
 
     private
