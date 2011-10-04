@@ -426,7 +426,7 @@ module ApplicationTests
     end
 
     test "digested assets are not mistakenly removed" do
-      app_file "public/assets/application.js", "alert();"
+      app_file "app/assets/application.js", "alert();"
       add_to_config "config.assets.compile = true"
       add_to_config "config.assets.digest = true"
 
