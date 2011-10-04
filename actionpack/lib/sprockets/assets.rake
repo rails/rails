@@ -58,10 +58,18 @@ namespace :assets do
   end
 
   desc "Remove compiled assets"
-  task :clean => ["assets:environment", "tmp:cache:clear"] do
-    config = Rails.application.config
-    public_asset_path = File.join(Rails.public_path, config.assets.prefix)
-    rm_rf public_asset_path, :secure => true
+  task :clean do
+    ENV["RAILS_GROUPS"] ||= "assets"
+    ENV["RAILS_ENV"]    ||= "production"
+    ruby_rake_task "assets:clean:all"
+  end
+
+  namespace :clean do
+    task :all => ["assets:environment", "tmp:cache:clear"] do
+      config = Rails.application.config
+      public_asset_path = File.join(Rails.public_path, config.assets.prefix)
+      rm_rf public_asset_path, :secure => true
+    end
   end
 
   task :environment do
