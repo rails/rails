@@ -2,43 +2,6 @@ require 'fileutils'
 
 module Sprockets
   class StaticCompiler
-    MODES = ['primary', 'digestless']
-    class << self
-      def assert_valid_configuration(assets, mode)
-        unless assets.enabled
-          raise "Cannot precompile assets if sprockets is disabled. Please set config.assets.enabled to true"
-        end
-        
-        unless MODES.include?(mode)
-          raise "Unknown asset compilation mode: #{mode}. Please use one of #{MODES.join}"
-        end
-      end
-
-      def configure_assets!(assets,mode)
-        assets.digest = false if mode == 'digestless'
-        assets.compile = true
-        assets.digests = {}
-      end
-
-      def compiler_for(assets, env, mode = 'primary')
-        assert_valid_configuration(assets, mode)
-
-        # Ensure that action view is loaded and the appropriate
-        # sprockets hooks get executed
-        _ = ActionView::Base
-        
-        configure_assets!(assets,mode)
-
-        target = File.join(Rails.public_path, assets.prefix)
-        Sprockets::StaticCompiler.new(env, 
-                                      target,
-                                      assets.precompile,
-                                      :manifest_path => assets.manifest,
-                                      :digest => assets.digest,
-                                      :manifest => (mode == 'primary'))
-      end
-    end
-
     attr_accessor :env, :target, :paths
 
     def initialize(env, target, paths, options = {})
