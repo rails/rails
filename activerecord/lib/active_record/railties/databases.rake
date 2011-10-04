@@ -341,7 +341,7 @@ db_namespace = namespace :db do
 
   namespace :schema do
     desc 'Create a db/schema.rb file that can be portably used against any DB supported by AR'
-    task :dump => :load_config do
+    task :dump => [:environment, :load_config] do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
       File.open(filename, "w:utf-8") do |file|
