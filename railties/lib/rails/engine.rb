@@ -542,7 +542,7 @@ module Rails
       require environment if environment
     end
 
-    initializer :append_assets_path, :group => :assets do |app|
+    initializer :append_assets_path, :group => :all do |app|
       app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)

@@ -22,13 +22,13 @@ module ApplicationTests
     end
 
     def precompile!
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
       end
     end
 
     test "assets routes have higher priority" do
-      app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
+      app_file "app/assets/javascripts/demo.js.erb", "a = <%= image_path('rails.png').inspect %>;"
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -39,7 +39,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       get "/assets/demo.js"
-      assert_match "alert()", last_response.body
+      assert_equal 'a = "/assets/rails.png";', last_response.body.strip
     end
 
     test "assets do not require compressors until it is used" do
@@ -244,14 +244,16 @@ module ApplicationTests
       assert_match(/app.js isn't precompiled/, last_response.body)
     end
 
-    test "precompile appends the md5 hash to files referenced with asset_path and run in the provided RAILS_ENV" do
+    test "precompile properly refers files referenced with asset_path and and run in the provided RAILS_ENV" do
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       # digest is default in false, we must enable it for test environment
-      add_to_config "config.assets.digest = true"
+      add_to_env_config "test", "config.assets.digest = true"
 
-      # capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
-      # end
+      end
+      file = Dir["#{app_path}/public/assets/application.css"].first
+      assert_match(/\/assets\/rails\.png/, File.read(file))
       file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
@@ -279,7 +281,7 @@ module ApplicationTests
       add_to_config "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = nil
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
       end
       file = Dir["#{app_path}/public/assets/application-*.css"].first
@@ -304,7 +306,7 @@ module ApplicationTests
       app_file "public/assets/application.css", "a { color: green; }"
       app_file "public/assets/subdir/broken.png", "not really an image file"
 
-      capture(:stdout) do
+      quietly do
         Dir.chdir(app_path){ `bundle exec rake assets:clean` }
       end
 
@@ -395,7 +397,62 @@ module ApplicationTests
       assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
     end
 
+    test "assets can access model information when precompiling" do
+      app_file "app/models/post.rb", "class Post; end"
+      app_file "app/assets/javascripts/application.js", "//= require_tree ."
+      app_file "app/assets/javascripts/xmlhr.js.erb", "<%= Post.name %>"
+
+      add_to_config "config.assets.digest = false"
+      precompile!
+      assert_equal "Post;\n", File.read("#{app_path}/public/assets/application.js")
+    end
+
+    test "assets can't access model information when precompiling if not initializing the app" do
+      app_file "app/models/post.rb", "class Post; end"
+      app_file "app/assets/javascripts/application.js", "//= require_tree ."
+      app_file "app/assets/javascripts/xmlhr.js.erb", "<%= defined?(Post) || :NoPost %>"
+
+      add_to_config "config.assets.digest = false"
+      add_to_config "config.assets.initialize_on_precompile = false"
+
+      precompile!
+      assert_equal "NoPost;\n", File.read("#{app_path}/public/assets/application.js")
+    end
+
+    test "enhancements to assets:precompile should only run once" do
+      app_file "lib/tasks/enhance.rake", "Rake::Task['assets:precompile'].enhance { puts 'enhancement' }"
+      output = precompile!
+      assert_equal 1, output.scan("enhancement").size
+    end
+
+    test "digested assets are not mistakenly removed" do
+      app_file "app/assets/application.js", "alert();"
+      add_to_config "config.assets.compile = true"
+      add_to_config "config.assets.digest = true"
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean assets:precompile` }
+      end
+
+      files = Dir["#{app_path}/public/assets/application-*.js"]
+      assert_equal 1, files.length, "Expected digested application.js asset to be generated, but none found"
+    end
+
+    test "digested assets are removed from configured path" do
+      app_file "public/production_assets/application.js", "alert();"
+      add_to_env_config "production", "config.assets.prefix = 'production_assets'"
+
+      ENV["RAILS_ENV"] = nil
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:clean` }
+      end
+
+      files = Dir["#{app_path}/public/production_assets/application.js"]
+      assert_equal 0, files.length, "Expected application.js asset to be removed, but still exists"
+    end
+
     private
+
     def app_with_assets_in_view
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"

@@ -1,6 +1,5 @@
 require 'abstract_unit'
-require 'rails/railtie'
-require 'sprockets/railtie'
+require 'sprockets/compressors'
 
 class CompressorsTest < ActiveSupport::TestCase
   def test_register_css_compressor

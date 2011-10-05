@@ -616,7 +616,7 @@ c1.first_name = "Michael"
 c1.save
 
 c2.name = "should fail"
-c2.save # Raises a ActiveRecord::StaleObjectError
+c2.save # Raises an ActiveRecord::StaleObjectError
 </ruby>
 
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.

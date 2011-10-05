@@ -10,6 +10,7 @@ module Rails
       attr_reader :name, :block
 
       def initialize(name, context, options, &block)
+        options[:group] ||= :default
         @name, @context, @options, @block = name, context, options, block
       end
 
@@ -48,10 +49,10 @@ module Rails
       end
     end
 
-    def run_initializers(group=nil, *args)
+    def run_initializers(group=:default, *args)
       return if instance_variable_defined?(:@ran)
       initializers.tsort.each do |initializer|
-        initializer.run(*args) if group.nil? || initializer.belongs_to?(group)
+        initializer.run(*args) if initializer.belongs_to?(group)
       end
       @ran = true
     end

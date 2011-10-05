@@ -67,6 +67,20 @@ module AbstractController
         )
       end
 
+      def test_subdomain_may_be_removed
+        add_host!
+        assert_equal('http://basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => false, :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
+      def test_multiple_subdomains_may_be_removed
+        W.default_url_options[:host] = 'mobile.www.api.basecamphq.com'
+        assert_equal('http://basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => false, :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
       def test_domain_may_be_changed
         add_host!
         assert_equal('http://www.37signals.com/c/a/i',

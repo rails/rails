@@ -333,9 +333,21 @@ module ActionController
       module ClassMethods
 
         # Sets the controller class name. Useful if the name can't be inferred from test class.
-        # Expects +controller_class+ as a constant. Example: <tt>tests WidgetController</tt>.
+        # Normalizes +controller_class+ before using. Examples:
+        #
+        #   tests WidgetController
+        #   tests :widget
+        #   tests 'widget'
+        #
         def tests(controller_class)
-          self.controller_class = controller_class
+          case controller_class
+          when String, Symbol
+            self.controller_class = "#{controller_class.to_s.underscore}_controller".camelize.constantize
+          when Class
+            self.controller_class = controller_class
+          else
+            raise ArgumentError, "controller class must be a String, Symbol, or Class"
+          end
         end
 
         def controller_class=(new_class)
@@ -352,9 +364,7 @@ module ActionController
         end
 
         def determine_default_controller_class(name)
-          name.sub(/Test$/, '').constantize
-        rescue NameError
-          nil
+          name.sub(/Test$/, '').safe_constantize
         end
 
         def prepare_controller_class(new_class)

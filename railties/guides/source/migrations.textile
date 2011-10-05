@@ -91,13 +91,13 @@ Active Record provides methods that perform common data definition tasks in a da
 * +add_index+
 * +remove_index+
 
-If you need to perform tasks specific to your database (for example create a "foreign key":#active-record-and-referential-integrity constraint) then the +execute+ function allows you to execute arbitrary SQL. A migration is just a regular Ruby class so you're not limited to these functions. For example after adding a column you could write code to set the value of that column for existing records (if necessary using your models).
+If you need to perform tasks specific to your database (for example create a "foreign key":#active-record-and-referential-integrity constraint) then the +execute+ method allows you to execute arbitrary SQL. A migration is just a regular Ruby class so you're not limited to these functions. For example after adding a column you could write code to set the value of that column for existing records (if necessary using your models).
 
 On databases that support transactions with statements that change the schema (such as PostgreSQL or SQLite3), migrations are wrapped in a transaction. If the database does not support this (for example MySQL) then when a migration fails the parts of it that succeeded will not be rolled back. You will have to unpick the changes that were made by hand.
 
 h4. What's in a Name
 
-Migrations are stored in files in +db/migrate+, one for each migration class. The name of the file is of the form +YYYYMMDDHHMMSS_create_products.rb+, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The name of the migration class (CamelCased version) should match the latter part of the file name. For example +20080906120000_create_products.rb+ should define +CreateProducts+ and +20080906120001_add_details_to_products.rb+ should define +AddDetailsToProducts+. If you do feel the need to change the file name then you <em>have to</em> update the name of the class inside or Rails will complain about a missing class.
+Migrations are stored in files in +db/migrate+, one for each migration class. The name of the file is of the form +YYYYMMDDHHMMSS_create_products.rb+, that is to say a UTC timestamp identifying the migration followed by an underscore followed by the name of the migration. The name of the migration class (CamelCased version) should match the latter part of the file name. For example +20080906120000_create_products.rb+ should define class +CreateProducts+ and +20080906120001_add_details_to_products.rb+ should define +AddDetailsToProducts+. If you do feel the need to change the file name then you <em>have to</em> update the name of the class inside or Rails will complain about a missing class.
 
 Internally Rails only uses the migration's number (the timestamp) to identify them. Prior to Rails 2.1 the migration number started at 1 and was incremented each time a migration was generated. With multiple developers it was easy for these to clash requiring you to rollback migrations and renumber them. With Rails 2.1 this is largely avoided by using the creation time of the migration to identify them. You can revert to the old numbering scheme by adding the following line to +config/application.rb+.
 
@@ -115,7 +115,7 @@ h4. Changing Migrations
 
 Occasionally you will make a mistake when writing a migration. If you have already run the migration then you cannot just edit the migration and run the migration again: Rails thinks it has already run the migration and so will do nothing when you run +rake db:migrate+. You must rollback the migration (for example with +rake db:rollback+), edit your migration and then run +rake db:migrate+ to run the corrected version.
 
-In general editing existing migrations is not a good idea: you will be creating extra work for yourself and your co-workers and cause major headaches if the existing version of the migration has already been run on production machines. Instead you should write a new migration that performs the changes you require. Editing a freshly generated migration that has not yet been committed to source control (or more generally which has not been propagated beyond your development machine) is relatively harmless.
+In general editing existing migrations is not a good idea: you will be creating extra work for yourself and your co-workers and cause major headaches if the existing version of the migration has already been run on production machines. Instead, you should write a new migration that performs the changes you require. Editing a freshly generated migration that has not yet been committed to source control (or, more generally, which has not been propagated beyond your development machine) is relatively harmless.
 
 h4. Supported Types
 
@@ -134,7 +134,7 @@ Active Record supports the following types:
 * +:binary+
 * +:boolean+
 
-These will be mapped onto an appropriate underlying database type, for example with MySQL +:string+ is mapped to +VARCHAR(255)+. You can create columns of types not supported by Active Record when using the non-sexy syntax, for example
+These will be mapped onto an appropriate underlying database type. For example, with MySQL the type +:string+ is mapped to +VARCHAR(255)+. You can create columns of types not supported by Active Record when using the non-sexy syntax, for example
 
 <ruby>
 create_table :products do |t|
@@ -148,7 +148,7 @@ h3. Creating a Migration
 
 h4. Creating a Model
 
-The model and scaffold generators will create migrations appropriate for adding a new model. This migration will already contain instructions for creating the relevant table. If you tell Rails what columns you want then statements for adding those will also be created. For example, running
+The model and scaffold generators will create migrations appropriate for adding a new model. This migration will already contain instructions for creating the relevant table. If you tell Rails what columns you want, then statements for adding these columns will also be created. For example, running
 
 <shell>
 $ rails generate model Product name:string description:text
@@ -262,7 +262,7 @@ end
 
 which creates a +products+ table with a column called +name+ (and as discussed below, an implicit +id+ column).
 
-The object yielded to the block allows you to create columns on the table. There are two ways of doing this: The first (traditional) form looks like
+The object yielded to the block allows you to create columns on the table. There are two ways of doing it. The first (traditional) form looks like
 
 <ruby>
 create_table :products do |t|
@@ -270,7 +270,7 @@ create_table :products do |t|
 end
 </ruby>
 
-the second form, the so called "sexy" migration, drops the somewhat redundant +column+ method. Instead, the +string+, +integer+, etc. methods create a column of that type. Subsequent parameters are the same.
+The second form, the so called "sexy" migration, drops the somewhat redundant +column+ method. Instead, the +string+, +integer+, etc. methods create a column of that type. Subsequent parameters are the same.
 
 <ruby>
 create_table :products do |t|
@@ -278,7 +278,7 @@ create_table :products do |t|
 end
 </ruby>
 
-By default +create_table+ will create a primary key called +id+. You can change the name of the primary key with the +:primary_key+ option (don't forget to update the corresponding model) or if you don't want a primary key at all (for example for a HABTM join table) you can pass +:id => false+. If you need to pass database specific options you can place an SQL fragment in the +:options+ option. For example
+By default, +create_table+ will create a primary key called +id+. You can change the name of the primary key with the +:primary_key+ option (don't forget to update the corresponding model) or, if you don't want a primary key at all (for example for a HABTM join table), you can pass the option +:id => false+. If you need to pass database specific options you can place an SQL fragment in the +:options+ option. For example,
 
 <ruby>
 create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
@@ -286,7 +286,7 @@ create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
 end
 </ruby>
 
-will append +ENGINE=BLACKHOLE+ to the SQL statement used to create the table (when using MySQL the default is +ENGINE=InnoDB+).
+will append +ENGINE=BLACKHOLE+ to the SQL statement used to create the table (when using MySQL, the default is +ENGINE=InnoDB+).
 
 h4. Changing Tables
 
@@ -348,11 +348,11 @@ end
 </ruby>
 will add an +attachment_id+ column and a string +attachment_type+ column with a default value of 'Photo'.
 
-NOTE: The +references+ helper does not actually create foreign key constraints for you. You will need to use +execute+ for that or a plugin that adds "foreign key support":#active-record-and-referential-integrity.
+NOTE: The +references+ helper does not actually create foreign key constraints for you. You will need to use +execute+ or a plugin that adds "foreign key support":#active-record-and-referential-integrity.
 
-If the helpers provided by Active Record aren't enough you can use the +execute+ function to execute arbitrary SQL.
+If the helpers provided by Active Record aren't enough you can use the +execute+ method to execute arbitrary SQL.
 
-For more details and examples of individual methods check the API documentation, in particular the documentation for "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html (which provides the methods available in the +up+ and +down+ methods), "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html (which provides the methods available on the object yielded by +create_table+) and "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html (which provides the methods available on the object yielded by +change_table+).
+For more details and examples of individual methods, check the API documentation, in particular the documentation for "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html (which provides the methods available in the +up+ and +down+ methods), "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html (which provides the methods available on the object yielded by +create_table+) and "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html (which provides the methods available on the object yielded by +change_table+).
 
 h4. Writing Your +change+ Method
 
@@ -371,7 +371,7 @@ If you're going to use other methods, you'll have to write the +up+ and +down+ m
 
 h4. Writing Your +down+ Method
 
-The +down+ method of your migration should revert the transformations done by the +up+ method. In other words the database schema should be unchanged if you do an +up+ followed by a +down+. For example if you create a table in the +up+ method you should drop it in the +down+ method. It is wise to do things in precisely the reverse order to in the +up+ method. For example
+The +down+ method of your migration should revert the transformations done by the +up+ method. In other words, the database schema should be unchanged if you do an +up+ followed by a +down+. For example, if you create a table in the +up+ method, you should drop it in the +down+ method. It is wise to reverse the transformations in precisely the reverse order they were made in the +up+ method. For example,
 
 <ruby>
 class ExampleMigration < ActiveRecord::Migration
@@ -402,22 +402,22 @@ class ExampleMigration < ActiveRecord::Migration
 end
 </ruby>
 
-Sometimes your migration will do something which is just plain irreversible, for example it might destroy some data. In cases like those when you can't reverse the migration you can raise +ActiveRecord::IrreversibleMigration+ from your +down+ method. If someone tries to revert your migration an error message will be displayed saying that it can't be done.
+Sometimes your migration will do something which is just plain irreversible; for example, it might destroy some data. In such cases, you can raise +ActiveRecord::IrreversibleMigration+ from your +down+ method. If someone tries to revert your migration, an error message will be displayed saying that it can't be done.
 
 h3. Running Migrations
 
-Rails provides a set of rake tasks to work with migrations which boils down to running certain sets of migrations. The very first migration related rake task you use will probably be +db:migrate+. In its most basic form it just runs the +up+ method for all the migrations that have not yet been run. If there are no such migrations it exits.
+Rails provides a set of rake tasks to work with migrations which boil down to running certain sets of migrations. The very first migration related rake task you will use will probably be +db:migrate+. In its most basic form it just runs the +up+ method for all the migrations that have not yet been run. If there are no such migrations, it exits.
 
 Note that running the +db:migrate+ also invokes the +db:schema:dump+ task, which will update your db/schema.rb file to match the structure of your database.
 
 If you specify a target version, Active Record will run the required migrations (up or down) until it has reached the specified version. The
-version is the numerical prefix on the migration's filename. For example to migrate to version 20080906120000 run
+version is the numerical prefix on the migration's filename. For example, to migrate to version 20080906120000 run
 
 <shell>
 $ rake db:migrate VERSION=20080906120000
 </shell>
 
-If this is greater than the current version (i.e. it is migrating upwards) this will run the +up+ method on all migrations up to and including 20080906120000, if migrating downwards this will run the +down+ method on all the migrations down to, but not including, 20080906120000.
+If version 20080906120000 is greater than the current version (i.e., it is migrating upwards), this will run the +up+ method on all migrations up to and including 20080906120000. If migrating downwards, this will run the +down+ method on all the migrations down to, but not including, 20080906120000.
 
 h4. Rolling Back
 
@@ -435,13 +435,13 @@ $ rake db:rollback STEP=3
 
 will run the +down+ method from the last 3 migrations.
 
-The +db:migrate:redo+ task is a shortcut for doing a rollback and then migrating back up again. As with the +db:rollback+ task you can use the +STEP+ parameter if you need to go more than one version back, for example
+The +db:migrate:redo+ task is a shortcut for doing a rollback and then migrating back up again. As with the +db:rollback+ task, you can use the +STEP+ parameter if you need to go more than one version back, for example
 
 <shell>
 $ rake db:migrate:redo STEP=3
 </shell>
 
-Neither of these Rake tasks do anything you could not do with +db:migrate+, they are simply more convenient since you do not need to explicitly specify the version to migrate to.
+Neither of these Rake tasks do anything you could not do with +db:migrate+. They are simply more convenient, since you do not need to explicitly specify the version to migrate to.
 
 Lastly, the +db:reset+ task will drop the database, recreate it and load the current schema into it.
 
@@ -449,7 +449,7 @@ NOTE: This is not the same as running all the migrations - see the section on "s
 
 h4. Being Specific
 
-If you need to run a specific migration up or down the +db:migrate:up+ and +db:migrate:down+ tasks will do that. Just specify the appropriate version and the corresponding migration will have its +up+ or +down+ method invoked, for example
+If you need to run a specific migration up or down, the +db:migrate:up+ and +db:migrate:down+ tasks will do that. Just specify the appropriate version and the corresponding migration will have its +up+ or +down+ method invoked, for example,
 
 <shell>
 $ rake db:migrate:up VERSION=20080906120000
@@ -511,11 +511,11 @@ generates the following output
 20080906170109 CreateProducts: migrated (10.0097s)
 </shell>
 
-If you just want Active Record to shut up then running +rake db:migrate VERBOSE=false+ will suppress all output.
+If you just want Active Record to shut up, then running +rake db:migrate VERBOSE=false+ will suppress all output.
 
 h3. Using Models in Your Migrations
 
-When creating or updating data in a migration it is often tempting to use one of your models. After all they exist to provide easy access to the underlying data. This can be done, but some caution should be observed.
+When creating or updating data in a migration it is often tempting to use one of your models. After all, they exist to provide easy access to the underlying data. This can be done, but some caution should be observed.
 
 For example, problems occur when the model uses database columns which are (1) not currently in the database and (2) will be created by this or a subsequent migration.
 
@@ -524,7 +524,7 @@ Consider this example, where Alice and Bob are working on the same code base whi
 Bob goes on vacation.
 
 Alice creates a migration for the +products+ table which adds a new column and initializes it.
-She also adds a validation to the Product model for the new column.
+She also adds a validation to the +Product+ model for the new column.
 
 <ruby>
 # db/migrate/20100513121110_add_flag_to_product.rb
@@ -545,7 +545,7 @@ class Product < ActiveRecord::Base
 end
 </ruby>
 
-Alice adds a second migration which adds and initializes another column to the +products+ table and also adds a validation to the Product model for the new column.
+Alice adds a second migration which adds and initializes another column to the +products+ table and also adds a validation to the +Product+ model for the new column.
 
 <ruby>
 # db/migrate/20100515121110_add_fuzz_to_product.rb
@@ -573,7 +573,7 @@ Bob comes back from vacation and:
 # updates the source - which contains both migrations and the latests version of the Product model.
 # runs outstanding migrations with +rake db:migrate+, which includes the one that updates the +Product+ model.
 
-The migration crashes because when the model attempts to save, it tries to validate the second added column, which is not in the database when the _first_ migration runs.
+The migration crashes because when the model attempts to save, it tries to validate the second added column, which is not in the database when the _first_ migration runs:
 
 <plain>
 rake aborted!
@@ -584,7 +584,7 @@ undefined method `fuzz' for #<Product:0x000001049b14a0>
 
 A fix for this is to create a local model within the migration. This keeps rails from running the validations, so that the migrations run to completion.
 
-When using a faux model, it's a good idea to call +Product.reset_column_information+ to refresh the ActiveRecord cache for the Product model prior to updating data in the database.
+When using a faux model, it's a good idea to call +Product.reset_column_information+ to refresh the +ActiveRecord+ cache for the +Product+ model prior to updating data in the database.
 
 If Alice had done this instead, there would have been no problem:
 
@@ -654,13 +654,11 @@ ActiveRecord::Schema.define(:version => 20080906171750) do
 end
 </ruby>
 
-In many ways this is exactly what it is. This file is created by inspecting the database and expressing its structure using +create_table+, +add_index+, and so on. Because this is database independent it could be loaded into any database that Active Record supports. This could be very useful if you were to distribute an application that is able to run against multiple databases.
+In many ways this is exactly what it is. This file is created by inspecting the database and expressing its structure using +create_table+, +add_index+, and so on. Because this is database-independent, it could be loaded into any database that Active Record supports. This could be very useful if you were to distribute an application that is able to run against multiple databases.
 
-There is however a trade-off: +db/schema.rb+ cannot express database specific items such as foreign key constraints, triggers or stored procedures. While in a migration you can execute custom SQL statements, the schema dumper cannot reconstitute those statements from the database. If you are using features like this then you should set the schema format to +:sql+.
+There is however a trade-off: +db/schema.rb+ cannot express database specific items such as foreign key constraints, triggers, or stored procedures. While in a migration you can execute custom SQL statements, the schema dumper cannot reconstitute those statements from the database. If you are using features like this, then you should set the schema format to +:sql+.
 
-Instead of using Active Record's schema dumper the database's structure will be dumped using a tool specific to that database (via the +db:structure:dump+ Rake task) into +db/#{Rails.env}_structure.sql+. For example for PostgreSQL the +pg_dump+ utility is used and for MySQL this file will contain the output of +SHOW CREATE TABLE+ for the various tables. Loading this schema is simply a question of executing the SQL statements contained inside.
-
-By definition this will be a perfect copy of the database's structure but this will usually prevent loading the schema into a database other than the one used to create it.
+Instead of using Active Record's schema dumper, the database's structure will be dumped using a tool specific to the database (via the +db:structure:dump+ Rake task) into +db/#{Rails.env}_structure.sql+. For example, for the PostgreSQL RDBMS, the +pg_dump+ utility is used. For MySQL, this file will contain the output of +SHOW CREATE TABLE+ for the various tables. Loading these schemas is simply a question of executing the SQL statements they contain. By definition, this will create a perfect copy of the database's structure. Using the +:sql+ schema format will, however, prevent loading the schema into a RDBMS other than the one used to create it.
 
 h4. Schema Dumps and Source Control
 
@@ -670,6 +668,6 @@ h3. Active Record and Referential Integrity
 
 The Active Record way claims that intelligence belongs in your models, not in the database. As such, features such as triggers or foreign key constraints, which push some of that intelligence back into the database, are not heavily used.
 
-Validations such as +validates :foreign_key, :uniqueness => true+ are one way in which models can enforce data integrity. The +:dependent+ option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level these cannot guarantee referential integrity and so some people augment them with foreign key constraints.
+Validations such as +validates :foreign_key, :uniqueness => true+ are one way in which models can enforce data integrity. The +:dependent+ option on associations allows models to automatically destroy child objects when the parent is destroyed. Like anything which operates at the application level, these cannot guarantee referential integrity and so some people augment them with foreign key constraints.
 
 Although Active Record does not provide any tools for working directly with such features, the +execute+ method can be used to execute arbitrary SQL. There are also a number of plugins such as "foreign_key_migrations":https://github.com/harukizaemon/redhillonrails/tree/master/foreign_key_migrations/ which add foreign key support to Active Record (including support for dumping foreign keys in +db/schema.rb+).

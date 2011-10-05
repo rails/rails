@@ -9,7 +9,7 @@ class Time
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
     def ===(other)
-      other.is_a?(::Time)
+      super || (self == Time && other.is_a?(ActiveSupport::TimeWithZone))
     end
 
     # Return the number of days in the given month.

@@ -209,7 +209,7 @@ module InitializableTests
       $arr = []
       instance = Instance.new
       instance.run_initializers
-      assert_equal [1, 2, 3, 4], $arr
+      assert_equal [2, 3, 4], $arr
     end
 
     test "running locals with groups" do
@@ -223,7 +223,7 @@ module InitializableTests
   class WithArgsTest < ActiveSupport::TestCase
     test "running initializers with args" do
       $with_arg = nil
-      WithArgs.new.run_initializers(nil, 'foo')
+      WithArgs.new.run_initializers(:default, 'foo')
       assert_equal 'foo', $with_arg
     end
   end

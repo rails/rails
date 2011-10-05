@@ -97,10 +97,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert pk.primary, 'nick should be primary key'
   end
 
-  def test_primary_key_with_no_id
-    assert_nil Edge.primary_key
-  end
-
   unless current_adapter?(:PostgreSQLAdapter,:OracleAdapter,:SQLServerAdapter)
     def test_limit_with_comma
       assert_nothing_raised do

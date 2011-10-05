@@ -360,7 +360,7 @@ development:
 
 h5. Configuring an SQLite3 Database for JRuby Platform
 
-If you choose to use SQLite3 and using JRuby, your +config/database.yml+ will
+If you choose to use SQLite3 and are using JRuby, your +config/database.yml+ will
 look a little different. Here's the development section:
 
 <yaml>
@@ -371,7 +371,7 @@ development:
 
 h5. Configuring a MySQL Database for JRuby Platform
 
-If you choose to use MySQL and using JRuby, your +config/database.yml+ will look
+If you choose to use MySQL and are using JRuby, your +config/database.yml+ will look
 a little different. Here's the development section:
 
 <yaml>
@@ -384,7 +384,7 @@ development:
 
 h5. Configuring a PostgreSQL Database for JRuby Platform
 
-Finally if you choose to use PostgreSQL and using JRuby, your
+Finally if you choose to use PostgreSQL and are using JRuby, your
 +config/database.yml+ will look a little different. Here's the development
 section:
 
@@ -599,7 +599,7 @@ The above migration creates a method named +change+ which will be called when yo
 run this migration. The action defined in that method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
 want to reverse it at later date. By default, when you run this migration it
-will creates a +posts+ table with two string columns and a text column. It also
+creates a +posts+ table with two string columns and a text column. It also
 creates two timestamp fields to track record creation and updating. More
 information about Rails migrations can be found in the "Rails Database
 Migrations":migrations.html guide.
@@ -620,9 +620,9 @@ table.
 ==  CreatePosts: migrated (0.0020s) ===========================================
 </shell>
 
-NOTE. Because you're working in the development environment by default, this
+NOTE. Because by default you're working in the development environment, this
 command will apply to the database defined in the +development+ section of your
-+config/database.yml+ file. If you would like to execute migrations in other
++config/database.yml+ file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
 invoking the command: <tt>rake db:migrate RAILS_ENV=production</tt>.
 
@@ -704,8 +704,8 @@ $ rails console
 </shell>
 
 TIP: The default console will make changes to your database. You can instead
-open a console that will roll back any changes you make by using +rails console
---sandbox+.
+open a console that will roll back any changes you make by using <tt>rails console
+--sandbox</tt>.
 
 After the console loads, you can use it to work with your application's models:
 
@@ -783,7 +783,8 @@ Here's +app/views/posts/index.html.erb+:
     <td><%= post.content %></td>
     <td><%= link_to 'Show', post %></td>
     <td><%= link_to 'Edit', edit_post_path(post) %></td>
-    <td><%= link_to 'Destroy', post, :confirm => 'Are you sure?', :method => :delete %></td>
+    <td><%= link_to 'Destroy', post, :confirm => 'Are you sure?',
+                                     :method => :delete %></td>
   </tr>
 <% end %>
 </table>
@@ -867,10 +868,10 @@ The +new.html.erb+ view displays this empty Post to the user:
 
 The +&lt;%= render 'form' %&gt;+ line is our first introduction to _partials_ in
 Rails. A partial is a snippet of HTML and Ruby code that can be reused in
-multiple locations. In this case, the form used to make a new post, is basically
-identical to a form used to edit a post, both have text fields for the name and
-title and a text area for the content with a button to make a new post or update
-the existing post.
+multiple locations. In this case, the form used to make a new post is basically
+identical to the form used to edit a post, both having text fields for the name and
+title, a text area for the content, and a button to create the new post or to update
+the existing one.
 
 If you take a look at +views/posts/_form.html.erb+ file, you will see the
 following:
@@ -879,7 +880,8 @@ following:
 <%= form_for(@post) do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
+    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
+	    this post from being saved:</h2>
     <ul>
     <% @post.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
@@ -907,15 +909,15 @@ following:
 </erb>
 
 This partial receives all the instance variables defined in the calling view
-file, so in this case, the controller assigned the new Post object to +@post+
-and so, this is available in both the view and partial as +@post+.
+file. In this case, the controller assigned the new +Post+ object to +@post+,
+which will thus be available in both the view and the partial as +@post+.
 
 For more information on partials, refer to the "Layouts and Rendering in
 Rails":layouts_and_rendering.html#using-partials guide.
 
 The +form_for+ block is used to create an HTML form. Within this block, you have
 access to methods to build various controls on the form. For example,
-+f.text_field :name+ tells Rails to create a text input on the form, and to hook
++f.text_field :name+ tells Rails to create a text input on the form and to hook
 it up to the +name+ attribute of the instance being displayed. You can only use
 these methods with attributes of the model that the form is based on (in this
 case +name+, +title+, and +content+). Rails uses +form_for+ in preference to
@@ -931,9 +933,9 @@ to a model, you should use the +form_tag+ method, which provides shortcuts for
 building forms that are not necessarily tied to a model instance.
 
 When the user clicks the +Create Post+ button on this form, the browser will
-send information back to the +create+ method of the controller (Rails knows to
-call the +create+ method because the form is sent with an HTTP POST request;
-that's one of the conventions that I mentioned earlier):
+send information back to the +create+ action of the controller (Rails knows to
+call the +create+ action because the form is sent with an HTTP POST request;
+that's one of the conventions that were mentioned earlier):
 
 <ruby>
 def create
@@ -965,12 +967,12 @@ If the post was not successfully saved, due to a validation error, then the
 controller returns the user back to the +new+ action with any error messages so
 that the user has the chance to fix the error and try again.
 
-The "Post was successfully created." message is stored inside of the Rails
-+flash+ hash, (usually just called _the flash_) so that messages can be carried
+The "Post was successfully created." message is stored in the Rails
++flash+ hash (usually just called _the flash_), so that messages can be carried
 over to another action, providing the user with useful information on the status
 of their request. In the case of +create+, the user never actually sees any page
-rendered during the Post creation process, because it immediately redirects to
-the new Post as soon Rails saves the record. The Flash carries over a message to
+rendered during the post creation process, because it immediately redirects to
+the new +Post+ as soon as Rails saves the record. The Flash carries over a message to
 the next action, so that when the user is redirected back to the +show+ action,
 they are presented with a message saying "Post was successfully created."
 
@@ -1043,9 +1045,9 @@ it:
 <%= link_to 'Back', posts_path %>
 </erb>
 
-Again, as with the +new+ action, the +edit+ action is using the +form+ partial,
-this time however, the form will do a PUT action to the PostsController and the
-submit button will display "Update Post"
+Again, as with the +new+ action, the +edit+ action is using the +form+ partial.
+This time, however, the form will do a PUT action to the +PostsController+ and the
+submit button will display "Update Post".
 
 Submitting the form created by this view will invoke the +update+ action within
 the controller:
@@ -1070,9 +1072,9 @@ end
 
 In the +update+ action, Rails first uses the +:id+ parameter passed back from
 the edit view to locate the database record that's being edited. The
-+update_attributes+ call then takes the rest of the parameters from the request
-and applies them to this record. If all goes well, the user is redirected to the
-post's +show+ view. If there are any problems, it's back to the +edit+ view to
++update_attributes+ call then takes the +post+ parameter (a hash) from the request
+and applies it to this record. If all goes well, the user is redirected to the
+post's +show+ action. If there are any problems, it redirects back to the +edit+ action to
 correct them.
 
 h4. Destroying a Post
@@ -1094,8 +1096,8 @@ end
 
 The +destroy+ method of an Active Record model instance removes the
 corresponding record from the database. After that's done, there isn't any
-record to display, so Rails redirects the user's browser to the index view for
-the model.
+record to display, so Rails redirects the user's browser to the index action of
+the controller.
 
 h3. Adding a Second Model
 
@@ -1107,7 +1109,7 @@ h4. Generating a Model
 
 Models in Rails use a singular name, and their corresponding database tables use
 a plural name. For the model to hold comments, the convention is to use the name
-Comment. Even if you don't want to use the entire apparatus set up by
++Comment+. Even if you don't want to use the entire apparatus set up by
 scaffolding, most Rails developers still use generators to make things like
 models and controllers. To create the new model, run this command in your
 terminal:
@@ -1118,8 +1120,8 @@ $ rails generate model Comment commenter:string body:text post:references
 
 This command will generate four files:
 
-* +app/models/comment.rb+ - The model
-* +db/migrate/20100207235629_create_comments.rb+ - The migration
+* +app/models/comment.rb+ - The model.
+* +db/migrate/20100207235629_create_comments.rb+ - The migration.
 * +test/unit/comment_test.rb+ and +test/fixtures/comments.yml+ - The test harness.
 
 First, take a look at +comment.rb+:
@@ -1177,8 +1179,8 @@ Active Record associations let you easily declare the relationship between two
 models. In the case of comments and posts, you could write out the relationships
 this way:
 
-* Each comment belongs to one post
-* One post can have many comments
+* Each comment belongs to one post.
+* One post can have many comments.
 
 In fact, this is very close to the syntax that Rails uses to declare this
 association. You've already seen the line of code inside the Comment model that
@@ -1204,7 +1206,7 @@ end
 
 These two declarations enable a good bit of automatic behavior. For example, if
 you have an instance variable +@post+ containing a post, you can retrieve all
-the comments belonging to that post as the array +@post.comments+.
+the comments belonging to that post as an array using +@post.comments+.
 
 TIP: For more information on Active Record associations, see the "Active Record
 Associations":association_basics.html guide.
@@ -1213,9 +1215,9 @@ h4. Adding a Route for Comments
 
 As with the +home+ controller, we will need to add a route so that Rails knows
 where we would like to navigate to see +comments+. Open up the
-+config/routes.rb+ file again, you will see an entry that was added
-automatically for +posts+ near the top by the scaffold generator, +resources
-:posts+, edit it as follows:
++config/routes.rb+ file again. Near the top, you will see the entry for +posts+
+that was added automatically by the scaffold generator: <tt>resources
+:posts</tt>. Edit it as follows:
 
 <ruby>
 resources :posts do
@@ -1241,19 +1243,19 @@ $ rails generate controller Comments
 
 This creates six files and one empty directory:
 
-* +app/controllers/comments_controller.rb+ - The controller
-* +app/helpers/comments_helper.rb+ - A view helper file
-* +test/functional/comments_controller_test.rb+ - The functional tests for the controller
-* +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper
-* +app/views/comments/+ - Views of the controller are stored here
-* +app/assets/stylesheets/comment.css.scss+ - Cascading style sheet for the controller
-* +app/assets/javascripts/comment.js.coffee+ - CoffeeScript for the controller
+* +app/controllers/comments_controller.rb+ - The controller.
+* +app/helpers/comments_helper.rb+ - A view helper file.
+* +test/functional/comments_controller_test.rb+ - The functional tests for the controller.
+* +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper.
+* +app/views/comments/+ - Views of the controller are stored here.
+* +app/assets/stylesheets/comment.css.scss+ - Cascading style sheet for the controller.
+* +app/assets/javascripts/comment.js.coffee+ - CoffeeScript for the controller.
 
 Like with any blog, our readers will create their comments directly after
 reading the post, and once they have added their comment, will be sent back to
 the post show page to see their comment now listed. Due to this, our
 +CommentsController+ is there to provide a method to create comments and delete
-SPAM comments when they arrive.
+spam comments when they arrive.
 
 So first, we'll wire up the Post show template
 (+/app/views/posts/show.html.erb+) to let us make a new comment:
@@ -1295,8 +1297,8 @@ So first, we'll wire up the Post show template
 <%= link_to 'Back to Posts', posts_path %> |
 </erb>
 
-This adds a form on the Post show page that creates a new comment, which will
-call the +CommentsController+ +create+ action, so let's wire that up:
+This adds a form on the +Post+ show page that creates a new comment by
+calling the +CommentsController+ +create+ action. Let's wire that up:
 
 <ruby>
 class CommentsController < ApplicationController
@@ -1309,9 +1311,9 @@ end
 </ruby>
 
 You'll see a bit more complexity here than you did in the controller for posts.
-That's a side-effect of the nesting that you've set up; each request for a
+That's a side-effect of the nesting that you've set up. Each request for a
 comment has to keep track of the post to which the comment is attached, thus the
-initial find action to the Post model to get the post in question.
+initial call to the +find+ method of the +Post+ model to get the post in question.
 
 In addition, the code takes advantage of some of the methods available for an
 association. We use the +create+ method on +@post.comments+ to create and save
@@ -1381,9 +1383,9 @@ right places.
 
 h3. Refactoring
 
-Now that we have Posts and Comments working, if we take a look at the
-+app/views/posts/show.html.erb+ template, it's getting long and awkward. We can
-use partials to clean this up.
+Now that we have posts and comments working, take a look at the
++app/views/posts/show.html.erb+ template. It is getting long and awkward. We can
+use partials to clean it up.
 
 h4. Rendering Partial Collections
 
@@ -1403,7 +1405,7 @@ following into it:
 </p>
 </erb>
 
-Then in the +app/views/posts/show.html.erb+ you can change it to look like the
+Then you can change +app/views/posts/show.html.erb+ to look like the
 following:
 
 <erb>
@@ -1456,8 +1458,8 @@ comment to a local variable named the same as the partial, in this case
 
 h4. Rendering a Partial Form
 
-Let's also move that new comment section out to its own partial. Again, you
-create a file +app/views/comments/_form.html.erb+ and in it you put:
+Let us also move that new comment section out to its own partial. Again, you
+create a file +app/views/comments/_form.html.erb+ containing:
 
 <erb>
 <%= form_for([@post, @post.comments.build]) do |f| %>
@@ -1508,7 +1510,7 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 </erb>
 
 The second render just defines the partial template we want to render,
-<tt>comments/form</tt>, Rails is smart enough to spot the forward slash in that
+<tt>comments/form</tt>. Rails is smart enough to spot the forward slash in that
 string and realize that you want to render the <tt>_form.html.erb</tt> file in
 the <tt>app/views/comments</tt> directory.
 
@@ -1517,7 +1519,7 @@ defined it as an instance variable.
 
 h3. Deleting Comments
 
-Another important feature on a blog is being able to delete SPAM comments. To do
+Another important feature of a blog is being able to delete spam comments. To do
 this, we need to implement a link of some sort in the view and a +DELETE+ action
 in the +CommentsController+.
 
