@@ -13,7 +13,7 @@ module ActiveRecord
 
     # These are explicitly delegated to improve performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :table_name, :quoted_table_name, :primary_key, :primary_key?, :quoted_primary_key, :connection, :column_hash,:to => :klass
+    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :connection, :column_hash,:to => :klass
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions, :default_scoped
@@ -36,7 +36,7 @@ module ActiveRecord
     def insert(values)
       primary_key_value = nil
 
-      if primary_key? && Hash === values
+      if primary_key && Hash === values
         primary_key_value = values[values.keys.find { |k|
           k.name == primary_key
         }]
@@ -70,7 +70,7 @@ module ActiveRecord
       conn.insert(
         im,
         'SQL',
-        primary_key? && primary_key,
+        primary_key,
         primary_key_value,
         nil,
         binds)

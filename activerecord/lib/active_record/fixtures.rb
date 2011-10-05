@@ -622,7 +622,7 @@ module ActiveRecord
 
     private
       def primary_key_name
-        @primary_key_name ||= model_class && model_class.primary_key? && model_class.primary_key
+        @primary_key_name ||= model_class && model_class.primary_key
       end
 
       def has_primary_key_column?

@@ -5,7 +5,6 @@ require 'models/subscriber'
 require 'models/movie'
 require 'models/keyboard'
 require 'models/mixed_case_monkey'
-require 'models/edge'
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -161,18 +160,5 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     ActiveRecord::Base.establish_connection(connection)
 
     assert_equal 'foo', model.primary_key
-  end
-
-  def test_no_primary_key_raises
-    assert_raises(ActiveRecord::UnknownPrimaryKey) do
-      Edge.primary_key
-    end
-
-    begin
-      Edge.primary_key
-    rescue ActiveRecord::UnknownPrimaryKey => e
-      assert e.message.include?('edges')
-      assert e.message.include?('Edge')
-    end
   end
 end
