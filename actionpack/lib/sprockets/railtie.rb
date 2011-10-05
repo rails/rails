@@ -1,3 +1,5 @@
+require "action_controller/railtie"
+
 module Sprockets
   autoload :Bootstrap,      "sprockets/bootstrap"
   autoload :Helpers,        "sprockets/helpers"
@@ -8,7 +10,7 @@ module Sprockets
 
   # TODO: Get rid of config.assets.enabled
   class Railtie < ::Rails::Railtie
-    config.default_asset_host_protocol = :relative
+    config.action_controller.default_asset_host_protocol = :relative
 
     rake_tasks do
       load "sprockets/assets.rake"

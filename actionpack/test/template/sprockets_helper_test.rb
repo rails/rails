@@ -75,8 +75,9 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "with a simple asset host the url should default to protocol relative" do
+    @controller.config.default_asset_host_protocol = :relative
     @controller.config.asset_host = "assets-%d.example.com"
-    assert_match %r{//assets-\d.example.com/assets/logo-[0-9a-f]+.png},
+    assert_match %r{^//assets-\d.example.com/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
   end
 
@@ -88,10 +89,11 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "With a proc asset host that returns no protocol the url should be protocol relative" do
+    @controller.config.default_asset_host_protocol = :relative
     @controller.config.asset_host = Proc.new do |asset|
       "assets-999.example.com"
     end
-    assert_match %r{//assets-999.example.com/assets/logo-[0-9a-f]+.png},
+    assert_match %r{^//assets-999.example.com/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
   end
 
