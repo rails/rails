@@ -34,10 +34,28 @@ The +--mountable+ option tells the plugin generator that you want to create an e
 
 Inside the +app+ directory there lives the standard +assets+, +controllers+, +helpers+, +mailers+, +models+ and +views+ directories that you should be familiar with from an application.
 
+At the root of the engine's directory, lives a +blorgh.gemspec+ file. When you include the engine into the application later on, you will do so with this line in a Rails application's +Gemfile+:
+
+<ruby>
+  gem 'blorgh', :path => "vendor/engines/blorgh"
+</ruby>
+
+By specifying it as a gem within the +Gemfile+, Bundler will load it as such, parsing this +blorgh.gemspec+ file and requiring a file within the +lib+ directory called +lib/blorgh.rb+. This file requires the +blorgh/engine.rb+ file (located at +lib/blorgh/engine.rb+) and defines a base module called +Blorgh+.
+
+<ruby>
+require "blorgh/engine"
+
+module Blorgh
+end
+</ruby>
+
+Within +lib/blorgh/engine.rb+ is the base class for the engine:
+
+<ruby>
+  TODO: lib/blorgh/engine.rb
+</ruby>
+
 Within the +app/controllers+ directory there is a +blorgh+ directory and inside that a file called +application_controller.rb+. This file will provide any common functionality for the controllers of the engine. The +blorgh+ directory is where the other controllers for the engine will go. By placing them within this namespaced directory, you prevent them from possibly clashing with identically-named controllers within other engines or even within the application.
-
-
-TODO: Describe here the process of generating an engine and what an engine comes with.
 
 h3. Providing engine functionality
 
