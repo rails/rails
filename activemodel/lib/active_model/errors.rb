@@ -202,7 +202,11 @@ module ActiveModel
     end
 
     def to_hash
-      messages.dup
+      messages.dup.each do |key, array|
+        array.map! do |message|
+          full_message(key, message)
+        end
+      end
     end
 
     # Adds +message+ to the error messages on +attribute+, which will be returned on a call to

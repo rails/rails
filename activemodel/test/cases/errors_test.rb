@@ -108,8 +108,8 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, "can not be nil")
     person.errors.add(:email, "is invalid")
     hash = person.errors.as_json
-    assert_equal ["can not be blank", "can not be nil"], hash[:name]
-    assert_equal ["is invalid"], hash[:email]
+    assert_equal ["name can not be blank", "name can not be nil"], hash[:name]
+    assert_equal ["email is invalid"], hash[:email]
   end
 
 end
