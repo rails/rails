@@ -128,6 +128,8 @@ module Sprockets
           return nil if is_uri?(source)
           source = rewrite_extension(source, nil, ext)
           asset_environment[source]
+        rescue Sprockets::FileOutsidePaths
+          nil
         end
 
         def digest_for(logical_path)
