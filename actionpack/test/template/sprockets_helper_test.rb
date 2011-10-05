@@ -28,7 +28,6 @@ class SprocketsHelperTest < ActionView::TestCase
     application = Struct.new(:config, :assets).new(config, @assets)
     Rails.stubs(:application).returns(application)
     @config = config
-    @config.action_controller ||= ActiveSupport::InheritableOptions.new
     @config.perform_caching = true
     @config.assets.digest = true
     @config.assets.compile = true
@@ -36,6 +35,10 @@ class SprocketsHelperTest < ActionView::TestCase
 
   def url_for(*args)
     "http://www.example.com"
+  end
+
+  def config
+    @controller ? @controller.config : @config
   end
 
   test "asset_path" do
@@ -116,7 +119,7 @@ class SprocketsHelperTest < ActionView::TestCase
 
   test "stylesheets served without a controller in scope cannot access the request" do
     @controller = nil
-    @config.action_controller.asset_host = Proc.new do |asset, request|
+    @config.asset_host = Proc.new do |asset, request|
       fail "This should not have been called."
     end
     assert_raises ActionController::RoutingError do
@@ -154,9 +157,9 @@ class SprocketsHelperTest < ActionView::TestCase
 
   test "stylesheets served without a controller in do not use asset hosts when the default protocol is :request" do
     @controller = nil
-    @config.action_controller.asset_host = "assets-%d.example.com"
-    @config.action_controller.default_asset_host_protocol = :request
-    @config.action_controller.perform_caching = true
+    @config.asset_host = "assets-%d.example.com"
+    @config.default_asset_host_protocol = :request
+    @config.perform_caching = true
 
     assert_match %r{/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
@@ -170,7 +173,7 @@ class SprocketsHelperTest < ActionView::TestCase
 
   test "asset path with relative url root when controller isn't present but relative_url_root is" do
     @controller = nil
-    @config.action_controller.relative_url_root = "/collaboration/hieraki"
+    @config.relative_url_root = "/collaboration/hieraki"
     assert_equal "/collaboration/hieraki/images/logo.gif",
      asset_path("/images/logo.gif")
   end
