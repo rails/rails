@@ -28,7 +28,7 @@ module ApplicationTests
     end
 
     test "assets routes have higher priority" do
-      app_file "app/assets/javascripts/demo.js.erb", "<%= :alert %>();"
+      app_file "app/assets/javascripts/demo.js.erb", "a = <%= image_path('rails.png').inspect %>;"
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -39,7 +39,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       get "/assets/demo.js"
-      assert_match "alert()", last_response.body
+      assert_equal 'a = "/assets/rails.png";', last_response.body.strip
     end
 
     test "assets do not require compressors until it is used" do
