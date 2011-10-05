@@ -219,6 +219,8 @@ class SprocketsHelperTest < ActionView::TestCase
 
     @config.assets.compile = true
     @config.assets.debug = true
+    assert_match %r{<script src="/javascripts/application.js" type="text/javascript"></script>},
+      javascript_include_tag('/javascripts/application')
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application)
   end
@@ -264,6 +266,9 @@ class SprocketsHelperTest < ActionView::TestCase
 
     @config.assets.compile = true
     @config.assets.debug = true
+    assert_match %r{<link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />},
+      stylesheet_link_tag('/stylesheets/application')
+
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application)
 
