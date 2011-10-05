@@ -37,6 +37,10 @@ class SchemaTest < ActiveRecord::TestCase
     set_table_name 'test_schema."Things"'
   end
 
+  class Thing5 < ActiveRecord::Base
+    set_table_name 'things'
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
@@ -176,6 +180,21 @@ class SchemaTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
     assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
     ActiveRecord::Base.connection.schema_search_path = "public"
+  end
+
+  def test_prepared_statements_with_multiple_schemas
+
+    @connection.schema_search_path = SCHEMA_NAME
+    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA_NAME}", :email => "thing1@localhost", :moment => Time.now)
+
+    @connection.schema_search_path = SCHEMA2_NAME
+    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA2_NAME}", :email => "thing1@localhost", :moment => Time.now)
+
+    @connection.schema_search_path = SCHEMA_NAME
+    assert_equal 1, Thing5.count
+
+    @connection.schema_search_path = SCHEMA2_NAME
+    assert_equal 1, Thing5.count
   end
 
   private
