@@ -41,10 +41,8 @@ namespace :assets do
       config.assets.digest  = digest unless digest.nil?
       config.assets.digests = {}
 
-      env = Rails.application.assets
-      env.context_class.send :include, ::Sprockets::Helpers::PrecompileHelper
-
-      target = File.join(Rails.public_path, config.assets.prefix)
+      env      = Rails.application.assets
+      target   = File.join(Rails.public_path, config.assets.prefix)
       compiler = Sprockets::StaticCompiler.new(env,
                                                target,
                                                config.assets.precompile,

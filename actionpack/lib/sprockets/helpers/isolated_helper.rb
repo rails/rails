@@ -1,6 +1,6 @@
 module Sprockets
   module Helpers
-    module PrecompileHelper
+    module IsolatedHelper
       def controller
         nil
       end
