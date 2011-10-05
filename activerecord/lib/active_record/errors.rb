@@ -169,4 +169,17 @@ module ActiveRecord
       @errors = errors
     end
   end
+
+  # Raised when a primary key is needed, but there is not one specified in the schema or model.
+  class UnknownPrimaryKey < ActiveRecordError
+    attr_reader :model
+
+    def initialize(model)
+      @model = model
+    end
+
+    def message
+      "Unknown primary key for table #{model.table_name} in model #{model}."
+    end
+  end
 end

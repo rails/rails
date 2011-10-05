@@ -213,11 +213,11 @@ module ActiveRecord
 
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
-        options[:primary_key] || (klass || self.klass).primary_key
+        options[:primary_key] || primary_key(klass || self.klass)
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||= options[:primary_key] || active_record.primary_key
+        @active_record_primary_key ||= options[:primary_key] || primary_key(active_record)
       end
 
       def counter_cache_column
@@ -357,6 +357,10 @@ module ActiveRecord
             active_record.name.foreign_key
           end
         end
+
+        def primary_key(klass)
+          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
+        end
     end
 
     # Holds all the meta-data about a :through association as it was specified
@@ -461,7 +465,7 @@ module ActiveRecord
       # We want to use the klass from this reflection, rather than just delegate straight to
       # the source_reflection, because the source_reflection may be polymorphic. We still
       # need to respect the source_reflection's :primary_key option, though.
-      def association_primary_key(klass = self.klass)
+      def association_primary_key(klass = nil)
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
         source_reflection = self.source_reflection
@@ -469,7 +473,7 @@ module ActiveRecord
           source_reflection = source_reflection.source_reflection
         end
 
-        source_reflection.options[:primary_key] || klass.primary_key
+        source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names:
