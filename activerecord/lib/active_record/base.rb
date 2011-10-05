@@ -705,6 +705,10 @@ module ActiveRecord #:nodoc:
 
       # Returns an array of column objects for the table associated with this class.
       def columns
+        if defined?(@primary_key)
+          connection_pool.primary_keys[table_name] ||= primary_key
+        end
+
         connection_pool.columns[table_name]
       end
 

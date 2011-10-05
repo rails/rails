@@ -164,13 +164,14 @@ module ActionDispatch
               remove_possible_method :#{selector}
               def #{selector}(*args)
                 options = args.extract_options!
+                result = #{options.inspect}
 
                 if args.any?
-                  options[:_positional_args] = args
-                  options[:_positional_keys] = #{route.segment_keys.inspect}
+                  result[:_positional_args] = args
+                  result[:_positional_keys] = #{route.segment_keys.inspect}
                 end
 
-                options ? #{options.inspect}.merge(options) : #{options.inspect}
+                result.merge(options)
               end
               protected :#{selector}
             END_EVAL

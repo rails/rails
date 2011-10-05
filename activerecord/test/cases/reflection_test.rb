@@ -244,7 +244,7 @@ class ReflectionTest < ActiveRecord::TestCase
     # Normal association
     assert_equal "id",   Author.reflect_on_association(:posts).association_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
-    assert_equal "id",   Tagging.reflect_on_association(:taggable).association_primary_key.to_s
+    assert_equal "name", Essay.reflect_on_association(:writer).association_primary_key.to_s
 
     # Through association (uses the :primary_key option from the source reflection)
     assert_equal "nick", Author.reflect_on_association(:subscribers).association_primary_key.to_s

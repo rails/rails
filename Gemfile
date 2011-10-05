@@ -6,10 +6,11 @@ if ENV['AREL']
   gem "arel", :path => ENV['AREL']
 end
 
+gem "bcrypt-ruby", "~> 3.0.0"
 gem "jquery-rails"
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem "uglifier", ">= 1.0.0", :require => false
+gem "uglifier", ">= 1.0.3", :require => false
 
 # Temp fix until rake 0.9.3 is out
 if RUBY_VERSION >= "1.9.3"
@@ -55,7 +56,7 @@ platforms :ruby do
   gem "nokogiri", ">= 1.4.4"
 
   # AR
-  gem "sqlite3", "~> 1.3.3"
+  gem "sqlite3", "~> 1.3.4"
 
   group :db do
     gem "pg", ">= 0.11.0" unless ENV['TRAVIS'] # once pg is on travis this can be removed
@@ -67,7 +68,7 @@ end
 platforms :jruby do
   gem "ruby-debug", ">= 0.10.3"
   gem "json"
-  gem "activerecord-jdbcsqlite3-adapter"
+  gem "activerecord-jdbcsqlite3-adapter", ">= 1.2.0"
 
   # This is needed by now to let tests work on JRuby
   # TODO: When the JRuby guys merge jruby-openssl in
@@ -75,8 +76,8 @@ platforms :jruby do
   gem "jruby-openssl"
 
   group :db do
-    gem "activerecord-jdbcmysql-adapter"
-    gem "activerecord-jdbcpostgresql-adapter"
+    gem "activerecord-jdbcmysql-adapter", ">= 1.2.0"
+    gem "activerecord-jdbcpostgresql-adapter", ">= 1.2.0"
   end
 end
 

@@ -95,7 +95,7 @@ class FinderTest < Test::Unit::TestCase
 
   def test_find_all_sub_objects_not_found
     assert_nothing_raised do
-      addys = StreetAddress.find(:all, :params => { :person_id => 2 })
+      StreetAddress.find(:all, :params => { :person_id => 2 })
     end
   end
 

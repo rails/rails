@@ -42,10 +42,6 @@ module ActiveRecord
           select_value ||= options[:uniq] && "DISTINCT #{reflection.quoted_table_name}.*"
         end
 
-        if reflection.macro == :has_and_belongs_to_many
-          select_value ||= reflection.klass.arel_table[Arel.star]
-        end
-
         select_value
       end
 
@@ -68,7 +64,12 @@ module ActiveRecord
           end
 
           if reflection.source_macro == :belongs_to
-            key         = reflection.association_primary_key
+            if reflection.options[:polymorphic]
+              key = reflection.association_primary_key(klass)
+            else
+              key = reflection.association_primary_key
+            end
+
             foreign_key = reflection.foreign_key
           else
             key         = reflection.foreign_key

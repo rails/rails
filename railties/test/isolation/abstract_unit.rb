@@ -225,6 +225,15 @@ module TestHelpers
       end
     end
 
+    def add_to_env_config(env, str)
+      environment = File.read("#{app_path}/config/environments/#{env}.rb")
+      if environment =~ /(\n\s*end\s*)\Z/
+        File.open("#{app_path}/config/environments/#{env}.rb", 'w') do |f|
+          f.puts $` + "\n#{str}\n" + $1
+        end
+      end
+    end
+
     def remove_from_config(str)
       file = "#{app_path}/config/application.rb"
       contents = File.read(file)

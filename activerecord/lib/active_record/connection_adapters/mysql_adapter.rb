@@ -2,6 +2,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/kernel/requires'
 require 'active_support/core_ext/object/blank'
 require 'set'
+require 'active_record/connection_adapters/statement_pool'
 
 gem 'mysql', '~> 2.8.1'
 require 'mysql'
@@ -184,11 +185,45 @@ module ActiveRecord
         :boolean     => { :name => "tinyint", :limit => 1 }
       }
 
+      class StatementPool < ConnectionAdapters::StatementPool
+        def initialize(connection, max = 1000)
+          super
+          @cache = Hash.new { |h,pid| h[pid] = {} }
+        end
+
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
+        def delete(key);  cache.delete(key); end
+
+        def []=(sql, key)
+          while @max <= cache.size
+            cache.shift.last[:stmt].close
+          end
+          cache[sql] = key
+        end
+
+        def clear
+          cache.values.each do |hash|
+            hash[:stmt].close
+          end
+          cache.clear
+        end
+
+        private
+        def cache
+          @cache[$$]
+        end
+      end
+
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
         @statements = {}
+        @statements = StatementPool.new(@connection,
+                                        config.fetch(:statement_limit) { 1000 })
         @client_encoding = nil
         connect
       end
@@ -334,9 +369,6 @@ module ActiveRecord
 
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.values.each do |cache|
-          cache[:stmt].close
-        end
         @statements.clear
       end
 
@@ -755,7 +787,7 @@ module ActiveRecord
         def quoted_columns_for_index(column_names, options = {})
           length = options[:length] if options.is_a?(Hash)
 
-          quoted_column_names = case length
+          case length
           when Hash
             column_names.map {|name| length[name] ? "#{quote_column_name(name)}(#{length[name]})" : quote_column_name(name) }
           when Fixnum

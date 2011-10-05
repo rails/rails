@@ -172,8 +172,9 @@ class ModuleTest < Test::Unit::TestCase
     someone.foo
   rescue NoMethodError => e
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE}"
-    assert e.backtrace.first.include?(file_and_line),
-           "[#{e.backtrace.first}] did not include [#{file_and_line}]"
+    # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
+    assert e.backtrace.any?{|a| a.include?(file_and_line)},
+           "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
   def test_parent

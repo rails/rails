@@ -37,10 +37,6 @@ module ActiveRecord::Associations::Builder
           model.send(:undecorated_table_name, model.to_s),
           model.send(:undecorated_table_name, reflection.class_name)
         )
-
-        if model.connection.supports_primary_key? && (model.connection.primary_key(reflection.options[:join_table]) rescue false)
-          raise ActiveRecord::HasAndBelongsToManyAssociationWithPrimaryKeyError.new(reflection)
-        end
       end
 
       # Generates a join table name from two provided table names.

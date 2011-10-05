@@ -258,15 +258,17 @@ h3. Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: The guides help you to learn Ruby on Rails, and the API is a reference.
 
-You can create an issue in GitHub issues to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":https://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+You can help improve the Rails guides by making them more coherent, adding missing information, correcting factual errors, fixing typos, bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see "Translating Rails Guides":https://wiki.github.com/lifo/docrails/translating-rails-guides.
+
+If you're confident about your changes, you can push them yourself directly via "docrails":https://github.com/lifo/docrails. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+
+If you are unsure of the documentation changes, you can create an issue in the "Rails":https://github.com/rails/rails/issues issues tracker on GitHub.
 
 When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
 
-NOTE: As explained above, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
+NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
 
 WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
-
-If you have an idea for a new guide you can refer to the "contribution page":contribute.html for instructions on getting involved.
 
 h3. Contributing to the Rails Code
 

@@ -534,12 +534,12 @@ module Rails
       end
     end
 
-    initializer :load_environment_config, :before => :load_environment_hook do
+    initializer :load_environment_config, :before => :load_environment_hook, :group => :all do
       environment = paths["config/environments"].existent.first
       require environment if environment
     end
 
-    initializer :append_assets_path do |app|
+    initializer :append_assets_path, :group => :all do |app|
       app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)

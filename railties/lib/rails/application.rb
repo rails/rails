@@ -83,7 +83,6 @@ module Rails
       require environment if environment
     end
 
-
     def reload_routes!
       routes_reloader.reload!
     end
@@ -92,9 +91,9 @@ module Rails
       @routes_reloader ||= RoutesReloader.new
     end
 
-    def initialize!
+    def initialize!(group=:default)
       raise "Application has been already initialized." if @initialized
-      run_initializers(self)
+      run_initializers(group, self)
       @initialized = true
       self
     end

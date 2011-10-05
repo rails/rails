@@ -83,7 +83,7 @@ module ActionView
         #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
         #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
         def javascript_path(source)
-          asset_paths.compute_public_path(source, 'javascripts', 'js')
+          asset_paths.compute_public_path(source, 'javascripts', :ext => 'js')
         end
         alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 

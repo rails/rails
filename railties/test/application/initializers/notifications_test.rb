@@ -37,7 +37,7 @@ module ApplicationTests
       wait
 
       assert_equal 1, logger.logged(:debug).size
-      assert_match /SHOW tables/, logger.logged(:debug).last
+      assert_match(/SHOW tables/, logger.logged(:debug).last)
     end
   end
 end

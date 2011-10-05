@@ -1,3 +1,4 @@
+# coding:utf-8
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -97,16 +98,65 @@ module ApplicationTests
       end
 
       output = Dir.chdir(app_path){ `rake db:migrate` }
-      assert_match /create_table\(:users\)/, output
-      assert_match /CreateUsers: migrated/, output
-      assert_match /add_column\(:users, :email, :string\)/, output
-      assert_match /AddEmailToUsers: migrated/, output
+      assert_match(/create_table\(:users\)/, output)
+      assert_match(/CreateUsers: migrated/, output)
+      assert_match(/add_column\(:users, :email, :string\)/, output)
+      assert_match(/AddEmailToUsers: migrated/, output)
 
       output = Dir.chdir(app_path){ `rake db:rollback STEP=2` }
-      assert_match /drop_table\("users"\)/, output
-      assert_match /CreateUsers: reverted/, output
-      assert_match /remove_column\("users", :email\)/, output
-      assert_match /AddEmailToUsers: reverted/, output
+      assert_match(/drop_table\("users"\)/, output)
+      assert_match(/CreateUsers: reverted/, output)
+      assert_match(/remove_column\("users", :email\)/, output)
+      assert_match(/AddEmailToUsers: reverted/, output)
+    end
+
+    def test_migration_status_when_schema_migrations_table_is_not_present
+      output = Dir.chdir(app_path){ `rake db:migrate:status` }
+      assert_equal "Schema migrations table does not exist yet.\n", output
+    end
+
+    def test_migration_status
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate migration add_email_to_users email:string`
+      end
+
+      Dir.chdir(app_path) { `rake db:migrate`}
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:rollback STEP=1` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/down\s+\d{14}\s+Add email to users/, output)
+    end
+
+    def test_migration_status_after_rollback_and_redo
+      Dir.chdir(app_path) do
+        `rails generate model user username:string password:string`
+        `rails generate migration add_email_to_users email:string`
+      end
+
+      Dir.chdir(app_path) { `rake db:migrate`}
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:rollback STEP=2` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/down\s+\d{14}\s+Create users/, output)
+      assert_match(/down\s+\d{14}\s+Add email to users/, output)
+
+      Dir.chdir(app_path) { `rake db:migrate:redo` }
+      output = Dir.chdir(app_path) { `rake db:migrate:status` }
+
+      assert_match(/up\s+\d{14}\s+Create users/, output)
+      assert_match(/up\s+\d{14}\s+Add email to users/, output)
     end
 
     def test_loading_specific_fixtures
@@ -124,6 +174,15 @@ module ApplicationTests
 
       assert_equal 2, ::AppTemplate::Application::Product.count
       assert_equal 0, ::AppTemplate::Application::User.count
+    end
+
+    def test_scaffold_tests_pass_by_default
+      content = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string password:string`
+        `bundle exec rake db:migrate db:test:clone test`
+      end
+
+      assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
     end
   end
 end

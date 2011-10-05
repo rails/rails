@@ -9,7 +9,7 @@ require 'active_support/inflections'
 class HashExtTest < Test::Unit::TestCase
   class IndifferentHash < HashWithIndifferentAccess
   end
-  
+
   class SubclassingArray < Array
   end
 
@@ -272,14 +272,14 @@ class HashExtTest < Test::Unit::TestCase
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
   end
-  
+
   def test_should_preserve_array_subclass_when_value_is_array
     array = SubclassingArray.new
     array << { "address" => "1" }
     hash = { "urls" => { "url" => array }}.with_indifferent_access
     assert_equal SubclassingArray, hash[:urls][:url].class
   end
-  
+
   def test_should_preserve_array_class_when_hash_value_is_frozen_array
     array = SubclassingArray.new
     array << { "address" => "1" }
@@ -543,7 +543,7 @@ class HashExtToParamTests < Test::Unit::TestCase
   end
 
   def test_to_param_hash
-    assert_equal 'custom2=param2-1&custom=param-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
+    assert_equal 'custom-1=param-1&custom2-1=param2-1', {ToParam.new('custom') => ToParam.new('param'), ToParam.new('custom2') => ToParam.new('param2')}.to_param
   end
 
   def test_to_param_hash_escapes_its_keys_and_values
@@ -668,6 +668,55 @@ class HashToXmlTest < Test::Unit::TestCase
     }.to_xml(@xml_options)
     assert_match %r{<created-at type=\"datetime\">1999-02-02T00:00:00Z</created-at>}, xml
     assert_match %r{<local-created-at type=\"datetime\">1999-02-01T19:00:00-05:00</local-created-at>}, xml
+  end
+
+  def test_multiple_records_from_xml_with_attributes_other_than_type_ignores_them_without_exploding
+    topics_xml = <<-EOT
+      <topics type="array" page="1" page-count="1000" per-page="2">
+        <topic>
+          <title>The First Topic</title>
+          <author-name>David</author-name>
+          <id type="integer">1</id>
+          <approved type="boolean">false</approved>
+          <replies-count type="integer">0</replies-count>
+          <replies-close-in type="integer">2592000000</replies-close-in>
+          <written-on type="date">2003-07-16</written-on>
+          <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
+          <content>Have a nice day</content>
+          <author-email-address>david@loudthinking.com</author-email-address>
+          <parent-id nil="true"></parent-id>
+        </topic>
+        <topic>
+          <title>The Second Topic</title>
+          <author-name>Jason</author-name>
+          <id type="integer">1</id>
+          <approved type="boolean">false</approved>
+          <replies-count type="integer">0</replies-count>
+          <replies-close-in type="integer">2592000000</replies-close-in>
+          <written-on type="date">2003-07-16</written-on>
+          <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
+          <content>Have a nice day</content>
+          <author-email-address>david@loudthinking.com</author-email-address>
+          <parent-id></parent-id>
+        </topic>
+      </topics>
+    EOT
+
+    expected_topic_hash = {
+      :title => "The First Topic",
+      :author_name => "David",
+      :id => 1,
+      :approved => false,
+      :replies_count => 0,
+      :replies_close_in => 2592000000,
+      :written_on => Date.new(2003, 7, 16),
+      :viewed_at => Time.utc(2003, 7, 16, 9, 28),
+      :content => "Have a nice day",
+      :author_email_address => "david@loudthinking.com",
+      :parent_id => nil
+    }.stringify_keys
+
+    assert_equal expected_topic_hash, Hash.from_xml(topics_xml)["topics"].first
   end
 
   def test_single_record_from_xml
@@ -906,13 +955,13 @@ class HashToXmlTest < Test::Unit::TestCase
     hash = Hash.from_xml(xml)
     assert_equal "bacon is the best", hash['blog']['name']
   end
-  
+
   def test_empty_cdata_from_xml
     xml = "<data><![CDATA[]]></data>"
-    
+
     assert_equal "", Hash.from_xml(xml)["data"]
   end
-  
+
   def test_xsd_like_types_from_xml
     bacon_xml = <<-EOT
     <bacon>
@@ -955,7 +1004,7 @@ class HashToXmlTest < Test::Unit::TestCase
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
-  
+
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia[:new_key]

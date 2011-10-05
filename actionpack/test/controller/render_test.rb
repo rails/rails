@@ -410,7 +410,7 @@ class TestController < ActionController::Base
   end
 
   def render_with_explicit_escaped_template
-    render :template => "test/hello_w*rld"
+    render :template => "test/hello,world"
   end
 
   def render_with_explicit_string_template

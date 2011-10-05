@@ -1,3 +1,9 @@
+*Rails 3.1.1 (unreleased)*
+
+* Fixed performance issue where TimeZone lookups would require tzinfo each time [Tim Lucas]
+
+* ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! [Prem Sichanugrist]
+
 *Rails 3.1.0 (August 30, 2011)*
 
 * ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now

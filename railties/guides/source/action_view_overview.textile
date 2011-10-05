@@ -822,7 +822,7 @@ h5. select_year
 Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius can be changed using the +:start_year+ and +:end_year+ keys in the +options+.
 
 <ruby>
-# Generates a select field for five years on either side of +Date.today+ that defaults to the current year
+# Generates a select field for five years on either side of Date.today that defaults to the current year
 select_year(Date.today)
 
 # Generates a select field from 1900 to 2009 that defaults to the current year

@@ -550,9 +550,9 @@ folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it 
 |app/views/posts/new.html.erb                 |A view to create a new post|
 |app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
 |app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
-|app/assets/stylesheets/scaffold.css.scss     |Cascading style sheet to make the scaffolded views look better|
-|app/assets/stylesheets/post.css.scss         |Cascading style sheet for the posts controller|
-|app/assets/javascripts/post.js.coffee        |CoffeeScript for the posts controller|
+|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
+|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
+|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
 |test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
@@ -822,8 +822,8 @@ this layout in your editor and modify the +body+ tag:
 <html>
 <head>
   <title>Blog</title>
-  <%= stylesheet_link_tag :all %>
-  <%= javascript_include_tag :defaults %>
+  <%= stylesheet_link_tag "application" %>
+  <%= javascript_include_tag "application" %>
   <%= csrf_meta_tags %>
 </head>
 <body style="background: #EEEEEE;">
@@ -1084,8 +1084,8 @@ def destroy
   @post.destroy
 
   respond_to do |format|
-    format.html  { redirect_to(posts_url) }
-    format.json  { render :json => {}, :status => :ok }
+    format.html { redirect_to posts_url }
+    format.json { head :ok }
   end
 end
 </ruby>
@@ -1454,7 +1454,7 @@ comment to a local variable named the same as the partial, in this case
 
 h4. Rendering a Partial Form
 
-Lets also move that new comment section out to it's own partial, again, you
+Let's also move that new comment section out to its own partial. Again, you
 create a file +app/views/comments/_form.html.erb+ and in it you put:
 
 <erb>
@@ -1721,8 +1721,8 @@ This example shows another option of the render helper, being able to pass in
 local variables, in this case, we want the local variable +form+ in the partial
 to refer to the +post_form+ object.
 
-We also add a <tt>@post.tags.build</tt> at the top of this form, this is to make
-sure there is a new tag ready to have it's name filled in by the user. If you do
+We also add a <tt>@post.tags.build</tt> at the top of this form. This is to make
+sure there is a new tag ready to have its name filled in by the user. If you do
 not build the new tag, then the form will not appear as there is no new Tag
 object ready to create.
 

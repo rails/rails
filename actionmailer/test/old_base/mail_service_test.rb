@@ -514,7 +514,8 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil mail
     mail, from, to = mail
 
-    assert_equal 'system@loudthinking.com', from.to_s
+    assert_equal ['root@loudthinking.com'], to
+    assert_equal 'system@loudthinking.com', from
   end
 
   def test_from_with_name_for_smtp
@@ -525,6 +526,7 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_not_nil mail
     mail, from, to = mail
 
+    assert_equal ['root@loudthinking.com'], to
     assert_equal 'system@loudthinking.com', from
   end
 
@@ -979,7 +981,7 @@ EOF
      TestMailer.delivery_method = :file
      tmp_location = TestMailer.file_settings[:location]
 
-     result = TestMailer.cc_bcc(@recipient).deliver
+     TestMailer.cc_bcc(@recipient).deliver
      assert File.exists?(tmp_location)
      assert File.directory?(tmp_location)
      assert File.exists?(File.join(tmp_location, @recipient))

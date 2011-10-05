@@ -16,7 +16,7 @@ module ActiveRecord
           chain[1..-1].each do |reflection|
             scope = scope.merge(
               reflection.klass.scoped.with_default_scope.
-                except(:select, :create_with, :includes)
+                except(:select, :create_with, :includes, :preload, :joins, :eager_load)
             )
           end
           scope

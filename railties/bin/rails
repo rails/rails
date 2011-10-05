@@ -1,2 +1,0 @@
-#!/usr/bin/env ruby
-require "rails/cli"

@@ -5,6 +5,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/deprecation'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -73,12 +74,6 @@ module ActiveRecord
   class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc
     def initialize(owner, reflection)
       super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
-    end
-  end
-
-  class HasAndBelongsToManyAssociationWithPrimaryKeyError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Primary key is not allowed in a has_and_belongs_to_many join table (#{reflection.options[:join_table]}).")
     end
   end
 
@@ -1576,9 +1571,20 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
       #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
-      #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
+      #   "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}"
       def has_and_belongs_to_many(name, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, options, &extension)
+      end
+
+      protected
+
+      def preload_associations(records, associations, options = {}) #:nodoc:
+        ActiveSupport::Deprecation.warn(
+          "preload_associations(records, associations, options = {}) is deprecated. Use " \
+          "ActiveRecord::Associations::Preloader.new(records, associations, options = {}).run " \
+          "instead."
+        )
+        Preloader.new(records, associations, options).run
       end
     end
   end

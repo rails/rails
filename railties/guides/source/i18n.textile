@@ -91,7 +91,7 @@ This means, that in the +:en+ locale, the key _hello_ will map to the _Hello wor
 
 The I18n library will use *English* as a *default locale*, i.e. if you don't set a different locale, +:en+ will be used for looking up translations.
 
-NOTE: The i18n library takes a *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". Many international applications use only the "language" element of a locale such as +:cz+, +:th+ or +:es+ (for Czech, Thai and Spanish). However, there are also regional differences within different language groups that may be important. For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Nothing stops you from separating regional and other settings in this way: you just have to provide full "English - United Kingdom" locale in a +:en-UK+ dictionary. Various "Rails I18n plugins":http://rails-i18n.org/wiki such as "Globalize2":https://github.com/joshmh/globalize2/tree/master may help you implement it.
+NOTE: The i18n library takes a *pragmatic approach* to locale keys (after "some discussion":http://groups.google.com/group/rails-i18n/browse_thread/thread/14dede2c7dbe9470/80eec34395f64f3c?hl=en), including only the _locale_ ("language") part, like +:en+, +:pl+, not the _region_ part, like +:en-US+ or +:en-UK+, which are traditionally used for separating "languages" and "regional setting" or "dialects". Many international applications use only the "language" element of a locale such as +:cs+, +:th+ or +:es+ (for Czech, Thai and Spanish). However, there are also regional differences within different language groups that may be important. For instance, in the +:en-US+ locale you would have $ as a currency symbol, while in +:en-UK+, you would have £. Nothing stops you from separating regional and other settings in this way: you just have to provide full "English - United Kingdom" locale in a +:en-UK+ dictionary. Various "Rails I18n plugins":http://rails-i18n.org/wiki such as "Globalize2":https://github.com/joshmh/globalize2/tree/master may help you implement it.
 
 The *translations load path* (+I18n.load_path+) is just a Ruby Array of paths to your translation files that will be loaded automatically and available in your application. You can pick whatever directory and translation file naming scheme makes sense for you.
 
@@ -365,6 +365,19 @@ NOTE: You need to restart the server when you add new locale files.
 
 You may use YAML (+.yml+) or plain Ruby (+.rb+) files for storing your translations in SimpleStore. YAML is the preferred option among Rails developers. However, it has one big disadvantage. YAML is very sensitive to whitespace and special characters, so the application may not load your dictionary properly. Ruby files will crash your application on first request, so you may easily find what's wrong. (If you encounter any "weird issues" with YAML dictionaries, try putting the relevant portion of your dictionary into a Ruby file.)
 
+h4. Passing variables to translations
+
+You can use variables in the translation messages and pass their values from the view.
+
+<ruby>
+# app/views/home/index.html.erb
+<%=t 'greet_username', :user => "Bill", :message => "Goodbye" %>
+
+# config/locales/en.yml
+en:
+  greet_username: "%{message}, %{user}!"
+</ruby>
+
 h4. Adding Date/Time Formats
 
 OK! Now let's add a timestamp to the view, so we can demo the *date/time localization* feature as well. To localize the time format you pass the Time object to +I18n.l+ or (preferably) use Rails' +#l+ helper. You can pick a format by passing the +:format+ option -- by default the +:default+ format is used.
@@ -448,6 +461,7 @@ Covered are features like these:
 * looking up translations
 * interpolating data into translations
 * pluralizing translations
+* using safe HTML translations
 * localizing dates, numbers, currency, etc.
 
 h4. Looking up Translations
@@ -598,6 +612,27 @@ The +I18n.locale+ defaults to +I18n.default_locale+ which defaults to :+en+. The
 <ruby>
 I18n.default_locale = :de
 </ruby>
+
+h4. Using Safe HTML Translations
+
+Keys with a '_html' suffix and keys named 'html' are marked as HTML safe. Use them in views without escaping.
+
+<ruby>
+# config/locales/en.yml
+en:
+  welcome: <b>welcome!</b>
+  hello_html: <b>hello!</b>
+  title:
+    html: <b>title!</b>
+
+# app/views/home/index.html.erb
+<div><%= t('welcome') %></div>
+<div><%= raw t('welcome') %></div>
+<div><%= t('hello_html') %></div>
+<div><%= t('title.html') %></div>
+</ruby>
+
+!images/i18n/demo_html_safe.png(i18n demo html safe)!
 
 h3. How to Store your Custom Translations
 

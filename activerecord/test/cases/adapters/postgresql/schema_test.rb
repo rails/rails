@@ -68,7 +68,9 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_table_exists_quoted_table
-    assert(@connection.table_exists?('"things.table"'), "table should exist")
+    with_schema_search_path(SCHEMA_NAME) do
+        assert(@connection.table_exists?('"things.table"'), "table should exist")
+    end
   end
 
   def test_with_schema_prefixed_table_name

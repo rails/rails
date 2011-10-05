@@ -1,10 +1,59 @@
 *Rails 3.1.1 (unreleased)*
 
+* Add deprecation for the preload_associations method. Fixes #3022.
+
+  [Jon Leighton]
+
+* Don't require a DB connection when loading a model that uses set_primary_key. GH #2807.
+
+  [Jon Leighton]
+
+* Fix using select() with a habtm association, e.g. Person.friends.select(:name). GH #3030 and
+  #2923.
+
+  [Hendy Tanata]
+
+* Fix belongs_to polymorphic with custom primary key on target. GH #3104.
+
+  [Jon Leighton]
+
+* CollectionProxy#replace should change the DB records rather than just mutating the array.
+  Fixes #3020.
+
+  [Jon Leighton]
+
+* LRU cache in mysql and sqlite are now per-process caches.
+
+	* lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache
+	  keys are per process id.
+	* lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
+
+	[Aaron Patterson]
+
+* Database adapters use a statement pool for limiting the number of open
+  prepared statments on the database.  The limit defaults to 1000, but can
+  be adjusted in your database config by changing 'statement_limit'.
+
+* Fix clash between using 'preload', 'joins' or 'eager_load' in a default scope and including the
+  default scoped model in a nested through association. (GH #2834.) [Jon Leighton]
+
+* Ensure we are not comparing a string with a symbol in HasManyAssociation#inverse_updates_counter_cache?.
+  Fixes GH #2755, where a counter cache could be decremented twice as far as it was supposed to be.
+
+  [Jon Leighton]
+
+* Don't send any queries to the database when the foreign key of a belongs_to is nil. Fixes
+  GH #2828. [Georg Friedrich]
+
+* Fixed find_in_batches method to not include order from default_scope. See GH #2832 [Arun Agrawal]
+
 * Don't compute table name for abstract classes. Fixes problem with setting the primary key
   in an abstract class. See GH #2791. [Akira Matsuda]
 
 * Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
   GH #2731
+
+* Use the LIMIT word with the methods #last and #first. Fixes GH #2783 [Damien Mathieu]
 
 *Rails 3.1.0 (August 30, 2011)*
 

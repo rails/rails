@@ -1,12 +1,69 @@
 *Rails 3.1.1 (unreleased)*
 
+* javascript_path and stylesheet_path now refer to /assets if asset pipelining
+is on. [Santiago Pastorino]
+
+* button_to support form option. Now you're able to pass for example
+'data-type' => 'json'. [ihower]
+
+* image_path and image_tag should use /assets if asset pipelining is turned
+on. Closes #3126 [Santiago Pastorino and christos]
+
+* Avoid use of existing precompiled assets during rake assets:precompile run.
+Closes #3119 [Guillermo Iguaran]
+
+* Copy assets to nondigested filenames too [Santiago Pastorino]
+
+* Give precedence to `config.digest = false` over the existence of
+manifest.yml asset digests [christos]
+
+* escape options for the stylesheet_link_tag method [Alexey Vakhov]
+
+* Re-launch assets:precompile task using (Rake.)ruby instead of Kernel.exec so
+it works on Windows [cablegram]
+
+* env var passed to process shouldn't be modified in process method. [Santiago
+Pastorino]
+
+* `rake assets:precompile` loads the application but does not initialize
+it.
+
+  To the app developer, this means configuration add in
+	config/initializers/* will not be executed.
+
+  Plugins developers need to special case their initializers that are
+  meant to be run in the assets group by adding :group => :assets. [José Valim]
+
+* Sprockets uses config.assets.prefix for asset_path [asee]
+
+* FileStore key_file_path properly limit filenames to 255 characters. [phuibonhoa]
+
+* Fix Hash#to_query edge case with html_safe strings. [brainopia]
+
+* Allow asset tag helper methods to accept :digest => false option in order to completely avoid the digest generation.
+Useful for linking assets from static html files or from emails when the user
+could probably look at an older html email with an older asset. [Santiago Pastorino]
+
+* Don't mount Sprockets server at config.assets.prefix if config.assets.compile is false. [Mark J. Titorenko]
+
+* Set relative url root in assets when controller isn't available for Sprockets (eg. Sass files using asset_path). Fixes #2435 [Guillermo Iguaran]
+
+* Fix basic auth credential generation to not make newlines. GH #2882
+
+* Fixed the behavior of asset pipeline when config.assets.digest and config.assets.compile are false and requested asset isn't precompiled.
+  Before the requested asset were compiled anyway ignoring that the config.assets.compile flag is false. [Guillermo Iguaran]
+
 * CookieJar is now Enumerable. Fixes #2795
 
-* Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. [Guillermo Iguaran]
+* Fixed AssetNotPrecompiled error raised when rake assets:precompile is compiling certain .erb files. See GH #2763 #2765 #2805 [Guillermo Iguaran]
 
-* Manifest is correctly placed in assets path when default assets prefix is changed. [Guillermo Iguaran]
+* Manifest is correctly placed in assets path when default assets prefix is changed. Fixes #2776 [Guillermo Iguaran]
 
 * Fixed stylesheet_link_tag and javascript_include_tag to respect additional options passed by the users when debug is on. [Guillermo Iguaran]
+
+* Fix ActiveRecord#exists? when passsed a nil value
+
+* Fix assert_select_email to work on multipart and non-multipart emails as the method stopped working correctly in Rails 3.x due to changes in the new mail gem.
 
 
 *Rails 3.1.0 (August 30, 2011)*

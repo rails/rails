@@ -1,3 +1,17 @@
+*Rails 3.1.1 (unreleased)*
+
+* Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. [Santiago Pastorino]
+
+* Add config.assets.initialize_on_precompile which, when set to false, forces
+  `rake assets:precompile` to load the application but does not initialize it.
+
+  To the app developer, this means configuration add in
+  config/initializers/* will not be executed.
+
+  Plugins developers need to special case their initializers that are
+  meant to be run in the assets group by adding :group => :assets.
+
+
 *Rails 3.1.0 (August 30, 2011)*
 
 * The default database schema file is written as UTF-8. [Aaron Patterson]

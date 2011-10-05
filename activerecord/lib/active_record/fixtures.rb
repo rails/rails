@@ -25,378 +25,368 @@ end
 
 class FixturesFileNotFound < StandardError; end
 
-# Fixtures are a way of organizing data that you want to test against; in short, sample data.
-#
-# = Fixture formats
-#
-# Fixtures come in 1 flavor:
-#
-#   1.  YAML fixtures
-#
-# == YAML fixtures
-#
-# This type of fixture is in YAML format and the preferred default. YAML is a file format which describes data structures
-# in a non-verbose, human-readable format. It ships with Ruby 1.8.1+.
-#
-# Unlike single-file fixtures, YAML fixtures are stored in a single file per model, which are placed
-# in the directory appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is
-# automatically configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
-# The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
-# <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a YAML fixture file looks like this:
-#
-#   rubyonrails:
-#     id: 1
-#     name: Ruby on Rails
-#     url: http://www.rubyonrails.org
-#
-#   google:
-#     id: 2
-#     name: Google
-#     url: http://www.google.com
-#
-# This YAML fixture file includes two fixtures.  Each YAML fixture (ie. record) is given a name and is followed by an
-# indented list of key/value pairs in the "key: value" format.  Records are separated by a blank line for your viewing
-# pleasure.
-#
-# Note that YAML fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
-# See http://yaml.org/type/omap.html
-# for the specification.  You will need ordered fixtures when you have foreign key constraints on keys in the same table.
-# This is commonly needed for tree structures.  Example:
-#
-#    --- !omap
-#    - parent:
-#        id:         1
-#        parent_id:  NULL
-#        title:      Parent
-#    - child:
-#        id:         2
-#        parent_id:  1
-#        title:      Child
-#
-# = Using fixtures in testcases
-#
-# Since fixtures are a testing construct, we use them in our unit and functional tests.  There are two ways to use the
-# fixtures, but first let's take a look at a sample unit test:
-#
-#   require 'test_helper'
-#
-#   class WebSiteTest < ActiveSupport::TestCase
-#     test "web_site_count" do
-#       assert_equal 2, WebSite.count
-#     end
-#   end
-#
-# By default, the <tt>test_helper module</tt> will load all of your fixtures into your test database,
-# so this test will succeed.
-# The testing environment will automatically load the all fixtures into the database before each test.
-# To ensure consistent data, the environment deletes the fixtures before running the load.
-#
-# In addition to being available in the database, the fixture's data may also be accessed by
-# using a special dynamic method, which has the same name as the model, and accepts the
-# name of the fixture to instantiate:
-#
-#   test "find" do
-#     assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
-#   end
-#
-# Alternatively, you may enable auto-instantiation of the fixture data. For instance, take the following tests:
-#
-#   test "find_alt_method_1" do
-#     assert_equal "Ruby on Rails", @web_sites['rubyonrails']['name']
-#   end
-#
-#   test "find_alt_method_2" do
-#     assert_equal "Ruby on Rails", @rubyonrails.news
-#   end
-#
-# In order to use these methods to access fixtured data within your testcases, you must specify one of the
-# following in your <tt>ActiveSupport::TestCase</tt>-derived class:
-#
-# - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
-#     self.use_instantiated_fixtures = true
-#
-# - create only the hash for the fixtures, do not 'find' each instance (enable alternate method #1 only)
-#     self.use_instantiated_fixtures = :no_instances
-#
-# Using either of these alternate methods incurs a performance hit, as the fixtured data must be fully
-# traversed in the database to create the fixture hash and/or instance variables. This is expensive for
-# large sets of fixtured data.
-#
-# = Dynamic fixtures with ERB
-#
-# Some times you don't care about the content of the fixtures as much as you care about the volume. In these cases, you can
-# mix ERB in with your YAML fixtures to create a bunch of fixtures for load testing, like:
-#
-#   <% for i in 1..1000 %>
-#   fix_<%= i %>:
-#     id: <%= i %>
-#     name: guy_<%= 1 %>
-#   <% end %>
-#
-# This will create 1000 very simple YAML fixtures.
-#
-# Using ERB, you can also inject dynamic values into your fixtures with inserts like <tt><%= Date.today.strftime("%Y-%m-%d") %></tt>.
-# This is however a feature to be used with some caution. The point of fixtures are that they're
-# stable units of predictable sample data. If you feel that you need to inject dynamic values, then
-# perhaps you should reexamine whether your application is properly testable. Hence, dynamic values
-# in fixtures are to be considered a code smell.
-#
-# = Transactional fixtures
-#
-# TestCases can use begin+rollback to isolate their changes to the database instead of having to
-# delete+insert for every test case.
-#
-#   class FooTest < ActiveSupport::TestCase
-#     self.use_transactional_fixtures = true
-#
-#     test "godzilla" do
-#       assert !Foo.find(:all).empty?
-#       Foo.destroy_all
-#       assert Foo.find(:all).empty?
-#     end
-#
-#     test "godzilla aftermath" do
-#       assert !Foo.find(:all).empty?
-#     end
-#   end
-#
-# If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures,
-# then you may omit all fixtures declarations in your test cases since all the data's already there
-# and every case rolls back its changes.
-#
-# In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to true. This will provide
-# access to fixture data for every table that has been loaded through fixtures (depending on the
-# value of +use_instantiated_fixtures+)
-#
-# When *not* to use transactional fixtures:
-#
-# 1. You're testing whether a transaction works correctly. Nested transactions don't commit until
-#    all parent transactions commit, particularly, the fixtures transaction which is begun in setup
-#    and rolled back in teardown. Thus, you won't be able to verify
-#    the results of your transaction until Active Record supports nested transactions or savepoints (in progress).
-# 2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM.
-#    Use InnoDB, MaxDB, or NDB instead.
-#
-# = Advanced YAML Fixtures
-#
-# YAML fixtures that don't specify an ID get some extra features:
-#
-# * Stable, autogenerated IDs
-# * Label references for associations (belongs_to, has_one, has_many)
-# * HABTM associations as inline lists
-# * Autofilled timestamp columns
-# * Fixture label interpolation
-# * Support for YAML defaults
-#
-# == Stable, autogenerated IDs
-#
-# Here, have a monkey fixture:
-#
-#   george:
-#     id: 1
-#     name: George the Monkey
-#
-#   reginald:
-#     id: 2
-#     name: Reginald the Pirate
-#
-# Each of these fixtures has two unique identifiers: one for the database
-# and one for the humans. Why don't we generate the primary key instead?
-# Hashing each fixture's label yields a consistent ID:
-#
-#   george: # generated id: 503576764
-#     name: George the Monkey
-#
-#   reginald: # generated id: 324201669
-#     name: Reginald the Pirate
-#
-# Active Record looks at the fixture's model class, discovers the correct
-# primary key, and generates it right before inserting the fixture
-# into the database.
-#
-# The generated ID for a given label is constant, so we can discover
-# any fixture's ID without loading anything, as long as we know the label.
-#
-# == Label references for associations (belongs_to, has_one, has_many)
-#
-# Specifying foreign keys in fixtures can be very fragile, not to
-# mention difficult to read. Since Active Record can figure out the ID of
-# any fixture from its label, you can specify FK's by label instead of ID.
-#
-# === belongs_to
-#
-# Let's break out some more monkeys and pirates.
-#
-#   ### in pirates.yml
-#
-#   reginald:
-#     id: 1
-#     name: Reginald the Pirate
-#     monkey_id: 1
-#
-#   ### in monkeys.yml
-#
-#   george:
-#     id: 1
-#     name: George the Monkey
-#     pirate_id: 1
-#
-# Add a few more monkeys and pirates and break this into multiple files,
-# and it gets pretty hard to keep track of what's going on. Let's
-# use labels instead of IDs:
-#
-#   ### in pirates.yml
-#
-#   reginald:
-#     name: Reginald the Pirate
-#     monkey: george
-#
-#   ### in monkeys.yml
-#
-#   george:
-#     name: George the Monkey
-#     pirate: reginald
-#
-# Pow! All is made clear. Active Record reflects on the fixture's model class,
-# finds all the +belongs_to+ associations, and allows you to specify
-# a target *label* for the *association* (monkey: george) rather than
-# a target *id* for the *FK* (<tt>monkey_id: 1</tt>).
-#
-# ==== Polymorphic belongs_to
-#
-# Supporting polymorphic relationships is a little bit more complicated, since
-# Active Record needs to know what type your association is pointing at. Something
-# like this should look familiar:
-#
-#   ### in fruit.rb
-#
-#   belongs_to :eater, :polymorphic => true
-#
-#   ### in fruits.yml
-#
-#   apple:
-#     id: 1
-#     name: apple
-#     eater_id: 1
-#     eater_type: Monkey
-#
-# Can we do better? You bet!
-#
-#   apple:
-#     eater: george (Monkey)
-#
-# Just provide the polymorphic target type and Active Record will take care of the rest.
-#
-# === has_and_belongs_to_many
-#
-# Time to give our monkey some fruit.
-#
-#   ### in monkeys.yml
-#
-#   george:
-#     id: 1
-#     name: George the Monkey
-#
-#   ### in fruits.yml
-#
-#   apple:
-#     id: 1
-#     name: apple
-#
-#   orange:
-#     id: 2
-#     name: orange
-#
-#   grape:
-#     id: 3
-#     name: grape
-#
-#   ### in fruits_monkeys.yml
-#
-#   apple_george:
-#     fruit_id: 1
-#     monkey_id: 1
-#
-#   orange_george:
-#     fruit_id: 2
-#     monkey_id: 1
-#
-#   grape_george:
-#     fruit_id: 3
-#     monkey_id: 1
-#
-# Let's make the HABTM fixture go away.
-#
-#   ### in monkeys.yml
-#
-#   george:
-#     id: 1
-#     name: George the Monkey
-#     fruits: apple, orange, grape
-#
-#   ### in fruits.yml
-#
-#   apple:
-#     name: apple
-#
-#   orange:
-#     name: orange
-#
-#   grape:
-#     name: grape
-#
-# Zap! No more fruits_monkeys.yml file. We've specified the list of fruits
-# on George's fixture, but we could've just as easily specified a list
-# of monkeys on each fruit. As with +belongs_to+, Active Record reflects on
-# the fixture's model class and discovers the +has_and_belongs_to_many+
-# associations.
-#
-# == Autofilled timestamp columns
-#
-# If your table/model specifies any of Active Record's
-# standard timestamp columns (+created_at+, +created_on+, +updated_at+, +updated_on+),
-# they will automatically be set to <tt>Time.now</tt>.
-#
-# If you've set specific values, they'll be left alone.
-#
-# == Fixture label interpolation
-#
-# The label of the current fixture is always available as a column value:
-#
-#   geeksomnia:
-#     name: Geeksomnia's Account
-#     subdomain: $LABEL
-#
-# Also, sometimes (like when porting older join table fixtures) you'll need
-# to be able to get a hold of the identifier for a given label. ERB
-# to the rescue:
-#
-#   george_reginald:
-#     monkey_id: <%= ActiveRecord::Fixtures.identify(:reginald) %>
-#     pirate_id: <%= ActiveRecord::Fixtures.identify(:george) %>
-#
-# == Support for YAML defaults
-#
-# You probably already know how to use YAML to set and reuse defaults in
-# your <tt>database.yml</tt> file. You can use the same technique in your fixtures:
-#
-#   DEFAULTS: &DEFAULTS
-#     created_on: <%= 3.weeks.ago.to_s(:db) %>
-#
-#   first:
-#     name: Smurf
-#     <<: *DEFAULTS
-#
-#   second:
-#     name: Fraggle
-#     <<: *DEFAULTS
-#
-# Any fixture labeled "DEFAULTS" is safely ignored.
-
-Fixture = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixture', 'ActiveRecord::Fixture')
-Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('Fixtures', 'ActiveRecord::Fixtures')
-
 module ActiveRecord
+  # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
+  #
+  # They are stored in YAML files, one file per model, which are placed in the directory
+  # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
+  # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
+  # The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
+  # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a fixture file looks
+  # like this:
+  #
+  #   rubyonrails:
+  #     id: 1
+  #     name: Ruby on Rails
+  #     url: http://www.rubyonrails.org
+  #
+  #   google:
+  #     id: 2
+  #     name: Google
+  #     url: http://www.google.com
+  #
+  # This fixture file includes two fixtures. Each YAML fixture (ie. record) is given a name and
+  # is followed by an indented list of key/value pairs in the "key: value" format. Records are
+  # separated by a blank line for your viewing pleasure.
+  #
+  # Note that fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
+  # See http://yaml.org/type/omap.html
+  # for the specification. You will need ordered fixtures when you have foreign key constraints
+  # on keys in the same table. This is commonly needed for tree structures. Example:
+  #
+  #    --- !omap
+  #    - parent:
+  #        id:         1
+  #        parent_id:  NULL
+  #        title:      Parent
+  #    - child:
+  #        id:         2
+  #        parent_id:  1
+  #        title:      Child
+  #
+  # = Using Fixtures in Test Cases
+  #
+  # Since fixtures are a testing construct, we use them in our unit and functional tests. There
+  # are two ways to use the fixtures, but first let's take a look at a sample unit test:
+  #
+  #   require 'test_helper'
+  #
+  #   class WebSiteTest < ActiveSupport::TestCase
+  #     test "web_site_count" do
+  #       assert_equal 2, WebSite.count
+  #     end
+  #   end
+  #
+  # By default, <tt>test_helper.rb</tt> will load all of your fixtures into your test database,
+  # so this test will succeed.
+  #
+  # The testing environment will automatically load the all fixtures into the database before each
+  # test. To ensure consistent data, the environment deletes the fixtures before running the load.
+  #
+  # In addition to being available in the database, the fixture's data may also be accessed by
+  # using a special dynamic method, which has the same name as the model, and accepts the
+  # name of the fixture to instantiate:
+  #
+  #   test "find" do
+  #     assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+  #   end
+  #
+  # Alternatively, you may enable auto-instantiation of the fixture data. For instance, take the
+  # following tests:
+  #
+  #   test "find_alt_method_1" do
+  #     assert_equal "Ruby on Rails", @web_sites['rubyonrails']['name']
+  #   end
+  #
+  #   test "find_alt_method_2" do
+  #     assert_equal "Ruby on Rails", @rubyonrails.news
+  #   end
+  #
+  # In order to use these methods to access fixtured data within your testcases, you must specify one of the
+  # following in your <tt>ActiveSupport::TestCase</tt>-derived class:
+  #
+  # - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
+  #     self.use_instantiated_fixtures = true
+  #
+  # - create only the hash for the fixtures, do not 'find' each instance (enable alternate method #1 only)
+  #     self.use_instantiated_fixtures = :no_instances
+  #
+  # Using either of these alternate methods incurs a performance hit, as the fixtured data must be fully
+  # traversed in the database to create the fixture hash and/or instance variables. This is expensive for
+  # large sets of fixtured data.
+  #
+  # = Dynamic fixtures with ERB
+  #
+  # Some times you don't care about the content of the fixtures as much as you care about the volume.
+  # In these cases, you can mix ERB in with your YAML fixtures to create a bunch of fixtures for load
+  # testing, like:
+  #
+  #   <% 1.upto(1000) do |i| %>
+  #   fix_<%= i %>:
+  #     id: <%= i %>
+  #     name: guy_<%= 1 %>
+  #   <% end %>
+  #
+  # This will create 1000 very simple fixtures.
+  #
+  # Using ERB, you can also inject dynamic values into your fixtures with inserts like
+  # <tt><%= Date.today.strftime("%Y-%m-%d") %></tt>.
+  # This is however a feature to be used with some caution. The point of fixtures are that they're
+  # stable units of predictable sample data. If you feel that you need to inject dynamic values, then
+  # perhaps you should reexamine whether your application is properly testable. Hence, dynamic values
+  # in fixtures are to be considered a code smell.
+  #
+  # = Transactional Fixtures
+  #
+  # Test cases can use begin+rollback to isolate their changes to the database instead of having to
+  # delete+insert for every test case.
+  #
+  #   class FooTest < ActiveSupport::TestCase
+  #     self.use_transactional_fixtures = true
+  #
+  #     test "godzilla" do
+  #       assert !Foo.all.empty?
+  #       Foo.destroy_all
+  #       assert Foo.all.empty?
+  #     end
+  #
+  #     test "godzilla aftermath" do
+  #       assert !Foo.all.empty?
+  #     end
+  #   end
+  #
+  # If you preload your test database with all fixture data (probably in the rake task) and use
+  # transactional fixtures, then you may omit all fixtures declarations in your test cases since
+  # all the data's already there and every case rolls back its changes.
+  #
+  # In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to
+  # true. This will provide access to fixture data for every table that has been loaded through
+  # fixtures (depending on the value of +use_instantiated_fixtures+).
+  #
+  # When *not* to use transactional fixtures:
+  #
+  # 1. You're testing whether a transaction works correctly. Nested transactions don't commit until
+  #    all parent transactions commit, particularly, the fixtures transaction which is begun in setup
+  #    and rolled back in teardown. Thus, you won't be able to verify
+  #    the results of your transaction until Active Record supports nested transactions or savepoints (in progress).
+  # 2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM.
+  #    Use InnoDB, MaxDB, or NDB instead.
+  #
+  # = Advanced Fixtures
+  #
+  # Fixtures that don't specify an ID get some extra features:
+  #
+  # * Stable, autogenerated IDs
+  # * Label references for associations (belongs_to, has_one, has_many)
+  # * HABTM associations as inline lists
+  # * Autofilled timestamp columns
+  # * Fixture label interpolation
+  # * Support for YAML defaults
+  #
+  # == Stable, Autogenerated IDs
+  #
+  # Here, have a monkey fixture:
+  #
+  #   george:
+  #     id: 1
+  #     name: George the Monkey
+  #
+  #   reginald:
+  #     id: 2
+  #     name: Reginald the Pirate
+  #
+  # Each of these fixtures has two unique identifiers: one for the database
+  # and one for the humans. Why don't we generate the primary key instead?
+  # Hashing each fixture's label yields a consistent ID:
+  #
+  #   george: # generated id: 503576764
+  #     name: George the Monkey
+  #
+  #   reginald: # generated id: 324201669
+  #     name: Reginald the Pirate
+  #
+  # Active Record looks at the fixture's model class, discovers the correct
+  # primary key, and generates it right before inserting the fixture
+  # into the database.
+  #
+  # The generated ID for a given label is constant, so we can discover
+  # any fixture's ID without loading anything, as long as we know the label.
+  #
+  # == Label references for associations (belongs_to, has_one, has_many)
+  #
+  # Specifying foreign keys in fixtures can be very fragile, not to
+  # mention difficult to read. Since Active Record can figure out the ID of
+  # any fixture from its label, you can specify FK's by label instead of ID.
+  #
+  # === belongs_to
+  #
+  # Let's break out some more monkeys and pirates.
+  #
+  #   ### in pirates.yml
+  #
+  #   reginald:
+  #     id: 1
+  #     name: Reginald the Pirate
+  #     monkey_id: 1
+  #
+  #   ### in monkeys.yml
+  #
+  #   george:
+  #     id: 1
+  #     name: George the Monkey
+  #     pirate_id: 1
+  #
+  # Add a few more monkeys and pirates and break this into multiple files,
+  # and it gets pretty hard to keep track of what's going on. Let's
+  # use labels instead of IDs:
+  #
+  #   ### in pirates.yml
+  #
+  #   reginald:
+  #     name: Reginald the Pirate
+  #     monkey: george
+  #
+  #   ### in monkeys.yml
+  #
+  #   george:
+  #     name: George the Monkey
+  #     pirate: reginald
+  #
+  # Pow! All is made clear. Active Record reflects on the fixture's model class,
+  # finds all the +belongs_to+ associations, and allows you to specify
+  # a target *label* for the *association* (monkey: george) rather than
+  # a target *id* for the *FK* (<tt>monkey_id: 1</tt>).
+  #
+  # ==== Polymorphic belongs_to
+  #
+  # Supporting polymorphic relationships is a little bit more complicated, since
+  # Active Record needs to know what type your association is pointing at. Something
+  # like this should look familiar:
+  #
+  #   ### in fruit.rb
+  #
+  #   belongs_to :eater, :polymorphic => true
+  #
+  #   ### in fruits.yml
+  #
+  #   apple:
+  #     id: 1
+  #     name: apple
+  #     eater_id: 1
+  #     eater_type: Monkey
+  #
+  # Can we do better? You bet!
+  #
+  #   apple:
+  #     eater: george (Monkey)
+  #
+  # Just provide the polymorphic target type and Active Record will take care of the rest.
+  #
+  # === has_and_belongs_to_many
+  #
+  # Time to give our monkey some fruit.
+  #
+  #   ### in monkeys.yml
+  #
+  #   george:
+  #     id: 1
+  #     name: George the Monkey
+  #
+  #   ### in fruits.yml
+  #
+  #   apple:
+  #     id: 1
+  #     name: apple
+  #
+  #   orange:
+  #     id: 2
+  #     name: orange
+  #
+  #   grape:
+  #     id: 3
+  #     name: grape
+  #
+  #   ### in fruits_monkeys.yml
+  #
+  #   apple_george:
+  #     fruit_id: 1
+  #     monkey_id: 1
+  #
+  #   orange_george:
+  #     fruit_id: 2
+  #     monkey_id: 1
+  #
+  #   grape_george:
+  #     fruit_id: 3
+  #     monkey_id: 1
+  #
+  # Let's make the HABTM fixture go away.
+  #
+  #   ### in monkeys.yml
+  #
+  #   george:
+  #     id: 1
+  #     name: George the Monkey
+  #     fruits: apple, orange, grape
+  #
+  #   ### in fruits.yml
+  #
+  #   apple:
+  #     name: apple
+  #
+  #   orange:
+  #     name: orange
+  #
+  #   grape:
+  #     name: grape
+  #
+  # Zap! No more fruits_monkeys.yml file. We've specified the list of fruits
+  # on George's fixture, but we could've just as easily specified a list
+  # of monkeys on each fruit. As with +belongs_to+, Active Record reflects on
+  # the fixture's model class and discovers the +has_and_belongs_to_many+
+  # associations.
+  #
+  # == Autofilled Timestamp Columns
+  #
+  # If your table/model specifies any of Active Record's
+  # standard timestamp columns (+created_at+, +created_on+, +updated_at+, +updated_on+),
+  # they will automatically be set to <tt>Time.now</tt>.
+  #
+  # If you've set specific values, they'll be left alone.
+  #
+  # == Fixture label interpolation
+  #
+  # The label of the current fixture is always available as a column value:
+  #
+  #   geeksomnia:
+  #     name: Geeksomnia's Account
+  #     subdomain: $LABEL
+  #
+  # Also, sometimes (like when porting older join table fixtures) you'll need
+  # to be able to get a hold of the identifier for a given label. ERB
+  # to the rescue:
+  #
+  #   george_reginald:
+  #     monkey_id: <%= ActiveRecord::Fixtures.identify(:reginald) %>
+  #     pirate_id: <%= ActiveRecord::Fixtures.identify(:george) %>
+  #
+  # == Support for YAML defaults
+  #
+  # You probably already know how to use YAML to set and reuse defaults in
+  # your <tt>database.yml</tt> file. You can use the same technique in your fixtures:
+  #
+  #   DEFAULTS: &DEFAULTS
+  #     created_on: <%= 3.weeks.ago.to_s(:db) %>
+  #
+  #   first:
+  #     name: Smurf
+  #     *DEFAULTS
+  #
+  #   second:
+  #     name: Fraggle
+  #     *DEFAULTS
+  #
+  # Any fixture labeled "DEFAULTS" is safely ignored.
   class Fixtures
     MAX_ID = 2 ** 30 - 1
 
@@ -558,7 +548,7 @@ module ActiveRecord
       fixtures.size
     end
 
-    # Return a hash of rows to be inserted.  The key is the table, the value is
+    # Return a hash of rows to be inserted. The key is the table, the value is
     # a list of rows to insert to that table.
     def table_rows
       now = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now

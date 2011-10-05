@@ -35,18 +35,20 @@ module Rails
         @cache_store                 = [ :file_store, "#{root}/tmp/cache/" ]
 
         @assets = ActiveSupport::OrderedOptions.new
-        @assets.enabled         = false
-        @assets.paths           = []
-        @assets.precompile      = [ /\w+\.(?!js|css).+/, /application.(css|js)$/ ]
-        @assets.prefix          = "/assets"
-        @assets.version         = ''
-        @assets.debug           = false
-        @assets.compile         = true
-        @assets.digest          = false
-        @assets.manifest        = nil
-        @assets.cache_store     = [ :file_store, "#{root}/tmp/cache/assets/" ]
-        @assets.js_compressor   = nil
-        @assets.css_compressor  = nil
+        @assets.enabled                  = false
+        @assets.paths                    = []
+        @assets.precompile               = [ Proc.new{ |path| !File.extname(path).in?(['.js', '.css']) },
+                                             /(?:\/|\\|\A)application\.(css|js)$/ ]
+        @assets.prefix                   = "/assets"
+        @assets.version                  = ''
+        @assets.debug                    = false
+        @assets.compile                  = true
+        @assets.digest                   = false
+        @assets.manifest                 = nil
+        @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/" ]
+        @assets.js_compressor            = nil
+        @assets.css_compressor           = nil
+        @assets.initialize_on_precompile = true
       end
 
       def compiled_asset_path

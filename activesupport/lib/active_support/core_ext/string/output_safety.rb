@@ -20,7 +20,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.to_s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
+        s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
       end
     end
 
@@ -75,7 +75,7 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
+    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase", "prepend"].freeze
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -136,16 +136,18 @@ module ActiveSupport #:nodoc:
     end
 
     for unsafe_method in UNSAFE_STRING_METHODS
-      class_eval <<-EOT, __FILE__, __LINE__
-        def #{unsafe_method}(*args)
-          super.to_str
-        end
+      if 'String'.respond_to?(unsafe_method)
+        class_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{unsafe_method}(*args)
+            super.to_str
+          end
 
-        def #{unsafe_method}!(*args)
-          @dirty = true
-          super
-        end
-      EOT
+          def #{unsafe_method}!(*args)
+            @dirty = true
+            super
+          end
+        EOT
+      end
     end
 
     protected
