@@ -86,9 +86,7 @@ module ActionView
     end
 
     def default_protocol
-      protocol = @config.action_controller.default_asset_host_protocol if @config.action_controller.present?
-      protocol ||= @config.default_asset_host_protocol
-      protocol || (has_request? ? :request : :relative)
+      @config.default_asset_host_protocol || (has_request? ? :request : :relative)
     end
 
     def invalid_asset_host!(help_message)
@@ -117,19 +115,11 @@ module ActionView
     end
 
     def relative_url_root
-      if config.action_controller.present?
-        config.action_controller.relative_url_root
-      else
-        config.relative_url_root
-      end
+      config.relative_url_root
     end
 
     def asset_host_config
-      if config.action_controller.present?
-        config.action_controller.asset_host
-      else
-        config.asset_host
-      end
+      config.asset_host
     end
 
     # Returns the current request if one exists.

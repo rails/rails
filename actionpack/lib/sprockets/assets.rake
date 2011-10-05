@@ -39,12 +39,13 @@ namespace :assets do
       config = Rails.application.config
       config.assets.compile = true
       config.assets.digest  = digest unless digest.nil?
-
       config.assets.digests = {}
 
-      env    = Rails.application.assets
+      env = Rails.application.assets
+      env.context_class.send :include, ::Sprockets::Helpers::PrecompileHelper
+
       target = File.join(Rails.public_path, config.assets.prefix)
-      compiler = Sprockets::StaticCompiler.new(env, 
+      compiler = Sprockets::StaticCompiler.new(env,
                                                target,
                                                config.assets.precompile,
                                                :manifest_path => config.assets.manifest,
