@@ -812,7 +812,7 @@ Add this line in your Gemfile:
 gem "dynamic_form"
 </ruby>
 
-Now you will have access to the two help methods +error_messages+ and +error_messages_for+ in your view templates.
+Now you will have access to the two helper methods +error_messages+ and +error_messages_for+ in your view templates.
 
 h4. +error_messages+ and +error_messages_for+
 
