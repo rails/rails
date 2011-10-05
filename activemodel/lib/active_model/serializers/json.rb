@@ -42,7 +42,7 @@ module ActiveModel
       # The remainder of the examples in this section assume include_root_in_json is set to
       # <tt>false</tt>.
       #
-      # Without any +options+, the returned JSON string will include all the model's
+      # Without any +options+, the returned Hash will include all the model's
       # attributes. For example:
       #
       #   user = User.find(1)
