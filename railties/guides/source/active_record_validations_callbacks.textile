@@ -28,7 +28,7 @@ h4. Why Use Validations?
 
 Validations are used to ensure that only valid data is saved into your database. For example, it may be important to your application to ensure that every user provides a valid email address and mailing address.
 
-There are several ways to validate data before it is saved into your database, including native database constraints, client-side validations, controller-level validations, and model-level validations.
+There are several ways to validate data before it is saved into your database, including native database constraints, client-side validations, controller-level validations, and model-level validations:
 
 * Database constraints and/or stored procedures make the validation mechanisms database-dependent and can make testing and maintenance more difficult. However, if your database is used by other applications, it may be a good idea to use some constraints at the database level. Additionally, database-level validations can safely handle some things (such as uniqueness in heavily-used tables) that can be difficult to implement otherwise.
 * Client-side validations can be useful, but are generally unreliable if used alone. If they are implemented using JavaScript, they may be bypassed if JavaScript is turned off in the user's browser. However, if combined with other techniques, client-side validation can be a convenient way to provide users with immediate feedback as they use your site.
@@ -94,7 +94,7 @@ Note that +save+ also has the ability to skip validations if passed +:validate =
 
 h4. +valid?+ and +invalid?+
 
-To verify whether or not an object is valid, Rails uses the +valid?+ method. You can also use this method on your own. +valid?+ triggers your validations and returns true if no errors were added to the object, and false otherwise.
+To verify whether or not an object is valid, Rails uses the +valid?+ method. You can also use this method on your own. +valid?+ triggers your validations and returns true if no errors were found in the object, and false otherwise.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -105,7 +105,7 @@ Person.create(:name => "John Doe").valid? # => true
 Person.create(:name => nil).valid? # => false
 </ruby>
 
-When Active Record is performing validations, any errors found can be accessed through the +errors+ instance method. By definition an object is valid if this collection is empty after running validations.
+After Active Record has performed validations, any errors found can be accessed through the +errors+ instance method, which returns a collection of errors. By definition, an object is valid if this collection is empty after running validations.
 
 Note that an object instantiated with +new+ will not report errors even if it's technically invalid, because validations are not run when using +new+.
 
@@ -139,7 +139,7 @@ end
 => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 </ruby>
 
-+invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations and returns true if any errors were added to the object, and false otherwise.
++invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations, returning true if any errors were found in the object, and false otherwise.
 
 h4(#validations_overview-errors). +errors[]+
 
@@ -160,7 +160,7 @@ We'll cover validation errors in greater depth in the "Working with Validation E
 
 h3. Validation Helpers
 
-Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers provide common validation rules. Every time a validation fails, an error message is added to the object's +errors+ collection, and this message is associated with the field being validated.
+Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers provide common validation rules. Every time a validation fails, an error message is added to the object's +errors+ collection, and this message is associated with the attribute being validated.
 
 Each helper accepts an arbitrary number of attribute names, so with a single line of code you can add the same kind of validation to several attributes.
 
@@ -428,6 +428,8 @@ class GoodnessValidator < ActiveModel::Validator
 end
 </ruby>
 
+NOTE: Errors added to +record.errors[:base]+ relate to the state of the record as a whole, and not to a specific attribute.
+
 The +validates_with+ helper takes a class, or a list of classes to use for validation. There is no default error message for +validates_with+. You must manually add errors to the record's errors collection in the validator class.
 
 To implement the validate method, you must have a +record+ parameter defined, which is the record to be validated.
@@ -454,13 +456,13 @@ This helper validates attributes against a block. It doesn't have a predefined v
 
 <ruby>
 class Person < ActiveRecord::Base
-  validates_each :name, :surname do |model, attr, value|
-    model.errors.add(attr, 'must start with upper case') if value =~ /\A[a-z]/
+  validates_each :name, :surname do |record, attr, value|
+    record.errors.add(attr, 'must start with upper case') if value =~ /\A[a-z]/
   end
 end
 </ruby>
 
-The block receives the model, the attribute's name and the attribute's value. You can do anything you like to check for valid data within the block. If your validation fails, you can add an error message to the model, therefore making it invalid.
+The block receives the record, the attribute's name and the attribute's value. You can do anything you like to check for valid data within the block. If your validation fails, you should add an error message to the model, therefore making it invalid.
 
 h3. Common Validation Options
 
@@ -580,7 +582,7 @@ Custom validators are classes that extend <tt>ActiveModel::Validator</tt>. These
 <ruby>
 class MyValidator < ActiveModel::Validator
   def validate(record)
-    if record.name.starts_with? 'X'
+    unless record.name.starts_with? 'X'
       record.errors[:name] << 'Need a name starting with X please!'
     end
   end
@@ -661,7 +663,7 @@ The following is a list of the most commonly used methods. Please refer to the +
 
 h4(#working_with_validation_errors-errors). +errors+
 
-Returns an OrderedHash with all errors. Each key is the attribute name and the value is an array of strings with all errors.
+Returns an instance of the class +ActiveModel::Errors+ (which behaves like an ordered hash) containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -741,7 +743,7 @@ Another way to do this is using +[]=+ setter
 
 h4. +errors[:base]+
 
-You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to the array and uses it as the error message.
+You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to it and it will be used as an error message.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -785,7 +787,7 @@ end
 
 person = Person.new
 person.valid? # => false
-person.errors.size # => 3
+person.errors.size # => 2
 
 person = Person.new(:name => "Andrea", :email => "andrea@example.com")
 person.valid? # => true
@@ -794,7 +796,7 @@ person.errors.size # => 0
 
 h3. Displaying Validation Errors in the View
 
-Rails maintains an official plugin that provides helpers to display the error messages of your models in your view templates. You can install it as a plugin or as a Gem.
+Rails maintains an official plugin, DynamicForm, that provides helpers to display the error messages of your models in your view templates. You can install it as a plugin or as a Gem.
 
 h4. Installing as a plugin
 
@@ -810,7 +812,7 @@ Add this line in your Gemfile:
 gem "dynamic_form"
 </ruby>
 
-Now you will have access to these two methods in your view templates.
+Now you will have access to the two helper methods +error_messages+ and +error_messages_for+ in your view templates.
 
 h4. +error_messages+ and +error_messages_for+
 
@@ -840,11 +842,13 @@ end
 <% end %>
 </erb>
 
-To get the idea, if you submit the form with empty fields you typically get this back, though styles are indeed missing by default:
+If you submit the form with empty fields, the result will be similar to the one shown below:
 
 !images/error_messages.png(Error messages)!
 
-You can also use the +error_messages_for+ helper to display the error messages of a model assigned to a view template. It's very similar to the previous example and will achieve exactly the same result.
+NOTE: The appearance of the generated HTML will be different from the one shown, unless you have used scaffolding. See "Customizing the Error Messages CSS":#customizing-error-messages-css.
+
+You can also use the +error_messages_for+ helper to display the error messages of a model assigned to a view template. It is very similar to the previous example and will achieve exactly the same result.
 
 <erb>
 <%= error_messages_for :product %>
@@ -852,7 +856,7 @@ You can also use the +error_messages_for+ helper to display the error messages o
 
 The displayed text for each error message will always be formed by the capitalized name of the attribute that holds the error, followed by the error message itself.
 
-Both the +form.error_messages+ and the +error_messages_for+ helpers accept options that let you customize the +div+ element that holds the messages, changing the header text, the message below the header text and the tag used for the element that defines the header.
+Both the +form.error_messages+ and the +error_messages_for+ helpers accept options that let you customize the +div+ element that holds the messages, change the header text, change the message below the header, and specify the tag used for the header element. For example,
 
 <erb>
 <%= f.error_messages :header_message => "Invalid product!",
@@ -860,23 +864,23 @@ Both the +form.error_messages+ and the +error_messages_for+ helpers accept optio
   :header_tag => :h3 %>
 </erb>
 
-Which results in the following content:
+results in:
 
 !images/customized_error_messages.png(Customized error messages)!
 
-If you pass +nil+ to any of these options, it will get rid of the respective section of the +div+.
+If you pass +nil+ in any of these options, the corresponding section of the +div+ will be discarded.
 
-h4. Customizing the Error Messages CSS
+h4(#customizing-error-messages-css). Customizing the Error Messages CSS
 
-The selectors to customize the style of error messages are:
+The selectors used to customize the style of error messages are:
 
 * +.field_with_errors+ - Style for the form fields and labels with errors.
-* +#errorExplanation+ - Style for the +div+ element with the error messages.
-* +#errorExplanation h2+ - Style for the header of the +div+ element.
-* +#errorExplanation p+ - Style for the paragraph that holds the message that appears right below the header of the +div+ element.
-* +#errorExplanation ul li+ - Style for the list items with individual error messages.
+* +#error_explanation+ - Style for the +div+ element with the error messages.
+* +#error_explanation h2+ - Style for the header of the +div+ element.
+* +#error_explanation p+ - Style for the paragraph holding the message that appears right below the header of the +div+ element.
+* +#error_explanation ul li+ - Style for the list items with individual error messages.
 
-Scaffolding for example generates +app/assets/stylesheets/scaffold.css.scss+, which later compiles to +app/assets/stylesheets/scaffold.css+ and defines the red-based style you saw above.
+If scaffolding was used, file +app/assets/stylesheets/scaffold.css.scss+ (which later compiles to +app/assets/stylesheets/scaffold.css+), will have been generated automatically. This file defines the red-based styles you saw in the examples above.
 
 The name of the class and the id can be changed with the +:class+ and +:id+ options, accepted by both helpers.
 
@@ -889,7 +893,7 @@ The way form fields with errors are treated is defined by +ActionView::Base.fiel
 * A string with the HTML tag
 * An instance of +ActionView::Helpers::InstanceTag+.
 
-Here is a simple example where we change the Rails behavior to always display the error messages in front of each of the form fields with errors. The error messages will be enclosed by a +span+ element with a +validation-error+ CSS class. There will be no +div+ element enclosing the +input+ element, so we get rid of that red border around the text field. You can use the +validation-error+ CSS class to style it anyway you want.
+Below is a simple example where we change the Rails behavior to always display the error messages in front of each of the form fields in error. The error messages will be enclosed by a +span+ element with a +validation-error+ CSS class. There will be no +div+ element enclosing the +input+ element, so we get rid of that red border around the text field. You can use the +validation-error+ CSS class to style it anyway you want.
 
 <ruby>
 ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
@@ -903,17 +907,17 @@ ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
 end
 </ruby>
 
-This will result in something like the following:
+The result looks like the following:
 
 !images/validation_error_messages.png(Validation error messages)!
 
 h3. Callbacks Overview
 
-Callbacks are methods that get called at certain moments of an object's life cycle. With callbacks it's possible to write code that will run whenever an Active Record object is created, saved, updated, deleted, validated, or loaded from the database.
+Callbacks are methods that get called at certain moments of an object's life cycle. With callbacks it is possible to write code that will run whenever an Active Record object is created, saved, updated, deleted, validated, or loaded from the database.
 
 h4. Callback Registration
 
-In order to use the available callbacks, you need to register them. You can do that by implementing them as ordinary methods, and then using a macro-style class method to register them as callbacks.
+In order to use the available callbacks, you need to register them. You can implement the callbacks as ordinary methods and use a macro-style class method to register them as callbacks:
 
 <ruby>
 class User < ActiveRecord::Base
@@ -930,7 +934,7 @@ class User < ActiveRecord::Base
 end
 </ruby>
 
-The macro-style class methods can also receive a block. Consider using this style if the code inside your block is so short that it fits in just one line.
+The macro-style class methods can also receive a block. Consider using this style if the code inside your block is so short that it fits in a single line:
 
 <ruby>
 class User < ActiveRecord::Base
@@ -942,7 +946,7 @@ class User < ActiveRecord::Base
 end
 </ruby>
 
-It's considered good practice to declare callback methods as being protected or private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
+It is considered good practice to declare callback methods as protected or private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
 
 h3. Available Callbacks
 
@@ -982,7 +986,7 @@ The +after_initialize+ callback will be called whenever an Active Record object 
 
 The +after_find+ callback will be called whenever Active Record loads a record from the database. +after_find+ is called before +after_initialize+ if both are defined.
 
-The +after_initialize+ and +after_find+ callbacks are a bit different from the others. They have no +before_*+ counterparts, and the only way to register them is by defining them as regular methods. If you try to register +after_initialize+ or +after_find+ using macro-style class methods, they will just be ignored. This behavior is due to performance reasons, since +after_initialize+ and +after_find+ will both be called for each record found in the database, significantly slowing down the queries.
+The +after_initialize+ and +after_find+ callbacks are a bit different from the others. They have no +before_*+ counterparts, and they are registered simply by defining them as regular methods with predefined names. If you try to register +after_initialize+ or +after_find+ using macro-style class methods, they will just be ignored. This behavior is due to performance reasons, since +after_initialize+ and +after_find+ will both be called for each record found in the database, which would otherwise significantly slow down the queries.
 
 <ruby>
 class User < ActiveRecord::Base
@@ -1039,7 +1043,7 @@ The +after_initialize+ callback is triggered every time a new object of the clas
 
 h3. Skipping Callbacks
 
-Just as with validations, it's also possible to skip callbacks. These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
+Just as with validations, it is also possible to skip callbacks. These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
 
 * +decrement+
 * +decrement_counter+
@@ -1058,13 +1062,13 @@ h3. Halting Execution
 
 As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks, and the database operation to be executed.
 
-The whole callback chain is wrapped in a transaction. If any <em>before</em> callback method returns exactly +false+ or raises an exception the execution chain gets halted and a ROLLBACK is issued; <em>after</em> callbacks can only accomplish that by raising an exception.
+The whole callback chain is wrapped in a transaction. If any <em>before</em> callback method returns exactly +false+ or raises an exception, the execution chain gets halted and a ROLLBACK is issued; <em>after</em> callbacks can only accomplish that by raising an exception.
 
-WARNING. Raising an arbitrary exception may break code that expects +save+ and friends not to fail like that. The +ActiveRecord::Rollback+ exception is thought precisely to tell Active Record a rollback is going on. That one is internally captured but not reraised.
+WARNING. Raising an arbitrary exception may break code that expects +save+ and its friends not to fail like that. The +ActiveRecord::Rollback+ exception is thought precisely to tell Active Record a rollback is going on. That one is internally captured but not reraised.
 
 h3. Relational Callbacks
 
-Callbacks work through model relationships, and can even be defined by them. Let's take an example where a user has many posts. In our example, a user's posts should be destroyed if the user is destroyed. So, we'll add an +after_destroy+ callback to the +User+ model by way of its relationship to the +Post+ model.
+Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many posts. A user's posts should be destroyed if the user is destroyed. Let's add an +after_destroy+ callback to the +User+ model by way of its relationship to the +Post+ model:
 
 <ruby>
 class User < ActiveRecord::Base
@@ -1090,11 +1094,11 @@ Post destroyed
 
 h3. Conditional Callbacks
 
-Like in validations, we can also make our callbacks conditional, calling them only when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string or a +Proc+. You may use the +:if+ option when you want to specify when the callback *should* get called. If you want to specify when the callback *should not* be called, then you may use the +:unless+ option.
+As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the +:if+ and +:unless+ options, which can take a symbol, a string or a +Proc+. You may use the +:if+ option when you want to specify under which conditions the callback *should* be called. If you want to specify the conditions under which the callback *should not* be called, then you may use the +:unless+ option.
 
-h4. Using +:if+ and +:unless+ with a Symbol
+h4. Using +:if+ and +:unless+ with a +Symbol+
 
-You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before the callback. When using the +:if+ option, the callback won't be executed if the method returns false; when using the +:unless+ option, the callback won't be executed if the method returns true. This is the most common option. Using this form of registration it's also possible to register several different methods that should be called to check if the callback should be executed.
+You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a predicate method that will get called right before the callback. When using the +:if+ option, the callback won't be executed if the predicate method returns false; when using the +:unless+ option, the callback won't be executed if the predicate method returns true. This is the most common option. Using this form of registration it is also possible to register several different predicates that should be called to check if the callback should be executed.
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -1104,7 +1108,7 @@ end
 
 h4. Using +:if+ and +:unless+ with a String
 
-You can also use a string that will be evaluated using +eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
+You can also use a string that will be evaluated using +eval+ and hence needs to contain valid Ruby code. You should use this option only when the string represents a really short condition:
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -1112,9 +1116,9 @@ class Order < ActiveRecord::Base
 end
 </ruby>
 
-h4. Using +:if+ and +:unless+ with a Proc
+h4. Using +:if+ and +:unless+ with a +Proc+
 
-Finally, it's possible to associate +:if+ and +:unless+ with a +Proc+ object. This option is best suited when writing short validation methods, usually one-liners.
+Finally, it is possible to associate +:if+ and +:unless+ with a +Proc+ object. This option is best suited when writing short validation methods, usually one-liners:
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -1125,7 +1129,7 @@ end
 
 h4. Multiple Conditions for Callbacks
 
-When writing conditional callbacks, it's possible to mix both +:if+ and +:unless+ in the same callback declaration.
+When writing conditional callbacks, it is possible to mix both +:if+ and +:unless+ in the same callback declaration:
 
 <ruby>
 class Comment < ActiveRecord::Base
@@ -1138,7 +1142,7 @@ h3. Callback Classes
 
 Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
 
-Here's an example where we create a class with an +after_destroy+ callback for a +PictureFile+ model.
+Here's an example where we create a class with an +after_destroy+ callback for a +PictureFile+ model:
 
 <ruby>
 class PictureFileCallbacks
@@ -1150,7 +1154,7 @@ class PictureFileCallbacks
 end
 </ruby>
 
-When declared inside a class the callback method will receive the model object as a parameter. We can now use it this way:
+When declared inside a class, as above, the callback methods will receive the model object as a parameter. We can now use the callback class in the model:
 
 <ruby>
 class PictureFile < ActiveRecord::Base
@@ -1158,7 +1162,7 @@ class PictureFile < ActiveRecord::Base
 end
 </ruby>
 
-Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we declared our callback as an instance method. Sometimes it will make more sense to have it as a class method.
+Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we declared our callback as an instance method. This is particularly useful if the callbacks make use of the state of instantiated object. Often, however, it will make more sense to declare the callbacks as class methods:
 
 <ruby>
 class PictureFileCallbacks
@@ -1182,15 +1186,24 @@ You can declare as many callbacks as you want inside your callback classes.
 
 h3. Observers
 
-Observers are similar to callbacks, but with important differences. Whereas callbacks can pollute a model with code that isn't directly related to its purpose, observers allow you to add the same functionality outside of a model. For example, it could be argued that a +User+ model should not include code to send registration confirmation emails. Whenever you use callbacks with code that isn't directly related to your model, you may want to consider creating an observer instead.
+Observers are similar to callbacks, but with important differences. Whereas callbacks can pollute a model with code that isn't directly related to its purpose, observers allow you to add the same functionality without changing the code of the model. For example, it could be argued that a +User+ model should not include code to send registration confirmation emails. Whenever you use callbacks with code that isn't directly related to your model, you may want to consider creating an observer instead.
 
 h4. Creating Observers
 
-For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we could create an observer to contain this functionality.
+For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we should create an observer to contain the code implementing this functionality.
 
 <shell>
 $ rails generate observer User
 </shell>
+
+generates +app/models/user_observer.rb+ containing the observer class +UserObserver+:
+
+<ruby>
+class UserObserver < ActiveRecord::Observer
+end
+</ruby>
+
+You may now add methods to be called at the desired occasions:
 
 <ruby>
 class UserObserver < ActiveRecord::Observer
@@ -1207,7 +1220,7 @@ h4. Registering Observers
 Observers are conventionally placed inside of your +app/models+ directory and registered in your application's +config/application.rb+ file. For example, the +UserObserver+ above would be saved as +app/models/user_observer.rb+ and registered in +config/application.rb+ this way:
 
 <ruby>
-# Activate observers that should always be running
+# Activate observers that should always be running.
 config.active_record.observers = :user_observer
 </ruby>
 
@@ -1215,7 +1228,7 @@ As usual, settings in +config/environments+ take precedence over those in +confi
 
 h4. Sharing Observers
 
-By default, Rails will simply strip "Observer" from an observer's name to find the model it should observe. However, observers can also be used to add behavior to more than one model, and so it's possible to manually specify the models that our observer should observe.
+By default, Rails will simply strip "Observer" from an observer's name to find the model it should observe. However, observers can also be used to add behavior to more than one model, and thus it is possible to explicitly specify the models that our observer should observe:
 
 <ruby>
 class MailerObserver < ActiveRecord::Observer
@@ -1227,10 +1240,10 @@ class MailerObserver < ActiveRecord::Observer
 end
 </ruby>
 
-In this example, the +after_create+ method would be called whenever a +Registration+ or +User+ was created. Note that this new +MailerObserver+ would also need to be registered in +config/application.rb+ in order to take effect.
+In this example, the +after_create+ method will be called whenever a +Registration+ or +User+ is created. Note that this new +MailerObserver+ would also need to be registered in +config/application.rb+ in order to take effect:
 
 <ruby>
-# Activate observers that should always be running
+# Activate observers that should always be running.
 config.active_record.observers = :mailer_observer
 </ruby>
 
@@ -1238,7 +1251,7 @@ h3. Transaction Callbacks
 
 There are two additional callbacks that are triggered by the completion of a database transaction: +after_commit+ and +after_rollback+. These callbacks are very similar to the +after_save+ callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your active record models need to interact with external systems which are not part of the database transaction.
 
-Consider, for example, the previous example where the +PictureFile+ model needs to delete a file after a record is destroyed. If anything raises an exception after the +after_destroy+ callback is called and the transaction rolls back, the file will have been deleted and the model will be left in an inconsistent state. For example, suppose that +picture_file_2+ in the code below is not valid and the +save!+ method raises an error.
+Consider, for example, the previous example where the +PictureFile+ model needs to delete a file after the corresponding record is destroyed. If anything raises an exception after the +after_destroy+ callback is called and the transaction rolls back, the file will have been deleted and the model will be left in an inconsistent state. For example, suppose that +picture_file_2+ in the code below is not valid and the +save!+ method raises an error.
 
 <ruby>
 PictureFile.transaction do

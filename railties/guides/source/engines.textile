@@ -1,0 +1,36 @@
+h2. Getting Started with Engines
+
+In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface. You will learn the following things in this guide:
+
+* What are engines
+* Generating an engine
+* Building features for the engine
+* Hooking the engine into an application
+* Overriding engine functionality in the application
+
+endprologue.
+
+h3. What are engines?
+
+Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the `Rails::Application` class inheriting from `Rails::Engine`. Therefore, engines and applications share common functionality but are at the same time two separate beasts.
+
+h3. Generating an engine
+
+TODO: The engine that will be generated for this guide will be called "blorgh". It's a blogging engine that provides posts and comments and that's it.
+
+TODO: Describe here the process of generating an engine and what an engine comes with.
+
+h3. Providing engine functionality
+
+TODO: Brief explanation of what this engine is going to be doing and what we will have once we are done.
+TODO: Generate a posts scaffold (maybe?) for the engine
+TODO: Generate a comments scaffold (maybe?) for the engine
+
+h3. Hooking into application
+
+TODO: Application will provide a User foundation class which the engine hooks into through a configuration setting, configurable in the application's initializers. The engine will be mounted at the +/blog+ path in the application.
+
+h3. Overriding engine functionality
+
+TODO: Cover how to override engine functionality in the engine, such as controllers and views.
+IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
