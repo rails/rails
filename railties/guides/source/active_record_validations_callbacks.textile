@@ -1192,13 +1192,11 @@ h4. Creating Observers
 
 For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we should create an observer to contain the code implementing this functionality.
 
-Rails can create the initial code of the observers in a simple way. For instance, given a model +User+, the command
-
 <shell>
 $ rails generate observer User
 </shell>
 
-generates file +app/models/user_observer.rb+ containing the observer class +UserObserver+:
+generates +app/models/user_observer.rb+ containing the observer class +UserObserver+:
 
 <ruby>
 class UserObserver < ActiveRecord::Observer

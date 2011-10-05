@@ -705,7 +705,7 @@ $ rails console
 
 TIP: The default console will make changes to your database. You can instead
 open a console that will roll back any changes you make by using <tt>rails console
---sandbox</tt> .
+--sandbox</tt>.
 
 After the console loads, you can use it to work with your application's models:
 
@@ -1074,7 +1074,7 @@ In the +update+ action, Rails first uses the +:id+ parameter passed back from
 the edit view to locate the database record that's being edited. The
 +update_attributes+ call then takes the +post+ parameter (a hash) from the request
 and applies it to this record. If all goes well, the user is redirected to the
-post's +show+ action. If there are any problems, it's back to the +edit+ action to
+post's +show+ action. If there are any problems, it redirects back to the +edit+ action to
 correct them.
 
 h4. Destroying a Post
@@ -1115,8 +1115,7 @@ models and controllers. To create the new model, run this command in your
 terminal:
 
 <shell>
-$ rails generate model Comment commenter:string body:text \
-> post:references
+$ rails generate model Comment commenter:string body:text post:references
 </shell>
 
 This command will generate four files:
@@ -1520,7 +1519,7 @@ defined it as an instance variable.
 
 h3. Deleting Comments
 
-Another important feature of a blog is being able to delete SPAM comments. To do
+Another important feature of a blog is being able to delete spam comments. To do
 this, we need to implement a link of some sort in the view and a +DELETE+ action
 in the +CommentsController+.
 
