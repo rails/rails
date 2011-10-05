@@ -1035,13 +1035,14 @@ module ActiveRecord
         end
 
         def exec_cache(sql, binds)
-          unless @statements.key? sql
+          sql_key = "#{schema_search_path}-#{sql}"
+          unless @statements.key? sql_key
             nextkey = @statements.next_key
             @connection.prepare nextkey, sql
-            @statements[sql] = nextkey
+            @statements[sql_key] = nextkey
           end
 
-          key = @statements[sql]
+          key = @statements[sql_key]
 
           # Clear the queue
           @connection.get_last_result
