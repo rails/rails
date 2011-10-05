@@ -105,7 +105,7 @@ Person.create(:name => "John Doe").valid? # => true
 Person.create(:name => nil).valid? # => false
 </ruby>
 
-After Active Record performing validations, any errors found can be accessed through the +errors+ instance method, which returns a collection of errors. By definition an object is valid if this collection is empty after running validations.
+After Active Record has performed validations, any errors found can be accessed through the +errors+ instance method, which returns a collection of errors. By definition, an object is valid if this collection is empty after running validations.
 
 Note that an object instantiated with +new+ will not report errors even if it's technically invalid, because validations are not run when using +new+.
 
@@ -907,7 +907,7 @@ ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
 end
 </ruby>
 
-The result look like the following:
+The result looks like the following:
 
 !images/validation_error_messages.png(Validation error messages)!
 
