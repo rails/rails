@@ -708,7 +708,7 @@ module ActiveRecord #:nodoc:
       # Returns an array of column objects for the table associated with this class.
       def columns
         if defined?(@primary_key)
-          connection_pool.primary_keys[table_name] ||= primary_key
+          connection_pool.primary_keys[table_name] ||= @primary_key
         end
 
         connection_pool.columns[table_name]
@@ -953,7 +953,7 @@ module ActiveRecord #:nodoc:
       # objects of different types from the same table.
       def instantiate(record)
         sti_class = find_sti_class(record[inheritance_column])
-        record_id = sti_class.primary_key && record[sti_class.primary_key]
+        record_id = sti_class.primary_key? && record[sti_class.primary_key]
 
         if ActiveRecord::IdentityMap.enabled? && record_id
           if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
@@ -1941,8 +1941,9 @@ MSG
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
       def self.attributes_protected_by_default
-        default = [ primary_key, inheritance_column ]
-        default << 'id' unless primary_key.eql? 'id'
+        default = [ inheritance_column ]
+        default << primary_key if primary_key?
+        default << 'id' unless primary_key? && primary_key == 'id'
         default
       end
 

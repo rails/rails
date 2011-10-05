@@ -1,4 +1,5 @@
 require 'set'
+require 'cgi'
 require 'active_support/core_ext/class/attribute'
 
 module HTML

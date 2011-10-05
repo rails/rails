@@ -24,6 +24,10 @@ module ActiveRecord
           def self.primary_key
           end
 
+          def self.primary_key?
+            false
+          end
+
           def self.columns
             column_names.map { FakeColumn.new(name) }
           end

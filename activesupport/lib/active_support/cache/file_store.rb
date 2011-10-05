@@ -161,6 +161,7 @@ module ActiveSupport
         end
 
         def search_dir(dir, &callback)
+          return if !File.exist?(dir)
           Dir.foreach(dir) do |d|
             next if d == "." || d == ".."
             name = File.join(dir, d)

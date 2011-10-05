@@ -91,7 +91,7 @@ module Rails
       @routes_reloader ||= RoutesReloader.new
     end
 
-    def initialize!(group=nil)
+    def initialize!(group=:default)
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true

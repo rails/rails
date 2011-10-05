@@ -56,6 +56,46 @@
 
 *Rails 3.1.1 (unreleased)*
 
+* javascript_path and stylesheet_path now refer to /assets if asset pipelining
+is on. [Santiago Pastorino]
+
+* button_to support form option. Now you're able to pass for example
+'data-type' => 'json'. [ihower]
+
+* image_path and image_tag should use /assets if asset pipelining is turned
+on. Closes #3126 [Santiago Pastorino and christos]
+
+* Avoid use of existing precompiled assets during rake assets:precompile run.
+Closes #3119 [Guillermo Iguaran]
+
+* Copy assets to nondigested filenames too [Santiago Pastorino]
+
+* Give precedence to `config.digest = false` over the existence of
+manifest.yml asset digests [christos]
+
+* escape options for the stylesheet_link_tag method [Alexey Vakhov]
+
+* Re-launch assets:precompile task using (Rake.)ruby instead of Kernel.exec so
+it works on Windows [cablegram]
+
+* env var passed to process shouldn't be modified in process method. [Santiago
+Pastorino]
+
+* `rake assets:precompile` loads the application but does not initialize
+it.
+
+  To the app developer, this means configuration add in
+	config/initializers/* will not be executed.
+
+  Plugins developers need to special case their initializers that are
+  meant to be run in the assets group by adding :group => :assets. [José Valim]
+
+* Sprockets uses config.assets.prefix for asset_path [asee]
+
+* FileStore key_file_path properly limit filenames to 255 characters. [phuibonhoa]
+
+* Fix Hash#to_query edge case with html_safe strings. [brainopia]
+
 * Allow asset tag helper methods to accept :digest => false option in order to completely avoid the digest generation.
 Useful for linking assets from static html files or from emails when the user
 could probably look at an older html email with an older asset. [Santiago Pastorino]

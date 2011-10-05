@@ -8,9 +8,6 @@ module Sprockets
 
       def asset_paths
         @asset_paths ||= begin
-          config     = self.config if respond_to?(:config)
-          config   ||= Rails.application.config
-          controller = self.controller if respond_to?(:controller)
           paths = RailsHelper::AssetPaths.new(config, controller)
           paths.asset_environment = asset_environment
           paths.asset_digests     = asset_digests
@@ -64,6 +61,16 @@ module Sprockets
         asset_path(source)
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
+
+      def javascript_path(source)
+        asset_path(source)
+      end
+      alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with an javascript_path named route
+
+      def stylesheet_path(source)
+        asset_path(source)
+      end
+      alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with an stylesheet_path named route
 
     private
       def debug_assets?

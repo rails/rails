@@ -90,7 +90,7 @@ module Rails
           append_file "Gemfile", "\ngroup #{name} do\n", :force => true
 
           @in_group = true
-          instance_eval &block
+          instance_eval(&block)
           @in_group = false
 
           append_file "Gemfile", "end\n", :force => true
@@ -252,7 +252,7 @@ module Rails
       #
       def rake(command, options={})
         log :rake, command
-        env  = options[:env] || 'development'
+        env  = options[:env] || ENV["RAILS_ENV"] || 'development'
         sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
         in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", :verbose => false) }
       end

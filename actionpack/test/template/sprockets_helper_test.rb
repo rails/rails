@@ -28,7 +28,6 @@ class SprocketsHelperTest < ActionView::TestCase
     application = Struct.new(:config, :assets).new(config, @assets)
     Rails.stubs(:application).returns(application)
     @config = config
-    @config.action_controller ||= ActiveSupport::InheritableOptions.new
     @config.perform_caching = true
     @config.assets.digest = true
     @config.assets.compile = true
@@ -36,6 +35,10 @@ class SprocketsHelperTest < ActionView::TestCase
 
   def url_for(*args)
     "http://www.example.com"
+  end
+
+  def config
+    @controller ? @controller.config : @config
   end
 
   test "asset_path" do
@@ -75,8 +78,9 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "with a simple asset host the url should default to protocol relative" do
+    @controller.config.default_asset_host_protocol = :relative
     @controller.config.asset_host = "assets-%d.example.com"
-    assert_match %r{//assets-\d.example.com/assets/logo-[0-9a-f]+.png},
+    assert_match %r{^//assets-\d.example.com/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
   end
 
@@ -88,10 +92,11 @@ class SprocketsHelperTest < ActionView::TestCase
   end
 
   test "With a proc asset host that returns no protocol the url should be protocol relative" do
+    @controller.config.default_asset_host_protocol = :relative
     @controller.config.asset_host = Proc.new do |asset|
       "assets-999.example.com"
     end
-    assert_match %r{//assets-999.example.com/assets/logo-[0-9a-f]+.png},
+    assert_match %r{^//assets-999.example.com/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
   end
 
@@ -114,7 +119,7 @@ class SprocketsHelperTest < ActionView::TestCase
 
   test "stylesheets served without a controller in scope cannot access the request" do
     @controller = nil
-    @config.action_controller.asset_host = Proc.new do |asset, request|
+    @config.asset_host = Proc.new do |asset, request|
       fail "This should not have been called."
     end
     assert_raises ActionController::RoutingError do
@@ -134,11 +139,27 @@ class SprocketsHelperTest < ActionView::TestCase
       path_to_image("logo.png")
   end
 
+  test "javascript_path" do
+    assert_match %r{/assets/application-[0-9a-f]+.js},
+      javascript_path("application.js")
+
+    assert_match %r{/assets/application-[0-9a-f]+.js},
+      path_to_javascript("application.js")
+  end
+
+  test "stylesheet_path" do
+    assert_match %r{/assets/application-[0-9a-f]+.css},
+      stylesheet_path("application.css")
+
+    assert_match %r{/assets/application-[0-9a-f]+.css},
+      path_to_stylesheet("application.css")
+  end
+
   test "stylesheets served without a controller in do not use asset hosts when the default protocol is :request" do
     @controller = nil
-    @config.action_controller.asset_host = "assets-%d.example.com"
-    @config.action_controller.default_asset_host_protocol = :request
-    @config.action_controller.perform_caching = true
+    @config.asset_host = "assets-%d.example.com"
+    @config.default_asset_host_protocol = :request
+    @config.perform_caching = true
 
     assert_match %r{/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
@@ -152,12 +173,12 @@ class SprocketsHelperTest < ActionView::TestCase
 
   test "asset path with relative url root when controller isn't present but relative_url_root is" do
     @controller = nil
-    @config.action_controller.relative_url_root = "/collaboration/hieraki"
+    @config.relative_url_root = "/collaboration/hieraki"
     assert_equal "/collaboration/hieraki/images/logo.gif",
      asset_path("/images/logo.gif")
   end
 
-  test "javascript path" do
+  test "javascript path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.js},
       asset_path(:application, :ext => "js")
 
@@ -202,7 +223,7 @@ class SprocketsHelperTest < ActionView::TestCase
       javascript_include_tag(:application)
   end
 
-  test "stylesheet path" do
+  test "stylesheet path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.css}, asset_path(:application, :ext => "css")
 
     assert_match %r{/assets/style-[0-9a-f]+.css}, asset_path("style", :ext => "css")
