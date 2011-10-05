@@ -14,6 +14,8 @@ module ActiveRecord
         # primary_key_prefix_type setting, though.
         def primary_key
           @primary_key ||= reset_primary_key
+          raise ActiveRecord::UnknownPrimaryKey.new(self) unless @primary_key
+          @primary_key
         end
 
         # Returns a quoted version of the primary key name, used to construct SQL statements.
@@ -27,6 +29,11 @@ module ActiveRecord
 
           set_primary_key(key)
           key
+        end
+
+        def primary_key? #:nodoc:
+          @primary_key ||= reset_primary_key
+          !@primary_key.nil?
         end
 
         def get_primary_key(base_name) #:nodoc:

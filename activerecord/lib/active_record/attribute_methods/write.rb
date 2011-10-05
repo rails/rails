@@ -18,7 +18,7 @@ module ActiveRecord
               end
             end
 
-            if attr_name == primary_key && attr_name != "id"
+            if primary_key? && attr_name == primary_key && attr_name != "id"
               generated_attribute_methods.module_eval("alias :id= :'#{primary_key}='")
             end
           end
