@@ -1,5 +1,41 @@
 *Rails 3.1.1 (unreleased)*
 
+* stylesheet_link_tag('/stylesheets/application') and similar helpers doesn't
+throw Sprockets::FileOutsidePaths exception anymore [Santiago Pastorino]
+
+* Ensure default_asset_host_protocol is respected, closes #2980. [José Valim]
+
+  Changing rake db:schema:dump to run :environment as well as :load_config,
+  as running :load_config alone will lead to the dumper being run without
+  including extensions such as those included in foreigner and
+  spatial_adapter.
+
+  This reverses a change made here:
+  https://github.com/rails/rails/commit/5df72a238e9fcb18daf6ab6e6dc9051c9106d7bb#L0L324
+
+  I'm assuming here that :load_config needs to be invoked
+  separately from :environment, as it is elsewhere in the
+  file for db operations, if not the alternative is to go
+  back to "task :dump => :environment do".
+
+  [Ben Woosley]
+
+* Update to rack-cache 1.1.
+
+  Versions prior to 1.1 delete the If-Modified-Since and If-Not-Modified
+  headers when config.action_controller.perform_caching is true. This has two
+  problems:
+    * unexpected inconsistent behaviour between development &
+      production environments
+    * breaks applications that use of these headers
+
+  [Brendan Ribera]
+
+* Ensure that enhancements to assets:precompile task are only run once [Sam Pohlenz]
+
+* TestCase should respect the view_assigns API instead of pulling variables on
+its own. [José Valim]
+
 * javascript_path and stylesheet_path now refer to /assets if asset pipelining
 is on. [Santiago Pastorino]
 

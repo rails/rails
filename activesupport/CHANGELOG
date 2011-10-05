@@ -1,5 +1,13 @@
 *Rails 3.1.1 (unreleased)*
 
+* ruby193: String#prepend is also unsafe [Akira Matsuda]
+
+* Fix obviously breakage of Time.=== for Time subclasses [jeremyevans]
+
+* Added fix so that file store does not raise an exception when cache dir does
+not exist yet. This can happen if a delete_matched is called before anything
+is saved in the cache. [Philippe Huibonhoa]
+
 * Fixed performance issue where TimeZone lookups would require tzinfo each time [Tim Lucas]
 
 * ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! [Prem Sichanugrist]
