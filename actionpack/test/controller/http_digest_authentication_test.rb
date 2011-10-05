@@ -208,6 +208,16 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret"){nil}
   end
 
+  test "authentication request with request-uri ending in '?'" do
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please',
+                                                            :uri => '/http_digest_authentication_test/dummy_digest?')
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest?"
+    get :display
+
+    assert_response :success
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
   private
 
   def encode_credentials(options)
