@@ -16,8 +16,6 @@ module ActionView
     # roots. Rewrite the asset path for cache-busting asset ids. Include
     # asset host, if configured, with the correct request protocol.
     #
-    # When include_host is true and the asset host does not specify the protocol
-    # the protocol parameter specifies how the protocol will be added.
     # When :relative (default), the protocol will be determined by the client using current protocol
     # When :request, the protocol will be the request protocol
     # Otherwise, the protocol is used (E.g. :http, :https, etc)
@@ -25,11 +23,10 @@ module ActionView
       source = source.to_s
       return source if is_uri?(source)
 
-      options[:include_host] ||= true
       source = rewrite_extension(source, dir, options[:ext]) if options[:ext]
       source = rewrite_asset_path(source, dir, options)
       source = rewrite_relative_url_root(source, relative_url_root)
-      source = rewrite_host_and_protocol(source, options[:protocol]) if options[:include_host]
+      source = rewrite_host_and_protocol(source, options[:protocol])
       source
     end
 
