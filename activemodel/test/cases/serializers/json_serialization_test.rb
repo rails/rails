@@ -135,8 +135,8 @@ class JsonSerializationTest < ActiveModel::TestCase
     contact.errors.add :age, "must be 16 or over"
 
     hash = ActiveSupport::OrderedHash.new
-    hash[:name] = ["can't be blank", "is too short (minimum is 2 characters)"]
-    hash[:age]  = ["must be 16 or over"]
+    hash[:name] = ["Name can't be blank", "Name is too short (minimum is 2 characters)"]
+    hash[:age]  = ["Age must be 16 or over"]
     assert_equal hash.to_json, contact.errors.to_json
   end
 
