@@ -1,5 +1,10 @@
 *Rails 3.1.1 (unreleased)*
 
+* Raise an exception if the primary key of a model in an association is needed
+  but unknown. Fixes #3207.
+
+  [Jon Leighton]
+
 * Add deprecation for the preload_associations method. Fixes #3022.
 
   [Jon Leighton]
