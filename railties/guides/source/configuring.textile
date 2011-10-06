@@ -467,6 +467,25 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * +after_initialize+: Run directly after the initialization of the application, but before the application initializers are run.
 
+To define an event for these hooks, use the block syntax within a +Rails::Aplication+, +Rails::Railtie+ or +Rails::Engine+ subclass:
+
+<ruby>
+module YourApp
+  class Application < Rails::Application
+    config.before_initialize do
+      # initialization code goes here
+    end
+  end
+end
+</ruby>
+
+Alternatively, you can also do it through the +config+ method on the +Rails.application+ object:
+
+<ruby>
+Rails.application.config.before_initialize do
+  # initialization code goes here
+end
+</ruby>
 
 WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
 
