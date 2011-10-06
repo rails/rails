@@ -156,6 +156,8 @@ TODO: Brief explanation of what this engine is going to be doing and what we wil
 TODO: Generate a posts scaffold (maybe?) for the engine
 TODO: Generate a comments scaffold (maybe?) for the engine
 
+TODO: Mention usage of `rails s` and `rails c` within the context of an engine.
+
 h3. Hooking into application
 
 TODO: Application will provide a User foundation class which the engine hooks into through a configuration setting, configurable in the application's initializers. The engine will be mounted at the +/blog+ path in the application.
