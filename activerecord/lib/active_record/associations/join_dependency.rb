@@ -13,7 +13,7 @@ module ActiveRecord
         @join_parts    = [JoinBase.new(base)]
         @associations  = {}
         @reflections   = []
-        @alias_tracker = AliasTracker.new(joins)
+        @alias_tracker = AliasTracker.new(base, joins)
         @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
         build(associations)
       end

@@ -10,7 +10,7 @@ module ActiveRecord
 
       def initialize(association)
         @association   = association
-        @alias_tracker = AliasTracker.new
+        @alias_tracker = AliasTracker.new(association.owner)
       end
 
       def scope
