@@ -5,6 +5,8 @@ require 'models/owner'
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::TestCase
+      self.use_transactional_fixtures = false
+
       class DualEncoding < ActiveRecord::Base
       end
 
@@ -155,6 +157,8 @@ module ActiveRecord
         binary = DualEncoding.new :name => 'いただきます！', :data => str
         binary.save!
         assert_equal str, binary.data
+
+        DualEncoding.connection.drop_table('dual_encodings')
       end
 
       def test_execute

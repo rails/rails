@@ -3,6 +3,8 @@ require "models/project"
 require "timeout"
 
 class PooledConnectionsTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
   def setup
     @per_test_teardown = []
     @connection = ActiveRecord::Base.remove_connection
