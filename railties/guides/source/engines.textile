@@ -22,6 +22,8 @@ Engines can also be isolated from their host applications. This means that an ap
 
 To see demonstrations of other engines, check out "Devise":https://github.com/plataformatec/devise, an engine that provides authentication for its parent applications, or "Forem":https://github.com/radar/forem, an engine that provides forum functionality.
 
+Finally, engines would not have be possible without the work of James Adam, Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever meet them, don't forget to say thanks!
+
 h3. Generating an engine
 
 To generate an engine with Rails 3.1, you will need to run the plugin generator and pass it the +--mountable+ option. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
