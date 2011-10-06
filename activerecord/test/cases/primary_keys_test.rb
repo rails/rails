@@ -145,6 +145,10 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k.set_primary_key "bar"
     assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
   end
+end
+
+class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
 
   def test_set_primary_key_with_no_connection
     return skip("disconnect wipes in-memory db") if in_memory_db?

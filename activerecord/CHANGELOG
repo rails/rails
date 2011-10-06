@@ -1,5 +1,10 @@
 *Rails 3.1.1 (unreleased)*
 
+* Transactional fixtures enlist all active database connections. You can test
+  models on different connections without disabling transactional fixtures.
+
+  [Jeremy Kemper]
+
 * Add deprecation for the preload_associations method. Fixes #3022.
 
   [Jon Leighton]

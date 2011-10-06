@@ -451,13 +451,35 @@ end
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
-  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
   self.use_transactional_fixtures = false
 
   def test_connection
     assert_kind_of Course, courses(:ruby)
     assert_equal Course.connection, courses(:ruby).connection
+  end
+
+  def test_leaky_destroy
+    assert_nothing_raised { courses(:ruby) }
+    courses(:ruby).destroy
+  end
+
+  def test_it_twice_in_whatever_order_to_check_for_fixture_leakage
+    test_leaky_destroy
+  end
+end
+
+class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
+  set_fixture_class :courses => Course
+  fixtures :courses
+  self.use_transactional_fixtures = true
+
+  def test_leaky_destroy
+    assert_nothing_raised { courses(:ruby) }
+    courses(:ruby).destroy
+  end
+
+  def test_it_twice_in_whatever_order_to_check_for_fixture_leakage
+    test_leaky_destroy
   end
 end
 
@@ -496,7 +518,9 @@ class ManyToManyFixturesWithClassDefined < ActiveRecord::TestCase
 end
 
 class FixturesBrokenRollbackTest < ActiveRecord::TestCase
-  def blank_setup; end
+  def blank_setup
+    @fixture_connections = [ActiveRecord::Base.connection]
+  end
   alias_method :ar_setup_fixtures, :setup_fixtures
   alias_method :setup_fixtures, :blank_setup
   alias_method :setup, :blank_setup
