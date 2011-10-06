@@ -166,3 +166,4 @@ h3. Overriding engine functionality
 
 TODO: Cover how to override engine functionality in the engine, such as controllers and views.
 IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
+
