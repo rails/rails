@@ -12,7 +12,7 @@ endprologue.
 
 h3. What are engines?
 
-Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the +Rails::Application+ class inheriting from +Rails::Engine+. Therefore, engines and applications share common functionality but are at the same time two separate beasts. Engines and applications also share a common structure, as you'll see later in this guide.
+Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the +Rails::Application+ class inheriting from +Rails::Engine+. Therefore, engines and applications share common functionality but are at the same time two separate beasts. Engines and applications also share a common structure, as you'll see througout this guide.
 
 Engines are also closely related to plugins where the two share a common +lib+ directory structure and are both generated using the +rails plugin new+ generator.
 
@@ -34,7 +34,9 @@ $ rails plugin new blorgh --mountable
 
 The +--mountable+ option tells the plugin generator that you want to create an engine (which is a mountable plugin, hence the option name), creating the basic directory structure of an engine by providing things such as the foundations of an +app+ folder, as well a +config/routes.rb+ file. This generator also provides a file at +lib/blorgh/engine.rb+ which is identical in function to an application's +config/application.rb+ file.
 
-Inside the +app+ directory there lives the standard +assets+, +controllers+, +helpers+, +mailers+, +models+ and +views+ directories that you should be familiar with from an application.
+h4. Inside an engine
+
+h5. Critical files
 
 At the root of the engine's directory, lives a +blorgh.gemspec+ file. When you include the engine into the application later on, you will do so with this line in a Rails application's +Gemfile+:
 
@@ -54,10 +56,45 @@ end
 Within +lib/blorgh/engine.rb+ is the base class for the engine:
 
 <ruby>
-  TODO: lib/blorgh/engine.rb
+module Blorgh
+  class Engine < Rails::Engine
+    isolate_namespace Blorgh
+  end
+end
 </ruby>
 
+By inheriting from the +Rails::Engine+ class, this engine gains all the functionality it needs, such as being able to serve requests to its controllers.
+
+The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption. It is recommended that this line be left within this file.
+
+h5. +app+ directory
+
+Inside the +app+ directory there lives the standard +assets+, +controllers+, +helpers+, +mailers+, +models+ and +views+ directories that you should be familiar with from an application. The +helpers+, +mailers+ and +models+ directories are empty and so aren't described in this section. We'll look more into models in a future section.
+
+Within the +app/assets+ directory, there is the +images+, +javascripts+ and +stylesheets+ directories which, again, you should be familiar with due to their similarities of an application. One difference here however is that each directory contains a sub-directory with the engine name. Because this engine is going to be namespaced, its assets should be too.
+
 Within the +app/controllers+ directory there is a +blorgh+ directory and inside that a file called +application_controller.rb+. This file will provide any common functionality for the controllers of the engine. The +blorgh+ directory is where the other controllers for the engine will go. By placing them within this namespaced directory, you prevent them from possibly clashing with identically-named controllers within other engines or even within the application.
+
+Lastly, the +app/views+ directory contains a +layouts+ folder which contains file at +blorgh/application.html.erb+ which allows you to specify a layout for the engine. If this engine is to be used as a stand-alone engine, then we would add any customization to its layout in this file, rather than the applications +app/views/layouts/application.html.erb+ file.
+
+h5. +script+ directory
+
+This directory contains one file, +script/rails+, which allows you to use the +rails+ sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine.
+
+h5. +test+ directory
+
+The +test+ directory is where tests for the engine will go. To test the engine, there is a cut-down version of a Rails application embedded within it at +test/dummy+. This application will mount the engine in the +test/dummy/config/routes.rb+ file:
+
+<ruby>
+Rails.application.routes.draw do
+
+  mount Blorgh::Engine => "/blorgh"
+end
+</ruby>
+
+This line mounts the engine at the path of +/blorgh+, which will make it accessible through the application only at that path. We will look more into mounting an engine after we have developed some features.
+
+Also in the test directory is the +test/integration+ directory, where integration tests for the engine should be placed.
 
 h3. Providing engine functionality
 
