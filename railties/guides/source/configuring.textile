@@ -461,12 +461,31 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * +before_initialize+: This is run directly before the initialization process of the application occurs with the +:bootstrap_hook+ initializer near the beginning of the Rails initialization process.
 
-* +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built.
+* +to_prepare+: Run after the initializers are ran for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in +development+, but only once (during boot-up) in +production+ and +test+.
 
 * +before_eager_load+: This is run directly before eager loading occurs, which is the default behaviour for the _production_ environment and not for the +development+ environment.
 
 * +after_initialize+: Run directly after the initialization of the application, but before the application initializers are run.
 
+To define an event for these hooks, use the block syntax within a +Rails::Aplication+, +Rails::Railtie+ or +Rails::Engine+ subclass:
+
+<ruby>
+module YourApp
+  class Application < Rails::Application
+    config.before_initialize do
+      # initialization code goes here
+    end
+  end
+end
+</ruby>
+
+Alternatively, you can also do it through the +config+ method on the +Rails.application+ object:
+
+<ruby>
+Rails.application.config.before_initialize do
+  # initialization code goes here
+end
+</ruby>
 
 WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
 

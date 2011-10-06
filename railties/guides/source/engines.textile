@@ -12,13 +12,50 @@ endprologue.
 
 h3. What are engines?
 
-Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the `Rails::Application` class inheriting from `Rails::Engine`. Therefore, engines and applications share common functionality but are at the same time two separate beasts.
+Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the +Rails::Application+ class inheriting from +Rails::Engine+. Therefore, engines and applications share common functionality but are at the same time two separate beasts. Engines and applications also share a common structure, as you'll see later in this guide.
+
+Engines are also closely related to plugins where the two share a common +lib+ directory structure and are both generated using the +rails plugin new+ generator.
+
+The engine that will be generated for this guide will be called "blorgh". The engine will provide blogging functionality to its host applications, allowing for new posts and comments to be created. For now, you will be working solely within the engine itself and in later sections you'll see how to hook it into an application.
+
+Engines can also be isolated from their host applications. This means that an application is able to have a path provided by a routing helper such as +posts_path+ and use an engine also that provides a path also called +posts_path+, and the two would not clash. Along with this, controllers, models and table names are also namespaced. You'll see how to do this later in this guide.
+
+To see demonstrations of other engines, check out "Devise":https://github.com/plataformatec/devise, an engine that provides authentication for its parent applications, or "Forem":https://github.com/radar/forem, an engine that provides forum functionality.
 
 h3. Generating an engine
 
-TODO: The engine that will be generated for this guide will be called "blorgh". It's a blogging engine that provides posts and comments and that's it.
+To generate an engine with Rails 3.1, you will need to run the plugin generator and pass it the +--mountable+ option. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
 
-TODO: Describe here the process of generating an engine and what an engine comes with.
+<shell>
+$ rails plugin new blorgh --mountable
+</shell>
+
+The +--mountable+ option tells the plugin generator that you want to create an engine (which is a mountable plugin, hence the option name), creating the basic directory structure of an engine by providing things such as the foundations of an +app+ folder, as well a +config/routes.rb+ file. This generator also provides a file at +lib/blorgh/engine.rb+ which is identical in function to an application's +config/application.rb+ file.
+
+Inside the +app+ directory there lives the standard +assets+, +controllers+, +helpers+, +mailers+, +models+ and +views+ directories that you should be familiar with from an application.
+
+At the root of the engine's directory, lives a +blorgh.gemspec+ file. When you include the engine into the application later on, you will do so with this line in a Rails application's +Gemfile+:
+
+<ruby>
+  gem 'blorgh', :path => "vendor/engines/blorgh"
+</ruby>
+
+By specifying it as a gem within the +Gemfile+, Bundler will load it as such, parsing this +blorgh.gemspec+ file and requiring a file within the +lib+ directory called +lib/blorgh.rb+. This file requires the +blorgh/engine.rb+ file (located at +lib/blorgh/engine.rb+) and defines a base module called +Blorgh+.
+
+<ruby>
+require "blorgh/engine"
+
+module Blorgh
+end
+</ruby>
+
+Within +lib/blorgh/engine.rb+ is the base class for the engine:
+
+<ruby>
+  TODO: lib/blorgh/engine.rb
+</ruby>
+
+Within the +app/controllers+ directory there is a +blorgh+ directory and inside that a file called +application_controller.rb+. This file will provide any common functionality for the controllers of the engine. The +blorgh+ directory is where the other controllers for the engine will go. By placing them within this namespaced directory, you prevent them from possibly clashing with identically-named controllers within other engines or even within the application.
 
 h3. Providing engine functionality
 
