@@ -348,7 +348,7 @@ module ActionView
 
         src = options[:src] = path_to_image(source)
 
-        unless src =~ /^cid:/
+        unless src =~ /^(?:cid|data):/
           options[:alt] = options.fetch(:alt){ image_alt(src) }
         end
 
