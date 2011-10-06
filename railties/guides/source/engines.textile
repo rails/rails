@@ -75,7 +75,7 @@ Within the +app/assets+ directory, there is the +images+, +javascripts+ and +sty
 
 Within the +app/controllers+ directory there is a +blorgh+ directory and inside that a file called +application_controller.rb+. This file will provide any common functionality for the controllers of the engine. The +blorgh+ directory is where the other controllers for the engine will go. By placing them within this namespaced directory, you prevent them from possibly clashing with identically-named controllers within other engines or even within the application.
 
-Lastly, the +app/views+ directory contains a +layouts+ folder which contains file at +blorgh/application.html.erb+ which allows you to specify a layout for the engine. If this engine is to be used as a stand-alone engine, then we would add any customization to its layout in this file, rather than the applications +app/views/layouts/application.html.erb+ file.
+Lastly, the +app/views+ directory contains a +layouts+ folder which contains file at +blorgh/application.html.erb+ which allows you to specify a layout for the engine. If this engine is to be used as a stand-alone engine, then you would add any customization to its layout in this file, rather than the applications +app/views/layouts/application.html.erb+ file.
 
 h5. +script+ directory
 
@@ -92,11 +92,65 @@ Rails.application.routes.draw do
 end
 </ruby>
 
-This line mounts the engine at the path of +/blorgh+, which will make it accessible through the application only at that path. We will look more into mounting an engine after we have developed some features.
+This line mounts the engine at the path of +/blorgh+, which will make it accessible through the application only at that path. We will look more into mounting an engine after some features have been developed.
 
 Also in the test directory is the +test/integration+ directory, where integration tests for the engine should be placed.
 
 h3. Providing engine functionality
+
+The engine that this guide covers will provide posting and commenting functionality.
+
+h4. Generating a post resource
+
+The first thing to generate for a blog engine is the +Post+ model and related controller. To quickly generate this, you can use the Rails scaffold generator.
+
+<shell>
+$ rails generate scaffold post title:string text:text
+invoke  active_record
+create    db/migrate/20111006201642_create_blorgh_posts.rb
+create    app/models/blorgh/post.rb
+invoke    test_unit
+create      test/unit/blorgh/post_test.rb
+create      test/fixtures/blorgh/posts.yml
+ route  resources :posts
+invoke  scaffold_controller
+create    app/controllers/blorgh/posts_controller.rb
+invoke    erb
+create      app/views/blorgh/posts
+create      app/views/blorgh/posts/index.html.erb
+create      app/views/blorgh/posts/edit.html.erb
+create      app/views/blorgh/posts/show.html.erb
+create      app/views/blorgh/posts/new.html.erb
+create      app/views/blorgh/posts/_form.html.erb
+invoke    test_unit
+create      test/functional/blorgh/posts_controller_test.rb
+invoke    helper
+create      app/helpers/blorgh/posts_helper.rb
+invoke      test_unit
+create        test/unit/helpers/blorgh/posts_helper_test.rb
+invoke  assets
+invoke    js
+create      app/assets/javascripts/blorgh/posts.js
+invoke    css
+create      app/assets/stylesheets/blorgh/posts.css
+invoke  css
+create    app/assets/stylesheets/scaffold.css
+</shell>
+
+The first thing that the scaffold generator does is invoke the +active_record+ generator, which generates a migration and a model for the resource. Note here, however, that the migration is called +create_blorgh_posts+ rather than the usual +create_posts+. This is due to the +isolate_namespace+ method called in the +Blorgh::Engine+ class's definition. The model here is also namespaced, being placed at +app/models/blorgh/post.rb+ rather than +app/models/post.rb+.
+
+Next, the +test_unit+ generator is invoked for this model, generating a unit test at +test/unit/blorgh/post_test.rb+ (rather than +test/unit/post_test.rb+) and a fixture at +test/fixtures/blorgh/posts.yml+ (rather than +test/fixtures/posts.yml+).
+
+After that, a line for the resource is inserted into the +config/routes.rb+ file for the engine. This line is simply +resources :posts+, turning the +config/routes.rb+ file into this:
+
+<ruby>
+Blorgh::Engine.routes.draw do
+  resources :posts
+
+end
+</ruby>
+
+Note here that the routes are drawn upon the +Blorgh::Engine+ object rather than the +YourApp::Application+ class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the "test directory":#test-directory section.
 
 TODO: Brief explanation of what this engine is going to be doing and what we will have once we are done.
 TODO: Generate a posts scaffold (maybe?) for the engine
