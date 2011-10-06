@@ -398,7 +398,7 @@ This can be changed with the +config.assets.manifest+ option. A fully specified 
 config.assets.manifest = '/path/to/some/other/location'
 </erb>
 
-NOTE: If there are missing precompiled files in production you will get an <tt>AssetNoPrecompiledError</tt> exception indicating the name of the missing file(s).
+NOTE: If there are missing precompiled files in production you will get an <tt>Sprockets::Helpers::RailsHelper:: AssetPaths::AssetNotPrecompiledError</tt> exception indicating the name of the missing file(s).
 
 h5. Server Configuration
 
@@ -436,9 +436,9 @@ location ~ ^/assets/ {
 }
 </plain>
 
-When files are precompiled, Sprockets also creates a "Gzip":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. This avoids the server having to do this for any requests; it can simply read the compressed files from disk. You must configure your server to use gzip compression and serve the compressed assets that will be stored in the +public/assets+ folder. The following configuration options can be used:
+When files are precompiled, Sprockets also creates a "gzipped":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. One the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
 
-For Apache:
+A possible configuration for Apache could be:
 
 <plain>
 <LocationMatch "^/assets/.*$">
