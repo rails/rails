@@ -398,7 +398,7 @@ This can be changed with the +config.assets.manifest+ option. A fully specified 
 config.assets.manifest = '/path/to/some/other/location'
 </erb>
 
-NOTE: If there are missing precompiled files in production you will get an <tt>Sprockets::Helpers::RailsHelper:: AssetPaths::AssetNotPrecompiledError</tt> exception indicating the name of the missing file(s).
+NOTE: If there are missing precompiled files in production you will get an <tt>Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError</tt> exception indicating the name of the missing file(s).
 
 h5. Server Configuration
 
