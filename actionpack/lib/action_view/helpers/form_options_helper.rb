@@ -579,7 +579,7 @@ module ActionView
       def to_select_tag(choices, options, html_options)
         selected_value = options.has_key?(:selected) ? options[:selected] : value(object)
 
-        if !choices.empty? && choices.try(:first).try(:second).respond_to?(:each)
+        if !choices.empty? && Array === choices.first
           option_tags = grouped_options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])
         else
           option_tags = options_for_select(choices, :selected => selected_value, :disabled => options[:disabled])

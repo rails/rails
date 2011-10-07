@@ -587,6 +587,15 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_empty
+    @post = Post.new
+    @post.category = ""
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
+      select("post", "category", [], :prompt => true, :include_blank => true)
+    )
+  end
+
   def test_select_with_selected_value
     @post = Post.new
     @post.category = "<mus>"
