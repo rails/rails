@@ -115,6 +115,14 @@ module ActiveRecord
         retrieve_connection
       end
 
+      def connection_id
+        Thread.current['ActiveRecord::Base.connection_id']
+      end
+
+      def connection_id=(connection_id)
+        Thread.current['ActiveRecord::Base.connection_id'] = connection_id
+      end
+
       # Returns the configuration of the associated connection as a hash:
       #
       #  ActiveRecord::Base.connection_config
