@@ -438,35 +438,26 @@ location ~ ^/assets/ {
 
 When files are precompiled, Sprockets also creates a "gzipped":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. One the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
 
-A possible configuration for Apache could be:
-
-<plain>
-<LocationMatch "^/assets/.*$">
-  # 2 lines to serve pre-gzipped version
-  RewriteCond %{REQUEST_FILENAME}.gz -s
-  RewriteRule ^(.+) $1.gz [L]
-</LocationMatch>
-
-# without these, Content-Type will be "application/x-gzip"
-<FilesMatch "^/assets/.*\.css.gz$">
-    ForceType text/css
-</FilesMatch>
-
-<FilesMatch "^/assets/.*\.js.gz$">
-    ForceType text/javascript
-</FilesMatch>
-</plain>
-
-For nginx:
+Nginx is able to do this automatically enabling +gzip_static+:
 
 <plain>
 location ~ ^/(assets)/  {
   root /path/to/public;
   gzip_static on; # to serve pre-gzipped version
   expires max;
-  add_header  Cache-Control public;
+  add_header Cache-Control public;
 }
 </plain>
+
+This directive is available if the core module that provides this feature was compiled with the web server. Ubuntu packages, even +nginx-light+ have the module compiled. Otherwise, you may need to perform a manual compilation:
+
+<plain>
+./configure --with-http_gzip_static_module
+</plain>
+
+If you're compiling nginx with Phusion Passenger you'll need to pass that option when prompted.
+
+Unfortunately, a robust configuration for Apache is possible but tricky, please Google around.
 
 h4. Live Compilation
 
