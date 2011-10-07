@@ -38,7 +38,7 @@ h4. Main Features
 
 The first feature of the pipeline is to concatenate assets. This is important in a production environment, as it reduces the number of requests that a browser must make to render a web page.
 
-While Rails already has a feature to concatenate these types of assets -- by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+ --, it has a series of limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
+While Rails already has a feature to concatenate these types of assets by placing +:cache => true+ at the end of tags such as +javascript_include_tag+ and +stylesheet_link_tag+, it has a series of limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
 
 The default behavior in Rails 3.1 and onward is to concatenate all files into one master file each for JS and CSS. However, you can separate files or groups of files if required (see below). In production, an MD5 fingerprint is inserted into each filename so that the file is cached by the web browser but can be invalidated if the fingerprint is altered.
 
