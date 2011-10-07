@@ -27,7 +27,7 @@ module ActionView
   #
   # == The :as and :object options
   #
-  # By default <tt>ActionView::Partials::PartialRenderer</tt> doesn't have any local variables.
+  # By default <tt>ActionView::PartialRenderer</tt> doesn't have any local variables.
   # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
   #
   #   <%= render :partial => "account", :object => @buyer %>
