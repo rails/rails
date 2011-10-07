@@ -719,9 +719,9 @@ X.local_constants    # => ["X2", "X1", "Y"], assumes Ruby 1.8
 X::Y.local_constants # => ["X1", "Y1"], assumes Ruby 1.8
 </ruby>
 
-The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ returns always strings.
+The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ always returns strings.
 
-WARNING: This method is exact if running under Ruby 1.9. In previous versions it may miss some constants if their value in some ancestor stores the exact same object than in the receiver.
+WARNING: This method returns precise results in Ruby 1.9. In older versions of Ruby, however, it may miss some constants in case the same constant exists in the receiver module as well as in any of its ancestors and both constants point to the same object (objects are compared using +Object#object_id+).
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
