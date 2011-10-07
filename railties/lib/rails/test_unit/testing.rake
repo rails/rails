@@ -71,6 +71,8 @@ module Kernel
   end
 end
 
+task :default => :test
+
 desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile, test:plugins)'
 task :test do
   tests_to_run = ENV['TEST'] ? ["test:single"] : %w(test:units test:functionals test:integration)
