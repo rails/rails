@@ -13,7 +13,7 @@ endprologue.
 
 WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in other versions of Rails.
 
-If you're used to using raw SQL to find database records then, generally, you will find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
 Code examples throughout this guide will refer to one or more of the following models:
 
@@ -69,16 +69,16 @@ The methods are:
 
 All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 
-Primary operation of <tt>Model.find(options)</tt> can be summarized as:
+The primary operation of <tt>Model.find(options)</tt> can be summarized as:
 
 * Convert the supplied options to an equivalent SQL query.
 * Fire the SQL query and retrieve the corresponding results from the database.
 * Instantiate the equivalent Ruby object of the appropriate model for every resulting row.
-* Run +after_find+ callbacks if any.
+* Run +after_find+ callbacks, if any.
 
 h4. Retrieving a Single Object
 
-Active Record lets you retrieve a single object using five different ways.
+Active Record provides five different ways of retrieving a single object.
 
 h5. Using a Primary Key
 
@@ -87,10 +87,10 @@ Using <tt>Model.find(primary_key)</tt>, you can retrieve the object correspondin
 <ruby>
 # Find the client with primary key (id) 10.
 client = Client.find(10)
-=> #<Client id: 10, first_name: => "Ryan">
+# => #<Client id: 10, first_name: "Ryan">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients WHERE (clients.id = 10)
@@ -100,14 +100,14 @@ SELECT * FROM clients WHERE (clients.id = 10)
 
 h5. +first+
 
-<tt>Model.first</tt> finds the first record matched by the supplied options. For example:
+<tt>Model.first</tt> finds the first record matched by the supplied options, if any. For example:
 
 <ruby>
 client = Client.first
-=> #<Client id: 1, first_name: "Lifo">
+# => #<Client id: 1, first_name: "Lifo">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients LIMIT 1
@@ -121,10 +121,10 @@ h5. +last+
 
 <ruby>
 client = Client.last
-=> #<Client id: 221, first_name: "Russel">
+# => #<Client id: 221, first_name: "Russel">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
@@ -138,10 +138,10 @@ h5(#first_1). +first!+
 
 <ruby>
 client = Client.first!
-=> #<Client id: 1, first_name: "Lifo">
+# => #<Client id: 1, first_name: "Lifo">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients LIMIT 1
@@ -155,10 +155,10 @@ h5(#last_1). +last!+
 
 <ruby>
 client = Client.last!
-=> #<Client id: 221, first_name: "Russel">
+# => #<Client id: 221, first_name: "Russel">
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
@@ -174,11 +174,11 @@ h5. Using Multiple Primary Keys
 
 <ruby>
 # Find the clients with primary keys 1 and 10.
-client = Client.find(1, 10) # Or even Client.find([1, 10])
-=> [#<Client id: 1, first_name: => "Lifo">, #<Client id: 10, first_name: => "Ryan">]
+client = Client.find([1, 10]) # Or even Client.find(1, 10)
+# => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
 </ruby>
 
-SQL equivalent of the above is:
+The SQL equivalent of the above is:
 
 <sql>
 SELECT * FROM clients WHERE (clients.id IN (1,10))
@@ -190,7 +190,7 @@ h4. Retrieving Multiple Objects in Batches
 
 Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc.
 
-The following may seem very straight forward at first:
+The following may seem very straightforward, at first:
 
 <ruby>
 # Very inefficient when users table has thousands of rows.
@@ -199,9 +199,9 @@ User.all.each do |user|
 end
 </ruby>
 
-But if the total number of rows in the table is very large, the above approach may vary from being under performant to just plain impossible.
+But if the total number of rows in the table is very large, the above approach may vary from being underperforming to being plain impossible.
 
-This is because +User.all.each+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array in the memory. Sometimes that is just too many objects and demands too much memory.
+This is because +User.all.each+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array of model objects in memory. Sometimes that is just too many objects and requires too much memory.
 
 h5. +find_each+
 
@@ -215,9 +215,9 @@ end
 
 *Configuring the batch size*
 
-Behind the scenes +find_each+ fetches rows in batches of +1000+ and yields them one by one. The size of the underlying batches is configurable via the +:batch_size+ option.
+Behind the scenes, +find_each+ fetches rows in batches of 1000 and yields them one by one. The size of the underlying batches is configurable via the +:batch_size+ option.
 
-To fetch +User+ records in batch size of +5000+:
+To fetch +User+ records in batches of 5000, we can use:
 
 <ruby>
 User.find_each(:batch_size => 5000) do |user|
@@ -227,9 +227,9 @@ end
 
 *Starting batch find from a specific primary key*
 
-Records are fetched in ascending order on the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence if the lowest is not the one you need. This may be useful for example to be able to resume an interrupted batch process if it saves the last processed ID as a checkpoint.
+Records are fetched in ascending order of the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This may be useful, for example, to be able to resume an interrupted batch process, provided it saves the last processed ID as a checkpoint.
 
-To send newsletters only to users with the primary key starting from +2000+:
+To send newsletters only to users with the primary key starting from 2000, we can use:
 
 <ruby>
 User.find_each(:batch_size => 5000, :start => 2000) do |user|
@@ -252,7 +252,9 @@ Invoice.find_in_batches(:include => :invoice_lines) do |invoices|
 end
 </ruby>
 
-The above will yield the supplied block with +1000+ invoices every time.
+The above will each time yield to the supplied block an array of 1000 invoices (or the remaining invoices, if less than 1000).
+
+NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
 
 h3. Conditions
 
@@ -911,14 +913,14 @@ end
 To call this +published+ scope we can call it on either the class:
 
 <ruby>
-Post.published => [published posts]
+Post.published # => [published posts]
 </ruby>
 
 Or on an association consisting of +Post+ objects:
 
 <ruby>
 category = Category.first
-category.posts.published => [published posts belonging to this category]
+category.posts.published # => [published posts belonging to this category]
 </ruby>
 
 h4. Working with times
@@ -1030,7 +1032,7 @@ Suppose you want to find a client named 'Andy', and if there's none, create one 
 
 <ruby>
 Client.where(:first_name => 'Andy').first_or_create(:locked => false)
-# => <Client id: 1, first_name: "Andy", orders_count: 0, locked: false, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+# => #<Client id: 1, first_name: "Andy", orders_count: 0, locked: false, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 </ruby>
 
 The SQL generated by this method looks like this:

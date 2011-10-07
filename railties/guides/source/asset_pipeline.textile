@@ -120,7 +120,7 @@ All subdirectories that exist within these three locations are added to the sear
 You can add additional (fully qualified) paths to the pipeline in +config/application.rb+. For example:
 
 <ruby>
-config.assets.paths << "#{Rails.root}/app/assets/flash"
+config.assets.paths << Rails.root.join("app", "assets", "flash")
 </ruby>
 
 h4. Coding Links to Assets
@@ -232,7 +232,7 @@ There's also a default +app/assets/stylesheets/application.css+ file which conta
 
 The directives that work in the JavaScript files also work in stylesheets, obviously including stylesheets rather than JavaScript files. The +require_tree+ directive here works the same way as the JavaScript one, requiring all stylesheets from the current directory.
 
-In this example +require_self+ is used. This puts the CSS contained within the file (if any) at the top of any other CSS in this file unless +require_self+ is specified after another +require+ directive.
+In this example +require_self+ is used. This puts the CSS contained within the file (if any) at the precise location of the +require_self+ call. If +require_self+ is called more than once, only the last call is respected.
 
 You can have as many manifest files as you need. For example the +admin.css+ and +admin.js+ manifest could contain the JS and CSS files that are used for the admin section of an application.
 

@@ -596,6 +596,8 @@ match "/stories/:name" => redirect {|params| "/posts/#{params[:name].pluralize}"
 match "/stories" => redirect {|p, req| "/posts/#{req.subdomain}" }
 </ruby>
 
+Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
+
 In all of these cases, if you don't provide the leading host (+http://www.example.com+), Rails will take those details from the current request.
 
 h4. Routing to Rack Applications
