@@ -171,7 +171,8 @@ module ActionView
       #   link_to "Profile", @profile
       #   # => <a href="/profiles/1">Profile</a>
       #
-      # or, if you defined #to_s method for your model, you can do simply
+      # or you can define #to_title method in your model, which returns, for example, it's name,
+      # and then you can do simply:
       #
       #   link_to @product
       #   # => <a href="/products/1">Guitar</a>
@@ -239,8 +240,8 @@ module ActionView
           html_options = args.second
           link_to(capture(&block), options, html_options)
         else
-          name         = args[0]
-          options      = args[1] || name
+          name         = args[0].respond_to?(:to_title) ? args[0].to_title : args[0]
+          options      = args[1] || args[0]
           html_options = args[2]
 
           html_options = convert_options_to_data_attributes(options, html_options)
