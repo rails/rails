@@ -44,6 +44,15 @@ class PeopleHelperTest < ActionView::TestCase
     end
   end
 
+  def test_link_to_person_with_use_of_to_title
+    with_test_route_set do
+      person = mock(:to_title => "Simon")
+      person.class.extend ActiveModel::Naming
+      expects(:mocha_mock_path).with(person).returns("/people/1")
+      assert_equal '<a href="/people/1">Simon</a>', link_to(person)
+    end
+  end
+
   private
     def with_test_route_set
       with_routing do |set|
