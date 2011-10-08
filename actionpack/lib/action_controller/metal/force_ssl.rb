@@ -24,9 +24,12 @@ module ActionController
       # * <tt>only</tt>   - The callback should be run only for this action
       # * <tt>except<tt>  - The callback should be run for all actions except this action
       def force_ssl(options = {})
+        host = options.delete(:host)
         before_filter(options) do
           if !request.ssl? && !Rails.env.development?
-            redirect_to :protocol => 'https://', :status => :moved_permanently
+            redirect_options = {:protocol => 'https://', :status => :moved_permanently}
+            redirect_options.merge!(:host => host) if host
+            redirect_to redirect_options
           end
         end
       end

@@ -14,6 +14,10 @@ class ForceSSLControllerLevel < ForceSSLController
   force_ssl
 end
 
+class ForceSSLCustomDomain < ForceSSLController
+  force_ssl :host => "secure.test.host"
+end
+
 class ForceSSLOnlyAction < ForceSSLController
   force_ssl :only => :cheeseburger
 end
@@ -35,6 +39,22 @@ class ForceSSLControllerLevelTest < ActionController::TestCase
     get :cheeseburger
     assert_response 301
     assert_equal "https://test.host/force_ssl_controller_level/cheeseburger", redirect_to_url
+  end
+end
+
+class ForceSSLCustomDomainTest < ActionController::TestCase
+  tests ForceSSLCustomDomain
+
+  def test_banana_redirects_to_https_with_custom_host
+    get :banana
+    assert_response 301
+    assert_equal "https://secure.test.host/force_ssl_custom_domain/banana", redirect_to_url
+  end
+  
+  def test_cheeseburger_redirects_to_https_with_custom_host
+    get :cheeseburger
+    assert_response 301
+    assert_equal "https://secure.test.host/force_ssl_custom_domain/cheeseburger", redirect_to_url
   end
 end
 
