@@ -289,20 +289,16 @@ module ApplicationTests
     end
 
     test "precompile should handle utf8 filenames" do
-      if `uname` =~ /Darwin/
-        skip 'Asset lookup with Unicode filenames is a problematic due to different normalization forms. Mac uses NKD for filenames; Windows and Linux use NFC. So your asset lookups may mysteriously fail. Sprockets should handle these platform issues transparently.'
-      end
-
       filename = "レイルズ.png"
       app_file "app/assets/images/#{filename}", "not a image really"
       add_to_config "config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]"
 
       precompile!
-      assert File.exists?("#{app_path}/public/assets/#{filename}")
+      require "#{app_path}/config/environment"
 
-      manifest = "#{app_path}/public/assets/manifest.yml"
-      assets = YAML.load_file(manifest)
-      assert_equal filename, assets[filename], assets.inspect
+      get "/assets/#{URI.escape(filename)}"
+      assert_match "not a image really", last_response.body
+      assert File.exists?("#{app_path}/public/assets/#{filename}")
     end
 
     test "assets are cleaned up properly" do
