@@ -680,6 +680,11 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), :start_year => 2003, :end_year => 2005, :prefix => "date[first]", :order => [:month, :day, :year])
   end
 
+  def test_select_date_with_too_big_range_between_start_year_and_end_year
+    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), :start_year => 2000, :end_year => 20000.years, :prefix => "date[first]", :order => [:month, :day, :year]) }
+    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), :start_year => Date.today.year - 100.years, :end_year => 2000, :prefix => "date[first]", :order => [:month, :day, :year]) }
+  end
+
   def test_select_date_with_incomplete_order
     # Since the order is incomplete nothing will be shown
     expected = %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003" />\n)
