@@ -171,6 +171,11 @@ module ActionView
       #   link_to "Profile", @profile
       #   # => <a href="/profiles/1">Profile</a>
       #
+      # or, if you defined #to_s method for your model, you can do simply
+      #
+      #   link_to @product
+      #   # => <a href="/products/1">Guitar</a>
+      #
       # in place of the older more verbose, non-resource-oriented
       #
       #   link_to "Profile", :controller => "profiles", :action => "show", :id => @profile
@@ -235,7 +240,7 @@ module ActionView
           link_to(capture(&block), options, html_options)
         else
           name         = args[0]
-          options      = args[1] || {}
+          options      = args[1] || name
           html_options = args[2]
 
           html_options = convert_options_to_data_attributes(options, html_options)
