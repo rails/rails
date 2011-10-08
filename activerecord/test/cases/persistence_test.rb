@@ -118,7 +118,39 @@ class PersistencesTest < ActiveRecord::TestCase
     end
   end
 
-  def test_destroy_many
+  def test_destroy_all_with_varargs
+    topics_by_mary = Topic.where('author_name = ?', 'Mary').order(:id).all
+    assert ! topics_by_mary.empty?
+
+    assert_difference('Topic.count', -topics_by_mary.size) do
+      destroyed = Topic.destroy_all('author_name = ?', 'Mary').sort_by(&:id)
+      assert_equal topics_by_mary, destroyed
+      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+    end
+  end
+
+  def test_destroy_all_with_array
+    topics_by_mary = Topic.where(['author_name = ?', 'Mary']).order(:id).all
+    assert ! topics_by_mary.empty?
+
+    assert_difference('Topic.count', -topics_by_mary.size) do
+      destroyed = Topic.destroy_all(['author_name = ?', 'Mary']).sort_by(&:id)
+      assert_equal topics_by_mary, destroyed
+      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+    end
+  end
+
+  def test_destroy_many_with_varargs
+    clients = Client.find([2, 3], :order => 'id')
+
+    assert_difference('Client.count', -2) do
+      destroyed = Client.destroy(2, 3).sort_by(&:id)
+      assert_equal clients, destroyed
+      assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
+    end
+  end
+
+  def test_destroy_many_with_array
     clients = Client.find([2, 3], :order => 'id')
 
     assert_difference('Client.count', -2) do

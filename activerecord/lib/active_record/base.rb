@@ -468,9 +468,14 @@ module ActiveRecord #:nodoc:
       #   > [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
       #
       #   # You can use the same string replacement techniques as you can with ActiveRecord#find
+      #   Post.find_by_sql "SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date
+      #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
       #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
-      def find_by_sql(sql, binds = [])
+      def find_by_sql(*sql_and_binds)
+        binds = (sql_and_binds.many? && sql_and_binds.last.is_a?(Array)) ? sql_and_binds.pop : []
+        sql = (sql_and_binds.one? && sql_and_binds.first.is_a?(Array)) ? sql_and_binds.first : sql_and_binds
+        sql = sql.first if sql.one?
         connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
       end
 

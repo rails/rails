@@ -319,19 +319,20 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * +conditions+ - A string, array, or hash that specifies which records
-    #   to destroy. If omitted, all records are destroyed. See the
+    # * +conditions+ - A string, array, variable arguments, or hash that specifies
+    #   which records to destroy. If omitted, all records are destroyed. See the
     #   Conditions section in the introduction to ActiveRecord::Base for
     #   more information.
     #
     # ==== Examples
     #
-    #   Person.destroy_all("last_login < '2004-04-04'")
+    #   Person.destroy_all("first_name like '%dummy%'")
     #   Person.destroy_all(:status => "inactive")
+    #   Person.destroy_all("last_login < ?", 1.year.ago)
     #   Person.where(:age => 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
-        where(conditions).destroy_all
+    def destroy_all(*conditions)
+      if conditions.present?
+        where(*conditions).destroy_all
       else
         to_a.each {|object| object.destroy }.tap { reset }
       end
@@ -346,21 +347,26 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * +id+ - Can be either an Integer or an Array of Integers.
+    # * +ids+ - Can be an Integer or multiple integers or an Array of Integers.
     #
     # ==== Examples
     #
     #   # Destroy a single object
     #   Todo.destroy(1)
     #
-    #   # Destroy multiple objects
-    #   todos = [1,2,3]
+    #   # Destroy multiple objects with variable arguments
+    #   Todo.destroy(2, 5, 8)
+    #
+    #   # Destroy multiple objects with an Array
+    #   todos = [1, 2, 3]
     #   Todo.destroy(todos)
-    def destroy(id)
-      if id.is_a?(Array)
-        id.map { |one_id| destroy(one_id) }
+    def destroy(*ids)
+      if ids.many?
+        ids.map { |id| destroy(id) }
+      elsif ids.first.is_a?(Array)
+        ids.first.map { |id| destroy(id) }
       else
-        find(id).destroy
+        find(*ids).destroy
       end
     end
 

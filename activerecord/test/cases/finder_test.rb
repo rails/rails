@@ -182,7 +182,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
-  def test_find_with_prepared_select_statement
+  def test_find_with_prepared_select_statement_with_varargs
+    topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = ?", "Mary"
+
+    assert_equal(1, topics.size)
+    assert_equal(topics(:second).title, topics.first.title)
+  end
+
+  def test_find_with_prepared_select_statement_with_array
     topics = Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = ?", "Mary"]
 
     assert_equal(1, topics.size)
