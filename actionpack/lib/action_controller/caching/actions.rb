@@ -116,9 +116,8 @@ module ActionController #:nodoc:
       def expire_action(options = {})
         return unless cache_configured?
 
-        actions = options[:action]
-        if actions.is_a?(Array)
-          actions.each {|action| expire_action(options.merge(:action => action)) }
+        if options.is_a?(Hash) && options[:action].is_a?(Array)
+          options[:action].each {|action| expire_action(options.merge(:action => action)) }
         else
           expire_fragment(ActionCachePath.new(self, options, false).path)
         end
