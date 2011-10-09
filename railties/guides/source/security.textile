@@ -82,9 +82,9 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 h4. Session Storage
 
--- _Rails provides several storage mechanisms for the session hashes. The most important are ActiveRecordStore and CookieStore._
+-- _Rails provides several storage mechanisms for the session hashes. The most important are SessionStore and CookieStore._
 
-There are a number of session storages, i.e. where Rails saves the session hash and session id. Most real-live applications choose ActiveRecordStore (or one of its derivatives) over file storage due to performance and maintenance reasons. ActiveRecordStore keeps the session id and hash in a database table and saves and retrieves the hash on every request.
+There are a number of session storages, i.e. where Rails saves the session hash and session id. Most real-live applications choose SessionStore (or one of its derivatives) over file storage due to performance and maintenance reasons. SessionStore keeps the session id and hash in a database table and saves and retrieves the hash on every request.
 
 Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session id. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
 
