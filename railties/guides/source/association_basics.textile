@@ -211,7 +211,7 @@ end
 
 h4. Choosing Between +belongs_to+ and +has_one+
 
-If you want to set up a 1–1 relationship between two models, you'll need to add +belongs_to+ to one, and +has_one+ to the other. How do you know which is which?
+If you want to set up a one-to-one relationship between two models, you'll need to add +belongs_to+ to one, and +has_one+ to the other. How do you know which is which?
 
 The distinction is in where you place the foreign key (it goes on the table for the class declaring the +belongs_to+ association), but you should give some thought to the actual meaning of the data as well. The +has_one+ relationship says that one of something is yours - that is, that something points back to you. For example, it makes more sense to say that a supplier owns an account than that an account owns a supplier. This suggests that the correct relationships are like this:
 
@@ -576,7 +576,7 @@ The <tt>create_<em>association</em></tt> method returns a new object of the asso
 
 h5. Options for +belongs_to+
 
-In many situations, you can use the default behavior of +belongs_to+ without any customization. But despite Rails' emphasis of convention over customization, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +belongs_to+ association. For example, an association with several options might look like this:
+In many situations, you can use the default behavior of +belongs_to+ without any customization. But despite Rails' emphasis of convention over configuration, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +belongs_to+ association. For example, an association with several options might look like this:
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -842,7 +842,7 @@ The <tt>create_<em>association</em></tt> method returns a new object of the asso
 
 h5. Options for +has_one+
 
-In many situations, you can use the default behavior of +has_one+ without any customization. But despite Rails' emphasis of convention over customization, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_one+ association. For example, an association with several options might look like this:
+In many situations, you can use the default behavior of +has_one+ without any customization. But despite Rails' emphasis of convention over configuration, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_one+ association. For example, an association with several options might look like this:
 
 <ruby>
 class Supplier < ActiveRecord::Base
