@@ -19,7 +19,7 @@ Prior to Rails 3.1 these features were added through third-party Ruby libraries 
 
 By having this as a core feature of Rails, all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets. This is part of Rails' "fast by default" strategy as outlined by DHH in his keynote at RailsConf 2011.
 
-In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +config/application.rb+ by putting this line inside the application class definition:
+In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +config/application.rb+ by publicing this line inside the application class definition:
 
 <ruby>
 config.assets.enabled = false
@@ -233,6 +233,8 @@ There's also a default +app/assets/stylesheets/application.css+ file which conta
 The directives that work in the JavaScript files also work in stylesheets, obviously including stylesheets rather than JavaScript files. The +require_tree+ directive here works the same way as the JavaScript one, requiring all stylesheets from the current directory.
 
 In this example +require_self+ is used. This puts the CSS contained within the file (if any) at the precise location of the +require_self+ call. If +require_self+ is called more than once, only the last call is respected.
+
+NOTE. If you want to use multiple Sass files, use the "Sass +@import+ rule":http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import instead of the Sprockets directives. Using Sprockets directives all Sass files exist within their own scope, making variables or mixins only available within the document they were defined in.
 
 You can have as many manifest files as you need. For example the +admin.css+ and +admin.js+ manifest could contain the JS and CSS files that are used for the admin section of an application.
 
