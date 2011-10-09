@@ -41,6 +41,23 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_change_migration_with_attributes
+    migration = "change_title_body_in_posts"
+    run_generator [migration, "title:string", "body:text"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :up, content do |up|
+        assert_match(/change_column :posts, :title, :string/, up)
+        assert_match(/change_column :posts, :body, :text/, up)
+      end
+      
+      assert_method :down, content do |down|
+        assert_match(/change_column :posts, :title, \'previous_field_type\'/, down)
+        assert_match(/change_column :posts, :body, \'previous_field_type\'/, down)
+      end
+    end
+  end
+
   def test_remove_migration_with_attributes
     migration = "remove_title_body_from_posts"
     run_generator [migration, "title:string", "body:text"]
@@ -58,7 +75,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove
+  def test_should_create_empty_migrations_if_name_not_start_with_add_or_change_or_remove
     migration = "create_books"
     run_generator [migration, "title:string", "content:text"]
 

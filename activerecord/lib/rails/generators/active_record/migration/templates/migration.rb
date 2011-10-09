@@ -9,14 +9,16 @@ class <%= migration_class_name %> < ActiveRecord::Migration
   def up
 <% attributes.each do |attribute| -%>
   <%- if migration_action -%>
-    <%= migration_action %>_column :<%= table_name %>, :<%= attribute.name %><% if migration_action == 'add' %>, :<%= attribute.type %><% end %>
+    <%= migration_action %>_column :<%= table_name %>, :<%= attribute.name %><% if ['add', 'change'].include? migration_action %>, :<%= attribute.type %><% end %>
   <%- end -%>
 <%- end -%>
   end
 
   def down
 <% attributes.reverse.each do |attribute| -%>
-  <%- if migration_action -%>
+  <%- if migration_action == 'change' -%>
+    <%= migration_action %>_column :<%= table_name %>, :<%= attribute.name %>, 'previous_field_type'
+  <%- elsif migration_action -%>
     <%= migration_action == 'add' ? 'remove' : 'add' %>_column :<%= table_name %>, :<%= attribute.name %><% if migration_action == 'remove' %>, :<%= attribute.type %><% end %>
   <%- end -%>
 <%- end -%>
