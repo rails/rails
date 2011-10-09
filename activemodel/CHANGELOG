@@ -1,4 +1,4 @@
-*Rails 3.1.1 (unreleased)*
+*Rails 3.1.1 (October 7, 2011)*
 
 * Remove hard dependency on bcrypt-ruby to avoid make ActiveModel dependent on a binary library.
   You must add the gem explicitly to your Gemfile if you want use ActiveModel::SecurePassword:

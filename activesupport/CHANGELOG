@@ -1,4 +1,4 @@
-*Rails 3.1.1 (unreleased)*
+*Rails 3.1.1 (October 7, 2011)*
 
 * ruby193: String#prepend is also unsafe [Akira Matsuda]
 
