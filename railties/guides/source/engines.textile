@@ -196,7 +196,7 @@ h4. Generating a comments resource
 
 TODO: Generate a comments scaffold (maybe?) for the engine
 
-TODO: Mention usage of `rails s` and `rails c` within the context of an engine.
+TODO: Mention usage of `rails c` within the context of an engine.
 
 h3. Hooking into application
 
@@ -206,4 +206,5 @@ h3. Overriding engine functionality
 
 TODO: Cover how to override engine functionality in the engine, such as controllers and views.
 IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
+TODO: Mention how to use assets within an engine?
 
