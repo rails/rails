@@ -1551,7 +1551,7 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
   :conditions => ["created_at > ?", 2.days.ago])
 </ruby>
 
-NOTE: Starting Rails 3, supplying options to +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
+NOTE: Beginning with Rails 3, supplying options to the +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
 
 h6(#has_and_belongs_to_many-collection-where). <tt><em>collection</em>.where(...)</tt>
 
