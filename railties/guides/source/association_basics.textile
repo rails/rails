@@ -566,7 +566,7 @@ The <tt>build_<em>association</em></tt> method returns a new object of the assoc
 
 h6(#belongs_to-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
 
-The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
+The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set. In addition, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
 @customer = @order.create_customer(:customer_number => 123,
