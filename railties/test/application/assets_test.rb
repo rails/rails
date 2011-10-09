@@ -288,6 +288,26 @@ module ApplicationTests
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
 
+    test "precompile prepends relative url root if RAILS_RELATIVE_URL_ROOT is specified" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_RELATIVE_URL_ROOT=/foo` }
+      end
+      file = Dir["#{app_path}/public/assets/application.css"].first
+      assert_match(/\/foo\/assets\/rails\.png/, File.read(file))
+    end
+
+    test "precompile don't prepends relative url root if RAILS_RELATIVE_URL_ROOT isn't specified" do
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+      end
+      file = Dir["#{app_path}/public/assets/application.css"].first
+      assert_match(/[^\/]\/assets\/rails\.png/, File.read(file))
+    end
+
     test "precompile should handle utf8 filenames" do
       filename = "レイルズ.png"
       app_file "app/assets/images/#{filename}", "not a image really"
