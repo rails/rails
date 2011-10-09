@@ -26,6 +26,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
+  def test_attributes_hash
+    attributes = Category.new({:name => "Test categoty"}).attributes
+    assert_equal "Test categoty", attributes['name']
+    assert_equal "Test categoty", attributes[:name]
+  end
+
   def test_attribute_present
     t = Topic.new
     t.title = "hello there!"
@@ -127,9 +133,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_read_attributes_before_type_cast
-    category = Category.new({:name=>"Test categoty", :type => nil})
-    category_attrs = {"name"=>"Test categoty", "id" => nil, "type" => nil, "categorizations_count" => nil}
-    assert_equal category_attrs , category.attributes_before_type_cast
+    category = Category.new({:name => "Test categoty", :type => nil})
+    category_attrs = {"name" => "Test categoty", "id" => nil, "type" => nil, "categorizations_count" => nil}
+    assert_equal category_attrs, category.attributes_before_type_cast
   end
 
   if current_adapter?(:MysqlAdapter)
@@ -222,7 +228,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
 
-    topic.attributes= new_topic_values
+    topic.attributes = new_topic_values
     assert_equal new_topic_values[:title], topic.title
   end
 
