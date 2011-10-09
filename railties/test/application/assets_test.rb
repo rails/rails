@@ -291,7 +291,7 @@ module ApplicationTests
     test "precompile should handle utf8 filenames" do
       filename = "レイルズ.png"
       app_file "app/assets/images/#{filename}", "not a image really"
-      add_to_config "config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]"
+      add_to_config "config.assets.precompile = [ /\.png$/, /application.(css|js)$/ ]"
 
       precompile!
       require "#{app_path}/config/environment"
