@@ -19,7 +19,7 @@ Prior to Rails 3.1 these features were added through third-party Ruby libraries 
 
 By having this as a core feature of Rails, all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets. This is part of Rails' "fast by default" strategy as outlined by DHH in his keynote at RailsConf 2011.
 
-In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +config/application.rb+ by publicing this line inside the application class definition:
+In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +config/application.rb+ by putting this line inside the application class definition:
 
 <ruby>
 config.assets.enabled = false
