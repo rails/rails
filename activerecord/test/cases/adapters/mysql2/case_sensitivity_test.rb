@@ -2,7 +2,6 @@ require "cases/helper"
 require 'models/person'
 
 class Mysql2CaseSensitivityTest < ActiveRecord::TestCase
-
   class CollationTest < ActiveRecord::Base
     validates_uniqueness_of :string_cs_column, :case_sensitive => false
     validates_uniqueness_of :string_ci_column, :case_sensitive => false
@@ -33,6 +32,4 @@ class Mysql2CaseSensitivityTest < ActiveRecord::TestCase
     cs_uniqueness_query = queries.detect { |q| q.match /string_cs_column/ }
     assert_match(/lower/i, cs_uniqueness_query)
   end
-
-
 end
