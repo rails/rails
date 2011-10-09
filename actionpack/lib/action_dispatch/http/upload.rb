@@ -3,11 +3,11 @@ module ActionDispatch
     class UploadedFile
       attr_accessor :original_filename, :content_type, :tempfile, :headers
 
-      def initialize(hash)
-        @original_filename = encode_filename(hash[:filename])
-        @content_type      = hash[:type]
-        @headers           = hash[:head]
-        @tempfile          = hash[:tempfile]
+      def initialize(options = {})
+        @original_filename = encode_filename(options[:filename])
+        @content_type      = options[:type]
+        @headers           = options[:head]
+        @tempfile          = options[:tempfile]
         raise(ArgumentError, ':tempfile is required') unless @tempfile
       end
 
