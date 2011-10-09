@@ -1,9 +1,17 @@
-*Rails 3.1.1 (unreleased)*
+*Rails 3.2.0 (unreleased)*
+
+* MySQL: case-insensitive uniqueness validation avoids calling LOWER when
+  the column already uses a case-insensitive collation. Fixes #561.
+
+  [Joseph Palermo]
 
 * Transactional fixtures enlist all active database connections. You can test
   models on different connections without disabling transactional fixtures.
 
   [Jeremy Kemper]
+
+
+*Rails 3.1.1 (October 7, 2011)*
 
 * Add deprecation for the preload_associations method. Fixes #3022.
 
@@ -64,6 +72,7 @@ a URI that specifies the connection configuration.  For example:
     User.find_by_username_and_group("sikachu", nil)
 
   [Prem Sichanugrist]
+
 
 *Rails 3.1.0 (August 30, 2011)*
 

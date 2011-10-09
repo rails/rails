@@ -4,6 +4,13 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       class Column < ConnectionAdapters::Column # :nodoc:
+        attr_reader :collation
+
+        def initialize(name, default, sql_type = nil, null = true, collation = nil)
+          super(name, default, sql_type, null)
+          @collation = collation
+        end
+
         def extract_default(default)
           if sql_type =~ /blob/i || type == :text
             if default.blank?
@@ -26,6 +33,10 @@ module ActiveRecord
         # Must return the relevant concrete adapter
         def adapter
           raise NotImplementedError
+        end
+
+        def case_sensitive?
+          collation && !collation.match(/_ci$/)
         end
 
         private
@@ -157,8 +168,8 @@ module ActiveRecord
       end
 
       # Overridden by the adapters to instantiate their specific Column type.
-      def new_column(field, default, type, null) # :nodoc:
-        Column.new(field, default, type, null)
+      def new_column(field, default, type, null, collation) # :nodoc:
+        Column.new(field, default, type, null, collation)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
@@ -393,10 +404,10 @@ module ActiveRecord
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name, name = nil)#:nodoc:
-        sql = "SHOW FIELDS FROM #{quote_table_name(table_name)}"
+        sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
-            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES")
+            new_column(field[:Field], field[:Default], field[:Type], field[:Null] == "YES", field[:Collation])
           end
         end
       end
@@ -499,6 +510,14 @@ module ActiveRecord
 
       def case_sensitive_modifier(node)
         Arel::Nodes::Bin.new(node)
+      end
+
+      def case_insensitive_comparison(table, attribute, column, value)
+        if column.case_sensitive?
+          super
+        else
+          table[attribute].eq(value)
+        end
       end
 
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
