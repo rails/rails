@@ -238,6 +238,10 @@ module ActiveRecord
         node
       end
 
+      def case_insensitive_comparison(table, attribute, column, value)
+        table[attribute].lower.eq(table.lower(value))
+      end
+
       def current_savepoint_name
         "active_record_#{open_transactions}"
       end
