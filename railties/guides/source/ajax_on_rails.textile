@@ -44,23 +44,30 @@ jquery-rails is default in Gemfile.
 javascript_include_tag :defaults
 </ruby>
 
+h4. Examples
+
 All the remote_<method< helpers has been removed. To make them working with AJAX, simply pass the :remote => true option to the original non-remote method
 
-==== Examples
 <ruby>
  button_to "New", :action => "new", :form_class => "new-thing"
 </ruby>
-# => "<form method="post" action="/controller/new" class="new-thing">
-#      <div><input value="New" type="submit" /></div>
-#    </form>"
+
+will produce
+
+<form method="post" action="/controller/new" class="new-thing">
+  <div><input value="New" type="submit" /></div>
+</form>
 
 
 <ruby>
  button_to "Create", :action => "create", :remote => true, :form => { "data-type" => "json" }
 </ruby>
-# => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
-#      <div><input value="Create" type="submit" /></div>
-#    </form>"
+
+will produce
+
+<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
+  <div><input value="Create" type="submit" /></div>
+</form>
 
 
 <ruby>
@@ -69,12 +76,14 @@ button_to "Delete Image", { :action => "delete", :id => @image.id },
              :confirm => "Are you sure?", :method => :delete
 </ruby>
 
-# => "<form method="post" action="/images/delete/1" class="button_to">
-#      <div>
-#        <input type="hidden" name="_method" value="delete" />
-#        <input data-confirm='Are you sure?' value="Delete" type="submit" />
-#      </div>
-#    </form>"
+will produce
+
+<form method="post" action="/images/delete/1" class="button_to">
+  <div>
+    <input type="hidden" name="_method" value="delete" />
+    <input data-confirm='Are you sure?' value="Delete" type="submit" />
+ </div>
+</form>
 
 
 <ruby> button_to('Destroy', 'http://www.example.com', :confirm => 'Are you sure?',
