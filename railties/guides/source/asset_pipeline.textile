@@ -234,6 +234,8 @@ The directives that work in the JavaScript files also work in stylesheets, obvio
 
 In this example +require_self+ is used. This puts the CSS contained within the file (if any) at the precise location of the +require_self+ call. If +require_self+ is called more than once, only the last call is respected.
 
+NOTE. If you want to use multiple Sass files, use the "Sass +@import+ rule":http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import instead of the Sprockets directives. Using Sprockets directives all Sass files exist within their own scope, making variables or mixins only available within the document they were defined in.
+
 You can have as many manifest files as you need. For example the +admin.css+ and +admin.js+ manifest could contain the JS and CSS files that are used for the admin section of an application.
 
 The same remarks about ordering made above apply. In particular, you can specify individual files and they are compiled in the order specified:

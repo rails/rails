@@ -880,7 +880,7 @@ The selectors used to customize the style of error messages are:
 * +#error_explanation p+ - Style for the paragraph holding the message that appears right below the header of the +div+ element.
 * +#error_explanation ul li+ - Style for the list items with individual error messages.
 
-If scaffolding was used, file +app/assets/stylesheets/scaffold.css.scss+ (which later compiles to +app/assets/stylesheets/scaffold.css+), will have been generated automatically. This file defines the red-based styles you saw in the examples above.
+If scaffolding was used, file +app/assets/stylesheets/scaffolds.css.scss+ will have been generated automatically. This file defines the red-based styles you saw in the examples above.
 
 The name of the class and the id can be changed with the +:class+ and +:id+ options, accepted by both helpers.
 
@@ -1162,7 +1162,7 @@ class PictureFile < ActiveRecord::Base
 end
 </ruby>
 
-Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we declared our callback as an instance method. This is particularly useful if the callbacks make use of the state of instantiated object. Often, however, it will make more sense to declare the callbacks as class methods:
+Note that we needed to instantiate a new +PictureFileCallbacks+ object, since we declared our callback as an instance method. This is particularly useful if the callbacks make use of the state of the instantiated object. Often, however, it will make more sense to declare the callbacks as class methods:
 
 <ruby>
 class PictureFileCallbacks

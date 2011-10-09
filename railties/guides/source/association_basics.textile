@@ -211,7 +211,7 @@ end
 
 h4. Choosing Between +belongs_to+ and +has_one+
 
-If you want to set up a 1–1 relationship between two models, you'll need to add +belongs_to+ to one, and +has_one+ to the other. How do you know which is which?
+If you want to set up a one-to-one relationship between two models, you'll need to add +belongs_to+ to one, and +has_one+ to the other. How do you know which is which?
 
 The distinction is in where you place the foreign key (it goes on the table for the class declaring the +belongs_to+ association), but you should give some thought to the actual meaning of the data as well. The +has_one+ relationship says that one of something is yours - that is, that something points back to you. For example, it makes more sense to say that a supplier owns an account than that an account owns a supplier. This suggests that the correct relationships are like this:
 
@@ -566,7 +566,7 @@ The <tt>build_<em>association</em></tt> method returns a new object of the assoc
 
 h6(#belongs_to-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
 
-The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
+The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through this object's foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
 @customer = @order.create_customer(:customer_number => 123,
@@ -576,7 +576,7 @@ The <tt>create_<em>association</em></tt> method returns a new object of the asso
 
 h5. Options for +belongs_to+
 
-In many situations, you can use the default behavior of +belongs_to+ without any customization. But despite Rails' emphasis of convention over customization, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +belongs_to+ association. For example, an association with several options might look like this:
+In many situations, you can use the default behavior of +belongs_to+ without any customization. But despite Rails' emphasis of convention over configuration, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +belongs_to+ association. For example, an association with several options might look like this:
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -760,9 +760,9 @@ h6(#belongs_to-validate). +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
 
-h5(#belongs_to-how_to_know_whether_theres_an_associated_object). How To Know Whether There's an Associated Object?
+h5(#belongs_to-do_any_associated_objects_exist). Do Any Associated Objects Exist?
 
-To know whether there's and associated object just check <tt><em>association</em>.nil?</tt>:
+You can see if any associated objects exist by using the <tt><em>association</em>.nil?</tt> method:
 
 <ruby>
 if @order.customer.nil?
@@ -834,7 +834,7 @@ The <tt>build_<em>association</em></tt> method returns a new object of the assoc
 
 h6(#has_one-create_association). <tt>create_<em>association</em>(attributes = {})</tt>
 
-The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set. In addition, the associated object _will_ be saved (assuming that it passes any validations).
+The <tt>create_<em>association</em></tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
 @account = @supplier.create_account(:terms => "Net 30")
@@ -842,7 +842,7 @@ The <tt>create_<em>association</em></tt> method returns a new object of the asso
 
 h5. Options for +has_one+
 
-In many situations, you can use the default behavior of +has_one+ without any customization. But despite Rails' emphasis of convention over customization, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_one+ association. For example, an association with several options might look like this:
+In many situations, you can use the default behavior of +has_one+ without any customization. But despite Rails' emphasis of convention over configuration, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_one+ association. For example, an association with several options might look like this:
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -980,9 +980,9 @@ h6(#has_one-validate). +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
 
-h5(#has_one-how_to_know_whether_theres_an_associated_object). How To Know Whether There's an Associated Object?
+h5(#has_one-do_any_associated_objects_exist). Do Any Associated Objects Exist?
 
-To know whether there's and associated object just check <tt><em>association</em>.nil?</tt>:
+You can see if any associated objects exist by using the <tt><em>association</em>.nil?</tt> method:
 
 <ruby>
 if @supplier.account.nil?
@@ -1147,7 +1147,7 @@ The <tt><em>collection</em>.build</tt> method returns one or more new objects of
 
 h6(#has_many-collection-create). <tt><em>collection</em>.create(attributes = {})</tt>
 
-The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and the associated object _will_ be saved (assuming that it passes any validations).
+The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
 @order = @customer.orders.create(:order_date => Time.now,
@@ -1576,7 +1576,7 @@ The <tt><em>collection</em>.build</tt> method returns a new object of the associ
 
 h6(#has_and_belongs_to_many-create-attributes). <tt><em>collection</em>.create(attributes = {})</tt>
 
-The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and the associated object _will_ be saved (assuming that it passes any validations).
+The <tt><em>collection</em>.create</tt> method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 <ruby>
 @assembly = @part.assemblies.create(
