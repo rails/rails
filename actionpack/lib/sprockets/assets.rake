@@ -6,7 +6,7 @@ namespace :assets do
     groups = ENV['RAILS_GROUPS'] || 'assets'
     args   = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
     args << "--trace" if Rake.application.options.trace
-    ruby *args
+    ruby(*args)
   end
 
   # We are currently running with no explicit bundler group
