@@ -671,7 +671,7 @@ WARNING: You should not specify this option on a +belongs_to+ association that i
 
 h6(#belongs_to-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column used to hold the foreign key on this model is the name of the association with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column used to hold the foreign key on this model is the name of the association with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -902,7 +902,7 @@ If you set the +:dependent+ option to +:destroy+, then deleting this object will
 
 h6(#has_one-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -954,7 +954,7 @@ The +:order+ option dictates the order in which associated objects will be recei
 
 h6(#has_one-primary_key). +:primary_key+
 
-By convention, Rails guesses that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+By convention, Rails assumes that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
 
 h6(#has_one-readonly). +:readonly+
 
@@ -1262,7 +1262,7 @@ Normally Rails automatically generates the proper SQL to fetch the association m
 
 h6(#has_many-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1345,7 +1345,7 @@ end
 
 h6(#has_many-primary_key). +:primary_key+
 
-By convention, Rails guesses that the column used to hold the primary key of the association is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+By convention, Rails assumes that the column used to hold the primary key of the association is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
 
 h6(#has_many-readonly). +:readonly+
 
@@ -1619,7 +1619,7 @@ The +has_and_belongs_to_many+ association supports these options:
 
 h6(#has_and_belongs_to_many-association_foreign_key). +:association_foreign_key+
 
-By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
 
 TIP: The +:foreign_key+ and +:association_foreign_key+ options are useful when setting up a many-to-many self-join. For example:
 
@@ -1687,7 +1687,7 @@ Normally Rails automatically generates the proper SQL to fetch the association m
 
 h6(#has_and_belongs_to_many-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class User < ActiveRecord::Base
