@@ -192,11 +192,93 @@ You can see what the engine has so far by running +rake db:migrate+ at the root 
 
 Click around! You've just generated your first engine's first functions.
 
+If you'd rather play around in the console, +rails console+ will also work just like a Rails application. Remember: the +Post+ model is namespaced, so to reference it you must call it as +Blorgh::Post+.
+
+<ruby>
+  >> Blorgh::Post.find(1)
+  => #<Blorgh::Post id: 1 ...>
+</ruby>
+
 h4. Generating a comments resource
 
-TODO: Generate a comments scaffold (maybe?) for the engine
+Now that the engine has the ability to create new blog posts, it only makes sense to add commenting functionality as well.
 
-TODO: Mention usage of `rails c` within the context of an engine.
+To do this, you can run the scaffold generator this time and tell it to generate a +Comment+ resource instead, with the table having two columns: a +post_id+ integer and +text+ text column.
+
+<shell>
+$ rails generate scaffold Comment post_id:integer text:text
+</shell>
+
+This generator call will generate almost the same files as it did the first time we called it for generating the +Post+ resource, but this time the files will be called things such as +app/controllers/blorgh/comments_controller.rb+ and +app/models/blorgh/comment.rb+.
+
+There's a few things wrong with how this generator has worked. It would be better if the comments resource was nested inside the posts resource in the routes, and if the controller created new comment entries inside a post. These are two very easy things to fix up.
+
+The +resources+ line from this generator is placed into the +config/routes.rb+ by the generator, but you're going to want to have comments nested underneath a post, and so it's a good idea to change these lines in the +config/routes.rb+ file:
+
+<ruby>
+Blorgh::Engine.routes.draw do
+  resources :comments
+
+  resources :posts
+
+end
+</ruby>
+
+Into these:
+
+<ruby>
+  Blorgh::Engine.routes.draw do
+    resources :posts do
+      resources :comments
+    end
+  end
+</ruby>
+
+That fixes the routes. For the controller, it's just as easy. When a request is made to this controller, it will be in the form of +post/:post_id/comments+. In order to find the comments that are being requested, the post is going to need to be fetched using something such as:
+
+<ruby>
+post = Post.find(params[:id])
+</ruby>
+
+Then to get the comments for this post it would be as simple as:
+
+<ruby>
+post.comments
+</ruby>
+
+Alternatively, the query to fetch the comments in actions such as the +index+ action would need to be changed from +Comment.all+ into +Comment.find_all_by_post_id(params[:post_id])+. However, the first way is cleaner and so it should be done that way.
+
+To fetch the post in the controller, add a +before_filter+ into the controller's class definition like this:
+
+<ruby>
+module Blorgh
+  class CommentsController < ApplicationController
+    before_filter :load_post
+    ...
+  end
+end
+</ruby>
+
+This +before_filter+ will call the +load_post+ method before every request that comes into this controller. This method should be defined as a +private+ method after all the actions in the controller:
+
+<ruby>
+module Blorgh
+  class CommentsController < ApplicationController
+    before_filter :load_post
+
+    # actions go here
+
+    private
+
+    def load_post
+      @post = Post.find(params[:post_id])
+    end
+  end
+end
+</ruby>
+
+With the post being loaded, the queries in the controller need to be altered in order to query within the scope of the relative post. All occurrences of +Comment+ in this controller should now be replaced with +@post.comments+ so that the queries are correctly scoped.
+
 
 h3. Hooking into application
 
