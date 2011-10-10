@@ -2,6 +2,7 @@ module Rails
   class Application
     module Finisher
       include Initializable
+      $rails_rake_task = nil
 
       initializer :add_generator_templates do
         config.generators.templates.unshift(*paths["lib/templates"].existent)
