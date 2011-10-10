@@ -2,8 +2,8 @@ h2. Getting Started with Engines
 
 In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface. You will learn the following things in this guide:
 
-* What are engines
-* Generating an engine
+* What makes an engine
+* How to generate an engine
 * Building features for the engine
 * Hooking the engine into an application
 * Overriding engine functionality in the application
@@ -12,7 +12,7 @@ endprologue.
 
 h3. What are engines?
 
-Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the +Rails::Application+ class inheriting from +Rails::Engine+. Therefore, engines and applications share common functionality but are at the same time two separate beasts. Engines and applications also share a common structure, as you'll see later in this guide.
+Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the +Rails::Application+ class inheriting from +Rails::Engine+. Therefore, engines and applications share common functionality but are at the same time two separate beasts. Engines and applications also share a common structure, as you'll see througout this guide.
 
 Engines are also closely related to plugins where the two share a common +lib+ directory structure and are both generated using the +rails plugin new+ generator.
 
@@ -21,6 +21,8 @@ The engine that will be generated for this guide will be called "blorgh". The en
 Engines can also be isolated from their host applications. This means that an application is able to have a path provided by a routing helper such as +posts_path+ and use an engine also that provides a path also called +posts_path+, and the two would not clash. Along with this, controllers, models and table names are also namespaced. You'll see how to do this later in this guide.
 
 To see demonstrations of other engines, check out "Devise":https://github.com/plataformatec/devise, an engine that provides authentication for its parent applications, or "Forem":https://github.com/radar/forem, an engine that provides forum functionality.
+
+Finally, engines would not have be possible without the work of James Adam, Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever meet them, don't forget to say thanks!
 
 h3. Generating an engine
 
@@ -32,7 +34,9 @@ $ rails plugin new blorgh --mountable
 
 The +--mountable+ option tells the plugin generator that you want to create an engine (which is a mountable plugin, hence the option name), creating the basic directory structure of an engine by providing things such as the foundations of an +app+ folder, as well a +config/routes.rb+ file. This generator also provides a file at +lib/blorgh/engine.rb+ which is identical in function to an application's +config/application.rb+ file.
 
-Inside the +app+ directory there lives the standard +assets+, +controllers+, +helpers+, +mailers+, +models+ and +views+ directories that you should be familiar with from an application.
+h4. Inside an engine
+
+h5. Critical files
 
 At the root of the engine's directory, lives a +blorgh.gemspec+ file. When you include the engine into the application later on, you will do so with this line in a Rails application's +Gemfile+:
 
@@ -52,16 +56,229 @@ end
 Within +lib/blorgh/engine.rb+ is the base class for the engine:
 
 <ruby>
-  TODO: lib/blorgh/engine.rb
+module Blorgh
+  class Engine < Rails::Engine
+    isolate_namespace Blorgh
+  end
+end
 </ruby>
+
+By inheriting from the +Rails::Engine+ class, this engine gains all the functionality it needs, such as being able to serve requests to its controllers.
+
+The +isolate_namespace+ method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption. It is recommended that this line be left within this file.
+
+h5. +app+ directory
+
+Inside the +app+ directory there lives the standard +assets+, +controllers+, +helpers+, +mailers+, +models+ and +views+ directories that you should be familiar with from an application. The +helpers+, +mailers+ and +models+ directories are empty and so aren't described in this section. We'll look more into models in a future section.
+
+Within the +app/assets+ directory, there is the +images+, +javascripts+ and +stylesheets+ directories which, again, you should be familiar with due to their similarities of an application. One difference here however is that each directory contains a sub-directory with the engine name. Because this engine is going to be namespaced, its assets should be too.
 
 Within the +app/controllers+ directory there is a +blorgh+ directory and inside that a file called +application_controller.rb+. This file will provide any common functionality for the controllers of the engine. The +blorgh+ directory is where the other controllers for the engine will go. By placing them within this namespaced directory, you prevent them from possibly clashing with identically-named controllers within other engines or even within the application.
 
+Lastly, the +app/views+ directory contains a +layouts+ folder which contains file at +blorgh/application.html.erb+ which allows you to specify a layout for the engine. If this engine is to be used as a stand-alone engine, then you would add any customization to its layout in this file, rather than the applications +app/views/layouts/application.html.erb+ file.
+
+h5. +script+ directory
+
+This directory contains one file, +script/rails+, which allows you to use the +rails+ sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine.
+
+h5. +test+ directory
+
+The +test+ directory is where tests for the engine will go. To test the engine, there is a cut-down version of a Rails application embedded within it at +test/dummy+. This application will mount the engine in the +test/dummy/config/routes.rb+ file:
+
+<ruby>
+Rails.application.routes.draw do
+
+  mount Blorgh::Engine => "/blorgh"
+end
+</ruby>
+
+This line mounts the engine at the path of +/blorgh+, which will make it accessible through the application only at that path. We will look more into mounting an engine after some features have been developed.
+
+Also in the test directory is the +test/integration+ directory, where integration tests for the engine should be placed.
+
 h3. Providing engine functionality
 
-TODO: Brief explanation of what this engine is going to be doing and what we will have once we are done.
-TODO: Generate a posts scaffold (maybe?) for the engine
-TODO: Generate a comments scaffold (maybe?) for the engine
+The engine that this guide covers will provide posting and commenting functionality.
+
+h4. Generating a post resource
+
+The first thing to generate for a blog engine is the +Post+ model and related controller. To quickly generate this, you can use the Rails scaffold generator.
+
+<shell>
+$ rails generate scaffold post title:string text:text
+invoke  active_record
+create    db/migrate/20111006201642_create_blorgh_posts.rb
+create    app/models/blorgh/post.rb
+invoke    test_unit
+create      test/unit/blorgh/post_test.rb
+create      test/fixtures/blorgh/posts.yml
+ route  resources :posts
+invoke  scaffold_controller
+create    app/controllers/blorgh/posts_controller.rb
+invoke    erb
+create      app/views/blorgh/posts
+create      app/views/blorgh/posts/index.html.erb
+create      app/views/blorgh/posts/edit.html.erb
+create      app/views/blorgh/posts/show.html.erb
+create      app/views/blorgh/posts/new.html.erb
+create      app/views/blorgh/posts/_form.html.erb
+invoke    test_unit
+create      test/functional/blorgh/posts_controller_test.rb
+invoke    helper
+create      app/helpers/blorgh/posts_helper.rb
+invoke      test_unit
+create        test/unit/helpers/blorgh/posts_helper_test.rb
+invoke  assets
+invoke    js
+create      app/assets/javascripts/blorgh/posts.js
+invoke    css
+create      app/assets/stylesheets/blorgh/posts.css
+invoke  css
+create    app/assets/stylesheets/scaffold.css
+</shell>
+
+The first thing that the scaffold generator does is invoke the +active_record+ generator, which generates a migration and a model for the resource. Note here, however, that the migration is called +create_blorgh_posts+ rather than the usual +create_posts+. This is due to the +isolate_namespace+ method called in the +Blorgh::Engine+ class's definition. The model here is also namespaced, being placed at +app/models/blorgh/post.rb+ rather than +app/models/post.rb+.
+
+Next, the +test_unit+ generator is invoked for this model, generating a unit test at +test/unit/blorgh/post_test.rb+ (rather than +test/unit/post_test.rb+) and a fixture at +test/fixtures/blorgh/posts.yml+ (rather than +test/fixtures/posts.yml+).
+
+After that, a line for the resource is inserted into the +config/routes.rb+ file for the engine. This line is simply +resources :posts+, turning the +config/routes.rb+ file into this:
+
+<ruby>
+Blorgh::Engine.routes.draw do
+  resources :posts
+
+end
+</ruby>
+
+Note here that the routes are drawn upon the +Blorgh::Engine+ object rather than the +YourApp::Application+ class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the "test directory":#test-directory section.
+
+Next, the +scaffold_controller+ generator is invoked, generating a controlled called +Blorgh::PostsController+ (at +app/controllers/blorgh/posts_controller.rb+) and its related views at +app/views/blorgh/posts+. This generator also generates a functional test for the controller (+test/functional/blorgh/posts_controller_test.rb+) and a helper (+app/helpers/blorgh/posts_controller.rb+).
+
+Everything this generator has generated is neatly namespaced. The controller's class is defined within the +Blorgh+ module:
+
+<ruby>
+module Blorgh
+  class PostsController < ApplicationController
+    ...
+  end
+end
+</ruby>
+
+NOTE: The +ApplicationController+ class being inherited from here is the +Blorgh::ApplicationController+, not an application's +ApplicationController+.
+
+The helper is also namespaced:
+
+<ruby>
+module Blorgh
+  class PostsHelper
+    ...
+  end
+end
+</ruby>
+
+This helps prevent conflicts with any other engine or application that may have a post resource also.
+
+Finally, two files that are the assets for this resource are generated, +app/assets/javascripts/blorgh/posts.js+ and +app/assets/javascripts/blorgh/posts.css+. You'll see how to use these a little later.
+
+By default, the scaffold styling is not applied to the engine as the engine's layout file, +app/views/blorgh/application.html.erb+ doesn't load it. To make this apply, insert this line into the +<head>+ tag of this layout:
+
+<erb>
+<%= stylesheet_link_tag "scaffold" %>
+</erb>
+
+You can see what the engine has so far by running +rake db:migrate+ at the root of our engine to run the migration generated by the scaffold generator, and then running +rails server+. When you open +http://localhost:3000/blorgh/posts+ you will see the default scaffold that has been generated.
+
+!images/engines_scaffold.png(Blank engine scaffold)!
+
+Click around! You've just generated your first engine's first functions.
+
+If you'd rather play around in the console, +rails console+ will also work just like a Rails application. Remember: the +Post+ model is namespaced, so to reference it you must call it as +Blorgh::Post+.
+
+<ruby>
+  >> Blorgh::Post.find(1)
+  => #<Blorgh::Post id: 1 ...>
+</ruby>
+
+h4. Generating a comments resource
+
+Now that the engine has the ability to create new blog posts, it only makes sense to add commenting functionality as well.
+
+To do this, you can run the scaffold generator this time and tell it to generate a +Comment+ resource instead, with the table having two columns: a +post_id+ integer and +text+ text column.
+
+<shell>
+$ rails generate scaffold Comment post_id:integer text:text
+</shell>
+
+This generator call will generate almost the same files as it did the first time we called it for generating the +Post+ resource, but this time the files will be called things such as +app/controllers/blorgh/comments_controller.rb+ and +app/models/blorgh/comment.rb+.
+
+There's a few things wrong with how this generator has worked. It would be better if the comments resource was nested inside the posts resource in the routes, and if the controller created new comment entries inside a post. These are two very easy things to fix up.
+
+The +resources+ line from this generator is placed into the +config/routes.rb+ by the generator, but you're going to want to have comments nested underneath a post, and so it's a good idea to change these lines in the +config/routes.rb+ file:
+
+<ruby>
+Blorgh::Engine.routes.draw do
+  resources :comments
+
+  resources :posts
+
+end
+</ruby>
+
+Into these:
+
+<ruby>
+  Blorgh::Engine.routes.draw do
+    resources :posts do
+      resources :comments
+    end
+  end
+</ruby>
+
+That fixes the routes. For the controller, it's just as easy. When a request is made to this controller, it will be in the form of +post/:post_id/comments+. In order to find the comments that are being requested, the post is going to need to be fetched using something such as:
+
+<ruby>
+post = Post.find(params[:id])
+</ruby>
+
+Then to get the comments for this post it would be as simple as:
+
+<ruby>
+post.comments
+</ruby>
+
+Alternatively, the query to fetch the comments in actions such as the +index+ action would need to be changed from +Comment.all+ into +Comment.find_all_by_post_id(params[:post_id])+. However, the first way is cleaner and so it should be done that way.
+
+To fetch the post in the controller, add a +before_filter+ into the controller's class definition like this:
+
+<ruby>
+module Blorgh
+  class CommentsController < ApplicationController
+    before_filter :load_post
+    ...
+  end
+end
+</ruby>
+
+This +before_filter+ will call the +load_post+ method before every request that comes into this controller. This method should be defined as a +private+ method after all the actions in the controller:
+
+<ruby>
+module Blorgh
+  class CommentsController < ApplicationController
+    before_filter :load_post
+
+    # actions go here
+
+    private
+
+    def load_post
+      @post = Post.find(params[:post_id])
+    end
+  end
+end
+</ruby>
+
+With the post being loaded, the queries in the controller need to be altered in order to query within the scope of the relative post. All occurrences of +Comment+ in this controller should now be replaced with +@post.comments+ so that the queries are correctly scoped.
+
 
 h3. Hooking into application
 
@@ -71,3 +288,5 @@ h3. Overriding engine functionality
 
 TODO: Cover how to override engine functionality in the engine, such as controllers and views.
 IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
+TODO: Mention how to use assets within an engine?
+TODO: Mention how to depend on external gems, like RedCarpet.

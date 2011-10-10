@@ -576,7 +576,7 @@ The <tt>create_<em>association</em></tt> method returns a new object of the asso
 
 h5. Options for +belongs_to+
 
-In many situations, you can use the default behavior of +belongs_to+ without any customization. But despite Rails' emphasis of convention over configuration, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +belongs_to+ association. For example, an association with several options might look like this:
+While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the +belongs_to+ association reference. Such customizations can easily be accomplished by passing options when you create the association. For example, this assocation uses two such options:
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -671,7 +671,7 @@ WARNING: You should not specify this option on a +belongs_to+ association that i
 
 h6(#belongs_to-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column used to hold the foreign key on this model is the name of the association with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column used to hold the foreign key on this model is the name of the association with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class Order < ActiveRecord::Base
@@ -842,7 +842,7 @@ The <tt>create_<em>association</em></tt> method returns a new object of the asso
 
 h5. Options for +has_one+
 
-In many situations, you can use the default behavior of +has_one+ without any customization. But despite Rails' emphasis of convention over configuration, you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_one+ association. For example, an association with several options might look like this:
+While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the +has_one+ association reference. Such customizations can easily be accomplished by passing options when you create the association. For example, this assocation uses two such options:
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -902,7 +902,7 @@ If you set the +:dependent+ option to +:destroy+, then deleting this object will
 
 h6(#has_one-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -954,7 +954,7 @@ The +:order+ option dictates the order in which associated objects will be recei
 
 h6(#has_one-primary_key). +:primary_key+
 
-By convention, Rails guesses that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+By convention, Rails assumes that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
 
 h6(#has_one-readonly). +:readonly+
 
@@ -1156,7 +1156,7 @@ The <tt><em>collection</em>.create</tt> method returns a new object of the assoc
 
 h5. Options for +has_many+
 
-In many situations, you can use the default behavior for +has_many+ without any customization. But you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_many+ association. For example, an association with several options might look like this:
+While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the +has_many+ association reference. Such customizations can easily be accomplished by passing options when you create the association. For example, this assocation uses two such options:
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1262,7 +1262,7 @@ Normally Rails automatically generates the proper SQL to fetch the association m
 
 h6(#has_many-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1345,7 +1345,7 @@ end
 
 h6(#has_many-primary_key). +:primary_key+
 
-By convention, Rails guesses that the column used to hold the primary key of the association is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+By convention, Rails assumes that the column used to hold the primary key of the association is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
 
 h6(#has_many-readonly). +:readonly+
 
@@ -1551,7 +1551,7 @@ The <tt><em>collection</em>.find</tt> method finds objects within the collection
   :conditions => ["created_at > ?", 2.days.ago])
 </ruby>
 
-NOTE: Starting Rails 3, supplying options to +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
+NOTE: Beginning with Rails 3, supplying options to the +ActiveRecord::Base.find+ method is discouraged. Use <tt><em>collection</em>.where</tt> instead when you need to pass conditions.
 
 h6(#has_and_belongs_to_many-collection-where). <tt><em>collection</em>.where(...)</tt>
 
@@ -1585,7 +1585,7 @@ The <tt><em>collection</em>.create</tt> method returns a new object of the assoc
 
 h5. Options for +has_and_belongs_to_many+
 
-In many situations, you can use the default behavior for +has_and_belongs_to_many+ without any customization. But you can alter that behavior in a number of ways. This section covers the options that you can pass when you create a +has_and_belongs_to_many+ association. For example, an association with several options might look like this:
+While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the +has_and_belongs_to_many+ association reference. Such customizations can easily be accomplished by passing options when you create the association. For example, this assocation uses two such options:
 
 <ruby>
 class Parts < ActiveRecord::Base
@@ -1619,7 +1619,7 @@ The +has_and_belongs_to_many+ association supports these options:
 
 h6(#has_and_belongs_to_many-association_foreign_key). +:association_foreign_key+
 
-By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix +_id+ added. The +:association_foreign_key+ option lets you set the name of the foreign key directly:
 
 TIP: The +:foreign_key+ and +:association_foreign_key+ options are useful when setting up a many-to-many self-join. For example:
 
@@ -1687,7 +1687,7 @@ Normally Rails automatically generates the proper SQL to fetch the association m
 
 h6(#has_and_belongs_to_many-foreign_key). +:foreign_key+
 
-By convention, Rails guesses that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
+By convention, Rails assumes that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
 
 <ruby>
 class User < ActiveRecord::Base
