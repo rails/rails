@@ -253,7 +253,7 @@ module ActionController #:nodoc:
     end
 
     def display_errors
-      controller.render format => resource.errors, :status => :unprocessable_entity
+      controller.render format => resource_errors, :status => :unprocessable_entity
     end
 
     # Check whether the resource has errors.
@@ -285,6 +285,14 @@ module ActionController #:nodoc:
     #
     def empty_json_resource
       "{}"
+    end
+
+    def resource_errors
+      respond_to?("#{format}_resource_errors") ? send("#{format}_resource_errors") : resource.errors
+    end
+
+    def json_resource_errors
+      {:errors => resource.errors}
     end
   end
 end
