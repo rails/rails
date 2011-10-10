@@ -339,6 +339,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       scope '(:locale)', :locale => /en|pl/ do
+        get "registrations/new"
         resources :descriptions
         root :to => 'projects#index'
       end
@@ -1468,6 +1469,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/admin/descriptions/1'
       assert_equal 'admin/descriptions#show', @response.body
+    end
+  end
+
+  def test_nested_optional_path_shorthand
+    with_test_routes do
+      get '/registrations/new'
+      assert @request.params[:locale].nil?
+
+      get '/en/registrations/new'
+      assert 'en', @request.params[:locale]
     end
   end
 
