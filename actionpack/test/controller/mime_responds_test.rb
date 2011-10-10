@@ -745,6 +745,20 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
+  def test_using_resource_for_post_with_json_yields_unprocessable_entity_on_failure
+    with_test_route_set do
+      @request.accept = "application/json"
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      post :using_resource
+      assert_equal "application/json", @response.content_type
+      assert_equal 422, @response.status
+      errors = {:errors => errors}
+      assert_equal errors.to_json, @response.body
+      assert_nil @response.location
+    end
+  end
+
   def test_using_resource_for_put_with_html_redirects_on_success
     with_test_route_set do
       put :using_resource
@@ -805,6 +819,18 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
     assert_equal 422, @response.status
     assert_equal errors.to_xml, @response.body
+    assert_nil @response.location
+  end
+
+  def test_using_resource_for_put_with_json_yields_unprocessable_entity_on_failure
+    @request.accept = "application/json"
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    put :using_resource
+    assert_equal "application/json", @response.content_type
+    assert_equal 422, @response.status
+    errors = {:errors => errors}
+    assert_equal errors.to_json, @response.body
     assert_nil @response.location
   end
 
