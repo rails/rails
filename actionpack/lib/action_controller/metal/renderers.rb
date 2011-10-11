@@ -34,7 +34,11 @@ module ActionController
       _renderers.each do |name, value|
         if options.key?(name.to_sym)
           _process_options(options)
-          return send("_render_option_#{name}", options.delete(name.to_sym), options)
+          if name == :text
+            self.content_type ||= Mime::TEXT
+          else
+            return send("_render_option_#{name}", options.delete(name.to_sym), options)
+          end
         end
       end
       nil

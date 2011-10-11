@@ -914,6 +914,11 @@ class RenderTest < ActionController::TestCase
     assert_equal "application/xml", @response.content_type
   end
 
+  def test_render_text_content_type
+    get :render_text_hello_world
+    assert_equal "text/plain", @response.content_type
+  end
+
   # :ported:
   def test_render_xml_as_string_template
     get :render_xml_hello_as_string_template

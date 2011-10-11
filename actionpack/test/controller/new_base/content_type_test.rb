@@ -49,7 +49,7 @@ module ContentType
         get "/content_type/base"
 
         assert_body "Hello world!"
-        assert_header "Content-Type", "text/html; charset=utf-8"
+        assert_header "Content-Type", "text/plain; charset=utf-8"
       end
     end
 
@@ -99,14 +99,14 @@ module ContentType
       get "/content_type/charset/set_on_response_obj"
 
       assert_body   "Hello world!"
-      assert_header "Content-Type", "text/html; charset=utf-16"
+      assert_header "Content-Type", "text/plain; charset=utf-16"
     end
 
     test "setting the charset of the response as nil directly on the response object" do
       get "/content_type/charset/set_as_nil_on_response_obj"
 
       assert_body   "Hello world!"
-      assert_header "Content-Type", "text/html; charset=utf-8"
+      assert_header "Content-Type", "text/plain; charset=utf-8"
     end
   end
 end
