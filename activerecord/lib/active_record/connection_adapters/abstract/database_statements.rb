@@ -217,8 +217,7 @@ module ActiveRecord
             else
               release_savepoint
               save_point_records = @_current_transaction_records.pop
-              unless save_point_records.blank?
-                @_current_transaction_records.push([]) if @_current_transaction_records.empty?
+              unless save_point_records.blank? || @_current_transaction_records.empty?
                 @_current_transaction_records.last.concat(save_point_records)
               end
             end

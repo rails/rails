@@ -335,6 +335,31 @@ class TransactionalFixturesTest < ActiveRecord::TestCase
   end
 end
 
+class TransactionalFixturesTest < ActiveRecord::TestCase
+  self.use_instantiated_fixtures = true
+  self.use_transactional_fixtures = true
+
+  fixtures :topics
+
+  def test_records_saved_in_fixture_transaction_not_recorded
+    @first.update_attributes!(:title => "New title")
+    assert !Topic.connection.instance_variable_get("@_current_transaction_records").flatten.include?(@first)
+  end
+
+  def test_records_saved_in_explicit_transaction_recorded
+    Topic.transaction(:requires_new => true) do
+      @first.update_attributes!(:title => "New title")
+      assert Topic.connection.instance_variable_get("@_current_transaction_records").flatten.include?(@first)
+    end
+    Topic.transaction do
+      @second.update_attributes!(:title => "New title")
+      assert Topic.connection.instance_variable_get("@_current_transaction_records").flatten.include?(@second)
+    end
+    assert !Topic.connection.instance_variable_get("@_current_transaction_records").flatten.include?(@first)
+    assert !Topic.connection.instance_variable_get("@_current_transaction_records").flatten.include?(@second)
+  end
+end
+
 class MultipleFixturesTest < ActiveRecord::TestCase
   fixtures :topics
   fixtures :developers, :accounts
