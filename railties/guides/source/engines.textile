@@ -12,7 +12,7 @@ endprologue.
 
 h3. What are engines?
 
-Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the +Rails::Application+ class inheriting from +Rails::Engine+. Therefore, engines and applications share common functionality but are at the same time two separate beasts. Engines and applications also share a common structure, as you'll see througout this guide.
+Engines can be considered miniature applications that provide functionality to their host applications. A Rails application is actually just a "supercharged" engine, with the +Rails::Application+ class inheriting from +Rails::Engine+. Therefore, engines and applications share common functionality but are at the same time two separate beasts. Engines and applications also share a common structure, as you'll see throughout this guide.
 
 Engines are also closely related to plugins where the two share a common +lib+ directory structure and are both generated using the +rails plugin new+ generator.
 
