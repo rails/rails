@@ -49,7 +49,7 @@ module ActionDispatch
       class Mapping #:nodoc:
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
-        SHORTHAND_REGEX = %r{^/[\w/]+$}
+        SHORTHAND_REGEX = %r{/[\w/]+$}
         WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
         def initialize(set, scope, path, options)
@@ -70,7 +70,7 @@ module ActionDispatch
 
             if using_match_shorthand?(path_without_format, @options)
               to_shorthand    = @options[:to].blank?
-              @options[:to] ||= path_without_format[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              @options[:to] ||= path_without_format.gsub(/\(.*\)/, "")[1..-1].sub(%r{/([^/]*)$}, '#\1')
             end
 
             @options.merge!(default_controller_and_action(to_shorthand))
@@ -90,7 +90,7 @@ module ActionDispatch
 
           # match "account/overview"
           def using_match_shorthand?(path, options)
-            path && options.except(:via, :anchor, :to, :as).empty? && path =~ SHORTHAND_REGEX
+            path && (options[:to] || options[:action]).nil? && path =~ SHORTHAND_REGEX
           end
 
           def normalize_path(path)
