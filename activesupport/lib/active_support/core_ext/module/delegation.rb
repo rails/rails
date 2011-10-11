@@ -123,31 +123,33 @@ class Module
     line = line.to_i
 
     methods.each do |method|
-      method = method.to_s
+      method_name = method_prefix.to_s + method.to_s
 
-      if allow_nil
-        module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
-            if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
-              #{to}.__send__(:#{method}, *args, &block)       #     client.__send__(:name, *args, &block)
-            end                                               #   end
-          end                                                 # end
-        EOS
+      module_eval(<<-EOS, file, line - 1)
+        def #{method_name}(*args, &block)
+          ActiveSupport::Delegation.perform#{"!" unless allow_nil}(self, #{to}, #{method.inspect}, #{method_name.inspect}, #{options[:to].inspect}, args, block)
+        end
+      EOS
+    end
+  end
+end
+
+module ActiveSupport
+  module Delegation #:nodoc:
+    def self.perform(object, target, method, method_name, to, args, block)
+      if target || target.respond_to?(method)
+        target.__send__(method, *args, &block)
+      end
+    end
+    def self.perform!(object, target, method, method_name, to, args, block)
+      target.__send__(method, *args, &block)
+    rescue NoMethodError
+      if target.nil?
+        raise "#{object.class}##{method_name} delegated to #{to}.#{method}, but #{to} is nil: #{object.inspect}"
       else
-        exception = %(raise "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
-
-        module_eval(<<-EOS, file, line - 1)
-          def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
-            #{to}.__send__(:#{method}, *args, &block)         #   client.__send__(:name, *args, &block)
-          rescue NoMethodError                                # rescue NoMethodError
-            if #{to}.nil?                                     #   if client.nil?
-              #{exception}                                    #     # add helpful message to the exception
-            else                                              #   else
-              raise                                           #     raise
-            end                                               #   end
-          end                                                 # end
-        EOS
+        raise
       end
     end
   end
 end
+
