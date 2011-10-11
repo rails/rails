@@ -509,7 +509,7 @@ end
 class RespondWithController < ActionController::Base
   respond_to :html, :json
   respond_to :xml, :except => :using_resource_with_block
-  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, :using_hash_resource ]
+  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, 'using_hash_resource' ]
 
   def using_resource
     respond_with(resource)
