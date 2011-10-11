@@ -126,7 +126,7 @@ module ActiveModel
         return unless include = options[:include]
 
         unless include.is_a?(Hash)
-          include = Hash[Array.wrap(include).map { |n| [n, {}] }]
+          include = Hash[Array.wrap(include).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
         end
 
         include.each do |association, opts|
