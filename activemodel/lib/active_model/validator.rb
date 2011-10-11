@@ -48,8 +48,8 @@ module ActiveModel #:nodoc:
   #
   #   class MyValidator < ActiveModel::Validator
   #     def validate(record)
-  #       record.errors[:base] << "This is some custom error message"
-  #       record.errors[:first_name] << "This is some complex validation"
+  #       record.errors.add :base, "This is some custom error message"
+  #       record.errors.add :first_name, "This is some complex validation"
   #       # etc...
   #     end
   #   end
@@ -68,7 +68,7 @@ module ActiveModel #:nodoc:
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
-  #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless value.in?(['Mr.', 'Mrs.', 'Dr.'])
+  #       record.errors.add attribute, 'must be Mr. Mrs. or Dr.' unless value.in?(['Mr.', 'Mrs.', 'Dr.'])
   #     end
   #   end
   #
