@@ -62,6 +62,9 @@ module ActionDispatch
             raise ActionDispatch::Session::SessionRestoreError, "Session contains objects whose class definition isn't available.\nRemember to require the classes for all objects kept in the session.\n(Original exception: #{const_error.message} [#{const_error.class}])\n"
           end
           retry
+        elsif argument_error.message =~ %r{dump format error \(user class\)}
+          # Error unmarshalling object from session.
+          {}
         else
           raise
         end
