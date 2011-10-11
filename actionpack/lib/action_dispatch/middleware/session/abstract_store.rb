@@ -65,6 +65,9 @@ module ActionDispatch
               "(Original exception: #{const_error.message} [#{const_error.class}])\n"
           end
           retry
+        elsif argument_error.message =~ %r{dump format error \(user class\)}
+          # Error unmarshalling object from session.
+          {}
         else
           raise
         end
