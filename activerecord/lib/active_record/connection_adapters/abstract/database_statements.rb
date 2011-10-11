@@ -162,13 +162,18 @@ module ActiveRecord
       #     end  # RELEASE SAVEPOINT active_record_1  <--- BOOM! database error!
       #   end
       def transaction(options = {})
-        options.assert_valid_keys :requires_new, :joinable
+        options.assert_valid_keys :requires_new, :joinable, :remember_record_state
 
         last_transaction_joinable = defined?(@transaction_joinable) ? @transaction_joinable : nil
         if options.has_key?(:joinable)
           @transaction_joinable = options[:joinable]
         else
           @transaction_joinable = true
+        end
+        if options.has_key?(:remember_record_state)
+          remember_record_state = options[:remember_record_state]
+        else
+          remember_record_state = true
         end
         requires_new = options[:requires_new] || !last_transaction_joinable
 
@@ -185,7 +190,7 @@ module ActiveRecord
               end
               increment_open_transactions
               transaction_open = true
-              @_current_transaction_records.push([])
+              @_current_transaction_records.push(remember_record_state ? [] : nil)
             end
             yield
           end

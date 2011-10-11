@@ -389,6 +389,29 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.destroyed?, 'not destroyed'
   end
 
+  def test_optional_no_restore_active_record_state_so_records_not_retained_in_memory
+    topic_1 = Topic.new(:title => 'test_1')
+    Topic.transaction(:remember_record_state => false) do
+      assert topic_1.save
+      @first.destroy
+      assert topic_1.persisted?, 'persisted'
+      assert_not_nil topic_1.id
+      assert @first.destroyed?, 'destroyed'
+      raise ActiveRecord::Rollback
+    end
+
+    assert topic_1.persisted?, 'state was rolled back, so record must have been retained'
+    assert_not_nil topic_1.id
+    assert_raises(ActiveRecord::RecordNotFound) do
+      topic_1.reload
+      flunk 'database was not rolled back'
+    end
+    assert @first.destroyed?, 'state was rolled back, so record must have been retained'
+    assert_nothing_raised do
+      Topic.find(@first.id)
+    end
+  end
+
   if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
     def test_outside_transaction_works
       assert Topic.connection.outside_transaction?
