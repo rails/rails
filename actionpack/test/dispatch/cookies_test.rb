@@ -441,18 +441,15 @@ class CookiesTest < ActionController::TestCase
     assert_response :success
     assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
   end
-
   
   def test_cookies_hash_is_indifferent_access
-      get :symbol_key
-      assert_equal "david", cookies[:user_name]
-      assert_equal "david", cookies['user_name']
-      get :string_key
-      assert_equal "dhh", cookies[:user_name]
-      assert_equal "dhh", cookies['user_name']
+    get :symbol_key
+    assert_equal "david", cookies[:user_name]
+    assert_equal "david", cookies['user_name']
+    get :string_key
+    assert_equal "dhh", cookies[:user_name]
+    assert_equal "dhh", cookies['user_name']
   end
-
-
 
   def test_setting_request_cookies_is_indifferent_access
     @request.cookies.clear
