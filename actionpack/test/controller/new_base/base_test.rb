@@ -51,7 +51,7 @@ module Dispatching
 
       assert_body "success"
       assert_status 200
-      assert_content_type "text/html; charset=utf-8"
+      assert_content_type "text/plain; charset=utf-8"
     end
 
     # :api: plugin

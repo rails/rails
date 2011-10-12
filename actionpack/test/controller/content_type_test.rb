@@ -66,14 +66,14 @@ class ContentTypeTest < ActionController::TestCase
   def test_render_defaults
     get :render_defaults
     assert_equal "utf-8", @response.charset
-    assert_equal Mime::HTML, @response.content_type
+    assert_equal Mime::TEXT, @response.content_type
   end
 
   def test_render_changed_charset_default
     OldContentTypeController.default_charset = "utf-16"
     get :render_defaults
     assert_equal "utf-16", @response.charset
-    assert_equal Mime::HTML, @response.content_type
+    assert_equal Mime::TEXT, @response.content_type
   ensure
     OldContentTypeController.default_charset = "utf-8"
   end
@@ -95,14 +95,14 @@ class ContentTypeTest < ActionController::TestCase
   # :ported:
   def test_charset_from_body
     get :render_charset_from_body
-    assert_equal Mime::HTML, @response.content_type
+    assert_equal Mime::TEXT, @response.content_type
     assert_equal "utf-16", @response.charset
   end
 
   # :ported:
   def test_nil_charset_from_body
     get :render_nil_charset_from_body
-    assert_equal Mime::HTML, @response.content_type
+    assert_equal Mime::TEXT, @response.content_type
     assert_equal "utf-8", @response.charset, @response.headers.inspect
   end
 
