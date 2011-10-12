@@ -122,8 +122,13 @@ module Rails
     end
 
     def vendor
+      vendor_javascripts
       vendor_stylesheets
       vendor_plugins
+    end
+
+    def vendor_javascripts
+      empty_directory_with_gitkeep "vendor/assets/javascripts"
     end
 
     def vendor_stylesheets
