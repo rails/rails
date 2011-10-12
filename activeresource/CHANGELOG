@@ -1,3 +1,16 @@
+*Rails 3.1.2 (unreleased)*
+
+* Redirect responses: 303 See Other and 307 Temporary Redirect now behave like
+  301 Moved Permanently and 302 Found.  GH #3302.
+
+  [Jim Herz]
+
+
+*Rails 3.1.1 (October 7, 2011)*
+
+* No changes.
+
+
 *Rails 3.1.0 (August 30, 2011)*
 
 * The default format has been changed to JSON for all requests. If you want to continue to use XML you will need to set `self.format = :xml` in the class. eg.

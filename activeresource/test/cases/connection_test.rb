@@ -2,6 +2,7 @@ require 'abstract_unit'
 
 class ConnectionTest < Test::Unit::TestCase
   ResponseCodeStub = Struct.new(:code)
+  RedirectResponseStub = Struct.new(:code, :Location)
 
   def setup
     @conn = ActiveResource::Connection.new('http://localhost')
@@ -39,13 +40,16 @@ class ConnectionTest < Test::Unit::TestCase
     end
 
     # 301 is moved permanently (redirect)
-    assert_response_raises ActiveResource::Redirection, 301
+    assert_redirect_raises 301
 
     # 302 is found (redirect)
-    assert_response_raises ActiveResource::Redirection, 302
+    assert_redirect_raises 302
+
+    # 303 is see other (redirect)
+    assert_redirect_raises 303
 
     # 307 is temporary redirect
-    assert_response_raises ActiveResource::Redirection, 307
+    assert_redirect_raises 307
 
     # 400 is a bad request (e.g. malformed URI or missing request parameter)
     assert_response_raises ActiveResource::BadRequest, 400
@@ -253,6 +257,12 @@ class ConnectionTest < Test::Unit::TestCase
     def assert_response_raises(klass, code)
       assert_raise(klass, "Expected response code #{code} to raise #{klass}") do
         handle_response ResponseCodeStub.new(code)
+      end
+    end
+
+    def assert_redirect_raises(code)
+      assert_raise(ActiveResource::Redirection, "Expected response code #{code} to raise ActiveResource::Redirection") do
+        handle_response RedirectResponseStub.new(code, 'http://example.com/')
       end
     end
 
