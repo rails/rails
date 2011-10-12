@@ -38,6 +38,15 @@ class ConnectionTest < Test::Unit::TestCase
       assert_equal expected, handle_response(expected)
     end
 
+    # 301 is moved permanently (redirect)
+    assert_response_raises ActiveResource::Redirection, 301
+
+    # 302 is found (redirect)
+    assert_response_raises ActiveResource::Redirection, 302
+
+    # 307 is temporary redirect
+    assert_response_raises ActiveResource::Redirection, 307
+
     # 400 is a bad request (e.g. malformed URI or missing request parameter)
     assert_response_raises ActiveResource::BadRequest, 400
 

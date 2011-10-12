@@ -170,8 +170,8 @@ module ActiveResource
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   #
-  # * 200..399 - Valid response, no exception (other than 301, 302)
-  # * 301, 302 - ActiveResource::Redirection
+  # * 200..399 - Valid response, no exception (other than 301, 302 and 307)
+  # * 301, 302, 307 - ActiveResource::Redirection
   # * 400 - ActiveResource::BadRequest
   # * 401 - ActiveResource::UnauthorizedAccess
   # * 403 - ActiveResource::ForbiddenAccess
