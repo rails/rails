@@ -203,6 +203,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file 'test'
   end
 
+  def test_creation_of_vendor_assets_javascripts_directory
+    run_generator
+    assert_file "vendor/assets/javascripts"
+  end
+
   def test_jquery_is_the_default_javascript_library
     run_generator
     assert_file "app/assets/javascripts/application.js" do |contents|
