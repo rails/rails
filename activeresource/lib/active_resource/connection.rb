@@ -122,7 +122,7 @@ module ActiveResource
       # Handles response and error codes from the remote service.
       def handle_response(response)
         case response.code.to_i
-          when 301,302
+          when 301,302,307
             raise(Redirection.new(response))
           when 200...400
             response
