@@ -247,7 +247,7 @@ Next, there needs to be a form so that comments can be created on a post. To add
 <%= render "comments/form" %>
 </erb>
 
-Next, the partial that this line will render needs to exist. Create a new directory at +app/views/blorgh/comments+ and in it a new file called +_form.html.erb+ with this content to create the required partial:
+Next, the partial that this line will render needs to exist. Create a new directory at +app/views/blorgh/comments+ and in it a new file called +_form.html.erb+ which has this content to create the required partial:
 
 <erb>
 <%= form_for [@post, @post.comments.build] do |f| %>
