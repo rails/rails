@@ -244,7 +244,7 @@ Because the +has_many+ is defined inside a class that is inside the +Blorgh+ mod
 Next, there needs to be a form so that comments can be created on a post. To add this, put this line underneath the call to +render @post.comments+ in +app/views/blorgh/posts/show.html.erb+:
 
 <erb>
-<%= render "comments/form" %>
+<%= render "blorgh/comments/form" %>
 </erb>
 
 Next, the partial that this line will render needs to exist. Create a new directory at +app/views/blorgh/comments+ and in it a new file called +_form.html.erb+ which has this content to create the required partial:
