@@ -107,7 +107,7 @@ The first thing to generate for a blog engine is the +Post+ model and related co
 <shell>
 $ rails generate scaffold post title:string text:text
 invoke  active_record
-create    db/migrate/20111006201642_create_blorgh_posts.rb
+create    db/migrate/[timestamp]_create_blorgh_posts.rb
 create    app/models/blorgh/post.rb
 invoke    test_unit
 create      test/unit/blorgh/post_test.rb
