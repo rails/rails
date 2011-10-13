@@ -2145,7 +2145,7 @@ MSG
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
-    include Aggregations, Transactions, Reflection, Serialization
+    include Aggregations, Transactions, Reflection, Serialization, Store
 
     NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
 
