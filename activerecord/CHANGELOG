@@ -1,5 +1,16 @@
 *Rails 3.2.0 (unreleased)*
 
+* Added ActiveRecord::Base.store for declaring simple single-column key/value stores [DHH]
+
+    class User < ActiveRecord::Base
+      store :settings, accessors: [ :color, :homepage ]
+    end
+    
+    u = User.new(color: 'black', homepage: '37signals.com')
+    u.color                          # Accessor stored attribute
+    u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
+
+
 * MySQL: case-insensitive uniqueness validation avoids calling LOWER when
   the column already uses a case-insensitive collation. Fixes #561.
 
