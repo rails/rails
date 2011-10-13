@@ -637,6 +637,10 @@ module ActiveResource
       #   Post.element_path(1)
       #   # => /posts/1.json
       #
+      #   class Comment < ActiveResource::Base
+      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #   end
+      #
       #   Comment.element_path(1, :post_id => 5)
       #   # => /posts/5/comments/1.json
       #
@@ -662,6 +666,10 @@ module ActiveResource
       # ==== Examples
       #   Post.new_element_path
       #   # => /posts/new.json
+      #
+      #   class Comment < ActiveResource::Base
+      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #   end
       #
       #   Comment.collection_path(:post_id => 5)
       #   # => /posts/5/comments/new.json
