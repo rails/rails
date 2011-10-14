@@ -99,6 +99,16 @@ module ActiveRecord
   #
   # Read more about optimistic locking in ActiveRecord::Locking module RDoc.
   class StaleObjectError < ActiveRecordError
+    attr_reader :record, :attempted_action
+
+    def initialize(record, attempted_action)
+      @record = record
+      @attempted_action = attempted_action
+    end
+
+    def message
+      "Attempted to #{attempted_action} a stale object: #{record.class.name}"
+    end
   end
 
   # Raised when association is being configured improperly or
