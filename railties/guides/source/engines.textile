@@ -343,9 +343,13 @@ The +comment_counter+ local variable is given to us by the +<%= render @post.com
 
 That completes the comment function of the blogging engine. Now it's time to use it within an application.
 
-h3. Hooking into application
+h3. Hooking into an application
 
-Using an engine within an application is very easy. First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
+Using an engine within an application is very easy. This section covers how to mount the engine into an application and the initial setup required for it, as well as linking the engine to a +User+ class provided by the application to provide ownership for posts and comments within the engine.
+
+h4. Mounting the engine
+
+First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
 
 <shell>
 $ rails new unicorn
