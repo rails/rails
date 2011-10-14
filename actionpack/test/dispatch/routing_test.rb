@@ -2536,22 +2536,32 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
         path_params = env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, [path_params[:segment]]]
       }, :as => :segment
+
+      match '/*splat' => lambda { |env|
+        path_params = env['action_dispatch.request.path_parameters']
+        [200, { 'Content-Type' => 'text/plain' }, [path_params[:splat]]]
+      }, :as => :splat
     end
   end
 
   include Routes.url_helpers
   def app; Routes end
 
-  setup do
-    @path, @param = '/a%20b%2Fc+d', 'a b/c+d'
+  test 'escapes generated path segment' do
+    assert_equal '/a%20b/c+d', segment_path(:segment => 'a b/c+d')
   end
 
-  test 'escapes generated path parameters' do
-    assert_equal @path, segment_path(:segment => @param)
+  test 'unescapes recognized path segment' do
+    get '/a%20b%2Fc+d'
+    assert_equal 'a b/c+d', @response.body
   end
 
-  test 'unescapes recognized path parameters' do
-    get @path
-    assert_equal @param, @response.body
+  test 'escapes generated path splat' do
+    assert_equal '/a%20b/c+d', splat_path(:splat => 'a b/c+d')
+  end
+
+  test 'unescapes recognized path splat' do
+    get '/a%20b/c+d'
+    assert_equal 'a b/c+d', @response.body
   end
 end
