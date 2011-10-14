@@ -2528,3 +2528,30 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     end
   end
 end
+
+class TestUriPathEscaping < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      match '/:segment' => lambda { |env|
+        path_params = env['action_dispatch.request.path_parameters']
+        [200, { 'Content-Type' => 'text/plain' }, [path_params[:segment]]]
+      }, :as => :segment
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  setup do
+    @path, @param = '/a%20b%2Fc+d', 'a b/c+d'
+  end
+
+  test 'escapes generated path parameters' do
+    assert_equal @path, segment_path(:segment => @param)
+  end
+
+  test 'unescapes recognized path parameters' do
+    get @path
+    assert_equal @param, @response.body
+  end
+end
