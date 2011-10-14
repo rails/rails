@@ -204,6 +204,14 @@ If you'd rather play around in the console, +rails console+ will also work just 
   => #<Blorgh::Post id: 1 ...>
 </ruby>
 
+One final thing is that the +posts+ resource for this engine should be the root of the engine. Whenever someone goes to the root path where the engine is mounted, they should be shown a list of posts. This can be made to happen if this line is inserted into the +config/routes.rb+ file inside the engine:
+
+<ruby>
+root :to => "posts#index"
+</ruby>
+
+Now people will only need to go to the root of the engine to see all the posts, rather than visiting +/posts+.
+
 h4. Generating a comments resource
 
 Now that the engine has the ability to create new blog posts, it only makes sense to add commenting functionality as well. To do get this, you'll need to generate a comment model, a comment controller and then modify the posts scaffold to display comments and allow people to create new ones.
@@ -337,11 +345,49 @@ That completes the comment function of the blogging engine. Now it's time to use
 
 h3. Hooking into application
 
+Using an engine within an application is very easy. First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
+
+<shell>
+$ rails new unicorn
+</shell>
+
+Usually, specifying the engine inside the Gemfile would be done by specifying it as a normal, everyday gem.
+
+<ruby>
+gem 'devise'
+</ruby>
+
+Because the +blorgh+ engine is still under development, it will need to have a +:path+ option for its +Gemfile+ specification:
+
+<ruby>
+gem 'blorgh', :path => "/path/to/blorgh"
+</ruby>
+
+If the whole +blorgh+ engine directory is copied to +vendor/engines/blorgh+ then it could be specified in the +Gemfile+ like this:
+
+<ruby>
+gem 'blorgh', :path => "vendor/engines/blorgh"
+</ruby>
+
+As described earlier, by placing the gem in the +Gemfile+ it will be loaded when Rails is loaded, as it will first require +lib/blorgh.rb+ in the engine and then +lib/blorgh/engine.rb+, which is the file that defines the major pieces of functionality for the engine.
+
+To make the engine's functionality accessible from within an application, it needs to be mounted in that application's +config/routes.rb+ file:
+
+<ruby>
+  mount Blorgh::Engine, :at => "blog"
+</ruby>
+
+NOTE: Other engines, such as Devise, handle this a little differently by making you specify custom helpers such as +devise_for+ in the routes. These helpers do exactly the same thing, mounting pieces of the engines's functionality at a pre-defined path which may be customizable.
+
+
+
+This line will mount the engine
 TODO: Application will provide a User foundation class which the engine hooks into through a configuration setting, configurable in the application's initializers. The engine will be mounted at the +/blog+ path in the application.
 
 h3. Overriding engine functionality
 
 TODO: Cover how to override engine functionality in the engine, such as controllers and views.
+
 IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
 TODO: Mention how to use assets within an engine?
 TODO: Mention how to depend on external gems, like RedCarpet.
