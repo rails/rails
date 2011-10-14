@@ -99,6 +99,15 @@ module ActiveRecord
   #
   # Read more about optimistic locking in ActiveRecord::Locking module RDoc.
   class StaleObjectError < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record)
+      @record = record
+    end
+
+    def message
+      "Attempted to update a stale object: #{record.class.name}"
+    end    
   end
 
   # Raised when association is being configured improperly or
