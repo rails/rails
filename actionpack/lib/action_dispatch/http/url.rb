@@ -45,7 +45,7 @@ module ActionDispatch
 
           rewritten_url << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
           rewritten_url << "?#{params.to_query}" unless params.empty?
-          rewritten_url << "##{Journey::Router::Utils.escape_uri(options[:anchor].to_param.to_s)}" if options[:anchor]
+          rewritten_url << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           rewritten_url
         end
 
