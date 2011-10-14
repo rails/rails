@@ -82,7 +82,7 @@ Active Record provides five different ways of retrieving a single object.
 
 h5. Using a Primary Key
 
-Using <tt>Model.find(primary_key)</tt>, you can retrieve the object corresponding to the supplied _primary key_ and matching the supplied options (if any). For example:
+Using <tt>Model.find(primary_key)</tt>, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
 <ruby>
 # Find the client with primary key (id) 10.
@@ -170,7 +170,7 @@ h4. Retrieving Multiple Objects
 
 h5. Using Multiple Primary Keys
 
-<tt>Model.find(array_of_primary_key)</tt> also accepts an array of _primary keys_. An array of all the matching records for the supplied _primary keys_ is returned. For example:
+<tt>Model.find(array_of_primary_key)</tt> accepts an array of _primary keys_, returning an array containing all of the matching records for the supplied _primary keys_. For example:
 
 <ruby>
 # Find the clients with primary keys 1 and 10.
@@ -188,24 +188,26 @@ WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::
 
 h4. Retrieving Multiple Objects in Batches
 
-Sometimes you need to iterate over a large set of records. For example to send a newsletter to all users, to export some data, etc.
+We often need to iterate over a large set of records, as when we send a newsletter to a large set of users, or when we export data.
 
-The following may seem very straightforward, at first:
+This may appear straightforward:
 
 <ruby>
-# Very inefficient when users table has thousands of rows.
+# This is very inefficient when the users table has thousands of rows.
 User.all.each do |user|
   NewsLetter.weekly_deliver(user)
 end
 </ruby>
 
-But if the total number of rows in the table is very large, the above approach may vary from being underperforming to being plain impossible.
+But this approach becomes increasingly impractical as the table size increases, since +User.all.each+ instructs Active Record to fetch _the entire table_ in a single pass, build a model object per row, and then keep the entire array of model objects in memory. Indeed, if we have a large number of records, the entire collection may exceed the amount of memory available.
 
-This is because +User.all.each+ makes Active Record fetch _the entire table_, build a model object per row, and keep the entire array of model objects in memory. Sometimes that is just too many objects and requires too much memory.
+Rails provides two methods that address this problem by dividing records into memory-friendly batches for processing. The first method, +find_each+, retrieves a batch of records and then yields _each_ record to the block individually as a model. The second method, +find_in_batches+, retrieves a batch of records and then yields _the entire batch_ to the block as an array of models. 
+
+TIP: The +find_each+ and +find_in_batches+ methods are intended for use in the batch processing of a large number of records that wouldn't fit in memory all at once. If you just need to loop over a thousand records the regular find methods are the preferred option.
 
 h5. +find_each+
 
-To efficiently iterate over a large table, Active Record provides a batch finder method called +find_each+:
+The +find_each+ method retrieves a batch of records and then yields _each_ record to the block individually as a model. In the following example, +find_each+ will retrieve 1000 records (the current default for both +find_each+ and +find_in_batches+) and then yield each record individually to the block as a model. This process is repeated until all of the records have been processed:
 
 <ruby>
 User.find_each do |user|
@@ -213,11 +215,15 @@ User.find_each do |user|
 end
 </ruby>
 
-*Configuring the batch size*
+h6. Options for +find_each+
 
-Behind the scenes, +find_each+ fetches rows in batches of 1000 and yields them one by one. The size of the underlying batches is configurable via the +:batch_size+ option.
+The +find_each+ method accepts most of the options allowed by the regular +find+ method, except for +:order+ and +:limit+, which are reserved for internal use by +find_each+.
 
-To fetch +User+ records in batches of 5000, we can use:
+Two additional options, +:batch_size+ and +:start+, are available as well.
+
+*+:batch_size+*
+
+The +:batch_size+ option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5000:
 
 <ruby>
 User.find_each(:batch_size => 5000) do |user|
@@ -225,36 +231,38 @@ User.find_each(:batch_size => 5000) do |user|
 end
 </ruby>
 
-*Starting batch find from a specific primary key*
+*+:start+*
 
-Records are fetched in ascending order of the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This may be useful, for example, to be able to resume an interrupted batch process, provided it saves the last processed ID as a checkpoint.
+By default, records are fetched in ascending order of the primary key, which must be an integer. The +:start+ option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
-To send newsletters only to users with the primary key starting from 2000, we can use:
+For example, to send newsletters only to users with the primary key starting from 2000, and to retrieve them in batches of 5000:
 
 <ruby>
-User.find_each(:batch_size => 5000, :start => 2000) do |user|
+User.find_each(:start => 2000, :batch_size => 5000) do |user|
   NewsLetter.weekly_deliver(user)
 end
 </ruby>
 
-*Additional options*
+Another example would be if you wanted multiple workers handling the same processing queue. You could have each worker handle 10000 records by setting the appropriate <tt>:start</tt> option on each worker.
 
-+find_each+ accepts the same options as the regular +find+ method. However, +:order+ and +:limit+ are needed internally and hence not allowed to be passed explicitly.
+NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
 
 h5. +find_in_batches+
 
-You can also work by chunks instead of row by row using +find_in_batches+. This method is analogous to +find_each+, but it yields arrays of models instead:
+The +find_in_batches+ method is similar to +find_each+, since both retrieve batches of records. The difference is that +find_in_batches+ yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 invoices at a time, with the final block containing any remaining invoices:
 
 <ruby>
-# Works in chunks of 1000 invoices at a time.
+# Give add_invoices an array of 1000 invoices at a time
 Invoice.find_in_batches(:include => :invoice_lines) do |invoices|
   export.add_invoices(invoices)
 end
 </ruby>
 
-The above will each time yield to the supplied block an array of 1000 invoices (or the remaining invoices, if less than 1000).
-
 NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
+
+h6. Options for +find_in_batches+
+
+The +find_in_batches+ method accepts the same +:batch_size+ and +:start+ options as +find_each+, as well as most of the options allowed by the regular +find+ method, except for +:order+ and +:limit+, which are reserved for internal use by +find_in_batches+.
 
 h3. Conditions
 
@@ -268,7 +276,7 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 h4. Array Conditions
 
-Now what if that number could vary, say as an argument from somewhere? The find then becomes something like:
+Now what if that number could vary, say as an argument from somewhere? The find would then take the form:
 
 <ruby>
 Client.where("orders_count = ?", params[:orders])
@@ -276,7 +284,7 @@ Client.where("orders_count = ?", params[:orders])
 
 Active Record will go through the first element in the conditions value and any additional elements will replace the question marks +(?)+ in the first element.
 
-Or if you want to specify two conditions, you can do it like:
+If you want to specify multiple conditions:
 
 <ruby>
 Client.where("orders_count = ? AND locked = ?", params[:orders], false)
@@ -284,19 +292,19 @@ Client.where("orders_count = ? AND locked = ?", params[:orders], false)
 
 In this example, the first question mark will be replaced with the value in +params[:orders]+ and the second will be replaced with the SQL representation of +false+, which depends on the adapter.
 
-The reason for doing code like:
+This code is highly preferable:
 
 <ruby>
 Client.where("orders_count = ?", params[:orders])
 </ruby>
 
-instead of:
+to this code:
 
 <ruby>
 Client.where("orders_count = #{params[:orders]}")
 </ruby>
 
-is because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
+because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
 
 TIP: For more information on the dangers of SQL injection, see the "Ruby on Rails Security Guide":security.html#sql-injection.
 
@@ -1016,7 +1024,7 @@ You can also use +find_last_by_*+ methods which will find the last record matchi
 
 You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
 
-If you want to find both by name and locked, you can chain these finders together by simply typing +and+ between the fields. For example, +Client.find_by_first_name_and_locked("Ryan", true)+.
+If you want to find both by name and locked, you can chain these finders together by simply typing "+and+" between the fields. For example, +Client.find_by_first_name_and_locked("Ryan", true)+.
 
 WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say <tt>Client.find_by_name_and_locked("Ryan")</tt>, the behavior is to pass +nil+ as the missing argument. This is *unintentional* and this behavior will be changed in Rails 3.2 to throw an +ArgumentError+.
 

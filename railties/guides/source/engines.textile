@@ -106,8 +106,13 @@ The first thing to generate for a blog engine is the +Post+ model and related co
 
 <shell>
 $ rails generate scaffold post title:string text:text
+</shell>
+
+This command will output this information:
+
+<shell>
 invoke  active_record
-create    db/migrate/20111006201642_create_blorgh_posts.rb
+create    db/migrate/[timestamp]_create_blorgh_posts.rb
 create    app/models/blorgh/post.rb
 invoke    test_unit
 create      test/unit/blorgh/post_test.rb
@@ -199,94 +204,190 @@ If you'd rather play around in the console, +rails console+ will also work just 
   => #<Blorgh::Post id: 1 ...>
 </ruby>
 
+One final thing is that the +posts+ resource for this engine should be the root of the engine. Whenever someone goes to the root path where the engine is mounted, they should be shown a list of posts. This can be made to happen if this line is inserted into the +config/routes.rb+ file inside the engine:
+
+<ruby>
+root :to => "posts#index"
+</ruby>
+
+Now people will only need to go to the root of the engine to see all the posts, rather than visiting +/posts+.
+
 h4. Generating a comments resource
 
-Now that the engine has the ability to create new blog posts, it only makes sense to add commenting functionality as well.
+Now that the engine has the ability to create new blog posts, it only makes sense to add commenting functionality as well. To do get this, you'll need to generate a comment model, a comment controller and then modify the posts scaffold to display comments and allow people to create new ones.
 
-To do this, you can run the scaffold generator this time and tell it to generate a +Comment+ resource instead, with the table having two columns: a +post_id+ integer and +text+ text column.
+Run the model generator and tell it to generate a +Comment+ model, with the related table having two columns: a +post_id+ integer and +text+ text column.
 
 <shell>
-$ rails generate scaffold Comment post_id:integer text:text
+$ rails generate model Comment post_id:integer text:text
 </shell>
 
-This generator call will generate almost the same files as it did the first time we called it for generating the +Post+ resource, but this time the files will be called things such as +app/controllers/blorgh/comments_controller.rb+ and +app/models/blorgh/comment.rb+.
+This will output the following:
 
-There's a few things wrong with how this generator has worked. It would be better if the comments resource was nested inside the posts resource in the routes, and if the controller created new comment entries inside a post. These are two very easy things to fix up.
+<shell>
+invoke  active_record
+create    db/migrate/[timestamp]_create_blorgh_comments.rb
+create    app/models/blorgh/comment.rb
+invoke    test_unit
+create      test/unit/blorgh/comment_test.rb
+create      test/fixtures/blorgh/comments.yml
+</shell>
 
-The +resources+ line from this generator is placed into the +config/routes.rb+ by the generator, but you're going to want to have comments nested underneath a post, and so it's a good idea to change these lines in the +config/routes.rb+ file:
+This generator call will generate just the necessary model files it needs, namespacing the files under a +blorgh+ directory and creating a model class called +Blorgh::Comment+.
+
+To show the comments on a post, edit +app/views/posts/show.html.erb+ and add this line before the "Edit" link:
+
+<erb>
+<h3>Comments</h3>
+<%= render @post.comments %>
+</erb>
+
+This line will require there to be a +has_many+ association for comments defined on the +Blorgh::Post+ model, which there isn't right now. To define one, open +app/models/blorgh/post.rb+ and add this line into the model:
 
 <ruby>
-Blorgh::Engine.routes.draw do
+has_many :comments
+</ruby>
+
+Turning the model into this:
+
+<ruby>
+module Blorgh
+  class Post < ActiveRecord::Base
+    has_many :comments
+  end
+end
+</ruby>
+
+Because the +has_many+ is defined inside a class that is inside the +Blorgh+ module, Rails will know that you want to use the +Blorgh::Comment+ model for these objects.
+
+Next, there needs to be a form so that comments can be created on a post. To add this, put this line underneath the call to +render @post.comments+ in +app/views/blorgh/posts/show.html.erb+:
+
+<erb>
+<%= render "blorgh/comments/form" %>
+</erb>
+
+Next, the partial that this line will render needs to exist. Create a new directory at +app/views/blorgh/comments+ and in it a new file called +_form.html.erb+ which has this content to create the required partial:
+
+<erb>
+<h3>New comment</h3>
+<%= form_for [@post, @post.comments.build] do |f| %>
+  <p>
+    <%= f.label :text %><br />
+    <%= f.text_area :text %>
+  </p>
+  <%= f.submit %>
+<% end %>
+</erb>
+
+This form, when submitted, is going to attempt to post to a route of +posts/:post_id/comments+ within the engine. This route doesn't exist at the moment, but can be created by changing the +resources :posts+ line inside +config/routes.rb+ into these lines:
+
+<ruby>
+resources :posts do
   resources :comments
-
-  resources :posts
-
 end
 </ruby>
 
-Into these:
+The route now will exist, but the controller that this route goes to does not. To create it, run this command:
+
+<shell>
+$ rails g controller comments
+</shell>
+
+This will generate the following things:
+
+<shell>
+create  app/controllers/blorgh/comments_controller.rb
+invoke  erb
+ exist    app/views/blorgh/comments
+invoke  test_unit
+create    test/functional/blorgh/comments_controller_test.rb
+invoke  helper
+create    app/helpers/blorgh/comments_helper.rb
+invoke    test_unit
+create      test/unit/helpers/blorgh/comments_helper_test.rb
+invoke  assets
+invoke    js
+create      app/assets/javascripts/blorgh/comments.js
+invoke    css
+create      app/assets/stylesheets/blorgh/comments.css
+</shell>
+
+The form will be making a +POST+ request to +/posts/:post_id/comments+, which will correspond with the +create+ action in +Blorgh::CommentsController+. This action needs to be created and can be done by putting the following lines inside the class definition in +app/controllers/blorgh/comments_controller.rb+:
 
 <ruby>
-  Blorgh::Engine.routes.draw do
-    resources :posts do
-      resources :comments
-    end
-  end
-</ruby>
-
-That fixes the routes. For the controller, it's just as easy. When a request is made to this controller, it will be in the form of +post/:post_id/comments+. In order to find the comments that are being requested, the post is going to need to be fetched using something such as:
-
-<ruby>
-post = Post.find(params[:id])
-</ruby>
-
-Then to get the comments for this post it would be as simple as:
-
-<ruby>
-post.comments
-</ruby>
-
-Alternatively, the query to fetch the comments in actions such as the +index+ action would need to be changed from +Comment.all+ into +Comment.find_all_by_post_id(params[:post_id])+. However, the first way is cleaner and so it should be done that way.
-
-To fetch the post in the controller, add a +before_filter+ into the controller's class definition like this:
-
-<ruby>
-module Blorgh
-  class CommentsController < ApplicationController
-    before_filter :load_post
-    ...
-  end
+def create
+  @post = Post.find(params[:post_id])
+  @comment = @post.comments.build(params[:comment])
+  flash[:notice] = "Comment has been created!"
+  redirect_to post_path
 end
 </ruby>
 
-This +before_filter+ will call the +load_post+ method before every request that comes into this controller. This method should be defined as a +private+ method after all the actions in the controller:
+This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
 
-<ruby>
-module Blorgh
-  class CommentsController < ApplicationController
-    before_filter :load_post
+<text>
+  Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
+    * "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"
+    * "/Users/ryan/Sites/side_projects/blorgh/app/views"
+</text>
 
-    # actions go here
+The engine is unable to find the partial required for rendering the comments. Rails has looked firstly in the application's (+test/dummy+) +app/views+ directory and then in the engine's +app/views+ directory. When it can't find it, it will throw this error. The engine knows to look for +blorgh/comments/comment+ because the model object it is receiving is from the +Blorgh::Comment+ class. 
 
-    private
+This partial will be responsible for rendering just the comment text, for now. Create a new file at +app/views/blorgh/comments/_comment.html.erb+ and put this line inside it:
 
-    def load_post
-      @post = Post.find(params[:post_id])
-    end
-  end
-end
-</ruby>
+<erb>
+<%= comment_counter + 1 %>. <%= comment.text %>
+</erb>
 
-With the post being loaded, the queries in the controller need to be altered in order to query within the scope of the relative post. All occurrences of +Comment+ in this controller should now be replaced with +@post.comments+ so that the queries are correctly scoped.
+The +comment_counter+ local variable is given to us by the +<%= render @post.comments %>+ call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
 
+That completes the comment function of the blogging engine. Now it's time to use it within an application.
 
 h3. Hooking into application
 
+Using an engine within an application is very easy. First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
+
+<shell>
+$ rails new unicorn
+</shell>
+
+Usually, specifying the engine inside the Gemfile would be done by specifying it as a normal, everyday gem.
+
+<ruby>
+gem 'devise'
+</ruby>
+
+Because the +blorgh+ engine is still under development, it will need to have a +:path+ option for its +Gemfile+ specification:
+
+<ruby>
+gem 'blorgh', :path => "/path/to/blorgh"
+</ruby>
+
+If the whole +blorgh+ engine directory is copied to +vendor/engines/blorgh+ then it could be specified in the +Gemfile+ like this:
+
+<ruby>
+gem 'blorgh', :path => "vendor/engines/blorgh"
+</ruby>
+
+As described earlier, by placing the gem in the +Gemfile+ it will be loaded when Rails is loaded, as it will first require +lib/blorgh.rb+ in the engine and then +lib/blorgh/engine.rb+, which is the file that defines the major pieces of functionality for the engine.
+
+To make the engine's functionality accessible from within an application, it needs to be mounted in that application's +config/routes.rb+ file:
+
+<ruby>
+  mount Blorgh::Engine, :at => "blog"
+</ruby>
+
+NOTE: Other engines, such as Devise, handle this a little differently by making you specify custom helpers such as +devise_for+ in the routes. These helpers do exactly the same thing, mounting pieces of the engines's functionality at a pre-defined path which may be customizable.
+
+
+
+This line will mount the engine
 TODO: Application will provide a User foundation class which the engine hooks into through a configuration setting, configurable in the application's initializers. The engine will be mounted at the +/blog+ path in the application.
 
 h3. Overriding engine functionality
 
 TODO: Cover how to override engine functionality in the engine, such as controllers and views.
+
 IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
 TODO: Mention how to use assets within an engine?
 TODO: Mention how to depend on external gems, like RedCarpet.
