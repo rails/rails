@@ -378,14 +378,32 @@ As described earlier, by placing the gem in the +Gemfile+ it will be loaded when
 To make the engine's functionality accessible from within an application, it needs to be mounted in that application's +config/routes.rb+ file:
 
 <ruby>
-  mount Blorgh::Engine, :at => "blog"
+mount Blorgh::Engine, :at => "blog"
 </ruby>
+
+This line will mount the engine at +blog+ in the application. Making it accessible at +http://localhost:3000/blog+ when the application runs with +rails s+.
 
 NOTE: Other engines, such as Devise, handle this a little differently by making you specify custom helpers such as +devise_for+ in the routes. These helpers do exactly the same thing, mounting pieces of the engines's functionality at a pre-defined path which may be customizable.
 
+h4. Engine setup
 
+The engine contains migrations for the +blorgh_posts+ and +blorgh_comments+ table which need to be created in the application's database so that the engine's models can query them correctly. To copy these migrations into the application use this command:
 
-This line will mount the engine
+<shell>
+$ rake blorgh:install:migrations
+</shell>
+
+This command, when run for the first time will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
+
+<shell>
+Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
+Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
+</shell>
+
+The first timestamp (+\[timestamp_1\]+) will be the current time and the second timestamp (+\[timestamp_2\]+) will be the current time plus a second. The reason for this is so that the migrations for the engine are run after any existing migrations in the application.
+
+To run these migrations within the context of the application, simply run +rake db:migrate+. When accessing the engine through +http://localhost:3000/blog+, the posts will be empty. This is because the table created inside the application is different from the one created within the engine. Go ahead, play around with the newly mounted engine. You'll find that it's the same as when it was only an engine.
+
 TODO: Application will provide a User foundation class which the engine hooks into through a configuration setting, configurable in the application's initializers. The engine will be mounted at the +/blog+ path in the application.
 
 h3. Overriding engine functionality
