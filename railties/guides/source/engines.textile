@@ -261,14 +261,79 @@ Next, there needs to be a form so that comments can be created on a post. To add
 Next, the partial that this line will render needs to exist. Create a new directory at +app/views/blorgh/comments+ and in it a new file called +_form.html.erb+ which has this content to create the required partial:
 
 <erb>
+<h3>New comment</h3>
 <%= form_for [@post, @post.comments.build] do |f| %>
   <p>
     <%= f.label :text %><br />
     <%= f.text_area :text %>
   </p>
+  <%= f.submit %>
 <% end %>
 </erb>
 
+This form, when submitted, is going to attempt to post to a route of +posts/:post_id/comments+ within the engine. This route doesn't exist at the moment, but can be created by changing the +resources :posts+ line inside +config/routes.rb+ into these lines:
+
+<ruby>
+resources :posts do
+  resources :comments
+end
+</ruby>
+
+The route now will exist, but the controller that this route goes to does not. To create it, run this command:
+
+<shell>
+$ rails g controller comments
+</shell>
+
+This will generate the following things:
+
+<shell>
+create  app/controllers/blorgh/comments_controller.rb
+invoke  erb
+ exist    app/views/blorgh/comments
+invoke  test_unit
+create    test/functional/blorgh/comments_controller_test.rb
+invoke  helper
+create    app/helpers/blorgh/comments_helper.rb
+invoke    test_unit
+create      test/unit/helpers/blorgh/comments_helper_test.rb
+invoke  assets
+invoke    js
+create      app/assets/javascripts/blorgh/comments.js
+invoke    css
+create      app/assets/stylesheets/blorgh/comments.css
+</shell>
+
+The form will be making a +POST+ request to +/posts/:post_id/comments+, which will correspond with the +create+ action in +Blorgh::CommentsController+. This action needs to be created and can be done by putting the following lines inside the class definition in +app/controllers/blorgh/comments_controller.rb+:
+
+<ruby>
+def create
+  @post = Post.find(params[:post_id])
+  @comment = @post.comments.build(params[:comment])
+  flash[:notice] = "Comment has been created!"
+  redirect_to post_path
+end
+</ruby>
+
+This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
+
+<text>
+  Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
+    * "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"
+    * "/Users/ryan/Sites/side_projects/blorgh/app/views"
+</text>
+
+The engine is unable to find the partial required for rendering the comments. Rails has looked firstly in the application's (+test/dummy+) +app/views+ directory and then in the engine's +app/views+ directory. When it can't find it, it will throw this error. The engine knows to look for +blorgh/comments/comment+ because the model object it is receiving is from the +Blorgh::Comment+ class. 
+
+This partial will be responsible for rendering just the comment text, for now. Create a new file at +app/views/blorgh/comments/_comment.html.erb+ and put this line inside it:
+
+<erb>
+<%= comment_counter + 1 %>. <%= comment.text %>
+</erb>
+
+The +comment_counter+ local variable is given to us by the +<%= render @post.comments %>+ call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
+
+That completes the comment function of the blogging engine. Now it's time to use it within an application.
 
 h3. Hooking into application
 
