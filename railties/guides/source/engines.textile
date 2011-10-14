@@ -230,6 +230,7 @@ This generator call will generate just the necessary model files it needs, names
 To show the comments on a post, edit +app/views/posts/show.html.erb+ and add this line before the "Edit" link:
 
 <erb>
+<h3>Comments</h3>
 <%= render @post.comments %>
 </erb>
 
