@@ -3,6 +3,9 @@ rvm:
   - 1.8.7
   - 1.9.2
   #- 1.9.3 # Disable 1.9.3 builds until Travis is on 1.9.3-rc1.
+  - rbx
+  #- rbx-2.0
+  #- jruby
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,ares,as"
