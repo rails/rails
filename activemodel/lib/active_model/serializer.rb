@@ -46,6 +46,8 @@ module ActiveModel
     class_attribute :_associations
     self._associations = []
 
+    class_attribute :_root
+
     class << self
       def attributes(*attrs)
         self._attributes += attrs
@@ -71,6 +73,10 @@ module ActiveModel
         associate(Associations::HasOne, attrs)
       end
 
+      def root(name)
+        self._root = name
+      end
+
       def inherited(klass)
         return if klass.anonymous?
 
@@ -78,6 +84,7 @@ module ActiveModel
 
         klass.class_eval do
           alias_method name.to_sym, :object
+          root name.to_sym unless self._root == false
         end
       end
     end
@@ -89,7 +96,11 @@ module ActiveModel
     end
 
     def as_json(*)
-      serializable_hash
+      if _root
+        { _root => serializable_hash }
+      else
+        serializable_hash
+      end
     end
 
     def serializable_hash
