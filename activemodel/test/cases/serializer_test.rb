@@ -182,11 +182,12 @@ class SerializerTest < ActiveModel::TestCase
 
     blog_serializer = Class.new(ActiveModel::Serializer) do
       const_set(:PersonSerializer, author_serializer)
-      has_one :person
 
       def person
         object.author
       end
+
+      has_one :person
     end
 
     user = User.new
@@ -199,5 +200,63 @@ class SerializerTest < ActiveModel::TestCase
         :first_name => "Jose"
       }
     }, json)
+  end
+
+  def post_serializer(type)
+    Class.new(ActiveModel::Serializer) do
+      attributes :title, :body
+      has_many :comments, :serializer => CommentSerializer
+
+      define_method :serializable_hash do
+        post_hash = attributes
+        post_hash.merge!(send(type))
+        post_hash
+      end
+    end
+  end
+
+  def test_associations
+    post = Post.new(:title => "New Post", :body => "Body of new post", :email => "tenderlove@tenderlove.com")
+    comments = [Comment.new(:title => "Comment1"), Comment.new(:title => "Comment2")]
+    post.comments = comments
+
+    serializer = post_serializer(:associations).new(post, nil)
+
+    assert_equal({
+      :title => "New Post",
+      :body => "Body of new post",
+      :comments => [
+        { :title => "Comment1" },
+        { :title => "Comment2" }
+      ]
+    }, serializer.as_json)
+  end
+
+  def test_association_ids
+    serializer = post_serializer(:association_ids)
+
+    serializer.class_eval do
+      def as_json(*)
+        { post: serializable_hash }.merge(associations)
+      end
+    end
+
+    post = Post.new(:title => "New Post", :body => "Body of new post", :email => "tenderlove@tenderlove.com")
+    comments = [Comment.new(:title => "Comment1", :id => 1), Comment.new(:title => "Comment2", :id => 2)]
+    post.comments = comments
+
+    serializer = serializer.new(post, nil)
+
+    assert_equal({
+      :post => {
+        :title => "New Post",
+        :body => "Body of new post",
+        :comments => [1, 2]
+      },
+      :comments => [
+        { :title => "Comment1" },
+        { :title => "Comment2" }
+      ]
+    }, serializer.as_json)
   end
 end

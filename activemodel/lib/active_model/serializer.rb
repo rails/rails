@@ -18,11 +18,24 @@ module ActiveModel
             serializer.new(item, scope).serializable_hash
           end
         end
+
+        def serialize_ids(collection, scope)
+          # use named scopes if they are present
+          return collection.ids if collection.respond_to?(:ids)
+
+          collection.map do |item|
+            item.read_attribute_for_serialization(:id)
+          end
+        end
       end
 
       class HasOne < Config
         def serialize(object, scope)
           serializer.new(object, scope).serializable_hash
+        end
+
+        def serialize_ids(object, scope)
+          object.read_attribute_for_serialization(:id)
         end
       end
     end
@@ -80,11 +93,26 @@ module ActiveModel
     end
 
     def serializable_hash
-      hash = attributes
+      attributes.merge(associations)
+    end
+
+    def associations
+      hash = {}
 
       _associations.each do |association|
         associated_object = send(association.name)
         hash[association.name] = association.serialize(associated_object, scope)
+      end
+
+      hash
+    end
+
+    def association_ids
+      hash = {}
+
+      _associations.each do |association|
+        associated_object = send(association.name)
+        hash[association.name] = association.serialize_ids(associated_object, scope)
       end
 
       hash
