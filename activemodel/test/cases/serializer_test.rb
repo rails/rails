@@ -2,7 +2,7 @@ require "cases/helper"
 
 class SerializerTest < ActiveModel::TestCase
   class Model
-    def initialize(hash)
+    def initialize(hash={})
       @attributes = hash
     end
 
@@ -141,6 +141,37 @@ class SerializerTest < ActiveModel::TestCase
 
   def test_has_one
     user = User.new
-    blog = Blog.new(:author => user)
+    blog = Blog.new
+    blog.author = user
+
+    json = BlogSerializer.new(blog, user).as_json
+    assert_equal({
+      :author => {
+        :first_name => "Jose",
+        :last_name => "Valim"
+      }
+    }, json)
+  end
+
+  def test_implicit_serializer
+    author_serializer = Class.new(ActiveModel::Serializer) do
+      attributes :first_name
+    end
+
+    blog_serializer = Class.new(ActiveModel::Serializer) do
+      const_set(:AuthorSerializer, author_serializer)
+      has_one :author
+    end
+
+    user = User.new
+    blog = Blog.new
+    blog.author = user
+
+    json = blog_serializer.new(blog, user).as_json
+    assert_equal({
+      :author => {
+        :first_name => "Jose"
+      }
+    }, json)
   end
 end

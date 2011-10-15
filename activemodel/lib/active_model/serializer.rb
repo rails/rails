@@ -1,37 +1,62 @@
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/module/anonymous"
 require "set"
 
 module ActiveModel
   class Serializer
+    module Associations
+      class Config < Struct.new(:name, :options)
+        def serializer
+          options[:serializer]
+        end
+      end
+
+      class HasMany < Config
+        def serialize(collection, scope)
+          collection.map do |item|
+            serializer.new(item, scope).serializable_hash
+          end
+        end
+      end
+
+      class HasOne < Config
+        def serialize(object, scope)
+          serializer.new(object, scope).serializable_hash
+        end
+      end
+    end
+
     class_attribute :_attributes
     self._attributes = Set.new
 
     class_attribute :_associations
-    self._associations = {}
+    self._associations = []
 
     class << self
       def attributes(*attrs)
         self._attributes += attrs
       end
 
-      def has_many(*attrs)
+      def associate(klass, attrs)
         options = attrs.extract_options!
-        options[:has_many] = true
-        hash = {}
-        attrs.each { |attr| hash[attr] = options }
-        self._associations = _associations.merge(hash)
+        self._associations += attrs.map do |attr|
+          options[:serializer] ||= const_get("#{attr.to_s.camelize}Serializer")
+          klass.new(attr, options)
+        end
+      end
+
+      def has_many(*attrs)
+        associate(Associations::HasMany, attrs)
       end
 
       def has_one(*attrs)
-        options = attrs.extract_options!
-        options[:has_one] = true
-        hash = {}
-        attrs.each { |attr| hash[attr] = options }
-        self._associations = _associations.merge(hash)
+        associate(Associations::HasOne, attrs)
       end
 
       def inherited(klass)
+        return if klass.anonymous?
+
         name = klass.name.demodulize.underscore.sub(/_serializer$/, '')
 
         klass.class_eval do
@@ -53,19 +78,9 @@ module ActiveModel
     def serializable_hash
       hash = attributes
 
-      _associations.each do |association, options|
-        associated_object = object.send(association)
-        serializer = options[:serializer]
-
-        if options[:has_many]
-          serialized_array = associated_object.map do |item|
-            serializer.new(item, scope).serializable_hash
-          end
-
-          hash[association] = serialized_array
-        elsif options[:has_one]
-          hash[association] = serializer.new(associated_object, scope).serializable_hash
-        end
+      _associations.each do |association|
+        associated_object = object.send(association.name)
+        hash[association.name] = association.serialize(associated_object, scope)
       end
 
       hash
