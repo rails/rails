@@ -58,11 +58,11 @@ class SerializerTest < ActiveModel::TestCase
     end
 
     def serializable_hash
-      { title: @comment.read_attribute_for_serialization(:title) }
+      { :title => @comment.read_attribute_for_serialization(:title) }
     end
 
     def as_json
-      { comment: serializable_hash }
+      { :comment => serializable_hash }
     end
   end
 
@@ -258,7 +258,7 @@ class SerializerTest < ActiveModel::TestCase
 
     serializer.class_eval do
       def as_json(*)
-        { post: serializable_hash }.merge(associations)
+        { :post => serializable_hash }.merge(associations)
       end
     end
 
