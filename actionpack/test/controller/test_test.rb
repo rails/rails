@@ -146,6 +146,11 @@ XML
     end
   end
 
+  def teardown
+    ActionController::TestCase.default_parameters = {}
+    self.default_parameters = nil
+  end
+
   class ViewAssignsController < ActionController::Base
     def test_assigns
       @foo = "foo"
@@ -570,6 +575,38 @@ XML
     @request.path_parameters.keys.each do |key|
       assert_kind_of String, key
     end
+  end
+
+  def test_class_default_parameters
+    ActionController::TestCase.default_parameters = {:locale => :ru}
+    get :test_params
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_test/test', 'action' => 'test_params', 'locale' => 'ru'},
+      parsed_params
+    )
+  end
+
+  def test_instance_default_parameters
+    ActionController::TestCase.default_parameters = {:locale => :ru}
+    self.default_parameters = {:locale => :de}
+    get :test_params
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_test/test', 'action' => 'test_params', 'locale' => 'de'},
+      parsed_params
+    )
+  end
+
+  def test_override_default_parameters
+    ActionController::TestCase.default_parameters = {:locale => :ru}
+    self.default_parameters = {:locale => :de}
+    get :test_params, :locale => :en
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_test/test', 'action' => 'test_params', 'locale' => 'en'},
+      parsed_params
+    )
   end
 
   def test_with_routing_places_routes_back
