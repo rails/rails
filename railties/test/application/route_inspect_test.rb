@@ -49,12 +49,20 @@ module ApplicationTests
       assert_equal ["root  / pages#main"], output
     end
 
+    def test_inspect_routes_shows_dynamic_action_route
+      @set.draw do
+        match 'api/:action' => 'api'
+      end
+      output = @inspector.format @set.routes
+      assert_equal ["  /api/:action(.:format) api#:action"], output
+    end
+
     def test_inspect_routes_shows_controller_and_action_only_route
       @set.draw do
         match ':controller/:action'
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /:controller/:action(.:format) "], output
+      assert_equal ["  /:controller/:action(.:format) :controller#:action"], output
     end
 
     def test_inspect_routes_shows_controller_and_action_route_with_constraints
@@ -62,7 +70,7 @@ module ApplicationTests
         match ':controller(/:action(/:id))', :id => /\d+/
       end
       output = @inspector.format @set.routes
-      assert_equal ["  /:controller(/:action(/:id))(.:format) {:id=>/\\d+/}"], output
+      assert_equal ["  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"], output
     end
 
     def test_rake_routes_shows_route_with_defaults
