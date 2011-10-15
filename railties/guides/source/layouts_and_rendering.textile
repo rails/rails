@@ -348,9 +348,9 @@ h5. Finding Layouts
 
 To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +app/views/layouts/photos.html.erb+ (or +app/views/layouts/photos.builder+). If there is no such controller-specific layout, Rails will use +app/views/layouts/application.html.erb+ or +app/views/layouts/application.builder+. If there is no +.erb+ layout, Rails will use a +.builder+ layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
 
-h6. Specifying Layouts on a per-Controller Basis
+h6. Specifying Layouts for Controllers
 
-You can override the automatic layout conventions in your controllers by using the +layout+ declaration in the controller. For example:
+You can override the default layout conventions in your controllers by using the +layout+ declaration. For example:
 
 <ruby>
 class ProductsController < ApplicationController
@@ -359,9 +359,9 @@ class ProductsController < ApplicationController
 end
 </ruby>
 
-With this declaration, all methods within +ProductsController+ will use +app/views/layouts/inventory.html.erb+ for their layout.
+With this declaration, all of the methods within +ProductsController+ will use +app/views/layouts/inventory.html.erb+ for their layout.
 
-To assign a specific layout for the entire application, use a declaration in your +ApplicationController+ class:
+To assign a specific layout for the entire application, use a +layout+ declaration in your +ApplicationController+ class:
 
 <ruby>
 class ApplicationController < ActionController::Base
@@ -370,7 +370,7 @@ class ApplicationController < ActionController::Base
 end
 </ruby>
 
-With this declaration, all views in the entire application will use +app/views/layouts/main.html.erb+ for their layout.
+With this declaration, all of the views in the entire application will use +app/views/layouts/main.html.erb+ for their layout.
 
 h6. Choosing Layouts at Runtime
 
@@ -392,9 +392,9 @@ class ProductsController < ApplicationController
 end
 </ruby>
 
-Now, if the current user is a special user, they'll get a special layout when viewing a product. You can even use an inline method to determine the layout:
+Now, if the current user is a special user, they'll get a special layout when viewing a product.
 
-You can also decide the layout by passing a Proc object, the block you give the Proc will be given the +controller+ instance, so you can make decisions based on the current request. For example:
+You can even use an inline method, such as a Proc, to determine the layout. For example, if you pass a Proc object, the block you give the Proc will be given the +controller+ instance, so the layout can be determined based on the current request:
 
 <ruby>
 class ProductsController < ApplicationController
@@ -404,7 +404,7 @@ end
 
 h6. Conditional Layouts
 
-Layouts specified at the controller level support +:only+ and +:except+ options that take either a method name or an array of method names which correspond to method names within the controller:
+Layouts specified at the controller level support the +:only+ and +:except+ options. These options take either a method name, or an array of method names, corresponding to method names within the controller:
 
 <ruby>
 class ProductsController < ApplicationController
@@ -416,7 +416,7 @@ With this declaration, the +product+ layout would be used for everything but the
 
 h6. Layout Inheritance
 
-Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:
+Layout declarations cascade downward in the hierarchy, and more specific layout declarations always override more general ones. For example:
 
 * +application_controller.rb+
 
@@ -495,9 +495,9 @@ def show
 end
 </ruby>
 
-Make sure you use +and return+ and not +&amp;&amp; return+ because while the former will work, the latter will not due to operator precedence in the Ruby Language.
+Make sure to use +and return+ and not +&amp;&amp; return+, since +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
 
-Note that the implicit render done by ActionController detects if +render+ has been called, and thus avoids this error. Therefore, the following will work without errors:
+Note that the implicit render done by ActionController detects if +render+ has been called, so the following will work without errors:
 
 <ruby>
 def show
