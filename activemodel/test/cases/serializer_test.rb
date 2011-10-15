@@ -77,7 +77,9 @@ class SerializerTest < ActiveModel::TestCase
 
     hash = user_serializer.as_json
 
-    assert_equal({ :first_name => "Jose", :last_name => "Valim" }, hash)
+    assert_equal({
+      :user => { :first_name => "Jose", :last_name => "Valim" }
+    }, hash)
   end
 
   def test_attributes_method
@@ -86,7 +88,9 @@ class SerializerTest < ActiveModel::TestCase
 
     hash = user_serializer.as_json
 
-    assert_equal({ :first_name => "Jose", :last_name => "Valim", :ok => true }, hash)
+    assert_equal({
+      :user2 => { :first_name => "Jose", :last_name => "Valim", :ok => true }
+    }, hash)
   end
 
   def test_serializer_receives_scope
@@ -95,7 +99,14 @@ class SerializerTest < ActiveModel::TestCase
 
     hash = user_serializer.as_json
 
-    assert_equal({ :first_name => "Jose", :last_name => "Valim", :ok => true, :scope => true }, hash)
+    assert_equal({
+      :user2 => {
+        :first_name => "Jose",
+        :last_name => "Valim",
+        :ok => true,
+        :scope => true
+      }
+    }, hash)
   end
 
   def test_pretty_accessors
@@ -105,7 +116,11 @@ class SerializerTest < ActiveModel::TestCase
 
     hash = user_serializer.as_json
 
-    assert_equal({ :first_name => "Jose", :last_name => "Valim", :super_user => true }, hash)
+    assert_equal({
+      :my_user => {
+        :first_name => "Jose", :last_name => "Valim", :super_user => true
+      }
+    }, hash)
   end
 
   def test_has_many
@@ -118,12 +133,14 @@ class SerializerTest < ActiveModel::TestCase
     post_serializer = PostSerializer.new(post, user)
 
     assert_equal({
-      :title => "New Post",
-      :body => "Body of new post",
-      :comments => [
-        { :title => "Comment1" },
-        { :title => "Comment2" }
-      ]
+      :post => {
+        :title => "New Post",
+        :body => "Body of new post",
+        :comments => [
+          { :title => "Comment1" },
+          { :title => "Comment2" }
+        ]
+      }
     }, post_serializer.as_json)
   end
 
@@ -146,9 +163,11 @@ class SerializerTest < ActiveModel::TestCase
 
     json = BlogSerializer.new(blog, user).as_json
     assert_equal({
-      :author => {
-        :first_name => "Jose",
-        :last_name => "Valim"
+      :blog => {
+        :author => {
+          :first_name => "Jose",
+          :last_name => "Valim"
+        }
       }
     }, json)
   end
@@ -266,15 +285,44 @@ class SerializerTest < ActiveModel::TestCase
 
     json = BlogSerializer.new(blog, user).as_json
     assert_equal({
-      :author => nil
+      :blog => { :author => nil }
     }, json)
 
     serializer = Class.new(BlogSerializer) do
+      root :blog
+
       def serializable_hash
         attributes.merge(association_ids)
       end
     end
 
+    json = serializer.new(blog, user).as_json
+    assert_equal({ :blog =>  { :author => nil } }, json)
+  end
+
+  def test_custom_root
+    user = User.new
+    blog = Blog.new
+
+    serializer = Class.new(BlogSerializer) do
+      root :my_blog
+    end
+
+    assert_equal({ :my_blog => { :author => nil } }, serializer.new(blog, user).as_json)
+  end
+
+  def test_false_root
+    user = User.new
+    blog = Blog.new
+
+    serializer = Class.new(BlogSerializer) do
+      root false
+    end
+
+    assert_equal({ :author => nil }, serializer.new(blog, user).as_json)
+
+    # test inherited false root
+    serializer = Class.new(serializer)
     assert_equal({ :author => nil }, serializer.new(blog, user).as_json)
   end
 end
