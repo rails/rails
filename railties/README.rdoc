@@ -15,6 +15,10 @@ The latest version of Railties can be installed with RubyGems:
 
 * gem install railties
 
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/railties
+
 == License
 
 Railties is released under the MIT license.
@@ -29,4 +33,3 @@ Bug reports and feature requests can be filed with the rest for the Ruby on Rail
 
 * https://github.com/rails/rails/issues
 
-You can find more usage information in the ActiveResource::Base documentation.
