@@ -21,7 +21,7 @@ module ActiveModel
 
         def serialize_ids(collection, scope)
           # use named scopes if they are present
-          return collection.ids if collection.respond_to?(:ids)
+          #return collection.ids if collection.respond_to?(:ids)
 
           collection.map do |item|
             item.read_attribute_for_serialization(:id)
@@ -47,6 +47,9 @@ module ActiveModel
     self._associations = []
 
     class_attribute :_root
+    class_attribute :_embed
+    self._embed = :objects
+    class_attribute :_root_embed
 
     class << self
       def attributes(*attrs)
@@ -73,6 +76,11 @@ module ActiveModel
         associate(Associations::HasOne, attrs)
       end
 
+      def embed(type, options={})
+        self._embed = type
+        self._root_embed = true if options[:include]
+      end
+
       def root(name)
         self._root = name
       end
@@ -97,14 +105,22 @@ module ActiveModel
 
     def as_json(*)
       if _root
-        { _root => serializable_hash }
+        hash = { _root => serializable_hash }
+        hash.merge!(associations) if _root_embed
+        hash
       else
         serializable_hash
       end
     end
 
     def serializable_hash
-      attributes.merge(associations)
+      if _embed == :ids
+        attributes.merge(association_ids)
+      elsif _embed == :objects
+        attributes.merge(associations)
+      else
+        attributes
+      end
     end
 
     def associations
