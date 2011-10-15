@@ -404,7 +404,29 @@ The first timestamp (+\[timestamp_1\]+) will be the current time and the second 
 
 To run these migrations within the context of the application, simply run +rake db:migrate+. When accessing the engine through +http://localhost:3000/blog+, the posts will be empty. This is because the table created inside the application is different from the one created within the engine. Go ahead, play around with the newly mounted engine. You'll find that it's the same as when it was only an engine.
 
-TODO: Application will provide a User foundation class which the engine hooks into through a configuration setting, configurable in the application's initializers. The engine will be mounted at the +/blog+ path in the application.
+h4. Using an application's classes
+
+When an engine is created, it may want to use specific classes from an application to provide links between the pieces of the engine and the pieces of the application. In the case of the +blorgh+ engine, making posts and comments have authors would make a lot of sense.
+
+Usually, an application would have a +User+ class that would provide the objects that would represent the posts' and comments' authors, but there could be a case where the application calls this class something different, such as +Person+. It's because of this reason that the engine should not hardcode the associations to be exactly for a +User+ class, but should allow for some flexibility around what the class is called.
+
+To keep it simple in this case, the application will have a class called +User+ which will represent the users of the application. It can be generated using this command:
+
+<shell>
+rails g model user name:string
+</shell>
+
+Also to keep it simple, the posts form will have a new text field called +author+ where users can elect to put their name. The engine will then take this name and create a new +User+ object from it or find one that already has that name, and then associate the post with it.
+
+First, the +author+ text field needs to be added to the +app/views/blorgh/posts/_form.html.erb+ partial inside the engine. This can be added above the +title+ field with this code:
+
+<erb>
+<div class="field">
+  <%= f.label :author %><br />
+  <%= f.text_field :author %>
+</div>
+</erb>
+
 
 h3. Overriding engine functionality
 
