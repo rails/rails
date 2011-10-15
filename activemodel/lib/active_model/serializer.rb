@@ -41,6 +41,10 @@ module ActiveModel
       def associate(klass, attrs)
         options = attrs.extract_options!
         self._associations += attrs.map do |attr|
+          unless method_defined?(attr)
+            class_eval "def #{attr}() object.#{attr} end", __FILE__, __LINE__
+          end
+
           options[:serializer] ||= const_get("#{attr.to_s.camelize}Serializer")
           klass.new(attr, options)
         end
@@ -79,7 +83,7 @@ module ActiveModel
       hash = attributes
 
       _associations.each do |association|
-        associated_object = object.send(association.name)
+        associated_object = send(association.name)
         hash[association.name] = association.serialize(associated_object, scope)
       end
 
