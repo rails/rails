@@ -31,11 +31,11 @@ module ActiveModel
 
       class HasOne < Config
         def serialize(object, scope)
-          serializer.new(object, scope).serializable_hash
+          object && serializer.new(object, scope).serializable_hash
         end
 
         def serialize_ids(object, scope)
-          object.read_attribute_for_serialization(:id)
+          object && object.read_attribute_for_serialization(:id)
         end
       end
     end

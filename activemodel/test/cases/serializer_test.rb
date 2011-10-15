@@ -259,4 +259,22 @@ class SerializerTest < ActiveModel::TestCase
       ]
     }, serializer.as_json)
   end
+
+  def test_associations_with_nil_association
+    user = User.new
+    blog = Blog.new
+
+    json = BlogSerializer.new(blog, user).as_json
+    assert_equal({
+      :author => nil
+    }, json)
+
+    serializer = Class.new(BlogSerializer) do
+      def serializable_hash
+        attributes.merge(association_ids)
+      end
+    end
+
+    assert_equal({ :author => nil }, serializer.new(blog, user).as_json)
+  end
 end
