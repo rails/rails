@@ -174,4 +174,30 @@ class SerializerTest < ActiveModel::TestCase
       }
     }, json)
   end
+
+  def test_overridden_associations
+    author_serializer = Class.new(ActiveModel::Serializer) do
+      attributes :first_name
+    end
+
+    blog_serializer = Class.new(ActiveModel::Serializer) do
+      const_set(:PersonSerializer, author_serializer)
+      has_one :person
+
+      def person
+        object.author
+      end
+    end
+
+    user = User.new
+    blog = Blog.new
+    blog.author = user
+
+    json = blog_serializer.new(blog, user).as_json
+    assert_equal({
+      :person => {
+        :first_name => "Jose"
+      }
+    }, json)
+  end
 end
