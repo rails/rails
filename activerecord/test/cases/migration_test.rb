@@ -389,8 +389,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       created_at_column = created_columns.detect {|c| c.name == 'created_at' }
       updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
 
-      assert created_at_column.null
-      assert updated_at_column.null
+      assert !created_at_column.null
+      assert !updated_at_column.null
     ensure
       Person.connection.drop_table table_name rescue nil
     end
@@ -471,11 +471,11 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # Do a manual insertion
       if current_adapter?(:OracleAdapter)
-        Person.connection.execute "insert into people (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
+        Person.connection.execute "insert into people (id, wealth, created_at, updated_at) values (people_seq.nextval, 12345678901234567890.0123456789, 0, 0)"
       elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
-        Person.connection.execute "insert into people (wealth) values ('12345678901234567890.0123456789')"
+        Person.connection.execute "insert into people (wealth, created_at, updated_at) values ('12345678901234567890.0123456789', 0, 0)"
       else
-        Person.connection.execute "insert into people (wealth) values (12345678901234567890.0123456789)"
+        Person.connection.execute "insert into people (wealth, created_at, updated_at) values (12345678901234567890.0123456789, 0, 0)"
       end
 
       # SELECT
