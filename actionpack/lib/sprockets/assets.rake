@@ -4,7 +4,8 @@ namespace :assets do
   def ruby_rake_task(task)
     env    = ENV['RAILS_ENV'] || 'production'
     groups = ENV['RAILS_GROUPS'] || 'assets'
-    args   = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}"]
+    relative_url_root = ENV['RAILS_RELATIVE_URL_ROOT'] || ''
+    args   = [$0, task,"RAILS_ENV=#{env}","RAILS_GROUPS=#{groups}","RAILS_RELATIVE_URL_ROOT=#{relative_url_root}"]
     args << "--trace" if Rake.application.options.trace
     ruby(*args)
   end
@@ -13,7 +14,7 @@ namespace :assets do
   # and/or no explicit environment - we have to reinvoke rake to
   # execute this task.
   def invoke_or_reboot_rake_task(task)
-    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty?
+    if ENV['RAILS_GROUPS'].to_s.empty? || ENV['RAILS_ENV'].to_s.empty? || ENV['RAILS_RELATIVE_URL_ROOT'].to_s.empty?
       ruby_rake_task task
     else
       Rake::Task[task].invoke
@@ -40,6 +41,7 @@ namespace :assets do
       config.assets.compile = true
       config.assets.digest  = digest unless digest.nil?
       config.assets.digests = {}
+      config.action_controller.relative_url_root = ENV["RAILS_RELATIVE_URL_ROOT"]
 
       env      = Rails.application.assets
       target   = File.join(Rails.public_path, config.assets.prefix)
