@@ -143,6 +143,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_postgresql_database
+    run_generator([destination_root, "-d", "postgresql"])
+    assert_file "config/database.yml", /postgresql/
+    unless defined?(JRUBY_VERSION)
+      assert_file "Gemfile", /^gem\s+["']pg["']$/
+    else
+      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
+    end
+  end
+
   def test_config_jdbcmysql_database
     run_generator([destination_root, "-d", "jdbcmysql"])
     assert_file "config/database.yml", /mysql/
