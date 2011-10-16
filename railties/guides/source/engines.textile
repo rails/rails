@@ -404,7 +404,7 @@ The first timestamp (+\[timestamp_1\]+) will be the current time and the second 
 
 To run these migrations within the context of the application, simply run +rake db:migrate+. When accessing the engine through +http://localhost:3000/blog+, the posts will be empty. This is because the table created inside the application is different from the one created within the engine. Go ahead, play around with the newly mounted engine. You'll find that it's the same as when it was only an engine.
 
-h4. Using an application's classes
+h4. Using a class provided by the application
 
 When an engine is created, it may want to use specific classes from an application to provide links between the pieces of the engine and the pieces of the application. In the case of the +blorgh+ engine, making posts and comments have authors would make a lot of sense.
 
@@ -416,17 +416,38 @@ To keep it simple in this case, the application will have a class called +User+ 
 rails g model user name:string
 </shell>
 
-Also to keep it simple, the posts form will have a new text field called +author+ where users can elect to put their name. The engine will then take this name and create a new +User+ object from it or find one that already has that name, and then associate the post with it.
+Also to keep it simple, the posts form will have a new text field called +author_name_+ where users can elect to put their name. The engine will then take this name and create a new +User+ object from it or find one that already has that name, and then associate the post with it.
 
-First, the +author+ text field needs to be added to the +app/views/blorgh/posts/_form.html.erb+ partial inside the engine. This can be added above the +title+ field with this code:
+First, the +author_name+ text field needs to be added to the +app/views/blorgh/posts/_form.html.erb+ partial inside the engine. This can be added above the +title+ field with this code:
 
 <erb>
 <div class="field">
-  <%= f.label :author %><br />
-  <%= f.text_field :author %>
+  <%= f.label :author_name %><br />
+  <%= f.text_field :author_name %>
 </div>
 </erb>
 
+The +Blorgh::Post+ model should then have some code to convert the +author_name+ field into an actual +User+ object and associate it as that post's +author+ before the post is saved. It will also need to have an +attr_accessor+ setup for this field so that the setter and getter methods are defined for it.
+
+To do all this, you'll need to add the +attr_accessor+ for +author_name+, the association for the author and the +before_save+ call into +app/models/blorgh/post.rb+. The +author+ association will be hard-coded to the +User+ class for the time being.
+
+<ruby>
+attr_accessor :author_name
+belongs_to :author, :class_name => "User"
+
+before_save :set_author
+
+private
+  def set_author
+    self.author = User.find_or_create_by_name(author_name)
+  end
+</ruby>
+
+By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. Now just before a post is saved it will be associated with a record from the +users+ table of the application.
+
+h4. Configuring an engine
+
+The next step is to make the class that represents a +User+ in the application customizable for the engine. This is because, as explained before, that class may not always be +User+.
 
 h3. Overriding engine functionality
 
