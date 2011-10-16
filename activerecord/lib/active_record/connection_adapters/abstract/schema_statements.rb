@@ -507,8 +507,8 @@ module ActiveRecord
       # ===== Examples
       #  add_timestamps(:suppliers)
       def add_timestamps(table_name)
-        add_column table_name, :created_at, :datetime
-        add_column table_name, :updated_at, :datetime
+        add_column table_name, :created_at, :datetime, :null => false
+        add_column table_name, :updated_at, :datetime, :null => false
       end
 
       # Removes the timestamp columns (created_at and updated_at) from the table definition.
