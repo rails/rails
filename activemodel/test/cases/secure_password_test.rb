@@ -9,12 +9,6 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user = User.new
   end
 
-  test "blank password" do
-    user = User.new
-    user.password = ''
-    assert !user.valid?, 'user should be invalid'
-  end
-
   test "nil password" do
     user = User.new
     user.password = nil
@@ -42,6 +36,13 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     assert !@user.authenticate("wrong")
     assert @user.authenticate("secret")
+  end
+
+  test "change password to blank should change password_digest" do
+    @user.password = "secret"
+    old_passwort_digest = @user.password_digest
+    @user.password = ""
+    assert_not_equal(old_passwort_digest.to_s, @user.password_digest.to_s)
   end
 
   test "visitor#password_digest should be protected against mass assignment" do
