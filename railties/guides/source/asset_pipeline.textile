@@ -349,7 +349,7 @@ bundle exec rake assets:precompile
 </plain>
 
 For faster asset precompiles, you can partially load your application by setting
-+config.assets.initialize_on_precompile+ to false, though in that case templates
++config.assets.initialize_on_precompile+ to false in +config/application.rb+, though in that case templates
 cannot see application objects or methods. *Heroku requires this to be false.*
 
 WARNING: If you set +config.assets.initialize_on_precompile+ to false, be sure to
