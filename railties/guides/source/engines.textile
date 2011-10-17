@@ -443,7 +443,7 @@ private
   end
 </ruby>
 
-By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. Now just before a post is saved it will be associated with a record from the +users+ table of the application.
+By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. Just before a post is saved it will be associated with a record from the +users+ table of the application.
 
 h4. Configuring an engine
 
