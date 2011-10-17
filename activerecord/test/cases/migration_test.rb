@@ -471,9 +471,11 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # Do a manual insertion
       if current_adapter?(:OracleAdapter)
-        Person.connection.execute "insert into people (id, wealth, created_at, updated_at) values (people_seq.nextval, 12345678901234567890.0123456789, 0, 0)"
+        Person.connection.execute "insert into people (id, wealth, created_at, updated_at) values (people_seq.nextval, 12345678901234567890.0123456789, systimestamp, systimestamp)"
       elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
         Person.connection.execute "insert into people (wealth, created_at, updated_at) values ('12345678901234567890.0123456789', 0, 0)"
+      elsif current_adapter?(:PostgreSQLAdapter)
+        Person.connection.execute "insert into people (wealth, created_at, updated_at) values ('12345678901234567890.0123456789', current_timestamp, current_timestamp)"
       else
         Person.connection.execute "insert into people (wealth, created_at, updated_at) values (12345678901234567890.0123456789, 0, 0)"
       end
