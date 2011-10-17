@@ -66,6 +66,20 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["can not be blank"], person.errors[:name]
   end
 
+  test "should be able to add an error with a symbol" do
+    person = Person.new
+    person.errors.add(:name, :blank)
+    message = person.errors.generate_message(:name, :blank)
+    assert_equal [message], person.errors[:name]
+  end
+
+  test "should be able to add an error with a proc" do
+    person = Person.new
+    message = Proc.new { "can not be blank" }
+    person.errors.add(:name, message)
+    assert_equal ["can not be blank"], person.errors[:name]
+  end
+
   test 'should respond to size' do
     person = Person.new
     person.errors.add(:name, "can not be blank")
@@ -112,5 +126,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["is invalid"], hash[:email]
   end
 
+  test "generate_message should work without i18n_scope" do
+    person = Person.new
+    assert !Person.respond_to?(:i18n_scope)
+    assert_nothing_raised {
+      person.errors.generate_message(:name, :blank)
+    }
+  end
 end
 
