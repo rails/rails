@@ -416,6 +416,8 @@ To keep it simple in this case, the application will have a class called +User+ 
 rails g model user name:string
 </shell>
 
+The +rake db:migrate+ command needs to be run here to ensure that our application has the +users+ table for future use.
+
 Also to keep it simple, the posts form will have a new text field called +author_name_+ where users can elect to put their name. The engine will then take this name and create a new +User+ object from it or find one that already has that name, and then associate the post with it.
 
 First, the +author_name+ text field needs to be added to the +app/views/blorgh/posts/_form.html.erb+ partial inside the engine. This can be added above the +title+ field with this code:
