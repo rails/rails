@@ -6,7 +6,7 @@ require 'bigdecimal/util'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
-    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths) #:nodoc:
+    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders) #:nodoc:
     end
 
     # Abstract representation of a column definition. Instances of this type
