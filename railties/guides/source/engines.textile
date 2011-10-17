@@ -445,11 +445,78 @@ private
   end
 </ruby>
 
-By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. Just before a post is saved it will be associated with a record from the +users+ table of the application.
+By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. There needs to be a way of associating the records in the +blorgh_posts+ table with the records in the +users+ table. Because the association is called +author+, there should be an +author_id+ column added to the +blorgh_posts+ table. 
+
+To generate this new column, run this command within the engine:
+
+<shell>
+$ rails g migration add_author_to_blorgh_posts author:references 
+</shell>
+
+NOTE: Due to the migration's name, Rails will automatically know that you want to add a column to a specific table and write that into the migration for you. You don't need to tell it any more than this.
+
+This migration will need to be run on the application. To do that, it must first be copied using this command:
+
+<shell>
+$ rake blorgh:install:migrations
+</shell>
+
+NOTE: Notice here that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
+
+And then migrated using this command:
+
+<shell>
+$ rake db:migrate
+</shell>
+
+Now with all the pieces in place, an action will take place that will associate an author -- represented by a record in the +users+ table -- with a post, represented by the +blorgh_posts+ table from the engine.
+
+Finally, the author's name should be displayed on the post's page. Add this code above the "Title" output inside +app/views/blorgh/posts/show.html.erb+:
+
+<erb>
+<p>
+  <b>Author:</b>
+  <%= @post.author.name %>
+</p>
+</erb>
+
+NOTE: For posts created previously, this will break the +show+ page for them. We recommend deleting these posts and starting again, or manually assigning an author using +rails c+. 
 
 h4. Configuring an engine
 
-The next step is to make the class that represents a +User+ in the application customizable for the engine. This is because, as explained before, that class may not always be +User+.
+The next step is to make the class that represents a +User+ in the application customizable for the engine. This is because, as explained before, that class may not always be +User+. To make this customizable, the engine will have a configuration setting called +user_class+ that will be used to specify what the class representing users is inside the application.
+
+To define this configuration setting, you should use a +mattr_accessor+ inside the +Blorgh+ module for the engine, located at +lib/blorgh.rb+ inside the engine. Inside this module, put this line:
+
+<ruby>
+mattr_accessor :user_class
+</ruby>
+
+This method works like its brothers +attr_accessor+ and +cattr_accessor+, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using +Blorgh.user_class+.
+
+The next step is switching the +Blorgh::Post+ model over to this new setting. For the +belongs_to+ association inside this model (+app/models/blorgh/post.rb+), it will now become this:
+
+<ruby>
+belongs_to :author, :class_name => Blorgh.user_class
+</ruby>
+
+The +set_author+ method also located in this class should also use this class:
+
+<ruby>
+self.author = Blorgh.user_class.constantize.find_or_create_by_name(author_name)
+</ruby>
+
+To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and makes references to the classes of the engine which may depend on this configuration setting existing.
+
+Create a new initializer at +config/initializers/blorgh.rb+ inside the application where the +blorgh+ engine is installed and put this content in it:
+
+<ruby>
+Blorgh.user_class = "User"
+</ruby>
+
+WARNING: It's very important here to use the +String+ version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table, which could lead to problems if the table wasn't already existing. Therefore, a +String+ should be used and then converted to a class using +constantize+ in the engine later on.
+
+
 
 h3. Overriding engine functionality
 
