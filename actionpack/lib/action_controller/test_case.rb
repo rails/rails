@@ -323,12 +323,40 @@ module ActionController
   # Example:
   #
   #  assert_redirected_to page_url(:title => 'foo')
+  #
+  # == Set default parameters for all requests
+  #
+  # You can set default parameters for all requests in Test Case or even for all functional tests in project.
+  #
+  #   # test/test_helper.rb
+  #   class ActionController::TestCase
+  #     self.default_parameters = {:locale => :en}   # set English locale for all tests
+  #   end
+  #
+  #   # test/functional/posts_controller_test.rb
+  #   class PostsControllerTest < ActionController::TestCase
+  #     setup do
+  #       self.default_parameters = {:locale => :ru} # set Russian locale for all requests in this Test Case
+  #     end
+  #
+  #     test "get index"
+  #       get :index, :locale => :de # override locale for single request
+  #     end
+  #   end
+  #
+  # It can be usefull in multilanguage applications if you use localized routes without default value:
+  #
+  #  # config/routes.rb
+  #  scope "/:locale" do
+  #    resources :posts
+  #  end
   class TestCase < ActiveSupport::TestCase
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
 
       attr_reader :response, :request
+      attr_accessor :default_parameters
 
       module ClassMethods
 
@@ -422,6 +450,15 @@ module ActionController
       end
 
       def process(action, parameters = nil, session = nil, flash = nil, http_method = 'GET')
+        # Apply default parameters if present.
+        if @default_parameters.present?
+          parameters = @default_parameters.merge(parameters || {})
+        end
+
+        if self.class.default_parameters.present?
+          parameters = self.class.default_parameters.merge(parameters || {})
+        end
+
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters)
@@ -491,6 +528,8 @@ module ActionController
         include ActionDispatch::Assertions
         class_attribute :_controller_class
         setup :setup_controller_request_and_response
+        class_attribute :default_parameters
+        self.default_parameters = {}
       end
 
     private
