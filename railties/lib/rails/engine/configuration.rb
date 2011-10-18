@@ -21,7 +21,7 @@ module Rails
       # Holds generators configuration:
       #
       #   config.generators do |g|
-      #     g.orm             :datamapper, :migration => true
+      #     g.orm             :data_mapper, :migration => true
       #     g.template_engine :haml
       #     g.test_framework  :rspec
       #   end
