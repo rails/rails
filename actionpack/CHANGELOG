@@ -1,3 +1,7 @@
+*Rails 3.1.2 (unreleased)*
+
+* Ensure users upgrading from 3.0.x to 3.1.x will properly upgrade their flash object in session (issues #3298 and #2509)
+
 *Rails 3.1.1 (October 7, 2011)*
 
 * stylesheet_link_tag('/stylesheets/application') and similar helpers doesn't
