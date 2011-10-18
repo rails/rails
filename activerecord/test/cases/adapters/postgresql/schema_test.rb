@@ -62,6 +62,14 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
+  def test_schema_change_with_prepared_stmt
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+    @connection.exec_query "alter table developers add column zomg int", 'sql', []
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+  ensure
+    @connection.exec_query "alter table developers drop column if exists zomg", 'sql', []
+  end
+
   def test_table_exists?
     [Thing1, Thing2, Thing3, Thing4].each do |klass|
       name = klass.table_name
