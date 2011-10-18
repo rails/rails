@@ -43,7 +43,7 @@ module Sprockets
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
-              super(dep.to_s, { :href => asset_path(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
+              super(asset_paths.strip_exts(dep.pathname.basename).to_s, { :href => asset_path(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
             }
           else
             super(source.to_s, { :href => asset_path(source, :ext => 'css', :body => body, :protocol => :request, :digest => digest) }.merge!(options))
@@ -159,6 +159,10 @@ module Sprockets
           else
             source
           end
+        end
+        
+        def strip_exts(source)
+          source.to_s.split('.').first
         end
       end
     end
