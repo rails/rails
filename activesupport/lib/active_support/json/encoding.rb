@@ -124,6 +124,7 @@ module ActiveSupport
           end
           json = string.
             gsub(escape_regex) { |s| ESCAPED_CHARS[s] }.
+            gsub("</", "<\\/").
             gsub(/([\xC0-\xDF][\x80-\xBF]|
                    [\xE0-\xEF][\x80-\xBF]{2}|
                    [\xF0-\xF7][\x80-\xBF]{3})+/nx) { |s|
