@@ -138,7 +138,7 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'journey',   :path => '#{Rails::Generators::JOURNEY_DEV_PATH}'
+            gem 'journey',   :git => 'git://github.com/rails/journey.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
