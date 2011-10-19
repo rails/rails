@@ -531,7 +531,9 @@ Blorgh.user_class = "User"
 
 WARNING: It's very important here to use the +String+ version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table, which could lead to problems if the table wasn't already existing. Therefore, a +String+ should be used and then converted to a class using +constantize+ in the engine later on.
 
+Go ahead and try to create a new post. You will see that it works exactly in the same way as before, except this time the engine is using the configuration setting in +config/initializers/blorgh.rb+ to learn what the class is.
 
+There are now no strict dependencies on what the class is, only what the class's API must be. The engine simply requires this class to define a +find_or_create_by_name+ method which returns an object of that class to be associated with a post when it's created.
 
 h3. Overriding engine functionality
 
