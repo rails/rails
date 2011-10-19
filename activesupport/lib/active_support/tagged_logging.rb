@@ -1,3 +1,5 @@
+require 'logger'
+
 module ActiveSupport
   # Wraps any standard Logger class to provide tagging capabilities. Examples:
   #
@@ -27,29 +29,12 @@ module ActiveSupport
       @logger.add(severity, "#{tags}#{message}", progname, &block)
     end
 
-
-    def fatal(progname = nil, &block)
-      add(@logger.class::FATAL, progname, &block)
-    end
-
-    def error(progname = nil, &block)
-      add(@logger.class::ERROR, progname, &block)
-    end
-
-    def warn(progname = nil, &block)
-      add(@logger.class::WARN, progname, &block)
-    end
-
-    def info(progname = nil, &block)
-      add(@logger.class::INFO, progname, &block)
-    end
-
-    def debug(progname = nil, &block)
-      add(@logger.class::DEBUG, progname, &block)
-    end
-
-    def unknown(progname = nil, &block)
-      add(@logger.class::UNKNOWN, progname, &block)
+    %w( fatal error warn info debug unkown ).each do |severity|
+      eval <<-EOM, nil, __FILE__, __LINE__ + 1
+        def #{severity}(progname = nil, &block)
+          add(Logger::#{severity.upcase}, progname, &block)
+        end
+      EOM
     end
 
 
