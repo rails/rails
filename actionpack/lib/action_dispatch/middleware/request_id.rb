@@ -1,5 +1,6 @@
 require 'securerandom'
 require 'active_support/core_ext/string/access'
+require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   # Makes a unique request id available to the action_dispatch.request_id env variable (which is then accessible through
@@ -26,8 +27,8 @@ module ActionDispatch
 
     private
       def external_request_id(env)
-        if env["HTTP_X_REQUEST_ID"].present?
-          env["HTTP_X_REQUEST_ID"].gsub(/[^\w\d\-]/, "").first(255)
+        if request_id = env["HTTP_X_REQUEST_ID"].presence
+          request_id.gsub(/[^\w\d\-]/, "").first(255)
         end
       end
 
