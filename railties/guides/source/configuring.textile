@@ -64,7 +64,7 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.autoload_paths+ accepts an array of paths from which Rails will autoload constants. Default is all directories under +app+.
 
-* +config.cache_classes+ controls whether or not application classes and modules should be reloaded on each request. Defaults to true in development mode, and false in test and production modes. Can also be enabled with +threadsafe!+.
+* +config.cache_classes+ controls whether or not application classes and modules should be reloaded on each request. Defaults to false in development mode, and true in test and production modes. Can also be enabled with +threadsafe!+.
 
 * +config.action_view.cache_template_loading+ controls whether or not templates should be reloaded on each request. Defaults to whatever is set for +config.cache_classes+.
 
