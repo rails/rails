@@ -476,11 +476,26 @@ Finally, the author's name should be displayed on the post's page. Add this code
 <erb>
 <p>
   <b>Author:</b>
-  <%= @post.author.name %>
+  <%= @post.author %>
 </p>
 </erb>
 
-NOTE: For posts created previously, this will break the +show+ page for them. We recommend deleting these posts and starting again, or manually assigning an author using +rails c+. 
+WARNING: For posts created previously, this will break the +show+ page for them. We recommend deleting these posts and starting again, or manually assigning an author using +rails c+.
+
+By outputting +@post.author+ using the +<%=+ tag the +to_s+ method will be called on the object. By default, this will look quite ugly:
+
+<text>
+#<User:0x00000100ccb3b0>
+</text>
+
+This is undesirable and it would be much better to have the user's name there. To do this, add a +to_s+ method to the +User+ class within the application:
+
+<ruby>
+def to_s
+  name
+</ruby>
+
+Now instead of the ugly Ruby object output the author's name will be displayed.
 
 h4. Configuring an engine
 
