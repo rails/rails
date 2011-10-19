@@ -1,4 +1,4 @@
-require 'digest/md5'
+require 'securerandom'
 
 module ActionDispatch
   # Makes a unique request id available to the action_dispatch.request_id env variable (which is then accessible through
