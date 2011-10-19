@@ -47,6 +47,7 @@ module ActionDispatch
   end
 
   autoload_under 'middleware' do
+    autoload :RequestId
     autoload :BestStandardsSupport
     autoload :Callbacks
     autoload :Cookies

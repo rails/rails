@@ -164,6 +164,8 @@ module Rails
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
+        middleware.use ::ActionDispatch::RequestId
+        middleware.use ::Rails::Rack::TaggedLogging, config.log_tags
         middleware.use ::Rails::Rack::Logger # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies

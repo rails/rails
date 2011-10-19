@@ -21,8 +21,8 @@ module Rails
         request = ActionDispatch::Request.new(env)
         path = request.filtered_path
 
-        info "\n\nStarted #{request.request_method} \"#{path}\" " \
-             "for #{request.ip} at #{Time.now.to_default_s}"
+        info "\n\n"
+        info "Started #{request.request_method} \"#{path}\" for #{request.ip} at #{Time.now.to_default_s}"
       end
 
       def after_dispatch(env)
