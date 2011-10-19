@@ -18,20 +18,19 @@ module ActionDispatch
 
     def call(env)
       env["action_dispatch.request_id"] = external_request_id(env) || internal_request_id
-
       status, headers, body = @app.call(env)
 
       headers["X-Request-Id"] = env["action_dispatch.request_id"]
       [ status, headers, body ]
     end
-    
+
     private
       def external_request_id(env)
         if env["HTTP_X_REQUEST_ID"].present?
           env["HTTP_X_REQUEST_ID"].gsub(/[^\w\d\-]/, "").first(255)
         end
       end
-    
+
       def internal_request_id
         SecureRandom.hex(16)
       end
