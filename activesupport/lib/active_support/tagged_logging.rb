@@ -13,20 +13,20 @@ module ActiveSupport
   class TaggedLogging
     def initialize(logger)
       @logger = logger
-      @tags   = []
+      @tags   = Hash.new { |h,k| h[k] = [] }
     end
 
-    def tagged(*tags)
-      new_tags = Array.wrap(tags).flatten
-      @tags += new_tags
+    def tagged(*new_tags)
+      tags     = current_tags
+      new_tags = Array.wrap(new_tags).flatten
+      tags.concat new_tags
       yield
     ensure
-      new_tags.size.times { @tags.pop }
+      new_tags.size.times { tags.pop }
     end
 
-
     def add(severity, message = nil, progname = nil, &block)
-      @logger.add(severity, "#{tags}#{message}", progname, &block)
+      @logger.add(severity, "#{tags_text}#{message}", progname, &block)
     end
 
     %w( fatal error warn info debug unkown ).each do |severity|
@@ -37,17 +37,26 @@ module ActiveSupport
       EOM
     end
 
+    def flush(*args)
+      @tags.delete(Thread.current)
+      @logger.flush(*args) if @logger.respond_to?(:flush)
+    end
 
     def method_missing(method, *args)
       @logger.send(method, *args)
     end
-    
 
-    private
-      def tags
-        if @tags.any?
-          @tags.collect { |tag| "[#{tag}]" }.join(" ") + " "
-        end
+    protected
+
+    def tags_text
+      tags = current_tags
+      if tags.any?
+        tags.collect { |tag| "[#{tag}]" }.join(" ") + " "
       end
+    end
+
+    def current_tags
+      @tags[Thread.current]
+    end
   end
 end
