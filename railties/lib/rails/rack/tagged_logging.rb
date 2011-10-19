@@ -1,9 +1,8 @@
 module Rails
   module Rack
     # Enables easy tagging of any logging activity that occurs within the Rails request cycle. The tags are configured via the
-    # config.log_tags setting. The tags can either be strings, procs taking a request argument, or the symbols :uuid or :subdomain.
-    # The latter two are then automatically expanded to request.uuid and request.subdaomins.first -- the two most common tags
-    # desired in production logs.
+    # config.log_tags setting. The tags can either be strings, procs taking a request argument, or symbols representing method
+    # names on request (so :uuid will result in request.uuid being added as a tag).
     class TaggedLogging
       def initialize(app, tags = nil)
         @app, @tags = app, tags
@@ -25,10 +24,8 @@ module Rails
             case tag
             when Proc
               tag.call(request)
-            when :uuid
-              request.uuid
-            when :subdomain
-              request.subdomains.first
+            when Symbol
+              request.send(tag)
             else
               tag
             end
