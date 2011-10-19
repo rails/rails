@@ -213,13 +213,7 @@ module ActiveModel
     # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
-      message ||= :invalid
-
-      if message.is_a?(Symbol)
-        message = generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      elsif message.is_a?(Proc)
-        message = message.call
-      end
+      message = normalize_message(attribute, message, options)
       if options[:strict]
         raise ActiveModel::StrictValidationFailed,  message
       end
@@ -242,6 +236,15 @@ module ActiveModel
         value = @base.send(:read_attribute_for_validation, attribute)
         add(attribute, :blank, options) if value.blank?
       end
+    end
+
+    # Returns true if an error on the attribute with the given message is present, false otherwise.
+    # +message+ is treated the same as for +add+.
+    #   p.errors.add :name, :blank
+    #   p.errors.added? :name, :blank # => true
+    def added?(attribute, message = nil, options = {})
+      message = normalize_message(attribute, message, options)
+      self[attribute].include? message
     end
 
     # Returns all the full error messages in an array.
@@ -328,6 +331,19 @@ module ActiveModel
       }.merge(options)
 
       I18n.translate(key, options)
+    end
+
+  private
+    def normalize_message(attribute, message, options)
+      message ||= :invalid
+
+      if message.is_a?(Symbol)
+        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+      elsif message.is_a?(Proc)
+        message.call
+      else
+        message
+      end
     end
   end
 
