@@ -935,7 +935,7 @@ EOF
   def test_implicitly_multipart_messages_with_charset
     mail = TestMailer.implicitly_multipart_example(@recipient, 'iso-8859-1')
 
-    assert_equal "multipart/alternative", mail.header['content-type'].content_type
+    assert_match %r{^multipart/alternative; boundary="--==_mimepart_.+"$}, mail.header['content-type'].to_s
 
     assert_equal 'iso-8859-1', mail.parts[0].content_type_parameters[:charset]
     assert_equal 'iso-8859-1', mail.parts[1].content_type_parameters[:charset]
