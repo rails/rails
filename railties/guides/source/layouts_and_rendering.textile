@@ -334,7 +334,7 @@ render :status => 500
 render :status => :forbidden
 </ruby>
 
-Rails understands both numeric status codes and symbols for status codes.
+Rails understands both numeric and symbolic status codes.
 
 h6. The +:location+ Option
 
@@ -348,9 +348,9 @@ h5. Finding Layouts
 
 To find the current layout, Rails first looks for a file in +app/views/layouts+ with the same base name as the controller. For example, rendering actions from the +PhotosController+ class will use +app/views/layouts/photos.html.erb+ (or +app/views/layouts/photos.builder+). If there is no such controller-specific layout, Rails will use +app/views/layouts/application.html.erb+ or +app/views/layouts/application.builder+. If there is no +.erb+ layout, Rails will use a +.builder+ layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
 
-h6. Specifying Layouts on a per-Controller Basis
+h6. Specifying Layouts for Controllers
 
-You can override the automatic layout conventions in your controllers by using the +layout+ declaration in the controller. For example:
+You can override the default layout conventions in your controllers by using the +layout+ declaration. For example:
 
 <ruby>
 class ProductsController < ApplicationController
@@ -359,9 +359,9 @@ class ProductsController < ApplicationController
 end
 </ruby>
 
-With this declaration, all methods within +ProductsController+ will use +app/views/layouts/inventory.html.erb+ for their layout.
+With this declaration, all of the methods within +ProductsController+ will use +app/views/layouts/inventory.html.erb+ for their layout.
 
-To assign a specific layout for the entire application, use a declaration in your +ApplicationController+ class:
+To assign a specific layout for the entire application, use a +layout+ declaration in your +ApplicationController+ class:
 
 <ruby>
 class ApplicationController < ActionController::Base
@@ -370,7 +370,7 @@ class ApplicationController < ActionController::Base
 end
 </ruby>
 
-With this declaration, all views in the entire application will use +app/views/layouts/main.html.erb+ for their layout.
+With this declaration, all of the views in the entire application will use +app/views/layouts/main.html.erb+ for their layout.
 
 h6. Choosing Layouts at Runtime
 
@@ -392,9 +392,9 @@ class ProductsController < ApplicationController
 end
 </ruby>
 
-Now, if the current user is a special user, they'll get a special layout when viewing a product. You can even use an inline method to determine the layout:
+Now, if the current user is a special user, they'll get a special layout when viewing a product.
 
-You can also decide the layout by passing a Proc object, the block you give the Proc will be given the +controller+ instance, so you can make decisions based on the current request. For example:
+You can even use an inline method, such as a Proc, to determine the layout. For example, if you pass a Proc object, the block you give the Proc will be given the +controller+ instance, so the layout can be determined based on the current request:
 
 <ruby>
 class ProductsController < ApplicationController
@@ -404,7 +404,7 @@ end
 
 h6. Conditional Layouts
 
-Layouts specified at the controller level support +:only+ and +:except+ options that take either a method name or an array of method names which correspond to method names within the controller:
+Layouts specified at the controller level support the +:only+ and +:except+ options. These options take either a method name, or an array of method names, corresponding to method names within the controller:
 
 <ruby>
 class ProductsController < ApplicationController
@@ -416,7 +416,7 @@ With this declaration, the +product+ layout would be used for everything but the
 
 h6. Layout Inheritance
 
-Layouts are shared downwards in the hierarchy, and more specific layouts always override more general ones. For example:
+Layout declarations cascade downward in the hierarchy, and more specific layout declarations always override more general ones. For example:
 
 * +application_controller.rb+
 
@@ -495,9 +495,9 @@ def show
 end
 </ruby>
 
-Make sure you use +and return+ and not +&amp;&amp; return+ because while the former will work, the latter will not due to operator precedence in the Ruby Language.
+Make sure to use +and return+ and not +&amp;&amp; return+, since +&amp;&amp; return+ will not work due to the operator precedence in the Ruby Language.
 
-Note that the implicit render done by ActionController detects if +render+ has been called, and thus avoids this error. Therefore, the following will work without errors:
+Note that the implicit render done by ActionController detects if +render+ has been called, so the following will work without errors:
 
 <ruby>
 def show
@@ -518,7 +518,7 @@ Another way to handle returning responses to an HTTP request is with +redirect_t
 redirect_to photos_url
 </ruby>
 
-You can use +redirect_to+ with any arguments that you could use with +link_to+ or +url_for+. In addition, there's a special redirect that sends the user back to the page they just came from:
+You can use +redirect_to+ with any arguments that you could use with +link_to+ or +url_for+. There's also a special redirect that sends the user back to the page they just came from:
 
 <ruby>
 redirect_to :back
@@ -526,7 +526,7 @@ redirect_to :back
 
 h5. Getting a Different Redirect Status Code
 
-Rails uses HTTP status code 302 (temporary redirect) when you call +redirect_to+. If you'd like to use a different status code (perhaps 301, permanent redirect), you can do so by using the +:status+ option:
+Rails uses HTTP status code 302, a temporary redirect, when you call +redirect_to+. If you'd like to use a different status code, perhaps 301, a permanent redirect, you can use the +:status+ option:
 
 <ruby>
 redirect_to photos_path, :status => 301
@@ -536,7 +536,7 @@ Just like the +:status+ option for +render+, +:status+ for +redirect_to+ accepts
 
 h5. The Difference Between +render+ and +redirect_to+
 
-Sometimes inexperienced developers conceive of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of +redirect_to+ as a sort of +goto+ command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
 
 Consider these actions to see the difference:
 
@@ -553,7 +553,7 @@ def show
 end
 </ruby>
 
-With the code in this form, there will likely be a problem if the +@book+ variable is +nil+. Remember, a +render :action+ doesn't run any code in the target action, so nothing will set up the +@books+ variable that the +index+ view is presumably depending on. One way to fix this is to redirect instead of rendering:
+With the code in this form, there will likely be a problem if the +@book+ variable is +nil+. Remember, a +render :action+ doesn't run any code in the target action, so nothing will set up the +@books+ variable that the +index+ view will probably require. One way to fix this is to redirect instead of rendering:
 
 <ruby>
 def index
@@ -570,9 +570,9 @@ end
 
 With this code, the browser will make a fresh request for the index page, the code in the +index+ method will run, and all will be well.
 
-The only downside to this code, is that it requires a round trip to the browser, the browser requested the show action with +/books/1+ and the controller finds that there are no books, so the controller sends out a 302 redirect response to the browser telling it to go to +/books/+, the browser complies and sends a new request back to the controller asking now for the +index+ action, the controller then gets all the books in the database and renders the index template, sending it back down to the browser which then shows it on your screen.
+The only downside to this code is that it requires a round trip to the browser: the browser requested the show action with +/books/1+ and the controller finds that there are no books, so the controller sends out a 302 redirect response to the browser telling it to go to +/books/+, the browser complies and sends a new request back to the controller asking now for the +index+ action, the controller then gets all the books in the database and renders the index template, sending it back down to the browser which then shows it on your screen.
 
-While in a small app, this added latency might not be a problem, it is something to think about when speed of response is of the essence. One way to handle this double request (though a contrived example) could be:
+While in a small application, this added latency might not be a problem, it is something to think about if response time is a concern. We can demonstrate one way to handle this with a contrived example:
 
 <ruby>
 def index
@@ -588,7 +588,7 @@ def show
 end
 </ruby>
 
-Which would detect that there are no books, populate the +@books+ instance variable with all the books in the database and then directly render the +index.html.erb+ template returning it to the browser with a flash alert message telling the user what happened.
+This would detect that there are no books with the specified ID, populate the +@books+ instance variable with all the books in the model, and then directly render the +index.html.erb+ template, returning it to the browser with a flash alert message to tell the user what happened.
 
 h4. Using +head+ To Build Header-Only Responses
 
@@ -598,7 +598,7 @@ The +head+ method can be used to send responses with only headers to the browser
 head :bad_request
 </ruby>
 
-Which would produce the following header:
+This would produce the following header:
 
 <shell>
 HTTP/1.1 400 Bad Request
@@ -611,7 +611,7 @@ Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
 Cache-Control: no-cache
 </shell>
 
-Or you can use other HTTP headers to convey additional information:
+Or you can use other HTTP headers to convey other information:
 
 <ruby>
 head :created, :location => photo_path(@photo)
@@ -633,15 +633,15 @@ Cache-Control: no-cache
 
 h3. Structuring Layouts
 
-When Rails renders a view as a response, it does so by combining the view with the current layout (using the rules for finding the current layout that were covered earlier in this guide). Within a layout, you have access to three tools for combining different bits of output to form the overall response:
+When Rails renders a view as a response, it does so by combining the view with the current layout, using the rules for finding the current layout that were covered earlier in this guide. Within a layout, you have access to three tools for combining different bits of output to form the overall response:
 
 * Asset tags
 * +yield+ and +content_for+
 * Partials
 
-h4. Asset Tags
+h4. Asset Tag Helpers
 
-Asset tags provide methods for generating HTML that links views to feeds, JavaScript, stylesheets, images, videos and audios. These are the six asset tags available in Rails:
+Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos and audios. There are six asset tag helpers available in Rails:
 
 * +auto_discovery_link_tag+
 * +javascript_include_tag+
@@ -650,11 +650,11 @@ Asset tags provide methods for generating HTML that links views to feeds, JavaSc
 * +video_tag+
 * +audio_tag+
 
-You can use these tags in layouts or other views, although the tags other than +image_tag+ are most commonly used in the +&lt;head&gt;+ section of a layout.
+You can use these tags in layouts or other views, although the +auto_discovery_link_tag+, +javascript_include_tag+, and +stylesheet_link_tag+, are most commonly used in the +&lt;head&gt;+ section of a layout.
 
-WARNING: The asset tags do _not_ verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.
+WARNING: The asset tag helpers do _not_ verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.
 
-h5. Linking to Feeds with +auto_discovery_link_tag+
+h5. Linking to Feeds with the +auto_discovery_link_tag+
 
 The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsreaders can use to detect the presences of RSS or ATOM feeds. It takes the type of the link (+:rss+ or +:atom+), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
@@ -663,13 +663,13 @@ The +auto_discovery_link_tag+ helper builds HTML that most browsers and newsread
   {:title => "RSS Feed"}) %>
 </erb>
 
-There are three tag options available for +auto_discovery_link_tag+:
+There are three tag options available for the +auto_discovery_link_tag+:
 
-* +:rel+ specifies the +rel+ value in the link (defaults to "alternate")
+* +:rel+ specifies the +rel+ value in the link. The default value is "alternate".
 * +:type+ specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
-* +:title+ specifies the title of the link
+* +:title+ specifies the title of the link. The default value is the upshifted +:type+ value, for example, "ATOM" or "RSS".
 
-h5. Linking to JavaScript Files with +javascript_include_tag+
+h5. Linking to JavaScript Files with the +javascript_include_tag+
 
 The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided. Rails looks in +public/javascripts+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/javascripts/main.js+:
 
@@ -738,7 +738,7 @@ By default, the combined file will be delivered as +javascripts/all.js+. You can
 
 You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
-h5. Linking to CSS Files with +stylesheet_link_tag+
+h5. Linking to CSS Files with the +stylesheet_link_tag+
 
 The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.css+:
 
@@ -764,7 +764,7 @@ To include +http://example.com/main.css+:
 <%= stylesheet_link_tag "http://example.com/main.css" %>
 </erb>
 
-By default, +stylesheet_link_tag+ creates links with +media="screen" rel="stylesheet" type="text/css"+. You can override any of these defaults by specifying an appropriate option (+:media+, +:rel+, or +:type+):
+By default, the +stylesheet_link_tag+ creates links with +media="screen" rel="stylesheet" type="text/css"+. You can override any of these defaults by specifying an appropriate option (+:media+, +:rel+, or +:type+):
 
 <erb>
 <%= stylesheet_link_tag "main_print", :media => "print" %>
@@ -797,7 +797,7 @@ By default, the combined file will be delivered as +stylesheets/all.css+. You ca
 
 You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
-h5. Linking to Images with +image_tag+
+h5. Linking to Images with the +image_tag+
 
 The +image_tag+ helper builds an HTML +&lt;img /&gt;+ tag to the specified file. By default, files are loaded from +public/images+.
 
@@ -846,7 +846,7 @@ In addition to the above special tags, you can supply a final hash of standard H
                           :class => 'nav_bar' %>
 </erb>
 
-h5. Linking to Videos with +video_tag+
+h5. Linking to Videos with the +video_tag+
 
 The +video_tag+ helper builds an HTML 5 +&lt;video&gt;+ tag to the specified file. By default, files are loaded from +public/videos+.
 
@@ -882,7 +882,7 @@ This will produce:
 <video><source src="trailer.ogg" /><source src="movie.ogg" /></video>
 </erb>
 
-h5. Linking to Audio files with +audio_tag+
+h5. Linking to Audio Files with the +audio_tag+
 
 The +audio_tag+ helper builds an HTML 5 +&lt;audio&gt;+ tag to the specified file. By default, files are loaded from +public/audios+.
 
@@ -933,7 +933,7 @@ You can also create a layout with multiple yielding regions:
 
 The main body of the view will always render into the unnamed +yield+. To render content into a named +yield+, you use the +content_for+ method.
 
-h4. Using +content_for+
+h4. Using the +content_for+ Method
 
 The +content_for+ method allows you to insert content into a named +yield+ block in your layout. For example, this view would work with the layout that you just saw:
 

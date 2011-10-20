@@ -205,9 +205,8 @@ module ActiveModel
       messages.dup
     end
 
-    # Adds +message+ to the error messages on +attribute+, which will be returned on a call to
-    # <tt>on(attribute)</tt> for the same attribute. More than one error can be added to the same
-    # +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
+    # Adds +message+ to the error messages on +attribute+. More than one error can be added to the same
+    # +attribute+.
     # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
     #
     # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).

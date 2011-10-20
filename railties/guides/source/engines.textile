@@ -98,7 +98,7 @@ Also in the test directory is the +test/integration+ directory, where integratio
 
 h3. Providing engine functionality
 
-The engine that this guide covers will provide posting and commenting functionality.
+The engine that this guide covers will provide posting and commenting functionality and follows a similar thread to the "Getting Started Guide":getting-started.html, with some new twists.
 
 h4. Generating a post resource
 
@@ -343,9 +343,13 @@ The +comment_counter+ local variable is given to us by the +<%= render @post.com
 
 That completes the comment function of the blogging engine. Now it's time to use it within an application.
 
-h3. Hooking into application
+h3. Hooking into an application
 
-Using an engine within an application is very easy. First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
+Using an engine within an application is very easy. This section covers how to mount the engine into an application and the initial setup required for it, as well as linking the engine to a +User+ class provided by the application to provide ownership for posts and comments within the engine.
+
+h4. Mounting the engine
+
+First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
 
 <shell>
 $ rails new unicorn
@@ -374,20 +378,229 @@ As described earlier, by placing the gem in the +Gemfile+ it will be loaded when
 To make the engine's functionality accessible from within an application, it needs to be mounted in that application's +config/routes.rb+ file:
 
 <ruby>
-  mount Blorgh::Engine, :at => "blog"
+mount Blorgh::Engine, :at => "blog"
 </ruby>
+
+This line will mount the engine at +blog+ in the application. Making it accessible at +http://localhost:3000/blog+ when the application runs with +rails s+.
 
 NOTE: Other engines, such as Devise, handle this a little differently by making you specify custom helpers such as +devise_for+ in the routes. These helpers do exactly the same thing, mounting pieces of the engines's functionality at a pre-defined path which may be customizable.
 
+h4. Engine setup
 
+The engine contains migrations for the +blorgh_posts+ and +blorgh_comments+ table which need to be created in the application's database so that the engine's models can query them correctly. To copy these migrations into the application use this command:
 
-This line will mount the engine
-TODO: Application will provide a User foundation class which the engine hooks into through a configuration setting, configurable in the application's initializers. The engine will be mounted at the +/blog+ path in the application.
+<shell>
+$ rake blorgh:install:migrations
+</shell>
 
-h3. Overriding engine functionality
+This command, when run for the first time will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
 
-TODO: Cover how to override engine functionality in the engine, such as controllers and views.
+<shell>
+Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
+Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
+</shell>
 
+The first timestamp (+\[timestamp_1\]+) will be the current time and the second timestamp (+\[timestamp_2\]+) will be the current time plus a second. The reason for this is so that the migrations for the engine are run after any existing migrations in the application.
+
+To run these migrations within the context of the application, simply run +rake db:migrate+. When accessing the engine through +http://localhost:3000/blog+, the posts will be empty. This is because the table created inside the application is different from the one created within the engine. Go ahead, play around with the newly mounted engine. You'll find that it's the same as when it was only an engine.
+
+h4. Using a class provided by the application
+
+When an engine is created, it may want to use specific classes from an application to provide links between the pieces of the engine and the pieces of the application. In the case of the +blorgh+ engine, making posts and comments have authors would make a lot of sense.
+
+Usually, an application would have a +User+ class that would provide the objects that would represent the posts' and comments' authors, but there could be a case where the application calls this class something different, such as +Person+. It's because of this reason that the engine should not hardcode the associations to be exactly for a +User+ class, but should allow for some flexibility around what the class is called.
+
+To keep it simple in this case, the application will have a class called +User+ which will represent the users of the application. It can be generated using this command:
+
+<shell>
+rails g model user name:string
+</shell>
+
+The +rake db:migrate+ command needs to be run here to ensure that our application has the +users+ table for future use.
+
+Also to keep it simple, the posts form will have a new text field called +author_name_+ where users can elect to put their name. The engine will then take this name and create a new +User+ object from it or find one that already has that name, and then associate the post with it.
+
+First, the +author_name+ text field needs to be added to the +app/views/blorgh/posts/_form.html.erb+ partial inside the engine. This can be added above the +title+ field with this code:
+
+<erb>
+<div class="field">
+  <%= f.label :author_name %><br />
+  <%= f.text_field :author_name %>
+</div>
+</erb>
+
+The +Blorgh::Post+ model should then have some code to convert the +author_name+ field into an actual +User+ object and associate it as that post's +author+ before the post is saved. It will also need to have an +attr_accessor+ setup for this field so that the setter and getter methods are defined for it.
+
+To do all this, you'll need to add the +attr_accessor+ for +author_name+, the association for the author and the +before_save+ call into +app/models/blorgh/post.rb+. The +author+ association will be hard-coded to the +User+ class for the time being.
+
+<ruby>
+attr_accessor :author_name
+belongs_to :author, :class_name => "User"
+
+before_save :set_author
+
+private
+  def set_author
+    self.author = User.find_or_create_by_name(author_name)
+  end
+</ruby>
+
+By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. There needs to be a way of associating the records in the +blorgh_posts+ table with the records in the +users+ table. Because the association is called +author+, there should be an +author_id+ column added to the +blorgh_posts+ table. 
+
+To generate this new column, run this command within the engine:
+
+<shell>
+$ rails g migration add_author_id_to_blorgh_posts author_id:integer 
+</shell>
+
+NOTE: Due to the migration's name and the column specification after it, Rails will automatically know that you want to add a column to a specific table and write that into the migration for you. You don't need to tell it any more than this.
+
+This migration will need to be run on the application. To do that, it must first be copied using this command:
+
+<shell>
+$ rake blorgh:install:migrations
+</shell>
+
+Notice here that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
+
+<shell>
+  NOTE: Migration [timestamp]_create_blorgh_posts.rb from blorgh has been skipped. Migration with the same name already exists.
+  NOTE: Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists.
+  Copied migration [timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
+</shell>
+
+Run this migration using this command:
+
+<shell>
+$ rake db:migrate
+</shell>
+
+Now with all the pieces in place, an action will take place that will associate an author -- represented by a record in the +users+ table -- with a post, represented by the +blorgh_posts+ table from the engine.
+
+Finally, the author's name should be displayed on the post's page. Add this code above the "Title" output inside +app/views/blorgh/posts/show.html.erb+:
+
+<erb>
+<p>
+  <b>Author:</b>
+  <%= @post.author %>
+</p>
+</erb>
+
+WARNING: For posts created previously, this will break the +show+ page for them. We recommend deleting these posts and starting again, or manually assigning an author using +rails c+.
+
+By outputting +@post.author+ using the +<%=+ tag the +to_s+ method will be called on the object. By default, this will look quite ugly:
+
+<text>
+#<User:0x00000100ccb3b0>
+</text>
+
+This is undesirable and it would be much better to have the user's name there. To do this, add a +to_s+ method to the +User+ class within the application:
+
+<ruby>
+def to_s
+  name
+end
+</ruby>
+
+Now instead of the ugly Ruby object output the author's name will be displayed.
+
+h4. Configuring an engine
+
+The next step is to make the class that represents a +User+ in the application customizable for the engine. This is because, as explained before, that class may not always be +User+. To make this customizable, the engine will have a configuration setting called +user_class+ that will be used to specify what the class representing users is inside the application.
+
+To define this configuration setting, you should use a +mattr_accessor+ inside the +Blorgh+ module for the engine, located at +lib/blorgh.rb+ inside the engine. Inside this module, put this line:
+
+<ruby>
+mattr_accessor :user_class
+</ruby>
+
+This method works like its brothers +attr_accessor+ and +cattr_accessor+, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using +Blorgh.user_class+.
+
+The next step is switching the +Blorgh::Post+ model over to this new setting. For the +belongs_to+ association inside this model (+app/models/blorgh/post.rb+), it will now become this:
+
+<ruby>
+belongs_to :author, :class_name => Blorgh.user_class
+</ruby>
+
+The +set_author+ method also located in this class should also use this class:
+
+<ruby>
+self.author = Blorgh.user_class.constantize.find_or_create_by_name(author_name)
+</ruby>
+
+To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and makes references to the classes of the engine which may depend on this configuration setting existing.
+
+Create a new initializer at +config/initializers/blorgh.rb+ inside the application where the +blorgh+ engine is installed and put this content in it:
+
+<ruby>
+Blorgh.user_class = "User"
+</ruby>
+
+WARNING: It's very important here to use the +String+ version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table, which could lead to problems if the table wasn't already existing. Therefore, a +String+ should be used and then converted to a class using +constantize+ in the engine later on.
+
+Go ahead and try to create a new post. You will see that it works exactly in the same way as before, except this time the engine is using the configuration setting in +config/initializers/blorgh.rb+ to learn what the class is.
+
+There are now no strict dependencies on what the class is, only what the class's API must be. The engine simply requires this class to define a +find_or_create_by_name+ method which returns an object of that class to be associated with a post when it's created.
+
+h3. Extending engine functionality
+
+This section looks at overriding or adding functionality to the views, controllers and models provided by an engine.
+
+h4. Overriding views
+
+When Rails looks for a view to render, it will first look in the +app/views+ directory of the application. If it cannot find the view there, then it will check in the +app/views+ directories of all engines which have this directory. 
+
+In the +blorgh+ engine, there is a currently a file at +app/views/blorgh/posts/index.html.erb+. When the engine is asked to render the view for +Blorgh::PostsController+'s +index+ action, it will first see if it can find it at +app/views/blorgh/posts/index.html.erb+ within the application and then if it cannot it will look inside the engine.
+
+By overriding this view in the application, by simply creating a new file at +app/views/blorgh/posts/index.html.erb+, you can completely change what this view would normally output.
+
+Try this now by creating a new file at +app/views/blorgh/posts/index.html.erb+ and put this content in it:
+
+<erb>
+<h1>Posts</h1>
+<%= link_to "New Post", new_post_path %>
+<% @posts.each do |post| %>
+  <h2><%= post.title %></h2>
+  <small>By <%= post.author %></small>
+  <%= simple_format(post.text) %>
+  <hr>
+<% end %>
+</erb>
+
+Rather than looking like the default scaffold, the page will now look like this:
+
+!images/engines_post_override.png(Engine scaffold overriden)!
+
+h4. Controllers
+
+TODO: Explain how to extend a controller.
 IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
+
+h4. Models
+
+TODO: Explain how to extend models provided by an engine.
+
+h4. Routes
+
+Within the application, you may wish to link to some area within the engine. Due to the fact that the engine's routes are isolated (by the +isolate_namespace+ call within the +lib/blorgh/engine.rb+ file), you will need to prefix these routes with the engine name. This means rather than having something such as:
+
+<erb>
+<%= link_to "Blog posts", posts_path %>
+</erb>
+
+It needs to be written as:
+
+<erb>
+<%= link_to "Blog posts", blorgh.posts_path %>
+</erb>
+
+This allows for the engine _and_ the application to both have a +posts_path+ routing helper and to not interfere with each other. You may also reference another engine's routes from inside an engine using this same syntax.
+
+If you wish to reference the application inside the engine in a similar way, use the +main_app+ helper:
+
+<erb>
+<%= link_to "Home", main_app.root_path %>
+</erb>
+
 TODO: Mention how to use assets within an engine?
 TODO: Mention how to depend on external gems, like RedCarpet.
