@@ -542,10 +542,65 @@ Go ahead and try to create a new post. You will see that it works exactly in the
 
 There are now no strict dependencies on what the class is, only what the class's API must be. The engine simply requires this class to define a +find_or_create_by_name+ method which returns an object of that class to be associated with a post when it's created.
 
-h3. Overriding engine functionality
+h3. Extending engine functionality
 
-TODO: Cover how to override engine functionality in the engine, such as controllers and views.
+This section looks at overriding or adding functionality to the views, controllers and models provided by an engine.
 
+h4. Overriding views
+
+When Rails looks for a view to render, it will first look in the +app/views+ directory of the application. If it cannot find the view there, then it will check in the +app/views+ directories of all engines which have this directory. 
+
+In the +blorgh+ engine, there is a currently a file at +app/views/blorgh/posts/index.html.erb+. When the engine is asked to render the view for +Blorgh::PostsController+'s +index+ action, it will first see if it can find it at +app/views/blorgh/posts/index.html.erb+ within the application and then if it cannot it will look inside the engine.
+
+By overriding this view in the application, by simply creating a new file at +app/views/blorgh/posts/index.html.erb+, you can completely change what this view would normally output.
+
+Try this now by creating a new file at +app/views/blorgh/posts/index.html.erb+ and put this content in it:
+
+<erb>
+<h1>Posts</h1>
+<%= link_to "New Post", new_post_path %>
+<% @posts.each do |post| %>
+  <h2><%= post.title %></h2>
+  <small>By <%= post.author %></small>
+  <%= simple_format(post.text) %>
+  <hr>
+<% end %>
+</erb>
+
+Rather than looking like the default scaffold, the page will now look like this:
+
+!images/engines_post_override.png(Engine scaffold overriden)!
+
+h4. Controllers
+
+TODO: Explain how to extend a controller.
 IDEA: I like Devise's +devise :controllers => { "sessions" => "sessions" }+ idea. Perhaps we could incorporate that into the guide?
+
+h4. Models
+
+TODO: Explain how to extend models provided by an engine.
+
+h4. Routes
+
+Within the application, you may wish to link to some area within the engine. Due to the fact that the engine's routes are isolated (by the +isolate_namespace+ call within the +lib/blorgh/engine.rb+ file), you will need to prefix these routes with the engine name. This means rather than having something such as:
+
+<erb>
+<%= link_to "Blog posts", posts_path %>
+</erb>
+
+It needs to be written as:
+
+<erb>
+<%= link_to "Blog posts", blorgh.posts_path %>
+</erb>
+
+This allows for the engine _and_ the application to both have a +posts_path+ routing helper and to not interfere with each other. You may also reference another engine's routes from inside an engine using this same syntax.
+
+If you wish to reference the application inside the engine in a similar way, use the +main_app+ helper:
+
+<erb>
+<%= link_to "Home", main_app.root_path %>
+</erb>
+
 TODO: Mention how to use assets within an engine?
 TODO: Mention how to depend on external gems, like RedCarpet.
