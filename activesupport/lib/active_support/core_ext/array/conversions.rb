@@ -39,10 +39,10 @@ class Array
   #
   #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
   #
-  # Adding in the <tt>:db</tt> argument as the format yields a prettier
-  # output:
+  # Adding in the <tt>:db</tt> argument as the format yields a comma separated
+  # id list:
   #
-  #   Blog.all.to_formatted_s(:db) # => "First Post,Second Post,Third Post"
+  #   Blog.all.to_formatted_s(:db) # => "1,2,3"
   def to_formatted_s(format = :default)
     case format
       when :db
