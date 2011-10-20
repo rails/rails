@@ -450,10 +450,10 @@ By defining that the +author+ association's object is represented by the +User+ 
 To generate this new column, run this command within the engine:
 
 <shell>
-$ rails g migration add_author_to_blorgh_posts author:references 
+$ rails g migration add_author_id_to_blorgh_posts author_id:integer 
 </shell>
 
-NOTE: Due to the migration's name, Rails will automatically know that you want to add a column to a specific table and write that into the migration for you. You don't need to tell it any more than this.
+NOTE: Due to the migration's name and the column specification after it, Rails will automatically know that you want to add a column to a specific table and write that into the migration for you. You don't need to tell it any more than this.
 
 This migration will need to be run on the application. To do that, it must first be copied using this command:
 
@@ -461,9 +461,15 @@ This migration will need to be run on the application. To do that, it must first
 $ rake blorgh:install:migrations
 </shell>
 
-NOTE: Notice here that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
+Notice here that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
 
-And then migrated using this command:
+<shell>
+  NOTE: Migration [timestamp]_create_blorgh_posts.rb from blorgh has been skipped. Migration with the same name already exists.
+  NOTE: Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists.
+  Copied migration [timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
+</shell>
+
+Run this migration using this command:
 
 <shell>
 $ rake db:migrate
