@@ -28,7 +28,7 @@ module ActionDispatch
     private
       def external_request_id(env)
         if request_id = env["HTTP_X_REQUEST_ID"].presence
-          request_id.gsub(/[^\w\d\-]/, "").first(255)
+          request_id.gsub(/[^\w\-]/, "").first(255)
         end
       end
 
