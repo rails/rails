@@ -493,6 +493,7 @@ This is undesirable and it would be much better to have the user's name there. T
 <ruby>
 def to_s
   name
+end
 </ruby>
 
 Now instead of the ugly Ruby object output the author's name will be displayed.
