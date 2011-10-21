@@ -1387,8 +1387,8 @@ module ActionDispatch
             @scope[:scope_level_resource] = old_resource
           end
 
-          def resource_scope(level, resource) #:nodoc:
-            with_scope_level(level, resource) do
+          def resource_scope(kind, resource) #:nodoc:
+            with_scope_level(kind, resource) do
               scope(parent_resource.resource_scope) do
                 yield
               end
@@ -1396,10 +1396,12 @@ module ActionDispatch
           end
 
           def nested_options #:nodoc:
-            {}.tap do |options|
-              options[:as] = parent_resource.member_name
-              options[:constraints] = { "#{parent_resource.singular}_id".to_sym => id_constraint } if id_constraint?
-            end
+            options = { :as => parent_resource.member_name }
+            options[:constraints] = {
+              :"#{parent_resource.singular}_id" => id_constraint
+            } if id_constraint?
+
+            options
           end
 
           def id_constraint? #:nodoc:
