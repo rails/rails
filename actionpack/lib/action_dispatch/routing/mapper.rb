@@ -1245,32 +1245,38 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
-        def match(*args)
-          options = args.extract_options!.dup
+        def match(path, *rest)
+          if rest.empty? && Hash === path
+            options  = path
+            path, to = options.find { |name, value| name.is_a?(String) }
+            options.merge!(:to => to).delete(path)
+            paths = [path]
+          else
+            options = rest.pop || {}
+            paths = [path] + rest
+          end
+
           options[:anchor] = true unless options.key?(:anchor)
 
-          if args.length > 1
-            args.each { |path| match(path, options.dup) }
+          if paths.length > 1
+            paths.each { |path| match(path, options.dup) }
             return self
           end
 
           on = options.delete(:on)
           if VALID_ON_OPTIONS.include?(on)
-            args.push(options)
-            return send(on){ match(*args) }
+            return send(on){ match(path, options) }
           elsif on
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
           if @scope[:scope_level] == :resources
-            args.push(options)
-            return nested { match(*args) }
+            return nested { match(path, options) }
           elsif @scope[:scope_level] == :resource
-            args.push(options)
-            return member { match(*args) }
+            return member { match(path, options) }
           end
 
-          action = args.first
+          action = path
           path = path_for_action(action, options.delete(:path))
 
           if action.to_s =~ /^[\w\/]+$/
@@ -1466,19 +1472,6 @@ module ActionDispatch
           end
       end
 
-      module Shorthand #:nodoc:
-        def match(path, *rest)
-          if rest.empty? && Hash === path
-            options  = path
-            path, to = options.find { |name, value| name.is_a?(String) }
-            options.merge!(:to => to).delete(path)
-            super(path, options)
-          else
-            super
-          end
-        end
-      end
-
       def initialize(set) #:nodoc:
         @set = set
         @scope = { :path_names => @set.resources_path_names }
@@ -1489,7 +1482,6 @@ module ActionDispatch
       include Redirection
       include Scoping
       include Resources
-      include Shorthand
     end
   end
 end
