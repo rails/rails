@@ -26,11 +26,26 @@ module ActiveSupport
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
+      # Cleanup the cache by removing old entries. By default this will delete entries
+      # that haven't been accessed in one day. You can change this behavior by passing
+      # in a +not_accessed_in+ option. Any entry not accessed in that number of seconds
+      # in the past will be deleted. Alternatively, you can pass in +:expired_only+ with
+      # +true+ to only delete expired entries.
       def cleanup(options = nil)
         options = merged_options(options)
-        each_key(options) do |key|
-          entry = read_entry(key, options)
-          delete_entry(key, options) if entry && entry.expired?
+        expired_only = options[:expired_only]
+        timestamp = Time.now - (options[:not_accessed_in] || 1.day.to_i)
+        search_dir(cache_path) do |fname|
+          if expired_only
+            key = file_path_key(fname)
+            entry = read_entry(key, options)
+            delete_entry(key, options) if entry && entry.expired?
+          else
+            if File.atime(fname) <= timestamp
+              key = file_path_key(fname)
+              delete_entry(key, options)
+            end
+          end
         end
       end
 
