@@ -1350,7 +1350,7 @@ module ActionDispatch
           end
 
           def scope_action_options? #:nodoc:
-            @scope[:options].is_a?(Hash) && (@scope[:options][:only] || @scope[:options][:except])
+            @scope[:options] && (@scope[:options][:only] || @scope[:options][:except])
           end
 
           def scope_action_options #:nodoc:
