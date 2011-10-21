@@ -16,6 +16,7 @@ module ActiveSupport
     autoload :FileStore, 'active_support/cache/file_store'
     autoload :MemoryStore, 'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
+    autoload :NullStore, 'active_support/cache/null_store'
     autoload :SynchronizedMemoryStore, 'active_support/cache/synchronized_memory_store'
     autoload :CompressedMemCacheStore, 'active_support/cache/compressed_mem_cache_store'
 
@@ -68,7 +69,7 @@ module ActiveSupport
           end
         store_class.new(*parameters)
       when nil
-        ActiveSupport::Cache::MemoryStore.new
+        ActiveSupport::Cache::NullStore.new
       else
         store
       end
