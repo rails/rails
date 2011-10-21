@@ -166,8 +166,9 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 |+Rack::Lock+|Sets <tt>env["rack.multithread"]</tt> flag to +true+ and wraps the application within a Mutex.|
 |+ActionController::Failsafe+|Returns HTTP Status +500+ to the client if an exception gets raised while dispatching.|
 |+ActiveRecord::QueryCache+|Enables the Active Record query cache.|
-|+ActionController::Session::CookieStore+|Uses the cookie based session store.|
-|+ActionController::Session::MemCacheStore+|Uses the memcached based session store.|
+|+ActionDispatch::Session::CookieStore+|Uses the cookie based session store.|
+|+ActionDispatch::Session::CacheStore+|Uses the Rails cache based session store.|
+|+ActionDispatch::Session::MemCacheStore+|Uses the memcached based session store.|
 |+ActiveRecord::SessionStore+|Uses the database based session store.|
 |+Rack::MethodOverride+|Sets HTTP method based on +_method+ parameter or <tt>env["HTTP_X_HTTP_METHOD_OVERRIDE"]</tt>.|
 |+Rack::Head+|Discards the response body if the client sends a +HEAD+ request.|
