@@ -1255,25 +1255,26 @@ module ActionDispatch
 
           options[:anchor] = true unless options.key?(:anchor)
 
+          if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
+            raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
+          end
+
           paths.each { |path| decomposed_match(path, options.dup) }
           self
         end
 
         def decomposed_match(path, options) # :nodoc:
-          on = options.delete(:on)
-          if VALID_ON_OPTIONS.include?(on)
-            return send(on){ decomposed_match(path, options) }
-          elsif on
-            raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
-          end
-
-          case @scope[:scope_level]
-          when :resources
-            nested { decomposed_match(path, options) }
-          when :resource
-            member { decomposed_match(path, options) }
+          if on = options.delete(:on)
+            send(on) { decomposed_match(path, options) }
           else
-            add_route(path, options)
+            case @scope[:scope_level]
+            when :resources
+              nested { decomposed_match(path, options) }
+            when :resource
+              member { decomposed_match(path, options) }
+            else
+              add_route(path, options)
+            end
           end
         end
 
