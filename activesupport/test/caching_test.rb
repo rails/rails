@@ -717,6 +717,53 @@ uses_memcached 'memcached backed store' do
   end
 end
 
+class NullStoreTest < ActiveSupport::TestCase
+  def setup
+    @cache = ActiveSupport::Cache.lookup_store(:null_store)
+  end
+  
+  def test_clear
+    @cache.clear
+  end
+  
+  def test_cleanup
+    @cache.cleanup
+  end
+  
+  def test_write
+    assert_equal true, @cache.write("name", "value")
+  end
+  
+  def test_read
+    @cache.write("name", "value")
+    assert_nil @cache.read("name")
+  end
+  
+  def test_delete
+    @cache.write("name", "value")
+    assert_equal false, @cache.delete("name")
+  end
+  
+  def test_increment
+    @cache.write("name", 1, :raw => true)
+    assert_nil @cache.increment("name")
+  end
+  
+  def test_decrement
+    @cache.write("name", 1, :raw => true)
+    assert_nil @cache.increment("name")
+  end
+  
+  def test_delete_matched
+    @cache.write("name", "value")
+    @cache.delete_matched(/name/)
+  end 
+  
+  def test_setting_nil_cache_store
+    assert ActiveSupport::Cache.lookup_store.class.name, ActiveSupport::Cache::NullStore.name
+  end 
+end
+
 class CacheStoreLoggerTest < ActiveSupport::TestCase
   def setup
     @cache = ActiveSupport::Cache.lookup_store(:memory_store)

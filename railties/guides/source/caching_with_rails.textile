@@ -332,6 +332,14 @@ caches_action :index, :expires_in => 60.seconds, :unless_exist => true
 For more information about Ehcache, see "http://ehcache.org/":http://ehcache.org/ .
 For more information about Ehcache for JRuby and Rails, see "http://ehcache.org/documentation/jruby.html":http://ehcache.org/documentation/jruby.html
 
+h4. ActiveSupport::Cache::NullStore
+
+This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with +Rails.cache+, but caching may interfere with being able to see the results of code changes. With this cache store, all +fetch+ and +read+ operations will result in a miss.
+
+<ruby>
+ActionController::Base.cache_store = nil
+</ruby>
+
 h4. Custom Cache Stores
 
 You can create your own custom cache store by simply extending +ActiveSupport::Cache::Store+ and implementing the appropriate methods. In this way, you can swap in any number of caching technologies into your Rails application.
