@@ -374,10 +374,6 @@ module ActionDispatch
         #     # Matches any request starting with 'path'
         #     match 'path' => 'c#a', :anchor => false
         def match(path, options=nil)
-          mapping = Mapping.new(@set, @scope, path, options || {})
-          app, conditions, requirements, defaults, as, anchor = mapping.to_route
-          @set.add_route(app, conditions, requirements, defaults, as, anchor)
-          self
         end
 
         # Mount a Rack-based application to be used within the application.
@@ -1249,7 +1245,8 @@ module ActionDispatch
           if rest.empty? && Hash === path
             options  = path
             path, to = options.find { |name, value| name.is_a?(String) }
-            options.merge!(:to => to).delete(path)
+            options[:to] = to
+            options.delete(path)
             paths = [path]
           else
             options = rest.pop || {}
@@ -1258,25 +1255,29 @@ module ActionDispatch
 
           options[:anchor] = true unless options.key?(:anchor)
 
-          if paths.length > 1
-            paths.each { |path| match(path, options.dup) }
-            return self
-          end
+          paths.each { |path| decomposed_match(path, options.dup) }
+          self
+        end
 
+        def decomposed_match(path, options) # :nodoc:
           on = options.delete(:on)
           if VALID_ON_OPTIONS.include?(on)
-            return send(on){ match(path, options) }
+            return send(on){ decomposed_match(path, options) }
           elsif on
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
-          if @scope[:scope_level] == :resources
-            return nested { match(path, options) }
-          elsif @scope[:scope_level] == :resource
-            return member { match(path, options) }
+          case @scope[:scope_level]
+          when :resources
+            nested { decomposed_match(path, options) }
+          when :resource
+            member { decomposed_match(path, options) }
+          else
+            add_route(path, options)
           end
+        end
 
-          action = path
+        def add_route(action, options) # :nodoc:
           path = path_for_action(action, options.delete(:path))
 
           if action.to_s =~ /^[\w\/]+$/
@@ -1285,13 +1286,15 @@ module ActionDispatch
             action = nil
           end
 
-          if options.key?(:as) && !options[:as]
+          if !options.fetch(:as) { true }
             options.delete(:as)
           else
             options[:as] = name_for_action(options[:as], action)
           end
 
-          super(path, options)
+          mapping = Mapping.new(@set, @scope, path, options)
+          app, conditions, requirements, defaults, as, anchor = mapping.to_route
+          @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
 
         def root(options={})
@@ -1355,11 +1358,11 @@ module ActionDispatch
           end
 
           def resource_scope? #:nodoc:
-            @scope[:scope_level].in?([:resource, :resources])
+            [:resource, :resources].include? @scope[:scope_level]
           end
 
           def resource_method_scope? #:nodoc:
-            @scope[:scope_level].in?([:collection, :member, :new])
+            [:collection, :member, :new].include? @scope[:scope_level]
           end
 
           def with_exclusive_scope
