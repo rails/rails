@@ -603,8 +603,11 @@ module ActionDispatch
 
           options[:constraints] ||= {}
           unless options[:constraints].is_a?(Hash)
-            block, options[:constraints] = options[:constraints], {}
+            options[:blocks]      = options[:constraints]
+            options[:constraints] = {}
           end
+
+          options[:options] = options
 
           scope_options.each do |option|
             if value = options.delete(option)
@@ -613,21 +616,12 @@ module ActionDispatch
             end
           end
 
-          recover[:block] = @scope[:blocks]
-          @scope[:blocks] = merge_blocks_scope(@scope[:blocks], block)
-
-          recover[:options] = @scope[:options]
-          @scope[:options]  = merge_options_scope(@scope[:options], options)
-
           yield
           self
         ensure
           scope_options.each do |option|
             @scope[option] = recover[option] if recover.has_key?(option)
           end
-
-          @scope[:options] = recover[:options]
-          @scope[:blocks]  = recover[:block]
         end
 
         # Scopes routes to a specific controller
