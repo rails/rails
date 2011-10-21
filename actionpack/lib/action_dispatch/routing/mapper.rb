@@ -863,8 +863,6 @@ module ActionDispatch
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
-          DEFAULT_ACTIONS = [:index, :create, :new, :show, :update, :destroy, :edit]
-
           attr_reader :controller, :path, :options
 
           def initialize(entities, options = {})
@@ -876,7 +874,7 @@ module ActionDispatch
           end
 
           def default_actions
-            self.class::DEFAULT_ACTIONS
+            [:index, :create, :new, :show, :update, :destroy, :edit]
           end
 
           def actions
@@ -930,14 +928,15 @@ module ActionDispatch
         end
 
         class SingletonResource < Resource #:nodoc:
-          DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
-
           def initialize(entities, options)
             super
-
             @as         = nil
             @controller = (options[:controller] || plural).to_s
             @as         = options[:as]
+          end
+
+          def default_actions
+            [:show, :create, :update, :destroy, :new, :edit]
           end
 
           def plural
