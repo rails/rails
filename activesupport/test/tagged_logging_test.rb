@@ -29,6 +29,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
   end
 
+  test "tagged once with blank and nil" do
+    @logger.tagged(nil, "", "New") { @logger.info "Funky time" }
+    assert_equal "[New] Funky time\n", @output.string
+  end
+
   test "keeps each tag in their own thread" do
     @logger.tagged("BCX") do
       Thread.new do
