@@ -986,7 +986,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(SingletonResource.new(resources.pop, options)) do
+          resource_scope(:resource, SingletonResource.new(resources.pop, options)) do
             yield if block_given?
 
             collection do
@@ -1117,7 +1117,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(Resource.new(resources.pop, options)) do
+          resource_scope(:resources, Resource.new(resources.pop, options)) do
             yield if block_given?
 
             collection do
@@ -1387,8 +1387,8 @@ module ActionDispatch
             @scope[:scope_level_resource] = old_resource
           end
 
-          def resource_scope(resource) #:nodoc:
-            with_scope_level(resource.is_a?(SingletonResource) ? :resource : :resources, resource) do
+          def resource_scope(level, resource) #:nodoc:
+            with_scope_level(level, resource) do
               scope(parent_resource.resource_scope) do
                 yield
               end
