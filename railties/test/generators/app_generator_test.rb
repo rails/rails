@@ -219,8 +219,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_turn_gem_in_gemfile
     run_generator
+    version = RUBY_VERSION >= "1.9.3" ? "'~> 0.8.3'" : "'0.8.2'"
     assert_file "Gemfile" do |contents|
-      assert_match(/gem 'turn'/, contents) unless RUBY_VERSION < '1.9.2'
+      assert_match(/gem 'turn', #{version}/, contents) unless RUBY_VERSION < '1.9.2'
       assert_no_match(/gem 'turn'/, contents) if RUBY_VERSION < '1.9.2'
     end
   end
