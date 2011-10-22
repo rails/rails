@@ -172,8 +172,8 @@ module ActiveRecord
       #   with this option.
       # * <tt>:mapping</tt> - Specifies the mapping of entity attributes to attributes of the value
       #   object. Each mapping is represented as an array where the first item is the name of the
-      #   entity attribute and the second item is the name the attribute in the value object. The
-      #   order in which mappings are defined determine the order in which attributes are sent to the
+      #   entity attribute and the second item is the name of the attribute in the value object. The
+      #   order in which mappings are defined determines the order in which attributes are sent to the
       #   value class constructor.
       # * <tt>:allow_nil</tt> - Specifies that the value object will not be instantiated when all mapped
       #   attributes are +nil+.  Setting the value object to +nil+ has the effect of writing +nil+ to all
@@ -191,7 +191,8 @@ module ActiveRecord
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
-      #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new { |balance| balance.to_money }
+      #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount),
+      #                         :converter => Proc.new { |balance| balance.to_money }
       #   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
       #   composed_of :gps_location
       #   composed_of :gps_location, :allow_nil => true
