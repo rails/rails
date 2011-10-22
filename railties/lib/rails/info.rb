@@ -91,7 +91,7 @@ module Rails
     end
 
     property 'Middleware' do
-      Rails.configuration.middleware.map(&:inspect)
+      Rails.configuration.middleware.map(&:name)
     end
 
     # The application's location on the filesystem.
