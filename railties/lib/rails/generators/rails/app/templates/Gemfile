@@ -21,5 +21,3 @@ source 'http://rubygems.org'
 
 # To use debugger
 # <%= ruby_debugger_gemfile_entry %>
-
-<%= turn_gemfile_entry -%>

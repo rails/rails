@@ -190,17 +190,6 @@ module Rails
         end
       end
 
-      def turn_gemfile_entry
-        unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
-          <<-GEMFILE.strip_heredoc
-            group :test do
-              # Pretty printed test output
-              gem 'turn', :require => false
-            end
-          GEMFILE
-        end
-      end
-
       def assets_gemfile_entry
         <<-GEMFILE.strip_heredoc
           # Gems used only for assets and not required
