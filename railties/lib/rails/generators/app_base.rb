@@ -190,10 +190,11 @@ module Rails
 
       def turn_gemfile_entry
         unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
+          version = RUBY_VERSION >= "1.9.3" ? "'~> 0.8.3'" : "'0.8.2'"
           <<-GEMFILE.strip_heredoc
             group :test do
               # Pretty printed test output
-              gem 'turn', :require => false
+              gem 'turn', #{version}, :require => false
             end
           GEMFILE
         end
