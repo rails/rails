@@ -14,13 +14,13 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   test "generating a request id when none is supplied" do
-    assert_match /\w+/, stub_request.uuid
+    assert_match(/\w+/, stub_request.uuid)
   end
 
   private
 
   def stub_request(env = {})
-    ActionDispatch::RequestId.new(lambda { |env| [ 200, env, [] ] }).call(env)
+    ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
     ActionDispatch::Request.new(env)
   end
 end
