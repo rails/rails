@@ -187,7 +187,8 @@ module ActiveRecord
       # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt>
       #   or a Proc that is called when a new value is assigned to the value object. The converter is
       #   passed the single value that is used in the assignment and is only called if the new value is
-      #   not an instance of <tt>:class_name</tt>.
+      #   not an instance of <tt>:class_name</tt>. If <tt>:allow_nil</tt> is set to true, the converter
+      #   can return nil to skip the assignment.
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
@@ -234,16 +235,16 @@ module ActiveRecord
 
         def writer_method(name, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
+            unless part.is_a?(class_name.constantize) || converter.nil? || part.nil?
+              part = converter.respond_to?(:call) ?
+                converter.call(part) :
+                class_name.constantize.send(converter, part)
+            end
+
             if part.nil? && allow_nil
               mapping.each { |pair| self[pair.first] = nil }
               @aggregation_cache[name] = nil
             else
-              unless part.is_a?(class_name.constantize) || converter.nil?
-                part = converter.respond_to?(:call) ?
-                  converter.call(part) :
-                  class_name.constantize.send(converter, part)
-              end
-
               mapping.each { |pair| self[pair.first] = part.send(pair.last) }
               @aggregation_cache[name] = part.freeze
             end
