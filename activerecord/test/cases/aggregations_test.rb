@@ -122,6 +122,11 @@ class AggregationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_do_not_run_the_converter_when_nil_was_set
+    customers(:david).non_blank_gps_location = nil
+    assert_nil Customer.gps_conversion_was_run
+  end
+
   def test_custom_constructor
     assert_equal 'Barney GUMBLE', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname

@@ -234,7 +234,7 @@ module ActiveRecord
 
         def writer_method(name, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
-            unless part.is_a?(class_name.constantize) || converter.nil?
+            unless part.is_a?(class_name.constantize) || converter.nil? || part.nil?
               part = converter.respond_to?(:call) ?
                 converter.call(part) :
                 class_name.constantize.send(converter, part)
