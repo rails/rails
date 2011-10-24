@@ -548,8 +548,9 @@ def drop_database_and_rescue(config)
 end
 
 def configs_for_environment
-  environments = [Rails.env, ("test" if Rails.env.development?)]
-  ActiveRecord::Base.configurations.values_at(*environments).compact
+  environments = [Rails.env]
+  environments << 'test' if Rails.env.development?
+  ActiveRecord::Base.configurations.values_at(*environments)
 end
 
 def session_table_name
