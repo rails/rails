@@ -1,5 +1,8 @@
 *Rails 3.2.0 (unreleased)*
 
+* In development mode the db:drop task also drops the test database. For symmetry with
+  the db:create task. [Dmitriy Kiriyenko]
+
 * Added ActiveRecord::Base.store for declaring simple single-column key/value stores [DHH]
 
     class User < ActiveRecord::Base
