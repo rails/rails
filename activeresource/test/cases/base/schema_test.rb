@@ -407,5 +407,9 @@ class SchemaTest < ActiveModel::TestCase
     end
   end
 
-
+  test 'known attributes should be unique' do
+     new_schema = {'age' => 'integer', 'name' => 'string'}
+     Person.schema = new_schema
+     assert_equal Person.new(:age => 20, :name => 'Matz').known_attributes, ['age', 'name']
+  end
 end
