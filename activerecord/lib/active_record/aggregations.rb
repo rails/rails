@@ -234,16 +234,16 @@ module ActiveRecord
 
         def writer_method(name, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
+            unless part.is_a?(class_name.constantize) || converter.nil?
+              part = converter.respond_to?(:call) ?
+                converter.call(part) :
+                class_name.constantize.send(converter, part)
+            end
+
             if part.nil? && allow_nil
               mapping.each { |pair| self[pair.first] = nil }
               @aggregation_cache[name] = nil
             else
-              unless part.is_a?(class_name.constantize) || converter.nil?
-                part = converter.respond_to?(:call) ?
-                  converter.call(part) :
-                  class_name.constantize.send(converter, part)
-              end
-
               mapping.each { |pair| self[pair.first] = part.send(pair.last) }
               @aggregation_cache[name] = part.freeze
             end
