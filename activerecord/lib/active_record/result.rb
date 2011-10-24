@@ -11,7 +11,7 @@ module ActiveRecord
     attr_reader :columns, :rows
 
     def initialize(columns, rows)
-      @columns   = columns
+      @columns   = columns.uniq
       @rows      = rows
       @hash_rows = nil
     end

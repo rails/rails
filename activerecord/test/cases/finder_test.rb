@@ -189,6 +189,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
+  def test_find_by_sql_with_join_statement
+    posts = Post.find_by_sql("SELECT * from posts INNER JOIN authors ON posts.author_id = authors.id AND authors.id = 1")
+    assert_not_equal(posts[0].id, posts[1].id)
+  end
+
   def test_find_by_sql_with_sti_on_joined_table
     accounts = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id")
     assert_equal [Account], accounts.collect(&:class).uniq
