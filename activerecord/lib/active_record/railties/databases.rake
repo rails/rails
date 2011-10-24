@@ -138,6 +138,15 @@ db_namespace = namespace :db do
 
   desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => :load_config do
+    # Drop the test database at the same time as the development one, if it exists
+    if Rails.env.development? && ActiveRecord::Base.configurations['test']
+      begin
+        drop_database(ActiveRecord::Base.configurations['test'])
+      rescue Exception => e
+        $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
+      end
+    end
+
     config = ActiveRecord::Base.configurations[Rails.env || 'development']
     begin
       drop_database(config)
