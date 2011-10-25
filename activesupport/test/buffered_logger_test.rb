@@ -233,7 +233,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
     end
     
     keep_running = true
-    b = Thread.new do
+    Thread.new do
       @logger.info("b")
       while keep_running
         sleep(0.001)
