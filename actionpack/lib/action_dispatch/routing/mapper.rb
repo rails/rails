@@ -696,7 +696,7 @@ module ActionDispatch
         # Allows you to constrain the nested routes based on a set of rules.
         # For instance, in order to change the routes to allow for a dot character in the +id+ parameter:
         #
-        #   constraints(:id => /\d+\.\d+) do
+        #   constraints(:id => /\d+\.\d+/) do
         #     resources :posts
         #   end
         #
@@ -706,7 +706,7 @@ module ActionDispatch
         # You may use this to also restrict other parameters:
         #
         #   resources :posts do
-        #     constraints(:post_id => /\d+\.\d+) do
+        #     constraints(:post_id => /\d+\.\d+/) do
         #       resources :comments
         #     end
         #   end
