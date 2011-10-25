@@ -550,7 +550,7 @@ end
 def configs_for_environment
   environments = [Rails.env]
   environments << 'test' if Rails.env.development?
-  ActiveRecord::Base.configurations.values_at(*environments)
+  ActiveRecord::Base.configurations.values_at(*environments).compact.reject { |config| config['database'].blank? }
 end
 
 def session_table_name
