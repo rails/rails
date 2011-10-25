@@ -37,6 +37,7 @@ module ActiveRecord
         Array(keys).flatten.each do |key|
           define_method("#{key}=") do |value|
             send(store_attribute)[key] = value
+            send("#{store_attribute}_will_change!")
           end
     
           define_method(key) do
