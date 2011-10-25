@@ -389,8 +389,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       created_at_column = created_columns.detect {|c| c.name == 'created_at' }
       updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
 
-      assert created_at_column.null
-      assert updated_at_column.null
+      assert !created_at_column.null
+      assert !updated_at_column.null
     ensure
       Person.connection.drop_table table_name rescue nil
     end
@@ -471,11 +471,13 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # Do a manual insertion
       if current_adapter?(:OracleAdapter)
-        Person.connection.execute "insert into people (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
+        Person.connection.execute "insert into people (id, wealth, created_at, updated_at) values (people_seq.nextval, 12345678901234567890.0123456789, 0, 0)"
       elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
-        Person.connection.execute "insert into people (wealth) values ('12345678901234567890.0123456789')"
+        Person.connection.execute "insert into people (wealth, created_at, updated_at) values ('12345678901234567890.0123456789', 0, 0)"
+      elsif current_adapter?(:PostgreSQLAdapter)
+        Person.connection.execute "insert into people (wealth, created_at, updated_at) values (12345678901234567890.0123456789, now(), now())"
       else
-        Person.connection.execute "insert into people (wealth) values (12345678901234567890.0123456789)"
+        Person.connection.execute "insert into people (wealth, created_at, updated_at) values (12345678901234567890.0123456789, 0, 0)"
       end
 
       # SELECT
@@ -514,6 +516,42 @@ if ActiveRecord::Base.connection.supports_migrations?
       wealth_column = Person.columns_hash['wealth']
       assert_equal 9, wealth_column.precision
       assert_equal 7, wealth_column.scale
+    end
+
+    # Test SQLite adapter specifically for decimal types with precision and scale
+    # attributes, since these need to be maintained in schema but aren't actually
+    # used in SQLite itself
+    if current_adapter?(:SQLite3Adapter)
+      def test_change_column_with_new_precision_and_scale
+        Person.delete_all
+        Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+        Person.reset_column_information
+
+        Person.connection.change_column 'people', 'wealth', :decimal, :precision => 12, :scale => 8
+        Person.reset_column_information
+
+        wealth_column = Person.columns_hash['wealth']
+        assert_equal 12, wealth_column.precision
+        assert_equal 8, wealth_column.scale
+      end
+
+      def test_change_column_preserve_other_column_precision_and_scale
+        Person.delete_all
+        Person.connection.add_column 'people', 'last_name', :string
+        Person.connection.add_column 'people', 'wealth', :decimal, :precision => 9, :scale => 7
+        Person.reset_column_information
+
+        wealth_column = Person.columns_hash['wealth']
+        assert_equal 9, wealth_column.precision
+        assert_equal 7, wealth_column.scale
+
+        Person.connection.change_column 'people', 'last_name', :string, :null => false
+        Person.reset_column_information
+
+        wealth_column = Person.columns_hash['wealth']
+        assert_equal 9, wealth_column.precision
+        assert_equal 7, wealth_column.scale
+      end
     end
 
     def test_native_types

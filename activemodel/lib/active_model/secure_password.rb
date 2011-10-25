@@ -32,8 +32,8 @@ module ActiveModel
       #   User.find_by_name("david").try(:authenticate, "notright")      # => nil
       #   User.find_by_name("david").try(:authenticate, "mUc3m00RsqyRe") # => user
       def has_secure_password
-        # Load bcrypt-ruby only when has_secured_password is used to avoid make ActiveModel
-        # (and by extension the entire framework) dependent on a binary library.
+        # Load bcrypt-ruby only when has_secure_password is used.
+        # This is to avoid ActiveModel (and by extension the entire framework) being dependent on a binary library.
         gem 'bcrypt-ruby', '~> 3.0.0'
         require 'bcrypt'
 

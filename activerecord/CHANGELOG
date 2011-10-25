@@ -1,5 +1,8 @@
 *Rails 3.2.0 (unreleased)*
 
+* In development mode the db:drop task also drops the test database. For symmetry with
+  the db:create task. [Dmitriy Kiriyenko]
+
 * Added ActiveRecord::Base.store for declaring simple single-column key/value stores [DHH]
 
     class User < ActiveRecord::Base
@@ -28,6 +31,11 @@
     User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
 
   [Andrés Mejía]
+
+* Fix nested attributes bug where _destroy parameter is taken into account
+  during :reject_if => :all_blank (fixes #2937)
+
+  [Aaron Christy]
 
 *Rails 3.1.1 (October 7, 2011)*
 

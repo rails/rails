@@ -278,13 +278,24 @@ module ActiveRecord
           cache.clear
         end
 
+        def delete(sql_key)
+          dealloc cache[sql_key]
+          cache.delete sql_key
+        end
+
         private
         def cache
           @cache[$$]
         end
 
         def dealloc(key)
-          @connection.query "DEALLOCATE #{key}"
+          @connection.query "DEALLOCATE #{key}" if connection_active?
+        end
+
+        def connection_active?
+          @connection.status == PGconn::CONNECTION_OK
+        rescue PGError
+          false
         end
       end
 
@@ -1030,27 +1041,54 @@ module ActiveRecord
         end
 
       private
+        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
+
         def exec_no_cache(sql, binds)
           @connection.async_exec(sql)
         end
 
         def exec_cache(sql, binds)
-          sql_key = "#{schema_search_path}-#{sql}"
+          begin
+            stmt_key = prepare_statement sql
+
+            # Clear the queue
+            @connection.get_last_result
+            @connection.send_query_prepared(stmt_key, binds.map { |col, val|
+              type_cast(val, col)
+            })
+            @connection.block
+            @connection.get_last_result
+          rescue PGError => e
+            # Get the PG code for the failure.  Annoyingly, the code for
+            # prepared statements whose return value may have changed is
+            # FEATURE_NOT_SUPPORTED.  Check here for more details:
+            # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
+            code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+            if FEATURE_NOT_SUPPORTED == code
+              @statements.delete sql_key(sql)
+              retry
+            else
+              raise e
+            end
+          end
+        end
+
+        # Returns the statement identifier for the client side cache
+        # of statements
+        def sql_key(sql)
+          "#{schema_search_path}-#{sql}"
+        end
+
+        # Prepare the statement if it hasn't been prepared, return
+        # the statement key.
+        def prepare_statement(sql)
+          sql_key = sql_key(sql)
           unless @statements.key? sql_key
             nextkey = @statements.next_key
             @connection.prepare nextkey, sql
             @statements[sql_key] = nextkey
           end
-
-          key = @statements[sql_key]
-
-          # Clear the queue
-          @connection.get_last_result
-          @connection.send_query_prepared(key, binds.map { |col, val|
-            type_cast(val, col)
-          })
-          @connection.block
-          @connection.get_last_result
+          @statements[sql_key]
         end
 
         # The internal PostgreSQL identifier of the money data type.

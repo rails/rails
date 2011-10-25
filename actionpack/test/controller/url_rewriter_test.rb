@@ -70,9 +70,9 @@ class UrlRewriterTests < ActionController::TestCase
     )
   end
 
-  def test_anchor_should_be_cgi_escaped
+  def test_anchor_should_be_uri_escaped
     assert_equal(
-      'http://test.host/c/a/i#anc%2Fhor',
+      'http://test.host/c/a/i#anc/hor',
       @rewriter.rewrite(@routes, :controller => 'c', :action => 'a', :id => 'i', :anchor => Struct.new(:to_param).new('anc/hor'))
     )
   end

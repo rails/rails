@@ -1,5 +1,12 @@
 *Rails 3.2.0 (unreleased)*
 
+* Added ActiveSupport:TaggedLogging that can wrap any standard Logger class to provide tagging capabilities [DHH]
+
+    Logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+    Logger.tagged("BCX") { Logger.info "Stuff" }                            # Logs "[BCX] Stuff"
+    Logger.tagged("BCX", "Jason") { Logger.info "Stuff" }                   # Logs "[BCX] [Jason] Stuff"
+    Logger.tagged("BCX") { Logger.tagged("Jason") { Logger.info "Stuff" } } # Logs "[BCX] [Jason] Stuff"
+  
 * Added safe_constantize that constantizes a string but returns nil instead of an exception if the constant (or part of it) does not exist [Ryan Oblak]
 
 * ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! [Prem Sichanugrist]

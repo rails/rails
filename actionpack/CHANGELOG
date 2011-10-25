@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Added ActionDispatch::RequestId middleware that'll make a unique X-Request-Id header available to the response and enables the ActionDispatch::Request#uuid method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog [DHH]
+
 * Limit the number of options for select_year to 1000.
 
   Pass the :max_years_allowed option to set your own limit.

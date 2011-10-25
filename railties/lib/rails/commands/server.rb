@@ -78,7 +78,7 @@ module Rails
       middlewares = []
       middlewares << [Rails::Rack::LogTailer, log_path] unless options[:daemonize]
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
-      middlewares << [Rails::Rack::ContentLength]
+      middlewares << [::Rack::ContentLength]
       Hash.new(middlewares)
     end
 

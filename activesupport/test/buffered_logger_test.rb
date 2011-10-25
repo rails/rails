@@ -198,4 +198,57 @@ class BufferedLoggerTest < Test::Unit::TestCase
     end
     assert byte_string.include?(BYTE_STRING)
   end
+
+  def test_silence_only_current_thread
+    @logger.auto_flushing = true
+    run_thread_a = false
+
+    a = Thread.new do
+      while !run_thread_a do
+        sleep(0.001)
+      end
+      @logger.info("x")
+      run_thread_a = false
+    end
+
+    @logger.silence do
+      run_thread_a = true
+      @logger.info("a")
+      while run_thread_a do
+        sleep(0.001)
+      end
+    end
+
+    a.join
+
+    assert @output.string.include?("x")
+    assert !@output.string.include?("a")
+  end
+
+  def test_flush_dead_buffers
+    @logger.auto_flushing = false
+
+    a = Thread.new do
+      @logger.info("a")
+    end
+    
+    keep_running = true
+    Thread.new do
+      @logger.info("b")
+      while keep_running
+        sleep(0.001)
+      end
+    end
+
+    @logger.info("x")
+    a.join
+    @logger.flush
+
+
+    assert @output.string.include?("x")
+    assert @output.string.include?("a")
+    assert !@output.string.include?("b")
+    
+    keep_running = false
+  end
 end

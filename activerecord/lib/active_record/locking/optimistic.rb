@@ -103,7 +103,7 @@ module ActiveRecord
             affected_rows = connection.update stmt
 
             unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"
+              raise ActiveRecord::StaleObjectError.new(self, "update")
             end
 
             affected_rows
@@ -127,7 +127,7 @@ module ActiveRecord
             affected_rows = self.class.unscoped.where(predicate).delete_all
 
             unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError, "Attempted to delete a stale object: #{self.class.name}"
+              raise ActiveRecord::StaleObjectError.new(self, "destroy")
             end
           end
 

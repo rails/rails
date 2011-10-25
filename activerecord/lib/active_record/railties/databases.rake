@@ -37,11 +37,7 @@ db_namespace = namespace :db do
 
   desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
   task :create => :load_config do
-    # Make the test database at the same time as the development one, if it exists
-    if Rails.env.development? && ActiveRecord::Base.configurations['test']
-      create_database(ActiveRecord::Base.configurations['test'])
-    end
-    create_database(ActiveRecord::Base.configurations[Rails.env])
+    configs_for_environment.each { |config| create_database(config) }
   end
 
   def mysql_creation_options(config)
@@ -138,12 +134,7 @@ db_namespace = namespace :db do
 
   desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => :load_config do
-    config = ActiveRecord::Base.configurations[Rails.env || 'development']
-    begin
-      drop_database(config)
-    rescue Exception => e
-      $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
-    end
+    configs_for_environment.each { |config| drop_database_and_rescue(config) }
   end
 
   def local_database?(config, &block)
@@ -546,6 +537,20 @@ def drop_database(config)
     ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
     ActiveRecord::Base.connection.drop_database config['database']
   end
+end
+
+def drop_database_and_rescue(config)
+  begin
+    drop_database(config)
+  rescue Exception => e
+    $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
+  end
+end
+
+def configs_for_environment
+  environments = [Rails.env]
+  environments << 'test' if Rails.env.development?
+  ActiveRecord::Base.configurations.values_at(*environments).compact.reject { |config| config['database'].blank? }
 end
 
 def session_table_name

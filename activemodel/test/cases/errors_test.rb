@@ -66,6 +66,63 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["can not be blank"], person.errors[:name]
   end
 
+  test "should be able to add an error with a symbol" do
+    person = Person.new
+    person.errors.add(:name, :blank)
+    message = person.errors.generate_message(:name, :blank)
+    assert_equal [message], person.errors[:name]
+  end
+
+  test "should be able to add an error with a proc" do
+    person = Person.new
+    message = Proc.new { "can not be blank" }
+    person.errors.add(:name, message)
+    assert_equal ["can not be blank"], person.errors[:name]
+  end
+
+  test "added? should be true if that error was added" do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    assert person.errors.added?(:name, "can not be blank")
+  end
+
+  test "added? should handle when message is a symbol" do
+    person = Person.new
+    person.errors.add(:name, :blank)
+    assert person.errors.added?(:name, :blank)
+  end
+
+  test "added? should handle when message is a proc" do
+    person = Person.new
+    message = Proc.new { "can not be blank" }
+    person.errors.add(:name, message)
+    assert person.errors.added?(:name, message)
+  end
+
+  test "added? should default message to :invalid" do
+    person = Person.new
+    person.errors.add(:name, :invalid)
+    assert person.errors.added?(:name)
+  end
+
+  test "added? should be true when several errors are present, and we ask for one of them" do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "is invalid")
+    assert person.errors.added?(:name, "can not be blank")
+  end
+
+  test "added? should be false if no errors are present" do
+    person = Person.new
+    assert !person.errors.added?(:name)
+  end
+
+  test "added? should be false when an error is present, but we check for another error" do
+    person = Person.new
+    person.errors.add(:name, "is invalid")
+    assert !person.errors.added?(:name, "can not be blank")
+  end
+
   test 'should respond to size' do
     person = Person.new
     person.errors.add(:name, "can not be blank")
@@ -112,5 +169,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["is invalid"], hash[:email]
   end
 
+  test "generate_message should work without i18n_scope" do
+    person = Person.new
+    assert !Person.respond_to?(:i18n_scope)
+    assert_nothing_raised {
+      person.errors.generate_message(:name, :blank)
+    }
+  end
 end
 

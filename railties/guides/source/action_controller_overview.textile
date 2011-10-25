@@ -166,16 +166,18 @@ h3. Session
 
 Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
-* CookieStore - Stores everything on the client.
-* DRbStore - Stores the data on a DRb server.
-* MemCacheStore - Stores the data in a memcache.
-* ActiveRecordStore - Stores the data in a database using Active Record.
+* ActionDispatch::Session::CookieStore - Stores everything on the client.
+* ActiveRecord::SessionStore - Stores the data in a database using Active Record.
+* ActionDispatch::Session::CacheStore - Stores the data in the Rails cache.
+* ActionDispatch::Session::MemCacheStore - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
 For most stores this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
 
 The CookieStore can store around 4kB of data -- much less than the others -- but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+
+If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using ActionDispatch::Session::CacheStore. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
 Read more about session storage in the "Security Guide":security.html.
 
@@ -796,7 +798,7 @@ NOTE: Certain exceptions are only rescuable from the +ApplicationController+ cla
 
 h3. Force HTTPS protocol
 
-Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reason. Since Rails 3.1 you can now use +force_ssl+ method in your controller to enforce that:
+Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use +force_ssl+ method in your controller to enforce that:
 
 <ruby>
 class DinnerController

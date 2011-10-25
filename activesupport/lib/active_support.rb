@@ -71,6 +71,7 @@ module ActiveSupport
     autoload :OrderedOptions
     autoload :Rescuable
     autoload :StringInquirer
+    autoload :TaggedLogging
     autoload :XmlMini
   end
 

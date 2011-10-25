@@ -9,6 +9,8 @@ module ActionController
     #
     #   head :created, :location => person_path(@person)
     #
+    #   head :created, :location => @person
+    #
     # It can also be used to return exceptional conditions:
     #
     #   return head(:method_not_allowed) unless request.post?

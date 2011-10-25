@@ -24,12 +24,12 @@ module Rails
       initializer :initialize_logger, :group => :all do
         Rails.logger ||= config.logger || begin
           path = config.paths["log"].first
-          logger = ActiveSupport::BufferedLogger.new(path)
+          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BufferedLogger.new(path))
           logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
           logger.auto_flushing = false if Rails.env.production?
           logger
         rescue StandardError
-          logger = ActiveSupport::BufferedLogger.new(STDERR)
+          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BufferedLogger.new(STDERR))
           logger.level = ActiveSupport::BufferedLogger::WARN
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{path} exists and is chmod 0666. " +

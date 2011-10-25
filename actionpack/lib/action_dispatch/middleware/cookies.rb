@@ -174,7 +174,7 @@ module ActionDispatch
           options = { :value => value }
         end
 
-        value = @cookies[key.to_s] = value
+        @cookies[key.to_s] = value
 
         handle_options(options)
 

@@ -69,7 +69,7 @@ module ActionView
           number.gsub!(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
         else
           number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if number.starts_with?('-')
+          number.slice!(0, 1) if number.starts_with?(delimiter) && !delimiter.blank?
         end
 
         str = []

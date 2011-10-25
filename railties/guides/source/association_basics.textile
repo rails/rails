@@ -1229,16 +1229,14 @@ end
 
 If you use a hash-style +:conditions+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@customer.confirmed_orders.create+ or +@customer.confirmed_orders.build+ will create orders where the confirmed column has the value +true+.
 
-If you need to evaluate conditions dynamically at runtime, you could use string interpolation in single quotes:
+If you need to evaluate conditions dynamically at runtime, use a proc:
 
 <ruby>
 class Customer < ActiveRecord::Base
   has_many :latest_orders, :class_name => "Order",
-    :conditions => 'orders.created_at > #{10.hours.ago.to_s(:db).inspect}'
+    :conditions => proc { "orders.created_at > #{10.hours.ago.to_s(:db).inspect}" }
 end
 </ruby>
-
-Be sure to use single quotes.
 
 h6(#has_many-counter_sql). +:counter_sql+
 
