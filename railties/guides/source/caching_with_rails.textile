@@ -289,11 +289,7 @@ ActionController::Base.cache_store = :file_store, "/path/to/cache/directory"
 
 With this cache store, multiple server processes on the same host can share a cache. Servers processes running on different hosts could share a cache by using a shared file system, but that set up would not be ideal and is not recommended. The cache store is appropriate for low to medium traffic sites that are served off one or two hosts.
 
-Note that the cache will grow until the disk is full unless you periodically clear out old entries. You can call +ActiveSupport::Cache::FileStore#cleanup+ to remove entries older than a specified time.
-
-<ruby>
-Rails.cache.cleanup(:not_accessed_in => 2.days)
-</ruby>
+Note that the cache will grow until the disk is full unless you periodically clear out old entries.
 
 h4. ActiveSupport::Cache::MemCacheStore
 

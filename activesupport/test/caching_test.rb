@@ -557,29 +557,6 @@ class FileStoreTest < ActiveSupport::TestCase
     key = @cache_with_pathname.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
   end
-
-  def test_cleanup_with_not_accessed_in
-    @cache.write(1, "aaaaaaaaaa")
-    @cache.write(2, "bbbbbbbbbb")
-    @cache.write(3, "cccccccccc")
-    sleep(2)
-    @cache.read(2)
-    @cache.cleanup(:not_accessed_in => 1)
-    assert_equal false, @cache.exist?(1)
-    assert_equal true, @cache.exist?(2)
-    assert_equal false, @cache.exist?(3)
-  end
-
-  def test_cleanup_with_expired_only
-    @cache.write(1, "aaaaaaaaaa", :expires_in => 0.001)
-    @cache.write(2, "bbbbbbbbbb")
-    @cache.write(3, "cccccccccc", :expires_in => 0.001)
-    sleep(0.002)
-    @cache.cleanup(:expired_only => 0.001)
-    assert_equal false, @cache.exist?(1)
-    assert_equal true, @cache.exist?(2)
-    assert_equal false, @cache.exist?(3)
-  end
   
   # Because file systems have a maximum filename size, filenames > max size should be split in to directories
   # If filename is 'AAAAB', where max size is 4, the returned path should be AAAA/B
@@ -668,17 +645,6 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_equal true, @cache.exist?(3)
     assert_equal true, @cache.exist?(2)
     assert_equal false, @cache.exist?(1)
-  end
-
-  def test_cleanup_removes_expired_entries
-    @cache.write(1, "aaaaaaaaaa", :expires_in => 0.001)
-    @cache.write(2, "bbbbbbbbbb")
-    @cache.write(3, "cccccccccc", :expires_in => 0.001)
-    sleep(0.002)
-    @cache.cleanup
-    assert_equal false, @cache.exist?(1)
-    assert_equal true, @cache.exist?(2)
-    assert_equal false, @cache.exist?(3)
   end
 end
 
