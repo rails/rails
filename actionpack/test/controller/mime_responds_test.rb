@@ -796,21 +796,21 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_for_put_with_xml_yields_ok_on_success
+  def test_using_resource_for_put_with_xml_yields_no_content_on_success
     @request.accept = "application/xml"
     put :using_resource
     assert_equal "application/xml", @response.content_type
-    assert_equal 200, @response.status
+    assert_equal 204, @response.status
     assert_equal " ", @response.body
   end
 
-  def test_using_resource_for_put_with_json_yields_ok_on_success
+  def test_using_resource_for_put_with_json_yields_no_content_on_success
     Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     @request.accept = "application/json"
     put :using_resource
     assert_equal "application/json", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "{}", @response.body
+    assert_equal 204, @response.status
+    assert_equal " ", @response.body
   end
 
   def test_using_resource_for_put_with_xml_yields_unprocessable_entity_on_failure
@@ -846,23 +846,23 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_for_delete_with_xml_yields_ok_on_success
+  def test_using_resource_for_delete_with_xml_yields_no_content_on_success
     Customer.any_instance.stubs(:destroyed?).returns(true)
     @request.accept = "application/xml"
     delete :using_resource
     assert_equal "application/xml", @response.content_type
-    assert_equal 200, @response.status
+    assert_equal 204, @response.status
     assert_equal " ", @response.body
   end
 
-  def test_using_resource_for_delete_with_json_yields_ok_on_success
+  def test_using_resource_for_delete_with_json_yields_no_content_on_success
     Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     Customer.any_instance.stubs(:destroyed?).returns(true)
     @request.accept = "application/json"
     delete :using_resource
     assert_equal "application/json", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "{}", @response.body
+    assert_equal 204, @response.status
+    assert_equal " ", @response.body
   end
 
   def test_using_resource_for_delete_with_html_redirects_on_failure
