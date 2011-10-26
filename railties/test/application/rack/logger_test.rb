@@ -12,6 +12,8 @@ module ApplicationTests
         build_app
         require "#{app_path}/config/environment"
         super
+        @logger = MockLogger.new
+        Rails.stubs(:logger).returns(@logger)
       end
 
       def teardown
