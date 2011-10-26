@@ -84,8 +84,7 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
   end
 
-  # tig, http://www.misuzilla.org/dist/net/twitterircgateway/
-  test "parse more other broken acceptlines" do
+  test "parse single with q" do
     assert_equal [Mime::ALL], Mime::Type.parse('*/*;q=0.1')
     assert_equal [Mime::HTML], Mime::Type.parse('text/html;q=0.1')
   end
