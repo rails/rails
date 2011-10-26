@@ -33,7 +33,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :record_timestamps, :instance_writer => false
+      class_attribute :record_timestamps
       self.record_timestamps = true
     end
 
