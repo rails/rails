@@ -54,6 +54,7 @@ class ActiveModelI18nTests < ActiveModel::TestCase
 
     assert_equal 'person gender', Person.human_attribute_name('gender')
     assert_equal 'person gender attribute', Person::Gender.human_attribute_name('attribute')
+    assert_equal 'person gender attribute', Person.human_attribute_name('gender.attribute')
   end
 
   def test_translated_model_names
