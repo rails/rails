@@ -922,12 +922,14 @@ module ActiveRecord
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
+        clear_cache!
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
+        clear_cache!
         add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         add_column_options!(add_column_sql, options)
 
@@ -936,6 +938,7 @@ module ActiveRecord
 
       # Changes the column of a table.
       def change_column(table_name, column_name, type, options = {})
+        clear_cache!
         quoted_table_name = quote_table_name(table_name)
 
         execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
@@ -946,10 +949,12 @@ module ActiveRecord
 
       # Changes the default value of a table column.
       def change_column_default(table_name, column_name, default)
+        clear_cache!
         execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
       end
 
       def change_column_null(table_name, column_name, null, default = nil)
+        clear_cache!
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -958,6 +963,7 @@ module ActiveRecord
 
       # Renames a column in a table.
       def rename_column(table_name, column_name, new_column_name)
+        clear_cache!
         execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
       end
 
