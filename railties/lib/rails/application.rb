@@ -92,7 +92,7 @@ module Rails
     end
 
     def initialize!(group=:default)
-      raise "Application has been already initialized." if @initialized
+      raise "Application has been already initialized." if defined?(@initialized)
       run_initializers(group, self)
       @initialized = true
       self
