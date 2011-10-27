@@ -30,35 +30,40 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert_instance_method :index, content do |m|
         assert_match(/@product_lines = ProductLine\.all/, m)
+        assert_match(/respond_with\(@product_lines\)/, m)
       end
 
       assert_instance_method :show, content do |m|
         assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
+        assert_match(/respond_with\(@product_line\)/, m)
       end
 
       assert_instance_method :new, content do |m|
         assert_match(/@product_line = ProductLine\.new/, m)
+        assert_match(/respond_with\(@product_line\)/, m)
       end
 
       assert_instance_method :edit, content do |m|
         assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
+        assert_match(/respond_with\(@product_line\)/, m)
       end
 
       assert_instance_method :create, content do |m|
         assert_match(/@product_line = ProductLine\.new\(params\[:product_line\]\)/, m)
         assert_match(/@product_line\.save/, m)
-        assert_match(/@product_line\.errors/, m)
+        assert_match(/respond_with\(@product_line\)/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
         assert_match(/@product_line\.update_attributes\(params\[:product_line\]\)/, m)
-        assert_match(/@product_line\.errors/, m)
+        assert_match(/respond_with\(@product_line\)/, m)
       end
 
       assert_instance_method :destroy, content do |m|
         assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
         assert_match(/@product_line\.destroy/, m)
+        assert_match(/respond_with\(@product_line\)/, m)
       end
     end
 
@@ -139,35 +144,40 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert_instance_method :index, content do |m|
         assert_match(/@admin_roles = Admin::Role\.all/, m)
+        assert_match(/respond_with\(@admin_roles\)/, m)
       end
 
       assert_instance_method :show, content do |m|
         assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
+        assert_match(/respond_with\(@admin_role\)/, m)
       end
 
       assert_instance_method :new, content do |m|
         assert_match(/@admin_role = Admin::Role\.new/, m)
+        assert_match(/respond_with\(@admin_role\)/, m)
       end
 
       assert_instance_method :edit, content do |m|
         assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
+        assert_match(/respond_with\(@admin_role\)/, m)
       end
 
       assert_instance_method :create, content do |m|
         assert_match(/@admin_role = Admin::Role\.new\(params\[:admin_role\]\)/, m)
         assert_match(/@admin_role\.save/, m)
-        assert_match(/@admin_role\.errors/, m)
+        assert_match(/respond_with\(@admin_role\)/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
         assert_match(/@admin_role\.update_attributes\(params\[:admin_role\]\)/, m)
-        assert_match(/@admin_role\.errors/, m)
+        assert_match(/respond_with\(@admin_role\)/, m)
       end
 
       assert_instance_method :destroy, content do |m|
         assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
         assert_match(/@admin_role\.destroy/, m)
+        assert_match(/respond_with\(@admin_role\)/, m)
       end
     end
 
