@@ -232,7 +232,8 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   def test_protection_against_class_attribute_writers
     [:logger, :configurations, :primary_key_prefix_type, :table_name_prefix, :table_name_suffix, :pluralize_table_names,
      :default_timezone, :schema_format, :lock_optimistically, :timestamped_migrations, :default_scopes,
-     :connection_handler, :nested_attributes_options].each do |method|
+     :connection_handler, :nested_attributes_options, :_attr_readonly, :attribute_types_cached_by_default,
+     :attribute_method_matchers, :time_zone_aware_attributes, :skip_time_zone_conversion_for_attributes].each do |method|
       assert_respond_to  Task, method
       assert_respond_to  Task, "#{method}="
       assert_respond_to  Task.new, method
