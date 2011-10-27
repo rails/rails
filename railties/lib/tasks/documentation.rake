@@ -89,5 +89,5 @@ namespace :doc do
   end
 end
 rescue LoadError
-  $stderr.puts 'Please install RDoc 2.4.2+ to generate documentation.'
+  puts 'Please install RDoc 2.4.2+ to generate documentation.'
 end
