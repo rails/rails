@@ -99,7 +99,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,5,1,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(5)
     assert_equal DateTime.civil(2005,4,24,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(6)
     assert_equal DateTime.civil(2005,2,27,10),  DateTime.civil(2005,6,5,10,0,0).weeks_ago(14)
-    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)    
+    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)
   end
 
   def test_months_ago
@@ -373,6 +373,18 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal  1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone['UTC'] )
     assert_equal  0, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC'] )
     assert_equal(-1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
+  end
+
+  # http://www.gnu.org/savannah-checkouts/gnu/libc/manual/html_node/Infinity-and-NaN.html
+  def test_compare_with_infinite
+    big_bang   = -(1.0/0)
+    cold_death =  (1.0/0)
+    assert_equal  1, DateTime.civil(2000) <=> big_bang
+    assert_equal -1, DateTime.civil(2000) <=> cold_death
+    assert_equal  1, cold_death <=> big_bang
+    assert_equal -1, big_bang   <=> cold_death
+    assert_equal  0, big_bang   <=> big_bang
+    assert_equal  0, cold_death <=> cold_death
   end
 
   def test_to_f
