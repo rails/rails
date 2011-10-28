@@ -506,6 +506,10 @@ Now instead of the ugly Ruby object output the author's name will be displayed.
 
 h4. Configuring an engine
 
+This section covers firstly how you can make the +user_class+ setting of the Blorgh engine configurable, followed by general configuration tips for the engine.
+
+h5. Setting configuration settings in the application
+
 The next step is to make the class that represents a +User+ in the application customizable for the engine. This is because, as explained before, that class may not always be +User+. To make this customizable, the engine will have a configuration setting called +user_class+ that will be used to specify what the class representing users is inside the application.
 
 To define this configuration setting, you should use a +mattr_accessor+ inside the +Blorgh+ module for the engine, located at +lib/blorgh.rb+ inside the engine. Inside this module, put this line:
@@ -541,6 +545,14 @@ WARNING: It's very important here to use the +String+ version of the class, rath
 Go ahead and try to create a new post. You will see that it works exactly in the same way as before, except this time the engine is using the configuration setting in +config/initializers/blorgh.rb+ to learn what the class is.
 
 There are now no strict dependencies on what the class is, only what the class's API must be. The engine simply requires this class to define a +find_or_create_by_name+ method which returns an object of that class to be associated with a post when it's created.
+
+h5. General engine configuration
+
+Within an engine, there may come a time where you wish to use things such as initializers, internationalization or other configuration options. The great news is that these things are entirely possible because a Rails engine shares much the same functionality as a Rails application. In fact, a Rails application's functionality is actually a superset of what is provided by engines!
+
+If you wish to use initializers (code that should run before the engine is loaded), the best place for them is the +config/initializers+ folder. This directory's functionality is explained in the "Initializers section":http://guides.rubyonrails.org/configuring.html#initializers of the Configuring guide.
+
+For locales, simply place the locale files in the +config/locales+ directory, just like you would in an application.
 
 h3. Extending engine functionality
 
