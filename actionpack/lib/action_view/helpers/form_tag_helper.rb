@@ -582,7 +582,7 @@ module ActionView
       #
       # ==== Examples
       #   number_field_tag 'quantity', nil, :in => 1...10
-      #   => <input id="quantity" name="quantity" min="1" max="9" />
+      #   => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
