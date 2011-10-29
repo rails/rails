@@ -455,10 +455,16 @@ module RailtiesTest
 
       Rails.application.load_seed
       assert Rails.application.config.app_seeds_loaded
-      assert_raise(NoMethodError) do  Bukkits::Engine.config.bukkits_seeds_loaded end
+      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
 
       Bukkits::Engine.load_seed
       assert Bukkits::Engine.config.bukkits_seeds_loaded
+    end
+
+    test "skips nonexistent seed data" do
+      FileUtils.rm "#{app_path}/db/seeds.rb"
+      boot_rails
+      assert_nil Rails.application.load_seed
     end
 
     test "using namespace more than once on one module should not overwrite _railtie method" do

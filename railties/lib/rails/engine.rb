@@ -485,7 +485,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds"].existent.first
-      load(seed_file) if File.exist?(seed_file)
+      load(seed_file) if seed_file && File.exist?(seed_file)
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
