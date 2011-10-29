@@ -16,8 +16,6 @@ module ActiveSupport
     autoload :FileStore, 'active_support/cache/file_store'
     autoload :MemoryStore, 'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :SynchronizedMemoryStore, 'active_support/cache/synchronized_memory_store'
-    autoload :CompressedMemCacheStore, 'active_support/cache/compressed_mem_cache_store'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
