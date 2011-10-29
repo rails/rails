@@ -61,6 +61,7 @@ end
 
 # Recreated here from Active Support because :uncommitted needs it before Rails is available
 module Kernel
+  remove_method :silence_stderr # Removing old method to prevent method redefined warning
   def silence_stderr
     old_stderr = STDERR.dup
     STDERR.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
