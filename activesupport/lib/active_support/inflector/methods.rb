@@ -166,7 +166,9 @@ module ActiveSupport
     #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
     #   "Inflections".demodulize                                       # => "Inflections"
     def demodulize(class_name_in_module)
-      class_name_in_module.to_s.gsub(/^.*::/, '')
+      # If you remove the module part of an empty string, you get an empty string.
+      # That's why the regexp uses the * quantifier.
+      class_name_in_module.to_s[/[^:]*\z/]
     end
 
     # Creates a foreign key name from a class name.
