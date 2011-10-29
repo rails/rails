@@ -230,7 +230,7 @@ module ActiveSupport
       # <tt>:race_condition_ttl</tt> does not play any role.
       #
       #   # Set all values to expire after one minute.
-      #   cache = ActiveSupport::Cache::MemoryCache.new(:expires_in => 1.minute)
+      #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 1.minute)
       #
       #   cache.write("foo", "original value")
       #   val_1 = nil
