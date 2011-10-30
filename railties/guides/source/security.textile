@@ -474,7 +474,7 @@ h3. User Management
 
 -- _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
 
-There are some authorization and authentication plug-ins for Rails available. A good one saves only encrypted passwords, not plain-text passwords. The most popular plug-in is +restful_authentication+ which protects from session fixation, too. However, earlier versions allowed you to login without user name and password in certain circumstances.
+There are a number of authentication plug-ins for Rails available. Good ones, such as the popular "devise":https://github.com/plataformatec/devise and "authlogic":https://github.com/binarylogic/authlogic, store only encrypted passwords, not plain-text passwords. In Rails 3.1 you can use the built-in +has_secure_password+ method which has similar features.
 
 Every new user gets an activation code to activate his account when he gets an e-mail with a link in it. After activating the account, the activation_code columns will be set to NULL in the database. If someone requested an URL like these, he would be logged in as the first activated user found in the database (and chances are that this is the administrator):
 
