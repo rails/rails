@@ -559,7 +559,7 @@ module ActiveSupport
           @value = nil
         else
           @value = Marshal.dump(value)
-          if should_compress?(value, options)
+          if should_compress?(@value, options)
             @value = Zlib::Deflate.deflate(@value)
             @compressed = true
           end
@@ -613,13 +613,10 @@ module ActiveSupport
       end
 
       private
-        def should_compress?(value, options)
-          if options[:compress] && value
-            unless value.is_a?(Numeric)
-              compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
-              serialized_value = value.is_a?(String) ? value : Marshal.dump(value)
-              return true if serialized_value.size >= compress_threshold
-            end
+        def should_compress?(serialized_value, options)
+          if options[:compress]
+            compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
+            return true if serialized_value.size >= compress_threshold
           end
           false
         end
