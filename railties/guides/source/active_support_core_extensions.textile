@@ -729,7 +729,7 @@ h5. Qualified Constant Names
 
 The standard methods +const_defined?+, +const_get+ , and +const_set+ accept
 bare constant names. Active Support extends this API to be able to pass
-relative qualified constant reference expressions.
+relative qualified constant names.
 
 The new methods are +qualified_const_defined?+, +qualified_const_get+, and
 +qualified_const_set+. Their arguments are assumed to be qualified constant
@@ -1655,7 +1655,7 @@ NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h5. +demodulize+
 
-Given a string with a qualified constant reference expression, +demodulize+ returns the very constant name, that is, the rightmost part of it:
+Given a string with a qualified constant name, +demodulize+ returns the very constant name, that is, the rightmost part of it:
 
 <ruby>
 "Product".demodulize                        # => "Product"
