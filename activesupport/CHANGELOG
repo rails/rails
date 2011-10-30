@@ -1,5 +1,11 @@
 *Rails 3.2.0 (unreleased)*
 
+* Module#qualified_const_(defined?|get|set) are analogous to the corresponding methods
+  in the standard API, but accept qualified constant names. [fxn]
+
+* Added inflection #deconstantize which complements #demodulize. This inflection
+  removes the righmost segment in a qualified constant name. [fxn]
+
 * Added ActiveSupport:TaggedLogging that can wrap any standard Logger class to provide tagging capabilities [DHH]
 
     Logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))

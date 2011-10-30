@@ -198,6 +198,18 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal "", ActiveSupport::Inflector.demodulize("")
   end
 
+  def test_deconstantize
+    assert_equal "MyApplication::Billing", ActiveSupport::Inflector.deconstantize("MyApplication::Billing::Account")
+    assert_equal "::MyApplication::Billing", ActiveSupport::Inflector.deconstantize("::MyApplication::Billing::Account")
+
+    assert_equal "MyApplication", ActiveSupport::Inflector.deconstantize("MyApplication::Billing")
+    assert_equal "::MyApplication", ActiveSupport::Inflector.deconstantize("::MyApplication::Billing")
+
+    assert_equal "", ActiveSupport::Inflector.deconstantize("Account")
+    assert_equal "", ActiveSupport::Inflector.deconstantize("::Account")
+    assert_equal "", ActiveSupport::Inflector.deconstantize("")
+  end
+
   def test_foreign_key
     ClassNameToForeignKeyWithUnderscore.each do |klass, foreign_key|
       assert_equal(foreign_key, ActiveSupport::Inflector.foreign_key(klass))

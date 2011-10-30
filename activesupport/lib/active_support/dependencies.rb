@@ -5,6 +5,7 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/module/qualified_const'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
@@ -357,12 +358,13 @@ module ActiveSupport #:nodoc:
     end
 
     # Is the provided constant path defined?
-    def qualified_const_defined?(path)
-      names = path.sub(/^::/, '').to_s.split('::')
-
-      names.inject(Object) do |mod, name|
-        return false unless local_const_defined?(mod, name)
-        mod.const_get name
+    if Module.method(:const_defined?).arity == 1
+      def qualified_const_defined?(path)
+        Object.qualified_const_defined?(path.sub(/^::/, ''))
+      end
+    else
+      def qualified_const_defined?(path)
+        Object.qualified_const_defined?(path.sub(/^::/, ''), false)
       end
     end
 

@@ -160,15 +160,32 @@ module ActiveSupport
       underscored_word.gsub(/_/, '-')
     end
 
-    # Removes the module part from the expression in the string.
+    # Removes the module part from the expression in the string:
     #
-    # Examples:
     #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
     #   "Inflections".demodulize                                       # => "Inflections"
-    def demodulize(class_name_in_module)
-      # If you remove the module part of an empty string, you get an empty string.
-      # That's why the regexp uses the * quantifier.
-      class_name_in_module.to_s[/[^:]*\z/]
+    #
+    # See also +deconstantize+.
+    def demodulize(path)
+      path = path.to_s
+      if i = path.rindex('::')
+        path[(i+2)..-1]
+      else
+        path
+      end
+    end
+
+    # Removes the rightmost segment from the constant expression in the string:
+    #
+    #   "Net::HTTP".deconstantize   # => "Net"
+    #   "::Net::HTTP".deconstantize # => "::Net"
+    #   "String".deconstantize      # => ""
+    #   "::String".deconstantize    # => ""
+    #   "".deconstantize            # => ""
+    #
+    # See also +demodulize+.
+    def deconstantize(path)
+      path.to_s[0...(path.rindex('::') || 0)] # implementation based on the one in facets' Module#spacename
     end
 
     # Creates a foreign key name from a class name.

@@ -117,8 +117,23 @@ class String
   #
   #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
   #   "Inflections".demodulize                                       # => "Inflections"
+  #
+  # See also +deconstatize+.
   def demodulize
     ActiveSupport::Inflector.demodulize(self)
+  end
+
+  # Removes the rightmost segment from the constant expression in the string.
+  #
+  #   "Net::HTTP".deconstantize   # => "Net"
+  #   "::Net::HTTP".deconstantize # => "::Net"
+  #   "String".deconstantize      # => ""
+  #   "::String".deconstantize    # => ""
+  #   "".deconstantize            # => ""
+  #
+  # See also +demodulize+.
+  def deconstantize
+    ActiveSupport::Inflector.deconstantize(self)
   end
 
   # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.

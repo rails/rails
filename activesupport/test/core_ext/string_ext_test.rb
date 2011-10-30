@@ -111,6 +111,10 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal "Account", "MyApplication::Billing::Account".demodulize
   end
 
+  def test_deconstantize
+    assert_equal "MyApplication::Billing", "MyApplication::Billing::Account".deconstantize
+  end
+
   def test_foreign_key
     ClassNameToForeignKeyWithUnderscore.each do |klass, foreign_key|
       assert_equal(foreign_key, klass.foreign_key)
