@@ -139,7 +139,7 @@ module ActiveSupport
     # large enough to warrant compression. To turn on compression either pass
     # <tt>:compress => true</tt> in the initializer or as an option to +fetch+
     # or +write+. To specify the threshold at which to compress values, set the
-    # <tt>:compress_threshold</tt> option. The default threshold is 32K.
+    # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
 
       cattr_accessor :logger, :instance_writer => true
