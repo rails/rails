@@ -118,7 +118,7 @@ class String
   #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
   #   "Inflections".demodulize                                       # => "Inflections"
   #
-  # See also +deconstatize+.
+  # See also +deconstantize+.
   def demodulize
     ActiveSupport::Inflector.demodulize(self)
   end
