@@ -3,6 +3,54 @@ require 'active_support/deprecation/reporting'
 
 module ActionDispatch
   module Routing
+    class Redirect
+      attr_reader :status, :block
+
+      def initialize(status, block)
+        @status = status
+        @block  = block
+      end
+
+      def call(env)
+        req = Request.new(env)
+
+        uri = URI.parse(path(req.symbolized_path_parameters, req))
+        uri.scheme ||= req.scheme
+        uri.host   ||= req.host
+        uri.port   ||= req.port unless req.standard_port?
+
+        body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
+
+        headers = {
+          'Location' => uri.to_s,
+          'Content-Type' => 'text/html',
+          'Content-Length' => body.length.to_s
+        }
+
+        [ status, headers, [body] ]
+      end
+
+      def path(params, request)
+        block.call params, request
+      end
+    end
+
+    class OptionRedirect < Redirect
+      alias :options :block
+
+      def path(params, request)
+        url_options = {
+          :protocol => request.protocol,
+          :host     => request.host,
+          :port     => request.optional_port,
+          :path     => request.path,
+          :params   => request.query_parameters
+        }.merge options
+
+        ActionDispatch::Http::URL.url_for url_options
+      end
+    end
+
     module Redirection
 
       # Redirect any path to another path:
@@ -43,66 +91,31 @@ module ActionDispatch
 
         path = args.shift
 
-        path_proc = if path.is_a?(String)
-          proc { |params, request| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
+        if path.is_a?(String)
+          block_redirect status, lambda { |params, request|
+            (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params)
+          }
         elsif options.any?
-          options_proc(options)
+          OptionRedirect.new(status, options)
         elsif path.respond_to?(:call)
-          path
+          block_redirect status, path
         elsif block
           if block.arity < 2
             msg = "redirect blocks with arity of #{block.arity} are deprecated. Your block must take 2 parameters: the environment, and a request object"
             ActiveSupport::Deprecation.warn msg
-            lambda { |params, _| block.call(params) }
+            block_redirect status, lambda { |params, _| block.call(params) }
           else
-            block
+            block_redirect status, block
           end
         else
           raise ArgumentError, "redirection argument not supported"
         end
-
-        redirection_proc(status, path_proc)
       end
 
       private
-
-        def options_proc(options)
-          proc do |params, request|
-            url_options = {
-              :protocol => request.protocol,
-              :host     => request.host,
-              :port     => request.optional_port,
-              :path     => request.path,
-              :params   => request.query_parameters
-            }.merge options
-
-            ActionDispatch::Http::URL.url_for url_options
-          end
+        def block_redirect(status, path_proc)
+          Redirect.new status, path_proc
         end
-
-        def redirection_proc(status, path_proc)
-          lambda do |env|
-            req = Request.new(env)
-
-            params = [req.symbolized_path_parameters, req]
-
-            uri = URI.parse(path_proc.call(*params))
-            uri.scheme ||= req.scheme
-            uri.host   ||= req.host
-            uri.port   ||= req.port unless req.standard_port?
-
-            body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
-
-            headers = {
-              'Location' => uri.to_s,
-              'Content-Type' => 'text/html',
-              'Content-Length' => body.length.to_s
-            }
-
-            [ status, headers, [body] ]
-          end
-        end
-
     end
   end
 end
