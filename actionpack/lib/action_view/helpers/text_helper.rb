@@ -318,7 +318,7 @@ module ActionView
         unless cycle && cycle.values == values
           cycle = set_cycle(name, Cycle.new(*values))
         end
-        cycle.to_s
+        cycle.next!
       end
 
       # Returns the current cycle string after a cycle has been started. Useful
@@ -375,11 +375,17 @@ module ActionView
         end
 
         def current_value
-          @values[previous_index].to_s
+          unless @values[previous_index].nil?
+            @values[previous_index].to_s
+          end
         end
 
-        def to_s
-          value = @values[@index].to_s
+        def next!
+          if @values[@index].nil?
+            value = nil
+          else
+            value = @values[@index].to_s
+          end
           @index = next_index
           return value
         end
