@@ -1,4 +1,5 @@
 require 'action_dispatch/http/request'
+require 'active_support/deprecation/reporting'
 
 module ActionDispatch
   module Routing
