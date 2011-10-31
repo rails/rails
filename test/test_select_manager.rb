@@ -654,6 +654,23 @@ module Arel
         }
       end
 
+      it 'can have a non-table alias as relation name' do
+        users    = Table.new :users
+        comments = Table.new :comments
+
+        counts = comments.from(comments).
+          group(comments[:user_id]).
+          project(
+            comments[:user_id].as("user_id"),
+            comments[:user_id].count.as("count")
+          ).as("counts")
+
+        joins = users.join(counts).on(counts[:user_id].eq(10))
+        joins.to_sql.must_be_like  %{
+          SELECT FROM "users" INNER JOIN (SELECT "comments"."user_id" AS user_id, COUNT("comments"."user_id") AS count FROM "comments" GROUP BY "comments"."user_id") counts ON counts."user_id" = 10
+        }
+      end
+
       it 'returns string join sql' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
