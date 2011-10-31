@@ -1339,6 +1339,15 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_dump_schema_information_outputs_lexically_ordered_versions
+      migration_path = MIGRATIONS_ROOT + '/valid_with_timestamps'
+      ActiveRecord::Migrator.run(:up, migration_path, 20100301010101)
+      ActiveRecord::Migrator.run(:up, migration_path, 20100201010101)
+
+      schema_info = ActiveRecord::Base.connection.dump_schema_information
+      assert_match schema_info, /20100201010101.*20100301010101/m
+    end
+
     def test_finds_pending_migrations
       ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/interleaved/pass_2", 1)
       migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/interleaved/pass_2").pending_migrations
