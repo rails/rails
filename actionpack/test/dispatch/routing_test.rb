@@ -79,7 +79,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'sign_in' => "sessions#new"
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
-      match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
+      match 'account/proc/:name', :to => redirect {|params, req| "/#{params[:name].pluralize}" }
       match 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
 
       match 'account/google' => redirect('http://www.google.com/', :status => 302)

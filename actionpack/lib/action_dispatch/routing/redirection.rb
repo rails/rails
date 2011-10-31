@@ -43,13 +43,19 @@ module ActionDispatch
         path = args.shift
 
         path_proc = if path.is_a?(String)
-          proc { |params| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
+          proc { |params, request| (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params) }
         elsif options.any?
           options_proc(options)
         elsif path.respond_to?(:call)
           proc { |params, request| path.call(params, request) }
         elsif block
-          block
+          if block.arity < 2
+            msg = "redirect blocks with arity of #{block.arity} are deprecated. Your block must take 2 parameters: the environment, and a request object"
+            ActiveSupport::Deprecation.warn msg
+            lambda { |params, _| block.call(params) }
+          else
+            block
+          end
         else
           raise ArgumentError, "redirection argument not supported"
         end
@@ -85,8 +91,7 @@ module ActionDispatch
           lambda do |env|
             req = Request.new(env)
 
-            params = [req.symbolized_path_parameters]
-            params << req if path_proc.arity > 1
+            params = [req.symbolized_path_parameters, req]
 
             uri = URI.parse(path_proc.call(*params))
             uri.scheme ||= req.scheme
