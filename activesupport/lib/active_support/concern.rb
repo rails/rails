@@ -125,7 +125,15 @@ module ActiveSupport
 
     def included(base = nil, &block)
       if base.nil?
-        @_included_block = block
+        if defined?(@_included_block)
+          old_included_block = @_included_block
+          @_included_block = proc do
+            instance_eval(&old_included_block)
+            instance_eval(&block)
+          end
+        else
+          @_included_block = block
+        end
       else
         super
       end

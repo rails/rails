@@ -94,4 +94,21 @@ class ConcernTest < Test::Unit::TestCase
     @klass.send(:include, Foo)
     assert_equal [ConcernTest::Foo, ConcernTest::Bar, ConcernTest::Baz::InstanceMethods, ConcernTest::Baz], @klass.included_modules[0..3]
   end
+
+  def test_multiple_included_calls
+    mod = Module.new do
+      extend ActiveSupport::Concern
+    end
+    mod.included do
+      @included1 = true
+    end
+    mod.included do
+      @included2 = true
+    end
+    @klass.send(:include, mod)
+
+    assert @klass.instance_variable_get("@included2")
+    assert @klass.instance_variable_get("@included1")
+    
+  end
 end
