@@ -668,7 +668,6 @@ module Arel
         joins = users.join(counts).on(counts[:user_id].eq(10))
         joins.to_sql.must_be_like  %{
           SELECT FROM "users" INNER JOIN (SELECT "comments"."user_id" AS user_id, COUNT("comments"."user_id") AS count FROM "comments" GROUP BY "comments"."user_id") counts ON counts."user_id" = 10
-
         }
       end
 
