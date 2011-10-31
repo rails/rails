@@ -47,7 +47,7 @@ module ActionDispatch
         elsif options.any?
           options_proc(options)
         elsif path.respond_to?(:call)
-          proc { |params, request| path.call(params, request) }
+          path
         elsif block
           if block.arity < 2
             msg = "redirect blocks with arity of #{block.arity} are deprecated. Your block must take 2 parameters: the environment, and a request object"
