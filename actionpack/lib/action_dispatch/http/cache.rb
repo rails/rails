@@ -56,6 +56,20 @@ module ActionDispatch
           headers['Last-Modified'] = utc_time.httpdate
         end
 
+        def date
+          if date_header = headers['Date']
+            Time.httpdate(date_header)
+          end
+        end
+
+        def date?
+          headers.include?('Date')
+        end
+
+        def date=(utc_time)
+          headers['Date'] = utc_time.httpdate
+        end
+
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
           @etag = self["ETag"] = %("#{Digest::MD5.hexdigest(key)}")
