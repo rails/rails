@@ -1345,7 +1345,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.run(:up, migration_path, 20100201010101)
 
       schema_info = ActiveRecord::Base.connection.dump_schema_information
-      assert_match schema_info, /20100201010101.*20100301010101/m
+      assert_match(/20100201010101.*20100301010101/m, schema_info)
     end
 
     def test_finds_pending_migrations
