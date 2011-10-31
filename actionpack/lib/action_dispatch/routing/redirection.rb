@@ -68,23 +68,15 @@ module ActionDispatch
 
         def options_proc(options)
           proc do |params, request|
-            path = if options[:path].nil?
-              request.path
-            elsif params.empty? || !options[:path].match(/%\{\w*\}/)
-              options.delete(:path)
-            else
-              (options.delete(:path) % params)
-            end
-
-            default_options = {
+            url_options = {
               :protocol => request.protocol,
-              :host => request.host,
-              :port => request.optional_port,
-              :path => path,
-              :params => request.query_parameters
-            }
+              :host     => request.host,
+              :port     => request.optional_port,
+              :path     => request.path,
+              :params   => request.query_parameters
+            }.merge options
 
-            ActionDispatch::Http::URL.url_for(options.reverse_merge(default_options))
+            ActionDispatch::Http::URL.url_for url_options
           end
         end
 
