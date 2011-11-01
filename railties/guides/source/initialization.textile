@@ -817,7 +817,7 @@ def initializer(name, opts = {}, &blk)
 end
 </ruby>
 
-An initializer can be configured to run before or after another initializer, which we'll see a couple of times throughout this initialization process. Anything that inherits from +Rails::Railtie+ may also make use of the +initializer+ method, something which is covered in the "Configuration guide":[http://ryanbigg.com/guides/configuring.html#rails-railtie-initializer].
+An initializer can be configured to run before or after another initializer, which we'll see a couple of times throughout this initialization process. Anything that inherits from +Rails::Railtie+ may also make use of the +initializer+ method, something which is covered in the "Configuration guide":http://guides.rubyonrails.org/configuring.html#rails-railtie-initializer.
 
 The +Initializer+ class here is defined within the +Rails::Initializable+ module and its +initialize+ method is defined to just set up a couple of variables:
 
