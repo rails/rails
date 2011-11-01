@@ -40,6 +40,8 @@ Rails will use that particular setting to configure Active Record.
 
 h4. Rails General Configuration
 
+These configuration methods are to be called on a +Rails::Railtie+ object, such as a subclass of +Rails::Engine+ or +Rails::Application+.
+
 * +config.after_initialize+ takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, plugins, engines, and all the application's initializers in +config/initializers+. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
 
 <ruby>
