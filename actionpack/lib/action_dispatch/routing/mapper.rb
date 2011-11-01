@@ -741,7 +741,7 @@ module ActionDispatch
         # if the user should be given access to that route, or +false+ if the user should not.
         #
         #    class Iphone
-        #      def self.matches(request)
+        #      def self.matches?(request)
         #        request.env["HTTP_USER_AGENT"] =~ /iPhone/
         #      end
         #    end
