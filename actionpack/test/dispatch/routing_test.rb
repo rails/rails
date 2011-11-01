@@ -2299,6 +2299,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/forced_collision", routes_forced_collision_path
   end
 
+  def test_redirect_argument_error
+    routes = Class.new { include ActionDispatch::Routing::Redirection }.new
+    assert_raises(ArgumentError) { routes.redirect Object.new }
+  end
+
   def test_explicitly_avoiding_the_named_route
     assert !respond_to?(:routes_no_collision_path)
   end

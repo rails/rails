@@ -3,7 +3,7 @@ require 'active_support/deprecation/reporting'
 
 module ActionDispatch
   module Routing
-    class Redirect
+    class Redirect # :nodoc:
       attr_reader :status, :block
 
       def initialize(status, block)
@@ -35,7 +35,7 @@ module ActionDispatch
       end
     end
 
-    class OptionRedirect < Redirect
+    class OptionRedirect < Redirect # :nodoc:
       alias :options :block
 
       def path(params, request)
@@ -89,33 +89,27 @@ module ActionDispatch
         options = args.last.is_a?(Hash) ? args.pop : {}
         status  = options.delete(:status) || 301
 
+        return OptionRedirect.new(status, options) if options.any?
+
         path = args.shift
 
-        if path.is_a?(String)
-          block_redirect status, lambda { |params, request|
-            (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params)
-          }
-        elsif options.any?
-          OptionRedirect.new(status, options)
-        elsif path.respond_to?(:call)
-          block_redirect status, path
-        elsif block
-          if block.arity < 2
-            msg = "redirect blocks with arity of #{block.arity} are deprecated. Your block must take 2 parameters: the environment, and a request object"
-            ActiveSupport::Deprecation.warn msg
-            block_redirect status, lambda { |params, _| block.call(params) }
-          else
-            block_redirect status, block
-          end
-        else
-          raise ArgumentError, "redirection argument not supported"
-        end
-      end
+        block = lambda { |params, request|
+          (params.empty? || !path.match(/%\{\w*\}/)) ? path : (path % params)
+        } if String === path
 
-      private
-        def block_redirect(status, path_proc)
-          Redirect.new status, path_proc
+        block = path if path.respond_to? :call
+
+        # :FIXME: remove in Rails 4.0
+        if block && block.respond_to?(:arity) && block.arity < 2
+          msg = "redirect blocks with arity of #{block.arity} are deprecated. Your block must take 2 parameters: the environment, and a request object"
+          ActiveSupport::Deprecation.warn msg
+          block = lambda { |params, _| block.call(params) }
         end
+
+        raise ArgumentError, "redirection argument not supported" unless block
+
+        Redirect.new status, block
+      end
     end
   end
 end
