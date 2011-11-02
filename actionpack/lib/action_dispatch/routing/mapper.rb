@@ -939,14 +939,10 @@ module ActionDispatch
           def initialize(entities, options)
             super
 
-            @as         = nil
-            @controller = (options[:controller] || plural).to_s
-            @as         = options[:as]
+            @controller = (options[:controller] || @name.to_s.pluralize).to_s
           end
 
-          def plural
-            @plural ||= name.to_s.pluralize
-          end
+          undef_method :plural
 
           def singular
             @singular ||= name.to_s
