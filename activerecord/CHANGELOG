@@ -39,6 +39,13 @@
 
 *Rails 3.1.2 (unreleased)*
 
+* Fix bug where building the conditions of a nested through association could potentially
+  modify the conditions of the through and/or source association. If you have experienced
+  bugs with conditions appearing in the wrong queries when using nested through associations,
+  this probably solves your problems. [GH #3271]
+
+  [Jon Leighton]
+
 * If a record is removed from a has_many :through, all of the join records relating to that
   record should also be removed from the through association's target.
 
