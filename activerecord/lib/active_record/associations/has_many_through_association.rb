@@ -8,7 +8,9 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         super
-        @through_records = {}
+
+        @through_records     = {}
+        @through_association = nil
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been
@@ -55,7 +57,7 @@ module ActiveRecord
       private
 
         def through_association
-          owner.association(through_reflection.name)
+          @through_association ||= owner.association(through_reflection.name)
         end
 
         # We temporarily cache through record that has been build, because if we build a
@@ -118,8 +120,7 @@ module ActiveRecord
         def delete_records(records, method)
           ensure_not_nested
 
-          through = through_association
-          scope   = through.scoped.where(construct_join_attributes(*records))
+          scope = through_association.scoped.where(construct_join_attributes(*records))
 
           case method
           when :destroy
@@ -130,7 +131,7 @@ module ActiveRecord
             count = scope.delete_all
           end
 
-          delete_through_records(through, records)
+          delete_through_records(records)
 
           if through_reflection.macro == :has_many && update_through_counter?(method)
             update_counter(-count, through_reflection)
@@ -145,14 +146,16 @@ module ActiveRecord
           candidates.find_all { |c| c.attributes.slice(*attributes.keys) == attributes }
         end
 
-        def delete_through_records(through, records)
+        def delete_through_records(records)
           records.each do |record|
             through_records = through_records_for(record)
 
             if through_reflection.macro == :has_many
-              through_records.each { |r| through.target.delete(r) }
+              through_records.each { |r| through_association.target.delete(r) }
             else
-              through.target = nil if through_records.include?(through.target)
+              if through_records.include?(through_association.target)
+                through_association.target = nil
+              end
             end
 
             @through_records.delete(record.object_id)
