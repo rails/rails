@@ -326,6 +326,12 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_through_reflection_conditions_do_not_modify_other_reflections
+    orig_conds = Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
+    Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
+    assert_equal orig_conds, Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)

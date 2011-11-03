@@ -445,7 +445,7 @@ module ActiveRecord
       # of relevant reflections, plus any :source_type or polymorphic :as constraints.
       def conditions
         @conditions ||= begin
-          conditions = source_reflection.conditions
+          conditions = source_reflection.conditions.map { |c| c.dup }
 
           # Add to it the conditions from this reflection if necessary.
           conditions.first << options[:conditions] if options[:conditions]
