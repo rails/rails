@@ -203,8 +203,27 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
   
   def test_usage_with_embedded_ruby
-    require File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator", File.dirname(__FILE__))
-    output = capture(:stdout) { Rails::Generators.invoke :usage_template, ['--help'] }
-    assert_match /:: 2 ::/, output
+    load File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator.rb", File.dirname(__FILE__))
+    begin
+      output = capture(:stdout) { Rails::Generators.invoke :usage_template, ['--help'] }
+      assert_match /:: 2 ::/, output
+    ensure
+      # to prevent tainting other tests
+      Object.send :remove_const, :UsageTemplateGenerator
+    end
+  end
+  
+  def test_usage_in_nonstandard_location
+    base = File.expand_path("fixtures/lib/generators/usage_template", File.dirname(__FILE__))
+    load File.join(base, "usage_template_generator.rb")
+    begin
+      UsageTemplateGenerator.source_root "." # so that it can't find default usage file
+      UsageTemplateGenerator.usage_file File.join(base, "USAGE")
+      output = capture(:stdout) { Rails::Generators.invoke :usage_template, ['--help'] }
+      assert_match /:: 2 ::/, output
+    ensure
+      # to prevent tainting other tests
+      Object.send :remove_const, :UsageTemplateGenerator
+    end
   end
 end

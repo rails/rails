@@ -27,16 +27,25 @@ module Rails
         @_source_root ||= default_source_root
       end
 
-      # Tries to get the description from a USAGE file one folder above the source
-      # root otherwise uses a default description.
+      # Tries to get the description from a USAGE file, otherwise uses a
+      # default description.
       def self.desc(description=nil)
         return super if description
-        usage = source_root && File.expand_path("../USAGE", source_root)
 
-        @desc ||= if usage && File.exist?(usage)
-          ERB.new(File.read(usage)).result(binding)
+        @desc ||= if usage_file && File.exist?(usage_file)
+          ERB.new(File.read(usage_file)).result(binding)
         else
           "Description:\n    Create #{base_name.humanize.downcase} files for #{generator_name} generator."
+        end
+      end
+      
+      # Sets the location of the USAGE file for this generator.
+      # Defaults to one folder above the source root.
+      def self.usage_file(path=nil)
+        if path
+          @usage_file = path
+        else
+          @usage_file ||= source_root && File.expand_path("../USAGE", source_root)
         end
       end
 
