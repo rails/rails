@@ -39,6 +39,10 @@
 
 *Rails 3.1.2 (unreleased)*
 
+* Fix adding multiple instances of the same record to a has_many :through. [GH #3425]
+
+  [Jon Leighton]
+
 * Fix creating records in a through association with a polymorphic source type. [GH #3247]
 
   [Jon Leighton]
