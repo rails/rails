@@ -10,7 +10,7 @@ module Arel
       end
 
       def table_name
-        relation.name
+        relation.respond_to?(:name) ? relation.name : name
       end
     end
   end
