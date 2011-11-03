@@ -119,10 +119,10 @@ module ActionView
         #   #    <script type="text/javascript" src="/elsewhere/cools.js?1423139606"></script>
         #
         #   javascript_include_tag "http://www.example.com/xmlhr"
-        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js?1284139606"></script>
+        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr"></script>
         #
         #   javascript_include_tag "http://www.example.com/xmlhr.js"
-        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js?1284139606"></script>
+        #   # => <script type="text/javascript" src="http://www.example.com/xmlhr.js"></script>
         #
         #   javascript_include_tag :defaults
         #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
