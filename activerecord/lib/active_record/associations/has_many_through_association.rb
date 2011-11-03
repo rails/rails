@@ -79,12 +79,6 @@ module ActiveRecord
           @through_records.delete(record.object_id)
         end
 
-        def through_record(record)
-          attributes = construct_join_attributes(record)
-          candidates = Array.wrap(through_association.target)
-          candidates.find { |c| c.attributes.slice(*attributes.keys) == attributes }
-        end
-
         def build_record(attributes, options = {})
           ensure_not_nested
 
@@ -145,14 +139,20 @@ module ActiveRecord
           update_counter(-count)
         end
 
+        def through_records_for(record)
+          attributes = construct_join_attributes(record)
+          candidates = Array.wrap(through_association.target)
+          candidates.find_all { |c| c.attributes.slice(*attributes.keys) == attributes }
+        end
+
         def delete_through_records(through, records)
           records.each do |record|
-            through_record = through_record(record)
+            through_records = through_records_for(record)
 
             if through_reflection.macro == :has_many
-              through.target.delete(through_record)
+              through_records.each { |r| through.target.delete(r) }
             else
-              through.target = nil if through.target == through_record
+              through.target = nil if through_records.include?(through.target)
             end
 
             @through_records.delete(record.object_id)

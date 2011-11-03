@@ -39,6 +39,11 @@
 
 *Rails 3.1.2 (unreleased)*
 
+* If a record is removed from a has_many :through, all of the join records relating to that
+  record should also be removed from the through association's target.
+
+  [Jon Leighton]
+
 * Fix adding multiple instances of the same record to a has_many :through. [GH #3425]
 
   [Jon Leighton]
