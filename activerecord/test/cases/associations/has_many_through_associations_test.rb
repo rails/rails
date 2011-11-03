@@ -825,4 +825,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_explicitly_joining_join_table
     assert_equal owners(:blackbeard).toys, owners(:blackbeard).toys.with_pet
   end
+
+  def test_has_many_through_with_polymorphic_source
+    post = tags(:general).tagged_posts.create! :title => "foo", :body => "bar"
+    assert_equal [tags(:general)], post.reload.tags
+  end
 end
