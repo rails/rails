@@ -87,21 +87,21 @@ $ bundle install --without db
 This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back at these soon. With dependencies installed, you can run the test suite with:
 
 <shell>
-$ rake test
+$ bundle exec rake test
 </shell>
 
 You can also run tests for a specific framework, like Action Pack, by going into its directory and executing the same command:
 
 <shell>
 $ cd actionpack
-$ rake test
+$ bundle exec rake test
 </shell>
 
 If you want to run tests from the specific directory use the +TEST_DIR+ environment variable. For example, this will run tests inside +railties/test/generators+ directory only:
 
 <shell>
 $ cd railties
-$ TEST_DIR=generators rake test
+$ TEST_DIR=generators bundle exec rake test
 </shell>
 
 
@@ -112,7 +112,7 @@ The test suite runs with warnings enabled. Ideally Ruby on Rails should issue no
 As of this writing they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
 <shell>
-$ RUBYOPT=-W0 rake test
+$ RUBYOPT=-W0 bundle exec rake test
 </shell>
 
 h4. Testing Active Record
@@ -127,7 +127,7 @@ The gem +sqlite3-ruby+ does not belong to the "db" group indeed, if you followed
 
 <shell>
 $ cd activerecord
-$ rake test_sqlite3
+$ bundle exec rake test_sqlite3
 </shell>
 
 h5. MySQL and PostgreSQL
@@ -192,7 +192,7 @@ test_postgresql
 respectively. As we mentioned before
 
 <shell>
-$ rake test
+$ bundle exec rake test
 </shell>
 
 will now run the four of them in turn.
