@@ -199,6 +199,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
+  def test_application_controller_test_file
+    run_generator
+    assert_file "test/functional/application_controller_test.rb" do |content|
+      assert_match(/class ApplicationControllerTest < ActionController::TestCase/, content)
+    end
+  end
+
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "config/application.rb" do |content|
