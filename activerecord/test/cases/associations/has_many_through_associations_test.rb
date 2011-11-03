@@ -67,6 +67,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_associate_existing_record_twice_should_add_records_twice
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_difference 'post.people.count', 2 do
+      post.people << person
+      post.people << person
+    end
+  end
+
   def test_associating_new
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
