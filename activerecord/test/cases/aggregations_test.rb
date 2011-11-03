@@ -119,6 +119,12 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_equal 'Barnoit GUMBLEAU', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
   end
+
+  def test_custom_converter_with_arity_of_2
+    customers(:barney).fullname = 'Franck Verrot'
+    customers(:barney).location = %w(Lyon France)
+    assert_equal 'Franck VERROT from Lyon, France', customers(:barney).location.to_s
+  end
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase
