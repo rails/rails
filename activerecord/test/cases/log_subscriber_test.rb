@@ -71,6 +71,13 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
+  def test_exists_query_alias
+    Developer.exists? 1
+    wait
+    assert_equal 1, @logger.logged(:debug).size
+    assert_match(/SELECT .*?1 AS _one.*? FROM .?developers.?/i, @logger.logged(:debug).last)
+  end
+
   def test_cached_queries
     ActiveRecord::Base.cache do
       Developer.all
