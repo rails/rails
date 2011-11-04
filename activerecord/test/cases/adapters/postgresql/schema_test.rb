@@ -10,14 +10,17 @@ class SchemaTest < ActiveRecord::TestCase
   INDEX_A_NAME = 'a_index_things_on_name'
   INDEX_B_NAME = 'b_index_things_on_different_columns_in_each_schema'
   INDEX_C_NAME = 'c_index_full_text_search'
+  INDEX_D_NAME = 'd_index_things_on_description_desc'
   INDEX_A_COLUMN = 'name'
   INDEX_B_COLUMN_S1 = 'email'
   INDEX_B_COLUMN_S2 = 'moment'
   INDEX_C_COLUMN = %q{(to_tsvector('english', coalesce(things.name, '')))}
+  INDEX_D_COLUMN = 'description'
   COLUMNS = [
     'id integer',
     'name character varying(50)',
     'email character varying(50)',
+    'description character varying(100)',
     'moment timestamp without time zone default now()'
   ]
   PK_TABLE_NAME = 'table_with_pk'
@@ -54,6 +57,8 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
+    @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
   end
 
@@ -184,11 +189,11 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_dump_indexes_for_schema_one
-    do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1)
+    do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN)
   end
 
   def test_dump_indexes_for_schema_two
-    do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2)
+    do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2, INDEX_D_COLUMN)
   end
 
   def test_with_uppercase_index_name
@@ -288,13 +293,16 @@ class SchemaTest < ActiveRecord::TestCase
       @connection.schema_search_path = "'$user', public"
     end
 
-    def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name)
+    def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
-        assert_equal 2,indexes.size
+        assert_equal 3,indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
+        do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
+
+        assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
       end
     end
 
