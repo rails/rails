@@ -440,11 +440,15 @@ class FormHelperTest < ActionView::TestCase
   def test_number_field
     expected = %{<input name="order[quantity]" max="9" id="order_quantity" type="number" min="1" />}
     assert_dom_equal(expected, number_field("order", "quantity", :in => 1...10))
+    expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
+    assert_dom_equal(expected, number_field("order", "quantity", :size => 30, :in => 1...10))
   end
 
   def test_range_input
     expected = %{<input name="hifi[volume]" step="0.1" max="11" id="hifi_volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field("hifi", "volume", :in => 0..11, :step => 0.1))
+    expected = %{<input name="hifi[volume]" step="0.1" size="30" max="11" id="hifi_volume" type="range" min="0" />}
+    assert_dom_equal(expected, range_field("hifi", "volume", :size => 30, :in => 0..11, :step => 0.1))
   end
 
   def test_explicit_name
