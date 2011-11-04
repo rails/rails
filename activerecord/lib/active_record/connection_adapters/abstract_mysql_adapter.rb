@@ -155,6 +155,12 @@ module ActiveRecord
         true
       end
 
+      # Technically MySQL allows to create indexes with the sort order syntax 
+      # but at the moment (5.5) it doesn't yet implement them
+      def supports_index_sort_order?
+        true
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end

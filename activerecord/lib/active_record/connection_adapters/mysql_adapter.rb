@@ -91,12 +91,6 @@ module ActiveRecord
 
       ADAPTER_NAME = 'MySQL'
 
-      # Technically MySQL allows to create indexes with the sort order syntax 
-      # but at the moment (5.5) it doesn't yet implement them
-      def supports_index_sort_order?
-        true
-      end
-
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max = 1000)
           super

@@ -35,12 +35,6 @@ module ActiveRecord
         configure_connection
       end
 
-      # Technically MySQL allows to create indexes with the sort order syntax 
-      # but at the moment (5.5) it doesn't yet implement them
-      def supports_index_sort_order?
-        true
-      end
-
       # HELPER METHODS ===========================================
 
       def each_hash(result) # :nodoc:
