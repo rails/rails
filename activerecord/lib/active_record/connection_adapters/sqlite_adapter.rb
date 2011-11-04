@@ -457,28 +457,30 @@ module ActiveRecord
           drop_table(from)
         end
 
-        def copy_table(from, to, options = {}) #:nodoc:
-          options = options.merge(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+        def copy_table(from, to, options = {}, &block) #:nodoc:
+          from_columns, from_primary_key = columns(from), primary_key(from)
+          options = options.merge(:id => (!from_columns.detect {|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+          table_definition = nil
           create_table(to, options) do |definition|
-            @definition = definition
-            columns(from).each do |column|
+            table_definition = definition
+            from_columns.each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
 
-              @definition.column(column_name, column.type,
+              table_definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
-            @definition.primary_key(primary_key(from)) if primary_key(from)
-            yield @definition if block_given?
+            table_definition.primary_key from_primary_key if from_primary_key
+            table_definition.instance_eval(&block) if block
           end
 
           copy_table_indexes(from, to, options[:rename] || {})
           copy_table_contents(from, to,
-            @definition.columns.map {|column| column.name},
+            table_definition.columns.map {|column| column.name},
             options[:rename] || {})
         end
 

@@ -1712,6 +1712,26 @@ if ActiveRecord::Base.connection.supports_migrations?
 
   end # SexyMigrationsTest
 
+  class SexierMigrationsTest < ActiveRecord::TestCase
+    def test_create_table_with_column_without_block_parameter
+      Person.connection.create_table :testings, :force => true do
+        column :foo, :string
+      end
+      assert Person.connection.column_exists?(:testings, :foo, :string)
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+
+    def test_create_table_with_sexy_column_without_block_parameter
+      Person.connection.create_table :testings, :force => true do
+        integer :bar
+      end
+      assert Person.connection.column_exists?(:testings, :bar, :integer)
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+  end # SexierMigrationsTest
+
   class MigrationLoggerTest < ActiveRecord::TestCase
     def test_migration_should_be_run_without_logger
       previous_logger = ActiveRecord::Base.logger
