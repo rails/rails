@@ -122,8 +122,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
       end
 
-      # Firebird, Openbase and Frontbase don't support per-column index order
-      unless current_adapter?(:FirebaseAdapter, :OpenBaseAdapter, :FrontbaseAdapter)
+      # Selected adapters support index sort order
+      if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
         assert_nothing_raised { Person.connection.add_index("people", ["last_name"], :order => {:last_name => :desc}) }
         assert_nothing_raised { Person.connection.remove_index("people", ["last_name"]) }
         assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"], :order => {:last_name => :desc}) }

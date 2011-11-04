@@ -247,6 +247,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_sort_order?
+        true
+      end
+
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max)
           super

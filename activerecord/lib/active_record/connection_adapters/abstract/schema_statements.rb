@@ -546,7 +546,7 @@ module ActiveRecord
           option_strings = Hash[column_names.map {|name| [name, '']}]
 
           # add index sort order if supported
-          unless %w(firebird openbase frontbase).include?(adapter_name.downcase)
+          if supports_index_sort_order?
             option_strings = add_index_sort_order(option_strings, column_names, options)
           end
 

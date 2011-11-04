@@ -1,5 +1,7 @@
 *Rails 3.2.0 (unreleased)*
 
+* Support index sort order in sqlite, mysql and postgres adapters. *Vlad Jebelev*
+
 * Added ActiveRecord::Base.store for declaring simple single-column key/value stores [DHH]
 
     class User < ActiveRecord::Base

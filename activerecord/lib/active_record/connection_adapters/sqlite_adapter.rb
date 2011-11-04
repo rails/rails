@@ -157,6 +157,11 @@ module ActiveRecord
         sqlite_version >= '3.1.0'
       end
 
+      # Returns true if SQLite version is '3.3.0' or greater, false otherwise.
+      def supports_index_sort_order?
+        sqlite_version >= '3.3.0'
+      end
+
       def native_database_types #:nodoc:
         {
           :primary_key => default_primary_key_type,
