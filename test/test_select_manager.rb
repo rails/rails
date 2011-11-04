@@ -981,5 +981,18 @@ module Arel
         manager.source.must_equal manager.ast.cores.last.source
       end
     end
+
+    describe 'distinct' do
+      it 'sets the quantifier' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+
+        manager.distinct
+        manager.ast.cores.last.set_quantifier.class.must_equal Arel::Nodes::Distinct
+
+        manager.distinct(false)
+        manager.ast.cores.last.set_quantifier.must_equal nil
+      end
+    end
   end
 end

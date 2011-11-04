@@ -139,6 +139,14 @@ module Arel
       @ctx.projections = projections
     end
 
+    def distinct(value = true)
+      if value
+        @ctx.set_quantifier = Arel::Nodes::Distinct.new
+      else
+        @ctx.set_quantifier = nil
+      end
+    end
+
     def order *expr
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
       @ast.orders.concat expr.map { |x|
