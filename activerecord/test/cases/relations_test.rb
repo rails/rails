@@ -1148,4 +1148,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal posts(:thinking), comments(:more_greetings).post
     assert_equal posts(:welcome),  comments(:greetings).post
   end
+
+  def test_uniq
+    tag1 = Tag.create(:name => 'Foo')
+    tag2 = Tag.create(:name => 'Foo')
+
+    query = Tag.select(:name).where(:id => [tag1.id, tag2.id])
+
+    assert_equal ['Foo', 'Foo'], query.map(&:name)
+    assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.uniq.map(&:name)
+    end
+    assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.uniq(true).map(&:name)
+    end
+    assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
+  end
 end

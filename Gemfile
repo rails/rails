@@ -4,6 +4,8 @@ gemspec
 
 if ENV['AREL']
   gem "arel", :path => ENV['AREL']
+else
+  gem "arel", :git => "git://github.com/rails/arel"
 end
 
 gem "bcrypt-ruby", "~> 3.0.0"

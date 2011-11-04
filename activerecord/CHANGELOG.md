@@ -1,5 +1,21 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Add ActiveRecord::Relation#uniq for generating unique queries.
+
+    Before:
+
+        Client.select('DISTINCT name')
+
+    After:
+
+        Client.select(:name).uniq
+
+    This also allows you to revert the unqueness in a relation:
+
+        Client.select(:name).uniq.uniq(false)
+
+    *Jon Leighton*
+
 *   Support index sort order in sqlite, mysql and postgres adapters. *Vlad Jebelev*
 
 *   Allow the :class_name option for associations to take a symbol (:Client) in addition to

@@ -1935,4 +1935,10 @@ class BasicsTest < ActiveRecord::TestCase
     dev.update_attribute(:updated_at, nil)
     assert_match(/\/#{dev.id}$/, dev.cache_key)
   end
+
+  def test_uniq_delegates_to_scoped
+    scope = stub
+    Bird.stubs(:scoped).returns(mock(:uniq => scope))
+    assert_equal scope, Bird.uniq
+  end
 end
