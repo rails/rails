@@ -162,12 +162,20 @@ modules:
   {Learn more}[link:classes/ActiveModel/Validations.html]
 
 * Custom validators
-
+   
    class Person
      include ActiveModel::Validations
      validates_with HasNameValidator
      attr_accessor :name
    end
+
+   class Person
+     include ActiveModel::Validations
+     validates :name, :has_name => true
+     attr_accessor :name
+   end
+
+   You could use any of the two ways mentioned above to use a Custom Validator.
 
    class HasNameValidator < ActiveModel::Validator
      def validate(record)
