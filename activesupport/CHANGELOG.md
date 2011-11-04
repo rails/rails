@@ -1,0 +1,1548 @@
+## Rails 3.1.1 (October 7, 2011) ##
+
+*   ruby193: String#prepend is also unsafe *Akira Matsuda*
+
+*   Fix obviously breakage of Time.=== for Time subclasses *jeremyevans*
+
+*   Added fix so that file store does not raise an exception when cache dir does
+    not exist yet. This can happen if a delete_matched is called before anything
+    is saved in the cache. *Philippe Huibonhoa*
+
+*   Fixed performance issue where TimeZone lookups would require tzinfo each time *Tim Lucas*
+
+*   ActiveSupport::OrderedHash is now marked as extractable when using Array#extract_options! *Prem Sichanugrist*
+
+## Rails 3.1.0 (August 30, 2011) ##
+
+*   ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now
+    return the value from `super` *Aaron Patterson*
+
+*   Fixed ActiveSupport::Gzip to work properly in Ruby 1.8 *Guillermo Iguaran*
+
+*   Kernel.require_library_or_gem was deprecated and will be removed in Rails 3.2.0 *Josh Kalderimis*
+
+*   ActiveSupport::Duration#duplicable? was fixed for Ruby 1.8 *thedarkone*
+
+*   ActiveSupport::BufferedLogger set log encoding to BINARY, but still use text
+    mode to output portable newlines. *fxn*
+
+*   ActiveSupport::Dependencies now raises NameError if it finds an existing constant in load_missing_constant. This better reflects the nature of the error which is usually caused by calling constantize on a nested constant. *Andrew White*
+
+*   Deprecated ActiveSupport::SecureRandom in favour of SecureRandom from the standard library *Jon Leighton*
+
+*   New reporting method Kernel#quietly. *fxn*
+
+*   Add String#inquiry as a convenience method for turning a string into a StringInquirer object *DHH*
+
+*   Add Object#in? to test if an object is included in another object *Prem Sichanugrist, Brian Morearty, John Reitano*
+
+*   LocalCache strategy is now a real middleware class, not an anonymous class
+    posing for pictures.
+
+*   ActiveSupport::Dependencies::ClassCache class has been introduced for
+    holding references to reloadable classes.
+
+*   ActiveSupport::Dependencies::Reference has been refactored to take direct
+    advantage of the new ClassCache.
+
+*   Backports Range#cover? as an alias for Range#include? in Ruby 1.8 *Diego Carrion, fxn*
+
+*   Added weeks_ago and prev_week to Date/DateTime/Time. *Rob Zolkos, fxn*
+
+*   Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! *Andrew White*
+
+*   JSON decoding now uses the multi_json gem which also vendors a json engine called OkJson. The yaml backend has been removed in favor of OkJson as a default engine for 1.8.x, while the built in 1.9.x json implementation will be used by default. *Josh Kalderimis*
+
+
+## Rails 3.0.7 (April 18, 2011) ##
+
+*   Hash.from_xml no longer loses attributes on tags containing only whitespace *André Arko*
+
+
+*   Rails 3.0.6 (April 5, 2011)
+
+*   No changes.
+
+
+## Rails 3.0.5 (February 26, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.4 (February 8, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.3 (November 16, 2010) ##
+
+*   No changes.
+
+
+## Rails 3.0.2 (November 15, 2010) ##
+
+*   Added before_remove_const callback to ActiveSupport::Dependencies.remove_unloadable_constants! *Andrew White*
+
+
+## Rails 3.0.1 (October 15, 2010) ##
+
+*   No Changes, just a version bump.
+
+
+## Rails 3.0.0 (August 29, 2010) ##
+
+*   Implemented String#strip_heredoc. *fxn*
+
+*   Pluggable cache stores: setting config.cache_store = "custom_store" will require 'active_support/cache/custom_store' and look for the CustomStore constant.  #5486 *Mike Perham*
+
+*   Removed Object#returning, Object#tap should be used instead. *Santiago Pastorino*
+
+*   Deprecation behavior is no longer hardcoded to the name of the environment.
+    Instead, it is set via config.active_support.deprecation and can be one
+    of :log, :stderr or :notify. :notify is a new style that sends the warning
+    via ActiveSupport::Notifications, and is the new default for production
+    *Yehuda Katz*
+
+*   Renamed ActiveSupport::Dependecies.load_(once_)paths to autoload_(once_)paths. *fxn*
+
+*   Added ActiveSupport::FileUpdateChecker to execute a block only if a set of files changed, used by Router and I18n locale files. *José Valim*
+
+*   Added ActiveSupport::DescendantsTracker to track descendants with support to constants reloading. *José Valim*
+
+*   ActiveSupport::OrderedHash#merge and #merge! accept a block. #4838 *Paul Mucur, fxn*
+
+*   Date#since, #ago, #beginning_of_day, #end_of_day, and #xmlschema honor now the user time zone if set. *Geoff Buesing*
+
+*   Extracted String#truncate from TextHelper#truncate *DHH*
+
+*   Ruby 1.9: support UTF-8 case folding.  #4595 *Norman Clarke*
+
+*   Removes Array#rand and backports Array#sample from Ruby 1.9, thanks to Marc-Andre Lafortune. *fxn*
+
+*   Ruby 1.9: Renames last_(month|year) to prev_(month|year) in Date and Time. *fxn*
+
+*   Aliases Date#sunday to Date#end_of_week. *fxn*
+
+*   Backports Date#>> from 1.9 so that calculations do the right thing around the calendar reform. *fxn*
+
+*   Date#to_time handles properly years in the range 0..138. *fxn*
+
+*   Deprecate {{}} as interpolation syntax for I18n in favor of %{} *José Valim*
+
+*   Array#to_xml is more powerful and able to handle the same types as Hash#to_xml #4490 *Neeraj Singh*
+
+*   Harmonize the caching API and refactor the backends.  #4452 *Brian Durand*
+    All caches:
+    * Add default options to initializer that will be sent to all read, write, fetch, exist?, increment, and decrement
+    * Add support for the :expires_in option to fetch and write for all caches. Cache entries are stored with the create timestamp and a ttl so that expiration can be handled independently of the implementation.
+    * Add support for a :namespace option. This can be used to set a global prefix for cache entries.
+    * Deprecate expand_cache_key on ActiveSupport::Cache and move it to ActionController::Caching and ActionDispatch::Http::Cache since the logic in the method used some Rails specific environment variables and was only used by ActionPack classes. Not very DRY but there didn't seem to be a good shared spot and ActiveSupport really shouldn't be Rails specific.
+    * Add support for :race_condition_ttl to fetch. This setting can prevent race conditions on fetch calls where several processes try to regenerate a recently expired entry at once.
+    * Add support for :compress option to fetch and write which will compress any data over a configurable threshold.
+    * Nil values can now be stored in the cache and are distinct from cache misses for fetch.
+    * Easier API to create new implementations. Just need to implement the methods read_entry, write_entry, and delete_entry instead of overwriting existing methods.
+    * Since all cache implementations support storing objects, update the docs to state that ActiveCache::Cache::Store implementations should store objects. Keys, however, must be strings since some implementations require that.
+    * Increase test coverage.
+    * Document methods which are provided as convenience but which may not be universally available.
+
+    MemoryStore:
+    * MemoryStore can now safely be used as the cache for single server sites.
+    * Make thread safe so that the default cache implementation used by Rails is thread safe. The overhead is minimal and it is still the fastest store available.
+    * Provide :size initialization option indicating the maximum size of the cache in memory (defaults to 32Mb).
+    * Add prune logic that removes the least recently used cache entries to keep the cache size from exceeding the max.
+    * Deprecated SynchronizedMemoryStore since it isn't needed anymore.
+
+    FileStore:
+    * Escape key values so they will work as file names on all file systems, be consistent, and case sensitive
+    * Use a hash algorithm to segment the cache into sub directories so that a large cache doesn't exceed file system limits.
+    * FileStore can be slow so implement the LocalCache strategy to cache reads for the duration of a request.
+    * Add cleanup method to keep the disk from filling up with expired entries.
+    * Fix increment and decrement to use file system locks so they are consistent between processes.
+
+    MemCacheStore:
+    * Support all keys. Previously keys with spaces in them would fail
+    * Deprecate CompressedMemCacheStore since it isn't needed anymore (use :compress => true)
+
+*   JSON: encode objects that don't have a native JSON representation using to_hash, if available, instead of instance_values (the old fallback) or to_s (other encoders' default). Encode BigDecimal and Regexp encode as strings to conform with other encoders. Try to transcode non-UTF-8 strings.  *Jeremy Kemper*
+
+*   HashWithIndifferentAccess: remove inherited symbolize_keys! since its keys are always strings.  *Santiago Pastorino*
+
+*   Improve transliteration quality.  #4374 *Norman Clarke*
+
+*   Speed up and add Ruby 1.9 support for ActiveSupport::Multibyte::Chars#tidy_bytes.  #4350 *Norman Clarke*
+
+*   Reduced load time by deferring configuration of classes using
+    ActiveSupport::on_load(:component_name) *YK*
+
+*   Rename #metaclass to #singleton_class now that ruby-core has decided *JK*
+
+*   New assertions assert_blank and assert_present.  #4299 *Juanjo Bazan*
+
+*   Use Object#singleton_class instead of #metaclass. Prefer Ruby's choice.  *Jeremy Kemper*
+
+*   JSON backend for YAJL. Preferred if available.  #2666 *Brian Lopez*
+
+*   Introduce class_attribute to declare inheritable class attributes. Writing an attribute on a subclass behaves just like overriding the superclass reader method.  Unifies and replaces most usage of cattr_accessor, class_inheritable_attribute, superclass_delegating_attribute, and extlib_inheritable_attribute.  *Jeremy Kemper, Yehuda Katz*
+
+*   Time#- with a DateTime argument behaves the same as with a Time argument, i.e. returns the difference between self and arg as a Float #3476 *Geoff Buesing*
+
+*   YAML serialization for OrderedHash.  #3608 *Gregor Schmidt*
+
+*   Update bundled TZInfo to v0.3.16 *Geoff Buesing*
+
+*   Georgetown TimeZone is now mapped to "America/Guyana" instead of "America/Argentina/San_Juan" #1821 *Geoff Buesing, Reuben Sivan*
+
+*   Changed the default ActiveSupport.use_standard_json_time_format from false to true and
+    ActiveSupport.escape_html_entities_in_json from true to false to match previously announced Rails 3 defaults *DHH*
+
+*   Added Object#presence that returns the object if it's #present? otherwise returns nil *DHH/Colin Kelley*
+
+*   Add Enumerable#exclude? to bring parity to Enumerable#include? and avoid if !x.include?/else calls *DHH*
+
+*   Update Edinburgh TimeZone to use "Europe/London" instead of "Europe/Dublin" #3310 *Phil Ross*
+
+*   Update bundled TZInfo to v0.3.15 *Geoff Buesing*
+
+*   JSON: +Object#to_json+ calls +as_json+ to coerce itself into something natively encodable like +Hash+, +Integer+, or +String+. Override +as_json+ instead of +to_json+ so you're JSON library agnostic.  *Jeremy Kemper*
+
+*   String #to_time and #to_datetime: handle fractional seconds #864 *Jason Frey*
+
+*   Update bundled TZInfo to v0.3.13 *Geoff Buesing*
+
+*   Allow MemCacheStore to be initialized with a MemCache-like object instead of addresses and options *Bryan Helmkamp*
+
+*   Change spelling of Kyev timezone to Kyiv #2613 *Alexander Dymo*
+
+*   Add ActiveSupport.parse_json_times to disable time parsing in JSON backends that don't support it or don't need it. *rick*
+
+*   Add pluggable JSON backends with support for the JSON gem. *rick*
+        Example: ActiveSupport::JSON.backend = "JSONGem"
+
+    All internal Rails JSON encoding is now handled by ActiveSupport::JSON.encode().  Use of #to_json is not recommended, as it may clash with other libraries that overwrite it.  However, you can recover Rails specific functionality
+    if you really want to use #to_json.
+
+        gem 'json'
+        ActiveSupport::JSON.backend = "JSONGem"
+
+        class ActiveRecord::Base
+          alias to_json rails_to_json
+        end
+
+*   require 'active_support' no longer orders the whole menu of core extensions. Ask for just what you need: e.g. require 'active_support/core/time' to use timezones, durations, and stdlib date/time extensions. *Jeremy Kemper*
+
+*   Removed rarely-used DRb cache store.  *Jeremy Kemper*
+
+*   TimeWithZone.name returns 'Time', to further thwart type checking *Geoff Buesing*
+
+*   Time.local instances: Adding 24.hours across the DST boundary adds 24 hours instead of one day #2066 *Michael Curtis*
+
+
+## 2.3.2 Final (March 15, 2009) ##
+
+*   XmlMini supports LibXML and Nokogiri backends.  #2084, #2190 *Bart ten Brinke, Aaron Patterson*
+        Example: XmlMini.backend = 'Nokogiri'
+
+*   Vendorize i18n 0.1.3 gem (fixes issues with incompatible character encodings in Ruby 1.9) #2038 *Akira Matsuda*
+
+*   Update bundled memcache-client from 1.5.0.5 to 1.6.4.99. See http://www.mikeperham.com/2009/02/15/memcache-client-performance/  *Mike Perham*
+
+*   Ruby 1.9.1p0 fix: URI.unescape can decode multibyte chars.  #2033 *MOROHASHI Kyosuke*
+
+*   Time#to_s(:rfc822) uses #formatted_offset instead of unreliable and non-standard %z directive #1899 *Zachary Zolton*
+
+*   Make TimeWithZone#to_formatted_s an alias to TimeWithZone#to_s #1796 *Levin Alexander*
+
+*   Introduce Array.wrap(foo) to wrap the argument in an array unless it's already an array. Wraps nil as an empty array. Use instead of Array(foo) and foo.to_a since they treat String as Enumerable.  *Jeremy Kemper*
+
+*   TimeWithZone#xmlschema accepts optional fraction_digits argument [#1725 state:resolved] *Nicholas Dainty*
+
+*   Object#tap shim for Ruby < 1.8.7. Similar to Object#returning, tap yields self then returns self.  *Jeremy Kemper*
+        array.select { ... }.tap(&:inspect).map { ... }
+
+*   TimeWithZone#- gives correct result with wrapped DateTime, and with DateTime argument *Geoff Buesing*
+
+*   Updated i18n gem to version 0.1.1 #1635 *Yaroslav Markin*
+
+*   Add :allow_nil option to delegate. #1127 *Sergio Gil*
+
+*   Add Benchmark.ms convenience method to benchmark realtime in milliseconds.  *Jeremy Kemper*
+
+*   Updated included memcache-client to the 1.5.0.5 version which includes fixes from fiveruns and 37signals to deal with failover and timeouts #1535 *Joshua Sierles*
+
+*   Multibyte: add multibyte-safe Chars#ord rather than falling back to String#ord.  #1483 *Jason Cheow*
+
+*   I18n support for Array#to_sentence. Introduces support.array.words_connector, .two_words_connector, and .last_word_connector translation keys.  #1397 *Akira Matsuda*
+
+*   Added ActiveSupport::OrderedHash#each_key and ActiveSupport::OrderedHash#each_value #1410 *Christoffer Sawicki*
+
+*   Added ActiveSupport::MessageVerifier and MessageEncryptor to aid users who need to store signed and/or encrypted messages. *Michael Koziarski*
+
+*   Added ActiveSupport::BacktraceCleaner to cut down on backtrace noise according to filters and silencers *David Heinemeier Hansson*
+
+*   Added Object#try. ( Taken from http://ozmm.org/posts/try.html ) *Chris Wanstrath*
+
+*   Added Enumerable#none? to check that none of the elements match the block #1408 *Damian Janowski*
+
+*   TimeZone offset tests: use current_period, to ensure TimeZone#utc_offset is up-to-date *Geoff Buesing*
+
+*   Update bundled TZInfo to 0.3.12 *Geoff Buesing*
+
+*   Added lambda merging to OptionMerger (especially useful with named_scope and with_options) #726 *Paweł Kondzior*
+
+
+## 2.2.1 RC2 (November 14th, 2008) ##
+
+*   Increment the version of our altered memcache-client to prevent confusion caused when the 1.5.0 gem is installed.
+
+*   Fixed the option merging in Array#to_xml #1126 *Rudolf Gavlas*
+
+*   Make I18n::Backend::Simple reload its translations in development mode *David Heinemeier Hansson/Sven Fuchs*
+
+
+## 2.2.0 RC1 (October 24th, 2008) ##
+
+*   TimeWithZone#freeze: preload instance variables so that we can actually freeze *Geoff Buesing*
+
+*   Fix Brasilia timezone #1180 *Marcus Derencius, Kane*
+
+*   Time#advance recognizes fractional days and weeks. Deprecate Durations of fractional months and years #970 *Tom Lea*
+
+*   Add ActiveSupport::Rescuable module abstracting ActionController::Base rescue_from features. *Norbert Crombach, Pratik Naik*
+
+*   Switch from String#chars to String#mb_chars for the unicode proxy.  *Manfred Stienstra*
+
+    This helps with 1.8.7 compatibility and also improves performance for some operations by reducing indirection.
+
+*   TimeWithZone #wday, #yday and #to_date avoid trip through #method_missing *Geoff Buesing*
+
+*   Added Time, Date, DateTime and TimeWithZone #past?, #future? and #today? #720 *Clemens Kofler, Geoff Buesing*
+
+*   Fixed Sri Jayawardenepura time zone to map to Asia/Colombo *Jamis Buck*
+
+*   Added Inflector#parameterize for easy slug generation ("Donald E. Knuth".parameterize => "donald-e-knuth") #713 *Matt Darby*
+
+*   Changed cache benchmarking to be reported in milliseconds *David Heinemeier Hansson*
+
+*   Fix Ruby's Time marshaling bug in pre-1.9 versions of Ruby: utc instances are now correctly unmarshaled with a utc zone instead of the system local zone [#900 state:resolved] *Luca Guidi, Geoff Buesing*
+
+*   Add Array#in_groups which splits or iterates over the array in specified number of groups. #579. [Adrian Mugnolo] Example:
+
+    a = (1..10).to_a
+    a.in_groups(3)        # => [[1, 2, 3, 4], [5, 6, 7, nil], [8, 9, 10, nil]]
+    a.in_groups(3, false) # => [[1, 2, 3, 4], [5, 6, 7], [8, 9, 10]]
+
+*   Fix TimeWithZone unmarshaling: coerce unmarshaled Time instances to utc, because Ruby's marshaling of Time instances doesn't respect the zone *Geoff Buesing*
+
+*   Added Memoizable mixin for caching simple lazy loaded attributes *Josh Peek*
+
+*   Move the test related core_ext stuff out of core_ext so it's only loaded by the test helpers.  *Michael Koziarski*
+
+*   Add Inflection rules for String#humanize. #535 *Dan Manges*
+
+    ActiveSupport::Inflector.inflections do |inflect|
+        inflect.human(/_cnt$/i, '\1_count')
+    end
+
+    'jargon_cnt'.humanize # => 'Jargon count'
+
+*   TimeWithZone: when crossing DST boundary, treat Durations of days, months or years as variable-length, and all other values as absolute length. A time + 24.hours will advance exactly 24 hours, but a time + 1.day will advance 23-25 hours, depending on the day. Ensure consistent behavior across all advancing methods *Geoff Buesing*
+
+*   Added TimeZone #=~, to support matching zones by regex in time_zone_select. #195 *Ernie Miller*
+
+*   Added Array#second through Array#fifth as aliases for Array#[1] through Array#[4] + Array#forty_two as alias for Array[41] *David Heinemeier Hansson*
+
+*   Added test/do declaration style testing to ActiveSupport::TestCase *DHH via Jay Fields*
+
+*   Added Object#present? which is equivalent to !Object#blank? *David Heinemeier Hansson*
+
+*   Added Enumberable#many? to encapsulate collection.size > 1 *David Heinemeier Hansson/Damian Janowski*
+
+*   Add more standard Hash methods to ActiveSupport::OrderedHash *Steve Purcell*
+
+*   Namespace Inflector, Dependencies, OrderedOptions, and TimeZone under ActiveSupport *Josh Peek*
+
+*   Added StringInquirer for doing things like StringInquirer.new("production").production? # => true and StringInquirer.new("production").development? # => false *David Heinemeier Hansson*
+
+*   Fixed Date#end_of_quarter to not blow up on May 31st [#289 state:resolved] (Danger)
+
+
+## 2.1.0 (May 31st, 2008) ##
+
+*   TimeZone#to_s shows offset as GMT instead of UTC, because GMT will be more familiar to end users (see time zone selects used by Windows OS, google.com and yahoo.com.) Reverts [8370] *Geoff Buesing*
+
+*   Hash.from_xml: datetime xml types overflow to Ruby DateTime class when out of range of Time. Adding tests for utc offsets *Geoff Buesing*
+
+*   TimeWithZone #+ and #- : ensure overflow to DateTime with Numeric arg *Geoff Buesing*
+
+*   Time#to_json: don't convert to utc before encoding. References #175 *Geoff Buesing*
+
+*   Remove unused JSON::RESERVED_WORDS, JSON.valid_identifier? and JSON.reserved_word? methods. Resolves #164. *Cheah Chu Yeow*
+
+*   Adding Date.current, which returns Time.zone.today if config.time_zone is set; otherwise returns Date.today *Geoff Buesing*
+
+*   TimeWithZone: date part getter methods (#year #mon #day etc) are defined on class; no longer relying on method_missing *Geoff Buesing*
+
+*   Time.zone.parse return nil for strings with no date information *Geoff Buesing*
+
+*   Time.zone.parse respects offset information in string. Resolves #105. *Scott Fleckenstein, Geoff Buesing*
+
+*   Added Ruby 1.8 implementation of Process.daemon
+
+*   Duration #since and #ago with no argument (e.g., 5.days.ago) return TimeWithZone when config.time_zone is set. Introducing Time.current, which returns Time.zone.now if config.time_zone is set, otherwise just returns Time.now *Geoff Buesing*
+
+*   Time#since behaves correctly when passed a Duration. Closes #11527 *kemiller*
+
+*   Add #getutc alias for DateTime#utc *Geoff Buesing*
+
+*   Refactor TimeWithZone: don't send #since, #ago, #+, #-, #advance through method_missing *Geoff Buesing*
+
+*   TimeWithZone respects config.active_support.use_standard_json_time_format *Geoff Buesing*
+
+*   Add config.active_support.escape_html_entities_in_json to allow disabling of html entity escaping.  *Rick Olson*
+
+*   Improve documentation. *Xavier Noria*
+
+*   Modified ActiveSupport::Callbacks::Callback#call to accept multiple arguments.
+
+*   Time #yesterday and #tomorrow behave correctly crossing DST boundary. Closes #7399 *sblackstone*
+
+*   TimeWithZone: Adding tests for dst and leap day edge cases when advancing time *Geoff Buesing*
+
+*   TimeWithZone#method_missing: send to utc to advance with dst correctness, otherwise send to time. Adding tests for time calculations methods *Geoff Buesing*
+
+*   Add config.active_support.use_standard_json_time_format setting so that Times and Dates export to ISO 8601 dates.  *Rick Olson*
+
+*   TZInfo: Removing unneeded TimezoneProxy class *Geoff Buesing*
+
+*   TZInfo: Removing unneeded TimezoneIndexDefinition, since we're not including Indexes::Timezones *Geoff Buesing*
+
+*   Removing unnecessary uses_tzinfo helper from tests, given that TZInfo is now bundled *Geoff Buesing*
+
+*   Bundling abbreviated version of TZInfo gem 0.3.8: only the classes and zone definitions required to support Rails time zone features are included. If a recent version of the full TZInfo gem is installed, this will take precedence over the bundled version *Geoff Buesing*
+
+*   TimeWithZone#marshal_load does zone lookup via Time.get_zone, so that tzinfo/Olson identifiers are handled *Geoff Buesing*
+
+*   Time.zone= accepts TZInfo::Timezone instances and Olson identifiers; wraps result in TimeZone instance *Geoff Buesing*
+
+*   TimeWithZone time conversions don't need to be wrapped in TimeOrDateTime, because TZInfo does this internally *Geoff Buesing*
+
+*   TimeWithZone#usec returns 0 instead of error when DateTime is wrapped *Geoff Buesing*
+
+*   Improve documentation. *Ryan Bigg, Jan De Poorter, Cheah Chu Yeow, Xavier Shay, Jack Danger Canty, Emilio Tagua, Xavier Noria,  Sunny Ripert*
+
+*   Ensure that TimeWithZone#to_yaml works when passed a YAML::Emitter.  *Rick Olson*
+
+*   Ensure correct TimeWithZone#to_date *Geoff Buesing*
+
+*   Make TimeWithZone work with tzinfo 0.2.x: use TZInfo::Timezone#zone_identifier alias for #abbreviation, silence warnings on tests. Raise LoadError when TZInfo version is < 0.2 by sniffing for TZInfo::TimeOrDateTime constant. Move all tzinfo-dependent TimeZone tests into uses_tzinfo block *Geoff Buesing*
+
+*   Time, DateTime and TimeWithZone #in_time_zone defaults to Time.zone. Removing now unneeded #in_current_time_zone *Geoff Buesing*
+
+*   TZInfo caches Timezone instances in its own internal hash cache, so TimeZone::MAPPING doesn't need to cache them as well *Geoff Buesing*
+
+*   Adding TimeZone#parse *Geoff Buesing*
+
+*   Adding TimeZone#at and DateTime#to_f *Geoff Buesing*
+
+*   TimeWithZone responds to Ruby 1.9 weekday-named query methods *Geoff Buesing*
+
+*   TimeWithZone caches TZInfo::TimezonePeriod used for time conversion so that it can be reused, and enforces DST rules correctly when instance is created from a local time *Geoff Buesing*
+
+*   Fixed that BufferedLogger should create its own directory if one doesn't already exist #11285 *lotswholetime*
+
+*   Fix Numeric time tests broken by DST change by anchoring them to fixed times instead of Time.now. Anchor TimeZone#now DST test to time specified with Time.at instead of Time.local to work around platform differences with Time.local and DST representation *Geoff Buesing*
+
+*   Removing unneeded #change_time_zone method from Time, DateTime and TimeWithZone *Geoff Buesing*
+
+*   TimeZone #local and #now correctly enforce DST rules *Geoff Buesing*
+
+*   TimeWithZone instances correctly enforce DST rules. Adding TimeZone#period_for_utc *Geoff Buesing*
+
+*   test_time_with_datetime_fallback expects DateTime.local_offset instead of DateTime.now.offset *Geoff Buesing*
+
+*   Adding TimeWithZone #marshal_dump and #marshal_load *Geoff Buesing*
+
+*   Add OrderedHash#to_hash *Josh Peek*
+
+*   Adding Time#end_of_day, _quarter, _week, and _year.  #9312 *Juanjo Bazan, Tarmo Tänav, BigTitus*
+
+*   Adding TimeWithZone#between? *Geoff Buesing*
+
+*   Time.=== returns true for TimeWithZone instances *Geoff Buesing*
+
+*   TimeWithZone #+ and #- behave consistently with numeric arguments regardless of whether wrapped time is a Time or DateTime; consistenty answers false to #acts_like?(:date) *Geoff Buesing*
+
+*   Add String#squish and String#squish! to remove consecutive chunks of whitespace.  #11123 *Jordi Bunster, Henrik N*
+
+*   Serialize BigDecimals as Floats when using to_yaml. #8746 *Ernesto Jimenez*
+
+*   Adding TimeWithZone #to_yaml, #to_datetime, #eql? and method aliases for duck-typing compatibility with Time *Geoff Buesing*
+
+*   TimeWithZone #in_time_zone returns +self+ if zone argument is the same as #time_zone *Geoff Buesing*
+
+*   Adding TimeWithZone #to_a, #to_f, #to_i, #httpdate, #rfc2822 *Geoff Buesing*
+
+*   Pruning unneeded TimeWithZone#change_time_zone_to_current *Geoff Buesing*
+
+*   Time#zone=, #in_time_zone and #change_time_zone accept a Duration *Geoff Buesing*
+
+*   Time#in_time_zone handles Time.local instances correctly *Geoff Buesing*
+
+*   Pruning unneeded Time#change_time_zone_to_current. Enhanced docs to #change_time_zone to explain the difference between this method and #in_time_zone *Geoff Buesing*
+
+*   TimeZone#new method renamed #local; when used with Time.zone, constructor now reads: Time.zone.local() *Geoff Buesing*
+
+*   Added Base64.encode64s to encode values in base64 without the newlines. This makes the values immediately usable as URL parameters or memcache keys without further processing *David Heinemeier Hansson*
+
+*   Remove :nodoc: entries around the ActiveSupport test/unit assertions.  #10946 *dancroak, jamesh*
+
+*   Add Time.zone_default accessor for setting the default time zone.  Rails::Configuration.time_zone sets this.  #10982 *Geoff Buesing*
+
+*   cache.fetch(key, :force => true) to force a cache miss.  *Jeremy Kemper*
+
+*   Support retrieving TimeZones with a Duration.  TimeZone[-28800] == TimeZone[-480.minutes].  *Rick Olson*
+
+*   TimeWithZone#- added, so that #- can handle a Time or TimeWithZone argument correctly *Geoff Buesing*
+
+*   with_timezone test helper renamed with_env_tz, to distinguish between setting ENV['TZ'] and setting Time.zone in tests *Geoff Buesing*
+
+*   Time#- coerces TimeWithZone argument to a Time instance so that difference in seconds can be calculated. Closes #10914 *Geoff Buesing, yyyc514*
+
+*   Adding UTC zone to TimeZone; TimeWithZone no longer has to fake UTC zone with nil *Geoff Buesing*
+
+*   Time.get_zone refactored to private method, given that the encapsulated logic is only useful internally *Geoff Buesing*
+
+*   Time.zone uses thread-local variable for thread safety. Adding Time.use_zone, for overriding Time.zone locally inside a block. Removing unneeded Time.zone_reset! *Geoff Buesing*
+
+*   TimeZone#to_s uses UTC rather than GMT; reapplying change that was undone in [8679]. #1689 *Cheah Chu Yeow*
+
+*   Time.days_in_month defaults to current year if no year is supplied as argument #10799 [Radar], uses Date.gregorian_leap? to determine leap year, and uses constant lookup to determine days in month *Geoff Buesing*
+
+*   Adding Time and DateTime #compare_with_coercion, which layers behavior on #<=> so that any combination of Time, DateTime and ActiveSupport::TimeWithZone instances can be chronologically compared *Geoff Buesing*
+
+*   TimeZone#now returns an ActiveSupport::TimeWithZone *Geoff Buesing*
+
+*   Time #in_current_time_zone and #change_time_zone_to_current return self when Time.zone is nil *Geoff Buesing*
+
+*   Remove unneeded #to_datetime_default_s alias for DateTime#to_s, given that we inherit a #to_default_s from Date that does exactly the same thing *Geoff Buesing*
+
+*   Refactor Time and DateTime #to_formatted_s: use ternary instead of nested if/else *Geoff Buesing*
+
+*   Adding Time and DateTime #formatted_offset, for outputting +HH:MM utc offset strings with cross-platform consistency *Geoff Buesing*
+
+*   Adding alternate_utc_string option to TimeZone#formatted_offset. Removing unneeded TimeZone#offset. *Geoff Buesing*
+
+*   Introduce ActiveSupport::TimeWithZone, for wrapping Time instances with a TimeZone. Introduce instance methods to Time for creating TimeWithZone instances, and class methods for managing a global time zone. *Geoff Buesing*
+
+*   Replace non-dst-aware TimeZone class with dst-aware class from tzinfo_timezone plugin. TimeZone#adjust and #unadjust are no longer available; tzinfo gem must now be present in order to perform time zone calculations, via #local_to_utc and #utc_to_local methods. *Geoff Buesing*
+
+*   Extract ActiveSupport::Callbacks from Active Record, test case setup and teardown, and ActionController::Dispatcher.  #10727 *Josh Peek*
+
+*   Introducing DateTime #utc, #utc? and #utc_offset, for duck-typing compatibility with Time. Closes #10002 *Geoff Buesing*
+
+*   Time#to_json uses Numeric#to_utc_offset_s to output a cross-platform-consistent representation without having to convert to DateTime. References #9750 *Geoff Buesing*
+
+*   Refactor number-to-HH:MM-string conversion logic from TimeZone#formatted_offset to a reusable Numeric#to_utc_offset_s method. *Geoff Buesing*
+
+*   Continue evolution toward ActiveSupport::TestCase.  #10679 *Josh Peek*
+
+*   TestCase: introduce declared setup and teardown callbacks. Pass a list of methods and an optional block to call before setup or after teardown. Setup callbacks are run in the order declared; teardown callbacks are run in reverse.  *Jeremy Kemper*
+
+*   Added ActiveSupport::Gzip.decompress/compress(source) as an easy wrapper for Zlib *Tobias Lütke*
+
+*   Included MemCache-Client to make the improved ActiveSupport::Cache::MemCacheStore work out of the box *Bob Cottrell, Eric Hodel*
+
+##  Added ActiveSupport::Cache:: framework as an extraction from ActionController::Caching::Fragments:: David Heinemeier Hansson ##
+
+*   Fixed String#titleize to work for strings with 's too #10571 *trek*
+
+*   Changed the implementation of Enumerable#group_by to use a double array approach instead of a hash such that the insert order is honored *David Heinemeier Hansson/Marcel Molina Jr.*
+
+*   remove multiple enumerations from ActiveSupport::JSON#convert_json_to_yaml when dealing with date/time values.  *Rick Olson*
+
+*   Hash#symbolize_keys skips keys that can't be symbolized.  #10500 *Brad Greenlee*
+
+*   Ruby 1.9 compatibility.  #1689, #10466, #10468, #10554, #10594, #10632 *Cheah Chu Yeow, Pratik Naik, Jeremy Kemper, Dirkjan Bussink, Xavier Noria*
+
+*   TimeZone#to_s uses UTC rather than GMT.  #1689 *Cheah Chu Yeow*
+
+*   Refactor of Hash#symbolize_keys! to use Hash#replace.  Closes #10420 *ReinH*
+
+*   Fix HashWithIndifferentAccess#to_options! so it doesn't clear the options hash.  Closes #10419 *ReinH*
+
+
+## 2.0.1 (December 7th, 2007) ##
+
+*   Added Array#from and Array#to that behaves just from String#from and String#to *David Heinemeier Hansson*
+
+*   Fix that empty collections should be treated as empty arrays regardless of whitespace for Hash#from_xml #10255 *adamj*
+
+*   Time#time_with_datetime_fallback, Time#to_datetime, Date#to_datetime and String#to_datetime honor Ruby's default calendar reform setting. #10201 *Geoff Buesing*
+
+*   Change Time and DateTime #end_of_month to return last second of month instead of beginning of last day of month. Closes #10200 *Geoff Buesing*
+
+*   Speedup String#blank?  *Jeremy Kemper, Michael Koziarski*
+
+*   Add documentation for Hash#diff. Closes #9306 *Tarmo Tänav*
+
+*   Add new superclass_delegating_accessors.  Similar to class inheritable attributes but with subtly different semantics. *Michael Koziarski, Tarmo Tänav*
+
+*   Change JSON to encode %w(< > &) as 4 digit hex codes to be in compliance with the JSON spec.  Closes #9975 *Josh Peek, Cheah Chu Yeow, Tim Pope*
+
+*   Fix JSON encoding/decoding bugs dealing with /'s.  Closes #9990 *Rick Olson, theamazingrando*
+
+*   Introduce a base class for all test cases used by rails applications. ActiveSupport::TestCase *Michael Koziarski*
+
+    The intention is to use this to reduce the amount of monkeypatching / overriding that
+    is done to test/unit's classes.
+
+*   Document Enumerable and Hash #to_json.  #9970 *Cheah Chu Yeow*
+
+*   Hash#to_xml handles symbol values.  #9954 *Assaf*
+
+*   Hash#symbolize_keys behaves well with integer keys.  #9890 *PotatoSalad*
+
+*   Multibyte: String#slice supports regexp argument.  #9646 *yob*
+
+*   object.duplicable? returns true if object.dup is safe. False for nil, true, false, symbols, and numbers; true otherwise.  #9333 *sur*
+
+*   Time, Date and DateTime #advance accept :weeks option.  #9866 *Geoff Buesing*
+
+*   Fix Time#years_ago and #years_since from leap days.  #9865 *Geoff Buesing*
+
+*   Time and DateTime#advance accept :hours, :minutes, and :seconds options.  #9825 *Geoff Buesing*
+
+*   Fix Date#years_ago and #years_since from leap days.  #9864 *Geoff Buesing*
+
+*   Refactor Time and Date#months_since and #months_ago to use #advance.  #9863 *Geoff Buesing*
+
+*   Rebundle Builder 2.1.2 but prefer a newer RubyGem if available.  *Jeremy Kemper*
+
+*   Add Range#overlaps?(range), Range#include?(range), and Range#step without a block. *brandon*
+
+*   Correct BufferedLogger#level? checks.  #9806 *wildchild, Johan Sorensen*
+
+*   String#to_xs uses Eric Wong's fast_xs extension, if available, for Builder speedup.  http://bogomips.org/fast_xs/  *Jeremy Kemper*
+
+*   Introduce BasicObject as Builder::BlankSlate for Ruby 1.9 forward compatibility.  *Jeremy Kemper*
+
+*   Unbundle Builder in favor of a gem dependency.  *Jeremy Kemper*
+
+*   Disambiguate Time, Date, and DateTime#to_json formatting.  #9750 *Geoff Buesing, Cheah Chu Yeow*
+
+*   Hash#to_json takes :only or :except options to specific or omit certain hash keys. Enumerable#to_json passes through its options to each element.  #9751 *Cheah Chu Yeow*
+
+*   BufferedLogger#auto_flushing = N flushes the log every N messages. Buffers with an array instead of string. Disabling auto_flushing still flushes when the buffer hits a maximum size, as a failsafe against memory-gobbling.  *Jeremy Kemper*
+
+*   Fixed Date#xmlschema for dates outside the range of what can be created with Time #9744 *Geoff Buesing*
+
+*   Fixed that La Paz was included in -25200 and -14400 offsets when it should only be in -14400 #9735 *bermi*
+
+*   Fixed JSON encoding to use quoted keys according to the JSON standard.  #8762 *choonkat, Cheah Chu Yeow*
+
+*   Alias Object#send to send! for Ruby 1.9 forward compatibility.  *Jeremy Kemper*
+
+*   Backport Object#instance_variable_defined? for Ruby < 1.8.6.  *Jeremy Kemper*
+
+*   BufferedLogger#add converts the message to a string.  #9702, #9724 *eigentone, DrMark, Tom Ward*
+
+*   Added ActiveSupport::BufferedLogger as a duck-typing alternative (albeit with no formatter) to the Ruby Logger, which provides a very nice speed bump (inspired by Ezra's buffered logger) *David Heinemeier Hansson*
+
+*   Object#instance_exec produces fewer garbage methods.  *Mauricio Fernandez*
+
+*   Decode json strings as Dates/Times if they're using a YAML-compatible format.  Closes #9614 *Rick Olson*
+
+*   Fixed cache_page to use the request url instead of the routing options when picking a save path.  #8614 *Josh Peek*
+
+*   Object.subclasses_of includes anonymous subclasses.  *Jeremy Kemper*
+
+*   Fixed that pluralizing an empty string should return the same empty string, not "s".  #7720 *Josh Peek*
+
+*   Added call to inspect on non-string classes for the logger #8533 *Coda Hale*
+
+*   Deprecation: remove deprecated :mday option from Time, Date, and DateTime#change.  *Jeremy Kemper*
+
+*   Fix JSON decoder with nested quotes and commas.  #9579 *Zach Dennis*
+
+*   Hash#to_xml doesn't double-unescape.  #8806 *Ezran*
+
+*   Added Array#rand #9170 [Norbert Crombach]. Examples:
+
+        [].rand       # => nil
+        ['a'].rand    # => 'a'
+        [1,2,3].rand  # => 1 or 2 or 3
+
+*   Deprecation: removed Reloadable.  *Jeremy Kemper*
+
+*   Make the utf-handler return the correct value for non-matching regular expressions. Closes #9049 *Manfred Stienstra*
+
+*   Add ljust, rjust and center to utf8-handler. Closes #9165 *Manfred Stienstra*
+
+*   Fix Time#advance bug when trying to advance a year from leap day.  Closes #8655 *Geoff Buesing*
+
+*   Add support for []= on ActiveSupport::Multibyte::Chars. Closes #9142. *ewan, Manfred Stienstra*
+
+*   Added Array#extract_options! to encapsulate the pattern of getting an options hash out of a variable number of parameters.  #8759 *Norbert Crombach*
+
+*   Let alias_attribute work with attributes with initial capital letters (legacy columns etc).  Closes #8596 *mpalmer*
+
+*   Added Hash#except which is the inverse of Hash#slice -- return the hash except the keys that are specified *David Heinemeier Hansson*
+
+*   Added support for pluralization with a different starting letter than the singular version (cow/kine) #4929 *norri_b/Josh Susser*
+
+*   Demote Hash#to_xml to use XmlSimple#xml_in_string so it can't read files or stdin.  #8453 *candlerb, Jeremy Kemper*
+
+*   Backport clean_logger changes to support ruby 1.8.2 *Mislav Marohnić*
+
+*   Added proper handling of arrays #8537 *Josh Susser*
+
+    Before:
+        Hash.from_xml '<images></images>'
+        # => {:images => nil}
+
+        Hash.from_xml '<images><image>foo.jpg</image></images>'
+        # => {:images => {:image => "foo.jpg"}}
+
+        Hash.from_xml '<images><image>foo.jpg</image><image>bar.jpg</image></images>'
+        # => {:images => {:image => ["foo.jpg", "bar.jpg"]}}
+
+    After:
+        Hash.from_xml '<images type="array"></images>'
+        # => {:images => []}
+
+        Hash.from_xml '<images type="array"><image>foo.jpg</image></images>'
+        # => {:images => ["foo.jpg"]}
+
+        Hash.from_xml '<images type="array"><image>foo.jpg</image><image>bar.jpg</image></images>'
+        # => {:images => ["foo.jpg", "bar.jpg"]}
+
+*   Improve Time and Date test coverage.  #8646 *Josh Peek*
+
+*   Add Date#since, ago, beginning_of_day, and end_of_day. Date + seconds works now.  #8575 *Geoff Buesing*
+
+*   String#to_time overflows to DateTime. Add String#to_datetime.  #8572 *Geoff Buesing*
+
+*   Date.yesterday and .tomorrow.  #8571 *Geoff Buesing*
+
+*   Readable Date and DateTime#inspect.  #8570 *Geoff Buesing*
+
+*   Move common DateTime calculations to Date.  #8536 *Geoff Buesing*
+
+*   Added Date#change (like Time#change) *David Heinemeier Hansson*
+
+*   DateTime#to_time converts to Time unless out of range.  #8512 *Geoff Buesing*
+
+*   Date#to_datetime, #to_s(:rfc822).  #8512 *Geoff Buesing*
+
+*   Time durations use since instead of + for accuracy.  #8513 *Geoff Buesing*
+
+*   escape <'s and >'s in JSON strings. #8371 *Rick Olson*
+
+*   Inflections: MatrixTest -> MatrixTests instead of MatricesTest.  #8496 *jbwiv*
+
+*   Multibyte strings respond_to the String methods they proxy so they can be duck-typed.  #6549 *Tuxie*
+
+*   Array#to_xml yields the builder just like Hash and ActiveRecord::Base.  #8472 *seth*
+
+*   Date, Time, and DateTime support formatting blocks in addition to strftime strings. Introduce :long_ordinal format, e.g. "February 21st, 2005".  #8191 *Coda Hale*
+
+*   Document Object#blank?.  #6491 *Chris Mear*
+
+*   Date, Time, and DateTime#to_json.  #8399 *wycats*
+
+*   Simplify API of assert_difference by passing in an expression that is evaluated before and after the passed in block. See documenation for examples of new API. *Marcel Molina Jr.*
+
+*   Added assert_difference and assert_no_difference to test/unit assertions *Tobias Lütke*
+
+*   Removed breakpointer and Binding.of_caller in favor of relying on ruby-debug by Kent Sibilev since the breakpointer has been broken since Ruby 1.8.4 and will not be coming back *David Heinemeier Hansson*
+
+*   Added parsing of file type in Hash.xml_in so you can easily do file uploads with base64 from an API *David Heinemeier Hansson*
+
+        <person>
+          <name>David</name>
+          <avatar type="file" name="me.jpg" content_type="image/jpg">R0lGODlhkACZAPUAAM5lcfjrtMQCG=\n</avatar>
+        </person>
+
+    ...becomes:
+
+        attributes = { :person => { :name => "David", :avatar => #<StringIO> } }
+        attributes[:person][:avatar].content_type      # => "image/jpg"
+        attributes[:person][:avatar].original_filename # => "me.jpg"
+        attributes[:person][:avatar].read # => binary data of the file
+
+    Which is duck-type compatible with the files that you get when doing multipart uploads through HTML.
+
+*   Improved multibyte performance by relying less on exception raising #8159 *Blaine*
+
+*   Use XSD-compatible type names for Hash#to_xml and make the converters extendable #8047 *Tim Pope*
+
+*   Added yielding of builder in Hash#to_xml *David Heinemeier Hansson*
+
+*   Hash#with_indifferent_access now also converts hashes kept in arrays to indifferent access (makes it easier to treat HTML and XML parameters the same) *David Heinemeier Hansson*
+
+*   Hash#to_xml supports YAML attributes.  #7502 *jonathan*
+
+*   Refactor ActiveSupport::JSON to be less obtuse.  Add support for JSON decoding by way of Syck with ActiveSupport::JSON.decode(json_string).  Prevent hash keys that are JavaScript reserved words from being unquoted during encoding.  *Sam Stephenson*
+
+*   alias_method_chain preserves the original method's visibility.  #7854 *Jonathan Viney*
+
+*   Update Dependencies to ignore constants inherited from ancestors. Closes #6951. *Nicholas Seckar*
+
+*   Array#to_query preserves its ordering.  #7756 *Greg Spurrier*
+
+*   Out-of-range Time calculations transparently overflow to DateTime. Introduce Time#to_datetime.  #7706, #7715 *Geoff Buesing*
+
+*   DateTime calculations analogous to the Date and Time extensions.  #7693 *Geoff Buesing*
+
+*   Give DateTime correct .to_s implementations, lets it play nice with ActiveRecord quoting.  #7649 *Geoff Buesing*
+
+*   Add File.atomic_write,  allows you to write large files in an atomic manner, preventing users from seeing half written files.  *Michael Koziarski*
+
+*   Allow users to provide custom formatters to Logger. *Anthony Eden*
+
+*   Hash#to_query CGI-escapes its keys.  *Jeremy Kemper*
+
+*   Optimize Class Inheritable Attributes so that unnecessary hashes are not created.  Closes #7472 *Bruce Perens*
+
+*   :db format for Date#to_s *Jeremy Kemper*
+        Date.new(2007, 1, 27).to_s(:db) # => '2007-01-27'
+
+*   Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  *Rick Olson*
+
+*   Added Hash#to_query to turn a hash of values into a form-encoded query string *Nicholas Seckar*
+
+*   Increase test coverage for subclasses_of. Closes #7335. *Roman2K, Nicholas Seckar*
+
+*   Remove unused code from Duration#inspect.  Closes #7180.  *Rich Collins*
+
+*   Added test coverage for Inflector.inflections.clear.  Closes #7179. *Rich Collins*
+
+*   ActiveSupport::Multibyte::Handlers::UTF8Handler should raise when a range and an integer are passed in (just like the native implementation).  Closes #7176 *Rich Collins*
+
+*   A couple extra tests for #classify.  Closes #7273. *Josh Susser*
+
+*   Better docs for Object extensions *zackchandler, Jamis Buck*
+
+*   Fix that Dates couldn't be subtracted from Dates after [5940].  *Sam Stephenson*
+
+*   Add Object#acts_like? and Time#acts_like_time? and Date#acts_like_date? to facilitate duck-typing. *Jamis Buck*
+
+*   Make 1.months and friends accurate by introducing a Duration class.  #6835 *eventualbuddha*
+
+
+## 1.4.2 (March 12th, 2007) ##
+
+*   Ruby 1.8.6 and 1.9 define private Time#to_date and #to_datetime; make them
+    public for compatibility.  *Jeremy Kemper*
+
+*   Deprecation: warn on stderr if RAILS_DEFAULT_LOGGER isn't set yet.  *Jeremy Kemper*
+
+
+## 1.4.1 (February 5th, 2007) ##
+
+*   Optimize Class Inheritable Attributes so that unnecessary hashes are not created.  Closes #7472 *Bruce Perens*
+
+*   Added :instance_writer option to #mattr_writer/accessor, #cattr_writer/accessor, and #class_inheritable_writer to skip the creation of the instance writer.  *Rick Olson*
+
+*   Full test coverage for Inflector.  #7228 *Dan Kubb*
+
+
+## 1.4.0 (January 16th, 2007) ##
+
+*   Document Inflector.ordinalize and merge docs from String inflections.  #7023 *smeade*
+
+*   Unbundle flexmock.  *Jeremy Kemper*
+
+*   Fix Dependencies.autoloaded? to ignore anonymous modules. Closes #6561. *Nicholas Seckar*
+
+*   Update load once paths to prevent nested once constants from being detected and claimed by an external non-once load. *Nicholas Seckar*
+
+*   Deprecation: silence warnings when reporting test errors.  *Jeremy Kemper*
+
+*   Hash#slice(*keys) returns a new hash with only the given keys. #slice! replaces the hash with only the given keys. Works with HashWithIndifferentAccess also.  *Jeremy Kemper*
+
+*   HashWithIndifferentAccess#to_hash converts to a Hash with String keys and the same default value.  *Jeremy Kemper*
+
+*   Fix remove_constant to correctly handle constant names of the form "::A::...". References #6720. *Nicholas Seckar*
+
+*   Fixed Array#to_xml when it contains a series of hashes (each piece would get its own XML declaration) #6610 *thkarcher/cyu*
+
+*   Added Time#to_s(:time) which will just return H:M, like 17:44 *David Heinemeier Hansson*
+
+*   Add Module#attr_accessor_with_default to initialize value of attribute before setting it. Closes #6538. *Stuart Halloway, Marcel Molina Jr.*
+
+*   Hash#to_xml handles keys with the same name as Kernel methods.  #6613 *Jonathan del Strother*
+
+*   Added Time#end_of_day to get 23:59:59 of that day *David Heinemeier Hansson*
+
+*   Don't quote hash keys in Hash#to_json if they're valid JavaScript identifiers.  Disable this with ActiveSupport::JSON.unquote_hash_key_identifiers = false if you need strict JSON compliance. *Sam Stephenson*
+
+*   Lazily load the Unicode Database in the UTF-8 Handler *Rick Olson*
+
+*   Update dependencies to delete partially loaded constants. *Nicholas Seckar*
+
+*   Fix unicode JSON regexp for Onigurama compatibility.  #6494 *whitley*
+
+*   update XmlSimple to 1.0.10. Closes #6532. *Nick Sieger*
+
+*   Update dependencies to allow constants to be defined alongside their siblings. A common case for this is AR model classes with STI; user.rb might define User, Administrator and Guest for example. *Nicholas Seckar*
+
+*   next_week respects DST changes.  #6483, #5617, #2353, #2509, #4551 *marclove, Rob Biedenharn, rails@roetzel.de, jsolson@damogran.org, drbrain@segment7.net*
+
+*   Expose methods added to Enumerable in the documentation, such as group_by. Closes #6170. *sergeykojin@gmail.com, Marcel Molina Jr.*
+
+*   Ensure Chars#tidy_bytes only tidies broken bytes. Closes #6397 *Manfred Stienstra*
+
+*   Add 'unloadable', a method used to mark any constant as requiring an unload after each request. *Nicholas Seckar*
+
+*   Make core_ext/string/access.rb multibyte safe. Closes #6388 *Manfred Stienstra*
+
+*   Make String#chars slicing behaviour consistent with String. Closes #6387 *Manfred Stienstra*
+
+*   Pull in latest multibyte patch. Closes #6346 *Manfred Stienstra*
+
+*   Add ActiveSupport::Multibyte.  Provides String#chars which lets you deal with strings as a sequence of chars, not of bytes. Closes #6242 *Julian Tarkhanov, Manfred Stienstra, Thijs van der Vossen & Jan Behrens*
+
+*   Fix issue with #class_inheritable_accessor saving updates to the parent class when initialized with an Array or Hash *mojombo*
+
+*   Hash#to_xml supports Bignum and BigDecimal.  #6313 *edibiase*
+
+*   Don't undefine #class in OptionMerger *Rick Olson*
+
+*   Hash.create_from_xml has been renamed to Hash.from_xml, alias will exist until Rails 2.0 *David Heinemeier Hansson*
+
+*   alias_method_chain works with accessor= methods also.  #6153 *Caio Chassot*
+
+*   Fix loadable_constants_for_path to handle load paths that do not end with a slash. *Nicholas Seckar*
+
+*   Fix logic error in determining what was loaded by a given file. Closes #6039. *Nicholas Seckar*
+
+*   Equate Kernel.const_missing with Object.const_missing. Fixes #5988. *Nicholas Seckar*
+
+*   Add ApplicationController special case to Dependencies. *Nicholas Seckar*
+
+*   Don't pad remaining places with in_groups_of if specified padding value is false. *Marcel Molina Jr.*
+
+*   Fix cases where empty xml nodes weren't being translated to nil in Hash.create_from_xml *Rick Olso n*
+
+    <written-on type="date"></written-on> # => { :type => 'date' } # WRONG
+    <written-on type="date"></written-on> # => nil # RIGHT
+
+*   Tighten rescue clauses.  #5985 *james@grayproductions.net*
+
+*   Inflections: don't singularize -ies plurals.  *foamdino@gmail.com, Mark Van Holstyn*
+
+*   Update Initializer to use load_once_paths to avoid plugin reloading. References #5852. *Nicholas Seckar*
+
+*   Use Array#assoc in ActiveSupport::OrderedHash. *Mauricio Fernandez*
+
+*   Greatly increased performance of String.to_json, which speeds up RJS considerably on large pages, fixes #3473 *Shugo Maeda*
+
+*   Detect missing_constants calls from removed modules and fail accordingly. *Nicholas Seckar*
+
+*   Stop using defined? in Dependencies.qualified_const_defined? since defined? may invoke const_missing. *Nicholas Seckar*
+
+*   Dependencies can autoload directories of nested classes. *Jeremy Kemper*
+        Example:
+          invoice.rb            class Invoice
+          invoice/lineitem.rb   class Invoice::Lineitem
+
+*   Add Deprecation.silence so that Reloadable does not scold itself. *Nicholas Seckar*
+
+*   Add debugging logging to Dependencies. Currently can be enabled with Dependencies.log_activity = true; adding to Initializer and documenting is forthcoming. *Nicholas Seckar*
+
+*   Replace Reloadable with improvements to the Dependencies mechanism. *Nicholas Seckar*
+
+*   DateTime#to_time gives hour/minute/second resolution.  #5747 *jon.evans@pobox.com*
+
+*   attr_internal to support namespacing and deprecation. Like attr_* except backed by internally-named instance variable. Set attr_internal_naming_format to change the format from the default '@_%s'. *Jeremy Kemper*
+        # def foo()   @foo__rofl      end
+        # def foo=(v) @foo__rofl = v  end
+        self.attr_internal_naming_format = '@%s__rofl'
+        attr_internal :foo
+
+*   Raise fully qualified names upon name errors. #5533 *Lars Pind, Nicholas Seckar*
+
+*   Add extention to obtain the missing constant from NameError instances. *Nicholas Seckar*
+
+*   Thoroughly document inflections.  #5700 *petermichaux@gmail.com*
+
+*   Added Module#alias_attribute [Jamis/David Heinemeier Hansson]. Example:
+
+        class Content < ActiveRecord::Base
+          # has a title attribute
+        end
+
+        class Email < ActiveRecord::Base
+          alias_attribute :subject, :title
+        end
+
+        e = Email.find(1)
+        e.title    # => "Superstars"
+        e.subject  # => "Superstars"
+        e.subject? # => true
+        e.subject = "Megastars"
+        e.title    # => "Megastars"
+
+*   Deprecation: easier to work with warning behavior as procs; default behaviors for each environment so users needn't update env.rb; and testing pleasure with assert_deprecated, assert_not_deprecated. *Jeremy Kemper*
+    By default, test prints to $stderr, dev logs, production ignores.
+    Provide your own per-environment in e.g. config/environments/development.rb:
+        ActiveSupport::Deprecation.behavior = Proc.new { |message| raise message }
+
+*   First cut of the Rails Deprecation system.   *Michael Koziarski*
+
+*   Strip boolean XML content before checking for 'true' *Rick Olson*
+
+*   Customize default BigDecimal formatting. References #5672 *Dave Thomas*
+
+*   Correctly convert <foo nil="true"> to nil when using Hash.create_from_xml.  *Rick Olson*
+
+*   Optional identity for Enumerable#sum defaults to zero. #5657 *gensym@mac.com*
+
+*   HashWithIndifferentAccess shouldn't confuse false and nil. #5601 *Shugo Maeda*
+
+*   Fixed HashWithIndifferentAccess#default #5586 *chris@seagul.co.uk*
+
+*   More compatible Hash.create_from_xml. #5523 *nunemaker@gmail.com*
+
+*   Added Enumerable#sum for calculating a sum from the elements [David Heinemeier Hansson, jonathan@daikini.com]. Examples:
+
+        [1, 2, 3].sum
+        payments.sum { |p| p.price * p.tax_rate }
+        payments.sum(&:price)
+
+    This is instead of payments.inject(0) { |sum, p| sum + p.price }
+
+*   Correct and clarify Array#to_sentence docs.  #5458 *brad@madriska.com*
+
+*   alias_method_chain preserves method punctuation so foo, foo?, and foo! may be chained with the same feature. *Jeremy Kemper*
+        Example:
+          alias_method_chain :save!, :validation
+        is equivalent to
+          alias_method :save_without_validation!, :save!
+          alias_method :save!, :save_with_validation!
+
+*   Enhance Symbol#to_proc so it works with list objects, such as multi-dimensional arrays. Closes #5295 [nov@yo.rim.or.jp].  Example:
+
+        {1 => "one", 2 => "two", 3 => "three"}.sort_by(&:first).map(&:last)
+        # => ["one", "two", "three"]
+
+*   Added Hash.create_from_xml(string) which will create a hash from a XML string and even typecast if possible [David Heinemeier Hansson]. Example:
+
+        Hash.create_from_xml <<-EOT
+          <note>
+            <title>This is a note</title>
+            <created-at type="date">2004-10-10</created-at>
+          </note>
+        EOT
+
+    ...would return:
+
+        { :note => { :title => "This is a note", :created_at => Date.new(2004, 10, 10) } }
+
+*   Added Jim Weirich's excellent FlexMock class to vendor (Copyright 2003, 2004 by Jim Weirich (jim@weriichhouse.org)) -- it's not automatically required, though, so require 'flexmock' is still necessary *David Heinemeier Hansson*
+
+*   Fixed that Module#alias_method_chain should work with both foo? foo! and foo at the same time #4954 *anna@wota.jp*
+
+*   to_xml fixes, features, and speedup: introduce :dasherize option that converts updated_at to updated-at if true (the existing default); binary columns get encoding="base64" attribute; nil values get nil="true" attribute to distinguish empty values; add type information for float columns; allow arbitrarily deep :include; include SQL type information as the type attribute.  #4989 *Blair Zajac <blair@orcaware.com>*
+
+*   Add OrderedHash#values. *Sam Stephenson*
+
+*   Added Array#to_s(:db) that'll produce a comma-separated list of ids [David Heinemeier Hansson]. Example:
+
+        Purchase.find(:all, :conditions => "product_id IN (#{shops.products.to_s(:db)})"
+
+*   Normalize classify's argument to a String so that it plays nice with Symbols. *Marcel Molina Jr.*
+
+*   Strip out leading schema name in classify. References #5139. *Michael Schoen*
+
+*   Remove Enumerable#first_match since break(value) handles the use case well enough. *Nicholas Seckar*
+
+    Enumerable#first_match was like detect, but instead of returning the matching element, the yielded value returned. For example:
+
+        user_xml = adapters(:from => User, :to => Xml).first_match do |adapter|
+          adapter.adapt @user
+        end
+
+    But this is just as easily done with:
+
+        user_xml = adapters(:from => User, :to => Xml).each do
+          break adapter.adapt(@user)
+        end
+
+*   Make Array#in_groups_of just return the grouped collection if a block isn't given. *Marcel Molina Jr.*
+
+*   Don't destroy a HashWithIndifferentAccess if symbolize_keys! or  stringify_keys! is called on it. Closes #5076. *Marcel Molina Jr., guy.naor@famundo.com*
+
+*   Document Module::delegate. #5002 *pergesu@gmail.com*
+
+*   Replace alias method chaining with Module#alias_method_chain. *Marcel Molina Jr.*
+
+*   Strip out punctuation on predicates or bang methods being aliased with alias_method_chain since target?_without_feature is not a valid method name. Add tests for Module#alias_method_chain. *Marcel Molina Jr.*
+
+*   Replace Ruby's deprecated append_features in favor of included. *Marcel Molina Jr.*
+
+*   Allow default options in with_options to be overridden. Closes #4480. *murphy@cYcnus.de*
+
+*   Added Module#alias_method_chain *Jamis Buck*
+
+*   Updated to Builder 2.0 *David Heinemeier Hansson*
+
+*   Add Array#split for dividing arrays into one or more subarrays by value or block. *Sam Stephenson*
+
+## 1.3.1 (April 6th, 2006) ##
+
+*   Clean paths inside of exception messages and traces. *Nicholas Seckar*
+
+*   Add Pathname.clean_within for cleaning all the paths inside of a string. *Nicholas Seckar*
+
+*   provide an empty Dependencies::LoadingModule.load which prints deprecation warnings.  Lets 1.0 applications function with .13-style environment.rb.
+
+
+## 1.3.0 (March 27th, 2006) ##
+
+*   When possible, avoid incorrectly obtaining constants from parent modules. Fixes #4221. *Nicholas Seckar*
+
+*   Add more tests for dependencies; refactor existing cases. *Nicholas Seckar*
+
+*   Move Module#parent and Module#as_load_path into core_ext. Add Module#parent. *Nicholas Seckar*
+
+*   Add CachingTools::HashCaching to simplify the creation of nested, autofilling hashes. *Nicholas Seckar*
+
+*   Remove a hack intended to avoid unloading the same class twice, but which would not work anyways. *Nicholas Seckar*
+
+*   Update Object.subclasses_of to locate nested classes. This affects Object.remove_subclasses_of in that nested classes will now be unloaded. *Nicholas Seckar*
+
+*   Update Object.remove_subclasses_of to use Class.remove_class, reducing duplication. *Nicholas Seckar*
+
+*   Added Fixnum#seconds for consistency, so you can say 5.minutes + 30.seconds instead of 5.minutes + 30 #4389 *François Beausoleil*
+
+*   Added option to String#camelize to generate lower-cased camel case by passing in :lower, like "super_man".camelize(:lower) # => "superMan" *David Heinemeier Hansson*
+
+*   Added Hash#diff to show the difference between two hashes *Chris McGrath*
+
+*   Added Time#advance to do precise time time calculations for cases where a month being approximated to 30 days won't do #1860 *Rick Olson*
+
+*   Enhance Inflector.underscore to convert '-' into '_' (as the inverse of Inflector.dasherize) *Jamis Buck*
+
+*   Switched to_xml to use the xml schema format for datetimes.  This allows the encoding of time zones and should improve operability. *Michael Koziarski*
+
+*   Added a note to the documentation for the Date related Numeric extensions to indicate that they're
+    approximations and shouldn't be used for critical calculations. *Michael Koziarski*
+
+*   Added Hash#to_xml and Array#to_xml that makes it much easier to produce XML from basic structures [David Heinemeier Hansson]. Examples:
+
+        { :name => "David", :street_name => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml
+
+    ...returns:
+
+          <person>
+            <street-name>Paulina</street-name>
+            <name>David</name>
+            <age type="integer">26</age>
+            <moved-on type="date">2005-11-15</moved-on>
+          </person>
+
+*   Moved Jim Weirich's wonderful Builder from Action Pack to Active Support (it's simply too useful to be stuck in AP) *David Heinemeier Hansson*
+
+*   Fixed that Array#to_sentence will return "" on an empty array instead of ", and" #3842, #4031 *rubyonrails@beautifulpixel.com*
+
+*   Add Enumerable#group_by for grouping collections based on the result of some
+    block. Useful, for example, for grouping records by date.
+
+    ex.
+
+         latest_transcripts.group_by(&:day).each do |day, transcripts|
+           p "#{day} -> #{transcripts.map(&:class) * ', '}"
+         end
+         "2006-03-01 -> Transcript"
+         "2006-02-28 -> Transcript"
+         "2006-02-27 -> Transcript, Transcript"
+         "2006-02-26 -> Transcript, Transcript"
+
+    Add Array#in_groups_of, for iterating over an array in groups of a certain
+    size.
+
+    ex.
+
+         %w(1 2 3 4 5 6 7).in_groups_of(3) {|g| p g}
+         ["1", "2", "3"]
+         ["4", "5", "6"]
+         ["7", nil, nil]
+
+    *Marcel Molina Jr., Sam Stephenson*
+
+*   Added Kernel#daemonize to turn the current process into a daemon that can be killed with a TERM signal *David Heinemeier Hansson*
+
+*   Add 'around' methods to Logger,  to make it easy to log before and after messages for a given block as requested in #3809. [Michael Koziarski]  Example:
+
+    logger.around_info("Start rendering component (#{options.inspect}): ",
+                         "\n\nEnd of component rendering") { yield }
+
+*   Added Time#beginning_of_quarter #3607 *cohen.jeff@gmail.com*
+
+*   Fix Object.subclasses_of to only return currently defined objects *Jonathan Viney <jonathan@bluewire.net.nz>*
+
+*   Fix constantize to properly handle names beginning with '::'. *Nicholas Seckar*
+
+*   Make String#last return the string instead of nil when it is shorter than the limit [Scott Barron].
+
+*   Added delegation support to Module that allows multiple delegations at once (unlike Forwardable in the stdlib) [David Heinemeier Hansson]. Example:
+
+        class Account < ActiveRecord::Base
+          has_one :subscription
+          delegate :free?, :paying?, :to => :subscription
+          delegate :overdue?, :to => "subscription.last_payment"
+        end
+
+        account.free?    # => account.subscription.free?
+        account.overdue? # => account.subscription.last_payment.overdue?
+
+*   Fix Reloadable to handle the case where a class that has been 'removed' has not yet been garbage collected. *Nicholas Seckar*
+
+*   Don't allow Reloadable to be included into Modules.
+
+*   Remove LoadingModule. *Nicholas Seckar*
+
+*   Add documentation for Reloadable::Subclasses. *Nicholas Seckar*
+
+*   Add Reloadable::Subclasses which handles the common case where a base class should not be reloaded, but its subclasses should be. *Nicholas Seckar*
+
+*   Further improvements to reloading code *Nicholas Seckar, Trevor Squires*
+
+    - All classes/modules which include Reloadable can define reloadable? for fine grained control of reloading
+    - Class.remove_class uses Module#parent to access the parent module
+    - Class.remove_class expanded to handle multiple classes in a single call
+    - LoadingModule.clear! has been removed as it is no longer required
+    - Module#remove_classes_including has been removed in favor of Reloadable.reloadable_classes
+
+*   Added reusable reloading support through the inclusion of the Relodable module that all subclasses of ActiveRecord::Base, ActiveRecord::Observer, ActiveController::Base, and ActionMailer::Base automatically gets. This means that these classes will be reloaded by the dispatcher when Dependencies.mechanism = :load. You can make your own models reloadable easily:
+
+        class Setting
+          include Reloadable
+        end
+
+    Reloading a class is done by removing its constant which will cause it to be loaded again on the next reference. *David Heinemeier Hansson*
+
+*   Added auto-loading support for classes in modules, so Conductor::Migration will look for conductor/migration.rb and Conductor::Database::Settings will look for conductor/database/settings.rb *Nicholas Seckar*
+
+*   Add Object#instance_exec, like instance_eval but passes its arguments to the block.  (Active Support will not override the Ruby 1.9 implementation of this method.) *Sam Stephenson*
+
+*   Add Proc#bind(object) for changing a proc or block's self by returning a Method bound to the given object. Based on why the lucky stiff's "cloaker" method. *Sam Stephenson*
+
+*   Fix merge and dup for hashes with indifferent access #3404 *Ken Miller*
+
+*   Fix the requires in option_merger_test to unbreak AS tests. *Sam Stephenson*
+
+*   Make HashWithIndifferentAccess#update behave like Hash#update by returning the hash. #3419, #3425 *asnem@student.ethz.ch, JanPrill@blauton.de, Marcel Molina Jr.*
+
+*   Add ActiveSupport::JSON and Object#to_json for converting Ruby objects to JSON strings. *Sam Stephenson*
+
+*   Add Object#with_options for DRYing up multiple calls to methods having shared options. [Sam Stephenson]  Example:
+
+    ActionController::Routing::Routes.draw do |map|
+        # Account routes
+        map.with_options(:controller => 'account') do |account|
+          account.home   '',       :action => 'dashboard'
+          account.signup 'signup', :action => 'new'
+          account.logout 'logout', :action => 'logout'
+        end
+    end
+
+*   Introduce Dependencies.warnings_on_first_load setting.  If true, enables warnings on first load of a require_dependency.  Otherwise, loads without warnings.  Disabled (set to false) by default.  *Jeremy Kemper*
+
+*   Active Support is warnings-safe.  #1792 *Eric Hodel*
+
+*   Introduce enable_warnings counterpart to silence_warnings.  Turn warnings on when loading a file for the first time if Dependencies.mechanism == :load.  Common mistakes such as redefined methods will print warnings to stderr.  *Jeremy Kemper*
+
+*   Add Symbol#to_proc, which allows for, e.g. [:foo, :bar].map(&:to_s). *Marcel Molina Jr.*
+
+*   Added the following methods [Marcel Molina Jr., Sam Stephenson]:
+    * Object#copy_instance_variables_from(object) to copy instance variables from one object to another
+    * Object#extended_by to get an instance's included/extended modules
+    * Object#extend_with_included_modules_from(object) to extend an instance with the modules from another instance
+
+## 1.2.5 (December 13th, 2005) ##
+
+*   Become part of Rails 1.0
+
+*   Rename Version constant to VERSION. #2802 *Marcel Molina Jr.*
+
+## 1.2.3 (November 7th, 2005) ##
+
+*   Change Inflector#constantize to use eval instead of const_get. *Nicholas Seckar*
+
+*   Fix const_missing handler to ignore the trailing '.rb' on files when comparing paths. *Nicholas Seckar*
+
+*   Define kernel.rb methods in "class Object" instead of "module Kernel" to work around a Windows peculiarity *Sam Stephenson*
+
+*   Fix broken tests caused by incomplete loading of active support. *Nicholas Seckar*
+
+*   Fix status pluralization bug so status_codes doesn't get pluralized as statuses_code.  #2758 *keithm@infused.org*
+
+*   Added Kernel#silence_stderr to silence stderr for the duration of the given block *Sam Stephenson*
+
+*   Changed Kernel#` to print a message to stderr (like Unix) instead of raising Errno::ENOENT on Win32 *Sam Stephenson*
+
+*   Changed 0.blank? to false rather than true since it violates everyone's expectation of blankness.  #2518, #2705 *rails@jeffcole.net*
+
+*   When loading classes using const_missing, raise a NameError if and only if the file we tried to load was not present. *Nicholas Seckar*
+
+*   Added petabytes and exebytes to numeric extensions #2397 *timct@mac.com*
+
+*   Added Time#end_of_month to accompany Time#beginning_of_month #2514 *Jens-Christian Fischer*
+
+
+## 1.2.2 (October 26th, 2005) ##
+
+*   Set Logger.silencer = false to disable Logger#silence.  Useful for debugging fixtures.
+
+*   Add title case method to String to do, e.g., 'action_web_service'.titlecase #  => 'Action Web Service'. *Marcel Molina Jr.*
+
+
+## 1.2.1 (October 19th, 2005) ##
+
+*   Classify generated routing code as framework code to avoid appearing in application traces. *Nicholas Seckar*
+
+*   Show all framework frames in the framework trace. *Nicholas Seckar*
+
+
+## 1.2.0 (October 16th, 2005) ##
+
+*   Update Exception extension to show the first few framework frames in an application trace. *Nicholas Seckar*
+
+*   Added Exception extension to provide support for clean backtraces. *Nicholas Seckar*
+
+*   Updated whiny nil to be more concise and useful. *Nicholas Seckar*
+
+*   Added Enumerable#first_match *Nicholas Seckar*
+
+*   Fixed that Time#change should also reset usec when also resetting minutes #2459 *ikeda@dream.big.or.jp*
+
+*   Fix Logger compatibility for distributions that don't keep Ruby and its standard library in sync.
+
+*   Replace '%e' from long and short time formats as Windows does not support it. #2344. *Tom Ward <tom@popdog.net>*
+
+*   Added to_s(:db) to Range, so you can get "BETWEEN '2005-12-10' AND '2005-12-12'" from Date.new(2005, 12, 10)..Date.new(2005, 12, 12) (and likewise with Times)
+
+*   Moved require_library_or_gem into Kernel. #1992 *Michael Schuerig <michael@schuerig.de>*
+
+*   Add :rfc822 as an option for Time#to_s (to get rfc822-formatted times)
+
+*   Chain the const_missing hook to any previously existing hook so rails can play nicely with rake
+
+*   Clean logger is compatible with both 1.8.2 and 1.8.3 Logger.  #2263 *Michael Schuerig <michael@schuerig.de>*
+
+*   Added native, faster implementations of .blank? for the core types #2286 *skae*
+
+*   Fixed clean logger to work with Ruby 1.8.3 Logger class #2245
+
+*   Fixed memory leak with Active Record classes when Dependencies.mechanism = :load #1704 *Chris McGrath*
+
+*   Fixed Inflector.underscore for use with acronyms, so HTML becomes html instead of htm_l #2173 *k@v2studio.com*
+
+*   Fixed dependencies related infinite recursion bug when a controller file does not contain a controller class. Closes #1760. *rcolli2@tampabay.rr.com*
+
+*   Fixed inflections for status, quiz, move #2056 *deirdre@deirdre.net*
+
+*   Added Hash#reverse_merge, Hash#reverse_merge!, and Hash#reverse_update to ease the use of default options
+
+*   Added Array#to_sentence that'll turn ['one', 'two', 'three'] into "one, two, and three" #2157 *Manfred Stienstra*
+
+*   Added Kernel#silence_warnings to turn off warnings temporarily for the passed block
+
+*   Added String#starts_with? and String#ends_with? #2118 *Thijs van der Vossen*
+
+*   Added easy extendability to the inflector through Inflector.inflections (using the Inflector::Inflections singleton class). Examples:
+
+        Inflector.inflections do |inflect|
+          inflect.plural /^(ox)$/i, '\1\2en'
+          inflect.singular /^(ox)en/i, '\1'
+
+          inflect.irregular 'octopus', 'octopi'
+
+          inflect.uncountable "equipment"
+        end
+
+*   Added String#at, String#from, String#to, String#first, String#last in ActiveSupport::CoreExtensions::String::Access to ease access to individual characters and substrings in a string serving basically as human names for range access.
+
+*   Make Time#last_month work when invoked on the 31st of a month.
+
+*   Add Time.days_in_month, and make Time#next_month work when invoked on the 31st of a month
+
+*   Fixed that Time#midnight would have a non-zero usec on some platforms #1836
+
+*   Fixed inflections of "index/indices" #1766 *damn_pepe@gmail.com*
+
+*   Added stripping of _id to String#humanize, so "employee_id" becomes "Employee" #1574 *Justin French*
+
+*   Factor Fixnum and Bignum extensions into Integer extensions *Nicholas Seckar*
+
+*   Hooked #ordinalize into Fixnum and Bignum classes. *Nicholas Seckar, danp*
+
+*   Added Fixnum#ordinalize to turn 1.ordinalize to "1st", 3.ordinalize to "3rd", and 10.ordinalize to "10th" and so on #1724 *paul@cnt.org*
+
+
+## 1.1.1 (11 July, 2005) ##
+
+*   Added more efficient implementation of the development mode reset of classes #1638 *Chris McGrath*
+
+
+## 1.1.0 (6 July, 2005) ##
+
+*   Fixed conflict with Glue gem #1606 *Rick Olson*
+
+*   Added new rules to the Inflector to deal with more unusual plurals mouse/louse => mice/lice, information => information, ox => oxen, virus => viri, archive => archives #1571, #1583, #1490, #1599, #1608 *foamdino@gmail.com/others*
+
+*   Fixed memory leak with Object#remove_subclasses_of, which inflicted a Rails application running in development mode with a ~20KB leak per request #1289 *Chris McGrath*
+
+*   Made 1.year == 365.25.days to account for leap years.  This allows you to do User.find(:all, :conditions => ['birthday > ?', 50.years.ago]) without losing a lot of days.  #1488 *tuxie@dekadance.se*
+
+*   Added an exception if calling id on nil to WhinyNil #584 *kevin-temp@writesoon.com*
+
+*   Added Fix/Bignum#multiple_of? which returns true on 14.multiple_of?(7) and false on 16.multiple_of?(7) #1464 *Thomas Fuchs*
+
+*   Added even? and odd? to work with Bignums in addition to Fixnums #1464 *Thomas Fuchs*
+
+*   Fixed Time#at_beginning_of_week returned the next Monday instead of the previous one when called on a Sunday #1403 *jean.helou@gmail.com*
+
+*   Increased the speed of indifferent hash access by using Hash#default.  #1436 *Nicholas Seckar*
+
+*   Added that "   " is now also blank? (using strip if available)
+
+*   Fixed Dependencies so all modules are able to load missing constants #1173 *Nicholas Seckar*
+
+*   Fixed the Inflector to underscore strings containing numbers, so Area51Controller becomes area51_controller #1176 *Nicholas Seckar*
+
+*   Fixed that HashWithIndifferentAccess stringified all keys including symbols, ints, objects, and arrays #1162 *Nicholas Seckar*
+
+*   Fixed Time#last_year to go back in time, not forward #1278 *fabien@odilat.com*
+
+*   Fixed the pluralization of analysis to analyses #1295 *seattle@rootimage.msu.edu*
+
+*   Fixed that Time.local(2005,12).months_since(1) would raise "ArgumentError: argument out of range" #1311 *jhahn@niveon.com*
+
+*   Added silencing to the default Logger class
+
+
+## 1.0.4 (19th April, 2005) ##
+
+*   Fixed that in some circumstances controllers outside of modules may have hidden ones inside modules. For example, admin/content might have been hidden by /content. #1075 *Nicholas Seckar*
+
+*   Fixed inflection of perspectives and similar words #1045 *Thijs van der Vossen*
+
+*   Added Fixnum#even? and Fixnum#odd?
+
+*   Fixed problem with classes being required twice. Object#const_missing now uses require_dependency to load files. It used to use require_or_load which would cause models to be loaded twice, which was not good for validations and other class methods #971 *Nicholas Seckar*
+
+
+## 1.0.3 (27th March, 2005) ##
+
+*   Fixed Inflector.pluralize to handle capitalized words #932 *Jeremy Kemper*
+
+*   Added Object#suppress which allows you to make a saner choice around with exceptions to swallow #980. Example:
+
+        suppress(ZeroDivisionError) { 1/0 }
+
+    ...instead of:
+
+        1/0 rescue nil # BAD, EVIL, DIRTY.
+
+
+## 1.0.2 (22th March, 2005) ##
+
+*   Added Kernel#returning -- a Ruby-ized realization of the K combinator, courtesy of Mikael Brockman.
+
+        def foo
+          returning values = [] do
+            values << 'bar'
+            values << 'baz'
+          end
+        end
+
+        foo # => ['bar', 'baz']
+
+
+## 1.0.1 (7th March, 2005) ##
+
+*   Fixed Hash#indifferent_access to also deal with include? and fetch and nested hashes #726 *Nicholas Seckar*
+
+*   Added Object#blank? -- see http://redhanded.hobix.com/inspect/objectBlank.html #783 *_why the lucky stiff*
+
+*   Added inflection rules for "sh" words, like "wish" and "fish" #755 *phillip@pjbsoftware.com*
+
+*   Fixed an exception when using Ajax based requests from Safari because Safari appends a \000 to the post body. Symbols can't have \000 in them so indifferent access would throw an exception in the constructor. Indifferent hashes now use strings internally instead. #746 *Tobias Lütke*
+
+*   Added String#to_time and String#to_date for wrapping ParseDate
+
+
+## 1.0.0 (24th February, 2005) ##
+
+*   Added TimeZone as the first of a number of value objects that among others Active Record can use rich value objects using composed_of #688 *Jamis Buck*
+
+*   Added Date::Conversions for getting dates in different convenient string representations and other objects
+
+*   Added Time::Conversions for getting times in different convenient string representations and other objects
+
+*   Added Time::Calculations to ask for things like Time.now.tomorrow, Time.now.yesterday, Time.now.months_ago(4) #580 [DP|Flurin]. Examples:
+
+        "Later today"         => now.in(3.hours),
+        "Tomorrow morning"    => now.tomorrow.change(:hour => 9),
+        "Tomorrow afternoon"  => now.tomorrow.change(:hour => 14),
+        "In a couple of days" => now.tomorrow.tomorrow.change(:hour => 9),
+        "Next monday"         => now.next_week.change(:hour => 9),
+        "In a month"          => now.next_month.change(:hour => 9),
+        "In 6 months"         => now.months_since(6).change(:hour => 9),
+        "In a year"           => now.in(1.year).change(:hour => 9)
+
+*   Upgraded to breakpoint 92 which fixes:
+
+        * overload IRB.parse_opts(), fixes #443
+          => breakpoints in tests work even when running them via rake
+        * untaint handlers, might fix an issue discussed on the Rails ML
+        * added verbose mode to breakpoint_client
+        * less noise caused by breakpoint_client by default
+        * ignored TerminateLineInput exception in signal handler
+          => quiet exit on Ctrl-C
+
+*   Fixed Inflector for words like "news" and "series" that are the same in plural and singular #603 [echion], #615 *marcenuc*
+
+*   Added Hash#stringify_keys and Hash#stringify_keys!
+
+*   Added IndifferentAccess as a way to wrap a hash by a symbol-based store that also can be accessed by string keys
+
+*   Added Inflector.constantize to turn "Admin::User" into a reference for the constant Admin::User
+
+*   Added that Inflector.camelize and Inflector.underscore can deal with modules like turning "Admin::User" into "admin/user" and back
+
+*   Added Inflector.humanize to turn attribute names like employee_salary into "Employee salary". Used by automated error reporting in AR.
+
+*   Added availability of class inheritable attributes to the masses #477 *Jeremy Kemper*
+
+        class Foo
+          class_inheritable_reader :read_me
+          class_inheritable_writer :write_me
+          class_inheritable_accessor :read_and_write_me
+          class_inheritable_array :read_and_concat_me
+          class_inheritable_hash :read_and_update_me
+        end
+
+        # Bar gets a clone of (not a reference to) Foo's attributes.
+        class Bar < Foo
+        end
+
+        Bar.read_and_write_me == Foo.read_and_write_me
+        Bar.read_and_write_me = 'bar'
+        Bar.read_and_write_me != Foo.read_and_write_me
+
+*   Added Inflections as an extension on String, so Inflector.pluralize(Inflector.classify(name)) becomes name.classify.pluralize #476 *Jeremy Kemper*
+
+*   Added Byte operations to Numeric, so 5.5.megabytes + 200.kilobytes #461 *Marcel Molina Jr.*
+
+*   Fixed that Dependencies.reload can't load the same file twice #420 *Kent Sibilev*
+
+*   Added Fixnum#ago/until, Fixnum#since/from_now #450 *Jeremy Kemper*
+
+*   Added that Inflector now accepts Symbols and Classes by calling .to_s on the word supplied
+
+*   Added time unit extensions to Fixnum that'll return the period in seconds, like 2.days + 4.hours.
