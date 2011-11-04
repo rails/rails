@@ -20,30 +20,18 @@ module ActiveRecord
         # It's okay to just apply all these like this. The options will only be present if the
         # association supports that option; this is enforced by the association builder.
         scope = scope.apply_finder_options(options.slice(
-          :readonly, :include, :order, :limit, :joins, :group, :having, :offset))
+          :readonly, :include, :order, :limit, :joins, :group, :having, :offset, :select))
 
         if options[:through] && !options[:include]
           scope = scope.includes(source_options[:include])
         end
 
-        if select = select_value
-          scope = scope.select(select)
-        end
+        scope = scope.uniq if options[:uniq]
 
         add_constraints(scope)
       end
 
       private
-
-      def select_value
-        select_value = options[:select]
-
-        if reflection.collection?
-          select_value ||= options[:uniq] && "DISTINCT #{reflection.quoted_table_name}.*"
-        end
-
-        select_value
-      end
 
       def add_constraints(scope)
         tables = construct_tables
