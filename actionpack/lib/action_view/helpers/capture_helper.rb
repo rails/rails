@@ -35,11 +35,23 @@ module ActionView
       #   <b><%= @greeting %></b>
       #   </body></html>
       #
+      # You can pass an array as argument. It will be joined using safe_join.
+      #
+      #   @html = capture do
+      #     [
+      #       content_tag(:h1, "Title"),
+      #       content_tag(:p, "The text.")
+      #     ]
+      #   end
+      #
       def capture(*args)
         value = nil
         buffer = with_output_buffer { value = yield(*args) }
-        if string = buffer.presence || value and string.is_a?(String)
+        string = buffer.presence || value
+        if string.is_a?(String)
           ERB::Util.html_escape string
+        elsif string.is_a?(Array)
+          safe_join value
         end
       end
 

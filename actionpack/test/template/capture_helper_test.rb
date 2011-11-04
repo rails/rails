@@ -28,6 +28,11 @@ class CaptureHelperTest < ActionView::TestCase
     assert_nil @av.capture { 1 }
   end
 
+  def test_capture_safe_join_array
+    string = @av.capture { ['<br>'.html_safe, '<br>'.html_safe] }
+    assert_equal '<br><br>', string
+  end
+
   def test_capture_escapes_html
     string = @av.capture { '<em>bar</em>' }
     assert_equal '&lt;em&gt;bar&lt;/em&gt;', string
