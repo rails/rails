@@ -339,6 +339,14 @@ module ActiveRecord
       #  CREATE INDEX by_name_surname ON accounts(name(10), surname(15))
       #
       # Note: SQLite doesn't support index length
+      #
+      # ====== Creating an index with a sort order (desc or asc, asc is the default)
+      #  add_index(:accounts, [:branch_id, :party_id, :surname], :order => {:branch_id => :desc, :part_id => :asc})
+      # generates
+      #  CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
+      #
+      # Note: mysql doesn't yet support index order (it accepts the syntax but ignores it)
+      #
       def add_index(table_name, column_name, options = {})
         index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})"
@@ -520,9 +528,29 @@ module ActiveRecord
       end
 
       protected
+        def add_index_sort_order(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && order = options[:order]
+            case order
+            when Hash
+              column_names.each {|name| option_strings[name] += " #{order[name].to_s.upcase}" if order.has_key?(name)}
+            when String
+              column_names.each {|name| option_strings[name] += " #{order.upcase}"}
+            end
+          end
+
+          return option_strings
+        end
+
         # Overridden by the mysql adapter for supporting index lengths
         def quoted_columns_for_index(column_names, options = {})
-          column_names.map {|name| quote_column_name(name) }
+          option_strings = Hash[column_names.map {|name| [name, '']}]
+
+          # add index sort order if supported
+          if supports_index_sort_order?
+            option_strings = add_index_sort_order(option_strings, column_names, options)
+          end
+
+          column_names.map {|name| quote_column_name(name) + option_strings[name]}
         end
 
         def options_include_default?(options)

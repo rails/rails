@@ -130,6 +130,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support index sort order?
+      def supports_index_sort_order?
+        false
+      end
+
       # QUOTING ==================================================
 
       # Override to return the quoted table name. Defaults to column quoting.
