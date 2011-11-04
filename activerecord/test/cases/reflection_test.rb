@@ -189,7 +189,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 36, Firm.reflect_on_all_associations.size
+    assert_equal 37, Firm.reflect_on_all_associations.size
     assert_equal 26, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
@@ -323,6 +323,10 @@ class ReflectionTest < ActiveRecord::TestCase
     orig_conds = Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
     Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
     assert_equal orig_conds, Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
+  end
+
+  def test_symbol_for_class_name
+    assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
   private

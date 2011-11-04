@@ -42,6 +42,7 @@ class Firm < Company
       :before_remove => :log_before_remove,
       :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
+  has_many :unsorted_clients_with_symbol, :class_name => :Client
   has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
   has_many :clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id"
   has_many :unvalidated_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :validate => false

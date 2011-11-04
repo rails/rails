@@ -1,5 +1,13 @@
 *Rails 3.2.0 (unreleased)*
 
+* Allow the :class_name option for associations to take a symbol (:Client) in addition to
+  a string ('Client').
+
+  This is to avoid confusing newbies, and to be consistent with the fact that other options
+  like :foreign_key already allow a symbol or a string.
+
+  [Jon Leighton]
+
 * In development mode the db:drop task also drops the test database. For symmetry with
   the db:create task. [Dmitriy Kiriyenko]
 
