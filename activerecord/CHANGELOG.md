@@ -85,6 +85,10 @@
 
     *Jon Leighton*
 
+*   MySQL: use the information_schema than the describe command when we look for a primary key. *GH #3440*
+
+    *Kenny J*
+
 ## Rails 3.1.1 (October 7, 2011) ##
 
 *   Add deprecation for the preload_associations method. Fixes #3022.
