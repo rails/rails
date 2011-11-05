@@ -239,4 +239,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r(:id => false), match[1], "no table id not preserved"
     assert_match %r{t.string[[:space:]]+"id",[[:space:]]+:null => false$}, match[2], "non-primary key id column not preserved"
   end
+
+  def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added
+    output = standard_dump
+    assert_match %r{create_table "subscribers", :id => false}, output
+  end
 end
