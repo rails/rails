@@ -16,9 +16,9 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_posts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/t\.string :title/, up)
-        assert_match(/t\.text :body/, up)
-        assert_match(/t\.string :author/, up)
+        assert_match(/string :title/, up)
+        assert_match(/text :body/, up)
+        assert_match(/string :author/, up)
       end
     end
   end
@@ -107,8 +107,8 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_products.rb" do |m|
       assert_method :change, m do |up|
         assert_match(/create_table :products/, up)
-        assert_match(/t\.string :name/, up)
-        assert_match(/t\.integer :supplier_id/, up)
+        assert_match(/string :name/, up)
+        assert_match(/integer :supplier_id/, up)
       end
     end
   end
@@ -136,7 +136,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
+    assert_migration "db/migrate/create_accounts.rb", /timestamps/
   end
 
   def test_migration_timestamps_are_skipped
@@ -144,7 +144,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/t.timestamps/, up)
+        assert_no_match(/timestamps/, up)
       end
     end
   end

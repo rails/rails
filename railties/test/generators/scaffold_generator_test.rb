@@ -269,9 +269,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_posts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/t\.string :title/, up)
-        assert_match(/t\.text :body/, up)
-        assert_match(/t\.string :author/, up)
+        assert_match(/string :title/, up)
+        assert_match(/text :body/, up)
+        assert_match(/string :author/, up)
       end
     end
   end
