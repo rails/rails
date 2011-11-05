@@ -285,7 +285,7 @@ module ActionDispatch
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
         #
-        #   match 'photos/:id' => lambda {|hash| [200, {}, "Coming soon" }
+        #   match 'photos/:id' => lambda {|hash| [200, {}, "Coming soon"] }
         #   match 'photos/:id' => PhotoRackApp
         #   # Yes, controller actions are just rack endpoints
         #   match 'photos/:id' => PhotosController.action(:show)
@@ -735,7 +735,7 @@ module ActionDispatch
         # if the user should be given access to that route, or +false+ if the user should not.
         #
         #    class Iphone
-        #      def self.matches(request)
+        #      def self.matches?(request)
         #        request.env["HTTP_USER_AGENT"] =~ /iPhone/
         #      end
         #    end
@@ -1023,6 +1023,7 @@ module ActionDispatch
         # creates seven different routes in your application, all mapping to
         # the +Photos+ controller:
         #
+        #   GET     /photos
         #   GET     /photos/new
         #   POST    /photos
         #   GET     /photos/:id
@@ -1038,6 +1039,7 @@ module ActionDispatch
         #
         # This generates the following comments routes:
         #
+        #   GET     /photos/:photo_id/comments
         #   GET     /photos/:photo_id/comments/new
         #   POST    /photos/:photo_id/comments
         #   GET     /photos/:photo_id/comments/:id

@@ -525,19 +525,19 @@ silence_warnings do
 end
 </ruby>
 
-These methods can be used to silence STDERR responses and the +silence_stream+ allows you to also silence other streams. Additionally, this mixin allows you to suppress exceptions and capture streams. For more information see the "Silencing Warnings, Streams, and Exceptions":http://guides.rubyonrails.org/active_support_core_extensions.html#silencing-warnings-streams-and-exceptions section from the Active Support Core Extensions Guide.
+These methods can be used to silence STDERR responses and the +silence_stream+ allows you to also silence other streams. Additionally, this mixin allows you to suppress exceptions and capture streams. For more information see the "Silencing Warnings, Streams, and Exceptions":active_support_core_extensions.html#silencing-warnings-streams-and-exceptions section from the Active Support Core Extensions Guide.
 
 h4. +active_support/core_ext/logger.rb+
 
 The next file that is required is another Active Support core extension, this time to the +Logger+ class. This begins by defining the +around_[level]+ helpers for the +Logger+ class as well as other methods such as a +datetime_format+ getter and setter for the +formatter+ object tied to a +Logger+ object.
 
-For more information see the "Extensions to Logger":http://guides.rubyonrails.org/active_support_core_extensions.html#extensions-to-logger section from the Active Support Core Extensions Guide.
+For more information see the "Extensions to Logger":active_support_core_extensions.html#extensions-to-logger section from the Active Support Core Extensions Guide.
 
 h4. +railties/lib/rails/application.rb+
 
 The next file required by +railties/lib/rails.rb+ is +application.rb+. This file defines the +Rails::Application+ constant which the application's class defined in +config/application.rb+ in a standard Rails application depends on. Before the +Rails::Application+ class is defined however, there's some other files that get required first.
 
-The first of these is +active_support/core_ext/hash/reverse_merge+ which can be "read about in the Active Support Core Extensions guide":http://guides.rubyonrails.org/active_support_core_extensions.html#merging under the "Merging" section.
+The first of these is +active_support/core_ext/hash/reverse_merge+ which can be "read about in the Active Support Core Extensions guide":active_support_core_extensions.html#merging under the "Merging" section.
 
 h4. +active_support/file_update_checker.rb+
 
@@ -575,7 +575,7 @@ Now that +rails/initializable.rb+ has finished being required from +rails/railti
 
 h4. +railties/lib/rails/configuration.rb+
 
-This file defines the +Rails::Configuration+ module, containing the +MiddlewareStackProxy+ class as well as the +Generators+ class. The +MiddlewareStackProxy+ class is used for managing the middleware stack for an application, which we'll see later on. The +Generators+ class provides the functionality used for configuring what generators an application uses through the "+config.generators+ option":http://guides.rubyonrails.org/configuring.html#configuring-generators.
+This file defines the +Rails::Configuration+ module, containing the +MiddlewareStackProxy+ class as well as the +Generators+ class. The +MiddlewareStackProxy+ class is used for managing the middleware stack for an application, which we'll see later on. The +Generators+ class provides the functionality used for configuring what generators an application uses through the "+config.generators+ option":configuring.html#configuring-generators.
 
 The first file required in this file is +activesupport/deprecation+.
 
@@ -598,11 +598,11 @@ This file defines the +ActiveSupport::Notifications+ module. Notifications provi
 
 The "API documentation":http://api.rubyonrails.org/classes/ActiveSupport/Notifications.html for +ActiveSupport::Notifications+ explains the usage of this module, including the methods that it defines.
 
-The file required in +active_support/notifications.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":http://guides.rubyonrails.org/active_support_core_extensions.html#method-delegation.
+The file required in +active_support/notifications.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":active_support_core_extensions.html#method-delegation.
 
 h4. +activesupport/core_ext/array/wrap+
 
-As this file comprises of a core extension, it is covered exclusively in "the Active Support Core Extensions guide":http://guides.rubyonrails.org/active_support_core_extensions.html#wrapping
+As this file comprises of a core extension, it is covered exclusively in "the Active Support Core Extensions guide":active_support_core_extensions.html#wrapping
 
 h4. +activesupport/lib/active_support/deprecation/reporting.rb+
 
@@ -624,7 +624,7 @@ h4. +active_support/ordered_options+
 
 This file is the next file required from +rails/configuration.rb+ is the file that defines +ActiveSupport::OrderedOptions+ which is used for configuration options such as +config.active_support+ and the like.
 
-The next file required is +active_support/core_ext/hash/deep_dup+ which is covered in "Active Support Core Extensions guide":http://guides.rubyonrails.org/active_support_core_extensions.html#deep_dup
+The next file required is +active_support/core_ext/hash/deep_dup+ which is covered in "Active Support Core Extensions guide":active_support_core_extensions.html#deep_dup
 
 The file that is required next from is +rails/paths+
 
@@ -682,7 +682,7 @@ When the module from this file (+Rails::Initializable+) is included, it extends 
 
 h4. +railties/lib/rails/engine.rb+
 
-The next file required in +rails/engine.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":http://guides.rubyonrails.org/active_support_core_extensions.html#method-delegation.
+The next file required in +rails/engine.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":active_support_core_extensions.html#method-delegation.
 
 The next two files after this are Ruby standard library files: +pathname+ and +rbconfig+. The file after these is +rails/engine/railties+.
 
@@ -698,7 +698,7 @@ Once this file has finished loading we jump back to +railties/lib/rails/plugin.r
 
 h4. Back to +railties/lib/rails/plugin.rb+
 
-The next file required in this is a core extension from Active Support called +array/conversions+ which is covered in "this section":http://guides.rubyonrails.org/active_support_core_extensions.html#array-conversions of the Active Support Core Extensions Guide.
+The next file required in this is a core extension from Active Support called +array/conversions+ which is covered in "this section":active_support_core_extensions.html#array-conversions of the Active Support Core Extensions Guide.
 
 Once that file has finished loading, the +Rails::Plugin+ class is defined.
 
@@ -817,7 +817,7 @@ def initializer(name, opts = {}, &blk)
 end
 </ruby>
 
-An initializer can be configured to run before or after another initializer, which we'll see a couple of times throughout this initialization process. Anything that inherits from +Rails::Railtie+ may also make use of the +initializer+ method, something which is covered in the "Configuration guide":[http://ryanbigg.com/guides/configuring.html#rails-railtie-initializer].
+An initializer can be configured to run before or after another initializer, which we'll see a couple of times throughout this initialization process. Anything that inherits from +Rails::Railtie+ may also make use of the +initializer+ method, something which is covered in the "Configuration guide":configuring.html#rails-railtie-initializer.
 
 The +Initializer+ class here is defined within the +Rails::Initializable+ module and its +initialize+ method is defined to just set up a couple of variables:
 
