@@ -102,7 +102,7 @@ db_namespace = namespace :db do
       when /postgresql/
         @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
         begin
-          ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
+          ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres'))
           ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
           ActiveRecord::Base.establish_connection(config)
         rescue Exception => e
@@ -534,7 +534,7 @@ def drop_database(config)
 
     FileUtils.rm(file)
   when /postgresql/
-    ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
+    ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres'))
     ActiveRecord::Base.connection.drop_database config['database']
   end
 end
