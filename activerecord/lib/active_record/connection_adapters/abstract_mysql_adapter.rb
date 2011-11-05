@@ -155,6 +155,12 @@ module ActiveRecord
         true
       end
 
+      # Technically MySQL allows to create indexes with the sort order syntax 
+      # but at the moment (5.5) it doesn't yet implement them
+      def supports_index_sort_order?
+        true
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -526,17 +532,29 @@ module ActiveRecord
 
       protected
 
-      def quoted_columns_for_index(column_names, options = {})
-        length = options[:length] if options.is_a?(Hash)
-
-        case length
-        when Hash
-          column_names.map {|name| length[name] ? "#{quote_column_name(name)}(#{length[name]})" : quote_column_name(name) }
-        when Fixnum
-          column_names.map {|name| "#{quote_column_name(name)}(#{length})"}
-        else
-          column_names.map {|name| quote_column_name(name) }
+      def add_index_length(option_strings, column_names, options = {})
+        if options.is_a?(Hash) && length = options[:length]
+          case length
+          when Hash
+            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name)}
+          when Fixnum
+            column_names.each {|name| option_strings[name] += "(#{length})"}
+          end
         end
+
+        return option_strings
+      end
+
+      def quoted_columns_for_index(column_names, options = {})
+        option_strings = Hash[column_names.map {|name| [name, '']}]
+
+        # add index length
+        option_strings = add_index_length(option_strings, column_names, options)
+
+        # add index sort order
+        option_strings = add_index_sort_order(option_strings, column_names, options)
+
+        column_names.map {|name| quote_column_name(name) + option_strings[name]}
       end
 
       def translate_exception(exception, message)
