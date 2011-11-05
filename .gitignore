@@ -21,5 +21,3 @@ debug.log
 /railties/guides/output
 /railties/tmp
 /RDOC_MAIN.rdoc
-.DS_Store
-activemodel/.DS_Store
