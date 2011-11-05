@@ -20,6 +20,9 @@
 
     *Jon Leighton*
 
+*   MySQL: use the information_schema than the describe command when we look for a primary key. *GH #3440*
+    *Kenny J*
+
 ## Rails 3.1.1 (October 7, 2011) ##
 
 *   Raise an exception if the primary key of a model in an association is needed
