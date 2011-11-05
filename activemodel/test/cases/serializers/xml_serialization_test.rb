@@ -9,6 +9,7 @@ class Contact
 
   attr_accessor :address, :friends
 
+  remove_method :attributes
   def attributes
     instance_values.except("address", "friends")
   end
