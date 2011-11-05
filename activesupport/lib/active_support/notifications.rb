@@ -66,7 +66,7 @@ module ActiveSupport
   # == Temporary Subscriptions
   #
   # Sometimes you do not want to subscribe to an event for the entire life of
-  # the application. There are two ways two unsubscribe.
+  # the application. There are two ways to unsubscribe.
   #
   # === Subscribe While a Block Runs
   #
