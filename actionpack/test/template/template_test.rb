@@ -130,6 +130,17 @@ class TestERBTemplate < ActiveSupport::TestCase
     # is set to something other than UTF-8, we don't
     # get any errors and get back a UTF-8 String.
     def test_default_external_works
+      if ENV['TRAVIS'] && RUBY_VERSION >= '1.9.3'
+        skip(
+          "There is currently a bug in Ruby trunk and in 1.9.3 which makes this test fail. " \
+          "Please see http://redmine.ruby-lang.org/issues/5564. " \
+          "Given there is no known generic workaround that this requires a fix in Ruby itself, " \
+          "this test is skipped on the CI for now so that we don't pollute the CI with failures. " \
+          "Jon Leighton is monitoring the bug report and will renable this test when a solution " \
+          "becomes available."
+        )
+      end
+
       with_external_encoding "ISO-8859-1" do
         @template = new_template("hello \xFCmlat")
         assert_equal Encoding::UTF_8, render.encoding
