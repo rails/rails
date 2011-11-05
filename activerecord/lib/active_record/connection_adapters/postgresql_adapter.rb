@@ -247,6 +247,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_sort_order?
+        true
+      end
+
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max)
           super
@@ -756,7 +760,7 @@ module ActiveRecord
       def indexes(table_name, name = nil)
          schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
-           SELECT distinct i.relname, d.indisunique, d.indkey, t.oid
+           SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
            FROM pg_class t
            INNER JOIN pg_index d ON t.oid = d.indrelid
            INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -772,7 +776,8 @@ module ActiveRecord
           index_name = row[0]
           unique = row[1] == 't'
           indkey = row[2].split(" ")
-          oid = row[3]
+          inddef = row[3]
+          oid = row[4]
 
           columns = Hash[query(<<-SQL, "Columns for index #{row[0]} on #{table_name}")]
           SELECT a.attnum, a.attname
@@ -782,7 +787,12 @@ module ActiveRecord
           SQL
 
           column_names = columns.values_at(*indkey).compact
-          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names)
+
+          # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
+          desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
+          orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
+      
+          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders)
         end.compact
       end
 

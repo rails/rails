@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Support index sort order in sqlite, mysql and postgres adapters. *Vlad Jebelev*
+
 *   Allow the :class_name option for associations to take a symbol (:Client) in addition to
     a string ('Client').
 
