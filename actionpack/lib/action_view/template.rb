@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
 
-if RUBY_ENGINE == 'ruby' && RUBY_VERSION == '1.9.3' && RUBY_PATCHLEVEL == 0
+if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'ruby' && RUBY_VERSION == '1.9.3' && RUBY_PATCHLEVEL == 0
   # This is a hack to work around a bug in Ruby 1.9.3p0:
   # http://redmine.ruby-lang.org/issues/5564
   #
