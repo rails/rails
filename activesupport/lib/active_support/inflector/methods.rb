@@ -298,7 +298,7 @@ module ActiveSupport
       end
     end
 
-    # Applies inflection rules for +singluralize+ and +pluralize+.
+    # Applies inflection rules for +singuralize+ and +pluralize+.
     #
     # Examples:
     #  apply_inflections("post", inflections.plurals) # => "posts"
