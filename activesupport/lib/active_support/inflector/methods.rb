@@ -21,14 +21,7 @@ module ActiveSupport
     #   "words".pluralize            # => "words"
     #   "CamelOctopus".pluralize     # => "CamelOctopi"
     def pluralize(word)
-      result = word.to_s.dup
-
-      if word.empty? || inflections.uncountables.include?(result.downcase)
-        result
-      else
-        inflections.plurals.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
+      apply_inflections(word, inflections.plurals)
     end
 
     # The reverse of +pluralize+, returns the singular form of a word in a string.
@@ -40,14 +33,7 @@ module ActiveSupport
     #   "word".singularize             # => "word"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
-      result = word.to_s.dup
-
-      if inflections.uncountables.any? { |inflection| result =~ /\b(#{inflection})\Z/i }
-        result
-      else
-        inflections.singulars.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
+      apply_inflections(word, inflections.singulars)
     end
 
     # By default, +camelize+ converts strings to UpperCamelCase. If the argument to +camelize+
@@ -309,6 +295,22 @@ module ActiveSupport
 
       parts.reverse.inject(last) do |acc, part|
         part.empty? ? acc : "#{part}(::#{acc})?"
+      end
+    end
+
+    # Applies inflection rules for +singluralize+ and +pluralize+.
+    #
+    # Examples:
+    #  apply_inflections("post", inflections.plurals) # => "posts"
+    #  apply_inflections("posts", inflections.singulars) # => "post"
+    def apply_inflections(word, rules)
+      result = word.to_s.dup
+
+      if word.empty? || inflections.uncountables.any? { |inflection| result =~ /\b#{inflection}\Z/i }
+        result
+      else
+        rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+        result
       end
     end
   end
