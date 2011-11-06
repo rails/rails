@@ -135,7 +135,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,5,1,10), Time.local(2005,6,5,10,0,0).weeks_ago(5)
     assert_equal Time.local(2005,4,24,10), Time.local(2005,6,5,10,0,0).weeks_ago(6)
     assert_equal Time.local(2005,2,27,10),  Time.local(2005,6,5,10,0,0).weeks_ago(14)
-    assert_equal Time.local(2004,12,25,10),  Time.local(2005,1,1,10,0,0).weeks_ago(1)    
+    assert_equal Time.local(2004,12,25,10),  Time.local(2005,1,1,10,0,0).weeks_ago(1)
   end
 
   def test_months_ago
@@ -479,7 +479,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal Time.local(2006,10,30), Time.local(2006,11,6,0,0,0).prev_week
       assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).prev_week(:wednesday)
     end
-  end    
+  end
 
   def test_next_week
     with_env_tz 'US/Eastern' do
@@ -538,12 +538,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_datetime
-    assert_equal Time.utc(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, 0, 0)
+    assert_equal Time.utc(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, 0)
     with_env_tz 'US/Eastern' do
-      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400))
     end
     with_env_tz 'NZ' do
-      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400), 0)
+      assert_equal Time.local(2005, 2, 21, 17, 44, 30).to_datetime, DateTime.civil(2005, 2, 21, 17, 44, 30, Rational(Time.local(2005, 2, 21, 17, 44, 30).utc_offset, 86400))
     end
     assert_equal ::Date::ITALY, Time.utc(2005, 2, 21, 17, 44, 30).to_datetime.start # use Ruby's default start value
   end
@@ -592,11 +592,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_time_with_datetime_fallback
     assert_equal Time.time_with_datetime_fallback(:utc, 2005, 2, 21, 17, 44, 30), Time.utc(2005, 2, 21, 17, 44, 30)
     assert_equal Time.time_with_datetime_fallback(:local, 2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30)
-    assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
-    assert_equal Time.time_with_datetime_fallback(:local, 2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
-    assert_equal Time.time_with_datetime_fallback(:utc, 1900, 2, 21, 17, 44, 30), DateTime.civil(1900, 2, 21, 17, 44, 30, 0, 0)
+    assert_equal Time.time_with_datetime_fallback(:utc, 2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, 0)
+    assert_equal Time.time_with_datetime_fallback(:local, 2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.local_offset)
+    assert_equal Time.time_with_datetime_fallback(:utc, 1900, 2, 21, 17, 44, 30), DateTime.civil(1900, 2, 21, 17, 44, 30, 0)
     assert_equal Time.time_with_datetime_fallback(:utc, 2005), Time.utc(2005)
-    assert_equal Time.time_with_datetime_fallback(:utc, 2039), DateTime.civil(2039, 1, 1, 0, 0, 0, 0, 0)
+    assert_equal Time.time_with_datetime_fallback(:utc, 2039), DateTime.civil(2039, 1, 1, 0, 0, 0, 0)
     assert_equal Time.time_with_datetime_fallback(:utc, 2005, 2, 21, 17, 44, 30, 1), Time.utc(2005, 2, 21, 17, 44, 30, 1) #with usec
     # This won't overflow on 64bit linux
     unless time_is_64bits?
@@ -616,16 +616,16 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_utc_time
     assert_equal Time.utc_time(2005, 2, 21, 17, 44, 30), Time.utc(2005, 2, 21, 17, 44, 30)
-    assert_equal Time.utc_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, 0, 0)
-    assert_equal Time.utc_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, 0, 0)
+    assert_equal Time.utc_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, 0)
+    assert_equal Time.utc_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, 0)
   end
 
   def test_local_time
     assert_equal Time.local_time(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30)
-    assert_equal Time.local_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
+    assert_equal Time.local_time(2039, 2, 21, 17, 44, 30), DateTime.civil(2039, 2, 21, 17, 44, 30, DateTime.local_offset)
 
     unless time_is_64bits?
-      assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, DateTime.local_offset, 0)
+      assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil(1901, 2, 21, 17, 44, 30, DateTime.local_offset)
     end
   end
 
