@@ -11,8 +11,8 @@ module ActiveRecord
           # Separate connections to an in-memory database create an entirely new database,
           # with an empty schema etc, so we just stub out this schema on the fly.
           @pool.with_connection do |connection|
-            connection.create_table :posts do |t|
-              t.integer :cololumn
+            connection.create_table :posts do
+              integer :cololumn
             end
           end
         end

@@ -1,8 +1,8 @@
 ActiveRecord::Schema.define do
   # For sqlite 3.1.0+, make a table with a autoincrement column
   if supports_autoincrement?
-    create_table :table_with_autoincrement, :force => true do |t|
-      t.column :name, :string
+    create_table :table_with_autoincrement, :force => true do
+      string :name
     end
   end
 

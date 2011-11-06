@@ -93,18 +93,18 @@ class FixturesTest < ActiveRecord::TestCase
       # Reset cache to make finds on the new table work
       ActiveRecord::Fixtures.reset_cache
 
-      ActiveRecord::Base.connection.create_table :prefix_topics_suffix do |t|
-        t.column :title, :string
-        t.column :author_name, :string
-        t.column :author_email_address, :string
-        t.column :written_on, :datetime
-        t.column :bonus_time, :time
-        t.column :last_read, :date
-        t.column :content, :string
-        t.column :approved, :boolean, :default => true
-        t.column :replies_count, :integer, :default => 0
-        t.column :parent_id, :integer
-        t.column :type, :string, :limit => 50
+      ActiveRecord::Base.connection.create_table :prefix_topics_suffix do
+        string :title
+        string :author_name
+        string :author_email_address
+        datetime :written_on
+        time :bonus_time
+        date :last_read
+        string :content
+        boolean :approved, :default => true
+        integer :replies_count, :default => 0
+        integer :parent_id
+        string :type, :limit => 50
       end
 
       # Store existing prefix/suffix
