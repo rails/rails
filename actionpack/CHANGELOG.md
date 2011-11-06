@@ -62,6 +62,19 @@
     persistent between requests so if you need to manipulate the environment
     for your test you need to do it before the cookie jar is created.
 
+## Rails 3.1.2 (unreleased) ##
+
+*   Implement a workaround for a bug in ruby-1.9.3p0 where an error would be raised
+    while attempting to convert a template from one encoding to another.
+
+    Please see http://redmine.ruby-lang.org/issues/5564 for details of the bug.
+
+    The workaround is to load all conversions into memory ahead of time, and will
+    only happen if the ruby version is *exactly* 1.9.3p0. The hope is obviously that
+    the underlying problem will be resolved in the next patchlevel release of
+    1.9.3.
+
+    *Jon Leighton*
 
 ## Rails 3.1.1 (unreleased) ##
 
