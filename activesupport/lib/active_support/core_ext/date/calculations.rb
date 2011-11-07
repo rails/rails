@@ -174,7 +174,7 @@ class Date
     months_since(1)
   end unless method_defined?(:next_month)
 
-  # Returns number of days to start of this week, week starts on start_day (default is Monday)
+  # Returns number of days to start of this week, week starts on start_day (default is :monday).
   def days_to_week_start(start_day = :monday)
     start_day_number = DAYS_INTO_WEEK[start_day]
     current_day_number = wday != 0 ? wday - 1 : 6
@@ -182,7 +182,7 @@ class Date
     days_span >= 0 ? days_span : 7 + days_span
   end
 
-  # Returns a new Date/DateTime representing the "start" of this week, week starts on start_day (i.e, Monday; DateTime objects will have time set to 0:00).
+  # Returns a new Date/DateTime representing the "start" of this week, week starts on start_day (default is :monday, i.e. Monday; DateTime objects will have time set to 0:00).
   def beginning_of_week(start_day = :monday)
     days_to_start = days_to_week_start(start_day)
     result = self - days_to_start
@@ -191,7 +191,7 @@ class Date
   alias :monday :beginning_of_week
   alias :at_beginning_of_week :beginning_of_week
 
-  # Returns a new Date/DateTime representing the end of this week, week starts on start_day (Sunday, DateTime objects will have time set to 23:59:59).
+  # Returns a new Date/DateTime representing the end of this week, week starts on start_day (default is :monday, i.e. Sunday, DateTime objects will have time set to 23:59:59).
   def end_of_week(start_day = :monday)
     days_to_end = 6 - days_to_week_start(start_day)
     result = self + days_to_end.days
