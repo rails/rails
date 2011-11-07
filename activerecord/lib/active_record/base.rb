@@ -760,7 +760,7 @@ module ActiveRecord #:nodoc:
       # values, eg:
       #
       #  class CreateJobLevels < ActiveRecord::Migration
-      #    def self.up
+      #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
       #        t.string :name
@@ -774,7 +774,7 @@ module ActiveRecord #:nodoc:
       #      end
       #    end
       #
-      #    def self.down
+      #    def down
       #      drop_table :job_levels
       #    end
       #  end
