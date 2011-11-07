@@ -34,7 +34,7 @@ class Module
   #   class Foo
   #     CONSTANT_ARRAY = [0,1,2,3]
   #     @@class_array  = [4,5,6,7]
-  #     
+  #
   #     def initialize
   #       @instance_array = [8,9,10,11]
   #     end
@@ -74,7 +74,7 @@ class Module
   #
   # If the object to which you delegate can be nil, you may want to use the
   # :allow_nil option. In that case, it returns nil instead of raising a
-  # NoMethodError exception:
+  # NoMethodError or RuntimeError exception:
   #
   #  class Foo
   #    attr_accessor :bar
@@ -82,9 +82,11 @@ class Module
   #      @bar = bar
   #    end
   #    delegate :zoo, :to => :bar
+  #    delegate :id, :to => :bar
   #  end
   #
-  #  Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
+  #  Foo.new.zoo       # raises NoMethodError exception (you called nil.zoo)
+  #  Foo.new.bar_id    # raises RuntimeError exception (you called nil.id)
   #
   #  class Foo
   #    attr_accessor :bar
@@ -92,9 +94,11 @@ class Module
   #      @bar = bar
   #    end
   #    delegate :zoo, :to => :bar, :allow_nil => true
+  #    delegate :id, :to => :bar, :allow_nil => true, :prefix => true
   #  end
   #
-  #  Foo.new.zoo   # returns nil
+  #  Foo.new.zoo       # returns nil
+  #  Foo.new.bar_id    # returns nil
   #
   def delegate(*methods)
     options = methods.pop
@@ -122,7 +126,7 @@ class Module
       module_eval(<<-EOS, file, line)
         def #{prefix}#{method}(*args, &block)               # def customer_name(*args, &block)
           #{to}.__send__(#{method.inspect}, *args, &block)  #   client.__send__(:name, *args, &block)
-        rescue NoMethodError                                # rescue NoMethodError
+        rescue NoMethodError, RuntimeError                  # rescue NoMethodError, RuntimeError
           if #{to}.nil?                                     #   if client.nil?
             #{on_nil}
           else                                              #   else
