@@ -282,8 +282,8 @@ module ActiveRecord
         end
 
         def build_separator(widths)
-          # Each cell has one char of padding at both sides, that's why we add 2.
-          '+' + widths.map {|w| '-' * (w + 2)}.join('+')
+          padding = 1
+          '+' + widths.map {|w| '-' * (w + (padding*2))}.join('+') + '+'
         end
 
         def build_cells(items, widths)
@@ -364,7 +364,6 @@ module ActiveRecord
       # these, we must use a subquery. However, MySQL is too stupid to create a
       # temporary table for this automatically, so we have to give it some prompting
       # in the form of a subsubquery. Ugh!
-
       def join_to_update(update, select) #:nodoc:
         if select.limit || select.offset || select.orders.any?
           subsubselect = select.clone
