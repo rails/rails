@@ -64,7 +64,7 @@ module ActionDispatch
         end
 
         def host_or_subdomain_and_domain(options)
-          return options[:host] unless options[:subdomain] || options[:domain]
+          return options[:host] unless (options[:subdomain] || options[:domain]) && named_host?(options[:host])
 
           tld_length = options[:tld_length] || @@tld_length
 
