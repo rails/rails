@@ -57,6 +57,11 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.first.replies.exists?
   end
 
+  # ensures +exists?+ runs valid SQL by excluding order value
+  def test_exists_with_order
+    assert Topic.order(:id).uniq.exists?
+  end
+
   def test_does_not_exist_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
