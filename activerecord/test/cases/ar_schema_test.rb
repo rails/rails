@@ -16,10 +16,10 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_schema_define
       ActiveRecord::Schema.define(:version => 7) do
         create_table :fruits do
-          column :color, :string
-          column :fruit_size, :string  # NOTE: "size" is reserved in Oracle
-          column :texture, :string
-          column :flavor, :string
+          string :color
+          string :fruit_size  # NOTE: "size" is reserved in Oracle
+          string :texture
+          string :flavor
         end
       end
 

@@ -84,7 +84,7 @@ ActiveRecord::Schema.define do
 
   create_table :books, :force => true do
     integer :author_id
-    column :name, :string
+    string :name
   end
 
   create_table :booleans, :force => true do
@@ -212,8 +212,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :edges, :force => true, :id => false do
-    column :source_id, :integer, :null => false
-    column :sink_id,   :integer, :null => false
+    integer :source_id, :null => false
+    integer :sink_id, :null => false
   end
   add_index :edges, [:source_id, :sink_id], :unique => true, :name => 'unique_edge_index'
 
@@ -254,7 +254,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :guids, :force => true do
-    column :key, :string
+    string :key
   end
 
   create_table :inept_wizards, :force => true do

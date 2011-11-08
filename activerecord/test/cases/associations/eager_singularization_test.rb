@@ -48,7 +48,7 @@ class EagerSingularizationTest < ActiveRecord::TestCase
         string :species
       end
       ActiveRecord::Base.connection.create_table :octopi do
-        string :species, :string
+        string :species
       end
       ActiveRecord::Base.connection.create_table :passes do
         integer :bus_id

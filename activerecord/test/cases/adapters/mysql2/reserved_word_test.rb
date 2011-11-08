@@ -45,7 +45,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   def test_create_tables
     assert_nothing_raised {
       @connection.create_table :order do
-        column :group, :string
+        string :group
       end
     }
   end
