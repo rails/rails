@@ -66,7 +66,7 @@ namespace :changelog do
     FRAMEWORKS.each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
-      fname = File.join fw, 'CHANGELOG'
+      fname = File.join fw, 'CHANGELOG.md'
 
       contents = File.read(fname).sub(/^([^(]*)\(unreleased\)/, replace)
       File.open(fname, 'wb') { |f| f.write contents }
@@ -76,7 +76,7 @@ namespace :changelog do
   task :release_summary do
     FRAMEWORKS.each do |fw|
       puts "## #{fw}"
-      fname    = File.join fw, 'CHANGELOG'
+      fname    = File.join fw, 'CHANGELOG.md'
       contents = File.readlines fname
       contents.shift
       changes = []

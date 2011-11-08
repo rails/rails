@@ -66,31 +66,31 @@ namespace :doc do
     rdoc.rdoc_files.include('README')
 
     gem_path('actionmailer') do |actionmailer|
-      %w(README.rdoc CHANGELOG MIT-LICENSE lib/action_mailer/base.rb).each do |file|
+      %w(README.rdoc CHANGELOG.md MIT-LICENSE lib/action_mailer/base.rb).each do |file|
         rdoc.rdoc_files.include("#{actionmailer}/#{file}")
       end
     end
 
     gem_path('actionpack') do |actionpack|
-      %w(README.rdoc CHANGELOG MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
+      %w(README.rdoc CHANGELOG.md MIT-LICENSE lib/action_controller/**/*.rb lib/action_view/**/*.rb).each do |file|
         rdoc.rdoc_files.include("#{actionpack}/#{file}")
       end
     end
 
     gem_path('activemodel') do |activemodel|
-      %w(README.rdoc CHANGELOG MIT-LICENSE lib/active_model/**/*.rb).each do |file|
+      %w(README.rdoc CHANGELOG.md MIT-LICENSE lib/active_model/**/*.rb).each do |file|
         rdoc.rdoc_files.include("#{activemodel}/#{file}")
       end
     end
 
     gem_path('activerecord') do |activerecord|
-      %w(README.rdoc CHANGELOG lib/active_record/**/*.rb).each do |file|
+      %w(README.rdoc CHANGELOG.md lib/active_record/**/*.rb).each do |file|
         rdoc.rdoc_files.include("#{activerecord}/#{file}")
       end
     end
 
     gem_path('activeresource') do |activeresource|
-      %w(README.rdoc CHANGELOG lib/active_resource.rb lib/active_resource/*).each do |file|
+      %w(README.rdoc CHANGELOG.md lib/active_resource.rb lib/active_resource/*).each do |file|
         rdoc.rdoc_files.include("#{activeresource}/#{file}")
       end
     end
