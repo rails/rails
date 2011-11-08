@@ -26,16 +26,16 @@ directory "pkg"
       major, minor, tiny, pre = version.split('.')
       pre = pre ? pre.inspect : "nil"
 
-      ruby.gsub! /^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}"
+      ruby.gsub!(/^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}")
       raise "Could not insert MAJOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}"
+      ruby.gsub!(/^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}")
       raise "Could not insert MINOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}"
+      ruby.gsub!(/^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}")
       raise "Could not insert TINY in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}"
+      ruby.gsub!(/^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}")
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
