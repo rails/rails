@@ -88,16 +88,7 @@ module ActiveSupport
 
       # Decrement an integer value in the cache.
       def decrement(name, amount = 1, options = nil)
-        synchronize do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i - amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        increment(name, -1 * amount, options)
       end
 
       def delete_matched(matcher, options = nil)

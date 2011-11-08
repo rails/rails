@@ -95,29 +95,13 @@ module ActiveSupport
 
         def increment(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          update_local_cache(name, value, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          update_local_cache(name, value, options)
           value
         end
 
@@ -161,6 +145,18 @@ module ActiveSupport
               yield
             ensure
               Thread.current[thread_local_key] = save_cache
+            end
+          end
+
+          def update_local_cache(name, value, options)
+            if local_cache
+              local_cache.mute do
+                if value
+                  local_cache.write(name, value, options)
+                else
+                  local_cache.delete(name, options)
+                end
+              end
             end
           end
       end

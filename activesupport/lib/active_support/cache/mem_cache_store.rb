@@ -7,6 +7,7 @@ end
 
 require 'digest/md5'
 require 'active_support/core_ext/string/encoding'
+require 'active_support/core_ext/hash/reverse_merge'
 
 module ActiveSupport
   module Cache
@@ -90,9 +91,9 @@ module ActiveSupport
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
       def increment(name, amount = 1, options = nil) # :nodoc:
-        options = merged_options(options)
-        response = instrument(:increment, name, :amount => amount) do
-          @data.incr(escape_key(namespaced_key(name, options)), amount)
+        options = merged_options(options).reverse_merge :method => :increment, :memcached_method => :incr
+        response = instrument(options[:method], name, :amount => amount) do
+          @data.send(options[:memcached_method], escape_key(namespaced_key(name, options)), amount)
         end
         response == Response::NOT_FOUND ? nil : response.to_i
       rescue MemCache::MemCacheError
@@ -104,13 +105,7 @@ module ActiveSupport
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
       def decrement(name, amount = 1, options = nil) # :nodoc:
-        options = merged_options(options)
-        response = instrument(:decrement, name, :amount => amount) do
-          @data.decr(escape_key(namespaced_key(name, options)), amount)
-        end
-        response == Response::NOT_FOUND ? nil : response.to_i
-      rescue MemCache::MemCacheError
-        nil
+        increment(name, amount, (options || {}).merge(:method => :decrement, :memcached_method => :decr))
       end
 
       # Clear the entire cache on all memcached servers. This method should
