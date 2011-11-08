@@ -1,0 +1,454 @@
+## Rails 3.1.1 (October 7, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.0 (August 30, 2011) ##
+
+*   No changes
+
+
+## Rails 3.0.7 (April 18, 2011) ##
+
+*   remove AM delegating register_observer and register_interceptor to Mail *Josh Kalderimis*
+
+
+*   Rails 3.0.6 (April 5, 2011)
+
+*   Don't allow i18n to change the minor version, version now set to ~> 0.5.0 *Santiago Pastorino*
+
+
+## Rails 3.0.5 (February 26, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.4 (February 8, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.3 (November 16, 2010) ##
+
+*   No changes.
+
+
+## Rails 3.0.2 (November 15, 2010) ##
+
+*   No changes
+
+
+## Rails 3.0.1 (October 15, 2010) ##
+
+*   No Changes, just a version bump.
+
+
+## Rails 3.0.0 (August 29, 2010) ##
+
+*   subject is automatically looked up on I18n using mailer_name and action_name as scope as in t(".subject") *JK*
+
+*   Changed encoding behaviour of mail, so updated tests in actionmailer and bumped mail version to 2.2.1 *ML*
+
+*   Added ability to pass Proc objects to the defaults hash *ML*
+
+*   Removed all quoting.rb type files from ActionMailer and put Mail 2.2.0 in instead *ML*
+
+*   Lot of updates to various test cases that now work better with the new Mail and so have different expectations
+
+*   Added interceptors and observers from Mail *ML*
+
+        ActionMailer::Base.register_interceptor calls Mail.register_interceptor
+        ActionMailer::Base.register_observer calls Mail.register_observer
+
+*   Mail::Part now no longer has nil as a default charset, it is always set to something, and defaults to UTF-8
+
+*   Added explict setting of charset in set_fields! method to make sure Mail has the user defined default
+
+*   Removed quoting.rb and refactored for Mail to take responsibility of all quoting and auto encoding requirements for the header.
+
+*   Fixed several tests which had incorrect encoding.
+
+*   Changed all utf-8 to UTF-8 for consistency
+
+*   Whole new API added with tests.  See base.rb for full details.  Old API is deprecated.
+
+*   The Mail::Message class has helped methods for all the field types that return 'common' defaults for the common use case, so to get the subject, mail.subject will give you a string, mail.date will give you a DateTime object, mail.from will give you an array of address specs (mikel@test.lindsaar.net) etc.  If you want to access the field object itself, call mail[:field_name] which will return the field object you want, which you can then chain, like mail[:from].formatted
+
+*   Mail#content_type now returns the content_type field as a string. If you want the mime type of a mail, then you call Mail#mime_type (eg, text/plain), if you want the parameters of the content type field, you call Mail#content_type_parameters which gives you a hash, eg {'format' => 'flowed', 'charset' => 'utf-8'}
+
+*   ActionMailer::Base :default_implicit_parts_order now is in the sequence of the order you want, no reversing of ordering takes place.  The default order now is text/plain, then text/enriched, then text/html and then any other part that is not one of these three.
+
+*   Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, subject.encoded etc
+
+*   Every object in a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body class object, need to call #encoded or #decoded to get the string you want.
+*   Mail::Message#set_content_type does not exist, it is simply Mail::Message#content_type
+
+*   Every mail message gets a unique message_id unless you specify one, had to change all the tests that check for equality with expected.encoded == actual.encoded to first replace their message_ids with control values
+
+*   Mail now has a proper concept of parts, remove the ActionMailer::Part and ActionMailer::PartContainer classes
+
+*   Calling #encoded on any object returns it as a string ready to go into the output stream of an email, this means it includes the \r\n at the end of the lines and the object is pre-wrapped with \r\n\t if it is a header field.  Also, the "encoded" value includes the field name if it is a header field.
+
+*   Attachments are only the actual attachment, with filename etc.  A part contains an attachment.  The part has the content_type etc.  So attachments.last.content_type is invalid.  But parts.last.content_type
+
+*   There is no idea of a "sub_head" in Mail.  A part is just a Message with some extra functionality, so it just has a "header" like a normal mail message
+
+
+## 2.3.2 Final (March 15, 2009) ##
+
+*   Fixed that ActionMailer should send correctly formatted Return-Path in MAIL FROM for SMTP #1842 *Matt Jones*
+
+*   Fixed RFC-2045 quoted-printable bug #1421 *squadette*
+
+*   Fixed that no body charset would be set when there are attachments present #740 *Paweł Kondzior*
+
+
+## 2.2.1 RC2 (November 14th, 2008) ##
+
+*   Turn on STARTTLS if it is available in Net::SMTP (added in Ruby 1.8.7) and the SMTP server supports it (This is required for Gmail's SMTP server) #1336 *Grant Hollingworth*
+
+
+## 2.2.0 RC1 (October 24th, 2008) ##
+
+*   Add layout functionality to mailers *Pratik Naik*
+
+    Mailer layouts behaves just like controller layouts, except layout names need to
+    have '_mailer' postfix for them to be automatically picked up.
+
+
+## 2.1.0 (May 31st, 2008) ##
+
+*   Fixed that a return-path header would be ignored #7572 *joost*
+
+*   Less verbose mail logging: just recipients for :info log level; the whole email for :debug only.  #8000 *iaddict, Tarmo Tänav*
+
+*   Updated TMail to version 1.2.1 *Mikel Lindsaar*
+
+*   Fixed that you don't have to call super in ActionMailer::TestCase#setup #10406 *jamesgolick*
+
+
+## 2.0.2 (December 16th, 2007) ##
+
+*   Included in Rails 2.0.2
+
+
+## 2.0.1 (December 7th, 2007) ##
+
+*   Update ActionMailer so it treats ActionView the same way that ActionController does.  Closes #10244 *Rick Olson*
+
+    * Pass the template_root as an array as ActionView's view_path
+    * Request templates with the "#{mailer_name}/#{action}" as opposed to just "#{action}"
+
+*   Fixed that partials would be broken when using text.plain.erb as the extension #10130 *java*
+
+*   Update README to use new smtp settings configuration API. Closes #10060 *psq*
+
+*   Allow ActionMailer subclasses to individually set their delivery method (so two subclasses can have different delivery methods) #10033 *Zach Dennis*
+
+*   Update TMail to v1.1.0.  Use an updated version of TMail if available.  *Mikel Lindsaar*
+
+*   Introduce a new base test class for testing Mailers.  ActionMailer::TestCase *Michael Koziarski*
+
+*   Fix silent failure of rxml templates.  #9879 *jstewart*
+
+*   Fix attachment decoding when using the TMail C extension.  #7861 *orangechicken*
+
+*   Increase mail delivery test coverage.  #8692 *Kamal Fariz Mahyuddin*
+
+*   Register alternative template engines using ActionMailer::Base.register_template_extension('haml').  #7534 *cwd, Josh Peek*
+
+*   Only load ActionController::UrlWriter if ActionController is present *Rick Olson*
+
+*   Make sure parsed emails recognized attachments nested inside multipart parts. #6714 *Jamis Buck*
+
+*   Allow mailer actions named send by using __send__ internally.  #6467 *iGEL*
+
+*   Add assert_emails and assert_no_emails to test the number of emails delivered.  #6479 *Jonathan Viney*
+        # Assert total number of emails delivered:
+        assert_emails 0
+        ContactMailer.deliver_contact
+        assert_emails 1
+
+        # Assert number of emails delivered within a block:
+        assert_emails 1 do
+          post :signup, :name => 'Jonathan'
+        end
+
+
+## 1.3.3 (March 12th, 2007) ##
+
+*   Depend on Action Pack 1.13.3
+
+
+## 1.3.2 (February 5th, 2007) ##
+
+*   Deprecate server_settings renaming it to smtp_settings,  add sendmail_settings to allow you to override the arguments to and location of the sendmail executable. *Michael Koziarski*
+
+
+## 1.3.1 (January 16th, 2007) ##
+
+*   Depend on Action Pack 1.13.1
+
+
+## 1.3.0 (January 16th, 2007) ##
+
+*   Make mime version default to 1.0. closes #2323 *ror@andreas-s.net*
+
+*   Make sure quoted-printable text is decoded correctly when only portions of the text are encoded. closes #3154. *jon@siliconcircus.com*
+
+*   Make sure DOS newlines in quoted-printable text are normalized to unix newlines before unquoting. closes #4166 and #4452. *Jamis Buck*
+
+*   Fixed that iconv decoding should catch InvalidEncoding #3153 *jon@siliconcircus.com*
+
+*   Tighten rescue clauses.  #5985 *james@grayproductions.net*
+
+*   Automatically included ActionController::UrlWriter, such that URL generation can happen within ActionMailer controllers. *David Heinemeier Hansson*
+
+*   Replace Reloadable with Reloadable::Deprecated. *Nicholas Seckar*
+
+*   Mailer template root applies to a class and its subclasses rather than acting globally. #5555 *somekool@gmail.com*
+
+*   Resolve action naming collision. #5520 *ssinghi@kreeti.com*
+
+*   ActionMailer::Base documentation rewrite. Closes #4991 *Kevin Clark, Marcel Molina Jr.*
+
+*   Replace alias method chaining with Module#alias_method_chain. *Marcel Molina Jr.*
+
+*   Replace Ruby's deprecated append_features in favor of included. *Marcel Molina Jr.*
+
+*   Correct spurious documentation example code which results in a SyntaxError. *Marcel Molina Jr.*
+
+
+## 1.2.1 (April 6th, 2006) ##
+
+*   Be part of Rails 1.1.1
+
+
+## 1.2.0 (March 27th, 2006) ##
+
+*   Nil charset caused subject line to be improperly quoted in implicitly multipart messages #2662 *ehalvorsen+rails@runbox.com*
+
+*   Parse content-type apart before using it so that sub-parts of the header can be set correctly #2918 *Jamis Buck*
+
+*   Make custom headers work in subparts #4034 *elan@bluemandrill.com*
+
+*   Template paths with dot chars in them no longer mess up implicit template selection for multipart messages #3332 *Chad Fowler*
+
+*   Make sure anything with content-disposition of "attachment" is passed to the attachment presenter when parsing an email body *Jamis Buck*
+
+*   Make sure TMail#attachments includes anything with content-disposition of "attachment", regardless of content-type *Jamis Buck*
+
+
+## 1.1.5 (December 13th, 2005) ##
+
+*   Become part of Rails 1.0
+
+
+## 1.1.4 (December 7th, 2005) ##
+
+*   Rename Version constant to VERSION. #2802 *Marcel Molina Jr.*
+
+*   Stricter matching for implicitly multipart filenames excludes files ending in unsupported extensions (such as foo.rhtml.bak) and without a two-part content type (such as foo.text.rhtml or foo.text.really.plain.rhtml).  #2398 *Dave Burt <dave@burt.id.au>, Jeremy Kemper*
+
+
+## 1.1.3 (November 7th, 2005) ##
+
+*   Allow Mailers to have custom initialize methods that set default instance variables for all mail actions #2563 *mrj@bigpond.net.au*
+
+
+## 1.1.2 (October 26th, 2005) ##
+
+*   Upgraded to Action Pack 1.10.2
+
+
+## 1.1.1 (October 19th, 2005) ##
+
+*   Upgraded to Action Pack 1.10.1
+
+
+## 1.1.0 (October 16th, 2005) ##
+
+*   Update and extend documentation (rdoc)
+
+*   Minero Aoki made TMail available to Rails/ActionMailer under the MIT license (instead of LGPL) *RubyConf '05*
+
+*   Austin Ziegler made Text::Simple available to Rails/ActionMailer under a MIT-like licens *See rails ML, subject "Text::Format Licence Exception" on Oct 15, 2005*
+
+*   Fix vendor require paths to prevent files being required twice
+
+*   Don't add charset to content-type header for a part that contains subparts (for AOL compatibility) #2013 *John Long*
+
+*   Preserve underscores when unquoting message bodies #1930
+
+*   Encode multibyte characters correctly #1894
+
+*   Multipart messages specify a MIME-Version header automatically #2003 *John Long*
+
+*   Add a unified render method to ActionMailer (delegates to ActionView::Base#render)
+
+*   Move mailer initialization to a separate (overridable) method, so that subclasses may alter the various defaults #1727
+
+*   Look at content-location header (if available) to determine filename of attachments #1670
+
+*   ActionMailer::Base.deliver(email) had been accidentally removed, but was documented in the Rails book #1849
+
+*   Fix problem with sendmail delivery where headers should be delimited by \n characters instead of \r\n, which confuses some mail readers #1742 *Kent Sibilev*
+
+
+## 1.0.1 (11 July, 2005) ##
+
+*   Bind to Action Pack 1.9.1
+
+
+## 1.0.0 (6 July, 2005) ##
+
+*   Avoid adding nil header values #1392
+
+*   Better multipart support with implicit multipart/alternative and sorting of subparts *John Long*
+
+*   Allow for nested parts in multipart mails #1570 *Flurin Egger*
+
+*   Normalize line endings in outgoing mail bodies to "\n" #1536 *John Long*
+
+*   Allow template to be explicitly specified #1448 *tuxie@dekadance.se*
+
+*   Allow specific "multipart/xxx" content-type to be set on multipart messages #1412 *Flurin Egger*
+
+*   Unquoted @ characters in headers are now accepted in spite of RFC 822 #1206
+
+*   Helper support (borrowed from ActionPack)
+
+*   Silently ignore Errno::EINVAL errors when converting text.
+
+*   Don't cause an error when parsing an encoded attachment name #1340 *lon@speedymac.com*
+
+*   Nested multipart message parts are correctly processed in TMail::Mail#body
+
+*   BCC headers are removed when sending via SMTP #1402
+
+*   Added 'content_type' accessor, to allow content type to be set on a per-message basis. content_type defaults to "text/plain".
+
+*   Silently ignore Iconv::IllegalSequence errors when converting text #1341 *lon@speedymac.com*
+
+*   Support attachments and multipart messages.
+
+*   Added new accessors for the various mail properties.
+
+*   Fix to only perform the charset conversion if a 'from' and a 'to' charset are given (make no assumptions about what the charset was) #1276 *Jamis Buck*
+
+*   Fix attachments and content-type problems #1276 *Jamis Buck*
+
+*   Fixed the TMail#body method to look at the content-transfer-encoding header and unquote the body according to the rules it specifies #1265 *Jamis Buck*
+
+*   Added unquoting even if the iconv lib can't be loaded--in that case, only the charset conversion is skipped #1265 *Jamis Buck*
+
+*   Added automatic decoding of base64 bodies #1214 *Jamis Buck*
+
+*   Added that delivery errors are caught in a way so the mail is still returned whether the delivery was successful or not
+
+*   Fixed that email address like "Jamis Buck, M.D." <wild.medicine@example.net> would cause the quoter to generate emails resulting in "bad address" errors from the mail server #1220 *Jamis Buck*
+
+
+## 0.9.1 (20th April, 2005) ##
+
+*   Depend on Action Pack 1.8.1
+
+
+## 0.9.0 (19th April, 2005) ##
+
+*   Added that deliver_* will now return the email that was sent
+
+*   Added that quoting to UTF-8 only happens if the characters used are in that range #955 *Jamis Buck*
+
+*   Fixed quoting for all address headers, not just to #955 *Jamis Buck*
+
+*   Fixed unquoting of emails that doesn't have an explicit charset #1036 *wolfgang@stufenlos.net*
+
+
+## 0.8.1 (27th March, 2005) ##
+
+*   Fixed that if charset was found that the end of a mime part declaration TMail would throw an error #919 *lon@speedymac.com*
+
+*   Fixed that TMail::Unquoter would fail to recognize quoting method if it was in lowercase #919 *lon@speedymac.com*
+
+*   Fixed that TMail::Encoder would fail when it attempts to parse e-mail addresses which are encoded using something other than the messages encoding method #919 *lon@speedymac.com*
+
+*   Added rescue for missing iconv library and throws warnings if subject/body is called on a TMail object without it instead
+
+
+## 0.8.0 (22th March, 2005) ##
+
+*   Added framework support for processing incoming emails with an Action Mailer class. See example in README.
+
+
+## 0.7.1 (7th March, 2005) ##
+
+*   Bind to newest Action Pack (1.5.1)
+
+
+## 0.7.0 (24th February, 2005) ##
+
+*   Added support for charsets for both subject and body. The default charset is now UTF-8 #673 [Jamis Buck]. Examples:
+
+        def iso_charset(recipient)
+          @recipients = recipient
+          @subject    = "testing iso charsets"
+          @from       = "system@loudthinking.com"
+          @body       = "Nothing to see here."
+          @charset    = "iso-8859-1"
+        end
+
+        def unencoded_subject(recipient)
+          @recipients = recipient
+          @subject    = "testing unencoded subject"
+          @from       = "system@loudthinking.com"
+          @body       = "Nothing to see here."
+          @encode_subject = false
+          @charset    = "iso-8859-1"
+        end
+
+
+## 0.6.1 (January 18th, 2005) ##
+
+*   Fixed sending of emails to use Tmail#from not the deprecated Tmail#from_address
+
+
+## 0.6 (January 17th, 2005) ##
+
+*   Fixed that bcc and cc should be settable through @bcc and @cc -- not just @headers["Bcc"] and @headers["Cc"] #453 *Eric Hodel*
+
+*   Fixed Action Mailer to be "warnings safe" so you can run with ruby -w and not get framework warnings #453 *Eric Hodel*
+
+
+## 0.5 ##
+
+*   Added access to custom headers, like cc, bcc, and reply-to #268 [Andreas Schwarz]. Example:
+
+        def post_notification(recipients, post)
+          @recipients          = recipients
+          @from                = post.author.email_address_with_name
+          @headers["bcc"]      = SYSTEM_ADMINISTRATOR_EMAIL
+          @headers["reply-to"] = "notifications@example.com"
+          @subject             = "[#{post.account.name} #{post.title}]"
+          @body["post"]        = post
+        end
+
+## 0.4 (5) ##
+
+*   Consolidated the server configuration options into Base#server_settings= and expanded that with controls for authentication and more *Marten*
+    NOTE: This is an API change that could potentially break your application if you used the old application form. Please do change!
+
+*   Added Base#deliveries as an accessor for an array of emails sent out through that ActionMailer class when using the :test delivery option. *Jeremy Kemper*
+
+*   Added Base#perform_deliveries= which can be set to false to turn off the actual delivery of the email through smtp or sendmail.
+    This is especially useful for functional testing that shouldn't send off real emails, but still trigger delivery_* methods.
+
+*   Added option to specify delivery method with Base#delivery_method=. Default is :smtp and :sendmail is currently the only other option.
+    Sendmail is assumed to be present at "/usr/sbin/sendmail" if that option is used. *Kent Sibilev*
+
+*   Dropped "include TMail" as it added to much baggage into the default namespace (like Version) *Chad Fowler*
+
+
+## 0.3 ##
+
+*   First release

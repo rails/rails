@@ -158,9 +158,12 @@ class ActionsTest < Rails::Generators::TestCase
     action :generate, 'model', 'MyModel'
   end
 
-  def test_rake_should_run_rake_command_with_development_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=development', :verbose => false)
+  def test_rake_should_run_rake_command_with_default_env
+    generator.expects(:run).once.with("rake log:clear RAILS_ENV=development", :verbose => false)
+    old_env, ENV['RAILS_ENV'] = ENV["RAILS_ENV"], nil
     action :rake, 'log:clear'
+  ensure
+    ENV["RAILS_ENV"] = old_env
   end
 
   def test_rake_with_env_option_should_run_rake_command_in_env
@@ -169,8 +172,11 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_rake_with_sudo_option_should_run_rake_command_with_sudo
-    generator.expects(:run).once.with('sudo rake log:clear RAILS_ENV=development', :verbose => false)
+    generator.expects(:run).once.with("sudo rake log:clear RAILS_ENV=development", :verbose => false)
+    old_env, ENV['RAILS_ENV'] = ENV["RAILS_ENV"], nil
     action :rake, 'log:clear', :sudo => true
+  ensure
+    ENV["RAILS_ENV"] = old_env
   end
 
   def test_capify_should_run_the_capify_command

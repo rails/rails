@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
 
-  s.files              = Dir['CHANGELOG', 'README.rdoc', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
+  s.files              = Dir['CHANGELOG.md', 'README.rdoc', 'bin/**/*', 'guides/**/*', 'lib/**/{*,.[a-z]*}']
   s.require_path       = 'lib'
 
   s.bindir             = 'bin'

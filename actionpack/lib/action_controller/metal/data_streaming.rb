@@ -30,7 +30,7 @@ module ActionController #:nodoc:
       #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
-      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
+      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
       # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser guess the filename from
       #   the URL, which is necessary for i18n filenames on certain browsers
       #   (setting <tt>:filename</tt> overrides this option).
@@ -86,7 +86,7 @@ module ActionController #:nodoc:
       #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
-      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
+      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
       #
       # Generic data download:
       #

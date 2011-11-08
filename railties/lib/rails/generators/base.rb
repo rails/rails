@@ -91,7 +91,7 @@ module Rails
       #
       # The lookup in this case for test_unit as input is:
       #
-      #   "test_unit:awesome", "test_unit"
+      #   "test_framework:awesome", "test_framework"
       #
       # Which is not the desired the lookup. You can change it by providing the
       # :as option:
@@ -102,7 +102,7 @@ module Rails
       #
       # And now it will lookup at:
       #
-      #   "test_unit:controller", "test_unit"
+      #   "test_framework:controller", "test_framework"
       #
       # Similarly, if you want it to also lookup in the rails namespace, you just
       # need to provide the :base value:
@@ -113,7 +113,7 @@ module Rails
       #
       # And the lookup is exactly the same as previously:
       #
-      #   "rails:test_unit", "test_unit:controller", "test_unit"
+      #   "rails:test_framework", "test_framework:controller", "test_framework"
       #
       # ==== Switches
       #

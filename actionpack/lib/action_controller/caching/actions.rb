@@ -175,7 +175,7 @@ module ActionController #:nodoc:
       private
         def normalize!(path)
           path << 'index' if path[-1] == ?/
-          path << ".#{extension}" if extension and !path.ends_with?(extension)
+          path << ".#{extension}" if extension and !path.split('?').first.ends_with?(".#{extension}")
           URI.parser.unescape(path)
         end
       end

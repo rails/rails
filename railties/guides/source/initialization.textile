@@ -7,7 +7,7 @@ This guide explains the internals of the initialization process in Rails works a
 
 endprologue.
 
-This guide goes through every single file, class and method call that is required to boot up the Ruby on Rails stack for a default Rails 3.1 application, explaining each part in detail a long the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
+This guide goes through every single file, class and method call that is required to boot up the Ruby on Rails stack for a default Rails 3.1 application, explaining each part in detail along the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
@@ -243,7 +243,7 @@ In this file there are a lot of lines such as this inside the +ActiveSupport+ mo
 autoload :Inflector
 </ruby>
 
-Due to the overriding of the +autoload+ method, Ruby will know to look for this file at +activesupport/lib/active_support/inflector.rb+ when the +Inflector+ class is first referenced.
+Due to the overriding of the +autoload+ method, Ruby will know how to look for this file at +activesupport/lib/active_support/inflector.rb+ when the +Inflector+ class is first referenced.
 
 The +active_support/lib/active_support/version.rb+ that is also required here simply defines an +ActiveSupport::VERSION+ constant which defines a couple of constants inside this module, the main constant of this is +ActiveSupport::VERSION::STRING+ which returns the current version of ActiveSupport.
 

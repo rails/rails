@@ -247,6 +247,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_link_tag_using_post_javascript_and_rel
+    assert_dom_equal(
+      "<a href='http://www.example.com' data-method=\"post\" rel=\"example nofollow\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :method => :post, :rel => 'example')
+    )
+  end
+
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
       "<a href=\"http://www.example.com\" data-method=\"post\" rel=\"nofollow\" data-confirm=\"Are you serious?\">Hello</a>",

@@ -56,6 +56,14 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
+  def test_schema_change_with_prepared_stmt
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+    @connection.exec_query "alter table developers add column zomg int", 'sql', []
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+  ensure
+    @connection.exec_query "alter table developers drop column if exists zomg", 'sql', []
+  end
+
   def test_table_exists?
     [Thing1, Thing2, Thing3, Thing4].each do |klass|
       name = klass.table_name
@@ -154,6 +162,10 @@ class SchemaTest < ActiveRecord::TestCase
 
   def test_dump_indexes_for_schema_two
     do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2)
+  end
+
+  def test_dump_indexes_for_schema_multiple_schemas_in_search_path
+    do_dump_index_tests_for_schema("public, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1)
   end
 
   def test_with_uppercase_index_name

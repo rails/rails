@@ -67,6 +67,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_associate_existing_record_twice_should_add_records_twice
+    post   = posts(:thinking)
+    person = people(:david)
+
+    assert_difference 'post.people.count', 2 do
+      post.people << person
+      post.people << person
+    end
+  end
+
+  def test_add_two_instance_and_then_deleting
+    post   = posts(:thinking)
+    person = people(:david)
+
+    post.people << person
+    post.people << person
+
+    counts = ['post.people.count', 'post.people.to_a.count', 'post.readers.count', 'post.readers.to_a.count']
+    assert_difference counts, -2 do
+      post.people.delete(person)
+    end
+
+    assert !post.people.reload.include?(person)
+  end
+
   def test_associating_new
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
@@ -819,5 +844,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_explicitly_joining_join_table
     assert_equal owners(:blackbeard).toys, owners(:blackbeard).toys.with_pet
+  end
+
+  def test_has_many_through_with_polymorphic_source
+    post = tags(:general).tagged_posts.create! :title => "foo", :body => "bar"
+    assert_equal [tags(:general)], post.reload.tags
   end
 end

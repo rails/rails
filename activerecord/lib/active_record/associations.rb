@@ -1420,17 +1420,17 @@ module ActiveRecord
       # join table with a migration such as this:
       #
       #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
-      #     def self.up
+      #     def change
       #       create_table :developers_projects, :id => false do |t|
       #         t.integer :developer_id
       #         t.integer :project_id
       #       end
       #     end
-      #
-      #     def self.down
-      #       drop_table :developers_projects
-      #     end
       #   end
+      #
+      # It's also a good idea to add indexes to each of those columns to speed up the joins process.
+      # However, in MySQL it is advised to add a compound index for both of the columns as MySQL only
+      # uses one index per table during the lookup.
       #
       # Adds the following methods for retrieval and query:
       #

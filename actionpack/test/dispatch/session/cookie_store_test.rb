@@ -55,6 +55,16 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def set_flash_like
+      session[:flash_like] = ActionDispatch::Flash::FlashHash.new
+      session[:flash_like]["foo"] = "bar"
+      head :ok
+    end
+
+    def read_flash_like
+      render :text => session[:flash_like].inspect
+    end
+
     def rescue_action(e) raise end
   end
 
@@ -87,6 +97,26 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get '/get_session_id'
       assert_response :success
       assert_equal "id: #{session_id}", response.body, "should be able to read session id without accessing the session hash"
+    end
+  end
+
+  def test_disregards_outdated_flash_class
+    with_test_route_set do
+      correct = ActionDispatch::Flash::FlashHash
+      wrong   = Class.new(Hash)
+
+      ActionDispatch::Flash.send :remove_const, :FlashHash
+      ActionDispatch::Flash.send :const_set, :FlashHash, wrong
+
+      get '/set_flash_like'
+      assert_response :success
+
+      ActionDispatch::Flash.send :remove_const, :FlashHash
+      ActionDispatch::Flash.send :const_set, :FlashHash, correct
+
+      get '/read_flash_like'
+      assert_response :success
+      assert_equal 'nil', response.body
     end
   end
 

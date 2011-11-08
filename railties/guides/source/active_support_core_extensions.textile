@@ -1756,7 +1756,7 @@ h4(#string-conversions). Conversions
 
 h5. +ord+
 
-Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encondings like ASCII or ISO-8859-1 in Ruby 1.8:
+Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encodings like ASCII or ISO-8859-1 in Ruby 1.8:
 
 <ruby>
 "a".ord # => 97
@@ -1770,7 +1770,7 @@ In Ruby 1.8 +ord+ doesn't work in general in UTF8 strings, use the multibyte sup
 "à".mb_chars.ord # => 224, in UTF8
 </ruby>
 
-Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representattion in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
+Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representation in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
 
 INFO: +ord+ is equivalent to +getbyte(0)+.
 

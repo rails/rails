@@ -289,16 +289,16 @@ module ApplicationTests
     end
 
     test "precompile should handle utf8 filenames" do
-      app_file "app/assets/images/レイルズ.png", "not a image really"
+      filename = "レイルズ.png"
+      app_file "app/assets/images/#{filename}", "not a image really"
       add_to_config "config.assets.precompile = [ /\.png$$/, /application.(css|js)$/ ]"
 
       precompile!
-      assert File.exists?("#{app_path}/public/assets/レイルズ.png")
+      require "#{app_path}/config/environment"
 
-      manifest = "#{app_path}/public/assets/manifest.yml"
-
-      assets = YAML.load_file(manifest)
-      assert_equal "レイルズ.png", assets["レイルズ.png"]
+      get "/assets/#{URI.escape(filename)}"
+      assert_match "not a image really", last_response.body
+      assert File.exists?("#{app_path}/public/assets/#{filename}")
     end
 
     test "assets are cleaned up properly" do

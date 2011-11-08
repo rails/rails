@@ -982,15 +982,15 @@ The +after_initialize+ callback will be called whenever an Active Record object 
 
 The +after_find+ callback will be called whenever Active Record loads a record from the database. +after_find+ is called before +after_initialize+ if both are defined.
 
-The +after_initialize+ and +after_find+ callbacks are a bit different from the others. They have no +before_*+ counterparts, and the only way to register them is by defining them as regular methods. If you try to register +after_initialize+ or +after_find+ using macro-style class methods, they will just be ignored. This behavior is due to performance reasons, since +after_initialize+ and +after_find+ will both be called for each record found in the database, significantly slowing down the queries.
+The +after_initialize+ and +after_find+ callbacks have no +before_*+ counterparts, but they can be registered just like the other Active Record callbacks.
 
 <ruby>
 class User < ActiveRecord::Base
-  def after_initialize
+  after_initialize do |user|
     puts "You have initialized an object!"
   end
 
-  def after_find
+  after_find do |user|
     puts "You have found an object!"
   end
 end
