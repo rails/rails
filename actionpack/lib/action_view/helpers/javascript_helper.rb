@@ -85,7 +85,7 @@ module ActionView
       # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+. Once all
       # the JavaScript is set, the helper appends "; return false;".
       #
-      # The +href+ attribute of the tag is set to "#" unles +html_options+ has one.
+      # The +href+ attribute of the tag is set to "#" unless +html_options+ has one.
       #
       #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
