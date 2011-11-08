@@ -437,7 +437,7 @@ module ActiveSupport
         # Implementations that support delete_matched should call this method to translate
         # a pattern that matches names into one that matches namespaced keys.
         def key_matcher(pattern, options)
-          prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
+          prefix = prefix_with_delimiter(options[:namespace])
           if prefix
             source = pattern.source
             if source.start_with?('^')
@@ -445,7 +445,7 @@ module ActiveSupport
             else
               source = ".*#{source[0, source.length]}"
             end
-            Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+            Regexp.new("^#{Regexp.escape(prefix)}#{source}", pattern.options)
           else
             pattern
           end
@@ -499,10 +499,13 @@ module ActiveSupport
         # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
         def namespaced_key(key, options)
           key = expanded_key(key)
-          namespace = options[:namespace] if options
-          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
-          key = "#{prefix}:#{key}" if prefix
+          key = "#{prefix_with_delimiter(options[:namespace])}#{key}" if options
           key
+        end
+
+        def prefix_with_delimiter(namespace)
+          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
+          prefix ? "#{prefix}:" : nil
         end
 
         def instrument(operation, key, options = nil)
