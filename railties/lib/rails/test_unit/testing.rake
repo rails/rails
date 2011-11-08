@@ -121,10 +121,16 @@ namespace :test do
       models      = changed_since_checkin.select { |path| path =~ /app[\\\/]models[\\\/].*\.rb$/ }
       controllers = changed_since_checkin.select { |path| path =~ /app[\\\/]controllers[\\\/].*\.rb$/ }
 
-      unit_tests       = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
-      functional_tests = controllers.map { |controller| "test/functional/#{File.basename(controller, '.rb')}_test.rb" }
+      unit_tests = models.map do |model|
+        file = "test/unit/#{File.basename(model, '.rb')}_test.rb"
+        file if File.exist?(file)
+      end
+      functional_tests = controllers.map do |controller|
+        file = "test/functional/#{File.basename(controller, '.rb')}_test.rb"
+        file if File.exist?(file)
+      end
 
-      unit_tests.uniq + functional_tests.uniq
+      (unit_tests.uniq + functional_tests.uniq).compact
     end
 
     t.libs << 'test'
