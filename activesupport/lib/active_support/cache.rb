@@ -616,7 +616,7 @@ module ActiveSupport
         def should_compress?(serialized_value, options)
           if options[:compress]
             compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
-            return true if serialized_value.size >= compress_threshold
+            return true if serialized_value.bytesize >= compress_threshold
           end
           false
         end
