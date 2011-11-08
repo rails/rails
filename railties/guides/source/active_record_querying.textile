@@ -1287,19 +1287,19 @@ User.where(:id => 1).joins(:posts).explain
 may yield
 
 <plain>
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
 | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
 |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
 |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
 2 rows in set (0.00 sec)
 </plain>
 
 under MySQL.
 
 Active Record performs a pretty printing that emulates the one of the database
-shells. So, the same query running with the PostreSQL adapter would yield instead
+shells. So, the same query running with the PostgreSQL adapter would yield instead
 
 <plain>
                                   QUERY PLAN
@@ -1324,17 +1324,17 @@ User.where(:id => 1).includes(:posts).explain
 yields
 
 <plain>
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
 | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra |
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
 |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |       |
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+
+<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
 1 row in set (0.00 sec)
-+----+-------------+-------+------+---------------+------+---------+------+------+-------------+
+<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
 | id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra       |
-+----+-------------+-------+------+---------------+------+---------+------+------+-------------+
+<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
 |  1 | SIMPLE      | posts | ALL  | NULL          | NULL | NULL    | NULL |    1 | Using where |
-+----+-------------+-------+------+---------------+------+---------+------+------+-------------+
+<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
 1 row in set (0.00 sec)
 </plain>
 

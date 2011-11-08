@@ -46,13 +46,13 @@ module ActiveRecord
     # +change_table+ is actually of this type:
     #
     #   class SomeMigration < ActiveRecord::Migration
-    #     def self.up
+    #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
     #       end
     #     end
     #
-    #     def self.down
+    #     def down
     #       ...
     #     end
     #   end
@@ -479,4 +479,3 @@ module ActiveRecord
 
   end
 end
-
