@@ -96,13 +96,13 @@ namespace :doc do
     end
 
     gem_path('activesupport') do |activesupport|
-      %w(README.rdoc CHANGELOG lib/active_support/**/*.rb).each do |file|
+      %w(README.rdoc CHANGELOG.md lib/active_support/**/*.rb).each do |file|
         rdoc.rdoc_files.include("#{activesupport}/#{file}")
       end
     end
 
     gem_path('railties') do |railties|
-      %w(README.rdoc CHANGELOG lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
+      %w(README.rdoc CHANGELOG.md lib/{*.rb,commands/*.rb,generators/*.rb}).each do |file|
         rdoc.rdoc_files.include("#{railties}/#{file}")
       end
     end
