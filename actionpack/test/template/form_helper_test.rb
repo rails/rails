@@ -291,6 +291,13 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_text_field_with_numericality_validator_max
+    Post.stubs(:attribute_max).with("cost").returns(1000)
+    assert_dom_equal(
+      '<input id="post_cost" name="post[cost]" size="30" max="1000" type="text" />', text_field("post", "cost")
+    )
+  end
+
   def test_check_box
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
