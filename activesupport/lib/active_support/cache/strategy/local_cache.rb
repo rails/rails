@@ -107,11 +107,11 @@ module ActiveSupport
 
         protected
           def read_entry(key, options) # :nodoc:
-            if local_cache
-              entry = local_cache.read_entry(key, options)
+            if cache = local_cache
+              entry = cache.read_entry(key, options)
               unless entry
                 entry = super
-                local_cache.write_entry(key, entry, options)
+                cache.write_entry(key, entry, options)
               end
               entry
             else
@@ -149,12 +149,12 @@ module ActiveSupport
           end
 
           def update_local_cache(name, value, options)
-            if local_cache
-              local_cache.mute do
+            if cache = local_cache
+              cache.mute do
                 if value
-                  local_cache.write(name, value, options)
+                  cache.write(name, value, options)
                 else
-                  local_cache.delete(name, options)
+                  cache.delete(name, options)
                 end
               end
             end
