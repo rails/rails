@@ -181,6 +181,27 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_nil Topic.attribute_max(:approved)
   end
 
+  def test_attribute_min_using_greater_than
+    Topic.validates_numericality_of :approved, :greater_than => 20
+    assert_equal 20, Topic.attribute_min(:approved)
+  end
+
+  def test_attribute_min_using_greater_than_or_equal_to
+    Topic.validates_numericality_of :approved, :greater_than_or_equal_to => 40
+    assert_equal 40, Topic.attribute_min(:approved)
+  end
+
+  def test_attribute_min_with_if_or_unless_or_allow_nil_or_allow_blank
+    Topic.validates_numericality_of :approved, :greater_than => 20, :if => lambda {|u| true}
+    assert_nil Topic.attribute_min(:approved)
+    Topic.validates_numericality_of :approved, :greater_than => 20, :unless => lambda {|u| false}
+    assert_nil Topic.attribute_min(:approved)
+    Topic.validates_numericality_of :approved, :greater_than => 20, :allow_nil => true
+    assert_nil Topic.attribute_min(:approved)
+    Topic.validates_numericality_of :approved, :greater_than => 20, :allow_nil => true
+    assert_nil Topic.attribute_min(:approved)
+  end
+
   private
 
   def invalid!(values, error = nil)

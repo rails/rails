@@ -1017,6 +1017,7 @@ module ActionView
           options["required"] ||= object.class.attribute_required?(method_name)
           options["maxlength"] ||= object.class.attribute_maxlength(method_name)
           options["max"] ||= object.class.attribute_max(method_name)
+          options["min"] ||= object.class.attribute_min(method_name)
         end
         options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
         options = DEFAULT_FIELD_OPTIONS.merge(options)
