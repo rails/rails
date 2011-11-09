@@ -317,7 +317,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      check_box("post", "secret" ,{"checked"=>"checked"})
+      check_box("post", "secret", {"checked" => "checked"})
     )
     @post.secret = true
     assert_dom_equal(
@@ -350,7 +350,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_with_multiple_behavior
-    @post.comment_ids = [2,3]
+    @post.comment_ids = [2, 3]
     assert_dom_equal(
       '<input name="post[comment_ids][]" type="hidden" value="0" /><input id="post_comment_ids_1" name="post[comment_ids][]" type="checkbox" value="1" />',
       check_box("post", "comment_ids", { :multiple => true }, 1)
@@ -400,7 +400,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_radio_button_respects_passed_in_id
      assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
-       radio_button("post", "secret", "1", :id=>"foo")
+       radio_button("post", "secret", "1", :id => "foo")
     )
   end
 
@@ -630,7 +630,7 @@ class FormHelperTest < ActionView::TestCase
       label("post[]", "title")
     )
     assert_dom_equal(
-      "<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />", text_field("post[]","title")
+      "<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />", text_field("post[]", "title")
     )
     assert_dom_equal(
       "<textarea cols=\"40\" id=\"post_#{pid}_body\" name=\"post[#{pid}][body]\" rows=\"20\">Back to the hill and over it again!</textarea>",
@@ -653,7 +653,7 @@ class FormHelperTest < ActionView::TestCase
     pid = @post.id
     assert_dom_equal(
       "<input name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />",
-      text_field("post[]","title", :id => nil)
+      text_field("post[]", "title", :id => nil)
     )
     assert_dom_equal(
       "<textarea cols=\"40\" name=\"post[#{pid}][body]\" rows=\"20\">Back to the hill and over it again!</textarea>",
@@ -687,7 +687,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit('Create post')
     end
 
-    expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
+    expected = whole_form("/posts/123", "create-post", "edit_post", :method => "put") do
       "<label for='post_title'>The Title</label>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -706,7 +706,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.file_field(:file)
     end
 
-    expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put", :multipart => true) do
+    expected = whole_form("/posts/123", "create-post", "edit_post", :method => "put", :multipart => true) do
       "<input name='post[file]' type='file' id='post_file' />"
     end
 
@@ -722,7 +722,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form("/posts/123", "edit_post_123" , "edit_post", :method => "put", :multipart => true) do
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", :method => "put", :multipart => true) do
       "<input name='post[comment][file]' type='file' id='post_comment_file' />"
     end
 
@@ -735,7 +735,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.label(:title)
     end
 
-    expected = whole_form("/posts/123.json", "edit_post_123" , "edit_post", :method => "put") do
+    expected = whole_form("/posts/123.json", "edit_post_123", "edit_post", :method => "put") do
       "<label for='post_title'>Title</label>"
     end
 
@@ -748,7 +748,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit('Edit post')
     end
 
-    expected = whole_form("/posts/44", "edit_post_44" , "edit_post", :method => "put") do
+    expected = whole_form("/posts/44", "edit_post_44", "edit_post", :method => "put") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
       "<input name='commit' type='submit' value='Edit post' />"
     end
@@ -2059,5 +2059,4 @@ class FormHelperTest < ActionView::TestCase
     def protect_against_forgery?
       false
     end
-
 end
