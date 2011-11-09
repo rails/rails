@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Deprecated ActiveSupport::MessageEncryptor#encrypt and decrypt. *José Valim*
+
 *   ActiveSupport::Notifications.subscribed provides subscriptions to events while a block runs. *fxn*
 
 *   Module#qualified_const_(defined?|get|set) are analogous to the corresponding methods

@@ -18,13 +18,39 @@ module ActiveSupport
         ActiveSupport::Deprecation.warn "The second parameter should be an options hash. Use :cipher => 'algorithm' to specify the cipher algorithm."
         options = { :cipher => options }
       end
-      
+
       @secret = secret
       @cipher = options[:cipher] || 'aes-256-cbc'
       @serializer = options[:serializer] || Marshal
     end
 
     def encrypt(value)
+      ActiveSupport::Deprecation.warn "MessageEncryptor#encrypt is deprecated as it is not safe without a signature. " \
+        "Please use MessageEncryptor#encrypt_and_sign instead."
+      _encrypt(value)
+    end
+
+    def decrypt(value)
+      ActiveSupport::Deprecation.warn "MessageEncryptor#decrypt is deprecated as it is not safe without a signature. " \
+        "Please use MessageEncryptor#decrypt_and_verify instead."
+      _decrypt(value)
+    end
+
+    # Encrypt and sign a message. We need to sign the message in order to avoid padding attacks.
+    # Reference: http://www.limited-entropy.com/padding-oracle-attacks
+    def encrypt_and_sign(value)
+      verifier.generate(_encrypt(value))
+    end
+
+    # Decrypt and verify a message. We need to verify the message in order to avoid padding attacks.
+    # Reference: http://www.limited-entropy.com/padding-oracle-attacks
+    def decrypt_and_verify(value)
+      _decrypt(verifier.verify(value))
+    end
+
+    private
+
+    def _encrypt(value)
       cipher = new_cipher
       # Rely on OpenSSL for the initialization vector
       iv = cipher.random_iv
@@ -39,7 +65,7 @@ module ActiveSupport
       [encrypted_data, iv].map {|v| ActiveSupport::Base64.encode64s(v)}.join("--")
     end
 
-    def decrypt(encrypted_message)
+    def _decrypt(encrypted_message)
       cipher = new_cipher
       encrypted_data, iv = encrypted_message.split("--").map {|v| ActiveSupport::Base64.decode64(v)}
 
@@ -55,23 +81,12 @@ module ActiveSupport
       raise InvalidMessage
     end
 
-    def encrypt_and_sign(value)
-      verifier.generate(encrypt(value))
+    def new_cipher
+      OpenSSL::Cipher::Cipher.new(@cipher)
     end
 
-    def decrypt_and_verify(value)
-      decrypt(verifier.verify(value))
+    def verifier
+      MessageVerifier.new(@secret)
     end
-
-
-
-    private
-      def new_cipher
-        OpenSSL::Cipher::Cipher.new(@cipher)
-      end
-
-      def verifier
-        MessageVerifier.new(@secret)
-      end
   end
 end
