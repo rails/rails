@@ -42,6 +42,8 @@ module Rails
       else
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
+
+      IRB::ExtendCommandBundle.send :include, Rails::ConsoleMethods
       IRB.start
     end
   end
