@@ -6,9 +6,9 @@ require 'models/person'
 require 'models/custom_reader'
 
 class PresenceValidationTest < ActiveModel::TestCase
-
   teardown do
     Topic.reset_callbacks(:validate)
+    Topic._validators = Hash.new {|h, k| h[k] = []}
     Person.reset_callbacks(:validate)
     CustomReader.reset_callbacks(:validate)
   end
@@ -69,5 +69,18 @@ class PresenceValidationTest < ActiveModel::TestCase
 
     p[:karma] = "Cold"
     assert p.valid?
+  end
+
+  def test_attribute_required
+    assert !Topic.attribute_required?(:title)
+    Topic.validates_presence_of :title
+    assert Topic.attribute_required?(:title)
+  end
+
+  def test_attribute_required_with_if_or_unless
+    Topic.validates_presence_of :title, :if => lambda {|u| true}
+    assert !Topic.attribute_required?(:title)
+    Topic.validates_presence_of :title, :unless => lambda {|u| false}
+    assert !Topic.attribute_required?(:title)
   end
 end

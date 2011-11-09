@@ -277,6 +277,13 @@ class FormHelperTest < ActionView::TestCase
       text_field("user", "email", :type => "email")
   end
 
+  def test_text_field_with_presence_validator
+    Post.stubs(:attribute_required?).with("title").returns(true)
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" size="30" type="text" required="required" value="Hello World" />', text_field("post", "title")
+    )
+  end
+
   def test_check_box
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
@@ -333,11 +340,17 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
-
-  def test_checkbox_disabled_still_submits_checked_value
+  def test_check_box_disabled_still_submits_checked_value
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret", { :disabled => :true })
+    )
+  end
+
+  def test_check_box_with_presence_validator
+    Post.stubs(:attribute_required?).with("secret").returns(true)
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="0" /><input name="post[secret]" checked="checked" id="post_secret" required="required" type="checkbox" value="1" />', check_box("post", "secret")
     )
   end
 
@@ -380,6 +393,13 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_radio_button_with_presence_validator
+    Post.stubs(:attribute_required?).with("secret").returns(true)
+    assert_dom_equal(
+      '<input checked="checked" id="post_secret_1" name="post[secret]" required="required" type="radio" value="1" />', radio_button("post", "secret", "1")
+    )
+  end
+
   def test_text_area
     assert_dom_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
@@ -414,6 +434,13 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       '<textarea cols="183" id="post_body" name="post[body]" rows="820">Back to the hill and over it again!</textarea>',
       text_area("post", "body", :size => "183x820")
+    )
+  end
+
+  def test_text_area_with_presence_validator
+    Post.stubs(:attribute_required?).with("body").returns(true)
+    assert_dom_equal(
+      '<textarea name="post[body]" id="post_body" rows="20" cols="40" required="required">Back to the hill and over it again!</textarea>', text_area("post", "body")
     )
   end
 

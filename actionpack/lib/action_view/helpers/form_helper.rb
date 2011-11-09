@@ -1021,6 +1021,9 @@ module ActionView
         options["type"]  ||= field_type
         options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
         options["value"] &&= ERB::Util.html_escape(options["value"])
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
+        end
         add_default_name_and_id(options)
         tag("input", options)
       end
@@ -1046,6 +1049,9 @@ module ActionView
           checked = self.class.radio_button_checked?(value(object), tag_value)
         end
         options["checked"]  = "checked" if checked
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
+        end
         add_default_name_and_id_for_value(tag_value, options)
         tag("input", options)
       end
@@ -1056,6 +1062,9 @@ module ActionView
 
         if size = options.delete("size")
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
+        end
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
         end
 
         content_tag("textarea", ERB::Util.html_escape(options.delete('value') || value_before_type_cast(object)), options)
@@ -1077,6 +1086,9 @@ module ActionView
           options.delete("multiple")
         else
           add_default_name_and_id(options)
+        end
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
         end
         hidden = tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
         checkbox = tag("input", options)
