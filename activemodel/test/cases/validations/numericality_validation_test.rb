@@ -9,6 +9,7 @@ require 'bigdecimal'
 class NumericalityValidationTest < ActiveModel::TestCase
   def teardown
     Topic.reset_callbacks(:validate)
+    Topic._validators = Hash.new {|h, k| h[k] = []}
   end
 
   NIL = [nil]

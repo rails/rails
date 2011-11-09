@@ -7,6 +7,7 @@ require 'models/person'
 class LengthValidationTest < ActiveModel::TestCase
   def teardown
     Topic.reset_callbacks(:validate)
+    Topic._validators = Hash.new {|h, k| h[k] = []}
   end
 
   def test_validates_length_of_with_allow_nil
