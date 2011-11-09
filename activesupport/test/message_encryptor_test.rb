@@ -11,7 +11,6 @@ require 'active_support/time'
 require 'active_support/json'
 
 class MessageEncryptorTest < ActiveSupport::TestCase
-
   class JSONSerializer
     def dump(value)
       ActiveSupport::JSON.encode(value)
@@ -24,7 +23,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
 
   def setup
     @secret    = SecureRandom.hex(64)
-    @verifier  = ActiveSupport::MessageVerifier.new(@secret)
+    @verifier  = ActiveSupport::MessageVerifier.new(@secret, :serializer => ActiveSupport::MessageEncryptor::NullSerializer)
     @encryptor = ActiveSupport::MessageEncryptor.new(@secret)
     @data = { :some => "data", :now => Time.local(2010) }
   end

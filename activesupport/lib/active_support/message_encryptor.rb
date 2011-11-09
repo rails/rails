@@ -10,6 +10,16 @@ module ActiveSupport
   # This can be used in situations similar to the <tt>MessageVerifier</tt>, but where you don't
   # want users to be able to determine the value of the payload.
   class MessageEncryptor
+    module NullSerializer #:nodoc:
+      def self.load(value)
+        value
+      end
+
+      def self.dump(value)
+        value
+      end
+    end
+
     class InvalidMessage < StandardError; end
     OpenSSLCipherError = OpenSSL::Cipher.const_defined?(:CipherError) ? OpenSSL::Cipher::CipherError : OpenSSL::CipherError
 
@@ -21,6 +31,7 @@ module ActiveSupport
 
       @secret = secret
       @cipher = options[:cipher] || 'aes-256-cbc'
+      @verifier = MessageVerifier.new(@secret, :serializer => NullSerializer)
       @serializer = options[:serializer] || Marshal
     end
 
@@ -86,7 +97,7 @@ module ActiveSupport
     end
 
     def verifier
-      MessageVerifier.new(@secret)
+      @verifier
     end
   end
 end
