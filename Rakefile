@@ -93,24 +93,24 @@ RDoc::Task.new do |rdoc|
   rdoc.options << '-g' # SDoc flag, link methods to GitHub
   rdoc.options << '-m' << RDOC_MAIN
 
-  rdoc.rdoc_files.include('railties/CHANGELOG')
+  rdoc.rdoc_files.include('railties/CHANGELOG.md')
   rdoc.rdoc_files.include('railties/MIT-LICENSE')
   rdoc.rdoc_files.include('railties/README.rdoc')
   rdoc.rdoc_files.include('railties/lib/**/*.rb')
   rdoc.rdoc_files.exclude('railties/lib/rails/generators/**/templates/**/*.rb')
 
   rdoc.rdoc_files.include('activerecord/README.rdoc')
-  rdoc.rdoc_files.include('activerecord/CHANGELOG')
+  rdoc.rdoc_files.include('activerecord/CHANGELOG.md')
   rdoc.rdoc_files.include('activerecord/lib/active_record/**/*.rb')
   rdoc.rdoc_files.exclude('activerecord/lib/active_record/vendor/*')
 
   rdoc.rdoc_files.include('activeresource/README.rdoc')
-  rdoc.rdoc_files.include('activeresource/CHANGELOG')
+  rdoc.rdoc_files.include('activeresource/CHANGELOG.md')
   rdoc.rdoc_files.include('activeresource/lib/active_resource.rb')
   rdoc.rdoc_files.include('activeresource/lib/active_resource/*')
 
   rdoc.rdoc_files.include('actionpack/README.rdoc')
-  rdoc.rdoc_files.include('actionpack/CHANGELOG')
+  rdoc.rdoc_files.include('actionpack/CHANGELOG.md')
   rdoc.rdoc_files.include('actionpack/lib/abstract_controller/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_controller/**/*.rb')
   rdoc.rdoc_files.include('actionpack/lib/action_dispatch/**/*.rb')
@@ -118,18 +118,18 @@ RDoc::Task.new do |rdoc|
   rdoc.rdoc_files.exclude('actionpack/lib/action_controller/vendor/*')
 
   rdoc.rdoc_files.include('actionmailer/README.rdoc')
-  rdoc.rdoc_files.include('actionmailer/CHANGELOG')
+  rdoc.rdoc_files.include('actionmailer/CHANGELOG.md')
   rdoc.rdoc_files.include('actionmailer/lib/action_mailer/base.rb')
   rdoc.rdoc_files.include('actionmailer/lib/action_mailer/mail_helper.rb')
   rdoc.rdoc_files.exclude('actionmailer/lib/action_mailer/vendor/*')
 
   rdoc.rdoc_files.include('activesupport/README.rdoc')
-  rdoc.rdoc_files.include('activesupport/CHANGELOG')
+  rdoc.rdoc_files.include('activesupport/CHANGELOG.md')
   rdoc.rdoc_files.include('activesupport/lib/active_support/**/*.rb')
   rdoc.rdoc_files.exclude('activesupport/lib/active_support/vendor/*')
 
   rdoc.rdoc_files.include('activemodel/README.rdoc')
-  rdoc.rdoc_files.include('activemodel/CHANGELOG')
+  rdoc.rdoc_files.include('activemodel/CHANGELOG.md')
   rdoc.rdoc_files.include('activemodel/lib/active_model/**/*.rb')
 end
 
