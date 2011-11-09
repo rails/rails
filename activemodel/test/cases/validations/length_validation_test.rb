@@ -5,7 +5,6 @@ require 'models/topic'
 require 'models/person'
 
 class LengthValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.reset_callbacks(:validate)
   end
@@ -366,5 +365,33 @@ class LengthValidationTest < ActiveModel::TestCase
     assert p.valid?
   ensure
     Person.reset_callbacks(:validate)
+  end
+
+  def test_attribute_maxlength_using_maximum
+    Topic.validates_length_of :title, :maximum => 30
+    assert_equal 30, Topic.attribute_maxlength(:title)
+  end
+
+  def test_attribute_maxlength_using_is
+    Topic.validates_length_of :title, :is => 40
+    assert_equal 40, Topic.attribute_maxlength(:title)
+  end
+
+  def test_attribute_maxlength_using_in
+    Topic.validates_length_of :title, :in => (13..26)
+    assert_equal 26, Topic.attribute_maxlength(:title)
+  end
+
+  def test_attribute_maxlength_with_if_or_unless_or_allow_nil_or_allow_blank_or_tokenizer
+    Topic.validates_length_of :title, :is => 20, :if => lambda {|u| true}
+    assert_nil Topic.attribute_maxlength(:title)
+    Topic.validates_length_of :title, :is => 20, :unless => lambda {|u| false}
+    assert_nil Topic.attribute_maxlength(:title)
+    Topic.validates_length_of :title, :is => 20, :allow_nil => true
+    assert_nil Topic.attribute_maxlength(:title)
+    Topic.validates_length_of :title, :is => 20, :allow_nil => true
+    assert_nil Topic.attribute_maxlength(:title)
+    Topic.validates_length_of :title, :is => 20, :tokenizer => lambda {|s| s.scan(/\w+/)}
+    assert_nil Topic.attribute_maxlength(:title)
   end
 end

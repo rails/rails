@@ -1013,6 +1013,10 @@ module ActionView
 
       def to_input_field_tag(field_type, options = {})
         options = options.stringify_keys
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
+          options["maxlength"] ||= object.class.attribute_maxlength(method_name)
+        end
         options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
         options = DEFAULT_FIELD_OPTIONS.merge(options)
         if field_type == "hidden"
@@ -1021,9 +1025,6 @@ module ActionView
         options["type"]  ||= field_type
         options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
         options["value"] &&= ERB::Util.html_escape(options["value"])
-        if object.class.ancestors.include?(ActiveModel::Validations)
-          options["required"] ||= object.class.attribute_required?(method_name)
-        end
         add_default_name_and_id(options)
         tag("input", options)
       end
