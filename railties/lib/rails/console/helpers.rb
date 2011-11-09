@@ -1,5 +1,5 @@
-module IRB
-  module ExtendCommandBundle
+module Rails
+  module ConsoleMethods
     def helper
       @helper ||= ApplicationController.helpers
     end

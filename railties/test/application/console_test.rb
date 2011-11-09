@@ -19,7 +19,7 @@ class ConsoleTest < Test::Unit::TestCase
   end
 
   def irb_context
-    Object.new.extend(IRB::ExtendCommandBundle)
+    Object.new.extend(Rails::ConsoleMethods)
   end
 
   def test_app_method_should_return_integration_session

@@ -205,6 +205,8 @@ module Rails
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
+
+      IRB::ExtendCommandBundle.send :include, Rails::ConsoleMethods
     end
   end
 end
