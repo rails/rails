@@ -371,42 +371,41 @@ module ActiveSupport
       # Generate the internal runner method called by +run_callbacks+.
       def __define_runner(symbol) #:nodoc:
         body = send("_#{symbol}_callbacks").compile
+        runner_method = "_run_#{symbol}_callbacks" 
 
         silence_warnings do
-          undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
+          undef_method runner_method if method_defined?(runner_method)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def _run_#{symbol}_callbacks(key = nil, &blk)
+            def #{runner_method}(key = nil, &blk)
               if key
-                name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
-
-                unless respond_to?(name)
-                  self.class.__create_keyed_callback(name, :#{symbol}, self, &blk)
-                end
-
-                send(name, &blk)
+                self.class.__run_keyed_callback(key, :#{symbol}, self, &blk)
               else
                 #{body}
               end
             end
-            private :_run_#{symbol}_callbacks
+            private :#{runner_method}
           RUBY_EVAL
         end
       end
 
-      # This is called the first time a callback is called with a particular
-      # key. It creates a new callback method for the key, calculating
-      # which callbacks can be omitted because of per_key conditions.
+      # This method calls the callback method for the given key.
+      # If this called first time it creates a new callback method for the key, 
+      # calculating which callbacks can be omitted because of per_key conditions.
       #
-      def __create_keyed_callback(name, kind, object, &blk) #:nodoc:
-        @_keyed_callbacks ||= {}
-        @_keyed_callbacks[name] ||= begin
-          str = send("_#{kind}_callbacks").compile(name, object)
-          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{name}() #{str} end
-            protected :#{name}
-          RUBY_EVAL
-          true
+      def __run_keyed_callback(key, kind, object, &blk) #:nodoc:
+        name = "_run__#{self.class.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
+        unless respond_to?(name)
+          @_keyed_callbacks ||= {}
+          @_keyed_callbacks[name] ||= begin
+            str = send("_#{kind}_callbacks").compile(name, object)
+            class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+              def #{name}() #{str} end
+              protected :#{name}
+            RUBY_EVAL
+            true
+          end
         end
+        object.send(name, &blk)
       end
 
       # This is used internally to append, prepend and skip callbacks to the
