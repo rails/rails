@@ -23,6 +23,12 @@ module BareMetalTest
 
       assert_equal "Hello world", string
     end
+
+    test "response_body value is wrapped in an array when the value is a String" do
+      controller = BareController.new
+      controller.index
+      assert_equal ["Hello world"], controller.response_body
+    end
   end
 
   class HeadController < ActionController::Metal
