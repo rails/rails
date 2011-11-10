@@ -158,7 +158,13 @@ module ActiveRecord
         td = table_definition
         td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        td.instance_eval(&blk) if blk
+        if block_given?
+          if blk.arity == 1
+            yield td
+          else
+            td.instance_eval(&blk)
+          end
+        end
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name)
