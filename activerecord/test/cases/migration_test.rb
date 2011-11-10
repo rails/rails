@@ -1742,6 +1742,21 @@ if ActiveRecord::Base.connection.supports_migrations?
     ensure
       Person.connection.drop_table :testings rescue nil
     end
+
+    def test_create_table_should_not_have_mixed_syntax
+      assert_raise(NoMethodError) do
+        Person.connection.create_table :testings, :force => true do |t|
+          t.string :foo
+          integer :bar
+        end
+      end
+      assert_raise(NameError) do
+        Person.connection.create_table :testings, :force => true do
+          t.string :foo
+          integer :bar
+        end
+      end
+    end
   end # SexierMigrationsTest
 
   class MigrationLoggerTest < ActiveRecord::TestCase
