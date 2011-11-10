@@ -393,7 +393,7 @@ module ActiveSupport
       # calculating which callbacks can be omitted because of per_key conditions.
       #
       def __run_keyed_callback(key, kind, object, &blk) #:nodoc:
-        name = "_run__#{self.class.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
+        name = "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
         unless respond_to?(name)
           @_keyed_callbacks ||= {}
           @_keyed_callbacks[name] ||= begin
