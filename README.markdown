@@ -6,7 +6,7 @@
 
 Arel is a SQL AST manager for Ruby. It
 
-1. Simplifies the generation complex of SQL queries
+1. Simplifies the generation of complex SQL queries
 2. Adapts to various RDBMS systems
 
 It is intended to be a framework framework; that is, you can build your own ORM
