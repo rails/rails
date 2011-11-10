@@ -236,6 +236,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
   end
+  
+  def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "--dummy_path", "spec/dummy" "--skip-test-unit"])
+    assert_file ".gitignore" do |contents|
+      assert_match(/spec\/dummy/, contents)
+    end
+  end
 
   def test_skipping_test_unit
     run_generator [destination_root, "--skip-test-unit"]
