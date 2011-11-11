@@ -1774,22 +1774,24 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
 
-    def test_change_table_without_block_parameter_with_bulk
-      Person.connection.create_table :testings, :force => true do
-        string :foo
-      end
-      assert Person.connection.column_exists?(:testings, :foo, :string)
-
-      assert_queries(1) do
-        Person.connection.change_table(:testings, :bulk => true) do
-          integer :bar
-          string :foo_bar
+    if ActiveRecord::Base.connection.supports_bulk_alter?
+      def test_change_table_without_block_parameter_with_bulk
+        Person.connection.create_table :testings, :force => true do
+          string :foo
         end
-      end
+        assert Person.connection.column_exists?(:testings, :foo, :string)
 
-      assert_equal %w(bar foo foo_bar id), Person.connection.columns(:testings).map { |c| c.name }.sort
-    ensure
-      Person.connection.drop_table :testings rescue nil
+        assert_queries(1) do
+          Person.connection.change_table(:testings, :bulk => true) do
+            integer :bar
+            string :foo_bar
+          end
+        end
+
+        assert_equal %w(bar foo foo_bar id), Person.connection.columns(:testings).map { |c| c.name }.sort
+      ensure
+        Person.connection.drop_table :testings rescue nil
+      end
     end
 
     def test_change_table_should_not_have_mixed_syntax
