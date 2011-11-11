@@ -153,7 +153,7 @@ module ActiveSupport
 
         @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def _one_time_conditions_valid_#{@callback_id}?
-            true #{key_options[0]}
+            true if #{key_options}
           end
         RUBY_EVAL
       end
@@ -171,8 +171,8 @@ module ActiveSupport
           # if condition    # before_save :filter_name, :if => :condition
           #   filter_name
           # end
-          filter = <<-RUBY_EVAL
-            unless halted
+          <<-RUBY_EVAL
+            if !halted && #{@compiled_options}
               # This double assignment is to prevent warnings in 1.9.3.  I would
               # remove the `result` variable, but apparently some other
               # generated code is depending on this variable being set sometimes
@@ -181,8 +181,6 @@ module ActiveSupport
               halted = (#{chain.config[:terminator]})
             end
           RUBY_EVAL
-
-          [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
         when :around
           # Compile around filters with conditions into proxy methods
           # that contain the conditions.
@@ -202,7 +200,7 @@ module ActiveSupport
           name = "_conditional_callback_#{@kind}_#{next_id}"
           @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
              def #{name}(halted)
-              #{@compiled_options[0] || "if true"} && !halted
+              if #{@compiled_options} && !halted
                 #{@filter} do
                   yield self
                 end
@@ -222,10 +220,12 @@ module ActiveSupport
 
         case @kind
         when :after
-          # if condition    # after_save :filter_name, :if => :condition
-          #   filter_name
-          # end
-          [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
+          # after_save :filter_name, :if => :condition
+          <<-RUBY_EVAL
+          if #{@compiled_options}
+            #{@filter}
+          end
+          RUBY_EVAL
         when :around
           <<-RUBY_EVAL
             value
@@ -240,9 +240,7 @@ module ActiveSupport
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options
       def _compile_options(options)
-        return [] if options[:if].empty? && options[:unless].empty?
-
-        conditions = []
+        conditions = ["true"]
 
         unless options[:if].empty?
           conditions << Array.wrap(_compile_filter(options[:if]))
@@ -252,7 +250,7 @@ module ActiveSupport
           conditions << Array.wrap(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
 
-        ["if #{conditions.flatten.join(" && ")}", "end"]
+        conditions.flatten.join(" && ")
       end
 
       # Filters support:
