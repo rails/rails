@@ -113,9 +113,10 @@ module Rails
     # Rails.application.env_config stores some of the Rails initial environment parameters.
     # Currently stores:
     #
-    #   * action_dispatch.parameter_filter" => config.filter_parameters,
-    #   * action_dispatch.secret_token"     => config.secret_token,
-    #   * action_dispatch.show_exceptions"  => config.action_dispatch.show_exceptions
+    #   * "action_dispatch.parameter_filter" => config.filter_parameters,
+    #   * "action_dispatch.secret_token"     => config.secret_token,
+    #   * "action_dispatch.show_exceptions"  => config.action_dispatch.show_exceptions
+    #   * "action_dispatch.asset_prefix"     => config.action_dispatch.asset_prefix
     #
     # These parameters will be used by middlewares and engines to configure themselves.
     #
@@ -123,7 +124,8 @@ module Rails
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
         "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions
+        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
+        "action_dispatch.asset_prefix" => config.assets.enabled && config.assets.prefix
       })
     end
 
