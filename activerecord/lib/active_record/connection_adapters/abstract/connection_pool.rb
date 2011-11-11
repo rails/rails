@@ -123,14 +123,14 @@ module ActiveRecord
 
       # A cached lookup for table existence.
       def table_exists?(name)
-        return true if @tables.key? name
+        return @tables[name] if @tables.key? name
 
         with_connection do |conn|
           conn.tables.each { |table| @tables[table] = true }
-          @tables[name] = true if !@tables.key?(name) && conn.table_exists?(name)
+          @tables[name] = !@tables.key?(name) && conn.table_exists?(name)
         end
 
-        @tables.key? name
+        @tables[name]
       end
 
       # Clears out internal caches:
