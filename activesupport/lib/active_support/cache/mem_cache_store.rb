@@ -11,7 +11,7 @@ require 'active_support/core_ext/string/encoding'
 module ActiveSupport
   module Cache
     # A cache store implementation which stores data in Memcached:
-    # http://www.danga.com/memcached/
+    # http://memcached.org/
     #
     # This is currently the most popular cache store for production websites.
     #
