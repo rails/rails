@@ -394,16 +394,12 @@ module ActiveSupport
       #
       def __run_keyed_callback(key, kind, object, &blk) #:nodoc:
         name = "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
-        unless respond_to?(name)
-          @_keyed_callbacks ||= {}
-          @_keyed_callbacks[name] ||= begin
-            str = send("_#{kind}_callbacks").compile(name, object)
-            class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-              def #{name}() #{str} end
-              protected :#{name}
-            RUBY_EVAL
-            true
-          end
+        unless object.respond_to?(name)
+          str = send("_#{kind}_callbacks").compile(name, object)
+          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+            def #{name}() #{str} end
+            protected :#{name}
+          RUBY_EVAL
         end
         object.send(name, &blk)
       end
