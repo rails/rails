@@ -21,3 +21,4 @@ debug.log
 /railties/guides/output
 /railties/tmp
 /RDOC_MAIN.rdoc
+*.gz
