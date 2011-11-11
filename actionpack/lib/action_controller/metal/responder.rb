@@ -84,8 +84,8 @@ module ActionController #:nodoc:
   #
   # === Custom options
   #
-  # <code>respond_with</code> also allow you to pass options that are forwarded
-  # to the underlying render call. Those options are only applied success
+  # <code>respond_with</code> also allows you to pass options that are forwarded
+  # to the underlying render call. Those options are only applied for success
   # scenarios. For instance, you can do the following in the create method above:
   #
   #   def create
@@ -95,7 +95,7 @@ module ActionController #:nodoc:
   #     respond_with(@project, @task, :status => 201)
   #   end
   #
-  # This will return status 201 if the task was saved with success. If not,
+  # This will return status 201 if the task was saved successfully. If not,
   # it will simply ignore the given options and return status 422 and the
   # resource errors. To customize the failure scenario, you can pass a
   # a block to <code>respond_with</code>:
@@ -222,7 +222,7 @@ module ActionController #:nodoc:
     alias :navigation_location :resource_location
     alias :api_location :resource_location
 
-    # If a given response block was given, use it, otherwise call render on
+    # If a response block was given, use it, otherwise call render on
     # controller.
     #
     def default_render
