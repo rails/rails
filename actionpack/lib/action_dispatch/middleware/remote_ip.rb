@@ -13,6 +13,8 @@ module ActionDispatch
        )\.
     }x
 
+    attr_reader :check_ip_spoofing, :trusted_proxies
+
     def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
       @app = app
       @check_ip_spoofing = check_ip_spoofing
@@ -24,34 +26,44 @@ module ActionDispatch
       end
     end
 
-    # Determines originating IP address. REMOTE_ADDR is the standard
-    # but will be wrong if the user is behind a proxy. Proxies will set
-    # HTTP_CLIENT_IP and/or HTTP_X_FORWARDED_FOR, so we prioritize those.
-    # HTTP_X_FORWARDED_FOR may be a comma-delimited list in the case of
-    # multiple chained proxies. The last address which is not a known proxy
-    # will be the originating IP.
     def call(env)
-      client_ip     = env['HTTP_CLIENT_IP']
-      forwarded_ips = ips_from(env, 'HTTP_X_FORWARDED_FOR')
-      remote_addrs  = ips_from(env, 'REMOTE_ADDR')
-
-      if client_ip && @check_ip_spoofing && !forwarded_ips.include?(client_ip)
-        # We don't know which came from the proxy, and which from the user
-        raise IpSpoofAttackError, "IP spoofing attack?!" \
-          "HTTP_CLIENT_IP=#{env['HTTP_CLIENT_IP'].inspect}" \
-          "HTTP_X_FORWARDED_FOR=#{env['HTTP_X_FORWARDED_FOR'].inspect}"
-      end
-
-      remote_ip = client_ip || forwarded_ips.last || remote_addrs.last
-      env["action_dispatch.remote_ip"] = remote_ip
+      env["action_dispatch.remote_ip"] = GetIp.new(env, self)
       @app.call(env)
     end
 
-  protected
+    class GetIp
+      def initialize(env, middleware)
+        @env, @middleware = env, middleware
+      end
 
-    def ips_from(env, header)
-      ips = env[header] ? env[header].strip.split(/[,\s]+/) : []
-      ips.reject{|ip| ip =~ @trusted_proxies }
+      # Determines originating IP address. REMOTE_ADDR is the standard
+      # but will be wrong if the user is behind a proxy. Proxies will set
+      # HTTP_CLIENT_IP and/or HTTP_X_FORWARDED_FOR, so we prioritize those.
+      # HTTP_X_FORWARDED_FOR may be a comma-delimited list in the case of
+      # multiple chained proxies. The last address which is not a known proxy
+      # will be the originating IP.
+      def to_s
+        client_ip     = @env['HTTP_CLIENT_IP']
+        forwarded_ips = ips_from('HTTP_X_FORWARDED_FOR')
+        remote_addrs  = ips_from('REMOTE_ADDR')
+
+        check_ip = client_ip && @middleware.check_ip_spoofing
+        if check_ip && !forwarded_ips.include?(client_ip)
+          # We don't know which came from the proxy, and which from the user
+          raise IpSpoofAttackError, "IP spoofing attack?!" \
+            "HTTP_CLIENT_IP=#{env['HTTP_CLIENT_IP'].inspect}" \
+            "HTTP_X_FORWARDED_FOR=#{env['HTTP_X_FORWARDED_FOR'].inspect}"
+        end
+
+        client_ip || forwarded_ips.last || remote_addrs.last
+      end
+
+    protected
+
+      def ips_from(header)
+        ips = @env[header] ? @env[header].strip.split(/[,\s]+/) : []
+        ips.reject{|ip| ip =~ @middleware.trusted_proxies }
+      end
     end
 
   end
