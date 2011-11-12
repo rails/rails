@@ -155,24 +155,7 @@ module ActionDispatch
       @ip ||= super
     end
 
-    # Which IP addresses are "trusted proxies" that can be stripped from
-    # the right-hand-side of X-Forwarded-For.
-    #
-    # http://en.wikipedia.org/wiki/Private_network#Private_IPv4_address_spaces.
-    TRUSTED_PROXIES = %r{
-      ^127\.0\.0\.1$                | # localhost
-      ^(10                          | # private IP 10.x.x.x
-        172\.(1[6-9]|2[0-9]|3[0-1]) | # private IP in the range 172.16.0.0 .. 172.31.255.255
-        192\.168                      # private IP 192.168.x.x
-       )\.
-    }x
-
-    # Determines originating IP address. REMOTE_ADDR is the standard
-    # but will fail if the user is behind a proxy. HTTP_CLIENT_IP and/or
-    # HTTP_X_FORWARDED_FOR are set by proxies so check for these if
-    # REMOTE_ADDR is a proxy. HTTP_X_FORWARDED_FOR may be a comma-
-    # delimited list in the case of multiple chained proxies; the last
-    # address which is not trusted is the originating IP.
+    # Originating IP address, usually set by the RemoteIp middleware.
     def remote_ip
       @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
     end
