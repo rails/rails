@@ -742,8 +742,8 @@ inspecting the +errors+ of the post.
 When you're finished, type +exit+ and hit +return+ to exit the console.
 
 TIP: Unlike the development web server, the console does not automatically load
-your code afresh for each line. If you make changes to your models while the
-console is open, type +reload!+ at the console prompt to load them.
+your code afresh for each line. If you make changes to your models (in your editor)
+while the console is open, type +reload!+ at the console prompt to load them.
 
 h4. Listing All Posts
 
