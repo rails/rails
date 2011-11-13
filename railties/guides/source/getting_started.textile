@@ -300,11 +300,12 @@ h4. Configuring a Database
 Just about every Rails application will interact with a database. The database
 to use is specified in a configuration file, +config/database.yml+.  If you open
 this file in a new Rails application, you'll see a default database
-configuration using SQLite3. The file contains sections for three different
+configured to use SQLite3. The file contains sections for three different
 environments in which Rails can run by default:
 
-* The +development+ environment is used on your development computer as you interact manually with the application.
-* The +test+ environment is used to run automated tests.
+* The +development+ environment is used on your development/local computer as you interact 
+manually with the application.
+* The +test+ environment is used when running automated tests.
 * The +production+ environment is used when you deploy your application for the world to use.
 
 h5. Configuring an SQLite3 Database
