@@ -21,7 +21,7 @@ module ActiveSupport
     #   server goes down, then MemCacheStore will ignore it until it comes back up.
     #
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
-    # an in memory cache inside of a block.
+    # an in-memory cache inside of a block.
     class MemCacheStore < Store
       module Response # :nodoc:
         STORED      = "STORED\r\n"
