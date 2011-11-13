@@ -272,28 +272,28 @@ directly in that application:
 $ cd blog
 </shell>
 
-In any case, Rails will create a folder in your working directory called
-<tt>blog</tt>. Open up that folder and explore its contents. Most of the work in
+The 'rails new blog' command we ran above created a folder in your working directory 
+called <tt>blog</tt>. The <tt>blog</tt> folder has a number of auto-generated folders
+that make up the structure of a Rails application. Most of the work in
 this tutorial will happen in the <tt>app/</tt> folder, but here's a basic
-rundown on the function of each folder that Rails creates in a new application
-by default:
+rundown on the function of each of the files and folders that Rails created by default:
 
 |_.File/Folder|_.Purpose|
-|Gemfile|This file allows you to specify what gem dependencies are needed for your Rails application. See section on Bundler, below.|
-|README|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
-|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |app/|Contains the controllers, models, views and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|config/|Configure your application's runtime rules, routes, database, and more.|
+|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in "Configuring Rails Applications":configuring.html|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
-|db/|Shows your current database schema, as well as the database migrations. You'll learn about migrations shortly.|
+|db/|Contains your current database schema, as well as the database migrations.|
 |doc/|In-depth documentation for your application.|
-|lib/|Extended modules for your application (not covered in this guide).|
+|Gemfile<BR />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application.|
+|lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
+|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
+|README|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
-|vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.|
+|vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you optionally install it into your project) and plugins containing additional prepackaged functionality.|
 
 h4. Configuring a Database
 
