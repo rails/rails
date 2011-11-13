@@ -221,8 +221,7 @@ h3. Creating a New Rails Project
 
 The best way to use this guide is to follow each step as it happens, no code or
 step needed to make this example application has been left out, so you can
-literally follow along step by step. If you need to see the completed code, you
-can download it from "Getting Started Code":https://github.com/mikel/getting-started-code.
+literally follow along step by step. You can get the complete code "here":https://github.com/lifo/docrails/tree/master/railties/guides/code/getting_started.
 
 By following along with this guide, you'll create a Rails project called <tt>blog</tt>, a
 (very) simple weblog. Before you can start building the application, you need to
@@ -246,7 +245,7 @@ To verify that you have everything installed correctly, you should be able to ru
 the following:
 
 <shell>
-# rails --version
+$ rails --version
 </shell>
 
 If it says something like "Rails 3.1.1" you are ready to continue.
@@ -273,7 +272,7 @@ directly in that application:
 $ cd blog
 </shell>
 
-The 'rails new blog' command we ran above created a folder in your working directory 
+The 'rails new blog' command we ran above created a folder in your working directory
 called <tt>blog</tt>. The <tt>blog</tt> folder has a number of auto-generated folders
 that make up the structure of a Rails application. Most of the work in
 this tutorial will happen in the <tt>app/</tt> folder, but here's a basic
@@ -304,7 +303,7 @@ this file in a new Rails application, you'll see a default database
 configured to use SQLite3. The file contains sections for three different
 environments in which Rails can run by default:
 
-* The +development+ environment is used on your development/local computer as you interact 
+* The +development+ environment is used on your development/local computer as you interact
 manually with the application.
 * The +test+ environment is used when running automated tests.
 * The +production+ environment is used when you deploy your application for the world to use.
@@ -514,8 +513,7 @@ file_ which holds entries in a special DSL (domain-specific language) that tells
 Rails how to connect incoming requests to controllers and actions. This file
 contains many sample routes on commented lines, and one of them actually shows
 you how to connect the root of your site to a specific controller and action.
-Find the line beginning with +root :to+, uncomment it by removing the pound sign
-at the beginning of the line.  It should look something like the following:
+Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
 
 <ruby>
 Blog::Application.routes.draw do
@@ -608,11 +606,11 @@ class CreatePosts < ActiveRecord::Migration
 end
 </ruby>
 
-The above migration has one method named +change+ which will be called when you
+The above migration creates a method named +change+ which will be called when you
 run this migration. The action defined in this method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
-want to reverse it at later date. When you run this migration it will create a 
-+posts+ table with two string columns and a text column. It also creates two 
+want to reverse it later. When you run this migration it will create a
++posts+ table with two string columns and a text column. It also creates two
 timestamp fields to allow Rails to track post creation and update times. More
 information about Rails migrations can be found in the "Rails Database
 Migrations":migrations.html guide.
@@ -704,7 +702,7 @@ end
 These changes will ensure that all posts have a name and a title, and that the
 title is at least five characters long. Rails can validate a variety of
 conditions in a model, including the presence or uniqueness of columns, their
-format, and the existence of associated objects.  Validations are covered in detail
+format, and the existence of associated objects. Validations are covered in detail
 in "Active Record Validations and Callbacks":active_record_validations_callbacks.html#validations-overview
 
 h4. Using the Console
@@ -747,7 +745,7 @@ while the console is open, type +reload!+ at the console prompt to load them.
 h4. Listing All Posts
 
 Let's dive into the Rails code a little deeper to see how the application is
-showing us the list of Posts. Open the file 
+showing us the list of Posts. Open the file
 +app/controllers/posts_controller.rb+ and look at the
 +index+ action:
 
@@ -762,9 +760,8 @@ def index
 end
 </ruby>
 
-+Post.all+ calls the all method on the +Post+ model, which returns all of 
-the posts currently in the database. The result of this call is an array 
-of Post records that we store in an instance variable called +@posts+.
++Post.all+ returns all of the posts currently in the database as an array
+of +Post+ records that we store in an instance variable called +@posts+.
 
 TIP: For more information on finding records with Active Record, see "Active
 Record Query Interface":active_record_querying.html.
