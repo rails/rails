@@ -219,7 +219,12 @@ Ian Robinson
 
 h3. Creating a New Rails Project
 
-If you follow this guide, you'll create a Rails project called <tt>blog</tt>, a
+The best way to use this guide is to follow each step as it happens, no code or
+step needed to make this example application has been left out, so you can
+literally follow along step by step. If you need to see the completed code, you
+can download it from "Getting Started Code":https://github.com/mikel/getting-started-code.
+
+By following along with this guide, you'll create a Rails project called <tt>blog</tt>, a
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
@@ -237,13 +242,16 @@ Usually run this as the root user:
 TIP. If you're working on Windows, you can quickly install Ruby and Rails with
 "Rails Installer":http://railsinstaller.org.
 
-h4. Creating the Blog Application
+To verify that you have everything installed correctly, you should be able to run
+the following:
 
-The best way to use this guide is to follow each step as it happens, no code or
-step needed to make this example application has been left out, so you can
-literally follow along step by step. If you need to see the completed code, you
-can download it from "Getting Started
-Code":https://github.com/mikel/getting-started-code.
+<shell>
+# rails --version
+</shell>
+
+If it says something like "Rails 3.1.1" you are ready to continue.
+
+h4. Creating the Blog Application
 
 To begin, open a terminal, navigate to a folder where you have rights to create
 files, and type:
