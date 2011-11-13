@@ -1135,9 +1135,11 @@ $ rails generate model Comment commenter:string body:text post:references
 
 This command will generate four files:
 
-* +app/models/comment.rb+ - The model.
-* +db/migrate/20100207235629_create_comments.rb+ - The migration.
-* +test/unit/comment_test.rb+ and +test/fixtures/comments.yml+ - The test harness.
+|_.File                                       |_.Purpose|
+|db/migrate/20100207235629_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
+| app/models/comment.rb                       | The Comment model |
+| test/unit/comment_test.rb                   | Unit testing harness for the comments model |
+| test/fixtures/comments.yml                  | Sample comments for use in testing |
 
 First, take a look at +comment.rb+:
 
@@ -1258,13 +1260,14 @@ $ rails generate controller Comments
 
 This creates six files and one empty directory:
 
-* +app/controllers/comments_controller.rb+ - The controller.
-* +app/helpers/comments_helper.rb+ - A view helper file.
-* +test/functional/comments_controller_test.rb+ - The functional tests for the controller.
-* +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper.
-* +app/views/comments/+ - Views of the controller are stored here.
-* +app/assets/stylesheets/comment.css.scss+ - Cascading style sheet for the controller.
-* +app/assets/javascripts/comment.js.coffee+ - CoffeeScript for the controller.
+|_.File/Directory                             |_.Purpose                                 |
+| app/controllers/comments_controller.rb      | The Comments controller                  |
+| app/views/comments/                         | Views of the controller are stored here  |
+| test/functional/comments_controller_test.rb | The functional tests for the controller  |
+| app/helpers/comments_helper.rb              | A view helper file                       |
+| test/unit/helpers/comments_helper_test.rb   | The unit tests for the helper            |
+| app/assets/javascripts/comment.js.coffee    | CoffeeScript for the controller          |
+| app/assets/stylesheets/comment.css.scss     | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the post, and once they have added their comment, will be sent back to
