@@ -705,7 +705,8 @@ end
 These changes will ensure that all posts have a name and a title, and that the
 title is at least five characters long. Rails can validate a variety of
 conditions in a model, including the presence or uniqueness of columns, their
-format, and the existence of associated objects.
+format, and the existence of associated objects.  Validations are covered in detail
+in "Active Record Validations and Callbacks":active_record_validations_callbacks.html#validations-overview
 
 h4. Using the Console
 
