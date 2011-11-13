@@ -72,7 +72,7 @@ h4. Action Caching
 
 One of the issues with Page Caching is that you cannot use it for pages that require to restrict access somehow. This is where Action Caching comes in. Action Caching works like Page Caching except for the fact that the incoming web request does go from the webserver to the Rails stack and Action Pack so that before filters can be run on it before the cache is served. This allows authentication and other restriction to be run while still serving the result of the output from a cached copy.
 
-Clearing the cache works in a similar way to Page Caching, except you use the +expire_action+ instead of +expire_page+.
+Clearing the cache works in a similar way to Page Caching, except you use +expire_action+ instead of +expire_page+.
 
 Let's say you only wanted authenticated users to call actions on +ProductsController+.
 
