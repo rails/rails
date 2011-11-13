@@ -334,7 +334,17 @@ and PostgreSQL "out of the box", and has plugins for many database systems. If
 you are using a database in a production environment Rails most likely has an
 adapter for it.
 
-h5. Configuring a MySQL Database
+h5. Other database configuration options
+
+TIP: You don't have to update the database configurations manually. If you look at the
+options of the application generator, you will see that one of the options
+is named <tt>--database</tt>. This option allows you to choose an adapter from a
+list of the most used relational databases. You can even run the generator
+repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting
+ of the +config/database.yml+ file, your application will be configured for MySQL
+instead of SQLite.
+
+h6. Configuring a MySQL Database
 
 If you choose to use MySQL instead of the shipped SQLite3 database, your
 +config/database.yml+ will look a little different. Here's the development
@@ -355,7 +365,7 @@ If your development computer's MySQL installation includes a root user with an
 empty password, this configuration should work for you. Otherwise, change the
 username and password in the +development+ section as appropriate.
 
-h5. Configuring a PostgreSQL Database
+h6. Configuring a PostgreSQL Database
 
 If you choose to use PostgreSQL, your +config/database.yml+ will be customized
 to use PostgreSQL databases:
@@ -370,9 +380,9 @@ development:
   password:
 </yaml>
 
-h5. Configuring an SQLite3 Database for JRuby Platform
+h6. Configuring an SQLite3 Database for JRuby Platform
 
-If you choose to use SQLite3 and are using JRuby, your +config/database.yml+ will
+If you choose to use SQLite3 and using JRuby, your +config/database.yml+ will
 look a little different. Here's the development section:
 
 <yaml>
@@ -381,9 +391,9 @@ development:
   database: db/development.sqlite3
 </yaml>
 
-h5. Configuring a MySQL Database for JRuby Platform
+h6. Configuring a MySQL Database for JRuby Platform
 
-If you choose to use MySQL and are using JRuby, your +config/database.yml+ will look
+If you choose to use MySQL and using JRuby, your +config/database.yml+ will look
 a little different. Here's the development section:
 
 <yaml>
@@ -394,9 +404,9 @@ development:
   password:
 </yaml>
 
-h5. Configuring a PostgreSQL Database for JRuby Platform
+h6. Configuring a PostgreSQL Database for JRuby Platform
 
-Finally if you choose to use PostgreSQL and are using JRuby, your
+Finally if you choose to use PostgreSQL and using JRuby, your
 +config/database.yml+ will look a little different. Here's the development
 section:
 
@@ -410,14 +420,6 @@ development:
 </yaml>
 
 Change the username and password in the +development+ section as appropriate.
-
-TIP: You don't have to update the database configurations manually. If you look at the
-options of the application generator, you will see that one of the options
-is named <tt>--database</tt>. This option allows you to choose an adapter from a
-list of the most used relational databases. You can even run the generator
-repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting
- of the +config/database.yml+ file, your application will be configured for MySQL
-instead of SQLite.
 
 h4. Creating the Database
 
