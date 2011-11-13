@@ -127,7 +127,7 @@ module ActiveRecord
 
         with_connection do |conn|
           conn.tables.each { |table| @tables[table] = true }
-          @tables[name] = !@tables.key?(name) && conn.table_exists?(name)
+          @tables[name] = conn.table_exists?(name) if !@tables.key?(name)
         end
 
         @tables[name]
