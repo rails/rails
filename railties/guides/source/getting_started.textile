@@ -731,10 +731,8 @@ After the console loads, you can use it to work with your application's models:
      updated_at: nil>
 >> p.save
 => false
->> p.errors
-=> #<OrderedHash { :title=>["can't be blank",
-                           "is too short (minimum is 5 characters)"],
-                   :name=>["can't be blank"] }>
+>> p.errors.full_messages
+=> ["Name can't be blank", "Title can't be blank", "Title is too short (minimum is 5 characters)"]
 </shell>
 
 This code shows creating a new +Post+ instance, attempting to save it and
