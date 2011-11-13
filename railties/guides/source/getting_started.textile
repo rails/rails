@@ -558,21 +558,21 @@ folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it 
 |_.File                                       |_.Purpose|
 |db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/models/post.rb                           |The Post model|
-|test/fixtures/posts.yml                      |Dummy posts for use in testing|
+|test/unit/post_test.rb                       |Unit testing harness for the posts model|
+|test/fixtures/posts.yml                      |Sample posts for use in testing|
+|config/routes.rb                             |Edited to include routing information for posts|
 |app/controllers/posts_controller.rb          |The Posts controller|
 |app/views/posts/index.html.erb               |A view to display an index of all posts |
 |app/views/posts/edit.html.erb                |A view to edit an existing post|
 |app/views/posts/show.html.erb                |A view to display a single post|
 |app/views/posts/new.html.erb                 |A view to create a new post|
 |app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
-|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
-|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
-|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
-|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
-|test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
+|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
-|config/routes.rb                             |Edited to include routing information for posts|
+|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
+|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
+|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
 
 NOTE. While scaffolding will get you up and running quickly, the code it
 generates is unlikely to be a perfect fit for your application. You'll most
