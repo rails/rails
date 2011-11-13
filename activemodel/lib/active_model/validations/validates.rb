@@ -57,7 +57,7 @@ module ActiveModel
       #
       # Additionally validator classes may be in another namespace and still used within any class.
       #
-      #   validates :name, :'file/title' => true
+      #   validates :name, :'film/title' => true
       #
       # The validators hash can also handle regular expressions, ranges, 
       # arrays and strings in shortcut form, e.g.

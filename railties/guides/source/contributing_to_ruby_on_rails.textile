@@ -200,7 +200,7 @@ $ bundle exec rake test
 
 will now run the four of them in turn.
 
-You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the continuous integration server runs.
+You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/travis.rb+ to see the test suite that the continuous integration server runs.
 
 h4. Older versions of Ruby on Rails
 

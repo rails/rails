@@ -296,16 +296,16 @@ module Rails
   # If you want to share just a few specific helpers you can add them to application's
   # helpers in ApplicationController:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::SharedEngineHelper
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::SharedEngineHelper
+  #   end
   #
   # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
   # instance:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::Engine.helpers
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::Engine.helpers
+  #   end
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,

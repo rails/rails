@@ -46,6 +46,10 @@ in rails/railties/guides/code/getting_started.
 
 h3. What is Rails?
 
+TIP: This section goes into the background and philosophy of the Rails framework
+in detail. You can safely skip this section and come back to it at a later time.
+Section 3 starts you on the path to creating your first Rails application.
+
 Rails is a web application development framework written in the Ruby language.
 It is designed to make programming web applications easier by making assumptions
 about what every developer needs to get started. It allows you to write less
@@ -215,7 +219,11 @@ Ian Robinson
 
 h3. Creating a New Rails Project
 
-If you follow this guide, you'll create a Rails project called <tt>blog</tt>, a
+The best way to use this guide is to follow each step as it happens, no code or
+step needed to make this example application has been left out, so you can
+literally follow along step by step. You can get the complete code "here":https://github.com/lifo/docrails/tree/master/railties/guides/code/getting_started.
+
+By following along with this guide, you'll create a Rails project called <tt>blog</tt>, a
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
@@ -233,13 +241,16 @@ Usually run this as the root user:
 TIP. If you're working on Windows, you can quickly install Ruby and Rails with
 "Rails Installer":http://railsinstaller.org.
 
-h4. Creating the Blog Application
+To verify that you have everything installed correctly, you should be able to run
+the following:
 
-The best way to use this guide is to follow each step as it happens, no code or
-step needed to make this example application has been left out, so you can
-literally follow along step by step. If you need to see the completed code, you
-can download it from "Getting Started
-Code":https://github.com/mikel/getting-started-code.
+<shell>
+$ rails --version
+</shell>
+
+If it says something like "Rails 3.1.1" you are ready to continue.
+
+h4. Creating the Blog Application
 
 To begin, open a terminal, navigate to a folder where you have rights to create
 files, and type:
@@ -261,39 +272,40 @@ directly in that application:
 $ cd blog
 </shell>
 
-In any case, Rails will create a folder in your working directory called
-<tt>blog</tt>. Open up that folder and explore its contents. Most of the work in
+The 'rails new blog' command we ran above created a folder in your working directory
+called <tt>blog</tt>. The <tt>blog</tt> folder has a number of auto-generated folders
+that make up the structure of a Rails application. Most of the work in
 this tutorial will happen in the <tt>app/</tt> folder, but here's a basic
-rundown on the function of each folder that Rails creates in a new application
-by default:
+rundown on the function of each of the files and folders that Rails created by default:
 
 |_.File/Folder|_.Purpose|
-|Gemfile|This file allows you to specify what gem dependencies are needed for your Rails application. See section on Bundler, below.|
-|README|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
-|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |app/|Contains the controllers, models, views and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|config/|Configure your application's runtime rules, routes, database, and more.|
+|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in "Configuring Rails Applications":configuring.html|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
-|db/|Shows your current database schema, as well as the database migrations. You'll learn about migrations shortly.|
+|db/|Contains your current database schema, as well as the database migrations.|
 |doc/|In-depth documentation for your application.|
-|lib/|Extended modules for your application (not covered in this guide).|
+|Gemfile<BR />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application.|
+|lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
+|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
+|README|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
 |tmp/|Temporary files|
-|vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you install it into your project) and plugins containing additional prepackaged functionality.|
+|vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems, the Rails source code (if you optionally install it into your project) and plugins containing additional prepackaged functionality.|
 
 h4. Configuring a Database
 
 Just about every Rails application will interact with a database. The database
 to use is specified in a configuration file, +config/database.yml+.  If you open
 this file in a new Rails application, you'll see a default database
-configuration using SQLite3. The file contains sections for three different
+configured to use SQLite3. The file contains sections for three different
 environments in which Rails can run by default:
 
-* The +development+ environment is used on your development computer as you interact manually with the application.
-* The +test+ environment is used to run automated tests.
+* The +development+ environment is used on your development/local computer as you interact
+manually with the application.
+* The +test+ environment is used when running automated tests.
 * The +production+ environment is used when you deploy your application for the world to use.
 
 h5. Configuring an SQLite3 Database
@@ -480,7 +492,7 @@ Open this file in your text editor and edit it to contain a single line of code:
 h4. Setting the Application Home Page
 
 Now that we have made the controller and view, we need to tell Rails when we
-want "Hello Rails" to show up. In our case, we want it to show up when we
+want "Hello Rails!" to show up. In our case, we want it to show up when we
 navigate to the root URL of our site,
 "http://localhost:3000":http://localhost:3000, instead of the "Welcome Aboard"
 smoke test.
@@ -501,8 +513,7 @@ file_ which holds entries in a special DSL (domain-specific language) that tells
 Rails how to connect incoming requests to controllers and actions. This file
 contains many sample routes on commented lines, and one of them actually shows
 you how to connect the root of your site to a specific controller and action.
-Find the line beginning with +root :to+, uncomment it and change it like the
-following:
+Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
 
 <ruby>
 Blog::Application.routes.draw do
@@ -530,7 +541,7 @@ resource in a single operation, scaffolding is the tool for the job.
 
 h3. Creating a Resource
 
-In the case of the blog application, you can start by generating a scaffolded
+In the case of the blog application, you can start by generating a scaffold for the
 Post resource: this will represent a single blog posting. To do this, enter this
 command in your terminal:
 
@@ -544,21 +555,21 @@ folders, and edit <tt>config/routes.rb</tt>. Here's a quick overview of what it 
 |_.File                                       |_.Purpose|
 |db/migrate/20100207214725_create_posts.rb    |Migration to create the posts table in your database (your name will include a different timestamp)|
 |app/models/post.rb                           |The Post model|
-|test/fixtures/posts.yml                      |Dummy posts for use in testing|
+|test/unit/post_test.rb                       |Unit testing harness for the posts model|
+|test/fixtures/posts.yml                      |Sample posts for use in testing|
+|config/routes.rb                             |Edited to include routing information for posts|
 |app/controllers/posts_controller.rb          |The Posts controller|
 |app/views/posts/index.html.erb               |A view to display an index of all posts |
 |app/views/posts/edit.html.erb                |A view to edit an existing post|
 |app/views/posts/show.html.erb                |A view to display a single post|
 |app/views/posts/new.html.erb                 |A view to create a new post|
 |app/views/posts/_form.html.erb               |A partial to control the overall look and feel of the form used in edit and new views|
-|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
-|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
-|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
-|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
-|test/unit/post_test.rb                       |Unit testing harness for the posts model|
 |test/functional/posts_controller_test.rb     |Functional testing harness for the posts controller|
+|app/helpers/posts_helper.rb                  |Helper functions to be used from the post views|
 |test/unit/helpers/posts_helper_test.rb       |Unit testing harness for the posts helper|
-|config/routes.rb                             |Edited to include routing information for posts|
+|app/assets/javascripts/posts.js.coffee       |CoffeeScript for the posts controller|
+|app/assets/stylesheets/posts.css.scss        |Cascading style sheet for the posts controller|
+|app/assets/stylesheets/scaffolds.css.scss    |Cascading style sheet to make the scaffolded views look better|
 
 NOTE. While scaffolding will get you up and running quickly, the code it
 generates is unlikely to be a perfect fit for your application. You'll most
@@ -596,11 +607,11 @@ end
 </ruby>
 
 The above migration creates a method named +change+ which will be called when you
-run this migration. The action defined in that method is also reversible, which
+run this migration. The action defined in this method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
-want to reverse it at later date. By default, when you run this migration it
-creates a +posts+ table with two string columns and a text column. It also
-creates two timestamp fields to track record creation and updating. More
+want to reverse it later. When you run this migration it will create a
++posts+ table with two string columns and a text column. It also creates two
+timestamp fields to allow Rails to track post creation and update times. More
 information about Rails migrations can be found in the "Rails Database
 Migrations":migrations.html guide.
 
@@ -620,7 +631,7 @@ table.
 ==  CreatePosts: migrated (0.0020s) ===========================================
 </shell>
 
-NOTE. Because by default you're working in the development environment, this
+NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the +development+ section of your
 +config/database.yml+ file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
@@ -691,7 +702,8 @@ end
 These changes will ensure that all posts have a name and a title, and that the
 title is at least five characters long. Rails can validate a variety of
 conditions in a model, including the presence or uniqueness of columns, their
-format, and the existence of associated objects.
+format, and the existence of associated objects. Validations are covered in detail
+in "Active Record Validations and Callbacks":active_record_validations_callbacks.html#validations-overview
 
 h4. Using the Console
 
@@ -716,10 +728,8 @@ After the console loads, you can use it to work with your application's models:
      updated_at: nil>
 >> p.save
 => false
->> p.errors
-=> #<OrderedHash { :title=>["can't be blank",
-                           "is too short (minimum is 5 characters)"],
-                   :name=>["can't be blank"] }>
+>> p.errors.full_messages
+=> ["Name can't be blank", "Title can't be blank", "Title is too short (minimum is 5 characters)"]
 </shell>
 
 This code shows creating a new +Post+ instance, attempting to save it and
@@ -729,13 +739,14 @@ inspecting the +errors+ of the post.
 When you're finished, type +exit+ and hit +return+ to exit the console.
 
 TIP: Unlike the development web server, the console does not automatically load
-your code afresh for each line. If you make changes to your models while the
-console is open, type +reload!+ at the console prompt to load them.
+your code afresh for each line. If you make changes to your models (in your editor)
+while the console is open, type +reload!+ at the console prompt to load them.
 
 h4. Listing All Posts
 
-The easiest place to start looking at functionality is with the code that lists
-all posts. Open the file +app/controllers/posts_controller.rb+ and look at the
+Let's dive into the Rails code a little deeper to see how the application is
+showing us the list of Posts. Open the file
++app/controllers/posts_controller.rb+ and look at the
 +index+ action:
 
 <ruby>
@@ -749,9 +760,8 @@ def index
 end
 </ruby>
 
-+Post.all+ calls the +Post+ model to return all of the posts currently in the
-database. The result of this call is an array of posts that we store in an
-instance variable called +@posts+.
++Post.all+ returns all of the posts currently in the database as an array
+of +Post+ records that we store in an instance variable called +@posts+.
 
 TIP: For more information on finding records with Active Record, see "Active
 Record Query Interface":active_record_querying.html.
@@ -802,7 +812,7 @@ and links. A few things to note in the view:
 
 NOTE. In previous versions of Rails, you had to use +&lt;%=h post.name %&gt;+ so
 that any HTML would be escaped before being inserted into the page. In Rails
-3.0, this is now the default. To get unescaped HTML, you now use +&lt;%= raw
+3.0+, this is now the default. To get unescaped HTML, you now use +&lt;%= raw
 post.name %&gt;+.
 
 TIP: For more details on the rendering process, see "Layouts and Rendering in
@@ -816,9 +826,10 @@ Rails renders a view to the browser, it does so by putting the view's HTML into
 a layout's HTML. In previous versions of Rails, the +rails generate scaffold+
 command would automatically create a controller specific layout, like
 +app/views/layouts/posts.html.erb+, for the posts controller. However this has
-been changed in Rails 3.0. An application specific +layout+ is used for all the
+been changed in Rails 3.0+. An application specific +layout+ is used for all the
 controllers and can be found in +app/views/layouts/application.html.erb+. Open
-this layout in your editor and modify the +body+ tag:
+this layout in your editor and modify the +body+ tag to include the style directive
+below:
 
 <erb>
 <!DOCTYPE html>
@@ -996,7 +1007,7 @@ end
 
 The +show+ action uses +Post.find+ to search for a single record in the database
 by its id value. After finding the record, Rails displays it by using
-+show.html.erb+:
++app/views/posts/show.html.erb+:
 
 <erb>
 <p class="notice"><%= notice %></p>
@@ -1101,7 +1112,7 @@ the controller.
 
 h3. Adding a Second Model
 
-Now that you've seen how a model built with scaffolding looks like, it's time to
+Now that you've seen what a model built with scaffolding looks like, it's time to
 add a second model to the application. The second model will handle comments on
 blog posts.
 
@@ -1120,9 +1131,11 @@ $ rails generate model Comment commenter:string body:text post:references
 
 This command will generate four files:
 
-* +app/models/comment.rb+ - The model.
-* +db/migrate/20100207235629_create_comments.rb+ - The migration.
-* +test/unit/comment_test.rb+ and +test/fixtures/comments.yml+ - The test harness.
+|_.File                                       |_.Purpose|
+|db/migrate/20100207235629_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
+| app/models/comment.rb                       | The Comment model |
+| test/unit/comment_test.rb                   | Unit testing harness for the comments model |
+| test/fixtures/comments.yml                  | Sample comments for use in testing |
 
 First, take a look at +comment.rb+:
 
@@ -1169,8 +1182,10 @@ run against the current database, so in this case you will just see:
 <shell>
 ==  CreateComments: migrating =================================================
 -- create_table(:comments)
-   -> 0.0017s
-==  CreateComments: migrated (0.0018s) ========================================
+   -> 0.0008s
+-- add_index(:comments, :post_id)
+   -> 0.0003s
+==  CreateComments: migrated (0.0012s) ========================================
 </shell>
 
 h4. Associating Models
@@ -1243,13 +1258,14 @@ $ rails generate controller Comments
 
 This creates six files and one empty directory:
 
-* +app/controllers/comments_controller.rb+ - The controller.
-* +app/helpers/comments_helper.rb+ - A view helper file.
-* +test/functional/comments_controller_test.rb+ - The functional tests for the controller.
-* +test/unit/helpers/comments_helper_test.rb+ - The unit tests for the helper.
-* +app/views/comments/+ - Views of the controller are stored here.
-* +app/assets/stylesheets/comment.css.scss+ - Cascading style sheet for the controller.
-* +app/assets/javascripts/comment.js.coffee+ - CoffeeScript for the controller.
+|_.File/Directory                             |_.Purpose                                 |
+| app/controllers/comments_controller.rb      | The Comments controller                  |
+| app/views/comments/                         | Views of the controller are stored here  |
+| test/functional/comments_controller_test.rb | The functional tests for the controller  |
+| app/helpers/comments_helper.rb              | A view helper file                       |
+| test/unit/helpers/comments_helper_test.rb   | The unit tests for the helper            |
+| app/assets/javascripts/comment.js.coffee    | CoffeeScript for the controller          |
+| app/assets/stylesheets/comment.css.scss     | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the post, and once they have added their comment, will be sent back to

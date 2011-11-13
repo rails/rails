@@ -11,7 +11,7 @@ require 'active_support/core_ext/string/encoding'
 module ActiveSupport
   module Cache
     # A cache store implementation which stores data in Memcached:
-    # http://www.danga.com/memcached/
+    # http://memcached.org/
     #
     # This is currently the most popular cache store for production websites.
     #
@@ -21,7 +21,7 @@ module ActiveSupport
     #   server goes down, then MemCacheStore will ignore it until it comes back up.
     #
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
-    # an in memory cache inside of a block.
+    # an in-memory cache inside of a block.
     class MemCacheStore < Store
       module Response # :nodoc:
         STORED      = "STORED\r\n"

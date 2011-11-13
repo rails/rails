@@ -4,9 +4,9 @@ require 'active_support/core_ext/string/inflections'
 module ActiveSupport
   module Cache
     module Strategy
-      # Caches that implement LocalCache will be backed by an in memory cache for the
+      # Caches that implement LocalCache will be backed by an in-memory cache for the
       # duration of a block. Repeated calls to the cache for the same key will hit the
-      # in memory cache for faster access.
+      # in-memory cache for faster access.
       module LocalCache
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
