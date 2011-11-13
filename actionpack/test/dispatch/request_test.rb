@@ -36,7 +36,7 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4',
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
-    assert_equal '1.2.3.4', request.remote_ip
+    assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'REMOTE_ADDR' => '127.0.0.1',
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
@@ -106,7 +106,7 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request 'REMOTE_ADDR' => '67.205.106.74,172.16.0.1',
                            'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
-    assert_equal '67.205.106.74', request.remote_ip
+    assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,67.205.106.73'
     assert_equal 'unknown', request.remote_ip
