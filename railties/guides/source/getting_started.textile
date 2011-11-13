@@ -1186,8 +1186,10 @@ run against the current database, so in this case you will just see:
 <shell>
 ==  CreateComments: migrating =================================================
 -- create_table(:comments)
-   -> 0.0017s
-==  CreateComments: migrated (0.0018s) ========================================
+   -> 0.0008s
+-- add_index(:comments, :post_id)
+   -> 0.0003s
+==  CreateComments: migrated (0.0012s) ========================================
 </shell>
 
 h4. Associating Models
