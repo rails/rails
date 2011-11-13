@@ -1116,7 +1116,7 @@ the controller.
 
 h3. Adding a Second Model
 
-Now that you've seen how a model built with scaffolding looks like, it's time to
+Now that you've seen what a model built with scaffolding looks like, it's time to
 add a second model to the application. The second model will handle comments on
 blog posts.
 
