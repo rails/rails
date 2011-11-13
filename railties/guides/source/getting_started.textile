@@ -634,7 +634,7 @@ table.
 ==  CreatePosts: migrated (0.0020s) ===========================================
 </shell>
 
-NOTE. Because by default you're working in the development environment, this
+NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the +development+ section of your
 +config/database.yml+ file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
