@@ -46,6 +46,10 @@ in rails/railties/guides/code/getting_started.
 
 h3. What is Rails?
 
+TIP: This section goes into the background and philosophy of the Rails framework
+in detail. You can safely skip this section and come back to it at a later time.
+Section 3 starts you on the path to creating your first Rails application.
+
 Rails is a web application development framework written in the Ruby language.
 It is designed to make programming web applications easier by making assumptions
 about what every developer needs to get started. It allows you to write less
