@@ -308,6 +308,14 @@ manually with the application.
 * The +test+ environment is used when running automated tests.
 * The +production+ environment is used when you deploy your application for the world to use.
 
+TIP: You don't have to update the database configurations manually. If you look at the
+options of the application generator, you will see that one of the options
+is named <tt>--database</tt>. This option allows you to choose an adapter from a
+list of the most used relational databases. You can even run the generator
+repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting
+ of the +config/database.yml+ file, your application will be configured for MySQL
+instead of SQLite.  Detailed examples of the common database connections are below.
+
 h5. Configuring an SQLite3 Database
 
 Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is
@@ -410,14 +418,6 @@ development:
 </yaml>
 
 Change the username and password in the +development+ section as appropriate.
-
-TIP: You don't have to update the database configurations manually. If you look at the
-options of the application generator, you will see that one of the options
-is named <tt>--database</tt>. This option allows you to choose an adapter from a
-list of the most used relational databases. You can even run the generator
-repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting
- of the +config/database.yml+ file, your application will be configured for MySQL
-instead of SQLite.
 
 h4. Creating the Database
 
