@@ -51,8 +51,8 @@ module ActionDispatch
         if check_ip && !forwarded_ips.include?(client_ip)
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?!" \
-            "HTTP_CLIENT_IP=#{env['HTTP_CLIENT_IP'].inspect}" \
-            "HTTP_X_FORWARDED_FOR=#{env['HTTP_X_FORWARDED_FOR'].inspect}"
+            "HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect}" \
+            "HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}"
         end
 
         client_ip || forwarded_ips.last || remote_addrs.last
