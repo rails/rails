@@ -1011,7 +1011,7 @@ end
 
 The +show+ action uses +Post.find+ to search for a single record in the database
 by its id value. After finding the record, Rails displays it by using
-+show.html.erb+:
++app/views/posts/show.html.erb+:
 
 <erb>
 <p class="notice"><%= notice %></p>
