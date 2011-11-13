@@ -19,7 +19,7 @@ module ActionDispatch
       @app = app
       @check_ip_spoofing = check_ip_spoofing
       if custom_proxies
-        custom_regexp = Regexp.new(custom_proxies, "i")
+        custom_regexp = Regexp.new(custom_proxies)
         @trusted_proxies = Regexp.union(TRUSTED_PROXIES, custom_regexp)
       else
         @trusted_proxies = TRUSTED_PROXIES
