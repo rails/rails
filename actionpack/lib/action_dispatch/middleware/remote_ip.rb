@@ -55,7 +55,7 @@ module ActionDispatch
             "HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}"
         end
 
-        client_ip || forwarded_ips.last || remote_addrs.last
+        client_ip || forwarded_ips.last || remote_addrs.first
       end
 
     protected
