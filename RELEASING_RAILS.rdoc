@@ -81,6 +81,10 @@ You can review the commits for the 3.0.10 release like this:
 
     [aaron@higgins rails (3-0-10)]$ git log v3.0.9..
 
+If you're doing a stable branch release, you should also ensure that all of
+the CHANGELOG entries in the stable branch are also synced to the master
+branch.
+
 === Update the RAILS_VERSION file to include the RC.
 
 === Release the gem.
