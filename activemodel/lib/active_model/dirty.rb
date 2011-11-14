@@ -98,7 +98,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      !changed_attributes.empty?
+      changed_attributes.any?
     end
 
     # List of attributes with unsaved changes.
