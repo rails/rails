@@ -13,16 +13,16 @@ module ActionDispatch
        )\.
     }x
 
-    attr_reader :check_ip_spoofing, :trusted_proxies
+    attr_reader :check_ip, :proxies
 
     def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
       @app = app
-      @check_ip_spoofing = check_ip_spoofing
+      @check_ip = check_ip_spoofing
       if custom_proxies
         custom_regexp = Regexp.new(custom_proxies)
-        @trusted_proxies = Regexp.union(TRUSTED_PROXIES, custom_regexp)
+        @proxies = Regexp.union(TRUSTED_PROXIES, custom_regexp)
       else
-        @trusted_proxies = TRUSTED_PROXIES
+        @proxies = TRUSTED_PROXIES
       end
     end
 
@@ -47,7 +47,7 @@ module ActionDispatch
         forwarded_ips = ips_from('HTTP_X_FORWARDED_FOR')
         remote_addrs  = ips_from('REMOTE_ADDR')
 
-        check_ip = client_ip && @middleware.check_ip_spoofing
+        check_ip = client_ip && @middleware.check_ip
         if check_ip && !forwarded_ips.include?(client_ip)
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?!" \
@@ -62,7 +62,7 @@ module ActionDispatch
 
       def ips_from(header)
         ips = @env[header] ? @env[header].strip.split(/[,\s]+/) : []
-        ips.reject{|ip| ip =~ @middleware.trusted_proxies }
+        ips.reject{|ip| ip =~ @middleware.proxies }
       end
     end
 
