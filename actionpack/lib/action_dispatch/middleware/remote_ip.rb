@@ -42,7 +42,7 @@ module ActionDispatch
       # HTTP_X_FORWARDED_FOR may be a comma-delimited list in the case of
       # multiple chained proxies. The last address which is not a known proxy
       # will be the originating IP.
-      def to_s
+      def calculate_ip
         client_ip     = @env['HTTP_CLIENT_IP']
         forwarded_ips = ips_from('HTTP_X_FORWARDED_FOR')
         remote_addrs  = ips_from('REMOTE_ADDR')
@@ -56,6 +56,12 @@ module ActionDispatch
         end
 
         client_ip || forwarded_ips.last || remote_addrs.first
+      end
+
+      def to_s
+        return @ip if @calculated_ip
+        @calculated_ip = true
+        @ip = calculate_ip
       end
 
     protected
