@@ -211,6 +211,7 @@ module Rails
           group :assets do
             gem 'sass-rails', #{options.dev? || options.edge? ? "  :git => 'git://github.com/rails/sass-rails.git', :branch => '3-1-stable'" : "  '~> 3.1.5'"}
             gem 'coffee-rails', #{options.dev? || options.edge? ? ":git => 'git://github.com/rails/coffee-rails.git', :branch => '3-1-stable'" : "'~> 3.1.1'"}
+            #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
             gem 'uglifier', '>= 1.0.3'
           end
         GEMFILE
