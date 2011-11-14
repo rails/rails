@@ -64,6 +64,8 @@
 
 ## Rails 3.1.2 (unreleased) ##
 
+*   Upgrade sprockets dependency to ~> 2.1.0
+
 *   Ensure that the format isn't applied twice to the cache key, else it becomes impossible
     to target with expire_action.
 
