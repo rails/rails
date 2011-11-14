@@ -67,6 +67,27 @@
 
 ## Rails 3.1.2 (unreleased) ##
 
+*   Fix bug with PostgreSQLAdapter#indexes. When the search path has multiple schemas, spaces
+    were not being stripped from the schema names after the first.
+
+    *Sean Kirby*
+
+*   Preserve SELECT columns on the COUNT for finder_sql when possible. *GH 3503*
+
+    *Justin Mazzi*
+
+*   Reset prepared statement cache when schema changes impact statement results. *GH 3335*
+
+    *Aaron Patterson*
+
+*   Postgres: Do not attempt to deallocate a statement if the connection is no longer active.
+
+    *Ian Leitch*
+
+*   Prevent QueryCache leaking database connections. *GH 3243*
+
+    *Mark J. Titorenko*
+
 *   Fix bug where building the conditions of a nested through association could potentially
     modify the conditions of the through and/or source association. If you have experienced
     bugs with conditions appearing in the wrong queries when using nested through associations,

@@ -30,6 +30,16 @@
     Plugins developers need to special case their initializers that are
     meant to be run in the assets group by adding :group => :assets.
 
+## Rails 3.1.2 (unreleased) ##
+
+*   Engines: don't blow up if db/seeds.rb is missing.
+
+    *Jeremy Kemper*
+
+*   `rails new foo --skip-test-unit` should not add the `:test` task to the rake default task.
+    *GH 2564*
+
+    *José Valim*
 
 ## Rails 3.1.0 (August 30, 2011) ##
 

@@ -64,6 +64,15 @@
 
 ## Rails 3.1.2 (unreleased) ##
 
+*   Ensure that the format isn't applied twice to the cache key, else it becomes impossible
+    to target with expire_action.
+
+    *Christopher Meiklejohn*
+
+*   Swallow error when can't unmarshall object from session.
+
+    *Bruno Zanchet*
+
 *   Implement a workaround for a bug in ruby-1.9.3p0 where an error would be raised
     while attempting to convert a template from one encoding to another.
 
@@ -75,6 +84,8 @@
     1.9.3.
 
     *Jon Leighton*
+
+*   Ensure users upgrading from 3.0.x to 3.1.x will properly upgrade their flash object in session (issues #3298 and #2509)
 
 ## Rails 3.1.1 (unreleased) ##
 
