@@ -89,6 +89,11 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '9.9.9.9', request.remote_ip
   end
 
+  test "remote ip when the remote ip middleware returns nil" do
+    request = stub_request 'REMOTE_ADDR' => '127.0.0.1'
+    assert_equal '127.0.0.1', request.remote_ip
+  end
+
   test "remote ip with user specified trusted proxies" do
     @trusted_proxies = /^67\.205\.106\.73$/i
 
