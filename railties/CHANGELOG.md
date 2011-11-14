@@ -1,3 +1,14 @@
+## Rails 3.1.2 (unreleased) ##
+
+*   Engines: don't blow up if db/seeds.rb is missing.
+
+    *Jeremy Kemper*
+
+*   `rails new foo --skip-test-unit` should not add the `:test` task to the rake default task.
+    *GH 2564*
+
+    *José Valim*
+
 ## Rails 3.1.1 (October 7, 2011) ##
 
 *   Add jquery-rails to Gemfile of plugins, test/dummy app needs it. Closes #3091. *Santiago Pastorino*
