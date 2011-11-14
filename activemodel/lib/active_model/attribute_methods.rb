@@ -109,17 +109,7 @@ module ActiveModel
         if block_given?
           sing.send :define_method, name, &block
         else
-          # If we can compile the method name, do it. Otherwise use define_method.
-          # This is an important *optimization*, please don't change it. define_method
-          # has slower dispatch and consumes more memory.
-          if name =~ COMPILABLE_REGEXP
-            sing.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
-            RUBY
-          else
-            value = value.to_s if value
-            sing.send(:define_method, name) { value }
-          end
+          define_attr_method_without_block(sing, name, value)
         end
       end
 
@@ -241,17 +231,7 @@ module ActiveModel
           matcher_new = matcher.method_name(new_name).to_s
           matcher_old = matcher.method_name(old_name).to_s
 
-          if matcher_new =~ COMPILABLE_REGEXP && matcher_old =~ COMPILABLE_REGEXP
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{matcher_new}(*args)
-                send(:#{matcher_old}, *args)
-              end
-            RUBY
-          else
-            define_method(matcher_new) do |*args|
-              send(matcher_old, *args)
-            end
-          end
+          define_alias_attribute(matcher_new, matcher_old)
         end
       end
 
@@ -288,23 +268,7 @@ module ActiveModel
           method_name = matcher.method_name(attr_name)
 
           unless instance_method_already_implemented?(method_name)
-            generate_method = "define_method_#{matcher.method_missing_target}"
-
-            if respond_to?(generate_method)
-              send(generate_method, attr_name)
-            else
-              if method_name =~ COMPILABLE_REGEXP
-                defn = "def #{method_name}(*args)"
-              else
-                defn = "define_method(:'#{method_name}') do |*args|"
-              end
-
-              generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                #{defn}
-                  send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
-                end
-              RUBY
-            end
+            implement_instance_method(matcher, method_name, attr_name)
           end
         end
         attribute_method_matchers_cache.clear
@@ -356,6 +320,54 @@ module ActiveModel
             match = nil
             matchers.detect { |method| match = method.match(method_name) }
             attribute_method_matchers_cache[method_name] = match
+          end
+        end
+
+        def define_attr_method_without_block(singleton, name, value)
+          # If we can compile the method name, do it. Otherwise use define_method.
+          # This is an important *optimization*, please don't change it. define_method
+          # has slower dispatch and consumes more memory.
+          if name =~ COMPILABLE_REGEXP
+            singleton.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
+            RUBY
+          else
+            value = value.to_s if value
+            singleton.send(:define_method, name) { value }
+          end
+        end
+
+        def define_alias_attribute(matcher_new, matcher_old)
+          if matcher_new =~ COMPILABLE_REGEXP && matcher_old =~ COMPILABLE_REGEXP
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{matcher_new}(*args)
+                send(:#{matcher_old}, *args)
+              end
+            RUBY
+          else
+            define_method(matcher_new) do |*args|
+              send(matcher_old, *args)
+            end
+          end
+        end
+
+        def implement_instance_method(matcher, method_name, attr_name)
+          generate_method = "define_method_#{matcher.method_missing_target}"
+
+          if respond_to?(generate_method)
+            send(generate_method, attr_name)
+          else
+            if method_name =~ COMPILABLE_REGEXP
+              defn = "def #{method_name}(*args)"
+            else
+              defn = "define_method(:'#{method_name}') do |*args|"
+            end
+
+            generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            #{defn}
+                  send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
+                end
+            RUBY
           end
         end
 
