@@ -189,6 +189,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_javascript_runtime_is_added_to_gemfile
+    win_or_osx = (RUBY_PLATFORM =~ /mswin32/ || RUBY_PLATFORM =~ /darwin/)
+    `which node`
+    node = $?.success?
+
+    if defined?(JRUBY_VERSION) || (!win_or_osx && !node)
+      run_generator([destination_root])
+      assert_file "Gemfile", /gem\s+["']theruby(racer|rhino)["']/
+    end
+  end
+
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"

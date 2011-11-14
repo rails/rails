@@ -193,15 +193,45 @@ module Rails
       end
 
       def assets_gemfile_entry
+         gem_for_js_runtime = true unless js_runtime_available?
+
         <<-GEMFILE.strip_heredoc
           # Gems used only for assets and not required
           # in production environments by default.
           group :assets do
             gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
             gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
+
             gem 'uglifier', '>= 1.0.3'
+
+            #{"# JavaScript runtime for CoffeeScript assets and Uglifier" if gem_for_js_runtime}
+            #{"# See https://github.com/sstephenson/execjs for alternative runtimes." if gem_for_js_runtime}
+            #{javascript_runtime_gemfile_entry if gem_for_js_runtime}
           end
         GEMFILE
+      end
+
+      def javascript_runtime_gemfile_entry
+        if defined?(JRUBY_VERSION)
+          "gem 'therubyrhino'"
+        else
+          "gem 'therubyracer'"
+        end
+      end
+
+      def js_runtime_available?
+        # Windows and OS X includes JavaScript Runtime by default
+        return true if RUBY_PLATFORM =~ /mswin32/ || RUBY_PLATFORM =~ /darwin/
+
+        # Prefer therubyrhino when running under JRuby
+        return false if defined?(JRUBY_VERSION)
+
+        # Node.js can be used if is installed in PATH
+        `which node`
+        return true if $?.success?
+
+        # Probably there isn't a javascript installed in the system
+        return false
       end
 
       def javascript_gemfile_entry
