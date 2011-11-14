@@ -217,9 +217,10 @@ module CacheStoreBehavior
 
   def test_read_and_write_compressed_large_data
     @cache.write('foo', 'bar', :compress => true, :compress_threshold => 2)
-    raw_value = @cache.send(:read_entry, 'foo', {}).raw_value
     assert_equal 'bar', @cache.read('foo')
-    assert_equal 'bar', Marshal.load(Zlib::Inflate.inflate(raw_value))
+    entry = @cache.send(:read_entry, 'foo', {})
+    entry.compress! unless entry.compressed?
+    assert_equal 'bar', Marshal.load(Zlib::Inflate.inflate(entry.raw_value))
   end
 
   def test_read_and_write_compressed_nil
@@ -739,15 +740,29 @@ class CacheEntryTest < ActiveSupport::TestCase
 
   def test_compress_values
     entry = ActiveSupport::Cache::Entry.new("value", :compress => true, :compress_threshold => 1)
+    assert_equal true, entry.instance_variable_get("@lazy_compress")
+    assert_equal false, entry.compressed?
     assert_equal "value", entry.value
+    assert_equal true, entry.compress!
     assert_equal true, entry.compressed?
     assert_equal "value", Marshal.load(Zlib::Inflate.inflate(entry.raw_value))
   end
 
   def test_non_compress_values
     entry = ActiveSupport::Cache::Entry.new("value")
+    assert_equal false, entry.instance_variable_get("@lazy_compress")
     assert_equal "value", entry.value
     assert_equal "value", Marshal.load(entry.raw_value)
     assert_equal false, entry.compressed?
+    assert_equal false, entry.compress!
+  end
+
+  def test_marshal
+    entry = ActiveSupport::Cache::Entry.new("value", :compress => true, :compress_threshold => 1)
+    cache = Marshal.load(Marshal.dump(entry))
+    assert_equal true, entry.compressed?
+    entry.instance_variables.each do |var|
+      assert_equal cache.instance_variable_get(var), entry.instance_variable_get(var)
+    end
   end
 end
