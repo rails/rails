@@ -1,5 +1,10 @@
 ## Rails 3.1.2 (unreleased) ##
 
+*   Fix problem with prepared statements and PostgreSQL when multiple schemas are used.
+    *GH #3232*
+
+    *Juan M. Cuello*
+
 *   Fix bug with PostgreSQLAdapter#indexes. When the search path has multiple schemas, spaces
     were not being stripped from the schema names after the first.
 
