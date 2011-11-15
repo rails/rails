@@ -245,6 +245,20 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_ensure_gitignore_file_includes_non_project_files_in_test_dummy
+    run_generator [destination_root]
+    assert_file ".gitignore", /test\/dummy\/db\/\*\.sqlite3/
+    assert_file ".gitignore", /test\/dummy\/log\/\*\.log/
+    assert_file ".gitignore", /test\/dummy\/tmp\//
+  end
+
+  def test_ensure_gitignore_file_includes_non_project_files_in_test_dummy_with_dummy_path
+    run_generator [destination_root, "--dummy_path", "spec/dummy"]
+    assert_file ".gitignore", /spec\/dummy\/db\/\*\.sqlite3/
+    assert_file ".gitignore", /spec\/dummy\/log\/\*\.log/
+    assert_file ".gitignore", /spec\/dummy\/tmp\//
+  end
+
   def test_skipping_test_unit
     run_generator [destination_root, "--skip-test-unit"]
     assert_no_file "test"
