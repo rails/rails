@@ -22,21 +22,23 @@ module ActiveRecord
             value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
             attribute.in(value.arel.ast)
           when Array, ActiveRecord::Associations::CollectionProxy
-            values = value.to_a.map { |x|
-              x.is_a?(ActiveRecord::Base) ? x.id : x
-            }
+            values = value.to_a.map {|x| x.is_a?(ActiveRecord::Base) ? x.id : x}
+            ranges, values = values.partition {|value| value.is_a?(Range) || value.is_a?(Arel::Relation)}
+
+            array_predicates = ranges.map {|range| attribute.in(range)}
 
             if values.include?(nil)
               values = values.compact
               if values.empty?
-                attribute.eq nil
+                array_predicates << attribute.eq(nil)
               else
-                attribute.in(values.compact).or attribute.eq(nil)
+                array_predicates << attribute.in(values.compact).or(attribute.eq(nil))
               end
             else
-              attribute.in(values)
+              array_predicates << attribute.in(values)
             end
 
+            array_predicates.inject {|composite, predicate| composite.or(predicate)}
           when Range, Arel::Relation
             attribute.in(value)
           when ActiveRecord::Base

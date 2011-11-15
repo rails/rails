@@ -375,7 +375,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions_with_array_of_integers_and_ranges
-    assert_equal [1,2,3], Comment.find(:all, :conditions => { :post_id => [1..2, 3, 4, 5..10]}).map(&:id).sort
+    assert_equal [1,2,3,5,6,7,8,9], Comment.find(:all, :conditions => {:id => [1..2, 3, 5, 6..8, 9]}).map(&:id).sort
   end
 
   def test_find_on_multiple_hash_conditions
