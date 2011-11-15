@@ -55,10 +55,7 @@ module ActionDispatch
             "HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}"
         end
 
-        not_proxy = client_ip || forwarded_ips.last || remote_addrs.first
-
-        # Return first REMOTE_ADDR if there are no other options
-        not_proxy || ips_from('REMOTE_ADDR', :all).first
+        client_ip || forwarded_ips.last || remote_addrs.first
       end
 
       def to_s
@@ -69,9 +66,9 @@ module ActionDispatch
 
     protected
 
-      def ips_from(header, allow_proxies = false)
+      def ips_from(header)
         ips = @env[header] ? @env[header].strip.split(/[,\s]+/) : []
-        allow_proxies ? ips : ips.reject{|ip| ip =~ @middleware.proxies }
+        ips.reject{|ip| ip =~ @middleware.proxies }
       end
     end
 
