@@ -276,12 +276,22 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
-  fixtures :developers, :computers
+  fixtures :developers, :computers, :posts, :comments
   def test_association_methods_override_attribute_methods_of_same_name
     assert_equal(developers(:david), computers(:workstation).developer)
     # this next line will fail if the attribute methods module is generated lazily
     # after the association methods module is generated
     assert_equal(developers(:david), computers(:workstation).developer)
     assert_equal(developers(:david).id, computers(:workstation)[:developer])
+  end
+
+  def test_model_method_overrides_association_method
+    Post.class_eval <<-"RUBY"
+      has_one :first_comment, :class_name => 'Comment', :order => 'id ASC'
+      def first_comment
+        super.body
+      end
+    RUBY
+    assert_equal(comments(:greetings).body, posts(:welcome).first_comment)
   end
 end
