@@ -7,9 +7,9 @@ require 'models/person'
 require 'bigdecimal'
 
 class NumericalityValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.reset_callbacks(:validate)
+    Topic._validators = Hash.new {|h, k| h[k] = []}
   end
 
   NIL = [nil]
@@ -159,6 +159,48 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :greater_than => "foo" }
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :less_than => "foo" }
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :equal_to => "foo" }
+  end
+
+  def test_attribute_max_using_less_than
+    Topic.validates_numericality_of :approved, :less_than => 20
+    assert_equal 20, Topic.attribute_max(:approved)
+  end
+
+  def test_attribute_max_using_less_than_or_equal_to
+    Topic.validates_numericality_of :approved, :less_than_or_equal_to => 40
+    assert_equal 40, Topic.attribute_max(:approved)
+  end
+
+  def test_attribute_max_with_if_or_unless_or_allow_nil_or_allow_blank
+    Topic.validates_numericality_of :approved, :less_than => 20, :if => lambda {|u| true}
+    assert_nil Topic.attribute_max(:approved)
+    Topic.validates_numericality_of :approved, :less_than => 20, :unless => lambda {|u| false}
+    assert_nil Topic.attribute_max(:approved)
+    Topic.validates_numericality_of :approved, :less_than => 20, :allow_nil => true
+    assert_nil Topic.attribute_max(:approved)
+    Topic.validates_numericality_of :approved, :less_than => 20, :allow_nil => true
+    assert_nil Topic.attribute_max(:approved)
+  end
+
+  def test_attribute_min_using_greater_than
+    Topic.validates_numericality_of :approved, :greater_than => 20
+    assert_equal 20, Topic.attribute_min(:approved)
+  end
+
+  def test_attribute_min_using_greater_than_or_equal_to
+    Topic.validates_numericality_of :approved, :greater_than_or_equal_to => 40
+    assert_equal 40, Topic.attribute_min(:approved)
+  end
+
+  def test_attribute_min_with_if_or_unless_or_allow_nil_or_allow_blank
+    Topic.validates_numericality_of :approved, :greater_than => 20, :if => lambda {|u| true}
+    assert_nil Topic.attribute_min(:approved)
+    Topic.validates_numericality_of :approved, :greater_than => 20, :unless => lambda {|u| false}
+    assert_nil Topic.attribute_min(:approved)
+    Topic.validates_numericality_of :approved, :greater_than => 20, :allow_nil => true
+    assert_nil Topic.attribute_min(:approved)
+    Topic.validates_numericality_of :approved, :greater_than => 20, :allow_nil => true
+    assert_nil Topic.attribute_min(:approved)
   end
 
   private

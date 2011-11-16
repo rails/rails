@@ -1013,6 +1013,12 @@ module ActionView
 
       def to_input_field_tag(field_type, options = {})
         options = options.stringify_keys
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
+          options["maxlength"] ||= object.class.attribute_maxlength(method_name)
+          options["max"] ||= object.class.attribute_max(method_name)
+          options["min"] ||= object.class.attribute_min(method_name)
+        end
         options["size"] = options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"] unless options.key?("size")
         options = DEFAULT_FIELD_OPTIONS.merge(options)
         if field_type == "hidden"
@@ -1046,6 +1052,9 @@ module ActionView
           checked = self.class.radio_button_checked?(value(object), tag_value)
         end
         options["checked"]  = "checked" if checked
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
+        end
         add_default_name_and_id_for_value(tag_value, options)
         tag("input", options)
       end
@@ -1056,6 +1065,9 @@ module ActionView
 
         if size = options.delete("size")
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
+        end
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
         end
 
         content_tag("textarea", ERB::Util.html_escape(options.delete('value') || value_before_type_cast(object)), options)
@@ -1077,6 +1089,9 @@ module ActionView
           options.delete("multiple")
         else
           add_default_name_and_id(options)
+        end
+        if object.class.ancestors.include?(ActiveModel::Validations)
+          options["required"] ||= object.class.attribute_required?(method_name)
         end
         hidden = tag("input", "name" => options["name"], "type" => "hidden", "value" => options['disabled'] && checked ? checked_value : unchecked_value)
         checkbox = tag("input", options)

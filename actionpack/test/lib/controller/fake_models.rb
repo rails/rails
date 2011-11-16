@@ -52,6 +52,7 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :writt
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   extend ActiveModel::Translation
+  include ActiveModel::Validations
 
   alias_method :secret?, :secret
   alias_method :persisted?, :persisted

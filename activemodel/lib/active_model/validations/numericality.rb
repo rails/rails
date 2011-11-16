@@ -125,6 +125,18 @@ module ActiveModel
       def validates_numericality_of(*attr_names)
         validates_with NumericalityValidator, _merge_attributes(attr_names)
       end
+
+      def attribute_max(attribute)
+        self.validators.grep(NumericalityValidator).select {|v|
+          v.attributes.include?(attribute.to_sym) && (v.options.keys & [:less_than, :less_than_or_equal_to]).any? && (v.options.keys & [:if, :unless, :allow_nil, :allow_blank]).empty?
+        }.map {|v| v.options.slice(:less_than, :less_than_or_equal_to)}.map(&:values).flatten.max
+      end
+
+      def attribute_min(attribute)
+        self.validators.grep(NumericalityValidator).select {|v|
+          v.attributes.include?(attribute.to_sym) && (v.options.keys & [:greater_than, :greater_than_or_equal_to]).any? && (v.options.keys & [:if, :unless, :allow_nil, :allow_blank]).empty?
+        }.map {|v| v.options.slice(:greater_than, :greater_than_or_equal_to)}.map(&:values).flatten.min
+      end
     end
   end
 end

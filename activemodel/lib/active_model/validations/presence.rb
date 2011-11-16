@@ -41,6 +41,12 @@ module ActiveModel
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)
       end
+
+      def attribute_required?(attribute)
+        self.validators.grep(PresenceValidator).any? do |v|
+          v.attributes.include?(attribute.to_sym) && (v.options.keys & [:if, :unless]).empty?
+        end
+      end
     end
   end
 end
