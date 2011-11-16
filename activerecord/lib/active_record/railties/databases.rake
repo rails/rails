@@ -388,7 +388,7 @@ db_namespace = namespace :db do
         `pg_dump -i -s -x -O -f db/structure.sql #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
       when /sqlite/
-        dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
+        dbfile = abcs[Rails.env]['database']
         `sqlite3 #{dbfile} .schema > db/structure.sql`
       when 'sqlserver'
         `smoscript -s #{abcs[Rails.env]['host']} -d #{abcs[Rails.env]['database']} -u #{abcs[Rails.env]['username']} -p #{abcs[Rails.env]['password']} -f db\\structure.sql -A -U`
@@ -424,7 +424,7 @@ db_namespace = namespace :db do
         ENV['PGUSER']     = abcs[env]['username'].to_s if abcs[env]['username']
         `psql -f "#{Rails.root}/db/structure.sql" #{abcs[env]['database']} #{abcs[env]['template']}`
       when /sqlite/
-        dbfile = abcs[env]['database'] || abcs[env]['dbfile']
+        dbfile = abcs[env]['database']
         `sqlite3 #{dbfile} < "#{Rails.root}/db/structure.sql"`
       when 'sqlserver'
         `sqlcmd -S #{abcs[env]['host']} -d #{abcs[env]['database']} -U #{abcs[env]['username']} -P #{abcs[env]['password']} -i db\\structure.sql`
@@ -481,7 +481,7 @@ db_namespace = namespace :db do
         drop_database(abcs['test'])
         create_database(abcs['test'])
       when /sqlite/
-        dbfile = abcs['test']['database'] || abcs['test']['dbfile']
+        dbfile = abcs['test']['database']
         File.delete(dbfile) if File.exist?(dbfile)
       when 'sqlserver'
         test = abcs.deep_dup['test']
