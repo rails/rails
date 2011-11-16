@@ -117,8 +117,8 @@ module RenderTemplate
       assert_response "{ final: json }"
     end
 
-    test "rendering a template with error properly excerts the code" do
-      get :with_error
+    test "rendering a template with error properly excerpts the code" do
+      get :with_error, {}, { 'action_dispatch.remote_ip' => "127.0.0.1" }
       assert_status 500
       assert_match "undefined local variable or method `idontexist'", response.body
     end
