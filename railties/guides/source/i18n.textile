@@ -231,7 +231,7 @@ end
 
 Now, when you call the +books_path+ method you should get +"/en/books"+ (for the default locale). An URL like +http://localhost:3001/nl/books+ should load the Netherlands locale, then, and following calls to +books_path+ should return +"/nl/books"+ (because the locale changed).
 
-If you don't want to force the use of a locale in your routes you can use an optional path scope (donated by the use brackets) like so:
+If you don't want to force the use of a locale in your routes you can use an optional path scope (denoted by the parentheses) like so:
 
 <ruby>
 # config/routes.rb
