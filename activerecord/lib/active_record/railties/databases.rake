@@ -291,15 +291,11 @@ db_namespace = namespace :db do
   end
 
   desc 'Create the database, load the schema, and initialize with the seed data (use db:reset to also drop the db first)'
-  task :setup => :environment do
-    db_namespace["create"].invoke
-    db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
-    db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
-    db_namespace["seed"].invoke
-  end
+  task :setup => :seed
 
   desc 'Load the seed data from db/seeds.rb'
-  task :seed => 'db:abort_if_pending_migrations' do
+  task :seed => ['db:schema:load_if_ruby', 'db:structure:load_if_sql'] do
+    db_namespace['abort_if_pending_migrations'].invoke
     Rails.application.load_seed
   end
 
@@ -361,6 +357,10 @@ db_namespace = namespace :db do
       else
         abort %{#{file} doesn't exist yet. Run `rake db:migrate` to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded}
       end
+    end
+
+    task :load_if_ruby => 'db:create' do
+      db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
   end
 
@@ -436,6 +436,10 @@ db_namespace = namespace :db do
       else
         raise "Task not supported by '#{abcs[env]['adapter']}'"
       end
+    end
+
+    task :load_if_sql => 'db:create' do
+      db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
     end
   end
 
