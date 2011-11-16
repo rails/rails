@@ -58,7 +58,7 @@ module ActionDispatch
         not_proxy = client_ip || forwarded_ips.last || remote_addrs.first
 
         # Return first REMOTE_ADDR if there are no other options
-        not_proxy || ips_from('REMOTE_ADDR', :all).first
+        not_proxy || ips_from('REMOTE_ADDR', :allow_proxies).first
       end
 
       def to_s
