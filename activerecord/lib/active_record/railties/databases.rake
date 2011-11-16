@@ -1,8 +1,8 @@
 require 'active_support/core_ext/object/inclusion'
+require 'active_record'
 
 db_namespace = namespace :db do
   task :load_config => :rails_env do
-    require 'active_record'
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
     ActiveRecord::Migrator.migrations_paths = Rails.application.paths['db/migrate'].to_a
 
@@ -279,16 +279,14 @@ db_namespace = namespace :db do
 
   # desc "Raises an error if there are pending migrations"
   task :abort_if_pending_migrations => :environment do
-    if defined? ActiveRecord
-      pending_migrations = ActiveRecord::Migrator.new(:up, ActiveRecord::Migrator.migrations_paths).pending_migrations
+    pending_migrations = ActiveRecord::Migrator.new(:up, ActiveRecord::Migrator.migrations_paths).pending_migrations
 
-      if pending_migrations.any?
-        puts "You have #{pending_migrations.size} pending migrations:"
-        pending_migrations.each do |pending_migration|
-          puts '  %4d %s' % [pending_migration.version, pending_migration.name]
-        end
-        abort %{Run `rake db:migrate` to update your database then try again.}
+    if pending_migrations.any?
+      puts "You have #{pending_migrations.size} pending migrations:"
+      pending_migrations.each do |pending_migration|
+        puts '  %4d %s' % [pending_migration.version, pending_migration.name]
       end
+      abort %{Run `rake db:migrate` to update your database then try again.}
     end
   end
 
@@ -498,7 +496,7 @@ db_namespace = namespace :db do
 
     # desc 'Check for pending migrations and load the test schema'
     task :prepare => 'db:abort_if_pending_migrations' do
-      if defined?(ActiveRecord) && !ActiveRecord::Base.configurations.blank?
+      unless ActiveRecord::Base.configurations.blank?
         db_namespace[{ :sql  => 'test:clone_structure', :ruby => 'test:load' }[ActiveRecord::Base.schema_format]].invoke
       end
     end
