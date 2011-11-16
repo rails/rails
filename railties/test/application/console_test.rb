@@ -71,7 +71,6 @@ class ConsoleTest < Test::Unit::TestCase
 
     assert !User.new.respond_to?(:age)
     silence_stream(STDOUT) { irb_context.reload! }
-    session = irb_context.new_session
     assert User.new.respond_to?(:age)
   end
 
