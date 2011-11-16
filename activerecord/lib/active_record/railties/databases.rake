@@ -150,8 +150,16 @@ db_namespace = namespace :db do
   task :migrate => [:environment, :load_config] do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
-    db_namespace["schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
-    db_namespace["structure:dump"].invoke if ActiveRecord::Base.schema_format == :sql
+    db_namespace['_dump'].invoke
+  end
+
+  task :_dump do
+    case ActiveRecord::Base.schema_format
+    when :ruby then db_namespace["schema:dump"].invoke
+    when :sql  then db_namespace["structure:dump"].invoke
+    else
+      raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+    end
   end
 
   namespace :migrate do
@@ -174,8 +182,7 @@ db_namespace = namespace :db do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
       raise 'VERSION is required' unless version
       ActiveRecord::Migrator.run(:up, ActiveRecord::Migrator.migrations_paths, version)
-      db_namespace['schema:dump'].invoke if ActiveRecord::Base.schema_format == :ruby
-      db_namespace['structure:dump'].invoke if ActiveRecord::Base.schema_format == :sql
+      db_namespace['_dump'].invoke
     end
 
     # desc 'Runs the "down" for a given migration VERSION.'
@@ -183,8 +190,7 @@ db_namespace = namespace :db do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
       raise 'VERSION is required' unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
-      db_namespace['schema:dump'].invoke if ActiveRecord::Base.schema_format == :ruby
-      db_namespace['structure:dump'].invoke if ActiveRecord::Base.schema_format == :sql
+      db_namespace['_dump'].invoke
     end
 
     desc 'Display status of migrations'
@@ -224,16 +230,14 @@ db_namespace = namespace :db do
   task :rollback => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.rollback(ActiveRecord::Migrator.migrations_paths, step)
-    db_namespace['schema:dump'].invoke if ActiveRecord::Base.schema_format == :ruby
-    db_namespace['structure:dump'].invoke if ActiveRecord::Base.schema_format == :sql
+    db_namespace['_dump'].invoke
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task :forward => [:environment, :load_config] do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     ActiveRecord::Migrator.forward(ActiveRecord::Migrator.migrations_paths, step)
-    db_namespace['schema:dump'].invoke if ActiveRecord::Base.schema_format == :ruby
-    db_namespace['structure:dump'].invoke if ActiveRecord::Base.schema_format == :sql
+    db_namespace['_dump'].invoke
   end
 
   # desc 'Drops and recreates the database from db/schema.rb for the current environment and loads the seeds.'
