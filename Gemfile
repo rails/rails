@@ -41,7 +41,7 @@ platforms :mri_18 do
 end
 
 platforms :mri_19 do
-  gem "ruby-debug19", :require => "ruby-debug" unless ENV['TRAVIS']
+  gem "ruby-debug19", :require => "ruby-debug" unless ENV['TRAVIS'] || RUBY_VERSION >= "2.0"
 end
 
 platforms :mri do
