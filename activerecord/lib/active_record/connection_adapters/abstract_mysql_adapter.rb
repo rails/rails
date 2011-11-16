@@ -389,11 +389,11 @@ module ActiveRecord
           sql = "SHOW TABLES"
         end
 
-        select_all(sql).map do |table|
+        select_all(sql).map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
           exec_without_stmt(sql).first['Create Table'] + ";\n\n"
-        end.join("")
+        }.join
       end
 
       # Drops the database specified on the +name+ attribute
