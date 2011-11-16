@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_support/deprecation/reporting'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -445,6 +446,7 @@ module ActiveRecord
           si_table = Base.table_name_prefix + 'schema_info' + Base.table_name_suffix
 
           if table_exists?(si_table)
+            ActiveRecord::Deprecation.warn "Usage of the schema table `#{si_table}` is deprecated. Please switch to using `schema_migrations` table"
 
             old_version = select_value("SELECT version FROM #{quote_table_name(si_table)}").to_i
             assume_migrated_upto_version(old_version)
