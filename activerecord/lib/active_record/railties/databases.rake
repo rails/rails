@@ -365,12 +365,14 @@ db_namespace = namespace :db do
         ENV['PGHOST']     = abcs[Rails.env]['host'] if abcs[Rails.env]['host']
         ENV['PGPORT']     = abcs[Rails.env]["port"].to_s if abcs[Rails.env]['port']
         ENV['PGPASSWORD'] = abcs[Rails.env]['password'].to_s if abcs[Rails.env]['password']
+        schema_file = "#{Rails.root}/db/#{Rails.env}_structure.sql"
         search_path = abcs[Rails.env]['schema_search_path']
         unless search_path.blank?
           search_path = search_path.split(",").map{|search_path_part| "--schema=#{search_path_part.strip}" }.join(" ")
         end
-        `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f db/#{Rails.env}_structure.sql #{search_path} #{abcs[Rails.env]['database']}`
+        `pg_dump -i -U "#{abcs[Rails.env]['username']}" -s -x -O -f #{schema_file} #{search_path} #{abcs[Rails.env]['database']}`
         raise 'Error dumping database' if $?.exitstatus == 1
+        File.open(schema_file, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
       when /sqlite/
         dbfile = abcs[Rails.env]['database'] || abcs[Rails.env]['dbfile']
         `sqlite3 #{dbfile} .schema > db/#{Rails.env}_structure.sql`
