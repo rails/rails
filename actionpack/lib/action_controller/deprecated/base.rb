@@ -8,7 +8,7 @@ module ActionController
           "Please stop using it.", caller
       end
 
-      def relative_url_root=
+      def relative_url_root=(value)
         ActiveSupport::Deprecation.warn "ActionController::Base.relative_url_root= is ineffective. " <<
           "Please stop using it.", caller
       end
