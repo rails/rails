@@ -167,7 +167,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     unless defined?(JRUBY_VERSION)
       # Ensure that the mysql2 gem is listed with a compatible version of the
       # mysql2 gem
-      assert_file "Gemfile", /^gem\s+["']mysql2["'],\s*'~> 0.2.13'$/
+      assert_file "Gemfile", /^gem\s+["']mysql2["'],\s*'~> 0.2.17'$/
     else
       assert_file "Gemfile", /^gem\s+["']activerecord-jdbcmysql-adapter["']$/
     end
