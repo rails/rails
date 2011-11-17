@@ -33,7 +33,9 @@ module ActionDispatch
 
     class GetIp
       def initialize(env, middleware)
-        @env, @middleware = env, middleware
+        @env          = env
+        @middleware   = middleware
+        @calculate_ip = false
       end
 
       # Determines originating IP address. REMOTE_ADDR is the standard
