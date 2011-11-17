@@ -31,7 +31,7 @@ rescue LoadError
   end
 end
 
-gem 'rack', '~> 1.1.0'
+gem 'rack', '~> 1.1'
 require 'rack'
 require 'action_controller/cgi_ext'
 
