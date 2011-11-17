@@ -451,6 +451,28 @@ module ApplicationTests
       assert_equal 0, files.length, "Expected application.js asset to be removed, but still exists"
     end
 
+    test "asset urls should use the request's protocol by default" do
+      app_with_assets_in_view
+      add_to_config "config.asset_host = 'example.com'"
+      require "#{app_path}/config/environment"
+      class ::PostsController < ActionController::Base; end
+
+      get '/posts', {}, {'HTTPS'=>'off'}
+      assert_match('src="http://example.com/assets/application.js', last_response.body)
+      get '/posts', {}, {'HTTPS'=>'on'}
+      assert_match('src="https://example.com/assets/application.js', last_response.body)
+    end
+
+    test "asset urls should be protocol-relative if no request is in scope" do
+      app_file "app/assets/javascripts/image_loader.js.erb", 'var src="<%= image_path("rails.png") %>";'
+      add_to_config "config.assets.precompile = %w{image_loader.js}"
+      add_to_config "config.asset_host = 'example.com'"
+      precompile!
+
+      assert_match 'src="//example.com/assets/rails.png"', File.read("#{app_path}/public/assets/image_loader.js")
+    end
+
+
     private
 
     def app_with_assets_in_view
