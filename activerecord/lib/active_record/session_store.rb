@@ -64,13 +64,12 @@ module ActiveRecord
       end
 
       def create_table!
-        id_col_name, data_col_name = session_id_column, data_column_name
         connection_pool.clear_table_cache!(table_name)
         connection.create_table(table_name) do |t|
-          t.string id_col_name, :limit => 255
-          t.text data_col_name
+          t.string session_id_column, :limit => 255
+          t.text data_column_name
         end
-        connection.add_index table_name, id_col_name, :unique => true
+        connection.add_index table_name, session_id_column, :unique => true
       end
     end
 
