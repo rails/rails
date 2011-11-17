@@ -634,6 +634,18 @@ en:
 
 !images/i18n/demo_html_safe.png(i18n demo html safe)!
 
+Please note that values are interpolated directly into the translation.
+If they need to be escaped you need to pass them already escaped in the +t+ call.
+
+<erb>
+# config/locales/en.yml
+en:
+  welcome_html: <b>Welcome %{name}!</b>
+
+<%# Note the call to h() to avoid injection %>
+<%= t('welcome_html', :name => h(user.name)) %>
+</erb>
+
 h3. How to Store your Custom Translations
 
 The Simple backend shipped with Active Support allows you to store translations in both plain Ruby and YAML format. [2]
