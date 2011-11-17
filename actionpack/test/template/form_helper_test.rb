@@ -27,7 +27,13 @@ class FormHelperTest < ActionView::TestCase
             :body => "Write entire text here",
             :color => {
               :red => "Rojo"
+            },
+            :comments => {
+              :body => "Write body here"
             }
+          },
+          :tag => {
+            :value => "Tag"
           }
         }
       }
@@ -67,6 +73,12 @@ class FormHelperTest < ActionView::TestCase
     @post.body        = "Back to the hill and over it again!"
     @post.secret      = 1
     @post.written_on  = Date.new(2004, 6, 15)
+
+    @post.comments = []
+    @post.comments << @comment
+
+    @post.tags = []
+    @post.tags << Tag.new
 
     @blog_post = Blog::Post.new("And his name will be forty and four.", 44)
   end
@@ -147,6 +159,40 @@ class FormHelperTest < ActionView::TestCase
   def test_label_with_locales_and_value
     old_locale, I18n.locale = I18n.locale, :label
     assert_dom_equal('<label for="post_color_red">Rojo</label>', label(:post, :color, :value => "red"))
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_label_with_locales_and_nested_attributes
+    old_locale, I18n.locale = I18n.locale, :label
+    form_for(@post, :html => { :id => 'create-post' }) do |f|
+      f.fields_for(:comments) do |cf|
+        concat cf.label(:body)
+      end
+    end
+
+    expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
+      "<label for=\"post_comments_attributes_0_body\">Write body here</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_label_with_locales_fallback_and_nested_attributes
+    old_locale, I18n.locale = I18n.locale, :label
+    form_for(@post, :html => { :id => 'create-post' }) do |f|
+      f.fields_for(:tags) do |cf|
+        concat cf.label(:value)
+      end
+    end
+
+    expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
+      "<label for=\"post_tags_attributes_0_value\">Tag</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
   ensure
     I18n.locale = old_locale
   end
