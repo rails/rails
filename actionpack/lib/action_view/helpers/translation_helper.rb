@@ -43,8 +43,6 @@ module ActionView
       # a safe HTML string that won't be escaped by other HTML helper methods. This
       # naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.
-      # Note however that rule extends to interpolated values, so you are responsible
-      # for passing them already escaped in the call, if they need to be.
       def translate(key, options = {})
         options.merge!(:rescue_format => :html) unless options.key?(:rescue_format)
         translation = I18n.translate(scope_key_by_partial(key), options)
