@@ -35,7 +35,7 @@ module ActionDispatch
       def initialize(env, middleware)
         @env          = env
         @middleware   = middleware
-        @calculate_ip = false
+        @calculated_ip = false
       end
 
       # Determines originating IP address. REMOTE_ADDR is the standard
