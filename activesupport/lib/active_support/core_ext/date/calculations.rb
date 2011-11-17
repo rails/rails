@@ -192,13 +192,13 @@ class Date
   alias :sunday :end_of_week
   alias :at_end_of_week :end_of_week
 
-  # Returns a new Date/DateTime representing the start of the given day in the previous week (default is Monday).
+  # Returns a new Date/DateTime representing the start of the given day in the previous week (default is :monday).
   def prev_week(day = :monday)
     result = (self - 7).beginning_of_week + DAYS_INTO_WEEK[day]
     self.acts_like?(:time) ? result.change(:hour => 0) : result
   end
 
-  # Returns a new Date/DateTime representing the start of the given day in next week (default is Monday).
+  # Returns a new Date/DateTime representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)
     result = (self + 7).beginning_of_week + DAYS_INTO_WEEK[day]
     self.acts_like?(:time) ? result.change(:hour => 0) : result

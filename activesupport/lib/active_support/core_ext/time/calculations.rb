@@ -176,12 +176,12 @@ class Time
   end
   alias :at_end_of_week :end_of_week
 
-  # Returns a new Time representing the start of the given day in the previous week (default is Monday).
+  # Returns a new Time representing the start of the given day in the previous week (default is :monday).
   def prev_week(day = :monday)
     ago(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
   end
 
-  # Returns a new Time representing the start of the given day in next week (default is Monday).
+  # Returns a new Time representing the start of the given day in next week (default is :monday).
   def next_week(day = :monday)
     since(1.week).beginning_of_week.since(DAYS_INTO_WEEK[day].day).change(:hour => 0)
   end
