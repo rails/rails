@@ -414,7 +414,7 @@ db_namespace = namespace :db do
       when /mysql/
         ActiveRecord::Base.establish_connection(abcs[env])
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-        IO.readlines("#{Rails.root}/db/structure.sql").join.split("\n\n").each do |table|
+        IO.read("#{Rails.root}/db/structure.sql").split("\n\n").each do |table|
           ActiveRecord::Base.connection.execute(table)
         end
       when /postgresql/
