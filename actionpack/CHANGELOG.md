@@ -64,6 +64,20 @@
 
 ## Rails 3.1.2 (unreleased) ##
 
+*   Fix XSS security vulnerability in the `translate` helper method. When using interpolation
+    in combination with HTML-safe translations, the interpolated input would not get HTML
+    escaped. *GH 3664*
+
+    Before:
+
+        translate('foo_html', :something => '<script>') # => "...<script>..."
+
+    After:
+
+        translate('foo_html', :something => '<script>') # => "...&lt;script&gt;..."
+
+    *Sergey Nartimov*
+
 *   Upgrade sprockets dependency to ~> 2.1.0
 
 *   Ensure that the format isn't applied twice to the cache key, else it becomes impossible
