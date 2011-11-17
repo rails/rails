@@ -36,13 +36,11 @@ gem "memcache-client", ">= 1.8.5"
 
 platforms :mri_18 do
   gem "system_timer"
-  gem "ruby-debug", ">= 0.10.3" unless ENV['TRAVIS']
   gem "json"
 end
 
-platforms :mri_19 do
-  gem "ruby-debug19", :require => "ruby-debug" unless ENV['TRAVIS'] || RUBY_VERSION >= "2.0"
-end
+# Add your own local bundler stuff
+instance_eval File.read ".Gemfile" if File.exists? ".Gemfile"
 
 platforms :mri do
   group :test do
@@ -69,7 +67,6 @@ platforms :ruby do
 end
 
 platforms :jruby do
-  gem "ruby-debug", ">= 0.10.3"
   gem "json"
   gem "activerecord-jdbcsqlite3-adapter", ">= 1.2.0"
 
