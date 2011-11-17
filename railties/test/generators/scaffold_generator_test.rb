@@ -72,6 +72,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       new
       show
       _form
+      _base
     ).each { |view| assert_file "app/views/product_lines/#{view}.html.erb" }
     assert_no_file "app/views/layouts/product_lines.html.erb"
 
@@ -181,6 +182,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       new
       show
       _form
+      _base
     ).each { |view| assert_file "app/views/admin/roles/#{view}.html.erb" }
     assert_no_file "app/views/layouts/admin/roles.html.erb"
 
