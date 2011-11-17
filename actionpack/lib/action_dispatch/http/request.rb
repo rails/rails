@@ -157,8 +157,7 @@ module ActionDispatch
 
     # Originating IP address, usually set by the RemoteIp middleware.
     def remote_ip
-      # Coerce the remote_ip object into a string, because to_s could return nil
-      @remote_ip ||= @env["action_dispatch.remote_ip"].to_s || ip
+      @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
     end
 
     # Returns the unique request id, which is based off either the X-Request-Id header that can
