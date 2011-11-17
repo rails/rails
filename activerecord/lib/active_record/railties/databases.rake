@@ -430,7 +430,7 @@ db_namespace = namespace :db do
         `sqlcmd -S #{abcs[env]['host']} -d #{abcs[env]['database']} -U #{abcs[env]['username']} -P #{abcs[env]['password']} -i db\\structure.sql`
       when 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(abcs[env])
-        IO.readlines("#{Rails.root}/db/structure.sql").join.split(";\n\n").each do |ddl|
+        IO.read("#{Rails.root}/db/structure.sql").split(";\n\n").each do |ddl|
           ActiveRecord::Base.connection.execute(ddl)
         end
       when 'firebird'
