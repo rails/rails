@@ -426,7 +426,7 @@ module ActiveSupport #:nodoc:
     end
 
     # Attempt to autoload the provided module name by searching for a directory
-    # matching the expect path suffix. If found, the module is created and assigned
+    # matching the expected path suffix. If found, the module is created and assigned
     # to +into+'s constants with the name +const_name+. Provided that the directory
     # was loaded from a reloadable base path, it is added to the set of constants
     # that are to be unloaded.
