@@ -377,10 +377,7 @@ db_namespace = namespace :db do
         ActiveRecord::Base.establish_connection(abcs[Rails.env])
         File.open("#{Rails.root}/db/structure.sql", "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
       when /postgresql/
-        ENV['PGHOST']     = abcs[Rails.env]['host'] if abcs[Rails.env]['host']
-        ENV['PGPORT']     = abcs[Rails.env]['port'].to_s if abcs[Rails.env]['port']
-        ENV['PGPASSWORD'] = abcs[Rails.env]['password'].to_s if abcs[Rails.env]['password']
-        ENV['PGUSER']     = abcs[Rails.env]['username'].to_s if abcs[Rails.env]['username']
+        set_psql_env(abcs[Rails.env])
         search_path = abcs[Rails.env]['schema_search_path']
         unless search_path.blank?
           search_path = search_path.split(",").map{|search_path_part| "--schema=#{search_path_part.strip}" }.join(" ")
@@ -418,10 +415,7 @@ db_namespace = namespace :db do
           ActiveRecord::Base.connection.execute(table)
         end
       when /postgresql/
-        ENV['PGHOST']     = abcs[env]['host'] if abcs[env]['host']
-        ENV['PGPORT']     = abcs[env]['port'].to_s if abcs[env]['port']
-        ENV['PGPASSWORD'] = abcs[env]['password'].to_s if abcs[env]['password']
-        ENV['PGUSER']     = abcs[env]['username'].to_s if abcs[env]['username']
+        set_psql_env(abcs[env])
         `psql -f "#{Rails.root}/db/structure.sql" #{abcs[env]['database']} #{abcs[env]['template']}`
       when /sqlite/
         dbfile = abcs[env]['database']
@@ -598,4 +592,11 @@ end
 
 def firebird_db_string(config)
   FireRuby::Database.db_string_for(config.symbolize_keys)
+end
+
+def set_psql_env(config)
+  ENV['PGHOST']     = config['host']          if config['host'] 
+  ENV['PGPORT']     = config['port'].to_s     if config['port']
+  ENV['PGPASSWORD'] = config['password'].to_s if config['password']
+  ENV['PGUSER']     = config['username'].to_s if config['username']
 end
