@@ -86,7 +86,9 @@ HEADER
           tbl = StringIO.new
 
           # first dump primary key column
-          if @connection.respond_to?(:pk_and_sequence_for)
+          if @connection.respond_to?(:detailed_pk_and_sequence_for)
+            pk, _ = @connection.detailed_pk_and_sequence_for(table)
+          elsif @connection.respond_to?(:pk_and_sequence_for)
             pk, _ = @connection.pk_and_sequence_for(table)
           elsif @connection.respond_to?(:primary_key)
             pk = @connection.primary_key(table)
