@@ -1029,6 +1029,10 @@ module ActionView
         options["type"]  ||= field_type
         options["value"] = options.fetch("value"){ value_before_type_cast(object) } unless field_type == "file"
         options["value"] &&= ERB::Util.html_escape(options["value"])
+        if options["placeholder"].blank?
+          i18n_placeholder = I18n.t("#{object_name}.#{method_name}", :default => '', :scope => "helpers.placeholder")
+          options["placeholder"] = ERB::Util.html_escape(i18n_placeholder) unless i18n_placeholder.blank?
+        end
         add_default_name_and_id(options)
         tag("input", options)
       end

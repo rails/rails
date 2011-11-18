@@ -53,6 +53,17 @@ class FormHelperTest < ActionView::TestCase
       }
     }
 
+    # Create placeholder locale for testing i18n placeholder helpers
+    I18n.backend.store_translations 'placeholder', {
+      :helpers => {
+        :placeholder => {
+          :post => {
+            :body => 'text...'
+          }
+        }
+      }
+    }
+
     @post = Post.new
     @comment = Comment.new
     def @post.errors()
@@ -264,6 +275,26 @@ class FormHelperTest < ActionView::TestCase
     expected = '<input id="post_title" name="post[title]" size="35" type="text" value="Hello World" />'
     assert_dom_equal expected, text_field("post", "title", "size" => 35)
     assert_dom_equal expected, text_field("post", "title", :size => 35)
+  end
+
+  def test_text_field_with_placeholder_locale
+    old_body, @post.body = @post.body, ""
+    old_locale, I18n.locale = I18n.locale, :placeholder
+    expected = '<input id="post_body" name="post[body]" placeholder="text..." size="30" type="text" value="" />'
+    assert_dom_equal expected, text_field("post", "body")
+  ensure
+    @post.body = old_body
+    I18n.locale = old_locale
+  end
+
+  def test_text_field_with_placeholder_locale_and_option
+    old_body, @post.body = @post.body, ""
+    old_locale, I18n.locale = I18n.locale, :placeholder
+    expected = '<input id="post_body" name="post[body]" placeholder="type body..." size="30" type="text" value="" />'
+    assert_dom_equal expected, text_field("post", "body", :placeholder => "type body...")
+  ensure
+    @post.body = old_body
+    I18n.locale = old_locale
   end
 
   def test_text_field_assuming_size
