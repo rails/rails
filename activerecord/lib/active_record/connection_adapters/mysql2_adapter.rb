@@ -572,26 +572,10 @@ module ActiveRecord
 
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
-        execute_and_free("DESCRIBE #{quote_table_name(table)}", 'SCHEMA') do |result|
-          keys = each_hash(result).select { |row| row[:Key] == 'PRI' }.map { |row| row[:Field] }
-          keys.length == 1 ? [keys.first, nil] : nil
-        end
-      end
-
-      def detailed_pk_and_sequence_for(table) #:nodoc:
         keys = []
-        sql = <<-SQL
-          SELECT t.constraint_type, k.column_name
-          FROM information_schema.table_constraints t
-          JOIN information_schema.key_column_usage k
-          USING (constraint_name, table_schema, table_name)
-          WHERE t.table_schema = DATABASE()
-            AND t.table_name   = '#{table}'
-        SQL
-
-        result = execute(sql, 'SCHEMA')
+        result = execute("SHOW INDEX FROM #{quote_table_name(table)} WHERE Key_name = 'PRIMARY'", 'SCHEMA')
         result.each(:symbolize_keys => true, :as => :hash) do |row|
-          keys << row[:column_name] if row[:constraint_type] == "PRIMARY KEY"
+          keys << row[:Column_name]
         end
         keys.length == 1 ? [keys.first, nil] : nil
       end
