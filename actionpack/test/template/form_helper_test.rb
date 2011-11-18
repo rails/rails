@@ -277,17 +277,17 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, text_field("post", "title", :size => 35)
   end
 
-  def test_text_field_with_placeholder_locale
+  def test_text_field_with_placeholder_locale_and_option_true
     old_body, @post.body = @post.body, ""
     old_locale, I18n.locale = I18n.locale, :placeholder
     expected = '<input id="post_body" name="post[body]" placeholder="text..." size="30" type="text" value="" />'
-    assert_dom_equal expected, text_field("post", "body")
+    assert_dom_equal expected, text_field("post", "body", :placeholder => true)
   ensure
     @post.body = old_body
     I18n.locale = old_locale
   end
 
-  def test_text_field_with_placeholder_locale_and_option
+  def test_text_field_with_placeholder_locale_and_option_string
     old_body, @post.body = @post.body, ""
     old_locale, I18n.locale = I18n.locale, :placeholder
     expected = '<input id="post_body" name="post[body]" placeholder="type body..." size="30" type="text" value="" />'
