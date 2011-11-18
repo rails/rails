@@ -57,6 +57,16 @@ module ActiveRecord
     #     end
     #   end
     #
+    # Also, the block given to +create_table+ will be evaled inside this object,
+    # so you don't have to pass the `t` block argument.
+    #
+    #   class SomeMigration < ActiveRecord::Migration
+    #     def up
+    #       create_table :foo do
+    #         puts self.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
+    #       end
+    #     end
+    #
     # The table definitions
     # The Columns are stored as a ColumnDefinition in the +columns+ attribute.
     class TableDefinition

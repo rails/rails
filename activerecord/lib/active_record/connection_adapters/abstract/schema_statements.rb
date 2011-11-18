@@ -83,19 +83,19 @@ module ActiveRecord
       # form or the regular form, like this:
       #
       # === Block form
-      #  # create_table() passes a TableDefinition object to the block.
+      #  # create_table() runs the given block inside TableDefinition object's context.
       #  # This form will not only create the table, but also columns for the
       #  # table.
       #
-      #  create_table(:suppliers) do |t|
-      #    t.column :name, :string, :limit => 60
+      #  create_table(:suppliers) do
+      #    column :name, :string, :limit => 60
       #    # Other fields here
       #  end
       #
       # === Block form, with shorthand
       #  # You can also use the column types as method calls, rather than calling the column method.
-      #  create_table(:suppliers) do |t|
-      #    t.string :name, :limit => 60
+      #  create_table(:suppliers) do
+      #    string :name, :limit => 60
       #    # Other fields here
       #  end
       #
@@ -134,8 +134,8 @@ module ActiveRecord
       #  ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       # ====== Rename the primary key column
-      #  create_table(:objects, :primary_key => 'guid') do |t|
-      #    t.column :name, :string, :limit => 80
+      #  create_table(:objects, :primary_key => 'guid') do
+      #    string :name, :limit => 80
       #  end
       # generates:
       #  CREATE TABLE objects (
@@ -144,9 +144,9 @@ module ActiveRecord
       #  )
       #
       # ====== Do not add a primary key column
-      #  create_table(:categories_suppliers, :id => false) do |t|
-      #    t.column :category_id, :integer
-      #    t.column :supplier_id, :integer
+      #  create_table(:categories_suppliers, :id => false) do
+      #    integer :category_id
+      #    integer :supplier_id
       #  end
       # generates:
       #  CREATE TABLE categories_suppliers (

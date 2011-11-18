@@ -1,8 +1,8 @@
 class ValidWithTimestampsWeNeedReminders < ActiveRecord::Migration
   def self.up
-    create_table("reminders") do |t|
-      t.column :content, :text
-      t.column :remind_at, :datetime
+    create_table :reminders do
+      text :content
+      datetime :remind_at
     end
   end
 

@@ -22,11 +22,11 @@ Before we dive into the details of a migration, here are a few examples of the s
 <ruby>
 class CreateProducts < ActiveRecord::Migration
   def up
-    create_table :products do |t|
-      t.string :name
-      t.text :description
+    create_table :products do
+      string :name
+      text :description
 
-      t.timestamps
+      timestamps
     end
   end
 
@@ -65,11 +65,11 @@ Rails 3.1 makes migrations smarter by providing a new <tt>change</tt> method. Th
 <ruby>
 class CreateProducts < ActiveRecord::Migration
   def change
-    create_table :products do |t|
-      t.string :name
-      t.text :description
+    create_table :products do
+      string :name
+      text :description
 
-      t.timestamps
+      timestamps
     end
   end
 end
@@ -137,8 +137,8 @@ Active Record supports the following types:
 These will be mapped onto an appropriate underlying database type. For example, with MySQL the type +:string+ is mapped to +VARCHAR(255)+. You can create columns of types not supported by Active Record when using the non-sexy syntax, for example
 
 <ruby>
-create_table :products do |t|
-  t.column :name, 'polygon', :null => false
+create_table :products do
+  column :name, 'polygon', :null => false
 end
 </ruby>
 
@@ -159,17 +159,17 @@ will create a migration that looks like this
 <ruby>
 class CreateProducts < ActiveRecord::Migration
   def change
-    create_table :products do |t|
-      t.string :name
-      t.text :description
+    create_table :products do
+      string :name
+      text :description
 
-      t.timestamps
+      timestamps
     end
   end
 end
 </ruby>
 
-You can append as many column name/type pairs as you want. By default +t.timestamps+ (which creates the +updated_at+ and +created_at+ columns that
+You can append as many column name/type pairs as you want. By default +timestamps+ (which creates the +updated_at+ and +created_at+ columns that
 are automatically populated by Active Record) will be added for you.
 
 h4. Creating a Standalone Migration
@@ -255,34 +255,34 @@ h4. Creating a Table
 Migration method +create_table+ will be one of your workhorses. A typical use would be
 
 <ruby>
-create_table :products do |t|
-  t.string :name
+create_table :products do
+  string :name
 end
 </ruby>
 
 which creates a +products+ table with a column called +name+ (and as discussed below, an implicit +id+ column).
 
-The object yielded to the block allows you to create columns on the table. There are two ways of doing it. The first (traditional) form looks like
+The the block given to +create_table+ method  allows you to create columns on the table. There are two ways of doing it. The first (traditional) form looks like
 
 <ruby>
-create_table :products do |t|
-  t.column :name, :string, :null => false
+create_table :products do
+  column :name, :string, :null => false
 end
 </ruby>
 
 The second form, the so called "sexy" migration, drops the somewhat redundant +column+ method. Instead, the +string+, +integer+, etc. methods create a column of that type. Subsequent parameters are the same.
 
 <ruby>
-create_table :products do |t|
-  t.string :name, :null => false
+create_table :products do
+  string :name, :null => false
 end
 </ruby>
 
 By default, +create_table+ will create a primary key called +id+. You can change the name of the primary key with the +:primary_key+ option (don't forget to update the corresponding model) or, if you don't want a primary key at all (for example for a HABTM join table), you can pass the option +:id => false+. If you need to pass database specific options you can place an SQL fragment in the +:options+ option. For example,
 
 <ruby>
-create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
-  t.string :name, :null => false
+create_table :products, :options => "ENGINE=BLACKHOLE" do
+  string :name, :null => false
 end
 </ruby>
 
@@ -318,8 +318,8 @@ h4. Special Helpers
 Active Record provides some shortcuts for common functionality. It is for example very common to add both the +created_at+ and +updated_at+ columns and so there is a method that does exactly that:
 
 <ruby>
-create_table :products do |t|
-  t.timestamps
+create_table :products do
+  timestamps
 end
 </ruby>
 will create a new products table with those two columns (plus the +id+ column) whereas
@@ -334,16 +334,16 @@ adds those columns to an existing table.
 The other helper is called +references+ (also available as +belongs_to+). In its simplest form it just adds some readability
 
 <ruby>
-create_table :products do |t|
-  t.references :category
+create_table :products do
+  references :category
 end
 </ruby>
 
 will create a +category_id+ column of the appropriate type. Note that you pass the model name, not the column name. Active Record adds the +_id+ for you. If you have polymorphic +belongs_to+ associations then +references+ will add both of the columns required:
 
 <ruby>
-create_table :products do |t|
-  t.references :attachment, :polymorphic => {:default => 'Photo'}
+create_table :products do
+  references :attachment, :polymorphic => {:default => 'Photo'}
 end
 </ruby>
 will add an +attachment_id+ column and a string +attachment_type+ column with a default value of 'Photo'.
@@ -375,10 +375,9 @@ The +down+ method of your migration should revert the transformations done by th
 
 <ruby>
 class ExampleMigration < ActiveRecord::Migration
-
   def up
-    create_table :products do |t|
-      t.references :category
+    create_table :products do
+      references :category
     end
     #add a foreign key
     execute <<-SQL
@@ -482,10 +481,10 @@ For example, this migration
 class CreateProducts < ActiveRecord::Migration
   def change
     suppress_messages do
-      create_table :products do |t|
-        t.string :name
-        t.text :description
-        t.timestamps
+      create_table :products do
+        string :name
+        text :description
+        timestamps
       end
     end
     say "Created a table"

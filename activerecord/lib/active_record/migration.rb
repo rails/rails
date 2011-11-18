@@ -65,12 +65,12 @@ module ActiveRecord
   #
   #   class AddSystemSettings < ActiveRecord::Migration
   #     def up
-  #       create_table :system_settings do |t|
-  #         t.string  :name
-  #         t.string  :label
-  #         t.text    :value
-  #         t.string  :type
-  #         t.integer :position
+  #       create_table :system_settings do
+  #         string  :name
+  #         string  :label
+  #         text    :value
+  #         string  :type
+  #         integer :position
   #       end
   #
   #       SystemSetting.create  :name => "notice",
@@ -303,8 +303,8 @@ module ActiveRecord
   #   class TenderloveMigration < ActiveRecord::Migration
   #     def change
   #       create_table(:horses) do
-  #         t.column :content, :text
-  #         t.column :remind_at, :datetime
+  #         text :content
+  #         datetime :remind_at
   #       end
   #     end
   #   end

@@ -1,11 +1,11 @@
 class <%= migration_class_name %> < ActiveRecord::Migration
   def change
-    create_table :<%= table_name %> do |t|
+    create_table :<%= table_name %> do
 <% attributes.each do |attribute| -%>
-      t.<%= attribute.type %> :<%= attribute.name %>
+      <%= attribute.type %> :<%= attribute.name %>
 <% end -%>
 <% if options[:timestamps] %>
-      t.timestamps
+      timestamps
 <% end -%>
     end
 <% if options[:indexes] -%>

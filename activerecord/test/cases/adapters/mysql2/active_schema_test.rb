@@ -84,8 +84,8 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   def test_remove_timestamps
     with_real_execute do
       begin
-        ActiveRecord::Base.connection.create_table :delete_me do |t|
-          t.timestamps
+        ActiveRecord::Base.connection.create_table :delete_me do
+          timestamps
         end
         ActiveRecord::Base.connection.remove_timestamps :delete_me
         assert !column_present?('delete_me', 'updated_at', 'datetime')

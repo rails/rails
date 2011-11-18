@@ -595,12 +595,12 @@ yours will have a slightly different name), here's what you'll find:
 <ruby>
 class CreatePosts < ActiveRecord::Migration
   def change
-    create_table :posts do |t|
-      t.string :name
-      t.string :title
-      t.text :content
+    create_table :posts do
+      string :name
+      string :title
+      text :content
 
-      t.timestamps
+      timestamps
     end
   end
 end
@@ -1155,12 +1155,12 @@ corresponding database table:
 <ruby>
 class CreateComments < ActiveRecord::Migration
   def change
-    create_table :comments do |t|
-      t.string :commenter
-      t.text :body
-      t.references :post
+    create_table :comments do
+      string :commenter
+      text :body
+      references :post
 
-      t.timestamps
+      timestamps
     end
 
     add_index :comments, :post_id

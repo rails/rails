@@ -104,8 +104,8 @@ class LoadingTest < Test::Unit::TestCase
     ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
     ActiveRecord::Migration.verbose = false
     ActiveRecord::Schema.define(:version => 1) do
-      create_table :posts do |t|
-        t.string :title
+      create_table :posts do
+        string :title
       end
     end
   end

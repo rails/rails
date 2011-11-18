@@ -44,8 +44,8 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   # create tables with reserved-word names and columns
   def test_create_tables
     assert_nothing_raised {
-      @connection.create_table :order do |t|
-        t.column :group, :string
+      @connection.create_table :order do
+        string :group
       end
     }
   end

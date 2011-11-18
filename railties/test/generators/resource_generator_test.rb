@@ -27,7 +27,7 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
 
   def test_inherited_invocations_with_attributes
     run_generator ["account", "name:string"]
-    assert_migration "db/migrate/create_accounts.rb", /t.string :name/
+    assert_migration "db/migrate/create_accounts.rb", /string :name/
   end
 
   def test_resource_controller_with_pluralized_class_name

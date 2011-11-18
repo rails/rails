@@ -43,42 +43,42 @@ class EagerSingularizationTest < ActiveRecord::TestCase
 
   def setup
     if ActiveRecord::Base.connection.supports_migrations?
-      ActiveRecord::Base.connection.create_table :viri do |t|
-        t.column :octopus_id, :integer
-        t.column :species, :string
+      ActiveRecord::Base.connection.create_table :viri do
+        integer :octopus_id
+        string :species
       end
-      ActiveRecord::Base.connection.create_table :octopi do |t|
-        t.column :species, :string
+      ActiveRecord::Base.connection.create_table :octopi do
+        string :species
       end
-      ActiveRecord::Base.connection.create_table :passes do |t|
-        t.column :bus_id, :integer
-        t.column :rides, :integer
+      ActiveRecord::Base.connection.create_table :passes do
+        integer :bus_id
+        integer :rides
       end
-      ActiveRecord::Base.connection.create_table :buses do |t|
-        t.column :name, :string
+      ActiveRecord::Base.connection.create_table :buses do
+        string :name
       end
-      ActiveRecord::Base.connection.create_table :crises_messes, :id => false do |t|
-        t.column :crisis_id, :integer
-        t.column :mess_id, :integer
+      ActiveRecord::Base.connection.create_table :crises_messes, :id => false do
+        integer :crisis_id
+        integer :mess_id
       end
-      ActiveRecord::Base.connection.create_table :messes do |t|
-        t.column :name, :string
+      ActiveRecord::Base.connection.create_table :messes do
+        string :name
       end
-      ActiveRecord::Base.connection.create_table :crises do |t|
-        t.column :name, :string
+      ActiveRecord::Base.connection.create_table :crises do
+        string :name
       end
-      ActiveRecord::Base.connection.create_table :successes do |t|
-        t.column :name, :string
+      ActiveRecord::Base.connection.create_table :successes do
+        string :name
       end
-      ActiveRecord::Base.connection.create_table :analyses do |t|
-        t.column :crisis_id, :integer
-        t.column :success_id, :integer
+      ActiveRecord::Base.connection.create_table :analyses do
+        integer :crisis_id
+        integer :success_id
       end
-      ActiveRecord::Base.connection.create_table :dresses do |t|
-        t.column :crisis_id, :integer
+      ActiveRecord::Base.connection.create_table :dresses do
+        integer :crisis_id
       end
-      ActiveRecord::Base.connection.create_table :compresses do |t|
-        t.column :dress_id, :integer
+      ActiveRecord::Base.connection.create_table :compresses do
+        integer :dress_id
       end
       @have_tables = true
     else

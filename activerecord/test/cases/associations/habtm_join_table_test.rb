@@ -10,19 +10,19 @@ end
 
 class HabtmJoinTableTest < ActiveRecord::TestCase
   def setup
-    ActiveRecord::Base.connection.create_table :my_books, :force => true do |t|
-      t.string :name
+    ActiveRecord::Base.connection.create_table :my_books, :force => true do
+      string :name
     end
     assert ActiveRecord::Base.connection.table_exists?(:my_books)
 
-    ActiveRecord::Base.connection.create_table :my_readers, :force => true do |t|
-      t.string :name
+    ActiveRecord::Base.connection.create_table :my_readers, :force => true do
+      string :name
     end
     assert ActiveRecord::Base.connection.table_exists?(:my_readers)
 
-    ActiveRecord::Base.connection.create_table :my_books_my_readers, :force => true do |t|
-      t.integer :my_book_id
-      t.integer :my_reader_id
+    ActiveRecord::Base.connection.create_table :my_books_my_readers, :force => true do
+      integer :my_book_id
+      integer :my_reader_id
     end
     assert ActiveRecord::Base.connection.table_exists?(:my_books_my_readers)
   end
