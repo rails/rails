@@ -251,15 +251,15 @@ task :default => :test
       end
 
       def name
-        unless @name
+        @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
-          @name = original_name.dup
-          @name.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          @name.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-          @name.downcase!
-        end
+          underscored = original_name.dup
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.downcase!
 
-        @name
+          underscored
+        end
       end
 
       def camelized
