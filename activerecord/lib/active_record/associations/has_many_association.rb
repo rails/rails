@@ -89,8 +89,12 @@ module ActiveRecord
             records.each { |r| r.destroy }
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            keys  = records.map { |r| r[reflection.association_primary_key] }
-            scope = scoped.where(reflection.association_primary_key => keys)
+            scope = scoped
+
+            unless records == load_target
+              keys  = records.map { |r| r[reflection.association_primary_key] }
+              scope = scoped.where(reflection.association_primary_key => keys)
+            end
 
             if method == :delete_all
               update_counter(-scope.delete_all)
