@@ -1252,7 +1252,7 @@ module ActionDispatch
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
-          paths.each { |path| decomposed_match(path, options.dup) }
+          paths.each { |_path| decomposed_match(_path, options.dup) }
           self
         end
 
