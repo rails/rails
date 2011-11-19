@@ -1,3 +1,10 @@
+## Rails 3.1.3 (unreleased) ##
+
+*   Fix using `tranlate` helper with a html translation which uses the `:count` option for
+    pluralization.
+
+    *Jon Leighton*
+
 ## Rails 3.1.2 (unreleased) ##
 
 *   Fix XSS security vulnerability in the `translate` helper method. When using interpolation
