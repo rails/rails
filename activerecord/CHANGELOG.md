@@ -1,3 +1,7 @@
+## Rails 3.1.3 (unreleased) ##
+
+*   Fix bug with referencing other mysql databases in set_table_name. *GH 3690*
+
 ## Rails 3.1.2 (unreleased) ##
 
 *   Fix problem with prepared statements and PostgreSQL when multiple schemas are used.
