@@ -37,6 +37,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "things-43/lib/things-43.rb", /module Things43/
   end
 
+  def test_camelcase_plugin_name_underscores_filenames
+    run_generator [File.join(destination_root, "CamelCasedName")]
+    assert_no_file "CamelCasedName/lib/CamelCasedName.rb"
+    assert_file "CamelCasedName/lib/camel_cased_name.rb", /module CamelCasedName/
+  end
+
   def test_generating_without_options
     run_generator
     assert_file "README.rdoc", /Bukkits/
