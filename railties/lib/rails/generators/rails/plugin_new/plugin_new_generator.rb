@@ -246,8 +246,20 @@ task :default => :test
         "rails plugin new #{self.arguments.map(&:usage).join(' ')} [options]"
       end
 
+      def original_name
+        @original_name ||= File.basename(destination_root)
+      end
+
       def name
-        @name ||= File.basename(destination_root)
+        unless @name
+          # same as ActiveSupport::Inflector#underscore except not replacing '-'
+          @name = original_name.dup
+          @name.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+          @name.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          @name.downcase!
+        end
+
+        @name
       end
 
       def camelized
@@ -256,11 +268,11 @@ task :default => :test
 
       def valid_const?
         if camelized =~ /^\d/
-          raise Error, "Invalid plugin name #{name}. Please give a name which does not start with numbers."
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
-          raise Error, "Invalid plugin name #{name}. Please give a name which does not match one of the reserved rails words."
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which does not match one of the reserved rails words."
         elsif Object.const_defined?(camelized)
-          raise Error, "Invalid plugin name #{name}, constant #{camelized} is already in use. Please choose another plugin name."
+          raise Error, "Invalid plugin name #{original_name}, constant #{camelized} is already in use. Please choose another plugin name."
         end
       end
 
