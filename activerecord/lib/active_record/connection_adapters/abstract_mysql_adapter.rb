@@ -127,6 +127,7 @@ module ActiveRecord
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
+        @visitor = Arel::Visitors::MySQL.new self
       end
 
       def self.visitor_for(pool) # :nodoc:
