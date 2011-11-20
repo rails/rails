@@ -1,5 +1,7 @@
 ## Rails 3.1.3 (unreleased) ##
 
+*   Downgrade sprockets to ~> 2.0.3. Using 2.1.0 caused regressions.
+
 *   Fix using `tranlate` helper with a html translation which uses the `:count` option for
     pluralization.
 
