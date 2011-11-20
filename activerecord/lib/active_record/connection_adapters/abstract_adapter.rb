@@ -3,6 +3,7 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_support/deprecation'
+require 'active_record/connection_adapters/schema_cache'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -51,6 +52,7 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor
+      attr_reader :schema_cache
 
       def initialize(connection, logger = nil) #:nodoc:
         @active = nil
@@ -60,6 +62,7 @@ module ActiveRecord
         @open_transactions = 0
         @instrumenter = ActiveSupport::Notifications.instrumenter
         @visitor = nil
+        @schema_cache = SchemaCache.new self
       end
 
       # Returns a visitor instance for this adaptor, which conforms to the Arel::ToSql interface

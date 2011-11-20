@@ -89,10 +89,7 @@ module ActiveRecord
         @statements = StatementPool.new(@connection,
                                         config.fetch(:statement_limit) { 1000 })
         @config = config
-      end
-
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::SQLite.new(pool)
+        @visitor = Arel::Visitors::SQLite.new self
       end
 
       def adapter_name #:nodoc:
