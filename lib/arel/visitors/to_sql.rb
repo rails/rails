@@ -4,30 +4,22 @@ require 'date'
 module Arel
   module Visitors
     class ToSql < Arel::Visitors::Visitor
-      def initialize pool
-        @pool           = pool
-        @connection     = nil
+      attr_accessor :last_column
+
+      def initialize connection
+        @connection     = connection
+        @schema_cache   = connection.schema_cache
         @quoted_tables  = {}
         @quoted_columns = {}
+        @last_column    = nil
       end
 
       def accept object
         self.last_column = nil
-        @pool.with_connection do |conn|
-          @connection = conn
-          super
-        end
+        super
       end
 
       private
-      def last_column= col
-        Thread.current[:arel_visitors_to_sql_last_column] = col
-      end
-
-      def last_column
-        Thread.current[:arel_visitors_to_sql_last_column]
-      end
-
       def visit_Arel_Nodes_DeleteStatement o
         [
           "DELETE FROM #{visit o.relation}",
@@ -97,7 +89,7 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def table_exists? name
-        @pool.table_exists? name
+        @schema_cache.table_exists? name
       end
 
       def column_for attr
@@ -110,7 +102,7 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def column_cache
-        @pool.columns_hash
+        @schema_cache.columns_hash
       end
 
       def visit_Arel_Nodes_Values o
@@ -387,7 +379,9 @@ key on UpdateManager using UpdateManager#key=
       alias :visit_Bignum                :literal
       alias :visit_Fixnum                :literal
 
-      def quoted o; quote(o, last_column) end
+      def quoted o
+        quote(o, last_column)
+      end
 
       alias :visit_ActiveSupport_Multibyte_Chars :quoted
       alias :visit_ActiveSupport_StringInquirer  :quoted

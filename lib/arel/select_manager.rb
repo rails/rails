@@ -51,7 +51,7 @@ module Arel
       if $VERBOSE
         warn "(#{caller.first}) where_clauses is deprecated and will be removed in arel 3.0.0 with no replacement"
       end
-      to_sql = Visitors::ToSql.new @engine.connection_pool
+      to_sql = Visitors::ToSql.new @engine.connection
       @ctx.wheres.map { |c| to_sql.accept c }
     end
 
@@ -161,13 +161,13 @@ module Arel
 
     def wheres
       warn "#{caller[0]}: SelectManager#wheres is deprecated and will be removed in ARel 3.0.0 with no replacement"
-      Compatibility::Wheres.new @engine.connection_pool, @ctx.wheres
+      Compatibility::Wheres.new @engine.connection, @ctx.wheres
     end
 
     def where_sql
       return if @ctx.wheres.empty?
 
-      viz = Visitors::WhereSql.new @engine.connection_pool
+      viz = Visitors::WhereSql.new @engine.connection
       Nodes::SqlLiteral.new viz.accept @ctx
     end
 
@@ -222,7 +222,7 @@ module Arel
     end
 
     def order_clauses
-      visitor = Visitors::OrderClauses.new(@engine.connection_pool)
+      visitor = Visitors::OrderClauses.new(@engine.connection)
       visitor.accept(@ast).map { |x|
         Nodes::SqlLiteral.new x
       }

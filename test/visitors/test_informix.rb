@@ -4,7 +4,7 @@ module Arel
   module Visitors
     describe 'the informix visitor' do
       before do
-        @visitor = Informix.new Table.engine.connection_pool
+        @visitor = Informix.new Table.engine.connection
       end
 
       it 'uses LIMIT n to limit results' do

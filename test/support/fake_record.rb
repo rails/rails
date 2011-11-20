@@ -3,9 +3,10 @@ module FakeRecord
   end
 
   class Connection
-    attr_reader :tables, :columns_hash, :visitor
+    attr_reader :tables, :columns_hash
+    attr_accessor :visitor
 
-    def initialize(visitor)
+    def initialize(visitor = nil)
       @tables = %w{ users photos developers products}
       @columns = {
         'users' => [
@@ -50,6 +51,10 @@ module FakeRecord
       "\"#{name.to_s}\""
     end
 
+    def schema_cache
+      self
+    end
+
     def quote thing, column = nil
       if column && column.type == :integer
         return 'NULL' if thing.nil?
@@ -79,7 +84,8 @@ module FakeRecord
 
     def initialize
       @spec = Spec.new(:adapter => 'america')
-      @connection = Connection.new(Arel::Visitors::ToSql.new(self))
+      @connection = Connection.new
+      @connection.visitor = Arel::Visitors::ToSql.new(connection)
     end
 
     def with_connection
@@ -92,6 +98,10 @@ module FakeRecord
 
     def columns_hash
       connection.columns_hash
+    end
+
+    def schema_cache
+      connection
     end
   end
 

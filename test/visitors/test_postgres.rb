@@ -4,7 +4,7 @@ module Arel
   module Visitors
     describe 'the postgres visitor' do
       before do
-        @visitor = PostgreSQL.new Table.engine.connection_pool
+        @visitor = PostgreSQL.new Table.engine.connection
       end
 
       describe 'locking' do

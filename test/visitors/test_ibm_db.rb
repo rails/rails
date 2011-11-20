@@ -4,7 +4,7 @@ module Arel
   module Visitors
     describe 'the ibm_db visitor' do
       before do
-        @visitor = IBM_DB.new Table.engine.connection_pool
+        @visitor = IBM_DB.new Table.engine.connection
       end
 
       it 'uses FETCH FIRST n ROWS to limit results' do

@@ -1,14 +1,10 @@
 require 'helper'
 
-class Arel::Visitors::ToSql
-  def last_column; Thread.current[:arel_visitors_to_sql_last_column]; end
-end
-
 module Arel
   module Visitors
     describe 'the to_sql visitor' do
       before do
-        @visitor = ToSql.new Table.engine.connection_pool
+        @visitor = ToSql.new Table.engine.connection
         @table = Table.new(:users)
         @attr = @table[:id]
       end
@@ -27,20 +23,6 @@ module Arel
 
         viz.accept(@table)
         assert visited, 'hello method was called'
-      end
-
-      it "should be thread safe around usage of last_column" do
-        visit_integer_column = Thread.new do
-          Thread.stop
-          @visitor.send(:visit_Arel_Attributes_Attribute, @attr)
-        end
-
-        sleep 0.2
-        @visitor.accept(@table[:name])
-        assert_equal(:string, @visitor.last_column.type)
-        visit_integer_column.run
-        visit_integer_column.join
-        assert_equal(:string, @visitor.last_column.type)
       end
 
       it 'should not quote sql literals' do
@@ -220,7 +202,7 @@ module Arel
             end
           end
           in_node = Nodes::In.new @attr, %w{ a b c }
-          visitor = visitor.new(Table.engine.connection_pool)
+          visitor = visitor.new(Table.engine.connection)
           visitor.expected = Table.engine.connection.columns(:users).find { |x|
             x.name == 'name'
           }
@@ -308,7 +290,7 @@ module Arel
             end
           end
           in_node = Nodes::NotIn.new @attr, %w{ a b c }
-          visitor = visitor.new(Table.engine.connection_pool)
+          visitor = visitor.new(Table.engine.connection)
           visitor.expected = Table.engine.connection.columns(:users).find { |x|
             x.name == 'name'
           }
