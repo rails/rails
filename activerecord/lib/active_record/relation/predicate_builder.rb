@@ -23,7 +23,7 @@ module ActiveRecord
             attribute.in(value.arel.ast)
           when Array, ActiveRecord::Associations::CollectionProxy
             values = value.to_a.map {|x| x.is_a?(ActiveRecord::Base) ? x.id : x}
-            ranges, values = values.partition {|value| value.is_a?(Range) || value.is_a?(Arel::Relation)}
+            ranges, values = values.partition {|v| v.is_a?(Range) || v.is_a?(Arel::Relation)}
 
             array_predicates = ranges.map {|range| attribute.in(range)}
 

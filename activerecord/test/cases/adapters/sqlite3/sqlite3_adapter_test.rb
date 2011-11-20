@@ -158,6 +158,7 @@ module ActiveRecord
         binary.save!
         assert_equal str, binary.data
 
+      ensure
         DualEncoding.connection.drop_table('dual_encodings')
       end
 
