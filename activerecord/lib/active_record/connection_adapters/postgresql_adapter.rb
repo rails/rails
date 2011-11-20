@@ -307,6 +307,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
         @connection_parameters, @config = connection_parameters, config
+        @visitor = Arel::Visitors::PostgreSQL.new self
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
