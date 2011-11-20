@@ -1074,10 +1074,10 @@ module ActiveRecord
       #  CREATE INDEX index_developers_on_name ON developers USING gist(name)
       #
       def add_index(table_name, column_name, options = {})
-        if !!options.delete(:gin)
+        if options[:gin]
           index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
           execute "CREATE INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} USING gin(#{index_columns})" 
-        elsif !!options.delete(:gist)
+        elsif options[:gist]
           index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
           execute "CREATE INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} USING gist(#{index_columns})"
         else
