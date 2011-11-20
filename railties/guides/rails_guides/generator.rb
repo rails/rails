@@ -131,26 +131,29 @@ module RailsGuides
 
     def generate_guide(guide, output_file)
       puts "Generating #{output_file}"
-      File.open(File.join(output_dir, output_file), 'w') do |f|
+      output_path = File.join(output_dir, output_file)
+      File.open(output_path, 'w') do |f|
         view = ActionView::Base.new(source_dir, :edge => edge)
         view.extend(Helpers)
 
         if guide =~ /\.html\.erb$/
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(:layout => 'layout', :file => $`)
+          result = view.render(:layout => 'layout_kindle', :file => $`)
         else
           body = File.read(File.join(source_dir, guide))
           body = set_header_section(body, view)
           body = set_index(body, view)
 
-          result = view.render(:layout => 'layout', :text => textile(body))
+          result = view.render(:layout => 'layout_kindle', :text => textile(body))
 
           warn_about_broken_links(result) if @warnings
         end
 
         f.write result
       end
+      puts "Genenerating Kindle document for #{output_file}"
+      system "kindlegen #{output_path} -c2 > /dev/null 2>&1"
     end
 
     def set_header_section(body, view)
