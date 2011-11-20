@@ -176,7 +176,6 @@ module ActiveRecord
       deprecate :columns_hash
 
       def primary_keys
-        raise
         with_connection do |c|
           c.schema_cache.primary_keys
         end
