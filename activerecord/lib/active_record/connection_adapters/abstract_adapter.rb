@@ -65,24 +65,6 @@ module ActiveRecord
         @schema_cache = SchemaCache.new self
       end
 
-      # Returns a visitor instance for this adaptor, which conforms to the Arel::ToSql interface
-      def self.visitor_for(pool) # :nodoc:
-        adapter = pool.spec.config[:adapter]
-
-        if Arel::Visitors::VISITORS[adapter]
-          ActiveSupport::Deprecation.warn(
-            "Arel::Visitors::VISITORS is deprecated and will be removed. Database adapters " \
-            "should define a visitor_for method which returns the appropriate visitor for " \
-            "the database. For example, MysqlAdapter.visitor_for(pool) returns " \
-            "Arel::Visitors::MySQL.new(pool)."
-          )
-
-          Arel::Visitors::VISITORS[adapter].new(pool)
-        else
-          Arel::Visitors::ToSql.new(pool)
-        end
-      end
-
       # Returns the human-readable name of the adapter. Use mixed case - one
       # can always use downcase if needed.
       def adapter_name

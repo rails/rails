@@ -130,10 +130,6 @@ module ActiveRecord
         @visitor = Arel::Visitors::MySQL.new self
       end
 
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::MySQL.new(pool)
-      end
-
       def adapter_name #:nodoc:
         self.class::ADAPTER_NAME
       end
