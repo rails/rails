@@ -1,3 +1,7 @@
+## Rails 3.1.3 (unreleased) ##
+
+*   New apps should be generated with a sass-rails dependency of 3.1.5, not 3.1.5.rc.2
+
 ## Rails 3.1.2 (unreleased) ##
 
 *   Engines: don't blow up if db/seeds.rb is missing.
