@@ -149,7 +149,7 @@ module ActiveSupport
 
       # Create a new cache. The options will be passed to any write method calls except
       # for :namespace which can be used to set the global namespace for the cache.
-      def initialize (options = nil)
+      def initialize(options = nil)
         @options = options ? options.dup : {}
       end
 
@@ -538,7 +538,7 @@ module ActiveSupport
         # Create an entry with internal attributes set. This method is intended to be
         # used by implementations that store cache entries in a native format instead
         # of as serialized Ruby objects.
-        def create (raw_value, created_at, options = {})
+        def create(raw_value, created_at, options = {})
           entry = new(nil)
           entry.instance_variable_set(:@value, raw_value)
           entry.instance_variable_set(:@created_at, created_at.to_f)
