@@ -542,7 +542,7 @@ module ActiveSupport
           entry = new(nil)
           entry.instance_variable_set(:@value, raw_value)
           entry.instance_variable_set(:@created_at, created_at.to_f)
-          entry.instance_variable_set(:@compressed, !!options[:compressed])
+          entry.instance_variable_set(:@compressed, options[:compressed])
           entry.instance_variable_set(:@expires_in, options[:expires_in])
           entry
         end

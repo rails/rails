@@ -723,7 +723,7 @@ class CacheEntryTest < ActiveSupport::TestCase
     entry = ActiveSupport::Cache::Entry.create("raw", time, :compress => false, :expires_in => 300)
     assert_equal "raw", entry.raw_value
     assert_equal time.to_f, entry.created_at
-    assert_equal false, entry.compressed?
+    assert !entry.compressed?
     assert_equal 300, entry.expires_in
   end
 
@@ -740,7 +740,7 @@ class CacheEntryTest < ActiveSupport::TestCase
   def test_compress_values
     entry = ActiveSupport::Cache::Entry.new("value", :compress => true, :compress_threshold => 1)
     assert_equal "value", entry.value
-    assert_equal true, entry.compressed?
+    assert entry.compressed?
     assert_equal "value", Marshal.load(Zlib::Inflate.inflate(entry.raw_value))
   end
 
@@ -748,6 +748,6 @@ class CacheEntryTest < ActiveSupport::TestCase
     entry = ActiveSupport::Cache::Entry.new("value")
     assert_equal "value", entry.value
     assert_equal "value", Marshal.load(entry.raw_value)
-    assert_equal false, entry.compressed?
+    assert !entry.compressed?
   end
 end
