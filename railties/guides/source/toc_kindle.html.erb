@@ -1,0 +1,16 @@
+<% content_for :page_title do %>
+Ruby on Rails Guides
+<% end %>
+
+<h1>Table of Contents</h1>
+<div id="toc">
+<% documents_by_section.each_with_index do |section, i| %>
+  <!-- <h3><a href="<%= section['documents'].first['url'] %>"> <%= "#{i + 1}." %> <%= section['name'] %></a></h3> -->
+  <h3><%= "#{i + 1}." %> <%= section['name'] %></h3>
+  <ul>
+    <% section['documents'].each do |document| %>
+      <li><a href="<%= document['url'] %>"><%= document['name']%></a></li>
+    <% end %>
+  </ul>  
+<% end %>
+</div>

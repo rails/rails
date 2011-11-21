@@ -15,12 +15,11 @@
 
 ### Minimum Viable Product
 
-  * Create a manifest file, combining all of the guides into one 'book'
-  * Create a HTML TOC that references each guide as a TOC item
-  * Create a XML TOC as per the Kindle guidelines
   * Embed a cover image, as per the Kindle guidelines
   * Remove hacks from `rails_guides/generator.rb`, have Kindle generation as an option on `rails_guides.rb` instead.
   * Ensure sidebar / footnotes are rendered correctly
+  * Integrate credits + contribute as separate pages, put in kindle TOC.
+  * Work out optimum ordering of welcome/toc/content
   
 ### Post release
 

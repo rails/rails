@@ -12,18 +12,16 @@
 </head>
 <body class="guide">
 
-  <%= yield :header_section %>
-  <div class="pagebreak">
+  <% if content_for? :header_section %>
+    <%= yield :header_section %>
+    <div class="pagebreak">
+  <% end %>
 
-  <%= yield :index_section %>
-  <div class="pagebreak">
-
+  <% if content_for? :index_section %>
+    <%= yield :index_section %>
+    <div class="pagebreak">
+  <% end %>
+  
   <%= yield.html_safe %>
-
-  <div class="pagebreak">
-    
-  <p>This work is licensed under a <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0</a> License</p>
-  <p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
-
 </body>
 </html>

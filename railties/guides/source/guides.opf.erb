@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="BookId">
+<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+  
+	<dc:title>Ruby On Rails Guides</dc:title>
+
+	<dc:language>en-us</dc:language>
+  <meta name="cover" content="Rails_Cover" />
+	<dc:creator>docrails</dc:creator>
+	<dc:publisher>docrails</dc:publisher>
+	<dc:subject>Reference</dc:subject>
+	<dc:date><%= Time.now.strftime('%Y-%m-%d') %></dc:date>
+
+  <!-- Description: A short description of the publication's content. -->
+  <dc:description>These guides are designed to make you immediately productive with Rails, and to help you understand how all of the pieces fit together.</dc:description>
+	
+</metadata>
+
+<manifest>
+  <!-- HTML content files [mandatory] -->
+  <% documents_flat.each do |document| %>
+    <item id="<%= document['url'] %>" media-type="text/html" href="<%= document['url'] %>" />
+  <% end %>
+  
+  <% %w{toc_kindle.html welcome_kindle.html copyright_kindle.html}.each do |url| %>
+    <item id="<%= url %>" media-type="text/html" href="<%= url %>" />
+  <% end %>
+  
+  <item id="toc" media-type="application/x-dtbncx+xml" href="toc.ncx" />
+
+  <!-- <item id="cover" media-type="image/gif" href="rails_guides_logo.gif"/> -->
+</manifest>
+	
+<spine toc="toc">
+  <itemref idref="toc_kindle.html" />
+  <itemref idref="welcome_kindle.html" />
+  <% documents_flat.each do |document| %>
+    <itemref idref="<%= document['url'] %>" />
+  <% end %>
+  <itemref idref="copyright_kindle.html" />
+</spine>
+
+<guide>
+	<reference type="toc" title="Table of Contents" href="toc_kindle.html"></reference>
+	<reference type="text" title="Welcome" href="welcome_kindle.html"></reference>
+</guide>
+
+</package>

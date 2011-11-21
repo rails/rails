@@ -61,11 +61,15 @@ require 'rails_guides/indexer'
 require 'rails_guides/helpers'
 require 'rails_guides/levenshtein'
 
+#XXX
+Mime::Type.register_alias "application/xml", :opf, %w(opf)
+Mime::Type.register_alias "application/xml", :ncx ,%w(ncx)
+
 module RailsGuides
   class Generator
     attr_reader :guides_dir, :source_dir, :output_dir, :edge, :warnings, :all
 
-    GUIDES_RE = /\.(?:textile|html\.erb)$/
+    GUIDES_RE = /\.(?:textile|erb)$/
 
     def initialize(output=nil)
       @lang = ENV['GUIDES_LANGUAGE']
@@ -120,9 +124,13 @@ module RailsGuides
     end
 
     def output_file_for(guide)
-      guide.sub(GUIDES_RE, '.html')
+      if guide =~/\.textile$/
+        guide.sub(/\.textile$/, '.html')
+      else
+        guide.sub(/\.erb$/, '')
+      end
     end
-
+    
     def generate?(source_file, output_file)
       fin  = File.join(source_dir, source_file)
       fout = File.join(output_dir, output_file)
@@ -136,7 +144,7 @@ module RailsGuides
         view = ActionView::Base.new(source_dir, :edge => edge)
         view.extend(Helpers)
 
-        if guide =~ /\.html\.erb$/
+        if guide =~ /\.(\w+)\.erb$/
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
           result = view.render(:layout => 'layout_kindle', :file => $`)
@@ -152,8 +160,6 @@ module RailsGuides
 
         f.write result
       end
-      puts "Genenerating Kindle document for #{output_file}"
-      system "kindlegen #{output_path} -c2 > /dev/null 2>&1"
     end
 
     def set_header_section(body, view)
