@@ -365,7 +365,7 @@ module ActiveSupport
         end
       end
 
-      # Deletes an entry in the cache. Returns true if an entry is deleted.
+      # Deletes an entry in the cache. Returns +true+ if an entry is deleted.
       #
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
@@ -382,7 +382,11 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:exist?, name) do |payload|
           entry = read_entry(namespaced_key(name, options), options)
-          entry && !entry.expired?
+          if entry && !entry.expired?
+            true
+          else
+            false
+          end
         end
       end
 
