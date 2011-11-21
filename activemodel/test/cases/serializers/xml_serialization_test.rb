@@ -130,7 +130,9 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize nil" do
-    assert_match %r{<pseudonyms nil=\"true\"></pseudonyms>}, @contact.to_xml(:methods => :pseudonyms)
+    contact_xml = @contact.to_xml(:methods => [:pseudonyms, [:echo_args, nil]])
+    assert_match %r{<pseudonyms nil=\"true\"></pseudonyms>}, contact_xml
+    assert_match %r{<echo-arg nil=\"true\"></echo-arg>}, contact_xml
   end
 
   test "should serialize integer" do
@@ -146,11 +148,16 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize array" do
-    assert_match %r{<social type=\"array\">\s*<social>twitter</social>\s*<social>github</social>\s*</social>}, @contact.to_xml(:methods => :social)
+    contact_xml = @contact.to_xml(:methods => [:social, [:echo_args, %w[twitter github]]])
+    assert_match %r{<social type=\"array\">\s*<social>twitter</social>\s*<social>github</social>\s*</social>}, contact_xml
+    assert_match %r{<echo-arg type=\"array\">\s*<echo-arg>twitter</echo-arg>\s*<echo-arg>github</echo-arg>\s*</echo-arg>},
+                 contact_xml
   end
 
   test "should serialize hash" do
-    assert_match %r{<network>\s*<git type=\"symbol\">github</git>\s*</network>}, @contact.to_xml(:methods => :network)
+    contact_xml = @contact.to_xml(:methods => [:network, [:echo_args, { :git => :github }]])
+    assert_match %r{<network>\s*<git type=\"symbol\">github</git>\s*</network>}, contact_xml
+    assert_match %r{<echo-arg>\s*<git type=\"symbol\">github</git>\s*</echo-arg>}, contact_xml
   end
 
   test "should serialize yaml" do

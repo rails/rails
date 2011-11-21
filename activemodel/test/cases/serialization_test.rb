@@ -19,6 +19,10 @@ class SerializationTest < ActiveModel::TestCase
     def foo
       'i_am_foo'
     end
+
+    def echo_args(*args)
+      args
+    end
   end
 
   class Address
@@ -60,6 +64,22 @@ class SerializationTest < ActiveModel::TestCase
   def test_method_serializable_hash_should_work_with_methods_option
     expected =  {"name"=>"David", "gender"=>"male", :foo=>"i_am_foo", "email"=>"david@example.com"}
     assert_equal expected , @user.serializable_hash(:methods => [:foo])
+  end
+
+  def test_method_serializable_hash_should_work_with_methods_and_parameters_option
+    expected =  {"name"=>"David", "gender"=>"male", :echo_args=>[1,2,3], "email"=>"david@example.com"}
+    assert_equal expected , @user.serializable_hash(:methods => [[:echo_args, 1, 2, 3]])
+  end
+
+  def test_method_serializable_hash_should_work_with_methods_with_parameters_and_methods_without_parameters
+    expected =  {"name"=>"David", "gender"=>"male", :echo_args=>[1,2,3], :foo=>"i_am_foo", "email"=>"david@example.com"}
+    assert_equal expected , @user.serializable_hash(:methods => [[:echo_args, 1, 2, 3], :foo])
+  end
+
+  def test_method_serializable_hash_should_raise_argument_error_if_passed_improper_arguments
+    assert_raise(ArgumentError) do
+      @user.serializable_hash(:methods => [[:foo, 1]])
+    end
   end
 
   def test_method_serializable_hash_should_work_with_only_and_methods

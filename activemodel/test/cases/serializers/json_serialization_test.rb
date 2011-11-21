@@ -126,6 +126,20 @@ class JsonSerializationTest < ActiveModel::TestCase
     methods_json = @contact.to_json(:only => :name, :methods => [:label, :favorite_quote])
     assert_match %r{"label":"Has cheezburger"}, methods_json
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
+
+    # Method with parameters.
+    assert_match %r{"echo_args":\[1,2,3\]}, @contact.to_json(:only => :name, :methods => [[:echo_args, 1, 2, 3]])
+
+    # All methods.
+    methods_json = @contact.to_json(:only => :name, :methods => [:label, :favorite_quote, [:echo_args, 1, 2, 3]])
+    assert_match %r{"label":"Has cheezburger"}, methods_json
+    assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
+    assert_match %r{"echo_args":\[1,2,3\]}, methods_json
+
+    # Improper parameters passed to method should raise ArgumentError.
+    assert_raise(ArgumentError) do
+      @contact.to_json(:only => :name, :methods => [[:label, "Doesn't hav cheezburger :("]])
+    end
   end
 
   test "should return OrderedHash for errors" do
