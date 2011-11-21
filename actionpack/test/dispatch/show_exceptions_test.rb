@@ -2,28 +2,35 @@ require 'abstract_unit'
 
 class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
-  Boomer = lambda do |env|
-    req = ActionDispatch::Request.new(env)
-    case req.path
-    when "/not_found"
-      raise ActionController::UnknownAction
-    when "/runtime_error"
-      raise RuntimeError
-    when "/method_not_allowed"
-      raise ActionController::MethodNotAllowed
-    when "/not_implemented"
-      raise ActionController::NotImplemented
-    when "/unprocessable_entity"
-      raise ActionController::InvalidAuthenticityToken
-    when "/not_found_original_exception"
-      raise ActionView::Template::Error.new('template', {}, AbstractController::ActionNotFound.new)
-    else
-      raise "puke!"
+  class Boomer
+    def initialize(show_exceptions = false)
+      @show_exceptions = show_exceptions
+    end
+
+    def call(env)
+      env['action_dispatch.show_exceptions'] = @show_exceptions
+      req = ActionDispatch::Request.new(env)
+      case req.path
+      when "/not_found"
+        raise ActionController::UnknownAction
+      when "/runtime_error"
+        raise RuntimeError
+      when "/method_not_allowed"
+        raise ActionController::MethodNotAllowed
+      when "/not_implemented"
+        raise ActionController::NotImplemented
+      when "/unprocessable_entity"
+        raise ActionController::InvalidAuthenticityToken
+      when "/not_found_original_exception"
+        raise ActionView::Template::Error.new('template', {}, AbstractController::ActionNotFound.new)
+      else
+        raise "puke!"
+      end
     end
   end
 
-  ProductionApp = ActionDispatch::ShowExceptions.new(Boomer, false)
-  DevelopmentApp = ActionDispatch::ShowExceptions.new(Boomer, true)
+  ProductionApp = ActionDispatch::ShowExceptions.new(Boomer.new(false))
+  DevelopmentApp = ActionDispatch::ShowExceptions.new(Boomer.new(true))
 
   test "rescue in public from a remote ip" do
     @app = ProductionApp

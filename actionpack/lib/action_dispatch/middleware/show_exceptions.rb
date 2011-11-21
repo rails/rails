@@ -38,9 +38,8 @@ module ActionDispatch
        "application's log file and/or the web server's log file to find out what " <<
        "went wrong.</body></html>"]]
 
-    def initialize(app, consider_all_requests_local = false)
+    def initialize(app)
       @app = app
-      @consider_all_requests_local = consider_all_requests_local
     end
 
     def call(env)
@@ -65,11 +64,10 @@ module ActionDispatch
         log_error(exception)
         exception = original_exception(exception)
 
-        request = Request.new(env)
-        if @consider_all_requests_local || request.local?
-          rescue_action_locally(request, exception)
+        if env['action_dispatch.show_detailed_exceptions'] == true
+          rescue_action_diagnostics(env, exception)
         else
-          rescue_action_in_public(exception)
+          rescue_action_error_page(exception)
         end
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
@@ -78,9 +76,9 @@ module ActionDispatch
 
       # Render detailed diagnostics for unhandled exceptions rescued from
       # a controller action.
-      def rescue_action_locally(request, exception)
+      def rescue_action_diagnostics(env, exception)
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
-          :request => request,
+          :request => Request.new(env),
           :exception => exception,
           :application_trace => application_trace(exception),
           :framework_trace => framework_trace(exception),
@@ -98,7 +96,7 @@ module ActionDispatch
       # it will first attempt to render the file at <tt>public/500.da.html</tt>
       # then attempt to render <tt>public/500.html</tt>. If none of them exist,
       # the body of the response will be left empty.
-      def rescue_action_in_public(exception)
+      def rescue_action_error_page(exception)
         status = status_code(exception)
         locale_path = "#{public_path}/#{status}.#{I18n.locale}.html" if I18n.locale
         path = "#{public_path}/#{status}.html"
