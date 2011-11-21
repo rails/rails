@@ -573,6 +573,9 @@ module ActiveSupport
 
       # Get the value stored in the cache.
       def value
+        # If the original value was exactly false @value is still true because
+        # it is marshalled and eventually compressed. Both operations yield
+        # strings.
         if @value
           Marshal.load(compressed? ? Zlib::Inflate.inflate(@value) : @value)
         end
