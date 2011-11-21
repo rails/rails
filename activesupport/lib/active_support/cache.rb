@@ -543,6 +543,7 @@ module ActiveSupport
           entry.instance_variable_set(:@value, raw_value)
           entry.instance_variable_set(:@created_at, created_at.to_f)
           entry.instance_variable_set(:@compressed, !!options[:compressed])
+          entry.instance_variable_set(:@lazy_compress, !!options[:compressed])
           entry.instance_variable_set(:@expires_in, options[:expires_in])
           entry
         end
@@ -551,7 +552,7 @@ module ActiveSupport
       # Create a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
-        @compressed = false
+        @compressed, @lazy_compress = false, false
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
         @created_at = Time.now.to_f
@@ -559,10 +560,7 @@ module ActiveSupport
           @value = nil
         else
           @value = Marshal.dump(value)
-          if should_compress?(@value, options)
-            @value = Zlib::Deflate.deflate(@value)
-            @compressed = true
-          end
+          @lazy_compress = should_compress?(@value, options)
         end
       end
 
@@ -574,8 +572,21 @@ module ActiveSupport
       # Get the value stored in the cache.
       def value
         if @value
-          Marshal.load(compressed? ? Zlib::Inflate.inflate(@value) : @value)
+          if compressed?
+            @value = Zlib::Inflate.inflate(@value)
+            @compressed = false
+          end
+          Marshal.load(@value)
         end
+      end
+
+      def compress!
+        if @lazy_compress && !compressed?
+          @value = Zlib::Deflate.deflate(@value)
+          @compressed = true
+          return true
+        end
+        false
       end
 
       def compressed?
@@ -611,6 +622,19 @@ module ActiveSupport
           @value.bytesize
         end
       end
+
+      protected
+        def marshal_dump
+          compress!
+          instance_variables.inject({}) do |ret, var|
+            ret[var] = instance_variable_get(var)
+            ret
+          end
+        end
+  
+        def marshal_load(hash)
+          hash.each { |k, v| instance_variable_set(k, v) }
+        end
 
       private
         def should_compress?(serialized_value, options)
