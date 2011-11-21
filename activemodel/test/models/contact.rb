@@ -23,4 +23,8 @@ class Contact
   def persisted?
     id
   end
+
+  def echo_args(*args)
+    args
+  end
 end
