@@ -330,6 +330,17 @@ module Rails
   #
   #   MyEngine::Engine.load_seed
   #
+  # == Loading priority
+  #
+  # In order to change engine's priority you can use config.railties_order in main application.
+  # It will affect the priority of loading views, helpers, assets and all the other files
+  # related to engine or application.
+  #
+  # Example:
+  #
+  #   # load Blog::Engine with highest priority, followed by application and other railties
+  #   config.railties_order = [Blog::Engine, :main_app, :all]
+  #
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
@@ -480,10 +491,19 @@ module Rails
       @routes
     end
 
+    def ordered_railties
+      railties.all + [self]
+    end
+
     def initializers
       initializers = []
-      railties.all { |r| initializers += r.initializers }
-      initializers += super
+      ordered_railties.each do |r|
+        if r == self
+          initializers += super
+        else
+          initializers += r.initializers
+        end
+      end
       initializers
     end
 

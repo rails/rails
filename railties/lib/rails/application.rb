@@ -127,6 +127,28 @@ module Rails
       })
     end
 
+    def ordered_railties
+      @ordered_railties ||= begin
+        order = config.railties_order.map do |railtie|
+          if railtie == :main_app
+            self
+          elsif railtie.respond_to?(:instance)
+            railtie.instance
+          else
+            railtie
+          end
+        end
+
+        all = (railties.all - order)
+        all.push(self)   unless all.include?(self)
+        order.push(:all) unless order.include?(:all)
+
+        index = order.index(:all)
+        order[index] = all
+        order.reverse.flatten
+      end
+    end
+
     def initializers
       Bootstrap.initializers_for(self) +
       super +
