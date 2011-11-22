@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 module ShowExceptions
-  class ShowExceptionsController < ActionController::Metal
+  class ShowExceptionsController < ActionController::Base
     use ActionDispatch::ShowExceptions
 
     def boom
@@ -27,7 +27,7 @@ module ShowExceptions
     end
 
     test 'show diagnostics from a remote ip when consider_all_requests_local is true' do
-      Rails.stubs(:application).returns stub(:config => stub(:consider_all_requests_local => true))
+      ShowExceptionsController.any_instance.stubs(:consider_all_requests_local).returns(true)
       @app = ShowExceptionsController.action(:boom)
       self.remote_addr = '208.77.188.166'
       get '/'
