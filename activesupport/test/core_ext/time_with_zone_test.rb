@@ -158,7 +158,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_today
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
+    Time.stubs(:current).returns(Time.new(2000, 1, 1))
     assert_equal false, ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(1999,12,31,23,59,59) ).today?
     assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,1,0) ).today?
     assert_equal true,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,1,23,59,59) ).today?

@@ -195,7 +195,7 @@ module ActiveSupport
     end
 
     def today?
-      time.today?
+      time.today?(time_zone)
     end
 
     def future?

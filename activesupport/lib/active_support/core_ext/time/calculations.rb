@@ -52,8 +52,9 @@ class Time
   end
 
   # Tells whether the Time object's time is today
-  def today?
-    to_date == ::Date.current
+  def today?(time_zone = nil)
+    now = time_zone ? ::Time.current.in_time_zone(time_zone) : ::Time.current
+    to_date == now.to_date
   end
 
   # Tells whether the Time object's time lies in the future
