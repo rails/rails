@@ -1,5 +1,10 @@
 ## Rails 3.1.4 (unreleased) ##
 
+*   Perf fix: MySQL primary key lookup was still slow for very large
+    tables. *GH 3678*
+
+    *Kenny J*
+
 *   Perf fix: If a table has no primary key, don't repeatedly ask the database for it.
 
     *Julius de Bruijn*
