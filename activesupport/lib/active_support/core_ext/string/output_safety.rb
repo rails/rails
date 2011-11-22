@@ -169,3 +169,17 @@ class String
     ActiveSupport::SafeBuffer.new(self)
   end
 end
+
+class Array
+  def join_with_safe_buffer_awareness(sep = $,)
+    return join_without_safe_buffer_awareness(sep) unless first.is_a?(ActiveSupport::SafeBuffer)
+    rest = map(&:to_s)
+    first = rest.shift.dup
+    sep = sep.to_s
+    return rest.inject(first, :<<) if sep.empty? # optimization for trivial separator
+    sep = ActiveSupport::SafeBuffer.new << sep unless sep.html_safe?
+    rest.each{|o| first << sep << o}
+    first
+  end
+  alias_method_chain :join, :safe_buffer_awareness
+end
