@@ -1,5 +1,10 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   check_box helper with :disabled => true will generate disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
+    This is a behaviour change, previously a hidden tag had a value of the disabled checkbox.
+
+    *Tadas Tamosauskas*
+
 *   Responders now return 204 No Content for API requests without a response body (as in the new scaffold) *José Valim*
 
 *   Added ActionDispatch::RequestId middleware that'll make a unique X-Request-Id header available to the response and enables the ActionDispatch::Request#uuid method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog *DHH*
