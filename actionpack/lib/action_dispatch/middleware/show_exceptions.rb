@@ -2,6 +2,7 @@ require 'active_support/core_ext/exception'
 require 'action_controller/metal/exceptions'
 require 'active_support/notifications'
 require 'action_dispatch/http/request'
+require 'active_support/deprecation'
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application and renders
@@ -38,7 +39,8 @@ module ActionDispatch
        "application's log file and/or the web server's log file to find out what " <<
        "went wrong.</body></html>"]]
 
-    def initialize(app)
+    def initialize(app, consider_all_requests_local = nil)
+      ActiveSupport::Deprecation.warn "Passing consider_all_requests_local option to ActionDispatch::ShowExceptions middleware no longer works" unless consider_all_requests_local.nil?
       @app = app
     end
 

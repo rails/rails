@@ -1,9 +1,10 @@
 ## Rails 3.2.0 (unreleased) ##
+*   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
+    This is a behavior change, previously the hidden tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
-*   check_box helper with :disabled => true will generate disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
-    This is a behaviour change, previously a hidden tag had a value of the disabled checkbox.
+*   Refactor ActionDispatch::ShowExceptions. Controller is responsible for choice to show exceptions. *Sergey Nartimov*
 
-    *Tadas Tamosauskas*
+    It's possible to override +show_detailed_exceptions?+ in controllers to specify which requests should provide debugging information on errors.
 
 *   Responders now return 204 No Content for API requests without a response body (as in the new scaffold) *José Valim*
 
