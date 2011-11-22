@@ -1920,6 +1920,20 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, post.comments.length
   end
 
+  def test_marshalling_new_record_round_trip_with_associations
+    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
+      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
+                  "to be a Ruby bug.")
+    end
+
+    post = Post.new
+    post.comments.build
+
+    post = Marshal.load(Marshal.dump(post))
+
+    assert post.new_record?, "should be a new record"
+  end
+
   def test_attribute_names
     assert_equal ["id", "type", "ruby_type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id"],
                  Company.attribute_names
