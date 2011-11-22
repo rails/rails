@@ -196,13 +196,8 @@ module ActionController
       @_request = request
       @_env = request.env
       @_env['action_controller.instance'] = self
-      @_env['action_dispatch.show_detailed_exceptions'] = show_detailed_exceptions?
       process(name)
       to_a
-    end
-
-    def show_detailed_exceptions?
-      defined?(Rails.application) && Rails.application.config.consider_all_requests_local || request.local?
     end
 
     def to_a #:nodoc:
