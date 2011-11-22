@@ -69,7 +69,7 @@ module ActionView
           number.gsub!(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
         else
           number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if number.starts_with?('-')
+          number.slice!(0, 1) if number.starts_with?(delimiter) && !delimiter.blank?
         end
 
         str = []
@@ -100,10 +100,10 @@ module ActionView
       #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
       #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
       #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
-      #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,506 €
+      #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,51 €
       #
       #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
-      #  # => ($1,234,567,890.51)
+      #  # => ($1,234,567,890.50)
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
       #  # => &pound;1234567890,50
       #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
@@ -193,7 +193,8 @@ module ActionView
       #  number_with_delimiter(12345678)                        # => 12,345,678
       #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
       #  number_with_delimiter(12345678, :delimiter => ".")     # => 12.345.678
-      #  number_with_delimiter(12345678, :separator => ",")     # => 12,345,678
+      #  number_with_delimiter(12345678, :delimiter => ",")     # => 12,345,678
+      #  number_with_delimiter(12345678.05, :separator => " ")  # => 12,345,678 05
       #  number_with_delimiter(12345678.05, :locale => :fr)     # => 12 345 678,05
       #  number_with_delimiter(98765432.98, :delimiter => " ", :separator => ",")
       #  # => 98 765 432,98

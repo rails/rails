@@ -712,10 +712,3 @@ h3. References
 * "ruby-debug cheat sheet":http://cheat.errtheblog.com/s/rdebug/
 * "Ruby on Rails Wiki: How to Configure Logging":http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging
 * "Bleak House Documentation":http://blog.evanweaver.com/files/doc/fauna/bleak_house/files/README.html
-
-h3. Changelog
-
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* November 3, 2008: Accepted for publication. Added RJS, memory leaks and plugins chapters by "Emilio Tagua":credits.html#miloops
-* October 19, 2008: Copy editing pass by "Mike Gunderloy":credits.html#mgunderloy
-* September 16, 2008: initial version by "Emilio Tagua":credits.html#miloops

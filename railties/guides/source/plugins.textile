@@ -462,11 +462,3 @@ h4. References
 * "Gemspec Reference":http://docs.rubygems.org/read/chapter/20
 * "GemPlugins":http://www.mbleigh.com/2008/06/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
 * "Keeping init.rb thin":http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
-
-h3. Changelog
-
-* March 10, 2011: Minor formatting tweaks.
-* February 13, 2011: Get guide in synch with Rails 3.0.3. Remove information not compatible with Rails 3. Send reader elsewhere
-for information that is covered elsewhere.
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* November 17, 2008: Major revision by Jeff Dean

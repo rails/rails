@@ -147,13 +147,16 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_does_not_wrap_string_results_in_arrays
-    require 'sqlite3/version' if current_adapter?(:SQLite3Adapter)
+    if current_adapter?(:SQLite3Adapter)
+      require 'sqlite3/version'
+      sqlite3_version = RUBY_PLATFORM =~ /java/ ? Jdbc::SQLite3::VERSION : SQLite3::VERSION
+    end
 
     Task.cache do
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
         assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      elsif current_adapter?(:SQLite3Adapter) && SQLite3::VERSION > '1.2.5' || current_adapter?(:Mysql2Adapter) || current_adapter?(:MysqlAdapter)
+      elsif current_adapter?(:SQLite3Adapter) && sqlite3_version > '1.2.5' || current_adapter?(:Mysql2Adapter) || current_adapter?(:MysqlAdapter)
         # Future versions of the sqlite3 adapter will return numeric
         assert_instance_of Fixnum,
          Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
@@ -166,6 +169,18 @@ end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks, :posts, :categories, :categories_posts
+
+  def test_cache_gets_cleared_after_migration
+    # warm the cache
+    Post.find(1)
+
+    # change the column definition
+    Post.connection.change_column :posts, :title, :string, :limit => 80
+    assert_nothing_raised { Post.find(1) }
+
+    # restore the old definition
+    Post.connection.change_column :posts, :title, :string
+  end
 
   def test_find
     Task.connection.expects(:clear_query_cache).times(1)
@@ -234,7 +249,7 @@ class QueryCacheBodyProxyTest < ActiveRecord::TestCase
 
   test "is polite to it's body and responds to it" do
     body = Class.new(String) { def to_path; "/path"; end }.new
-    proxy = ActiveRecord::QueryCache::BodyProxy.new(nil, body)
+    proxy = ActiveRecord::QueryCache::BodyProxy.new(nil, body, ActiveRecord::Base.connection_id)
     assert proxy.respond_to?(:to_path)
     assert_equal proxy.to_path, "/path"
   end

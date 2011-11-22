@@ -146,3 +146,23 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
   end
 end
+
+class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def test_set_primary_key_with_no_connection
+    return skip("disconnect wipes in-memory db") if in_memory_db?
+
+    connection = ActiveRecord::Base.remove_connection
+
+    model = Class.new(ActiveRecord::Base) do
+      set_primary_key 'foo'
+    end
+
+    assert_equal 'foo', model.primary_key
+
+    ActiveRecord::Base.establish_connection(connection)
+
+    assert_equal 'foo', model.primary_key
+  end
+end

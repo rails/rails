@@ -141,19 +141,16 @@ module ActionController
       # try to find Foo::Bar::User, Foo::User and finally User.
       def _default_wrap_model #:nodoc:
         return nil if self.anonymous?
-
         model_name = self.name.sub(/Controller$/, '').singularize
 
         begin
-          model_klass = model_name.constantize
-        rescue NameError, ArgumentError => e
-          if e.message =~ /is not missing constant|uninitialized constant #{model_name}/
+          if model_klass = model_name.safe_constantize
+            model_klass
+          else
             namespaces = model_name.split("::")
             namespaces.delete_at(-2)
             break if namespaces.last == model_name
             model_name = namespaces.join("::")
-          else
-            raise
           end
         end until model_klass
 

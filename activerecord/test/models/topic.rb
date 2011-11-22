@@ -78,11 +78,12 @@ class Topic < ActiveRecord::Base
 
   after_initialize :set_email_address
 
+  def approved=(val)
+    @custom_approved = val
+    write_attribute(:approved, val)
+  end
+
   protected
-    def approved=(val)
-      @custom_approved = val
-      write_attribute(:approved, val)
-    end
 
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")

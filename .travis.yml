@@ -12,5 +12,8 @@ env:
 notifications:
   email: false
   irc:
-    - "irc.freenode.org#rails-contrib"
+    on_success: change
+    on_failure: always
+    channels:
+      - "irc.freenode.org#rails-contrib"
 bundler_args: --path vendor/bundle

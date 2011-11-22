@@ -296,16 +296,16 @@ module Rails
   # If you want to share just a few specific helpers you can add them to application's
   # helpers in ApplicationController:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::SharedEngineHelper
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::SharedEngineHelper
+  #   end
   #
   # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
   # instance:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::Engine.helpers
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::Engine.helpers
+  #   end
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
@@ -488,7 +488,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds"].existent.first
-      load(seed_file) if File.exist?(seed_file)
+      load(seed_file) if seed_file && File.exist?(seed_file)
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.
@@ -537,12 +537,12 @@ module Rails
       end
     end
 
-    initializer :load_environment_config, :before => :load_environment_hook do
+    initializer :load_environment_config, :before => :load_environment_hook, :group => :all do
       environment = paths["config/environments"].existent.first
       require environment if environment
     end
 
-    initializer :append_assets_path do |app|
+    initializer :append_assets_path, :group => :all do |app|
       app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
       app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)

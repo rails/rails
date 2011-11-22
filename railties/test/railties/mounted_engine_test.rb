@@ -235,10 +235,5 @@ module ApplicationTests
       get "/weblog_engine_route_in_view"
       assert_equal "/weblog", last_response.body
     end
-
-    test "request url for controller action when engine is mounted at root" do
-      get "/weblog"
-      assert_equal "http://example.org/weblog", last_response.body
-    end
   end
 end

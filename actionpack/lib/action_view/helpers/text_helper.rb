@@ -120,7 +120,7 @@ module ActionView
           text
         else
           match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
-          text.gsub(/(#{match})(?!(?:[^<]*?)(?:["'])[^<>]*>)/i, options[:highlighter])
+          text.gsub(/(#{match})(?![^<]*?>)/i, options[:highlighter])
         end.html_safe
       end
 

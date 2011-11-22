@@ -62,12 +62,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'secure', :to => redirect("/secure/login")
 
       match 'mobile', :to => redirect(:subdomain => 'mobile')
-      match 'documentation', :to => redirect(:domain => 'example-documentation.com', :path => '')
-      match 'new_documentation', :to => redirect(:path => '/documentation/new')
       match 'super_new_documentation', :to => redirect(:host => 'super-docs.com')
-
-      match 'stores/:name',        :to => redirect(:subdomain => 'stores', :path => '/%{name}')
-      match 'stores/:name(*rest)', :to => redirect(:subdomain => 'stores', :path => '/%{name}%{rest}')
 
       match 'youtube_favorites/:youtube_id/:name', :to => redirect(YoutubeFavoritesRedirector)
 
@@ -79,7 +74,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'sign_in' => "sessions#new"
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
-      match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
+      match 'account/proc/:name', :to => redirect {|params, req| "/#{params[:name].pluralize}" }
       match 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
 
       match 'account/google' => redirect('http://www.google.com/', :status => 302)
@@ -339,6 +334,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
 
       scope '(:locale)', :locale => /en|pl/ do
+        get "registrations/new"
         resources :descriptions
         root :to => 'projects#index'
       end
@@ -710,38 +706,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_redirect_hash_with_domain_and_path
-    with_test_routes do
-      get '/documentation'
-      verify_redirect 'http://www.example-documentation.com'
-    end
-  end
-
-  def test_redirect_hash_with_path
-    with_test_routes do
-      get '/new_documentation'
-      verify_redirect 'http://www.example.com/documentation/new'
-    end
-  end
-
   def test_redirect_hash_with_host
     with_test_routes do
       get '/super_new_documentation?section=top'
       verify_redirect 'http://super-docs.com/super_new_documentation?section=top'
-    end
-  end
-
-  def test_redirect_hash_path_substitution
-    with_test_routes do
-      get '/stores/iernest'
-      verify_redirect 'http://stores.example.com/iernest'
-    end
-  end
-
-  def test_redirect_hash_path_substitution_with_catch_all
-    with_test_routes do
-      get '/stores/iernest/products'
-      verify_redirect 'http://stores.example.com/iernest/products'
     end
   end
 
@@ -858,6 +826,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     options = original_options.dup
 
     url_for options
+
+    # verify that the options passed in have not changed from the original ones
+    assert_equal original_options, options
+  end
+
+  # tests the arguments modification free version of define_hash_access
+  def test_named_route_with_no_side_effects
+    original_options = { :host => 'test.host' }
+    options = original_options.dup
+
+    profile_customer_url("customer_model", options)
 
     # verify that the options passed in have not changed from the original ones
     assert_equal original_options, options
@@ -1457,6 +1436,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
       get '/admin/descriptions/1'
       assert_equal 'admin/descriptions#show', @response.body
+    end
+  end
+
+  def test_nested_optional_path_shorthand
+    with_test_routes do
+      get '/registrations/new'
+      assert @request.params[:locale].nil?
+
+      get '/en/registrations/new'
+      assert 'en', @request.params[:locale]
     end
   end
 
@@ -2310,6 +2299,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/forced_collision", routes_forced_collision_path
   end
 
+  def test_redirect_argument_error
+    routes = Class.new { include ActionDispatch::Routing::Redirection }.new
+    assert_raises(ArgumentError) { routes.redirect Object.new }
+  end
+
   def test_explicitly_avoiding_the_named_route
     assert !respond_to?(:routes_no_collision_path)
   end
@@ -2504,5 +2498,42 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
       get '/', nil, 'REQUEST_METHOD' => method
       assert_equal method, @response.body
     end
+  end
+end
+
+class TestUriPathEscaping < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      match '/:segment' => lambda { |env|
+        path_params = env['action_dispatch.request.path_parameters']
+        [200, { 'Content-Type' => 'text/plain' }, [path_params[:segment]]]
+      }, :as => :segment
+
+      match '/*splat' => lambda { |env|
+        path_params = env['action_dispatch.request.path_parameters']
+        [200, { 'Content-Type' => 'text/plain' }, [path_params[:splat]]]
+      }, :as => :splat
+    end
+  end
+
+  include Routes.url_helpers
+  def app; Routes end
+
+  test 'escapes generated path segment' do
+    assert_equal '/a%20b/c+d', segment_path(:segment => 'a b/c+d')
+  end
+
+  test 'unescapes recognized path segment' do
+    get '/a%20b%2Fc+d'
+    assert_equal 'a b/c+d', @response.body
+  end
+
+  test 'escapes generated path splat' do
+    assert_equal '/a%20b/c+d', splat_path(:splat => 'a b/c+d')
+  end
+
+  test 'unescapes recognized path splat' do
+    get '/a%20b/c+d'
+    assert_equal 'a b/c+d', @response.body
   end
 end

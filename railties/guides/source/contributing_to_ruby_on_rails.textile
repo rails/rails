@@ -87,21 +87,21 @@ $ bundle install --without db
 This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back at these soon. With dependencies installed, you can run the test suite with:
 
 <shell>
-$ rake test
+$ bundle exec rake test
 </shell>
 
 You can also run tests for a specific framework, like Action Pack, by going into its directory and executing the same command:
 
 <shell>
 $ cd actionpack
-$ rake test
+$ bundle exec rake test
 </shell>
 
 If you want to run tests from the specific directory use the +TEST_DIR+ environment variable. For example, this will run tests inside +railties/test/generators+ directory only:
 
 <shell>
 $ cd railties
-$ TEST_DIR=generators rake test
+$ TEST_DIR=generators bundle exec rake test
 </shell>
 
 h4. Warnings
@@ -111,7 +111,7 @@ The test suite runs with warnings enabled. Ideally Ruby on Rails should issue no
 As of this writing they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
 <shell>
-$ RUBYOPT=-W0 rake test
+$ RUBYOPT=-W0 bundle exec rake test
 </shell>
 
 h4. Testing Active Record
@@ -120,13 +120,17 @@ The test suite of Active Record attempts to run four times, once for SQLite3, on
 
 WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
+h5. Set up Database Configuration
+
+The Active Record test suite requires a custom config file: +activerecord/test/config.yml+. An example is provided in +activerecord/test/config.example.yml+ which can be copied and used as needed for your environment.
+
 h5. SQLite3
 
 The gem +sqlite3-ruby+ does not belong to the "db" group indeed, if you followed the instructions above you're ready. This is how you run the Active Record test suite only for SQLite3:
 
 <shell>
 $ cd activerecord
-$ rake test_sqlite3
+$ bundle exec rake test_sqlite3
 </shell>
 
 h5. MySQL and PostgreSQL
@@ -191,27 +195,27 @@ test_postgresql
 respectively. As we mentioned before
 
 <shell>
-$ rake test
+$ bundle exec rake test
 </shell>
 
 will now run the four of them in turn.
 
-You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/ci_build.rb+ to see the test suite that the continuous integration server runs.
+You can also invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+. Check out the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/travis.rb+ to see the test suite that the continuous integration server runs.
 
 h4. Older versions of Ruby on Rails
 
-If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 2-3-stable branch:
+If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
 
 <shell>
-$ git branch --track 2-3-stable origin/2-3-stable
-$ git checkout 2-3-stable
+$ git branch --track 3-0-stable origin/3-0-stable
+$ git checkout 3-0-stable
 </shell>
 
 TIP: You may want to "put your git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
 
 h3. Helping to Resolve Existing Issues
 
-As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the "Everyone's Issues":https://github.com/rails/rails/issues?sort=created&direction=desc&state=open&page=1 list in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
+As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the "Everyone's Issues":https://github.com/rails/rails/issues list in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
 
 h4. Verifying Bug Reports
 
@@ -257,15 +261,17 @@ h3. Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: The guides help you to learn Ruby on Rails, and the API is a reference.
 
-You can create an issue in GitHub issues to fix or expand documentation. However, if you're confident about your changes you can push them yourself directly via "docrails":https://github.com/lifo/docrails/tree/master. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+You can help improve the Rails guides by making them more coherent, adding missing information, correcting factual errors, fixing typos, bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see "Translating Rails Guides":https://wiki.github.com/lifo/docrails/translating-rails-guides.
+
+If you're confident about your changes, you can push them yourself directly via "docrails":https://github.com/lifo/docrails. docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but that happens after they are pushed. docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+
+If you are unsure of the documentation changes, you can create an issue in the "Rails":https://github.com/rails/rails/issues issues tracker on GitHub.
 
 When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
 
-NOTE: As explained above, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
+NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. docrails is only used for isolated documentation improvements.
 
 WARNING: docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
-
-If you have an idea for a new guide you can refer to the "contribution page":contribute.html for instructions on getting involved.
 
 h3. Contributing to the Rails Code
 
@@ -381,13 +387,3 @@ And then...think about your next contribution!
 h3. Rails Contributors
 
 All contributions, either via master or docrails, get credit in "Rails Contributors":http://contributors.rubyonrails.org.
-
-h3. Changelog
-
-* May 12, 2011: Modified to prefer topic branches instead of master branch for users contributions by "Guillermo Iguaran":http://quillarb.org
-* April 29, 2011: Reflect GitHub Issues and Pull Request workflow by "Dan Pickett":http://www.enlightsolutions.com
-* April 14, 2011: Modified Contributing to the Rails Code section to add '[#ticket_number state:commited]' on patches commit messages by "Sebastian Martinez":http://wyeworks.com
-* December 28, 2010: Complete revision by "Xavier Noria":credits.html#fxn
-* April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* August 1, 2009: Updates/amplifications by "Mike Gunderloy":credits.html#mgunderloy
-* March 2, 2009: Initial draft by "Mike Gunderloy":credits.html#mgunderloy

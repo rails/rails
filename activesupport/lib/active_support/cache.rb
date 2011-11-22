@@ -16,8 +16,6 @@ module ActiveSupport
     autoload :FileStore, 'active_support/cache/file_store'
     autoload :MemoryStore, 'active_support/cache/memory_store'
     autoload :MemCacheStore, 'active_support/cache/mem_cache_store'
-    autoload :SynchronizedMemoryStore, 'active_support/cache/synchronized_memory_store'
-    autoload :CompressedMemCacheStore, 'active_support/cache/compressed_mem_cache_store'
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -141,7 +139,7 @@ module ActiveSupport
     # large enough to warrant compression. To turn on compression either pass
     # <tt>:compress => true</tt> in the initializer or as an option to +fetch+
     # or +write+. To specify the threshold at which to compress values, set the
-    # <tt>:compress_threshold</tt> option. The default threshold is 32K.
+    # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
 
       cattr_accessor :logger, :instance_writer => true
@@ -151,7 +149,7 @@ module ActiveSupport
 
       # Create a new cache. The options will be passed to any write method calls except
       # for :namespace which can be used to set the global namespace for the cache.
-      def initialize (options = nil)
+      def initialize(options = nil)
         @options = options ? options.dup : {}
       end
 
@@ -232,7 +230,7 @@ module ActiveSupport
       # <tt>:race_condition_ttl</tt> does not play any role.
       #
       #   # Set all values to expire after one minute.
-      #   cache = ActiveSupport::Cache::MemoryCache.new(:expires_in => 1.minute)
+      #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 1.minute)
       #
       #   cache.write("foo", "original value")
       #   val_1 = nil
@@ -540,11 +538,11 @@ module ActiveSupport
         # Create an entry with internal attributes set. This method is intended to be
         # used by implementations that store cache entries in a native format instead
         # of as serialized Ruby objects.
-        def create (raw_value, created_at, options = {})
+        def create(raw_value, created_at, options = {})
           entry = new(nil)
           entry.instance_variable_set(:@value, raw_value)
           entry.instance_variable_set(:@created_at, created_at.to_f)
-          entry.instance_variable_set(:@compressed, !!options[:compressed])
+          entry.instance_variable_set(:@compressed, options[:compressed])
           entry.instance_variable_set(:@expires_in, options[:expires_in])
           entry
         end
@@ -561,7 +559,7 @@ module ActiveSupport
           @value = nil
         else
           @value = Marshal.dump(value)
-          if should_compress?(value, options)
+          if should_compress?(@value, options)
             @value = Zlib::Deflate.deflate(@value)
             @compressed = true
           end
@@ -575,6 +573,9 @@ module ActiveSupport
 
       # Get the value stored in the cache.
       def value
+        # If the original value was exactly false @value is still true because
+        # it is marshalled and eventually compressed. Both operations yield
+        # strings.
         if @value
           Marshal.load(compressed? ? Zlib::Inflate.inflate(@value) : @value)
         end
@@ -615,13 +616,10 @@ module ActiveSupport
       end
 
       private
-        def should_compress?(value, options)
-          if options[:compress] && value
-            unless value.is_a?(Numeric)
-              compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
-              serialized_value = value.is_a?(String) ? value : Marshal.dump(value)
-              return true if serialized_value.size >= compress_threshold
-            end
+        def should_compress?(serialized_value, options)
+          if options[:compress]
+            compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
+            return true if serialized_value.size >= compress_threshold
           end
           false
         end

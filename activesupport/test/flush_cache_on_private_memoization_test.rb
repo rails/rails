@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'test/unit'
 
-class FlashCacheOnPrivateMemoizationTest < Test::Unit::TestCase
+class FlushCacheOnPrivateMemoizationTest < Test::Unit::TestCase
   ActiveSupport::Deprecation.silence do
     extend ActiveSupport::Memoizable
   end

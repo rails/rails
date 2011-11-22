@@ -16,7 +16,7 @@ Action View and Action Controller are the two major components of Action Pack. I
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
-Note: Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
+NOTE. Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
 
 h3. Using Action View with Rails
 
@@ -898,7 +898,7 @@ h5. select_year
 Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius can be changed using the +:start_year+ and +:end_year+ keys in the +options+.
 
 <ruby>
-# Generates a select field for five years on either side of +Date.today+ that defaults to the current year
+# Generates a select field for five years on either side of Date.today that defaults to the current year
 select_year(Date.today)
 
 # Generates a select field from 1900 to 2009 that defaults to the current year
@@ -1495,10 +1495,3 @@ end
 Then you could create special views like +app/views/posts/show.expert.html.erb+ that would only be displayed to expert users.
 
 You can read more about the Rails Internationalization (I18n) API "here":i18n.html.
-
-h3. Changelog
-
-* May 29, 2011: Removed references to remote_* helpers - Vijay Dev
-* April 16, 2011: Added 'Using Action View with Rails', 'Templates' and 'Partials' sections. "Sebastian Martinez":http://wyeworks.com
-* September 3, 2009: Continuing work by Trevor Turk, leveraging the Action Pack docs and "What's new in Edge Rails":http://ryandaigle.com/articles/2007/8/3/what-s-new-in-edge-rails-partials-get-layouts
-* April 5, 2009: Starting work by Trevor Turk, leveraging Mike Gunderloy's docs

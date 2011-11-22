@@ -532,7 +532,7 @@ class ResourcesTest < ActionController::TestCase
       routes.each do |route|
         routes.each do |r|
           next if route === r # skip the comparison instance
-          assert distinct_routes?(route, r), "Duplicate Route: #{route}"
+          assert_not_equal [route.conditions, route.path.spec.to_s], [r.conditions, r.path.spec.to_s]
         end
       end
     end
@@ -1350,14 +1350,5 @@ class ResourcesTest < ActionController::TestCase
       assert_raise ActionController::RoutingError, Assertion do
         assert_recognizes(expected_options, path)
       end
-    end
-
-    def distinct_routes? (r1, r2)
-      if r1.conditions == r2.conditions and r1.constraints == r2.constraints then
-        if r1.segments.collect(&:to_s) == r2.segments.collect(&:to_s) then
-          return false
-        end
-      end
-      true
     end
 end

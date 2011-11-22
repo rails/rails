@@ -62,3 +62,19 @@ class CrazyHelperTest < ActionView::TestCase
     assert_equal PeopleHelper, self.class.helper_class
   end
 end
+
+class CrazySymbolHelperTest < ActionView::TestCase
+  tests :people
+
+  def test_set_helper_class_using_symbol
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end
+
+class CrazyStringHelperTest < ActionView::TestCase
+  tests 'people'
+
+  def test_set_helper_class_using_string
+    assert_equal PeopleHelper, self.class.helper_class
+  end
+end

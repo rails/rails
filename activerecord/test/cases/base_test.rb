@@ -22,6 +22,7 @@ require 'models/person'
 require 'models/edge'
 require 'models/joke'
 require 'models/bulb'
+require 'models/bird'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 require 'bcrypt'
@@ -276,6 +277,29 @@ class BasicsTest < ActiveRecord::TestCase
     cb = CustomBulb.create {|c| c.name = 'Dude' }
     assert_equal('Dude', cb.name)
     assert_equal(true, cb.frickinawesome)
+  end
+
+  def test_first_or_create
+    parrot = Bird.first_or_create(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    the_same_parrot = Bird.first_or_create(:color => 'yellow', :name => 'macaw')
+    assert_equal parrot, the_same_parrot
+  end
+
+  def test_first_or_create_bang
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.first_or_create! }
+    parrot = Bird.first_or_create!(:color => 'green', :name => 'parrot')
+    assert parrot.persisted?
+    the_same_parrot = Bird.first_or_create!(:color => 'yellow', :name => 'macaw')
+    assert_equal parrot, the_same_parrot
+  end
+
+  def test_first_or_initialize
+    parrot = Bird.first_or_initialize(:color => 'green', :name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.new_record?
+    assert parrot.valid?
   end
 
   def test_load
@@ -1737,6 +1761,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
   end
 
+  def test_becomes_includes_errors
+    company = Company.new(:name => nil)
+    assert !company.valid?
+    original_errors = company.errors
+    client = company.becomes(Client)
+    assert_equal original_errors, client.errors
+  end
+
   def test_silence_sets_log_level_to_error_in_block
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
@@ -1910,5 +1942,11 @@ class BasicsTest < ActiveRecord::TestCase
     dev = Developer.first
     dev.update_attribute(:updated_at, nil)
     assert_match(/\/#{dev.id}$/, dev.cache_key)
+  end
+
+  def test_uniq_delegates_to_scoped
+    scope = stub
+    Bird.stubs(:scoped).returns(mock(:uniq => scope))
+    assert_equal scope, Bird.uniq
   end
 end

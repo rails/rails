@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
 
-  s.files        = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'examples/**/*', 'lib/**/*']
+  s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'examples/**/*', 'lib/**/*']
   s.require_path = 'lib'
 
   s.extra_rdoc_files = %w( README.rdoc )
@@ -21,6 +21,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency('activesupport', version)
   s.add_dependency('activemodel',   version)
-  s.add_dependency('arel',          '~> 2.2.1')
+  s.add_dependency('arel',          '~> 3.0.0.pre')
   s.add_dependency('tzinfo',        '~> 0.3.29')
 end

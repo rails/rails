@@ -24,6 +24,26 @@ module Notifications
     end
   end
 
+  class SubscribedTest < TestCase
+    def test_subscribed
+      name     = "foo"
+      name2    = name * 2
+      expected = [name, name]
+
+      events   = []
+      callback = lambda {|*_| events << _.first}
+      ActiveSupport::Notifications.subscribed(callback, name) do
+        ActiveSupport::Notifications.instrument(name)
+        ActiveSupport::Notifications.instrument(name2)
+        ActiveSupport::Notifications.instrument(name)
+      end
+      assert_equal expected, events
+
+      ActiveSupport::Notifications.instrument(name)
+      assert_equal expected, events
+    end
+  end
+
   class UnsubscribeTest < TestCase
     def test_unsubscribing_removes_a_subscription
       @notifier.publish :foo

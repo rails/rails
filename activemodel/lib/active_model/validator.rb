@@ -48,8 +48,8 @@ module ActiveModel #:nodoc:
   #
   #   class MyValidator < ActiveModel::Validator
   #     def validate(record)
-  #       record.errors[:base] << "This is some custom error message"
-  #       record.errors[:first_name] << "This is some complex validation"
+  #       record.errors.add :base, "This is some custom error message"
+  #       record.errors.add :first_name, "This is some complex validation"
   #       # etc...
   #     end
   #   end
@@ -57,7 +57,7 @@ module ActiveModel #:nodoc:
   # To add behavior to the initialize method, use the following signature:
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def initialize(record, options)
+  #     def initialize(options)
   #       super
   #       @my_custom_field = options[:field_name] || :first_name
   #     end
@@ -68,7 +68,7 @@ module ActiveModel #:nodoc:
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
-  #       record.errors[attribute] << 'must be Mr. Mrs. or Dr.' unless value.in?(['Mr.', 'Mrs.', 'Dr.'])
+  #       record.errors.add attribute, 'must be Mr. Mrs. or Dr.' unless value.in?(['Mr.', 'Mrs.', 'Dr.'])
   #     end
   #   end
   #

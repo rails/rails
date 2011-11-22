@@ -21,6 +21,23 @@ module RailtiesTest
       assert_match "alert()", last_response.body
     end
 
+    def test_rake_environment_can_be_called_in_the_engine_or_plugin
+      boot_rails
+
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load 'rails/tasks/engine.rake'
+        task :foo => :environment do
+          puts "Task ran"
+        end
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake foo`
+        assert_match "Task ran", output
+      end
+    end
+
     def test_copying_migrations
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
         class CreateUsers < ActiveRecord::Migration

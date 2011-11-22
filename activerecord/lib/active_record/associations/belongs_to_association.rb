@@ -45,7 +45,11 @@ module ActiveRecord
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record && record[reflection.association_primary_key]
+          if record
+            owner[reflection.foreign_key] = record[reflection.association_primary_key(record.class)]
+          else
+            owner[reflection.foreign_key] = nil
+          end
         end
 
         def foreign_key_present?

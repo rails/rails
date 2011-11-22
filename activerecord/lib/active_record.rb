@@ -69,6 +69,7 @@ module ActiveRecord
     autoload :Schema
     autoload :SchemaDumper
     autoload :Serialization
+    autoload :Store
     autoload :SessionStore
     autoload :Timestamp
     autoload :Transactions

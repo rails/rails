@@ -122,7 +122,7 @@ module ActionController #:nodoc:
 
         if options.is_a?(Hash)
           if options[:action].is_a?(Array)
-            options[:action].dup.each do |action|
+            options[:action].each do |action|
               self.class.expire_page(url_for(options.merge(:only_path => true, :action => action)))
             end
           else

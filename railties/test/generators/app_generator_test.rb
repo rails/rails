@@ -143,6 +143,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_postgresql_database
+    run_generator([destination_root, "-d", "postgresql"])
+    assert_file "config/database.yml", /postgresql/
+    unless defined?(JRUBY_VERSION)
+      assert_file "Gemfile", /^gem\s+["']pg["']$/
+    else
+      assert_file "Gemfile", /^gem\s+["']activerecord-jdbcpostgresql-adapter["']$/
+    end
+  end
+
   def test_config_jdbcmysql_database
     run_generator([destination_root, "-d", "jdbcmysql"])
     assert_file "config/database.yml", /mysql/
@@ -198,9 +208,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
+  def test_inclusion_of_therubyrhino_under_jruby
+    if defined?(JRUBY_VERSION)
+      run_generator([destination_root])
+      assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
+    end
+  end
+
   def test_creation_of_a_test_directory
     run_generator
     assert_file 'test'
+  end
+
+  def test_creation_of_vendor_assets_javascripts_directory
+    run_generator
+    assert_file "vendor/assets/javascripts"
+  end
+
+  def test_creation_of_vendor_assets_stylesheets_directory
+    run_generator
+    assert_file "vendor/assets/stylesheets"
   end
 
   def test_jquery_is_the_default_javascript_library
@@ -229,21 +256,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-javascript"]
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_no_match %r{^//=\s+require\s}, contents
-    end
-  end
-
-  def test_inclusion_of_turn_gem_in_gemfile
-    run_generator
-    assert_file "Gemfile" do |contents|
-      assert_match(/gem 'turn'/, contents) unless RUBY_VERSION < '1.9.2'
-      assert_no_match(/gem 'turn'/, contents) if RUBY_VERSION < '1.9.2'
-    end
-  end
-
-  def test_turn_gem_is_not_included_in_gemfile_if_skipping_test_unit
-    run_generator [destination_root, "--skip-test-unit"]
-    assert_file "Gemfile" do |contents|
-      assert_no_match(/gem 'turn'/, contents) unless RUBY_VERSION < '1.9.2'
     end
   end
 

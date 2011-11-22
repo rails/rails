@@ -56,6 +56,16 @@ class JsonSerializationTest < ActiveModel::TestCase
     end
   end
 
+  test "should include root in json (option) even if the default is set to false" do
+    begin
+      Contact.include_root_in_json = false
+      json = @contact.to_json(:root => true)
+      assert_match %r{^\{"contact":\{}, json
+    ensure
+      Contact.include_root_in_json = true
+    end
+  end
+
   test "should not include root in json (option)" do
 
     json = @contact.to_json(:root => false)
@@ -192,6 +202,16 @@ class JsonSerializationTest < ActiveModel::TestCase
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
+    assert_no_match %r{"awesome":}, json
+    assert_no_match %r{"preferences":}, json
+  end
+
+  test "custom as_json options should be extendible" do
+    def @contact.as_json(options = {}); super(options.merge(:only => [:name])); end
+    json = @contact.to_json
+
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{"created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}}, json
     assert_no_match %r{"awesome":}, json
     assert_no_match %r{"preferences":}, json
   end

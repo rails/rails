@@ -57,8 +57,8 @@ module ActiveRecord
         value = column.limit ? value.to_s.mb_chars[0, column.limit] : value.to_s if column.text?
 
         if !options[:case_sensitive] && value && column.text?
-          # will use SQL LOWER function before comparison
-          relation = table[attribute].lower.eq(table.lower(value))
+          # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+          relation = klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
           value    = klass.connection.case_sensitive_modifier(value)
           relation = table[attribute].eq(value)

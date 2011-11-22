@@ -370,7 +370,10 @@ module ActiveRecord
         else
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
           if autosave != false && (new_record? || record.new_record? || record[reflection.foreign_key] != key || autosave)
-            record[reflection.foreign_key] = key
+            unless reflection.through_reflection
+              record[reflection.foreign_key] = key
+            end
+
             saved = record.save(:validate => !autosave)
             raise ActiveRecord::Rollback if !saved && autosave
             saved

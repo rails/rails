@@ -148,7 +148,7 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
   end
 
   def test_human
-    'Article'
+    assert_equal 'Article', @model_name.human
   end
 
   def test_route_key

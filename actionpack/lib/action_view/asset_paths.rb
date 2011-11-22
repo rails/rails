@@ -16,19 +16,17 @@ module ActionView
     # roots. Rewrite the asset path for cache-busting asset ids. Include
     # asset host, if configured, with the correct request protocol.
     #
-    # When include_host is true and the asset host does not specify the protocol
-    # the protocol parameter specifies how the protocol will be added.
     # When :relative (default), the protocol will be determined by the client using current protocol
     # When :request, the protocol will be the request protocol
     # Otherwise, the protocol is used (E.g. :http, :https, etc)
-    def compute_public_path(source, dir, ext = nil, include_host = true, protocol = nil)
+    def compute_public_path(source, dir, options = {})
       source = source.to_s
       return source if is_uri?(source)
 
-      source = rewrite_extension(source, dir, ext) if ext
-      source = rewrite_asset_path(source, dir)
-      source = rewrite_relative_url_root(source, relative_url_root) if has_request?
-      source = rewrite_host_and_protocol(source, protocol) if include_host
+      source = rewrite_extension(source, dir, options[:ext]) if options[:ext]
+      source = rewrite_asset_path(source, dir, options)
+      source = rewrite_relative_url_root(source, relative_url_root)
+      source = rewrite_host_and_protocol(source, options[:protocol])
       source
     end
 
@@ -88,9 +86,7 @@ module ActionView
     end
 
     def default_protocol
-      protocol = @config.action_controller.default_asset_host_protocol if @config.action_controller.present?
-      protocol ||= @config.default_asset_host_protocol
-      protocol || (has_request? ? :request : :relative)
+      @config.default_asset_host_protocol || (has_request? ? :request : :relative)
     end
 
     def invalid_asset_host!(help_message)
@@ -119,18 +115,11 @@ module ActionView
     end
 
     def relative_url_root
-      config = controller.config if controller.respond_to?(:config)
-      config ||= config.action_controller if config.action_controller.present?
-      config ||= config
       config.relative_url_root
     end
 
     def asset_host_config
-      if config.action_controller.present?
-        config.action_controller.asset_host
-      else
-        config.asset_host
-      end
+      config.asset_host
     end
 
     # Returns the current request if one exists.

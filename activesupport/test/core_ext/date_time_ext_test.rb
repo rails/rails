@@ -34,8 +34,8 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_to_time
-    assert_equal Time.utc(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0, 0).to_time
-    assert_equal Time.utc_time(2039, 2, 21, 10, 11, 12), DateTime.new(2039, 2, 21, 10, 11, 12, 0, 0).to_time
+    assert_equal Time.utc(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12, 0).to_time
+    assert_equal Time.utc_time(2039, 2, 21, 10, 11, 12), DateTime.new(2039, 2, 21, 10, 11, 12, 0).to_time
     # DateTimes with offsets other than 0 are returned unaltered
     assert_equal DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)), DateTime.new(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).to_time
     # Fractional seconds are preserved
@@ -99,7 +99,7 @@ class DateTimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal DateTime.civil(2005,5,1,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(5)
     assert_equal DateTime.civil(2005,4,24,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(6)
     assert_equal DateTime.civil(2005,2,27,10),  DateTime.civil(2005,6,5,10,0,0).weeks_ago(14)
-    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)    
+    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)
   end
 
   def test_months_ago

