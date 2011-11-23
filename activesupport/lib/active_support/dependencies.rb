@@ -542,6 +542,7 @@ module ActiveSupport #:nodoc:
         key = key.name if key.respond_to?(:name)
         @store[key] ||= Inflector.constantize(key)
       end
+      alias :[] :get
 
       def safe_get(key)
         key = key.name if key.respond_to?(:name)

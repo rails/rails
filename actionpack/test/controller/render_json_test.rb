@@ -26,8 +26,12 @@ class RenderJsonTest < ActionController::TestCase
   end
 
   class JsonSerializable
+    def initialize(skip=false)
+      @skip = skip
+    end
+
     def active_model_serializer
-      JsonSerializer
+      JsonSerializer unless @skip
     end
 
     def as_json(*)
@@ -88,6 +92,11 @@ class RenderJsonTest < ActionController::TestCase
     def render_json_with_serializer
       @current_user = Struct.new(:as_json).new(:current_user => true)
       render :json => JsonSerializable.new
+    end
+
+    def render_json_with_serializer_api_but_without_serializer
+      @current_user = Struct.new(:as_json).new(:current_user => true)
+      render :json => JsonSerializable.new(true)
     end
   end
 
@@ -165,5 +174,10 @@ class RenderJsonTest < ActionController::TestCase
     get :render_json_with_serializer
     assert_match '"scope":{"current_user":true}', @response.body
     assert_match '"object":{"serializable_object":true}', @response.body
+  end
+
+  def test_render_json_with_serializer_api_but_without_serializer
+    get :render_json_with_serializer_api_but_without_serializer
+    assert_match '{"serializable_object":true}', @response.body
   end
 end

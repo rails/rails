@@ -49,6 +49,11 @@ module ActiveSupport
         end
       end
 
+      def test_get_alias
+        assert @cache.empty?
+        assert_equal @cache[ClassCacheTest.name], @cache.get(ClassCacheTest.name)
+      end
+
       def test_safe_get_constantizes
         assert @cache.empty?
         assert_equal ClassCacheTest, @cache.safe_get(ClassCacheTest.name)

@@ -19,10 +19,8 @@ class SerializerTest < ActiveModel::TestCase
     include ActiveModel::Serializable
 
     attr_accessor :superuser
-    attr_writer   :model_serializer
 
     def initialize(hash={})
-      @model_serializer = nil
       @attributes = hash.merge(:first_name => "Jose", :last_name => "Valim", :password => "oh noes yugive my password")
     end
 
@@ -33,17 +31,15 @@ class SerializerTest < ActiveModel::TestCase
     def super_user?
       @superuser
     end
-
-    def model_serializer
-      @model_serializer || super
-    end
   end
 
   class Post < Model
     attr_accessor :comments
+    def active_model_serializer; PostSerializer; end
   end
 
   class Comment < Model
+    def active_model_serializer; CommentSerializer; end
   end
 
   class UserSerializer < ActiveModel::Serializer
@@ -428,38 +424,11 @@ class SerializerTest < ActiveModel::TestCase
     post.comments = []
 
     array = [model, post, comments]
-    serializer = ActiveModel::Serializer::Finder.find(array, user).new(array, user)
+    serializer = array.active_model_serializer.new(array, user)
     assert_equal([
       { :model => "Model" },
       { :post => { :body => "Body of new post", :comments => [], :title => "New Post" } },
       { :comment => { :title => "Comment1" } }
     ], serializer.as_json)
-  end
-
-  def test_array_serializer_respects_model_serializer
-    user = User.new(:first_name => "Jose", :last_name => "Valim")
-    user.model_serializer = User2Serializer
-
-    array = [user]
-    serializer = ActiveModel::Serializer::Finder.find(array, user).new(array, {})
-    assert_equal([
-      { :user2 => { :last_name => "Valim", :first_name => "Jose", :ok => true } },
-    ], serializer.as_json)
-  end
-
-  def test_finder_respects_model_serializer
-    user = User.new(:first_name => "Jose", :last_name => "Valim")
-    assert_equal UserSerializer, user.model_serializer
-
-    serializer = ActiveModel::Serializer::Finder.find(user, self).new(user, {})
-    assert_equal({
-      :user => { :last_name => "Valim", :first_name => "Jose"},
-    }, serializer.as_json)
-
-    user.model_serializer = User2Serializer
-    serializer = ActiveModel::Serializer::Finder.find(user, self).new(user, {})
-    assert_equal({
-      :user2 => { :last_name => "Valim", :first_name => "Jose", :ok => true },
-    }, serializer.as_json)
   end
 end
