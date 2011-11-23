@@ -165,6 +165,11 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal false, ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.utc(2000,1,2,0) ).today?
   end
 
+  def test_today_with_zone
+    current_time = Time.now.in_time_zone('Asia/Shanghai')
+    assert_equal true, current_time.today?
+  end
+
   def test_past_with_time_current_as_time_local
     with_env_tz 'US/Eastern' do
       Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
