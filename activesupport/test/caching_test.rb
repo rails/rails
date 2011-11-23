@@ -42,7 +42,7 @@ class CacheKeyTest < ActiveSupport::TestCase
     end
   end
 
-  def test_respond_to_cache_key
+  def test_expand_cache_key_respond_to_cache_key
     key = 'foo'
     def key.cache_key
       :foo_key
@@ -50,7 +50,7 @@ class CacheKeyTest < ActiveSupport::TestCase
     assert_equal 'foo_key', ActiveSupport::Cache.expand_cache_key(key)
   end
 
-  def test_array_with_something_that_responds_to_cache_key
+  def test_expand_cache_key_array_with_something_that_responds_to_cache_key
     key = 'foo'
     def key.cache_key
       :foo_key
@@ -58,6 +58,17 @@ class CacheKeyTest < ActiveSupport::TestCase
     assert_equal 'foo_key', ActiveSupport::Cache.expand_cache_key([key])
   end
 
+  def test_expand_cache_key_of_nil
+    assert_equal '', ActiveSupport::Cache.expand_cache_key(nil)
+  end
+
+  def test_expand_cache_key_of_false
+    assert_equal 'false', ActiveSupport::Cache.expand_cache_key(false)
+  end
+
+  def test_expand_cache_key_of_true
+    assert_equal 'true', ActiveSupport::Cache.expand_cache_key(true)
+  end
 end
 
 class CacheStoreSettingTest < ActiveSupport::TestCase

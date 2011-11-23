@@ -84,7 +84,7 @@ module ActiveSupport
         case
         when key.respond_to?(:cache_key) then key.cache_key
         when key.is_a?(Array)            then key.map { |element| expand_cache_key(element) }.to_param
-        when key                         then key.to_param
+        else                                  key.to_param
         end.to_s
 
       expanded_cache_key
