@@ -29,6 +29,7 @@ require 'active_model/version'
 module ActiveModel
   extend ActiveSupport::Autoload
 
+  autoload :ArraySerializer, 'active_model/serializer'
   autoload :AttributeMethods
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
@@ -43,8 +44,9 @@ module ActiveModel
   autoload :Observer, 'active_model/observing'
   autoload :Observing
   autoload :SecurePassword
-  autoload :Serializer
+  autoload :Serializable
   autoload :Serialization
+  autoload :Serializer
   autoload :TestCase
   autoload :Translation
   autoload :Validations

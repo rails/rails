@@ -1,10 +1,70 @@
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/module/introspection"
 require "set"
 
 module ActiveModel
+  # Active Model Array Serializer
+  class ArraySerializer
+    attr_reader :object, :scope
+
+    def initialize(object, scope)
+      @object, @scope = object, scope
+    end
+
+    def serializable_array
+      @object.map do |item|
+        if serializer = Serializer::Finder.find(item, scope)
+          serializer.new(item, scope)
+        else
+          item
+        end
+      end
+    end
+
+    def as_json(*args)
+      serializable_array.as_json(*args)
+    end
+  end
+
+  # Active Model Serializer
   class Serializer
+    module Finder
+      mattr_accessor :constantizer
+      @@constantizer = ActiveSupport::Inflector
+
+      # Finds a serializer for the given object in the given scope.
+      # If the object implements a +model_serializer+ method, it does
+      # not do a scope lookup but uses the model_serializer method instead.
+      def self.find(object, scope)
+        if object.respond_to?(:model_serializer)
+          object.model_serializer
+        else
+          scope      = scope.class  unless scope.respond_to?(:const_defined?)
+          object     = object.class unless object.respond_to?(:name)
+          serializer = "#{object.name.demodulize}Serializer"
+
+          begin
+            scope.const_get serializer
+          rescue NameError => e
+            raise unless e.message =~ /uninitialized constant ([\w_]+::)*#{serializer}$/
+            scope.parents.each do |parent|
+              return parent.const_get(serializer) if parent.const_defined?(serializer)
+            end
+            nil
+          end
+        end
+      end
+    end
+
+    # Defines the serialization scope. Core extension serializers
+    # are defined in this module so a scoped lookup is able to find
+    # core extension serializers.
+    module Scope
+      ArraySerializer = ::ActiveModel::ArraySerializer
+    end
+
     module Associations
       class Config < Struct.new(:name, :options)
         def serializer
