@@ -191,7 +191,7 @@ module ActiveSupport
     end
 
     def past?
-      utc.past?
+      utc.past?(time_zone)
     end
 
     def today?
@@ -199,7 +199,7 @@ module ActiveSupport
     end
 
     def future?
-      utc.future?
+      utc.future?(time_zone)
     end
 
     def eql?(other)
