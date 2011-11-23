@@ -22,7 +22,7 @@ module ShowExceptions
       ['127.0.0.1', '127.0.0.127', '::1', '0:0:0:0:0:0:0:1', '0:0:0:0:0:0:0:1%0'].each do |ip_address|
         self.remote_addr = ip_address
         get '/'
-        assert_match /boom/, body
+        assert_match(/boom/, body)
       end
     end
 
@@ -31,7 +31,7 @@ module ShowExceptions
       @app = ShowExceptionsController.action(:boom)
       self.remote_addr = '208.77.188.166'
       get '/'
-      assert_match /boom/, body
+      assert_match(/boom/, body)
     end
   end
 
@@ -53,7 +53,7 @@ module ShowExceptions
     test 'show diagnostics message' do
       @app = ShowExceptionsOverridenController.action(:boom)
       get '/', {'detailed' => '1'}
-      assert_match /boom/, body
+      assert_match(/boom/, body)
     end
   end
 end
