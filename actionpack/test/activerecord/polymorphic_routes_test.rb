@@ -34,10 +34,8 @@ module Blog
     set_table_name 'projects'
   end
 
-  def self._railtie
-    o = Object.new
-    def o.railtie_name; "blog" end
-    o
+  def self.use_relative_model_naming?
+    true
   end
 end
 

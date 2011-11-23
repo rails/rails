@@ -141,6 +141,10 @@ module Rails
       self
     end
 
+    def helpers_paths
+      config.helpers_paths
+    end
+
   protected
 
     alias :build_middleware_stack :app
