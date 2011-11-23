@@ -210,8 +210,8 @@ class CookiesTest < ActionController::TestCase
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
-  def test_setting_cookie_with_secure_in_development
-    Rails.env.stubs(:development?).returns(true)
+  def test_setting_cookie_with_secure_when_always_write_cookie_is_true
+    ActionDispatch::Cookies::CookieJar.any_instance.stubs(:always_write_cookie).returns(true)
     get :authenticate_with_secure
     assert_cookie_header "user_name=david; path=/; secure"
     assert_equal({"user_name" => "david"}, @response.cookies)
