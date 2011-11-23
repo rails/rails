@@ -5,7 +5,7 @@ require 'ostruct'
 
 class Contact
   extend ActiveModel::Naming
-  include ActiveModel::Serializers::Xml
+  include ActiveModel::Serializable::XML
 
   attr_accessor :address, :friends
 
@@ -24,7 +24,7 @@ end
 
 class Address
   extend ActiveModel::Naming
-  include ActiveModel::Serializers::Xml
+  include ActiveModel::Serializable::XML
 
   attr_accessor :street, :city, :state, :zip
 
