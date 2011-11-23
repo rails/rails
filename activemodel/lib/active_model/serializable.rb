@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/string/inflections'
 
 module ActiveModel
   # == Active Model Serializable
@@ -72,11 +73,10 @@ module ActiveModel
     autoload :JSON, "active_model/serializable/json"
     autoload :XML,  "active_model/serializable/xml"
 
-    include ActiveModel::Serializer::Scope
-
     module ClassMethods #:nodoc:
-      def _model_serializer
-        @_model_serializer ||= ActiveModel::Serializer::Finder.find(self, self)
+      def active_model_serializer
+        return @active_model_serializer if defined?(@active_model_serializer)
+        @active_model_serializer = "#{self.name}Serializer".safe_constantize
       end
     end
 
@@ -108,8 +108,8 @@ module ActiveModel
     end
 
     # Returns a model serializer for this object considering its namespace.
-    def model_serializer
-      self.class._model_serializer
+    def active_model_serializer
+      self.class.active_model_serializer
     end
 
   private
