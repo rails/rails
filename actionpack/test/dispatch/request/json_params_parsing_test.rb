@@ -45,6 +45,18 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "occurring a parse error if parsing unsuccessful" do
+    with_test_routing do
+      begin
+        $stderr = StringIO.new # suppress the log
+        json = "[\"person]\": {\"name\": \"David\"}}"
+        assert_raise(MultiJson::DecodeError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
+      ensure
+        $stderr = STDERR
+      end
+    end
+  end
+
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing do
