@@ -81,16 +81,10 @@ module ActiveSupport
       end
 
       expanded_cache_key <<
-        if key.respond_to?(:cache_key)
-          key.cache_key
-        elsif key.is_a?(Array)
-          if key.size > 1
-            key.collect { |element| expand_cache_key(element) }.to_param
-          else
-            key.first.to_param
-          end
-        elsif key
-          key.to_param
+        case
+        when key.respond_to?(:cache_key) then key.cache_key
+        when key.is_a?(Array)            then key.map { |element| expand_cache_key(element) }.to_param
+        else                                  key.to_param
         end.to_s
 
       expanded_cache_key
