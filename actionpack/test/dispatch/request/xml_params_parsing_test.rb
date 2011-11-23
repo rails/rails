@@ -67,6 +67,18 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "occurring a parse error if parsing unsuccessful" do
+    with_test_routing do
+      begin
+        $stderr = StringIO.new # suppress the log
+        xml = "<person><name>David</name></pineapple>"
+        assert_raise(REXML::ParseException) { post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => false) }
+      ensure
+        $stderr = STDERR
+      end
+    end
+  end
+
   test "parses multiple files" do
     xml = <<-end_body
       <person>
