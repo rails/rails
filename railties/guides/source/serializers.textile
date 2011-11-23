@@ -459,25 +459,6 @@ In other words, if a +PostSerializer+ is trying to serialize comments, it will f
 look for +PostSerializer::CommentSerializer+ before falling back to +CommentSerializer+
 and finally +comment.as_json+.
 
-h3. Optional Associations
-
-In some cases, you will want to allow a front-end to decide whether to include associated
-content or not. You can achieve this easily by making an association *optional*.
-
-<ruby>
-class PostSerializer < ActiveModel::Serializer
-  attributes :title. :body
-  has_many :comments, :optional => true
-
-  # ...
-end
-</ruby>
-
-If an association is optional, it will not be included unless the request asks for it
-with an +including+ parameter. The +including+ parameter is a comma-separated list of
-optional associations to include. If the +including+ parameter includes an association
-you did not specify in your serializer, it will receive a +401 Forbidden+ response.
-
 h3. Overriding the Defaults
 
 h4. Authorization Scope
@@ -499,24 +480,6 @@ You can also implement an instance method called (no surprise) +serialization_sc
 which allows you to define a dynamic authorization scope based on the current request.
 
 WARNING: If you use different objects as authorization scopes, make sure that they all implement whatever interface you use in your serializers to control what the outputted JSON looks like.
-
-h4. Parameter to Specify Included Optional Associations
-
-In most cases, you should be able to use the default +including+ parameter to specify
-which optional associations to include. If you are already using that parameter name or
-want to reserve it for some reason, you can specify a different name by using the
-+serialization_includes_param+ class method.
-
-<ruby>
-class PostsController < ApplicationController
-  serialization_includes_param :associations_to_include
-end
-</ruby>
-
-You can also implement a +serialization_includes+ instance method, which should return an
-Array of optional includes.
-
-WARNING: If you implement +serialization_includes+ and return an invalid association, your user will receive a +401 Forbidden+ exception.
 
 h3. Using Serializers Outside of a Request
 
