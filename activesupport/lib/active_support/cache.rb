@@ -25,69 +25,75 @@ module ActiveSupport
       autoload :LocalCache, 'active_support/cache/strategy/local_cache'
     end
 
-    # Creates a new CacheStore object according to the given options.
-    #
-    # If no arguments are passed to this method, then a new
-    # ActiveSupport::Cache::MemoryStore object will be returned.
-    #
-    # If you pass a Symbol as the first argument, then a corresponding cache
-    # store class under the ActiveSupport::Cache namespace will be created.
-    # For example:
-    #
-    #   ActiveSupport::Cache.lookup_store(:memory_store)
-    #   # => returns a new ActiveSupport::Cache::MemoryStore object
-    #
-    #   ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    #   # => returns a new ActiveSupport::Cache::MemCacheStore object
-    #
-    # Any additional arguments will be passed to the corresponding cache store
-    # class's constructor:
-    #
-    #   ActiveSupport::Cache.lookup_store(:file_store, "/tmp/cache")
-    #   # => same as: ActiveSupport::Cache::FileStore.new("/tmp/cache")
-    #
-    # If the first argument is not a Symbol, then it will simply be returned:
-    #
-    #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
-    #   # => returns MyOwnCacheStore.new
-    def self.lookup_store(*store_option)
-      store, *parameters = *Array.wrap(store_option).flatten
+    class << self
+      # Creates a new CacheStore object according to the given options.
+      #
+      # If no arguments are passed to this method, then a new
+      # ActiveSupport::Cache::MemoryStore object will be returned.
+      #
+      # If you pass a Symbol as the first argument, then a corresponding cache
+      # store class under the ActiveSupport::Cache namespace will be created.
+      # For example:
+      #
+      #   ActiveSupport::Cache.lookup_store(:memory_store)
+      #   # => returns a new ActiveSupport::Cache::MemoryStore object
+      #
+      #   ActiveSupport::Cache.lookup_store(:mem_cache_store)
+      #   # => returns a new ActiveSupport::Cache::MemCacheStore object
+      #
+      # Any additional arguments will be passed to the corresponding cache store
+      # class's constructor:
+      #
+      #   ActiveSupport::Cache.lookup_store(:file_store, "/tmp/cache")
+      #   # => same as: ActiveSupport::Cache::FileStore.new("/tmp/cache")
+      #
+      # If the first argument is not a Symbol, then it will simply be returned:
+      #
+      #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
+      #   # => returns MyOwnCacheStore.new
+      def lookup_store(*store_option)
+        store, *parameters = *Array.wrap(store_option).flatten
 
-      case store
-      when Symbol
-        store_class_name = store.to_s.camelize
-        store_class =
-          begin
-            require "active_support/cache/#{store}"
-          rescue LoadError => e
-            raise "Could not find cache store adapter for #{store} (#{e})"
-          else
-            ActiveSupport::Cache.const_get(store_class_name)
-          end
-        store_class.new(*parameters)
-      when nil
-        ActiveSupport::Cache::MemoryStore.new
-      else
-        store
-      end
-    end
-
-    def self.expand_cache_key(key, namespace = nil)
-      expanded_cache_key = namespace ? "#{namespace}/" : ""
-
-      prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
-      if prefix
-        expanded_cache_key << "#{prefix}/"
+        case store
+        when Symbol
+          store_class_name = store.to_s.camelize
+          store_class =
+            begin
+              require "active_support/cache/#{store}"
+            rescue LoadError => e
+              raise "Could not find cache store adapter for #{store} (#{e})"
+            else
+              ActiveSupport::Cache.const_get(store_class_name)
+            end
+          store_class.new(*parameters)
+        when nil
+          ActiveSupport::Cache::MemoryStore.new
+        else
+          store
+        end
       end
 
-      expanded_cache_key <<
+      def expand_cache_key(key, namespace = nil)
+        expanded_cache_key = namespace ? "#{namespace}/" : ""
+
+        prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
+        if prefix
+          expanded_cache_key << "#{prefix}/"
+        end
+
+        expanded_cache_key << retrieve_cache_key(key)
+        expanded_cache_key
+      end
+
+      private
+
+      def retrieve_cache_key(key)
         case
         when key.respond_to?(:cache_key) then key.cache_key
-        when key.is_a?(Array)            then key.map { |element| expand_cache_key(element) }.to_param
+        when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
         else                                  key.to_param
         end.to_s
-
-      expanded_cache_key
+      end
     end
 
     # An abstract cache store class. There are multiple cache store

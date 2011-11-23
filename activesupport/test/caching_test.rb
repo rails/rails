@@ -12,11 +12,11 @@ class CacheKeyTest < ActiveSupport::TestCase
     begin
       ENV['RAILS_CACHE_ID'] = 'c99'
       assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
-      assert_equal 'c99/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo])
-      assert_equal 'c99/c99/foo/c99/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
+      assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key([:foo])
+      assert_equal 'c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
       assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key(:foo, :nm)
-      assert_equal 'nm/c99/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
-      assert_equal 'nm/c99/c99/foo/c99/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
+      assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
+      assert_equal 'nm/c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
     ensure
       ENV['RAILS_CACHE_ID'] = nil
     end
