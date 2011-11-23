@@ -74,10 +74,6 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
   def test_param_key
     assert_equal 'post', @model_name.param_key
   end
-
-  def test_recognizing_namespace
-    assert_equal 'Post', Blog::Post.model_name.instance_variable_get("@unnamespaced")
-  end
 end
 
 class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
@@ -157,6 +153,40 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
 
   def test_param_key
     assert_equal 'article', @model_name.param_key
+  end
+end
+
+class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
+  def setup
+    @model_name = Blog::Post.model_name
+  end
+
+  def test_singular
+    assert_equal 'blog_post', @model_name.singular
+  end
+
+  def test_plural
+    assert_equal 'blog_posts', @model_name.plural
+  end
+
+  def test_element
+    assert_equal 'post', @model_name.element
+  end
+
+  def test_collection
+    assert_equal 'blog/posts', @model_name.collection
+  end
+
+  def test_human
+    assert_equal 'Post', @model_name.human
+  end
+
+  def test_route_key
+    assert_equal 'posts', @model_name.route_key
+  end
+
+  def test_param_key
+    assert_equal 'post', @model_name.param_key
   end
 end
 
