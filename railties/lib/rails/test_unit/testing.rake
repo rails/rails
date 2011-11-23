@@ -61,6 +61,7 @@ end
 
 # Recreated here from Active Support because :uncommitted needs it before Rails is available
 module Kernel
+  remove_method :silence_stderr # Removing old method to prevent method redefined warning
   def silence_stderr
     old_stderr = STDERR.dup
     STDERR.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
@@ -122,8 +123,7 @@ namespace :test do
 
       unit_tests       = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
       functional_tests = controllers.map { |controller| "test/functional/#{File.basename(controller, '.rb')}_test.rb" }
-
-      unit_tests.uniq + functional_tests.uniq
+      (unit_tests + functional_tests).uniq.select { |file| File.exist?(file) }
     end
 
     t.libs << 'test'

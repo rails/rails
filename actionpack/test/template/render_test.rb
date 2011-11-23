@@ -142,6 +142,13 @@ module RenderTestCases
                                 "and is followed by any combinations of letters, numbers, or underscores.", e.message
   end
 
+  def test_render_partial_with_incompatible_object
+    @view.render(:partial => nil)
+    flunk "Render did not raise ArgumentError"
+  rescue ArgumentError => e
+    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object that returns a valid partial path.", e.message
+  end
+
   def test_render_partial_with_errors
     @view.render(:partial => "test/raise")
     flunk "Render did not raise Template::Error"
@@ -429,7 +436,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   if '1.9'.respond_to?(:force_encoding)
     def test_render_utf8_template_with_magic_comment
       with_external_encoding Encoding::ASCII_8BIT do
-        result = @view.render(:file => "test/utf8_magic.html", :layouts => "layouts/yield")
+        result = @view.render(:file => "test/utf8_magic", :formats => [:html], :layouts => "layouts/yield")
         assert_equal Encoding::UTF_8, result.encoding
         assert_equal "\nРусский \nтекст\n\nUTF-8\nUTF-8\nUTF-8\n", result
       end
@@ -437,7 +444,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
     def test_render_utf8_template_with_default_external_encoding
       with_external_encoding Encoding::UTF_8 do
-        result = @view.render(:file => "test/utf8.html", :layouts => "layouts/yield")
+        result = @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield")
         assert_equal Encoding::UTF_8, result.encoding
         assert_equal "Русский текст\n\nUTF-8\nUTF-8\nUTF-8\n", result
       end
@@ -446,7 +453,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     def test_render_utf8_template_with_incompatible_external_encoding
       with_external_encoding Encoding::SHIFT_JIS do
         begin
-          @view.render(:file => "test/utf8.html", :layouts => "layouts/yield")
+          @view.render(:file => "test/utf8", :formats => [:html], :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'
         rescue ActionView::Template::Error => error
           assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message
@@ -457,7 +464,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     def test_render_utf8_template_with_partial_with_incompatible_encoding
       with_external_encoding Encoding::SHIFT_JIS do
         begin
-          @view.render(:file => "test/utf8_magic_with_bare_partial.html", :layouts => "layouts/yield")
+          @view.render(:file => "test/utf8_magic_with_bare_partial", :formats => [:html], :layouts => "layouts/yield")
           flunk 'Should have raised incompatible encoding error'
         rescue ActionView::Template::Error => error
           assert_match 'Your template was not saved as valid Shift_JIS', error.original_exception.message

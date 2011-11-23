@@ -10,20 +10,21 @@ module Rails
         end
 
         routes = all_routes.collect do |route|
+          route_reqs = route.requirements
 
-          reqs = route.requirements.dup
           rack_app = route.app unless route.app.class.name.to_s =~ /^ActionDispatch::Routing/
 
-          endpoint = rack_app ? rack_app.inspect : "#{reqs[:controller]}##{reqs[:action]}"
-          constraints = reqs.except(:controller, :action)
+          controller = route_reqs[:controller] || ':controller'
+          action     = route_reqs[:action]     || ':action'
 
-          reqs = endpoint == '#' ? '' : endpoint
+          endpoint = rack_app ? rack_app.inspect : "#{controller}##{action}"
+          constraints = route_reqs.except(:controller, :action)
 
-          unless constraints.empty?
-            reqs = reqs.empty? ? constraints.inspect : "#{reqs} #{constraints.inspect}"
-          end
+          reqs = endpoint
+          reqs += " #{constraints.inspect}" unless constraints.empty?
 
           verb = route.verb.source.gsub(/[$^]/, '')
+
           {:name => route.name.to_s, :verb => verb, :path => route.path.spec.to_s, :reqs => reqs}
         end
 

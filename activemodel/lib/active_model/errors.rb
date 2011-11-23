@@ -205,21 +205,14 @@ module ActiveModel
       messages.dup
     end
 
-    # Adds +message+ to the error messages on +attribute+, which will be returned on a call to
-    # <tt>on(attribute)</tt> for the same attribute. More than one error can be added to the same
-    # +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
+    # Adds +message+ to the error messages on +attribute+. More than one error can be added to the same
+    # +attribute+.
     # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
     #
     # If +message+ is a symbol, it will be translated using the appropriate scope (see +translate_error+).
     # If +message+ is a proc, it will be called, allowing for things like <tt>Time.now</tt> to be used within an error.
     def add(attribute, message = nil, options = {})
-      message ||= :invalid
-
-      if message.is_a?(Symbol)
-        message = generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      elsif message.is_a?(Proc)
-        message = message.call
-      end
+      message = normalize_message(attribute, message, options)
       if options[:strict]
         raise ActiveModel::StrictValidationFailed,  message
       end
@@ -242,6 +235,15 @@ module ActiveModel
         value = @base.send(:read_attribute_for_validation, attribute)
         add(attribute, :blank, options) if value.blank?
       end
+    end
+
+    # Returns true if an error on the attribute with the given message is present, false otherwise.
+    # +message+ is treated the same as for +add+.
+    #   p.errors.add :name, :blank
+    #   p.errors.added? :name, :blank # => true
+    def added?(attribute, message = nil, options = {})
+      message = normalize_message(attribute, message, options)
+      self[attribute].include? message
     end
 
     # Returns all the full error messages in an array.
@@ -300,13 +302,17 @@ module ActiveModel
     def generate_message(attribute, type = :invalid, options = {})
       type = options.delete(:message) if options[:message].is_a?(Symbol)
 
-      defaults = @base.class.lookup_ancestors.map do |klass|
-        [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-          :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+      if @base.class.respond_to?(:i18n_scope)
+        defaults = @base.class.lookup_ancestors.map do |klass|
+          [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
+            :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+        end
+      else
+        defaults = []
       end
 
       defaults << options.delete(:message)
-      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{type}"
+      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{type}" if @base.class.respond_to?(:i18n_scope)
       defaults << :"errors.attributes.#{attribute}.#{type}"
       defaults << :"errors.messages.#{type}"
 
@@ -324,6 +330,19 @@ module ActiveModel
       }.merge(options)
 
       I18n.translate(key, options)
+    end
+
+  private
+    def normalize_message(attribute, message, options)
+      message ||= :invalid
+
+      if message.is_a?(Symbol)
+        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+      elsif message.is_a?(Proc)
+        message.call
+      else
+        message
+      end
     end
   end
 

@@ -349,7 +349,7 @@ bundle exec rake assets:precompile
 </plain>
 
 For faster asset precompiles, you can partially load your application by setting
-+config.assets.initialize_on_precompile+ to false, though in that case templates
++config.assets.initialize_on_precompile+ to false in +config/application.rb+, though in that case templates
 cannot see application objects or methods. *Heroku requires this to be false.*
 
 WARNING: If you set +config.assets.initialize_on_precompile+ to false, be sure to
@@ -438,7 +438,7 @@ location ~ ^/assets/ {
 }
 </plain>
 
-When files are precompiled, Sprockets also creates a "gzipped":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. One the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
+When files are precompiled, Sprockets also creates a "gzipped":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. On the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
 
 Nginx is able to do this automatically enabling +gzip_static+:
 

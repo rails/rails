@@ -182,7 +182,7 @@ module ActionController #:nodoc:
     #
     #     def index
     #       @people = Person.all
-    #       respond_with(@person)
+    #       respond_with(@people)
     #     end
     #   end
     #

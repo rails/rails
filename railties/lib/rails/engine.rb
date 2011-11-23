@@ -296,16 +296,16 @@ module Rails
   # If you want to share just a few specific helpers you can add them to application's
   # helpers in ApplicationController:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::SharedEngineHelper
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::SharedEngineHelper
+  #   end
   #
   # If you want to include all of the engine's helpers, you can use #helpers method on an engine's
   # instance:
   #
-  # class ApplicationController < ActionController::Base
-  #   helper MyEngine::Engine.helpers
-  # end
+  #   class ApplicationController < ActionController::Base
+  #     helper MyEngine::Engine.helpers
+  #   end
   #
   # It will include all of the helpers from engine's directory. Take into account that this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
@@ -371,20 +371,28 @@ module Rails
         self.routes.default_scope = { :module => ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
 
-        unless mod.respond_to?(:_railtie)
-          name = engine_name
-          _railtie = self
+        unless mod.respond_to?(:railtie_namespace)
+          name, railtie = engine_name, self
+
           mod.singleton_class.instance_eval do
-            define_method(:_railtie) do
-              _railtie
-            end
+            define_method(:railtie_namespace) { railtie }
 
             unless mod.respond_to?(:table_name_prefix)
-              define_method(:table_name_prefix) do
-                "#{name}_"
-              end
+              define_method(:table_name_prefix) { "#{name}_" }
             end
-         end
+
+            unless mod.respond_to?(:use_relative_model_naming?)
+              class_eval "def use_relative_model_naming?; true; end", __FILE__, __LINE__
+            end
+
+            unless mod.respond_to?(:railtie_helpers_paths)
+              define_method(:railtie_helpers_paths) { railtie.helpers_paths }
+            end
+
+            unless mod.respond_to?(:railtie_routes_url_helpers)
+              define_method(:railtie_routes_url_helpers) { railtie.routes_url_helpers }
+            end
+          end
         end
       end
 
@@ -429,19 +437,20 @@ module Rails
     def helpers
       @helpers ||= begin
         helpers = Module.new
-
-        helpers_paths = if config.respond_to?(:helpers_paths)
-          config.helpers_paths
-        else
-          paths["app/helpers"].existent
-        end
-
         all = ActionController::Base.all_helpers_from_path(helpers_paths)
         ActionController::Base.modules_for_helpers(all).each do |mod|
           helpers.send(:include, mod)
         end
         helpers
       end
+    end
+
+    def helpers_paths
+      paths["app/helpers"].existent
+    end
+
+    def routes_url_helpers
+      routes.url_helpers
     end
 
     def app
@@ -488,7 +497,7 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds"].existent.first
-      load(seed_file) if File.exist?(seed_file)
+      load(seed_file) if seed_file && File.exist?(seed_file)
     end
 
     # Add configured load paths to ruby load paths and remove duplicates.

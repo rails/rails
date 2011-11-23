@@ -649,7 +649,7 @@ module ActionView
       #   # => <label for="post_privacy_public">Public Post</label>
       #
       #   label(:post, :terms) do
-      #     'Accept <a href="/terms">Terms</a>.'
+      #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(object_name, method, content_or_options = nil, options = nil, &block)
         content_is_options = content_or_options.is_a?(Hash)
@@ -738,7 +738,7 @@ module ActionView
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
       #   file_field(:post, :attached, :accept => 'text/html')
-      #   # => <input type="file" id="post_attached" name="post[attached]" />
+      #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
       #
       #   file_field(:attachment, :file, :class => 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
@@ -995,8 +995,16 @@ module ActionView
           label_tag(name_and_id["id"], options, &block)
         else
           content = if text.blank?
+            object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
             method_and_value = tag_value.present? ? "#{method_name}.#{tag_value}" : method_name
-            I18n.t("helpers.label.#{object_name}.#{method_and_value}", :default => "").presence
+
+            if object.respond_to?(:to_model)
+              key = object.class.model_name.i18n_key
+              i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
+            end
+
+            i18n_default ||= ""
+            I18n.t("#{object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
           else
             text.to_s
           end
@@ -1027,6 +1035,8 @@ module ActionView
 
       def to_number_field_tag(field_type, options = {})
         options = options.stringify_keys
+        options['size'] ||= nil
+
         if range = options.delete("in") || options.delete("within")
           options.update("min" => range.min, "max" => range.max)
         end

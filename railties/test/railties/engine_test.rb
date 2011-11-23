@@ -323,7 +323,7 @@ module RailtiesTest
 
       assert_equal "bukkits_", Bukkits.table_name_prefix
       assert_equal "bukkits", Bukkits::Engine.engine_name
-      assert_equal Bukkits._railtie, Bukkits::Engine
+      assert_equal Bukkits.railtie_namespace, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_path)
       assert !::Bukkits::MyMailer.method_defined?(:bar_path)
 
@@ -455,13 +455,19 @@ module RailtiesTest
 
       Rails.application.load_seed
       assert Rails.application.config.app_seeds_loaded
-      assert_raise(NoMethodError) do  Bukkits::Engine.config.bukkits_seeds_loaded end
+      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
 
       Bukkits::Engine.load_seed
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
-    test "using namespace more than once on one module should not overwrite _railtie method" do
+    test "skips nonexistent seed data" do
+      FileUtils.rm "#{app_path}/db/seeds.rb"
+      boot_rails
+      assert_nil Rails.application.load_seed
+    end
+
+    test "using namespace more than once on one module should not overwrite railtie_namespace method" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module AppTemplate
           class Engine < ::Rails::Engine
@@ -478,7 +484,7 @@ module RailtiesTest
 
       boot_rails
 
-      assert_equal AppTemplate._railtie, AppTemplate::Engine
+      assert_equal AppTemplate.railtie_namespace, AppTemplate::Engine
     end
 
     test "properly reload routes" do

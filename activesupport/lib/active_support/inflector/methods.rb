@@ -21,14 +21,7 @@ module ActiveSupport
     #   "words".pluralize            # => "words"
     #   "CamelOctopus".pluralize     # => "CamelOctopi"
     def pluralize(word)
-      result = word.to_s.dup
-
-      if word.empty? || inflections.uncountables.include?(result.downcase)
-        result
-      else
-        inflections.plurals.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
+      apply_inflections(word, inflections.plurals)
     end
 
     # The reverse of +pluralize+, returns the singular form of a word in a string.
@@ -40,14 +33,7 @@ module ActiveSupport
     #   "word".singularize             # => "word"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
-      result = word.to_s.dup
-
-      if inflections.uncountables.any? { |inflection| result =~ /\b(#{inflection})\Z/i }
-        result
-      else
-        inflections.singulars.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
+      apply_inflections(word, inflections.singulars)
     end
 
     # By default, +camelize+ converts strings to UpperCamelCase. If the argument to +camelize+
@@ -160,13 +146,32 @@ module ActiveSupport
       underscored_word.gsub(/_/, '-')
     end
 
-    # Removes the module part from the expression in the string.
+    # Removes the module part from the expression in the string:
     #
-    # Examples:
     #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
     #   "Inflections".demodulize                                       # => "Inflections"
-    def demodulize(class_name_in_module)
-      class_name_in_module.to_s.gsub(/^.*::/, '')
+    #
+    # See also +deconstantize+.
+    def demodulize(path)
+      path = path.to_s
+      if i = path.rindex('::')
+        path[(i+2)..-1]
+      else
+        path
+      end
+    end
+
+    # Removes the rightmost segment from the constant expression in the string:
+    #
+    #   "Net::HTTP".deconstantize   # => "Net"
+    #   "::Net::HTTP".deconstantize # => "::Net"
+    #   "String".deconstantize      # => ""
+    #   "::String".deconstantize    # => ""
+    #   "".deconstantize            # => ""
+    #
+    # See also +demodulize+.
+    def deconstantize(path)
+      path.to_s[0...(path.rindex('::') || 0)] # implementation based on the one in facets' Module#spacename
     end
 
     # Creates a foreign key name from a class name.
@@ -290,6 +295,22 @@ module ActiveSupport
 
       parts.reverse.inject(last) do |acc, part|
         part.empty? ? acc : "#{part}(::#{acc})?"
+      end
+    end
+
+    # Applies inflection rules for +singularize+ and +pluralize+.
+    #
+    # Examples:
+    #  apply_inflections("post", inflections.plurals) # => "posts"
+    #  apply_inflections("posts", inflections.singulars) # => "post"
+    def apply_inflections(word, rules)
+      result = word.to_s.dup
+
+      if word.empty? || inflections.uncountables.any? { |inflection| result =~ /\b#{inflection}\Z/i }
+        result
+      else
+        rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+        result
       end
     end
   end

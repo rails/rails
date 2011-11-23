@@ -64,7 +64,7 @@ end
 
 If you want a more complicated expiration scheme, you can use cache sweepers to expire cached objects when things change. This is covered in the section on Sweepers.
 
-NOTE: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. Be careful when page caching GET parameters in the URL!
+NOTE: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. A workaround for this limitation is to include the parameters in the page's path, e.g. +/productions/page/1+.
 
 INFO: Page caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
 
@@ -72,7 +72,7 @@ h4. Action Caching
 
 One of the issues with Page Caching is that you cannot use it for pages that require to restrict access somehow. This is where Action Caching comes in. Action Caching works like Page Caching except for the fact that the incoming web request does go from the webserver to the Rails stack and Action Pack so that before filters can be run on it before the cache is served. This allows authentication and other restriction to be run while still serving the result of the output from a cached copy.
 
-Clearing the cache works in the exact same way as with Page Caching.
+Clearing the cache works in a similar way to Page Caching, except you use +expire_action+ instead of +expire_page+.
 
 Let's say you only wanted authenticated users to call actions on +ProductsController+.
 
@@ -293,7 +293,7 @@ Note that the cache will grow until the disk is full unless you periodically cle
 
 h4. ActiveSupport::Cache::MemCacheStore
 
-This cache store uses Danga's +memcached+ server to provide a centralized cache for your application. Rails uses the bundled +memcached-client+ gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very a high performance and redundancy.
+This cache store uses Danga's +memcached+ server to provide a centralized cache for your application. Rails uses the bundled +memcache-client+ gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very a high performance and redundancy.
 
 When initializing the cache, you need to specify the addresses for all memcached servers in your cluster. If none is specified, it will assume memcached is running on the local host on the default port, but this is not an ideal set up for larger sites.
 

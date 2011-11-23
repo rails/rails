@@ -124,7 +124,7 @@ module ActiveRecord
       # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
-        @class_name ||= options[:class_name] || derive_class_name
+        @class_name ||= (options[:class_name] || derive_class_name).to_s
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -433,7 +433,7 @@ module ActiveRecord
       # of relevant reflections, plus any :source_type or polymorphic :as constraints.
       def conditions
         @conditions ||= begin
-          conditions = source_reflection.conditions
+          conditions = source_reflection.conditions.map { |c| c.dup }
 
           # Add to it the conditions from this reflection if necessary.
           conditions.first << options[:conditions] if options[:conditions]

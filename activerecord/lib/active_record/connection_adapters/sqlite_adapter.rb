@@ -89,10 +89,7 @@ module ActiveRecord
         @statements = StatementPool.new(@connection,
                                         config.fetch(:statement_limit) { 1000 })
         @config = config
-      end
-
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::SQLite.new(pool)
+        @visitor = Arel::Visitors::SQLite.new self
       end
 
       def adapter_name #:nodoc:
@@ -157,6 +154,10 @@ module ActiveRecord
         sqlite_version >= '3.1.0'
       end
 
+      def supports_index_sort_order?
+        sqlite_version >= '3.3.0'
+      end
+
       def native_database_types #:nodoc:
         {
           :primary_key => default_primary_key_type,
@@ -217,6 +218,25 @@ module ActiveRecord
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def explain(arel)
+        sql = "EXPLAIN QUERY PLAN #{to_sql(arel)}"
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN'))
+      end
+
+      class ExplainPrettyPrinter
+        # Pretty prints the result of a EXPLAIN QUERY PLAN in a way that resembles
+        # the output of the SQLite shell:
+        #
+        #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
+        #   0|1|1|SCAN TABLE posts (~100000 rows)
+        #
+        def pp(result) # :nodoc:
+          result.rows.map do |row|
+            row.join('|')
+          end.join("\n") + "\n"
+        end
+      end
 
       def exec_query(sql, name = nil, binds = [])
         log(sql, name, binds) do
@@ -413,6 +433,8 @@ module ActiveRecord
             self.limit   = options[:limit] if options.include?(:limit)
             self.default = options[:default] if include_default
             self.null    = options[:null] if options.include?(:null)
+            self.precision = options[:precision] if options.include?(:precision)
+            self.scale   = options[:scale] if options.include?(:scale)
           end
         end
       end
@@ -467,6 +489,7 @@ module ActiveRecord
 
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
+                :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
             @definition.primary_key(primary_key(from)) if primary_key(from)

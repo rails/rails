@@ -26,4 +26,9 @@ class StoreTest < ActiveRecord::TestCase
 
     assert 'graeters', @john.reload.settings[:icecream]
   end
+  
+  test "updating the store will mark it as changed" do
+    @john.color = 'red'
+    assert @john.settings_changed?
+  end
 end

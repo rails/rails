@@ -41,6 +41,21 @@ class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
   end
 end
 
+class HasManyAssociationsTestForCountDistinctWithFinderSql < ActiveRecord::TestCase
+  class Invoice < ActiveRecord::Base
+    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
+  end
+
+  def test_should_count_distinct_results
+    invoice = Invoice.new
+    invoice.custom_line_items << LineItem.new(:amount => 0)
+    invoice.custom_line_items << LineItem.new(:amount => 0)
+    invoice.save!
+
+    assert_equal 1, invoice.custom_line_items.count
+  end
+end
+
 
 
 class HasManyAssociationsTest < ActiveRecord::TestCase

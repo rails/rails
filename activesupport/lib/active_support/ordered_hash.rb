@@ -20,7 +20,7 @@ module ActiveSupport
   #   oh.keys # => [:a, :b], this order is guaranteed
   #
   # <tt>ActiveSupport::OrderedHash</tt> is namespaced to prevent conflicts with other implementations.
-  class OrderedHash < ::Hash #:nodoc:
+  class OrderedHash < ::Hash
     def to_yaml_type
       "!tag:yaml.org,2002:omap"
     end

@@ -476,7 +476,7 @@ module ApplicationTests
 
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
-        def index
+        def create
           render :text => params[:post].inspect
         end
       end

@@ -45,6 +45,14 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_build_a_new_record_using_reject_all_even_if_destroy_is_given
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.birds_with_reject_all_blank_attributes = [{:name => '', :color => '', :_destroy => '0'}]
+    pirate.save!
+
+    assert pirate.birds_with_reject_all_blank.empty?
+  end
+
   def test_should_not_build_a_new_record_if_reject_all_blank_returns_false
     pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     pirate.birds_with_reject_all_blank_attributes = [{:name => '', :color => ''}]

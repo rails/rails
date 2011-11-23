@@ -127,10 +127,7 @@ module ActiveRecord
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
-      end
-
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::MySQL.new(pool)
+        @visitor = Arel::Visitors::MySQL.new self
       end
 
       def adapter_name #:nodoc:
@@ -152,6 +149,12 @@ module ActiveRecord
       end
 
       def supports_bulk_alter? #:nodoc:
+        true
+      end
+
+      # Technically MySQL allows to create indexes with the sort order syntax 
+      # but at the moment (5.5) it doesn't yet implement them
+      def supports_index_sort_order?
         true
       end
 
@@ -221,6 +224,80 @@ module ActiveRecord
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def explain(arel)
+        sql     = "EXPLAIN #{to_sql(arel)}"
+        start   = Time.now
+        result  = exec_query(sql, 'EXPLAIN')
+        elapsed = Time.now - start
+
+        ExplainPrettyPrinter.new.pp(result, elapsed)
+      end
+
+      class ExplainPrettyPrinter # :nodoc:
+        # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
+        # MySQL shell:
+        #
+        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+        #   | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
+        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+        #   |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
+        #   |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
+        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
+        #   2 rows in set (0.00 sec)
+        #
+        # This is an exercise in Ruby hyperrealism :).
+        def pp(result, elapsed)
+          widths    = compute_column_widths(result)
+          separator = build_separator(widths)
+
+          pp = []
+
+          pp << separator
+          pp << build_cells(result.columns, widths)
+          pp << separator
+
+          result.rows.each do |row|
+            pp << build_cells(row, widths)
+          end
+
+          pp << separator
+          pp << build_footer(result.rows.length, elapsed)
+
+          pp.join("\n") + "\n"
+        end
+
+        private
+
+        def compute_column_widths(result)
+          [].tap do |widths|
+            result.columns.each_with_index do |column, i|
+              cells_in_column = [column] + result.rows.map {|r| r[i].nil? ? 'NULL' : r[i].to_s}
+              widths << cells_in_column.map(&:length).max
+            end
+          end
+        end
+
+        def build_separator(widths)
+          padding = 1
+          '+' + widths.map {|w| '-' * (w + (padding*2))}.join('+') + '+'
+        end
+
+        def build_cells(items, widths)
+          cells = []
+          items.each_with_index do |item, i|
+            item = 'NULL' if item.nil?
+            justifier = item.is_a?(Numeric) ? 'rjust' : 'ljust'
+            cells << item.to_s.send(justifier, widths[i])
+          end
+          '| ' + cells.join(' | ') + ' |'
+        end
+
+        def build_footer(nrows, elapsed)
+          rows_label = nrows == 1 ? 'row' : 'rows'
+          "#{nrows} #{rows_label} in set (%.2f sec)" % elapsed
+        end
+      end
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
@@ -309,11 +386,11 @@ module ActiveRecord
           sql = "SHOW TABLES"
         end
 
-        select_all(sql).map do |table|
+        select_all(sql).map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
           exec_without_stmt(sql).first['Create Table'] + ";\n\n"
-        end.join("")
+        }.join
       end
 
       # Drops the database specified on the +name+ attribute
@@ -496,8 +573,8 @@ module ActiveRecord
 
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
-        execute_and_free("DESCRIBE #{quote_table_name(table)}", 'SCHEMA') do |result|
-          keys = each_hash(result).select { |row| row[:Key] == 'PRI' }.map { |row| row[:Field] }
+        execute_and_free("SHOW INDEX FROM #{quote_table_name(table)} WHERE Key_name = 'PRIMARY'", 'SCHEMA') do |result|
+          keys = each_hash(result).map { |row| row[:Column_name] }
           keys.length == 1 ? [keys.first, nil] : nil
         end
       end
@@ -526,17 +603,29 @@ module ActiveRecord
 
       protected
 
-      def quoted_columns_for_index(column_names, options = {})
-        length = options[:length] if options.is_a?(Hash)
-
-        case length
-        when Hash
-          column_names.map {|name| length[name] ? "#{quote_column_name(name)}(#{length[name]})" : quote_column_name(name) }
-        when Fixnum
-          column_names.map {|name| "#{quote_column_name(name)}(#{length})"}
-        else
-          column_names.map {|name| quote_column_name(name) }
+      def add_index_length(option_strings, column_names, options = {})
+        if options.is_a?(Hash) && length = options[:length]
+          case length
+          when Hash
+            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name)}
+          when Fixnum
+            column_names.each {|name| option_strings[name] += "(#{length})"}
+          end
         end
+
+        return option_strings
+      end
+
+      def quoted_columns_for_index(column_names, options = {})
+        option_strings = Hash[column_names.map {|name| [name, '']}]
+
+        # add index length
+        option_strings = add_index_length(option_strings, column_names, options)
+
+        # add index sort order
+        option_strings = add_index_sort_order(option_strings, column_names, options)
+
+        column_names.map {|name| quote_column_name(name) + option_strings[name]}
       end
 
       def translate_exception(exception, message)

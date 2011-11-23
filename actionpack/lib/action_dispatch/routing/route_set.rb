@@ -37,7 +37,7 @@ module ActionDispatch
 
         # If this is a default_controller (i.e. a controller specified by the user)
         # we should raise an error in case it's not found, because it usually means
-        # an user error. However, if the controller was retrieved through a dynamic
+        # a user error. However, if the controller was retrieved through a dynamic
         # segment, as in :controller(/:action), we should simply return nil and
         # delegate the control back to Rack cascade. Besides, if this is not a default
         # controller, it means we should respect the @scope[:module] parameter.

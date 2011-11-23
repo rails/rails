@@ -34,7 +34,7 @@ module Rails
         usage = source_root && File.expand_path("../USAGE", source_root)
 
         @desc ||= if usage && File.exist?(usage)
-          File.read(usage)
+          ERB.new(File.read(usage)).result(binding)
         else
           "Description:\n    Create #{base_name.humanize.downcase} files for #{generator_name} generator."
         end

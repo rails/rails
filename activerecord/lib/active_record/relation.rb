@@ -7,7 +7,7 @@ module ActiveRecord
     JoinOperation = Struct.new(:relation, :join_class, :on)
     ASSOCIATION_METHODS = [:includes, :eager_load, :preload]
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order]
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq]
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
 
@@ -141,6 +141,22 @@ module ActiveRecord
         Array.method_defined?(method)               ||
         @klass.respond_to?(method, include_private) ||
         super
+    end
+
+    def explain
+      queries = []
+      callback = lambda do |*args|
+        payload = args.last
+        queries << payload[:sql] unless payload[:exception] || %w(SCHEMA EXPLAIN).include?(payload[:name])
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        to_a
+      end
+
+      queries.map do |sql|
+        @klass.connection.explain(sql)
+      end.join
     end
 
     def to_a

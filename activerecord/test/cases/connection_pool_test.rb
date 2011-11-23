@@ -26,43 +26,6 @@ module ActiveRecord
         assert !@pool.active_connection?
       end
 
-      def test_pool_caches_columns
-        columns = @pool.columns['posts']
-        assert_equal columns, @pool.columns['posts']
-      end
-
-      def test_pool_caches_columns_hash
-        columns_hash = @pool.columns_hash['posts']
-        assert_equal columns_hash, @pool.columns_hash['posts']
-      end
-
-      def test_clearing_column_cache
-        @pool.columns['posts']
-        @pool.columns_hash['posts']
-
-        @pool.clear_cache!
-
-        assert_equal 0, @pool.columns.size
-        assert_equal 0, @pool.columns_hash.size
-      end
-
-      def test_primary_key
-        assert_equal 'id', @pool.primary_keys['posts']
-      end
-
-      def test_primary_key_for_non_existent_table
-        assert_equal 'id', @pool.primary_keys['omgponies']
-      end
-
-      def test_primary_key_is_set_on_columns
-        posts_columns = @pool.columns_hash['posts']
-        assert posts_columns['id'].primary
-
-        (posts_columns.keys - ['id']).each do |key|
-          assert !posts_columns[key].primary
-        end
-      end
-
       def test_clear_stale_cached_connections!
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
 

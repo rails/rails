@@ -20,7 +20,7 @@ end
 class StringInflectionsTest < Test::Unit::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
-  
+
   def test_erb_escape
     string = [192, 60].pack('CC')
     expected = 192.chr + "&lt;"
@@ -64,6 +64,10 @@ class StringInflectionsTest < Test::Unit::TestCase
     end
 
     assert_equal("plurals", "plurals".pluralize)
+
+    assert_equal("blargles", "blargle".pluralize(0))
+    assert_equal("blargle", "blargle".pluralize(1))
+    assert_equal("blargles", "blargle".pluralize(2))
   end
 
   def test_singularize
@@ -105,6 +109,10 @@ class StringInflectionsTest < Test::Unit::TestCase
 
   def test_demodulize
     assert_equal "Account", "MyApplication::Billing::Account".demodulize
+  end
+
+  def test_deconstantize
+    assert_equal "MyApplication::Billing", "MyApplication::Billing::Account".deconstantize
   end
 
   def test_foreign_key
@@ -301,13 +309,13 @@ class StringInflectionsTest < Test::Unit::TestCase
         "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
     end
   end
-  
+
   def test_constantize
     run_constantize_tests_on do |string|
       string.constantize
     end
   end
-  
+
   def test_safe_constantize
     run_safe_constantize_tests_on do |string|
       string.safe_constantize
@@ -381,7 +389,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "A fixnum is safe by default" do
     assert 5.html_safe?
   end
-  
+
   test "a float is safe by default" do
     assert 5.7.html_safe?
   end

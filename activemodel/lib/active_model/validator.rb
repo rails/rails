@@ -57,7 +57,7 @@ module ActiveModel #:nodoc:
   # To add behavior to the initialize method, use the following signature:
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def initialize(record, options)
+  #     def initialize(options)
   #       super
   #       @my_custom_field = options[:field_name] || :first_name
   #     end

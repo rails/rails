@@ -35,6 +35,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert !t.attribute_present?("content")
   end
 
+  def test_attribute_present_with_booleans
+    b1 = Boolean.new
+    b1.value = false
+    assert b1.attribute_present?(:value)
+
+    b2 = Boolean.new
+    b2.value = true
+    assert b2.attribute_present?(:value)
+
+    b3 = Boolean.new
+    assert !b3.attribute_present?(:value)
+
+    b4 = Boolean.new
+    b4.value = false
+    b4.save!
+    assert Boolean.find(b4.id).attribute_present?(:value)
+  end
+
   def test_attribute_keys_on_new_instance
     t = Topic.new
     assert_equal nil, t.title, "The topics table has a title column, so it should be nil"

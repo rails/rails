@@ -203,7 +203,11 @@ module ActiveSupport
     end
 
     def eql?(other)
-      utc == other
+      utc.eql?(other)
+    end
+
+    def hash
+      utc.hash
     end
 
     def +(other)
@@ -277,7 +281,6 @@ module ActiveSupport
     def to_i
       utc.to_i
     end
-    alias_method :hash, :to_i
     alias_method :tv_sec, :to_i
 
     # A TimeWithZone acts like a Time, so just return +self+.
