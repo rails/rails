@@ -250,6 +250,18 @@ $ rails --version
 
 If it says something like "Rails 3.1.1" you are ready to continue.
 
+h5. Installing a JavaScript Runtime
+
+By default, Rails requires a JavaScript interpreter to compile CoffeeScript to JavaScript.
+
+You can install one by running:
+
+<shell>
+# gem install therubyracer
+</shell>
+
+Or investigate the list of alternatives give by "ExecJS":https://github.com/sstephenson/execjs.
+
 h4. Creating the Blog Application
 
 To begin, open a terminal, navigate to a folder where you have rights to create
