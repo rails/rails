@@ -44,14 +44,14 @@ class SerializerTest < ActiveModel::TestCase
 
   class UserSerializer < ActiveModel::Serializer
     attributes :first_name, :last_name
-  end
-
-  class User2Serializer < ActiveModel::Serializer
-    attributes :first_name, :last_name
 
     def serializable_hash
       attributes.merge(:ok => true).merge(scope)
     end
+  end
+
+  class DefaultUserSerializer < ActiveModel::Serializer
+    attributes :first_name, :last_name
   end
 
   class MyUserSerializer < ActiveModel::Serializer
@@ -85,34 +85,34 @@ class SerializerTest < ActiveModel::TestCase
 
   def test_attributes
     user = User.new
-    user_serializer = UserSerializer.new(user, nil)
+    user_serializer = DefaultUserSerializer.new(user, {})
 
     hash = user_serializer.as_json
 
     assert_equal({
-      :user => { :first_name => "Jose", :last_name => "Valim" }
+      :default_user => { :first_name => "Jose", :last_name => "Valim" }
     }, hash)
   end
 
   def test_attributes_method
     user = User.new
-    user_serializer = User2Serializer.new(user, {})
+    user_serializer = UserSerializer.new(user, {})
 
     hash = user_serializer.as_json
 
     assert_equal({
-      :user2 => { :first_name => "Jose", :last_name => "Valim", :ok => true }
+      :user => { :first_name => "Jose", :last_name => "Valim", :ok => true }
     }, hash)
   end
 
   def test_serializer_receives_scope
     user = User.new
-    user_serializer = User2Serializer.new(user, {:scope => true})
+    user_serializer = UserSerializer.new(user, {:scope => true})
 
     hash = user_serializer.as_json
 
     assert_equal({
-      :user2 => {
+      :user => {
         :first_name => "Jose",
         :last_name => "Valim",
         :ok => true,
@@ -419,15 +419,13 @@ class SerializerTest < ActiveModel::TestCase
   def test_array_serializer
     model    = Model.new
     user     = User.new
-    post     = Post.new(:title => "New Post", :body => "Body of new post", :email => "tenderlove@tenderlove.com")
     comments = Comment.new(:title => "Comment1", :id => 1)
-    post.comments = []
 
-    array = [model, post, comments]
-    serializer = array.active_model_serializer.new(array, user)
+    array = [model, user, comments]
+    serializer = array.active_model_serializer.new(array, {:scope => true})
     assert_equal([
       { :model => "Model" },
-      { :post => { :body => "Body of new post", :comments => [], :title => "New Post" } },
+      { :user => { :last_name=>"Valim", :ok=>true, :first_name=>"Jose", :scope => true } },
       { :comment => { :title => "Comment1" } }
     ], serializer.as_json)
   end
