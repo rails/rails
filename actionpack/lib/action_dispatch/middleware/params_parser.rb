@@ -52,7 +52,7 @@ module ActionDispatch
           false
         end
       rescue Exception => e # YAML, XML or Ruby code block errors
-        logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+        logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
         raise e
       end
@@ -68,8 +68,8 @@ module ActionDispatch
         nil
       end
 
-      def logger
-        defined?(Rails.logger) ? Rails.logger : Logger.new($stderr)
+      def logger(env)
+        env['action_dispatch.logger'] || Logger.new($stderr)
       end
   end
 end

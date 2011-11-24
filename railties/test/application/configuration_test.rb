@@ -524,6 +524,7 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.parameter_filter'], app.config.filter_parameters
       assert_equal      app.env_config['action_dispatch.secret_token'],     app.config.secret_token
       assert_equal      app.env_config['action_dispatch.show_exceptions'],  app.config.action_dispatch.show_exceptions
+      assert_equal      app.env_config['action_dispatch.logger'],           Rails.logger
     end
   end
 end
