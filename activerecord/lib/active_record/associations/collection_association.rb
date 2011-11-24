@@ -235,7 +235,7 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if owner.new_record? || (loaded? && !options[:uniq])
+        if !find_target? || (loaded? && !options[:uniq])
           target.size
         elsif !loaded? && options[:group]
           load_target.size
