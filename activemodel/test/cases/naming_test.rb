@@ -247,3 +247,16 @@ class NamingHelpersTest < Test::Unit::TestCase
       ActiveModel::Naming.send(method, *args)
     end
 end
+
+class NameWithAnonymousClassTest < Test::Unit::TestCase
+  def test_anonymous_class_without_name_argument
+    assert_raises(ArgumentError) do
+      model_name = ActiveModel::Name.new(Class.new)
+    end
+  end
+
+  def test_anonymous_class_with_name_argument
+    model_name = ActiveModel::Name.new(Class.new, nil, "Anonymous")
+    assert_equal "Anonymous", model_name
+  end
+end
