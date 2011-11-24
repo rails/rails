@@ -243,10 +243,13 @@ module ActionDispatch
         @delete_cookies.clear
       end
 
+      mattr_accessor :always_write_cookie
+      self.always_write_cookie = false
+
       private
 
         def write_cookie?(cookie)
-          @secure || !cookie[:secure] || defined?(Rails.env) && Rails.env.development?
+          @secure || !cookie[:secure] || always_write_cookie
         end
     end
 

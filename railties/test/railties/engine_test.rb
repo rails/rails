@@ -323,7 +323,7 @@ module RailtiesTest
 
       assert_equal "bukkits_", Bukkits.table_name_prefix
       assert_equal "bukkits", Bukkits::Engine.engine_name
-      assert_equal Bukkits._railtie, Bukkits::Engine
+      assert_equal Bukkits.railtie_namespace, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_path)
       assert !::Bukkits::MyMailer.method_defined?(:bar_path)
 
@@ -467,7 +467,7 @@ module RailtiesTest
       assert_nil Rails.application.load_seed
     end
 
-    test "using namespace more than once on one module should not overwrite _railtie method" do
+    test "using namespace more than once on one module should not overwrite railtie_namespace method" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module AppTemplate
           class Engine < ::Rails::Engine
@@ -484,7 +484,7 @@ module RailtiesTest
 
       boot_rails
 
-      assert_equal AppTemplate._railtie, AppTemplate::Engine
+      assert_equal AppTemplate.railtie_namespace, AppTemplate::Engine
     end
 
     test "properly reload routes" do
@@ -665,6 +665,132 @@ module RailtiesTest
       methods = Bukkits::Engine.helpers.public_instance_methods.collect(&:to_s).sort
       expected = ["bar", "baz"]
       assert_equal expected, methods
+    end
+
+    test "setting priority for engines with config.railties_order" do
+      @blog = engine "blog" do |plugin|
+        plugin.write "lib/blog.rb", <<-RUBY
+          module Blog
+            class Engine < ::Rails::Engine
+            end
+          end
+        RUBY
+      end
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      controller "main", <<-RUBY
+        class MainController < ActionController::Base
+          def foo
+            render :inline => '<%= render :partial => "shared/foo" %>'
+          end
+
+          def bar
+            render :inline => '<%= render :partial => "shared/bar" %>'
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          match "/foo" => "main#foo"
+          match "/bar" => "main#bar"
+        end
+      RUBY
+
+      @plugin.write "app/views/shared/_foo.html.erb", <<-RUBY
+        Bukkit's foo partial
+      RUBY
+
+      app_file "app/views/shared/_foo.html.erb", <<-RUBY
+        App's foo partial
+      RUBY
+
+      @blog.write "app/views/shared/_bar.html.erb", <<-RUBY
+        Blog's bar partial
+      RUBY
+
+      app_file "app/views/shared/_bar.html.erb", <<-RUBY
+        App's bar partial
+      RUBY
+
+      @plugin.write "app/assets/javascripts/foo.js", <<-RUBY
+        // Bukkit's foo js
+      RUBY
+
+      app_file "app/assets/javascripts/foo.js", <<-RUBY
+        // App's foo js
+      RUBY
+
+      @blog.write "app/assets/javascripts/bar.js", <<-RUBY
+        // Blog's bar js
+      RUBY
+
+      app_file "app/assets/javascripts/bar.js", <<-RUBY
+        // App's bar js
+      RUBY
+
+      add_to_config("config.railties_order = [:all, :main_app, Blog::Engine]")
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      get("/foo")
+      assert_equal "Bukkit's foo partial", last_response.body.strip
+
+      get("/bar")
+      assert_equal "App's bar partial", last_response.body.strip
+
+      get("/assets/foo.js")
+      assert_equal "// Bukkit's foo js\n;", last_response.body.strip
+
+      get("/assets/bar.js")
+      assert_equal "// App's bar js\n;", last_response.body.strip
+    end
+
+    test "railties_order adds :all with lowest priority if not given" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      controller "main", <<-RUBY
+        class MainController < ActionController::Base
+          def foo
+            render :inline => '<%= render :partial => "shared/foo" %>'
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          match "/foo" => "main#foo"
+        end
+      RUBY
+
+      @plugin.write "app/views/shared/_foo.html.erb", <<-RUBY
+        Bukkit's foo partial
+      RUBY
+
+      app_file "app/views/shared/_foo.html.erb", <<-RUBY
+        App's foo partial
+      RUBY
+
+      add_to_config("config.railties_order = [Bukkits::Engine]")
+
+      boot_rails
+      require "#{rails_root}/config/environment"
+
+      get("/foo")
+      assert_equal "Bukkit's foo partial", last_response.body.strip
     end
 
   private

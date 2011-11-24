@@ -38,11 +38,22 @@ class CodeStatistics #:nodoc:
         next unless file_name =~ pattern
 
         f = File.open(directory + "/" + file_name)
-
+        comment_started = false
         while line = f.gets
           stats["lines"]     += 1
-          stats["classes"]   += 1 if line =~ /class [A-Z]/
-          stats["methods"]   += 1 if line =~ /def [a-z]/
+          if(comment_started)
+            if line =~ /^=end/
+              comment_started = false
+            end
+            next
+          else
+            if line =~ /^=begin/
+              comment_started = true
+              next
+            end
+          end
+          stats["classes"]   += 1 if line =~ /^\s*class\s+[_A-Z]/
+          stats["methods"]   += 1 if line =~ /^\s*def\s+[_a-z]/
           stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
         end
       end

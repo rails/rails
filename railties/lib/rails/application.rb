@@ -127,6 +127,28 @@ module Rails
       })
     end
 
+    def ordered_railties
+      @ordered_railties ||= begin
+        order = config.railties_order.map do |railtie|
+          if railtie == :main_app
+            self
+          elsif railtie.respond_to?(:instance)
+            railtie.instance
+          else
+            railtie
+          end
+        end
+
+        all = (railties.all - order)
+        all.push(self)   unless all.include?(self)
+        order.push(:all) unless order.include?(:all)
+
+        index = order.index(:all)
+        order[index] = all
+        order.reverse.flatten
+      end
+    end
+
     def initializers
       Bootstrap.initializers_for(self) +
       super +
@@ -139,6 +161,10 @@ module Rails
 
     def to_app
       self
+    end
+
+    def helpers_paths
+      config.helpers_paths
     end
 
   protected
@@ -166,7 +192,7 @@ module Rails
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::RequestId
         middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
+        middleware.use ::ActionDispatch::ShowExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
         if config.action_dispatch.x_sendfile_header.present?
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header

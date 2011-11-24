@@ -740,7 +740,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_for_with_isolated_namespaced_model
+  def test_form_for_with_model_using_relative_model_naming
     form_for(@blog_post) do |f|
       concat f.text_field :title
       concat f.submit('Edit post')
