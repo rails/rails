@@ -12,6 +12,9 @@ module ActiveModel
 
     def initialize(klass, namespace = nil, name = nil)
       name ||= klass.name
+
+      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if name.blank?
+
       super(name)
 
       @unnamespaced = self.sub(/^#{namespace.name}::/, '') if namespace
