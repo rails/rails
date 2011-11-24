@@ -1,4 +1,4 @@
-desc 'Print out all defined routes in match order, with names. Target specific controller with CONTROLLER=x.'
+desc 'Print out all defined routes in match order, with names. Target specific controller with CONTROLLER=x. Include engine\'s routes with ENGINES=true'
 task :routes => :environment do
   Rails.application.reload_routes!
   all_routes = Rails.application.routes.routes

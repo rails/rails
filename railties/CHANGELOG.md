@@ -1,8 +1,11 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Allow to change the loading order of railties with `config.railties_order=`. Example:
+*   Added displaying of mounted engine's routes with `rake routes ENGINES=true`. *Piotr Sarnacki*
 
-    config.railties_order = [Blog::Engine, :main_app, :all]
+*   Allow to change the loading order of railties with `config.railties_order=`. *Piotr Sarnacki*
+
+    Example:
+        config.railties_order = [Blog::Engine, :main_app, :all]
 
 *   Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box. *José Valim*
 
