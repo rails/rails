@@ -63,7 +63,7 @@ module ActionDispatch
 
     private
       def render_exception(env, exception)
-        log_error(exception)
+        log_error(env, exception)
         exception = original_exception(exception)
 
         if env['action_dispatch.show_detailed_exceptions'] == true
@@ -124,14 +124,14 @@ module ActionDispatch
         defined?(Rails.public_path) ? Rails.public_path : 'public_path'
       end
 
-      def log_error(exception)
-        return unless logger
+      def log_error(env, exception)
+        return unless logger(env)
 
         ActiveSupport::Deprecation.silence do
           message = "\n#{exception.class} (#{exception.message}):\n"
           message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
           message << "  " << application_trace(exception).join("\n  ")
-          logger.fatal("#{message}\n\n")
+          logger(env).fatal("#{message}\n\n")
         end
       end
 
@@ -153,8 +153,12 @@ module ActionDispatch
           exception.backtrace
       end
 
-      def logger
-        defined?(Rails.logger) ? Rails.logger : Logger.new($stderr)
+      def logger(env)
+        env['action_dispatch.logger'] || stderr_logger
+      end
+
+      def stderr_logger
+        Logger.new($stderr)
       end
 
     def original_exception(exception)
