@@ -46,7 +46,7 @@ module Rails
       end
 
       def collect_engine_routes(name, rack_app)
-        return unless rack_app && ENV["ENGINES"] && rack_app.respond_to?(:routes)
+        return unless rack_app && rack_app.respond_to?(:routes)
         return if @engines[name]
 
         routes = rack_app.routes

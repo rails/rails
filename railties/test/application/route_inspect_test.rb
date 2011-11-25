@@ -11,8 +11,6 @@ module ApplicationTests
     end
 
     def test_displaying_routes_for_engines
-      ENV["ENGINES"] = "true"
-
       engine = Class.new(Rails::Engine) do
         def self.to_s
           "Blog::Engine"
@@ -35,8 +33,6 @@ module ApplicationTests
         "cart GET /cart(.:format) cart#show"
       ]
       assert_equal expected, output
-    ensure
-      ENV["ENGINES"] = nil
     end
 
     def test_cart_inspect

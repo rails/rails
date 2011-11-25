@@ -1,6 +1,6 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Add displaying of mounted engine's routes with `rake routes ENGINES=true` *Piotr Sarnacki*
+*   Display mounted engine's routes in `rake routes`. *Piotr Sarnacki*
 
 *   Allow to change the loading order of railties with `config.railties_order=` *Piotr Sarnacki*
 
