@@ -31,7 +31,6 @@ module ActionController
     autoload :RequestForgeryProtection
     autoload :Rescue
     autoload :Responder
-    autoload :Serialization
     autoload :SessionManagement
     autoload :Streaming
     autoload :Testing

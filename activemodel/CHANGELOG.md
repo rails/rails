@@ -1,7 +1,5 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Add ActiveModel::Serializer that encapsulates an ActiveModel object serialization *José Valim*
-
 *   Renamed (with a deprecation the following constants):
 
         ActiveModel::Serialization     => ActiveModel::Serializable
