@@ -52,7 +52,7 @@ module ActionDispatch
     #
     # For convenience reasons, mailers provide a shortcut for ActionController::UrlFor#url_for.
     # So within mailers, you only have to type 'url_for' instead of 'ActionController::UrlFor#url_for'
-    # in full. However, mailers don't have hostname information, and what's why you'll still
+    # in full. However, mailers don't have hostname information, and that's why you'll still
     # have to specify the <tt>:host</tt> argument when generating URLs in mailers.
     #
     #
