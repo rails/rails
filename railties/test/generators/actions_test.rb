@@ -95,11 +95,13 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_should_insert_on_separate_lines
     run_generator
 
+    File.open('Gemfile', 'a') {|f| f.write('# Some content...') }
+    
     action :gem, 'rspec'
     action :gem, 'rspec-rails'
 
-    assert_file 'Gemfile', /gem "rspec"$/
-    assert_file 'Gemfile', /gem "rspec-rails"$/
+    assert_file 'Gemfile', /^gem "rspec"$/
+    assert_file 'Gemfile', /^gem "rspec-rails"$/
   end
 
   def test_gem_group_should_wrap_gems_in_a_group
@@ -113,7 +115,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem 'fakeweb'
     end
 
-    assert_file 'Gemfile', /\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend/
+    assert_file 'Gemfile', /\ngroup :development, :test do\n\n  gem "rspec-rails"\nend\n\ngroup :test do\n\n  gem "fakeweb"\nend/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
