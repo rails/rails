@@ -264,6 +264,15 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/stylesheets/posts.css"
   end
 
+  def test_scaffold_also_generators_serializer
+    run_generator [ "posts", "name:string", "author:references", "--serializer" ]
+    assert_file "app/serializers/post_serializer.rb" do |serializer|
+      assert_match /class PostSerializer < ActiveModel::Serializer/, serializer
+      assert_match /^  attributes :name$/, serializer
+      assert_match /^  has_one :author$/, serializer
+    end
+  end
+
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
     run_generator ["post", "title", "body:text", "author"]
 
