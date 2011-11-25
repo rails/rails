@@ -33,7 +33,8 @@ module Rails
         :stylesheets => '-y',
         :stylesheet_engine => '-se',
         :template_engine => '-e',
-        :test_framework => '-t'
+        :test_framework => '-t',
+        :serializer => '-z'
       },
 
       :test_unit => {
@@ -58,6 +59,7 @@ module Rails
         :performance_tool => nil,
         :resource_controller => :controller,
         :scaffold_controller => :scaffold_controller,
+        :serializer => false,
         :stylesheets => true,
         :stylesheet_engine => :css,
         :test_framework => false,
