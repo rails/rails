@@ -190,7 +190,6 @@ module ActionController
       Redirecting,
       Rendering,
       Renderers::All,
-      Serialization,
       ConditionalGet,
       RackDelegation,
       SessionManagement,
