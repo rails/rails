@@ -68,7 +68,7 @@ module Rails
         end
 
         in_root do
-          str = "gem #{parts.join(", ")}\n"
+          str = "\ngem #{parts.join(", ")}\n"
           str = "  " + str if @in_group
           append_file "Gemfile", str, :verbose => false
         end
