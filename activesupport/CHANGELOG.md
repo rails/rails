@@ -1,5 +1,8 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   (Date|DateTime|Time)#beginning_of_week accept an optional argument to
+    be able to set the day at which weeks are assumed to start.
+
 *   Deprecated ActiveSupport::MessageEncryptor#encrypt and decrypt. *José Valim*
 
 *   ActiveSupport::Notifications.subscribed provides subscriptions to events while a block runs. *fxn*
