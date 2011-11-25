@@ -128,4 +128,11 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/", {}, {'action_dispatch.show_exceptions' => true}
     assert_equal "text/html; charset=utf-8", response.headers["Content-Type"]
   end
+
+  test 'uses logger from env' do
+    @app = ProductionApp
+    output = StringIO.new
+    get "/", {}, {'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => Logger.new(output)}
+    assert_match(/puke/, output.rewind && output.read)
+  end
 end
