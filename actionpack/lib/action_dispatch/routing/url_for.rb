@@ -42,7 +42,7 @@ module ActionDispatch
     #   url_for(:controller => 'users',
     #           :action => 'new',
     #           :message => 'Welcome!',
-    #           :host => 'www.example.com')        # Changed this.
+    #           :host => 'www.example.com')
     #   # => "http://www.example.com/users/new?message=Welcome%21"
     #
     # By default, all controllers and views have access to a special version of url_for,
