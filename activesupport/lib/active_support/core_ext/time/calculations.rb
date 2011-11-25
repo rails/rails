@@ -161,18 +161,26 @@ class Time
     months_since(1)
   end
 
-  # Returns a new Time representing the "start" of this week (Monday, 0:00)
-  def beginning_of_week
-    days_to_monday = wday!=0 ? wday-1 : 6
-    (self - days_to_monday.days).midnight
+  # Returns number of days to start of this week, week starts on start_day (default is :monday).
+  def days_to_week_start(start_day = :monday)
+    start_day_number = DAYS_INTO_WEEK[start_day]
+    current_day_number = wday != 0 ? wday - 1 : 6
+    days_span = current_day_number - start_day_number
+    days_span >= 0 ? days_span : 7 + days_span
+  end
+
+  # Returns a new Time representing the "start" of this week, week starts on start_day (default is :monday, i.e. Monday, 0:00).
+  def beginning_of_week(start_day = :monday)
+    days_to_start = days_to_week_start(start_day)
+    (self - days_to_start.days).midnight
   end
   alias :monday :beginning_of_week
   alias :at_beginning_of_week :beginning_of_week
 
-  # Returns a new Time representing the end of this week, (end of Sunday)
-  def end_of_week
-    days_to_sunday = wday!=0 ? 7-wday : 0
-    (self + days_to_sunday.days).end_of_day
+  # Returns a new Time representing the end of this week, week starts on start_day (default is :monday, i.e. end of Sunday).
+  def end_of_week(start_day = :monday)
+    days_to_end =  6 - days_to_week_start(start_day)
+    (self + days_to_end.days).end_of_day
   end
   alias :at_end_of_week :end_of_week
 
