@@ -1,4 +1,7 @@
 class Hash
+
+  alias_method :old_slice, :slice if method_defined?(:slice)
+
   # Slice a hash to include only the given keys. This is useful for
   # limiting an options hash to valid keys before passing to a method:
   #
