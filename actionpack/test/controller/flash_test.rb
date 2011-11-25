@@ -310,6 +310,20 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_do_not_sweep_for_asset_requests
+    with_test_route_set do
+      get '/set_flash'
+
+      get '/assets/demo.js', nil, "action_dispatch.asset_prefix" => '/assets'
+
+      get '/use_flash'
+      assert_response :success
+      assert_equal "flash: hello", @response.body
+    end
+
+  end
+
+
   private
 
     # Overwrite get to send SessionSecret in env hash

@@ -239,9 +239,13 @@ module ActionDispatch
       @app = app
     end
 
+    def asset?(env)
+      env['action_dispatch.asset_prefix'] && env['PATH_INFO'].start_with?(env['action_dispatch.asset_prefix'])
+    end
+
     def call(env)
       if (session = env['rack.session']) && (flash = session['flash'])
-        flash.sweep
+        flash.sweep unless asset?(env)
       end
 
       @app.call(env)
