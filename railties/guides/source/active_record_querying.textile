@@ -1344,3 +1344,14 @@ EXPLAIN for: SELECT `posts`.* FROM `posts`  WHERE `posts`.`user_id` IN (1)
 </plain>
 
 under MySQL.
+
+h4. Interpreting EXPLAIN
+
+Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
+following pointers may be helpful:
+
+* SQLite3: "EXPLAIN QUERY PLAN":http://www.sqlite.org/eqp.html
+
+* MySQL: "EXPLAIN Output Format":http://dev.mysql.com/doc/refman/5.6/en/explain-output.html
+
+* PostgreSQL: "Using EXPLAIN":http://www.postgresql.org/docs/current/static/using-explain.html
