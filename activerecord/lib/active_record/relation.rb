@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/delegation'
 
@@ -155,8 +156,8 @@ module ActiveRecord
       end
 
       queries.map do |sql|
-        @klass.connection.explain(sql)
-      end.join
+        "EXPLAIN for: #{sql}\n#{@klass.connection.explain(sql)}"
+      end.join("\n")
     end
 
     def to_a
