@@ -73,13 +73,6 @@ module ActiveModel
     autoload :JSON, "active_model/serializable/json"
     autoload :XML,  "active_model/serializable/xml"
 
-    module ClassMethods #:nodoc:
-      def active_model_serializer
-        return @active_model_serializer if defined?(@active_model_serializer)
-        @active_model_serializer = "#{self.name}Serializer".safe_constantize
-      end
-    end
-
     def serializable_hash(options = nil)
       options ||= {}
 
@@ -105,11 +98,6 @@ module ActiveModel
       end
 
       hash
-    end
-
-    # Returns a model serializer for this object considering its namespace.
-    def active_model_serializer
-      self.class.active_model_serializer
     end
 
   private

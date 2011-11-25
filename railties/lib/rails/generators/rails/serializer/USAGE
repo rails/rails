@@ -1,9 +1,0 @@
-Description:
-    Generates a serializer for the given resource with tests.
-
-Example:
-    `rails generate serializer Account name created_at`
-
-    For TestUnit it creates:
-        Serializer:  app/serializers/account_serializer.rb
-        TestUnit:    test/unit/account_serializer_test.rb
