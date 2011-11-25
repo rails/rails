@@ -180,7 +180,11 @@ module ActiveRecord
       # Returns a new, unsaved instance of the associated class. +options+ will
       # be passed to the class's constructor.
       def build_association(*options, &block)
-        klass.new(*options, &block)
+        if options.first.is_a?(Hash) && options.first[klass.inheritance_column]
+          klass.find_sti_class(options.first[klass.inheritance_column]).new(*options, &block)
+        else
+          klass.new(*options, &block)
+        end
       end
 
       def table_name

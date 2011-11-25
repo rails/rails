@@ -69,6 +69,13 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal 1, pirate.birds_with_reject_all_blank.count
     assert_equal 'Tweetie', pirate.birds_with_reject_all_blank.first.name
   end
+  
+  def test_should_build_correcty_typed_sti_record
+    pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
+    pirate.parrots_attributes = [{:name => 'Tweetie', :parrot_sti_class => 'LiveParrot'}]
+    assert_equal 1, pirate.parrots.length
+    assert_equal LiveParrot, pirate.parrots.first.class
+  end
 
   def test_should_raise_an_ArgumentError_for_non_existing_associations
     assert_raise_with_message ArgumentError, "No association found for name `honesty'. Has it been defined yet?" do
