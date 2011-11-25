@@ -113,7 +113,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem 'fakeweb'
     end
 
-    assert_file 'Gemfile', /\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend/
+    assert_file 'Gemfile', /\ngroup :development, :test do\n  \ngem "rspec-rails"\nend\n\ngroup :test do\n  \ngem "fakeweb"\nend/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
