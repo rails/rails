@@ -1,6 +1,6 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Add a serializer generator and add a hook for it in the scaffold generators *José Valim*
+*   Display mounted engine's routes in `rake routes`. *Piotr Sarnacki*
 
 *   Added displaying of mounted engine's routes with `rake routes ENGINES=true`. *Piotr Sarnacki*
 
@@ -8,6 +8,8 @@
 
     Example:
         config.railties_order = [Blog::Engine, :main_app, :all]
+
+*   Add a serializer generator and add a hook for it in the scaffold generators *José Valim*
 
 *   Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box. *José Valim*
 
