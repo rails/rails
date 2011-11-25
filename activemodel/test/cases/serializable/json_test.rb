@@ -5,7 +5,7 @@ require 'active_support/core_ext/object/instance_variables'
 
 class Contact
   extend ActiveModel::Naming
-  include ActiveModel::Serializers::JSON
+  include ActiveModel::Serializable::JSON
   include ActiveModel::Validations
 
   def attributes=(hash)

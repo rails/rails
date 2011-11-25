@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/instance_variables'
 
 class SerializationTest < ActiveModel::TestCase
   class User
-    include ActiveModel::Serialization
+    include ActiveModel::Serializable
 
     attr_accessor :name, :email, :gender, :address, :friends
 
@@ -22,7 +22,7 @@ class SerializationTest < ActiveModel::TestCase
   end
 
   class Address
-    include ActiveModel::Serialization
+    include ActiveModel::Serializable
 
     attr_accessor :street, :city, :state, :zip
 

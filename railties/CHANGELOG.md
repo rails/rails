@@ -1,27 +1,29 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Added displaying of mounted engine's routes with `rake routes ENGINES=true`. *Piotr Sarnacki*
+*   Add displaying of mounted engine's routes with `rake routes ENGINES=true` *Piotr Sarnacki*
 
-*   Allow to change the loading order of railties with `config.railties_order=`. *Piotr Sarnacki*
+*   Allow to change the loading order of railties with `config.railties_order=` *Piotr Sarnacki*
 
     Example:
         config.railties_order = [Blog::Engine, :main_app, :all]
 
+*   Add a serializer generator and add a hook for it in the scaffold generators *José Valim*
+
 *   Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box. *José Valim*
 
-*   Updated Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications *DHH*
+*   Update Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications *DHH*
 
 *   Default options to `rails new` can be set in ~/.railsrc *Guillermo Iguaran*
 
-*   Added destroy alias to Rails engines. *Guillermo Iguaran*
+*   Add destroy alias to Rails engines *Guillermo Iguaran*
 
-*   Added destroy alias for Rails command line. This allows the following: `rails d model post`. *Andrey Ognevsky*
+*   Add destroy alias for Rails command line. This allows the following: `rails d model post` *Andrey Ognevsky*
 
 *   Attributes on scaffold and model generators default to string. This allows the following: "rails g scaffold Post title body:text author" *José Valim*
 
-*   Removed old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command. *Guillermo Iguaran*
+*   Remove old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command *Guillermo Iguaran*
 
-*   Removed old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API. *Guillermo Iguaran*
+*   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
 
 
 *   Rails 3.1.1

@@ -527,7 +527,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = Hash.new { |h, k| h[k] = Inflector.constantize(k) }
+        @store = Hash.new
       end
 
       def empty?
@@ -538,23 +538,24 @@ module ActiveSupport #:nodoc:
         @store.key?(key)
       end
 
-      def []=(key, value)
-        return unless key.respond_to?(:name)
-
-        raise(ArgumentError, 'anonymous classes cannot be cached') if key.name.blank?
-
-        @store[key.name] = value
-      end
-
-      def [](key)
+      def get(key)
         key = key.name if key.respond_to?(:name)
-
-        @store[key]
+        @store[key] ||= Inflector.constantize(key)
       end
-      alias :get :[]
+      alias :[] :get
 
-      def store(name)
-        self[name] = name
+      def safe_get(key)
+        key = key.name if key.respond_to?(:name)
+        @store[key] || begin
+          klass = Inflector.safe_constantize(key)
+          @store[key] = klass
+        end
+      end
+
+      def store(klass)
+        return self unless klass.respond_to?(:name)
+        raise(ArgumentError, 'anonymous classes cannot be cached') if klass.name.empty?
+        @store[klass.name] = klass
         self
       end
 
@@ -571,8 +572,15 @@ module ActiveSupport #:nodoc:
     end
 
     # Get the reference for class named +name+.
+    # Raises an exception if referenced class does not exist.
     def constantize(name)
       Reference.get(name)
+    end
+
+    # Get the reference for class named +name+ if one exists.
+    # Otherwise returns nil.
+    def safe_constantize(name)
+      Reference.safe_get(name)
     end
 
     # Determine if the given constant has been automatically loaded.

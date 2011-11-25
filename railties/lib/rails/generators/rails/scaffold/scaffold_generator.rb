@@ -10,6 +10,7 @@ module Rails
       class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
 
       hook_for :scaffold_controller, :required => true
+      hook_for :serializer
 
       hook_for :assets do |assets|
         invoke assets, [controller_name]
