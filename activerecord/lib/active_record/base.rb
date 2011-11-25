@@ -974,6 +974,26 @@ module ActiveRecord #:nodoc:
         instance
       end
 
+      def find_sti_class(type_name)
+        if type_name.blank? || !columns_hash.include?(inheritance_column)
+          self
+        else
+          begin
+            if store_full_sti_class
+              ActiveSupport::Dependencies.constantize(type_name)
+            else
+              compute_type(type_name)
+            end
+          rescue NameError
+            raise SubclassNotFound,
+              "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
+              "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
+              "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+              "or overwrite #{name}.inheritance_column to use another column for that information."
+          end
+        end
+      end
+
       private
 
         def relation #:nodoc:
@@ -983,26 +1003,6 @@ module ActiveRecord #:nodoc:
             @relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
           else
             @relation
-          end
-        end
-
-        def find_sti_class(type_name)
-          if type_name.blank? || !columns_hash.include?(inheritance_column)
-            self
-          else
-            begin
-              if store_full_sti_class
-                ActiveSupport::Dependencies.constantize(type_name)
-              else
-                compute_type(type_name)
-              end
-            rescue NameError
-              raise SubclassNotFound,
-                "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
-                "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-                "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
-                "or overwrite #{name}.inheritance_column to use another column for that information."
-            end
           end
         end
 
