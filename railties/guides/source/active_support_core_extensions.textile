@@ -3455,6 +3455,7 @@ end_of_day
 beginning_of_week (at_beginning_of_week)
 end_of_week (at_end_of_week)
 monday
+sunday
 weeks_ago
 prev_week
 next_week
