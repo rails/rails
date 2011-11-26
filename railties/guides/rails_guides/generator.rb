@@ -97,9 +97,13 @@ module RailsGuides
     private
     
     def generate_mobi
-      system "kindlegen #{output_dir}/rails_guides.opf > #{output_dir}/kindlegen.out 2>&1"
-      puts "Guides compiled as Kindle book to #{output_dir}/rails_guides.mobi"
+      system "kindlegen #{output_dir}/rails_guides.opf -o #{kindle_output_file} > #{output_dir}/kindlegen.out 2>&1"
+      puts "Guides compiled as Kindle book to #{kindle_output_file}"
       puts "(kindlegen log at #{output_dir}/kindlegen.out)."
+    end
+    
+    def kindle_output_file
+      "rails_guides#{edge ? '_edge' : ''}#{@lang ? '_' + @lang.to_s : ''}.mobi"
     end
     
     def check_for_kindlegen
