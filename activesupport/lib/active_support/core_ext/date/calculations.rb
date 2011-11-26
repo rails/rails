@@ -190,8 +190,13 @@ class Date
     result = self - days_to_start
     acts_like?(:time) ? result.midnight : result
   end
-  alias :monday :beginning_of_week
   alias :at_beginning_of_week :beginning_of_week
+
+  # Returns a new +Date+/+DateTime+ representing the start of this week. Week is
+  # assumed to start on a Monday. +DateTime+ objects have their time set to 0:00.
+  def monday
+    beginning_of_week
+  end
 
   # Returns a new +Date+/+DateTime+ representing the end of this week. Week is
   # assumed to start on +start_day+, default is +:monday+. +DateTime+ objects
@@ -201,8 +206,13 @@ class Date
     result = self + days_to_end.days
     self.acts_like?(:time) ? result.end_of_day : result
   end
-  alias :sunday :end_of_week
   alias :at_end_of_week :end_of_week
+
+  # Returns a new +Date+/+DateTime+ representing the end of this week. Week is
+  # assumed to start on a Monday. +DateTime+ objects have their time set to 23:59:59.
+  def sunday
+    end_of_week
+  end
 
   # Returns a new +Date+/+DateTime+ representing the given +day+ in the previous
   # week. Default is +:monday+. +DateTime+ objects have their time set to 0:00.

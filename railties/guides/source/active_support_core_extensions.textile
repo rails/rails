@@ -3051,7 +3051,7 @@ d.end_of_week                # => Sun, 09 May 2010
 d.end_of_week(:sunday)       # => Sat, 08 May 2010
 </ruby>
 
-+beginning_of_week+ is aliased to +monday+ and +at_beginning_of_week+. +end_of_week+ is aliased to +sunday+ and +at_end_of_week+.
++beginning_of_week+ is aliased to +at_beginning_of_week+ and +end_of_week+ is aliased to +at_end_of_week+.
 
 h6. +prev_week+, +next_week+
 
@@ -3276,8 +3276,10 @@ The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_
 <ruby>
 yesterday
 tomorrow
-beginning_of_week (monday, at_beginning_of_week)
+beginning_of_week (at_beginning_of_week)
 end_of_week (at_end_of_week)
+monday
+sunday
 weeks_ago
 prev_week
 next_week
@@ -3450,8 +3452,9 @@ ago
 since (in)
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
-beginning_of_week (monday, at_beginning_of_week)
+beginning_of_week (at_beginning_of_week)
 end_of_week (at_end_of_week)
+monday
 weeks_ago
 prev_week
 next_week
