@@ -3277,7 +3277,7 @@ The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_
 yesterday
 tomorrow
 beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+end_of_week (at_end_of_week)
 weeks_ago
 prev_week
 next_week
@@ -3451,7 +3451,7 @@ since (in)
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
 beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+end_of_week (at_end_of_week)
 weeks_ago
 prev_week
 next_week
