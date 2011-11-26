@@ -193,9 +193,9 @@ class Date
   alias :monday :beginning_of_week
   alias :at_beginning_of_week :beginning_of_week
 
-  # Returns a new +Date+/+DateTime+ representing the end of this week, week
-  # starts on +start_day+, default is +:monday+. +DateTime+ objects have their
-  # time set to 23:59:59).
+  # Returns a new +Date+/+DateTime+ representing the end of this week. Week is
+  # assumed to start on +start_day+, default is +:monday+. +DateTime+ objects
+  # have their time set to 23:59:59.
   def end_of_week(start_day = :monday)
     days_to_end = 6 - days_to_week_start(start_day)
     result = self + days_to_end.days
