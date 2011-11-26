@@ -6,12 +6,16 @@ require 'models/topic'
 require 'models/developer'
 
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
+require MIGRATIONS_ROOT + "/rename/1_we_need_things"
+require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
 if ActiveRecord::Base.connection.supports_migrations?
   class BigNumber < ActiveRecord::Base; end
 
   class Reminder < ActiveRecord::Base; end
+
+  class Thing < ActiveRecord::Base; end
 
   class ActiveRecord::Migration
     class << self
@@ -56,6 +60,11 @@ if ActiveRecord::Base.connection.supports_migrations?
     def teardown
       ActiveRecord::Base.connection.initialize_schema_migrations_table
       ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
+
+      %w(things awesome_things prefix_things_suffix prefix_awesome_things_suffix).each do |table|
+        Thing.connection.drop_table(table) rescue nil
+      end
+      Thing.reset_column_information
 
       %w(reminders people_reminders prefix_reminders_suffix).each do |table|
         Reminder.connection.drop_table(table) rescue nil
@@ -1532,6 +1541,28 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
       Reminder.reset_table_name
+    end
+
+    def test_rename_table_with_prefix_and_suffix
+      assert !Thing.table_exists?
+      ActiveRecord::Base.table_name_prefix = 'prefix_'
+      ActiveRecord::Base.table_name_suffix = '_suffix'
+      Thing.reset_table_name
+      Thing.reset_sequence_name
+      WeNeedThings.up
+
+      assert Thing.create("content" => "hello world")
+      assert_equal "hello world", Thing.find(:first).content
+
+      RenameThings.up
+      Thing.set_table_name("prefix_awesome_things_suffix")
+
+      assert_equal "hello world", Thing.find(:first).content
+    ensure
+      ActiveRecord::Base.table_name_prefix = ''
+      ActiveRecord::Base.table_name_suffix = ''
+      Thing.reset_table_name
+      Thing.reset_sequence_name
     end
 
     def test_add_drop_table_with_prefix_and_suffix
