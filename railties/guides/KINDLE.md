@@ -3,9 +3,9 @@
 ## Synopsis
 
   1. Obtain `kindlegen` from the link below and put the binary in your path
-  2. Run `ruby rails_guides.rb` to generate the guides
-  3. Run `kindlegen output/guides.opf` to generate `output/guides.mobi`
-  3. Copy `output/guides.mobi` to your Kindle
+  2. Run `KINDLE=1 ruby rails_guides.rb` to generate the guides
+  3. Run `kindlegen output/kindle/rails_guides.opf` to generate `output/rails_guides.mobi`
+  3. Copy `output/kindle/rails_guides.mobi` to your Kindle
   
 ## Resources
 
@@ -16,11 +16,11 @@
 
 ### Minimum Viable Product
 
-  * Remove hacks from `rails_guides/generator.rb`, have Kindle generation as an option on `rails_guides.rb` instead.
   * Ensure sidebar / footnotes are rendered correctly
   
 ### Post release
 
+  * Integrate generated Kindle document in to published HTML guides
   * Tweak heading styles (most docs use h3/h4/h5, which end up being smaller than the text under it)
   * Tweak table styles (smaller text? Many of the tables are unusable on a Kindle in portrait mode)
   * Have the HTML/XML TOC 'drill down' into the TOCs of the individual guides

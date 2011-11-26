@@ -17,13 +17,13 @@
       <navLabel>
         <text>Table of Contents</text>
       </navLabel>
-      <content src="toc_kindle.html"/>
+      <content src="toc.html"/>
     </navPoint>    
     <navPoint class="welcome" id="welcome" playOrder="2">
       <navLabel>
         <text>Welcome</text>
       </navLabel>
-      <content src="welcome_kindle.html"/>
+      <content src="welcome.html"/>
     </navPoint>
     <% play_order = 2 %>
     <% documents_by_section.each_with_index do |section, section_no| %>
@@ -49,7 +49,7 @@
     </navPoint>
     <navPoint class="section" id="copyright" playOrder="<% play_order +=1 %>">
       <navLabel><text>Copyright &amp; License</text></navLabel>
-      <content src="copyright_kindle.html">
+      <content src="copyright.html">
     </navPoint>
   </navMap>
 </ncx>

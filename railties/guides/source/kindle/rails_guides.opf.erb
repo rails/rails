@@ -23,7 +23,7 @@
     <item id="<%= document['url'] %>" media-type="text/html" href="<%= document['url'] %>" />
   <% end %>
   
-  <% %w{toc_kindle.html credits.html welcome_kindle.html copyright_kindle.html}.each do |url| %>
+  <% %w{toc.html credits.html welcome.html copyright.html}.each do |url| %>
     <item id="<%= url %>" media-type="text/html" href="<%= url %>" />
   <% end %>
   
@@ -33,18 +33,18 @@
 </manifest>
 	
 <spine toc="toc">
-  <itemref idref="toc_kindle.html" />
-  <itemref idref="welcome_kindle.html" />
+  <itemref idref="toc.html" />
+  <itemref idref="welcome.html" />
   <% documents_flat.each do |document| %>
     <itemref idref="<%= document['url'] %>" />
   <% end %>
   <itemref idref="credits.html" />
-  <itemref idref="copyright_kindle.html" />
+  <itemref idref="copyright.html" />
 </spine>
 
 <guide>
-	<reference type="toc" title="Table of Contents" href="toc_kindle.html"></reference>
-	<reference type="text" title="Welcome" href="welcome_kindle.html"></reference>
+	<reference type="toc" title="Table of Contents" href="toc.html"></reference>
+	<reference type="text" title="Welcome" href="welcome.html"></reference>
 </guide>
 
 </package>
