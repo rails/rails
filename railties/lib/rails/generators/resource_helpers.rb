@@ -64,7 +64,7 @@ module Rails
             end
 
             begin
-              "#{options[:orm].to_s.classify}::Generators::ActiveModel".constantize
+              "#{options[:orm].to_s.camelize}::Generators::ActiveModel".constantize
             rescue NameError
               Rails::Generators::ActiveModel
             end
