@@ -70,8 +70,10 @@ module RailsGuides
     def initialize(output=nil)
       @lang = ENV['GUIDES_LANGUAGE']
       @kindle = ENV['KINDLE']
-      check_for_kindlegen if kindle?
-      register_kindle_mime_types if kindle?
+      if kindle?
+        check_for_kindlegen
+        register_kindle_mime_types
+      end
       initialize_dirs(output)
       create_output_dir_if_needed
       set_flags_from_environment
@@ -89,9 +91,16 @@ module RailsGuides
     def generate
       generate_guides
       copy_assets
+      generate_mobi if kindle?
     end
 
     private
+    
+    def generate_mobi
+      system "kindlegen #{output_dir}/rails_guides.opf > #{output_dir}/kindlegen.out 2>&1"
+      puts "Guides compiled as Kindle book to #{output_dir}/rails_guides.mobi"
+      puts "(kindlegen log at #{output_dir}/kindlegen.out)."
+    end
     
     def check_for_kindlegen
       if `which kindlegen`.strip == ''
