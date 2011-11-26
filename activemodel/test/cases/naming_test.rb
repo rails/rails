@@ -251,7 +251,7 @@ end
 class NameWithAnonymousClassTest < Test::Unit::TestCase
   def test_anonymous_class_without_name_argument
     assert_raises(ArgumentError) do
-      model_name = ActiveModel::Name.new(Class.new)
+      ActiveModel::Name.new(Class.new)
     end
   end
 
