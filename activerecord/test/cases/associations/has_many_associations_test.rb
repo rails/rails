@@ -8,6 +8,7 @@ require 'models/reply'
 require 'models/category'
 require 'models/post'
 require 'models/author'
+require 'models/essay'
 require 'models/comment'
 require 'models/person'
 require 'models/reader'
@@ -61,7 +62,7 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings, :cars
+           :people, :posts, :readers, :taggings, :cars, :essays
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1388,6 +1389,32 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       firm.clients.first
       firm.clients.last
+    end
+  end
+  
+  def test_custom_primary_key_on_new_record_should_fetch_with_query
+    author = Author.new(:name => "David")
+    assert !author.essays.loaded?
+    
+    assert_queries 1 do 
+      assert_equal 1, author.essays.size
+    end
+    
+    assert_equal author.essays, Essay.find_all_by_writer_id("David")
+    
+  end
+  
+  def test_has_many_custom_primary_key
+    david = authors(:david)
+    assert_equal david.essays, Essay.find_all_by_writer_id("David")
+  end
+  
+  def test_blank_custom_primary_key_on_new_record_should_not_run_queries
+    author = Author.new
+    assert !author.essays.loaded?
+    
+    assert_queries 0 do 
+      assert_equal 0, author.essays.size
     end
   end
 
