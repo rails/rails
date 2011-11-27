@@ -450,6 +450,20 @@ module ActiveRecord #:nodoc:
                :having, :create_with, :uniq, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
+      def inherited(child_class) #:nodoc:
+        # force attribute methods to be higher in inheritance hierarchy than other generated methods
+        child_class.generated_attribute_methods
+        child_class.generated_feature_methods
+        super
+      end
+
+      def generated_feature_methods
+        unless const_defined?(:GeneratedFeatureMethods, false)
+          include const_set(:GeneratedFeatureMethods, Module.new)
+        end
+        const_get(:GeneratedFeatureMethods)
+      end
+
       # Executes a custom SQL query against your database and returns all the results. The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
       # this method from. If you call <tt>Product.find_by_sql</tt> then the results will be returned in
