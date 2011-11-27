@@ -1239,7 +1239,7 @@ module ActiveRecord
           if match_data
             rest = name[match_data[0].length, name.length]
             rest = rest[1, rest.length] if rest.start_with? "."
-            [match_data[1], (rest.length > 0 ? rest : nil)]
+            [match_data[1], (rest.any? ? rest : nil)]
           end
         end
 
