@@ -6,7 +6,7 @@ module ActiveRecord::Associations::Builder
     # Set by subclasses
     class_attribute :macro
 
-    attr_reader :model, :name, :options, :reflection, :mixin
+    attr_reader :model, :name, :options, :reflection
 
     def self.build(model, name, options)
       new(model, name, options).build
@@ -14,8 +14,10 @@ module ActiveRecord::Associations::Builder
 
     def initialize(model, name, options)
       @model, @name, @options = model, name, options
-      @mixin = Module.new
-      @model.__send__(:include, @mixin)
+    end
+
+    def mixin
+      @model.generated_feature_methods
     end
 
     def build

@@ -15,10 +15,14 @@ module ActiveRecord::Associations::Builder
 
       def define_destroy_hook
         name = self.name
-        mixin.send(:define_method, :destroy_associations) do
-          association(name).delete_all
-          super()
-        end
+        model.send(:include, Module.new {
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def destroy_associations
+              association(#{name.to_sym.inspect}).delete_all
+              super
+            end
+          RUBY
+        })
       end
 
       # TODO: These checks should probably be moved into the Reflection, and we should not be
