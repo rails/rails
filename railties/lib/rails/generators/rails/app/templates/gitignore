@@ -4,8 +4,21 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile ~/.gitignore_global
 
+# Ignore secret rails files
+/config/initializers/secret_token.rb
+/config/*.yml
+
 # Ignore bundler config
 /.bundle
+
+# Ignore other VC directories
+/.svn
+
+# Ignore testing and documentation files
+/test/tmp
+/coverage
+/.yardoc
+/rdoc
 
 # Ignore the default SQLite database.
 /db/*.sqlite3
