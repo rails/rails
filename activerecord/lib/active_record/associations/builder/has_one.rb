@@ -45,7 +45,7 @@ module ActiveRecord::Associations::Builder
 
       def define_destroy_dependency_method
         name = self.name
-        mixin.send(:define_method, dependency_method_name) do
+        mixin.redefine_method(dependency_method_name) do
           association(name).delete
         end
       end
@@ -54,7 +54,7 @@ module ActiveRecord::Associations::Builder
 
       def define_restrict_dependency_method
         name = self.name
-        mixin.send(:define_method, dependency_method_name) do
+        mixin.redefine_method(dependency_method_name) do
           raise ActiveRecord::DeleteRestrictionError.new(name) unless send(name).nil?
         end
       end

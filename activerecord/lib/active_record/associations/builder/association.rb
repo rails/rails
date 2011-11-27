@@ -40,14 +40,14 @@ module ActiveRecord::Associations::Builder
 
       def define_readers
         name = self.name
-        mixin.send(:define_method, name) do |*params|
+        mixin.redefine_method(name) do |*params|
           association(name).reader(*params)
         end
       end
 
       def define_writers
         name = self.name
-        mixin.send(:define_method, "#{name}=") do |value|
+        mixin.redefine_method("#{name}=") do |value|
           association(name).writer(value)
         end
       end
