@@ -935,6 +935,82 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_namespace
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='namespace_post_secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_namespace_with_label
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_two_form_for_with_namespace
+    form_for(@post, :namespace => 'namespace_1') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected_1 = whole_form('/posts/123', 'namespace_1_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_1_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_1_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected_1, output_buffer
+
+    form_for(@post, :namespace => 'namespace_2') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected_2 = whole_form('/posts/123', 'namespace_2_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_2_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_2_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected_2, output_buffer
+  end
+
+  def test_fields_for_with_namespace
+    @comment.body = 'Hello World'
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.fields_for(@comment) { |c|
+        concat c.text_field(:body)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[comment][body]' size='30' type='text' id='namespace_post_comment_body' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_submit_with_object_as_new_record_and_locale_strings
     old_locale, I18n.locale = I18n.locale, :submit
 

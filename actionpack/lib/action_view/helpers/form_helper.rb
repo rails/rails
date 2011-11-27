@@ -158,6 +158,9 @@ module ActionView
       # * <tt>:url</tt> - The URL the form is submitted to. It takes the same
       #   fields you pass to +url_for+ or +link_to+. In particular you may pass
       #   here a named route directly as well. Defaults to the current action.
+      # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
+      #   id attributes on form elements. The namespace attribute will be prefixed
+      #   with underscore on the generate HTML id.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
@@ -385,7 +388,7 @@ module ActionView
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
         options[:html].reverse_merge!(
           :class  => as ? "#{as}_#{action}" : dom_class(object, action),
-          :id     => as ? "#{as}_#{action}" : dom_id(object, action),
+          :id     => as ? "#{as}_#{action}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,
           :method => method
         )
 
@@ -971,6 +974,7 @@ module ActionView
       def initialize(object_name, method_name, template_object, object = nil)
         @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
         @template_object = template_object
+
         @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
         @object = retrieve_object(object)
         @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
@@ -989,6 +993,7 @@ module ActionView
 
         add_default_name_and_id_for_value(tag_value, name_and_id)
         options.delete("index")
+        options.delete("namespace")
         options["for"] ||= name_and_id["id"]
 
         if block_given?
@@ -1195,6 +1200,7 @@ module ActionView
             options["name"] ||= tag_name + (options['multiple'] ? '[]' : '')
             options["id"] = options.fetch("id"){ tag_id }
           end
+          options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
         end
 
         def tag_name
@@ -1253,7 +1259,7 @@ module ActionView
         @nested_child_index = {}
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc
         @parent_builder = options[:parent_builder]
-        @default_options = @options ? @options.slice(:index) : {}
+        @default_options = @options ? @options.slice(:index, :namespace) : {}
         if @object_name.to_s.match(/\[\]$/)
           if object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:to_param)
             @auto_index = object.to_param
@@ -1280,6 +1286,7 @@ module ActionView
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
         fields_options[:parent_builder] = self
+        fields_options[:namespace] = fields_options[:parent_builder].options[:namespace]
 
         case record_name
         when String, Symbol
