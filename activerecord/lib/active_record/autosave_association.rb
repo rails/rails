@@ -264,7 +264,7 @@ module ActiveRecord
     # turned on for the association.
     def validate_single_association(reflection)
       association = association_instance_get(reflection.name)
-      record      = association && association.target
+      record      = association && association.reader
       association_valid?(reflection, record) if record
     end
 
