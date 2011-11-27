@@ -44,4 +44,21 @@ class Hash
       raise(ArgumentError, "Unknown key: #{k}") unless valid_keys.include?(k)
     end
   end
+
+  # Validate that all *required_keys are included in hash, otherwise it will raise an ArgumentError.
+  # Note that keys are NOT treated indifferently, meaning if you use strings for keys but assert symbols
+  # as keys, this will fail.
+  #
+  # *required_keys*: list of keys that must be present in hash for it to be valid
+  #
+  # ==== Examples
+  #   {:name => 'Phil'}.assert_required_keys(:name) # => will not raise error
+  #   {:name => nil}.assert_required_keys(:name) # => will not raise error
+  #
+  #   {:age => 28 }.assert_required_keys(:name) # => raises ArgumentError
+  #   {'name' => 'Phil'}.assert_required_keys(:name) # => raises ArgumentError
+  def assert_required_keys(*required_keys)
+    keys_not_passed = [required_keys].flatten - keys
+    raise(ArgumentError, "The following keys are required but were not set: #{keys_not_passed.map(&:inspect).join(", ")}") unless keys_not_passed.empty?
+  end
 end
