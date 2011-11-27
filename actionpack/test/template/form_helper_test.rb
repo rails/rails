@@ -230,6 +230,13 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<label for="post_title">The title, please:</label>', label(:post, :title) { "The title, please:" })
   end
 
+  def test_label_with_block_in_erb
+    path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
+    view_paths = ActionView::PathSet.new([path])
+    view = ActionView::Base.new(view_paths)
+    assert_equal "<label for=\"post_message\">\n  Message\n  <input id=\"post_message\" name=\"post[message]\" size=\"30\" type=\"text\" />\n</label>", view.render("test/label_with_block")
+  end
+
   def test_text_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title")
