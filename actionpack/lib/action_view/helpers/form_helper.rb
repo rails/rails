@@ -960,7 +960,7 @@ module ActionView
     end
 
     class InstanceTag
-      include Helpers::CaptureHelper, Context, Helpers::TagHelper, Helpers::FormTagHelper
+      include Helpers::TagHelper, Helpers::FormTagHelper
 
       attr_reader :object, :method_name, :object_name
 
@@ -992,7 +992,7 @@ module ActionView
         options["for"] ||= name_and_id["id"]
 
         if block_given?
-          label_tag(name_and_id["id"], options, &block)
+          @template_object.label_tag(name_and_id["id"], options, &block)
         else
           content = if text.blank?
             object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
