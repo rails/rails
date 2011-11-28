@@ -135,4 +135,11 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/", {}, {'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => Logger.new(output)}
     assert_match(/puke/, output.rewind && output.read)
   end
+
+  test 'uses backtrace cleaner from env' do
+    @app = DevelopmentApp
+    cleaner = stub(:clean => ['passed backtrace cleaner'])
+    get "/", {}, {'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => cleaner}
+    assert_match(/passed backtrace cleaner/, body)
+  end
 end
