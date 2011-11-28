@@ -55,29 +55,27 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
     def self.establish_connection(spec = ENV["DATABASE_URL"])
-      case spec
-      when nil
-        raise AdapterNotSpecified unless defined?(Rails.env)
-        spec = resolve_string_connection Rails.env
-      when Symbol, String
-        spec = resolve_string_connection spec.to_s
-      when Hash
-        spec = resolve_hash_connection spec
-      end
+      config = case spec
+               when nil
+                 raise AdapterNotSpecified unless defined?(Rails.env)
+                 resolve_string_connection Rails.env
+               when Symbol, String
+                 resolve_string_connection spec.to_s
+               when Hash
+                 resolve_hash_connection spec
+               end
 
-      if ConnectionSpecification === spec
-        return self.connection_handler.establish_connection(name, spec)
-      end
+      connection_handler.establish_connection(name, config)
     end
 
     def self.resolve_string_connection(spec) # :nodoc:
-      if configuration = configurations[spec]
-        spec = resolve_hash_connection(configuration)
-      elsif hash = connection_url_to_hash(spec)
-        spec = resolve_hash_connection(hash)
-      else
-        raise AdapterNotSpecified, "#{spec} database is not configured"
+      hash = configurations.fetch(spec) do |k|
+        connection_url_to_hash(k)
       end
+
+      raise(AdapterNotSpecified, "#{spec} database is not configured") unless hash
+
+      resolve_hash_connection hash
     end
 
     def self.resolve_hash_connection(spec) # :nodoc:
