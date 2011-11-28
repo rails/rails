@@ -2,6 +2,16 @@
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
+*   You can provide a namespace for your form to ensure uniqueness of id attributes on form elements.
+    The namespace attribute will be prefixed with underscore on the generate HTML id. *Vasiliy Ermolovich*
+
+    Example:
+
+        <%= form_for(@offer, :namespace => 'namespace') do |f| %>
+          <%= f.label :version, 'Version' %>:
+          <%= f.text_field :version %>
+        <% end %>
+
 *   Refactor ActionDispatch::ShowExceptions. Controller is responsible for choice to show exceptions. *Sergey Nartimov*
 
     It's possible to override +show_detailed_exceptions?+ in controllers to specify which requests should provide debugging information on errors.
