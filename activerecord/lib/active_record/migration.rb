@@ -112,12 +112,13 @@ module ActiveRecord
   #   a column but keeps the type and content.
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named
-  #   +column_name+ from the table called +table_name+.
+  # * <tt>remove_column(table_name, column_names)</tt>: Removes the column listed in
+  #   +column_names+ from the table called +table_name+.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
-  #   <tt>:name</tt> and <tt>:unique</tt> (e.g.
-  #   <tt>{ :name => "users_name_index", :unique => true }</tt>).
+  #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
+  #   <tt>{ :name => "users_name_index", :unique => true }</tt>) and <tt>:order</tt>
+  #   (e.g. { :order => {:name => :desc} }</tt>).
   # * <tt>remove_index(table_name, :column => column_name)</tt>: Removes the index
   #   specified by +column_name+.
   # * <tt>remove_index(table_name, :name => index_name)</tt>: Removes the index

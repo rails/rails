@@ -104,9 +104,9 @@ module ActiveRecord
       end
 
       def test_invert_rename_index
-        @recorder.record :rename_index, [:old, :new]
+        @recorder.record :rename_index, [:table, :old, :new]
         rename = @recorder.inverse.first
-        assert_equal [:rename_index, [:new, :old]], rename
+        assert_equal [:rename_index, [:table, :new, :old]], rename
       end
 
       def test_invert_add_timestamps

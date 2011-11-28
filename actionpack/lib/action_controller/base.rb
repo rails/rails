@@ -50,7 +50,7 @@ module ActionController
   #
   # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
   # which returns a hash. For example, an action that was performed through <tt>/posts?category=All&limit=5</tt> will include
-  # <tt>{ "category" => "All", "limit" => 5 }</tt> in params.
+  # <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -63,7 +63,7 @@ module ActionController
   #
   # == Sessions
   #
-  # Sessions allows you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
+  # Sessions allow you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
   # such as a Signup object constructed in a multi-paged process, or objects that don't change much and are needed all the time, such
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.

@@ -296,7 +296,7 @@ This method escapes whatever is needed, both for the key and the value:
 
 <ruby>
 account.to_query('company[name]')
-# => "company%5Bname%5D=Johnson+%26+Johnson"
+# => "company%5Bname%5D=Johnson<plus>%26<plus>Johnson"
 </ruby>
 
 so its output is ready to be used in a query string.
@@ -452,30 +452,6 @@ Examples of +in?+:
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
 
-h4. +public_send+
-
-This method is available by default in Ruby 1.9, and is backported to Ruby 1.8 by Active Support. Like the regular +send+ method, +public_send+ allows you to call a method when the name is not known until runtime. However, if the method is not public then a +NoMethodError+ exception will be raised.
-
-<ruby>
-class Greeter
-  def hello(who)
-    "Hello " + who
-  end
-
-  private
-
-  def secret
-    "sauce"
-  end
-end
-
-greeter = Greeter.new
-greeter.public_send(:hello, 'Jim') # => "Hello Jim"
-greeter.public_send(:secret)       # => NoMethodError
-</ruby>
-
-NOTE: Defined in +active_support/core_ext/object/public_send.rb+.
-
 h3. Extensions to +Module+
 
 h4. +alias_method_chain+
@@ -595,7 +571,7 @@ NOTE: Defined in +active_support/core_ext/module/attr_accessor_with_default.rb+.
 
 h5. Internal Attributes
 
-When you are defining an attribute in a class that is meant to be subclassed name collisions are a risk. That's remarkably important for libraries.
+When you are defining an attribute in a class that is meant to be subclassed, name collisions are a risk. That's remarkably important for libraries.
 
 Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby built-in +attr_*+ counterparts, except they name the underlying instance variable in a way that makes collisions less likely.
 
@@ -743,11 +719,69 @@ X.local_constants    # => ["X2", "X1", "Y"], assumes Ruby 1.8
 X::Y.local_constants # => ["X1", "Y1"], assumes Ruby 1.8
 </ruby>
 
-The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ returns always strings.
+The names are returned as strings in Ruby 1.8, and as symbols in Ruby 1.9. The method +local_constant_names+ always returns strings.
 
-WARNING: This method is exact if running under Ruby 1.9. In previous versions it may miss some constants if their value in some ancestor stores the exact same object than in the receiver.
+WARNING: This method returns precise results in Ruby 1.9. In older versions of Ruby, however, it may miss some constants in case the same constant exists in the receiver module as well as in any of its ancestors and both constants point to the same object (objects are compared using +Object#object_id+).
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
+
+h5. Qualified Constant Names
+
+The standard methods +const_defined?+, +const_get+ , and +const_set+ accept
+bare constant names. Active Support extends this API to be able to pass
+relative qualified constant names.
+
+The new methods are +qualified_const_defined?+, +qualified_const_get+, and
++qualified_const_set+. Their arguments are assumed to be qualified constant
+names relative to their receiver:
+
+<ruby>
+Object.qualified_const_defined?("Math::PI")       # => true
+Object.qualified_const_get("Math::PI")            # => 3.141592653589793
+Object.qualified_const_set("Math::Phi", 1.618034) # => 1.618034
+</ruby>
+
+Arguments may be bare constant names:
+
+<ruby>
+Math.qualified_const_get("E") # => 2.718281828459045
+</ruby>
+
+These methods are analogous to their builtin counterparts. In particular,
++qualified_constant_defined?+ accepts an optional second argument in 1.9
+to be able to say whether you want the predicate to look in the ancestors.
+This flag is taken into account for each constant in the expression while
+walking down the path.
+
+For example, given
+
+<ruby>
+module M
+  X = 1
+end
+
+module N
+  class C
+    include M
+  end
+end
+</ruby>
+
++qualified_const_defined?+ behaves this way:
+
+<ruby>
+N.qualified_const_defined?("C::X", false) # => false (1.9 only)
+N.qualified_const_defined?("C::X", true)  # => true (1.9 only)
+N.qualified_const_defined?("C::X")        # => false in 1.8, true in 1.9
+</ruby>
+
+As the last example implies, in 1.9 the second argument defaults to true,
+as in +const_defined?+.
+
+For coherence with the builtin methods only relative paths are accepted.
+Absolute qualified constant names like +::Math::PI+ raise +NameError+.
+
+NOTE: Defined in +active_support/core_ext/module/qualified_const.rb+.
 
 h4. Synchronization
 
@@ -1044,7 +1078,7 @@ class A
   class_attribute :x, :instance_reader => false
 end
 
-A.x = 1 # NoMethodError
+A.new.x = 1 # NoMethodError
 </ruby>
 
 For convenience +class_attribute+ also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called +x?+.
@@ -1450,6 +1484,14 @@ The method +pluralize+ returns the plural of its receiver:
 
 As the previous example shows, Active Support knows some irregular plurals and uncountable nouns. Built-in rules can be extended in +config/initializers/inflections.rb+. That file is generated by the +rails+ command and has instructions in comments.
 
++pluralize+ can also take an optional +count+ parameter.  If <tt>count == 1</tt> the singular form will be returned.  For any other value of +count+ the plural form will be returned:
+
+<ruby>
+"dude".pluralize(0) # => "dudes"
+"dude".pluralize(1) # => "dude"
+"dude".pluralize(2) # => "dudes"
+</ruby>
+
 Active Record uses this method to compute the default table name that corresponds to a model:
 
 <ruby>
@@ -1613,7 +1655,7 @@ NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
 h5. +demodulize+
 
-Given a string with a qualified constant reference expression, +demodulize+ returns the very constant name, that is, the rightmost part of it:
+Given a string with a qualified constant name, +demodulize+ returns the very constant name, that is, the rightmost part of it:
 
 <ruby>
 "Product".demodulize                        # => "Product"
@@ -1631,6 +1673,31 @@ def counter_cache_column
   elsif options[:counter_cache]
     options[:counter_cache]
   end
+end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
+
+h5. +deconstantize+
+
+Given a string with a qualified constant reference expression, +deconstantize+ removes the rightmost segment, generally leaving the name of the constant's container:
+
+<ruby>
+"Product".deconstantize                        # => ""
+"Backoffice::UsersController".deconstantize    # => "Backoffice"
+"Admin::Hotel::ReservationUtils".deconstantize # => "Admin::Hotel"
+</ruby>
+
+Active Support for example uses this method in +Module#qualified_const_set+:
+
+<ruby>
+def qualified_const_set(path, value)
+  QualifiedConstUtils.raise_if_absolute(path)
+
+  const_name = path.demodulize
+  mod_name = path.deconstantize
+  mod = mod_name.empty? ? self : qualified_const_get(mod_name)
+  mod.const_set(const_name, value)
 end
 </ruby>
 
@@ -1784,7 +1851,7 @@ h4(#string-conversions). Conversions
 
 h5. +ord+
 
-Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encondings like ASCII or ISO-8859-1 in Ruby 1.8:
+Ruby 1.9 defines +ord+ to be the codepoint of the first character of the receiver. Active Support backports +ord+ for single-byte encodings like ASCII or ISO-8859-1 in Ruby 1.8:
 
 <ruby>
 "a".ord # => 97
@@ -1798,7 +1865,7 @@ In Ruby 1.8 +ord+ doesn't work in general in UTF8 strings, use the multibyte sup
 "à".mb_chars.ord # => 224, in UTF8
 </ruby>
 
-Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representattion in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
+Note that the 224 is different in both examples. In ISO-8859-1 "à" is represented as a single byte, 224. Its single-character representation in UTF8 has two bytes, namely 195 and 160, but its Unicode codepoint is 224. If we call +ord+ on the UTF8 string "à" the return value will be 195 in Ruby 1.8. That is not an error, because UTF8 is unsupported, the call itself would be bogus.
 
 INFO: +ord+ is equivalent to +getbyte(0)+.
 
@@ -2972,15 +3039,30 @@ Active Support defines these methods as well for Ruby 1.8.
 
 h6. +beginning_of_week+, +end_of_week+
 
-The methods +beginning_of_week+ and +end_of_week+ return the dates for the beginning and end of week, assuming weeks start on Monday:
+The methods +beginning_of_week+ and +end_of_week+ return the dates for the
+beginning and end of the week, respectively. Weeks are assumed to start on
+Monday, but that can be changed passing an argument.
 
 <ruby>
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.beginning_of_week      # => Mon, 03 May 2010
-d.end_of_week            # => Sun, 09 May 2010
+d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
+d.beginning_of_week          # => Mon, 03 May 2010
+d.beginning_of_week(:sunday) # => Sun, 02 May 2010
+d.end_of_week                # => Sun, 09 May 2010
+d.end_of_week(:sunday)       # => Sat, 08 May 2010
 </ruby>
 
-+beginning_of_week+ is aliased to +monday+ and +at_beginning_of_week+. +end_of_week+ is aliased to +sunday+ and +at_end_of_week+.
++beginning_of_week+ is aliased to +at_beginning_of_week+ and +end_of_week+ is aliased to +at_end_of_week+.
+
+h6. +monday+, +sunday+
+
+The methods +monday+ and +sunday+ return the dates for the beginning and
+end of the week, respectively. Weeks are assumed to start on Monday.
+
+<ruby>
+d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
+d.monday                     # => Mon, 03 May 2010
+d.sunday                     # => Sun, 09 May 2010
+</ruby>
 
 h6. +prev_week+, +next_week+
 
@@ -3205,8 +3287,10 @@ The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_
 <ruby>
 yesterday
 tomorrow
-beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+beginning_of_week (at_beginning_of_week)
+end_of_week (at_end_of_week)
+monday
+sunday
 weeks_ago
 prev_week
 next_week
@@ -3379,8 +3463,10 @@ ago
 since (in)
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
-beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+beginning_of_week (at_beginning_of_week)
+end_of_week (at_end_of_week)
+monday
+sunday
 weeks_ago
 prev_week
 next_week
@@ -3409,7 +3495,7 @@ They are analogous. Please refer to their documentation above and take into acco
 Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
-# In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
+# In Barcelona, 2010/03/28 02:00 <plus>0100 becomes 2010/03/28 03:00 <plus>0200 due to DST.
 t = Time.local_time(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
 t.advance(:seconds => 1)
@@ -3432,7 +3518,7 @@ The method +all_day+ returns a range representing the whole day of the current t
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_day
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Mon, 09 Aug 2010 23:59:59 UTC <plus>00:00
 </ruby>
 
 Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the purpose of generating time ranges.
@@ -3441,13 +3527,13 @@ Analogously, +all_week+, +all_month+, +all_quarter+ and +all_year+ all serve the
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_week
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Sun, 15 Aug 2010 23:59:59 UTC <plus>00:00
 now.all_month
-# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
+# => Sat, 01 Aug 2010 00:00:00 UTC <plus>00:00..Tue, 31 Aug 2010 23:59:59 UTC <plus>00:00
 now.all_quarter
-# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
+# => Thu, 01 Jul 2010 00:00:00 UTC <plus>00:00..Thu, 30 Sep 2010 23:59:59 UTC <plus>00:00
 now.all_year
-# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
+# => Fri, 01 Jan 2010 00:00:00 UTC <plus>00:00..Fri, 31 Dec 2010 23:59:59 UTC <plus>00:00
 </ruby>
 
 h4. Time Constructors
@@ -3542,8 +3628,8 @@ h4. +around_[level]+
 Takes two arguments, a +before_message+ and +after_message+ and calls the current level method on the +Logger+ instance, passing in the +before_message+, then the specified message, then the +after_message+:
 
 <ruby>
-  logger = Logger.new("log/development.log")
-  logger.around_info("before", "after") { |logger| logger.info("during") }
+logger = Logger.new("log/development.log")
+logger.around_info("before", "after") { |logger| logger.info("during") }
 </ruby>
 
 h4. +silence+
@@ -3623,8 +3709,3 @@ end
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/load_error.rb+.
-
-h3. Changelog
-
-* August 10, 2010: Starts to take shape, added to the index.
-* April 18, 2009: Initial version by "Xavier Noria":credits.html#fxn

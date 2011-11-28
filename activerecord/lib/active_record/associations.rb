@@ -1087,7 +1087,8 @@ module ActiveRecord
       #
       # [:finder_sql]
       #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
-      #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+
+      #   associations that depend on multiple tables. May be supplied as a string or a proc where interpolation is
+      #   required. Note: When this option is used, +find_in_collection+
       #   is _not_ added.
       # [:counter_sql]
       #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
@@ -1162,11 +1163,14 @@ module ActiveRecord
       #   has_many :tags, :as => :taggable
       #   has_many :reports, :readonly => true
       #   has_many :subscribers, :through => :subscriptions, :source => :user
-      #   has_many :subscribers, :class_name => "Person", :finder_sql =>
-      #       'SELECT DISTINCT people.* ' +
-      #       'FROM people p, post_subscriptions ps ' +
-      #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
-      #       'ORDER BY p.first_name'
+      #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
+      #       %Q{
+      #         SELECT DISTINCT people.*
+      #         FROM people p, post_subscriptions ps
+      #         WHERE ps.post_id = #{id} AND ps.person_id = p.id
+      #         ORDER BY p.first_name
+      #       }
+      #   }
       def has_many(name, options = {}, &extension)
         Builder::HasMany.build(self, name, options, &extension)
       end
@@ -1325,7 +1329,7 @@ module ActiveRecord
       #
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
-      #   from the association name. So <tt>has_one :author</tt> will by default be linked to the Author class, but
+      #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
       #   if the real class name is Person, you'll have to specify it with this option.
       # [:conditions]
       #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
@@ -1420,17 +1424,17 @@ module ActiveRecord
       # join table with a migration such as this:
       #
       #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
-      #     def self.up
+      #     def change
       #       create_table :developers_projects, :id => false do |t|
       #         t.integer :developer_id
       #         t.integer :project_id
       #       end
       #     end
-      #
-      #     def self.down
-      #       drop_table :developers_projects
-      #     end
       #   end
+      #
+      # It's also a good idea to add indexes to each of those columns to speed up the joins process.
+      # However, in MySQL it is advised to add a compound index for both of the columns as MySQL only
+      # uses one index per table during the lookup.
       #
       # Adds the following methods for retrieval and query:
       #
@@ -1571,7 +1575,7 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
       #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
-      #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
+      #   "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}"
       def has_and_belongs_to_many(name, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, options, &extension)
       end

@@ -220,7 +220,7 @@ module ActiveRecord
     #     validates_presence_of :member
     #   end
     module ClassMethods
-      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
+      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == '_destroy' || value.blank? } }
 
       # Defines an attributes writer for the specified association(s). If you
       # are using <tt>attr_protected</tt> or <tt>attr_accessible</tt>, then you
@@ -239,7 +239,8 @@ module ActiveRecord
       #   is specified, a record will be built for all attribute hashes that
       #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
-      #   that will reject a record where all the attributes are blank.
+      #   that will reject a record where all the attributes are blank excluding
+      #   any value for _destroy.
       # [:limit]
       #   Allows you to specify the maximum number of the associated records that
       #   can be processed with the nested attributes. If the size of the

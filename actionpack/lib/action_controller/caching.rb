@@ -24,7 +24,6 @@ module ActionController #:nodoc:
   #
   #   config.action_controller.cache_store = :memory_store
   #   config.action_controller.cache_store = :file_store, "/path/to/cache/directory"
-  #   config.action_controller.cache_store = :drb_store, "druby://localhost:9192"
   #   config.action_controller.cache_store = :mem_cache_store, "localhost"
   #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new("localhost:11211")
   #   config.action_controller.cache_store = MyOwnStore.new("parameter")

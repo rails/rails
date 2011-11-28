@@ -153,7 +153,7 @@ module ActiveSupport
 
         @klass.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def _one_time_conditions_valid_#{@callback_id}?
-            true #{key_options[0]}
+            true if #{key_options}
           end
         RUBY_EVAL
       end
@@ -171,8 +171,8 @@ module ActiveSupport
           # if condition    # before_save :filter_name, :if => :condition
           #   filter_name
           # end
-          filter = <<-RUBY_EVAL
-            unless halted
+          <<-RUBY_EVAL
+            if !halted && #{@compiled_options}
               # This double assignment is to prevent warnings in 1.9.3.  I would
               # remove the `result` variable, but apparently some other
               # generated code is depending on this variable being set sometimes
@@ -181,8 +181,6 @@ module ActiveSupport
               halted = (#{chain.config[:terminator]})
             end
           RUBY_EVAL
-
-          [@compiled_options[0], filter, @compiled_options[1]].compact.join("\n")
         when :around
           # Compile around filters with conditions into proxy methods
           # that contain the conditions.
@@ -202,7 +200,7 @@ module ActiveSupport
           name = "_conditional_callback_#{@kind}_#{next_id}"
           @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
              def #{name}(halted)
-              #{@compiled_options[0] || "if true"} && !halted
+              if #{@compiled_options} && !halted
                 #{@filter} do
                   yield self
                 end
@@ -222,10 +220,12 @@ module ActiveSupport
 
         case @kind
         when :after
-          # if condition    # after_save :filter_name, :if => :condition
-          #   filter_name
-          # end
-          [@compiled_options[0], @filter, @compiled_options[1]].compact.join("\n")
+          # after_save :filter_name, :if => :condition
+          <<-RUBY_EVAL
+          if #{@compiled_options}
+            #{@filter}
+          end
+          RUBY_EVAL
         when :around
           <<-RUBY_EVAL
             value
@@ -240,9 +240,7 @@ module ActiveSupport
       # symbols, string, procs, and objects), so compile a conditional
       # expression based on the options
       def _compile_options(options)
-        return [] if options[:if].empty? && options[:unless].empty?
-
-        conditions = []
+        conditions = ["true"]
 
         unless options[:if].empty?
           conditions << Array.wrap(_compile_filter(options[:if]))
@@ -252,7 +250,7 @@ module ActiveSupport
           conditions << Array.wrap(_compile_filter(options[:unless])).map {|f| "!#{f}"}
         end
 
-        ["if #{conditions.flatten.join(" && ")}", "end"]
+        conditions.flatten.join(" && ")
       end
 
       # Filters support:
@@ -371,42 +369,37 @@ module ActiveSupport
       # Generate the internal runner method called by +run_callbacks+.
       def __define_runner(symbol) #:nodoc:
         body = send("_#{symbol}_callbacks").compile
+        runner_method = "_run_#{symbol}_callbacks" 
 
         silence_warnings do
-          undef_method "_run_#{symbol}_callbacks" if method_defined?("_run_#{symbol}_callbacks")
+          undef_method runner_method if method_defined?(runner_method)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def _run_#{symbol}_callbacks(key = nil, &blk)
+            def #{runner_method}(key = nil, &blk)
               if key
-                name = "_run__\#{self.class.name.hash.abs}__#{symbol}__\#{key.hash.abs}__callbacks"
-
-                unless respond_to?(name)
-                  self.class.__create_keyed_callback(name, :#{symbol}, self, &blk)
-                end
-
-                send(name, &blk)
+                self.class.__run_keyed_callback(key, :#{symbol}, self, &blk)
               else
                 #{body}
               end
             end
-            private :_run_#{symbol}_callbacks
+            private :#{runner_method}
           RUBY_EVAL
         end
       end
 
-      # This is called the first time a callback is called with a particular
-      # key. It creates a new callback method for the key, calculating
-      # which callbacks can be omitted because of per_key conditions.
+      # This method calls the callback method for the given key.
+      # If this called first time it creates a new callback method for the key, 
+      # calculating which callbacks can be omitted because of per_key conditions.
       #
-      def __create_keyed_callback(name, kind, object, &blk) #:nodoc:
-        @_keyed_callbacks ||= {}
-        @_keyed_callbacks[name] ||= begin
+      def __run_keyed_callback(key, kind, object, &blk) #:nodoc:
+        name = "_run__#{self.name.hash.abs}__#{kind}__#{key.hash.abs}__callbacks"
+        unless object.respond_to?(name)
           str = send("_#{kind}_callbacks").compile(name, object)
           class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{name}() #{str} end
             protected :#{name}
           RUBY_EVAL
-          true
         end
+        object.send(name, &blk)
       end
 
       # This is used internally to append, prepend and skip callbacks to the

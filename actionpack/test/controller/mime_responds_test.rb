@@ -509,7 +509,7 @@ end
 class RespondWithController < ActionController::Base
   respond_to :html, :json
   respond_to :xml, :except => :using_resource_with_block
-  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, :using_hash_resource ]
+  respond_to :js,  :only => [ :using_resource_with_block, :using_resource, 'using_hash_resource' ]
 
   def using_resource
     respond_with(resource)
@@ -656,7 +656,9 @@ class RespondWithControllerTest < ActionController::TestCase
     @request.accept = "application/json"
     get :using_hash_resource
     assert_equal "application/json", @response.content_type
-    assert_equal %Q[{"result":{"name":"david","id":13}}], @response.body
+    assert @response.body.include?("result")
+    assert @response.body.include?('"name":"david"')
+    assert @response.body.include?('"id":13')
   end
 
   def test_using_hash_resource_with_post
@@ -745,6 +747,20 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
+  def test_using_resource_for_post_with_json_yields_unprocessable_entity_on_failure
+    with_test_route_set do
+      @request.accept = "application/json"
+      errors = { :name => :invalid }
+      Customer.any_instance.stubs(:errors).returns(errors)
+      post :using_resource
+      assert_equal "application/json", @response.content_type
+      assert_equal 422, @response.status
+      errors = {:errors => errors}
+      assert_equal errors.to_json, @response.body
+      assert_nil @response.location
+    end
+  end
+
   def test_using_resource_for_put_with_html_redirects_on_success
     with_test_route_set do
       put :using_resource
@@ -780,21 +796,21 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_for_put_with_xml_yields_ok_on_success
+  def test_using_resource_for_put_with_xml_yields_no_content_on_success
     @request.accept = "application/xml"
     put :using_resource
     assert_equal "application/xml", @response.content_type
-    assert_equal 200, @response.status
+    assert_equal 204, @response.status
     assert_equal " ", @response.body
   end
 
-  def test_using_resource_for_put_with_json_yields_ok_on_success
+  def test_using_resource_for_put_with_json_yields_no_content_on_success
     Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     @request.accept = "application/json"
     put :using_resource
     assert_equal "application/json", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "{}", @response.body
+    assert_equal 204, @response.status
+    assert_equal " ", @response.body
   end
 
   def test_using_resource_for_put_with_xml_yields_unprocessable_entity_on_failure
@@ -808,6 +824,18 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_nil @response.location
   end
 
+  def test_using_resource_for_put_with_json_yields_unprocessable_entity_on_failure
+    @request.accept = "application/json"
+    errors = { :name => :invalid }
+    Customer.any_instance.stubs(:errors).returns(errors)
+    put :using_resource
+    assert_equal "application/json", @response.content_type
+    assert_equal 422, @response.status
+    errors = {:errors => errors}
+    assert_equal errors.to_json, @response.body
+    assert_nil @response.location
+  end
+
   def test_using_resource_for_delete_with_html_redirects_on_success
     with_test_route_set do
       Customer.any_instance.stubs(:destroyed?).returns(true)
@@ -818,23 +846,23 @@ class RespondWithControllerTest < ActionController::TestCase
     end
   end
 
-  def test_using_resource_for_delete_with_xml_yields_ok_on_success
+  def test_using_resource_for_delete_with_xml_yields_no_content_on_success
     Customer.any_instance.stubs(:destroyed?).returns(true)
     @request.accept = "application/xml"
     delete :using_resource
     assert_equal "application/xml", @response.content_type
-    assert_equal 200, @response.status
+    assert_equal 204, @response.status
     assert_equal " ", @response.body
   end
 
-  def test_using_resource_for_delete_with_json_yields_ok_on_success
+  def test_using_resource_for_delete_with_json_yields_no_content_on_success
     Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     Customer.any_instance.stubs(:destroyed?).returns(true)
     @request.accept = "application/json"
     delete :using_resource
     assert_equal "application/json", @response.content_type
-    assert_equal 200, @response.status
-    assert_equal "{}", @response.body
+    assert_equal 204, @response.status
+    assert_equal " ", @response.body
   end
 
   def test_using_resource_for_delete_with_html_redirects_on_failure

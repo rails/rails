@@ -30,6 +30,7 @@ module ApplicationTests
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
+        "ActionDispatch::RequestId",
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::RemoteIp",
@@ -67,6 +68,14 @@ module ApplicationTests
       add_to_config "config.force_ssl = true"
       boot!
       assert middleware.include?("Rack::SSL")
+    end
+
+    test "Rack::SSL is configured with options when given" do
+      add_to_config "config.force_ssl = true"
+      add_to_config "config.ssl_options = { :host => 'example.com' }"
+      boot!
+      
+      assert_equal AppTemplate::Application.middleware.first.args, [{:host => 'example.com'}]
     end
 
     test "removing Active Record omits its middleware" do

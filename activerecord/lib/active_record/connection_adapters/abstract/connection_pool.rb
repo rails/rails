@@ -2,6 +2,7 @@ require 'thread'
 require 'monitor'
 require 'set'
 require 'active_support/core_ext/module/synchronization'
+require 'active_support/core_ext/module/deprecation'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -59,8 +60,6 @@ module ActiveRecord
     class ConnectionPool
       attr_accessor :automatic_reconnect
       attr_reader :spec, :connections
-      attr_reader :columns, :columns_hash, :primary_keys, :tables
-      attr_reader :column_defaults
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -85,72 +84,7 @@ module ActiveRecord
         @connections         = []
         @checked_out         = []
         @automatic_reconnect = true
-        @tables              = {}
         @visitor             = nil
-
-        @columns     = Hash.new do |h, table_name|
-          h[table_name] = with_connection do |conn|
-
-            # Fetch a list of columns
-            conn.columns(table_name, "#{table_name} Columns").tap do |columns|
-
-              # set primary key information
-              columns.each do |column|
-                column.primary = column.name == primary_keys[table_name]
-              end
-            end
-          end
-        end
-
-        @columns_hash = Hash.new do |h, table_name|
-          h[table_name] = Hash[columns[table_name].map { |col|
-            [col.name, col]
-          }]
-        end
-
-        @column_defaults = Hash.new do |h, table_name|
-          h[table_name] = Hash[columns[table_name].map { |col|
-            [col.name, col.default]
-          }]
-        end
-
-        @primary_keys = Hash.new do |h, table_name|
-          h[table_name] = with_connection do |conn|
-            table_exists?(table_name) ? conn.primary_key(table_name) : 'id'
-          end
-        end
-      end
-
-      # A cached lookup for table existence.
-      def table_exists?(name)
-        return true if @tables.key? name
-
-        with_connection do |conn|
-          conn.tables.each { |table| @tables[table] = true }
-          @tables[name] = true if !@tables.key?(name) && conn.table_exists?(name)
-        end
-
-        @tables.key? name
-      end
-
-      # Clears out internal caches:
-      #
-      #   * columns
-      #   * columns_hash
-      #   * tables
-      def clear_cache!
-        @columns.clear
-        @columns_hash.clear
-        @column_defaults.clear
-        @tables.clear
-      end
-
-      # Clear out internal caches for table with +table_name+.
-      def clear_table_cache!(table_name)
-        @columns.delete table_name
-        @columns_hash.delete table_name
-        @column_defaults.delete table_name
-        @primary_keys.delete table_name
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -227,6 +161,34 @@ module ActiveRecord
         end
       end
 
+      def columns
+        with_connection do |c|
+          c.schema_cache.columns
+        end
+      end
+      deprecate :columns
+
+      def columns_hash
+        with_connection do |c|
+          c.schema_cache.columns_hash
+        end
+      end
+      deprecate :columns_hash
+
+      def primary_keys
+        with_connection do |c|
+          c.schema_cache.primary_keys
+        end
+      end
+      deprecate :primary_keys
+
+      def clear_cache!
+        with_connection do |c|
+          c.schema_cache.clear!
+        end
+      end
+      deprecate :clear_cache!
+
       # Return any checked-out connections back to the pool by threads that
       # are no longer alive.
       def clear_stale_cached_connections!
@@ -301,20 +263,11 @@ module ActiveRecord
       private
 
       def new_connection
-        connection = ActiveRecord::Base.send(spec.adapter_method, spec.config)
-
-        # TODO: This is a bit icky, and in the long term we may want to change the method
-        #       signature for connections. Also, if we switch to have one visitor per
-        #       connection (and therefore per thread), we can get rid of the thread-local
-        #       variable in Arel::Visitors::ToSql.
-        @visitor ||= connection.class.visitor_for(self)
-        connection.visitor = @visitor
-
-        connection
+        ActiveRecord::Base.send(spec.adapter_method, spec.config)
       end
 
       def current_connection_id #:nodoc:
-        Thread.current.object_id
+        ActiveRecord::Base.connection_id ||= Thread.current.object_id
       end
 
       def checkout_new_connection
@@ -421,7 +374,7 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(klass)
-        pool = @connection_pools[klass.name]
+        pool = @connection_pools.delete(klass.name)
         return nil unless pool
 
         pool.automatic_reconnect = false

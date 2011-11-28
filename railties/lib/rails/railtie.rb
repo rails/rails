@@ -181,7 +181,7 @@ module Rails
 
     def load_tasks(app=self)
       extend Rake::DSL if defined? Rake::DSL
-      self.class.rake_tasks.each { |block| block.call(app) }
+      self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
 
       # load also tasks from all superclasses
       klass = self.class.superclass
@@ -196,7 +196,7 @@ module Rails
     end
 
     def railtie_namespace
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:_railtie) }
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
   end
 end

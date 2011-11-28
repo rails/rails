@@ -59,7 +59,10 @@ module ActionDispatch
             # Note that the regexp does not allow $1 to end with a ':'
             $1.constantize
           rescue LoadError, NameError => const_error
-            raise ActionDispatch::Session::SessionRestoreError, "Session contains objects whose class definition isn't available.\nRemember to require the classes for all objects kept in the session.\n(Original exception: #{const_error.message} [#{const_error.class}])\n"
+            raise ActionDispatch::Session::SessionRestoreError,
+              "Session contains objects whose class definition isn't available.\n" +
+              "Remember to require the classes for all objects kept in the session.\n" +
+              "(Original exception: #{const_error.message} [#{const_error.class}])\n"
           end
           retry
         else

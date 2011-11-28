@@ -28,9 +28,10 @@ module ActiveRecord
     end
 
     class BodyProxy # :nodoc:
-      def initialize(original_cache_value, target)
+      def initialize(original_cache_value, target, connection_id)
         @original_cache_value = original_cache_value
         @target               = target
+        @connection_id        = connection_id
       end
 
       def method_missing(method_sym, *arguments, &block)
@@ -48,6 +49,7 @@ module ActiveRecord
       def close
         @target.close if @target.respond_to?(:close)
       ensure
+        ActiveRecord::Base.connection_id = @connection_id
         ActiveRecord::Base.connection.clear_query_cache
         unless @original_cache_value
           ActiveRecord::Base.connection.disable_query_cache!
@@ -60,7 +62,13 @@ module ActiveRecord
       ActiveRecord::Base.connection.enable_query_cache!
 
       status, headers, body = @app.call(env)
-      [status, headers, BodyProxy.new(old, body)]
+      [status, headers, BodyProxy.new(old, body, ActiveRecord::Base.connection_id)]
+    rescue Exception => e
+      ActiveRecord::Base.connection.clear_query_cache
+      unless old
+        ActiveRecord::Base.connection.disable_query_cache!
+      end
+      raise e
     end
   end
 end

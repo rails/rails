@@ -37,6 +37,9 @@ module ActiveRecord
     # You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging,
     # or otherwise apply the business logic needed to resolve the conflict.
     #
+    # This locking mechanism will function inside a single Ruby process. To make it work across all
+    # web requests, the recommended approach is to add +lock_version+ as a hidden field to your form.
+    #
     # You must ensure that your database schema defaults the +lock_version+ column to 0.
     #
     # This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
@@ -103,7 +106,7 @@ module ActiveRecord
             affected_rows = connection.update stmt
 
             unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError, "Attempted to update a stale object: #{self.class.name}"
+              raise ActiveRecord::StaleObjectError.new(self, "update")
             end
 
             affected_rows
@@ -127,7 +130,7 @@ module ActiveRecord
             affected_rows = self.class.unscoped.where(predicate).delete_all
 
             unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError, "Attempted to delete a stale object: #{self.class.name}"
+              raise ActiveRecord::StaleObjectError.new(self, "destroy")
             end
           end
 

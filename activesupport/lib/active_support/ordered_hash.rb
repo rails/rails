@@ -20,7 +20,7 @@ module ActiveSupport
   #   oh.keys # => [:a, :b], this order is guaranteed
   #
   # <tt>ActiveSupport::OrderedHash</tt> is namespaced to prevent conflicts with other implementations.
-  class OrderedHash < ::Hash #:nodoc:
+  class OrderedHash < ::Hash
     def to_yaml_type
       "!tag:yaml.org,2002:omap"
     end
@@ -45,6 +45,11 @@ module ActiveSupport
 
     def nested_under_indifferent_access
       self
+    end
+
+    # Returns true to make sure that this hash is extractable via <tt>Array#extract_options!</tt>
+    def extractable_options?
+      true
     end
 
     # Hash is ordered in Ruby 1.9!

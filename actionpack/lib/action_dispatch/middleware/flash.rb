@@ -70,6 +70,10 @@ module ActionDispatch
       end
     end
 
+    # Implementation detail: please do not change the signature of the
+    # FlashHash class. Doing that will likely affect all Rails apps in
+    # production as the FlashHash currently stored in their sessions will
+    # become invalid.
     class FlashHash
       include Enumerable
 

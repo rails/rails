@@ -3,7 +3,8 @@ require 'active_support/core_ext/object/inclusion'
 ARGV << '--help' if ARGV.empty?
 
 aliases = {
-  "g" => "generate"
+  "g" => "generate",
+  "d" => "destroy"
 }
 
 command = ARGV.shift
@@ -30,7 +31,7 @@ Usage: rails COMMAND [ARGS]
 
 The common rails commands available for engines are:
  generate    Generate new code (short-cut alias: "g")
- destroy     Undo code generated with "generate"
+ destroy     Undo code generated with "generate" (short-cut alias: "d")
 
 All commands can be run with -h for more information.
   EOT

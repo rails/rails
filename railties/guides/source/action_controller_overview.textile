@@ -166,16 +166,18 @@ h3. Session
 
 Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
-* CookieStore - Stores everything on the client.
-* DRbStore - Stores the data on a DRb server.
-* MemCacheStore - Stores the data in a memcache.
-* ActiveRecordStore - Stores the data in a database using Active Record.
+* ActionDispatch::Session::CookieStore - Stores everything on the client.
+* ActiveRecord::SessionStore - Stores the data in a database using Active Record.
+* ActionDispatch::Session::CacheStore - Stores the data in the Rails cache.
+* ActionDispatch::Session::MemCacheStore - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
 For most stores this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
 
 The CookieStore can store around 4kB of data -- much less than the others -- but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+
+If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using ActionDispatch::Session::CacheStore. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
 Read more about session storage in the "Security Guide":security.html.
 
@@ -684,9 +686,11 @@ end
 
 This will read and stream the file 4kB at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the +:stream+ option or adjust the block size with the +:buffer_size+ option.
 
+If +:type+ is not specified, it will be guessed from the file extension specified in +:filename+. If the content type is not registered for the extension, <tt>application/octet-stream</tt> will be used.
+
 WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
 
-TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack. Although if you do need the request to go through Rails for some reason, you can set the +:x_sendfile+ option to true, and Rails will let the web server handle sending the file to the user, freeing up the Rails process to do other things. Note that your web server needs to support the +X-Sendfile+ header for this to work.
+TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
 
 h4. RESTful Downloads
 
@@ -794,7 +798,7 @@ NOTE: Certain exceptions are only rescuable from the +ApplicationController+ cla
 
 h3. Force HTTPS protocol
 
-Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reason. Since Rails 3.1 you can now use +force_ssl+ method in your controller to enforce that:
+Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use +force_ssl+ method in your controller to enforce that:
 
 <ruby>
 class DinnerController
@@ -813,9 +817,3 @@ end
 </ruby>
 
 Please note that if you found yourself adding +force_ssl+ to many controllers, you may found yourself wanting to force the whole application to use HTTPS instead. In that case, you can set the +config.force_ssl+ in your environment file.
-
-h3. Changelog
-
-* February 17, 2009: Yet another proofread by Xavier Noria.
-
-* November 4, 2008: First release version by Tore Darell

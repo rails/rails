@@ -53,12 +53,18 @@ module ActiveRecord
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
           quoted_name = connection.quote_table_name(name).downcase
 
-          table_joins.map { |join|
-            # Table names + table aliases
-            join.left.downcase.scan(
-              /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
-            ).size
-          }.sum
+          counts = table_joins.map do |join|
+            if join.is_a?(Arel::Nodes::StringJoin)
+              # Table names + table aliases
+              join.left.downcase.scan(
+                /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+              ).size
+            else
+              join.left.table_name == name ? 1 : 0
+            end
+          end
+
+          counts.sum
         end
 
         def truncate(name)

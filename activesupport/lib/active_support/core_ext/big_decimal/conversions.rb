@@ -29,8 +29,11 @@ class BigDecimal
     coder.represent_scalar(nil, YAML_MAPPING[string] || string)
   end
 
-  def to_d
-    self
+  # Backport this method if it doesn't exist
+  unless method_defined?(:to_d)
+    def to_d
+      self
+    end
   end
 
   DEFAULT_STRING_FORMAT = 'F'

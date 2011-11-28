@@ -540,6 +540,29 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_find_all_using_where_with_relation_and_alternate_primary_key
+    cool_first = minivans(:cool_first)
+    # switching the lines below would succeed in current rails
+    # assert_queries(2) {
+    assert_queries(1) {
+      relation = Minivan.where(:minivan_id => Minivan.where(:name => cool_first.name))
+      assert_equal [cool_first], relation.all
+    }
+  end
+
+  def test_find_all_using_where_with_relation_does_not_alter_select_values
+    david = authors(:david)
+
+    subquery = Author.where(:id => david.id)
+
+    assert_queries(1) {
+      relation = Author.where(:id => subquery)
+      assert_equal [david], relation.all
+    }
+
+    assert_equal 0, subquery.select_values.size
+  end
+
   def test_find_all_using_where_with_relation_with_joins
     david = authors(:david)
     assert_queries(1) {
@@ -840,6 +863,128 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'hen', hen.name
   end
 
+  def test_first_or_create
+    parrot = Bird.where(:color => 'green').first_or_create(:name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+
+    same_parrot = Bird.where(:color => 'green').first_or_create(:name => 'parakeet')
+    assert_kind_of Bird, same_parrot
+    assert same_parrot.persisted?
+    assert_equal parrot, same_parrot
+  end
+
+  def test_first_or_create_with_no_parameters
+    parrot = Bird.where(:color => 'green').first_or_create
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert_equal 'green', parrot.color
+  end
+
+  def test_first_or_create_with_block
+    parrot = Bird.where(:color => 'green').first_or_create { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+
+    same_parrot = Bird.where(:color => 'green').first_or_create { |bird| bird.name = 'parakeet' }
+    assert_equal parrot, same_parrot
+  end
+
+  def test_first_or_create_with_array
+    several_green_birds = Bird.where(:color => 'green').first_or_create([{:name => 'parrot'}, {:name => 'parakeet'}])
+    assert_kind_of Array, several_green_birds
+    several_green_birds.each { |bird| assert bird.persisted? }
+
+    same_parrot = Bird.where(:color => 'green').first_or_create([{:name => 'hummingbird'}, {:name => 'macaw'}])
+    assert_kind_of Bird, same_parrot
+    assert_equal several_green_birds.first, same_parrot
+  end
+
+  def test_first_or_create_bang_with_valid_options
+    parrot = Bird.where(:color => 'green').first_or_create!(:name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+
+    same_parrot = Bird.where(:color => 'green').first_or_create!(:name => 'parakeet')
+    assert_kind_of Bird, same_parrot
+    assert same_parrot.persisted?
+    assert_equal parrot, same_parrot
+  end
+
+  def test_first_or_create_bang_with_invalid_options
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').first_or_create!(:pirate_id => 1) }
+  end
+
+  def test_first_or_create_bang_with_no_parameters
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').first_or_create! }
+  end
+
+  def test_first_or_create_bang_with_valid_block
+    parrot = Bird.where(:color => 'green').first_or_create! { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert parrot.persisted?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+
+    same_parrot = Bird.where(:color => 'green').first_or_create! { |bird| bird.name = 'parakeet' }
+    assert_equal parrot, same_parrot
+  end
+
+  def test_first_or_create_bang_with_invalid_block
+    assert_raise(ActiveRecord::RecordInvalid) do
+      Bird.where(:color => 'green').first_or_create! { |bird| bird.pirate_id = 1 }
+    end
+  end
+
+  def test_first_or_create_with_valid_array
+    several_green_birds = Bird.where(:color => 'green').first_or_create!([{:name => 'parrot'}, {:name => 'parakeet'}])
+    assert_kind_of Array, several_green_birds
+    several_green_birds.each { |bird| assert bird.persisted? }
+
+    same_parrot = Bird.where(:color => 'green').first_or_create!([{:name => 'hummingbird'}, {:name => 'macaw'}])
+    assert_kind_of Bird, same_parrot
+    assert_equal several_green_birds.first, same_parrot
+  end
+
+  def test_first_or_create_with_invalid_array
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').first_or_create!([ {:name => 'parrot'}, {:pirate_id => 1} ]) }
+  end
+
+  def test_first_or_initialize
+    parrot = Bird.where(:color => 'green').first_or_initialize(:name => 'parrot')
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.valid?
+    assert parrot.new_record?
+    assert_equal 'parrot', parrot.name
+    assert_equal 'green', parrot.color
+  end
+
+  def test_first_or_initialize_with_no_parameters
+    parrot = Bird.where(:color => 'green').first_or_initialize
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert !parrot.valid?
+    assert parrot.new_record?
+    assert_equal 'green', parrot.color
+  end
+
+  def test_first_or_initialize_with_block
+    parrot = Bird.where(:color => 'green').first_or_initialize { |bird| bird.name = 'parrot' }
+    assert_kind_of Bird, parrot
+    assert !parrot.persisted?
+    assert parrot.valid?
+    assert parrot.new_record?
+    assert_equal 'green', parrot.color
+    assert_equal 'parrot', parrot.name
+  end
+
   def test_explicit_create_scope
     hens = Bird.where(:name => 'hen')
     assert_equal 'hen', hens.new.name
@@ -995,12 +1140,28 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_joins_and_offset_and_order
-    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('posts.id')
+    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('posts.id', 'comments.id')
     count        = all_comments.count
     comments     = all_comments.offset(1)
 
     assert_equal count - 1, comments.update_all(:post_id => posts(:thinking).id)
     assert_equal posts(:thinking), comments(:more_greetings).post
     assert_equal posts(:welcome),  comments(:greetings).post
+  end
+
+  def test_uniq
+    tag1 = Tag.create(:name => 'Foo')
+    tag2 = Tag.create(:name => 'Foo')
+
+    query = Tag.select(:name).where(:id => [tag1.id, tag2.id])
+
+    assert_equal ['Foo', 'Foo'], query.map(&:name)
+    assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.uniq.map(&:name)
+    end
+    assert_sql(/DISTINCT/) do
+      assert_equal ['Foo'], query.uniq(true).map(&:name)
+    end
+    assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
   end
 end

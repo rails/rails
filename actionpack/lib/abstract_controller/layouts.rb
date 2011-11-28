@@ -213,7 +213,7 @@ module AbstractController
       # true::   raise an ArgumentError
       #
       # ==== Parameters
-      # * <tt>String, Symbol, false</tt> - The layout to use.
+      # * <tt>layout</tt> - The layout to use.
       #
       # ==== Options (conditions)
       # * :only   - A list of actions to apply this layout to.
@@ -310,14 +310,10 @@ module AbstractController
     # This will be overwritten by _write_layout_method
     def _layout; end
 
-    # Determine the layout for a given name and details, taking into account
-    # the name type.
+    # Determine the layout for a given name, taking into account the name type.
     #
     # ==== Parameters
     # * <tt>name</tt> - The name of the template
-    # * <tt>details</tt> - A list of details to restrict
-    #   the lookup to. By default, layout lookup is limited to the
-    #   formats specified for the current request.
     def _layout_for_option(name)
       case name
       when String     then name
@@ -330,15 +326,12 @@ module AbstractController
       end
     end
 
-    # Returns the default layout for this controller and a given set of details.
+    # Returns the default layout for this controller.
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
-    # * <tt>details</tt> - A list of details to restrict the search by. This
-    #   might include details like the format or locale of the template.
-    # * <tt>require_layout</tt> - If this is true, raise an ArgumentError
-    #   with details about the fact that the exception could not be
-    #   found (defaults to false)
+    # * <tt>require_layout</tt> - If set to true and layout is not found,
+    #   an ArgumentError exception is raised (defaults to false)
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or nil)

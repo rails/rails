@@ -182,7 +182,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_first_and_last_should_allow_integers_for_limit
     assert_equal Topic.base.first(2), Topic.base.to_a.first(2)
-    assert_equal Topic.base.last(2), Topic.base.to_a.last(2)
+    assert_equal Topic.base.last(2), Topic.base.order("id").to_a.last(2)
   end
 
   def test_first_and_last_should_not_use_query_when_results_are_loaded

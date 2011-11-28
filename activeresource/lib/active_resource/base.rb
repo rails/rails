@@ -170,8 +170,8 @@ module ActiveResource
   # <tt>404</tt> is just one of the HTTP error response codes that Active Resource will handle with its own exception. The
   # following HTTP response codes will also result in these exceptions:
   #
-  # * 200..399 - Valid response, no exception (other than 301, 302)
-  # * 301, 302 - ActiveResource::Redirection
+  # * 200..399 - Valid response. No exceptions, other than these redirects:
+  # * 301, 302, 303, 307 - ActiveResource::Redirection
   # * 400 - ActiveResource::BadRequest
   # * 401 - ActiveResource::UnauthorizedAccess
   # * 403 - ActiveResource::ForbiddenAccess
@@ -637,6 +637,10 @@ module ActiveResource
       #   Post.element_path(1)
       #   # => /posts/1.json
       #
+      #   class Comment < ActiveResource::Base
+      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #   end
+      #
       #   Comment.element_path(1, :post_id => 5)
       #   # => /posts/5/comments/1.json
       #
@@ -662,6 +666,10 @@ module ActiveResource
       # ==== Examples
       #   Post.new_element_path
       #   # => /posts/new.json
+      #
+      #   class Comment < ActiveResource::Base
+      #     self.site = "http://37s.sunrise.i/posts/:post_id/"
+      #   end
       #
       #   Comment.collection_path(:post_id => 5)
       #   # => /posts/5/comments/new.json
@@ -955,7 +963,7 @@ module ActiveResource
           prefix_options, query_options = {}, {}
 
           (options || {}).each do |key, value|
-            next if key.blank?
+            next if key.blank? || !key.respond_to?(:to_sym)
             (prefix_parameters.include?(key.to_sym) ? prefix_options : query_options)[key.to_sym] = value
           end
 
@@ -1357,7 +1365,9 @@ module ActiveResource
       end
 
       def load_attributes_from_response(response)
-        if !response['Content-Length'].blank? && response['Content-Length'] != "0" && !response.body.nil? && response.body.strip.size > 0
+        if (response_code_allows_body?(response.code) &&
+            (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
+            !response.body.nil? && response.body.strip.size > 0)
           load(self.class.format.decode(response.body), true)
           @persisted = true
         end
@@ -1381,6 +1391,16 @@ module ActiveResource
       end
 
     private
+
+      def read_attribute_for_serialization(n)
+        attributes[n]
+      end
+
+      # Determine whether the response is allowed to have a body per HTTP 1.1 spec section 4.4.1
+      def response_code_allows_body?(c)
+        !((100..199).include?(c) || [204,304].include?(c))
+      end
+
       # Tries to find a resource for a given collection name; if it fails, then the resource is created
       def find_or_create_resource_for_collection(name)
         find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))

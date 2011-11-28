@@ -636,13 +636,37 @@ class BaseTest < Test::Unit::TestCase
     assert_nil p.__send__(:id_from_response, resp)
   end
 
-  def test_load_attributes_from_response
-    p = Person.new
+  def test_not_persisted_with_no_body_and_positive_content_length
     resp = ActiveResource::Response.new(nil)
     resp['Content-Length'] = "100"
-    assert_nil p.__send__(:load_attributes_from_response, resp)
+    Person.connection.expects(:post).returns(resp)
+    assert !Person.create.persisted?
   end
 
+  def test_not_persisted_with_body_and_zero_content_length
+    resp = ActiveResource::Response.new(@rick)
+    resp['Content-Length'] = "0"
+    Person.connection.expects(:post).returns(resp)
+    assert !Person.create.persisted?
+  end
+
+  # These response codes aren't allowed to have bodies per HTTP spec
+  def test_not_persisted_with_empty_response_codes
+    [100,101,204,304].each do |status_code|
+      resp = ActiveResource::Response.new(@rick, status_code)
+      Person.connection.expects(:post).returns(resp)
+      assert !Person.create.persisted?
+    end
+  end
+
+  # Content-Length is not required by HTTP 1.1, so we should read
+  # the body anyway in its absence.
+  def test_persisted_with_no_content_length
+    resp = ActiveResource::Response.new(@rick)
+    resp['Content-Length'] = nil
+    Person.connection.expects(:post).returns(resp)
+    assert Person.create.persisted?
+  end
 
   def test_create_with_custom_prefix
     matzs_house = StreetAddress.new(:person_id => 1)
@@ -980,9 +1004,17 @@ class BaseTest < Test::Unit::TestCase
 
   def test_to_xml_with_private_method_name_as_attribute
     Person.format = :xml
-    assert_nothing_raised(ArgumentError) {
-      Customer.new(:test => true).to_xml
-    }
+
+    customer = Customer.new(:foo => "foo")
+    customer.singleton_class.class_eval do
+      def foo
+        "bar"
+      end
+      private :foo
+    end
+
+    assert !customer.to_xml.include?("<foo>bar</foo>")
+    assert customer.to_xml.include?("<foo>foo</foo>")
   ensure
     Person.format = :json
   end

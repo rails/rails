@@ -24,7 +24,7 @@ if defined?(MiniTest)
   end
 end
 
-if defined?(ActiveRecord)
+if defined?(ActiveRecord::Base)
   require 'active_record/test_case'
 
   class ActiveSupport::TestCase

@@ -2,7 +2,7 @@ module ActiveRecord #:nodoc:
   # = Active Record Serialization
   module Serialization
     extend ActiveSupport::Concern
-    include ActiveModel::Serializers::JSON
+    include ActiveModel::Serializable::JSON
 
     def serializable_hash(options = nil)
       options = options.try(:clone) || {}

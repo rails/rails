@@ -13,11 +13,10 @@ Gem::Specification.new do |s|
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
 
-  s.files        = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
+  s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
   s.add_dependency('activesupport', version)
   s.add_dependency('builder',       '~> 3.0.0')
   s.add_dependency('i18n',          '~> 0.6')
-  s.add_dependency('bcrypt-ruby',   '~> 2.1.4')
 end

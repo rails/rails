@@ -11,13 +11,17 @@ module ApplicationTests
 
       add_to_config("config.action_dispatch.show_exceptions = false")
 
+      @simple_plugin = engine "weblog"
       @plugin = engine "blog"
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
+          mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
           match "/engine_route" => "application_generating#engine_route"
           match "/engine_route_in_view" => "application_generating#engine_route_in_view"
+          match "/weblog_engine_route" => "application_generating#weblog_engine_route"
+          match "/weblog_engine_route_in_view" => "application_generating#weblog_engine_route_in_view"
           match "/url_for_engine_route" => "application_generating#url_for_engine_route"
           match "/polymorphic_route" => "application_generating#polymorphic_route"
           match "/application_polymorphic_path" => "application_generating#application_polymorphic_path"
@@ -27,6 +31,29 @@ module ApplicationTests
           root :to => 'main#index'
         end
       RUBY
+
+
+      @simple_plugin.write "lib/weblog.rb", <<-RUBY
+        module Weblog
+          class Engine < ::Rails::Engine
+          end
+        end
+      RUBY
+
+      @simple_plugin.write "config/routes.rb", <<-RUBY
+        Weblog::Engine.routes.draw do
+          match '/weblog' => "weblogs#index", :as => 'weblogs'
+        end
+      RUBY
+
+      @simple_plugin.write "app/controllers/weblogs_controller.rb", <<-RUBY
+        class WeblogsController < ActionController::Base
+          def index
+            render :text => request.url
+          end
+        end
+      RUBY
+
 
       @plugin.write "app/models/blog/post.rb", <<-RUBY
         module Blog
@@ -98,6 +125,14 @@ module ApplicationTests
 
           def engine_route_in_view
             render :inline => "<%= blog.posts_path %>"
+          end
+
+          def weblog_engine_route
+            render :text => weblog.weblogs_path
+          end
+
+          def weblog_engine_route_in_view
+            render :inline => "<%= weblog.weblogs_path %>"
           end
 
           def url_for_engine_route
@@ -191,6 +226,14 @@ module ApplicationTests
       # and in an application
       get "/application_polymorphic_path"
       assert_equal "/posts/44", last_response.body
+    end
+
+    test "route path for controller action when engine is mounted at root" do
+      get "/weblog_engine_route"
+      assert_equal "/weblog", last_response.body
+
+      get "/weblog_engine_route_in_view"
+      assert_equal "/weblog", last_response.body
     end
   end
 end

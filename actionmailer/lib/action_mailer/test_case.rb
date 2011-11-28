@@ -17,7 +17,14 @@ module ActionMailer
 
       module ClassMethods
         def tests(mailer)
-          self._mailer_class = mailer
+          case mailer
+          when String, Symbol
+            self._mailer_class = mailer.to_s.camelize.constantize
+          when Module
+            self._mailer_class = mailer
+          else
+            raise NonInferrableMailerError.new(mailer)
+          end
         end
 
         def mailer_class

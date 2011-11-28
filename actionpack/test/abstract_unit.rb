@@ -333,9 +333,9 @@ module ActionDispatch
         "#{FIXTURE_LOAD_PATH}/public"
       end
 
-      remove_method :logger
+      remove_method :stderr_logger
       # Silence logger
-      def logger
+      def stderr_logger
         nil
       end
   end

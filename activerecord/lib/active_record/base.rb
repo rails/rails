@@ -115,8 +115,8 @@ module ActiveRecord #:nodoc:
   # When joining tables, nested hashes or keys written in the form 'table_name.column_name'
   # can be used to qualify the table name of a particular condition. For instance:
   #
-  #   Student.joins(:schools).where(:schools => { :type => 'public' })
-  #   Student.joins(:schools).where('schools.type' => 'public' )
+  #   Student.joins(:schools).where(:schools => { :category => 'public' })
+  #   Student.joins(:schools).where('schools.category' => 'public' )
   #
   # == Overwriting default accessors
   #
@@ -442,9 +442,12 @@ module ActiveRecord #:nodoc:
 
     class << self # Class methods
       delegate :find, :first, :first!, :last, :last!, :all, :exists?, :any?, :many?, :to => :scoped
+      delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :scoped
       delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :scoped
       delegate :find_each, :find_in_batches, :to => :scoped
-      delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :where, :preload, :eager_load, :includes, :from, :lock, :readonly, :having, :create_with, :to => :scoped
+      delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
+               :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
+               :having, :create_with, :uniq, :to => :scoped
       delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
       # Executes a custom SQL query against your database and returns all the results. The results will
@@ -624,6 +627,8 @@ module ActiveRecord #:nodoc:
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
+        return if abstract_class?
+
         self.table_name = compute_table_name
       end
 
@@ -704,18 +709,22 @@ module ActiveRecord #:nodoc:
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        connection_pool.columns[table_name]
+        if defined?(@primary_key)
+          connection.schema_cache.primary_keys[table_name] ||= primary_key
+        end
+
+        connection.schema_cache.columns[table_name]
       end
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        connection_pool.columns_hash[table_name]
+        connection.schema_cache.columns_hash[table_name]
       end
 
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        connection_pool.column_defaults[table_name]
+        connection.schema_cache.column_defaults[table_name]
       end
 
       # Returns an array of column names as strings.
@@ -751,7 +760,7 @@ module ActiveRecord #:nodoc:
       # values, eg:
       #
       #  class CreateJobLevels < ActiveRecord::Migration
-      #    def self.up
+      #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
       #        t.string :name
@@ -765,21 +774,21 @@ module ActiveRecord #:nodoc:
       #      end
       #    end
       #
-      #    def self.down
+      #    def down
       #      drop_table :job_levels
       #    end
       #  end
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection_pool.clear_table_cache!(table_name) if table_exists?
+        connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
         @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = nil
       end
 
       def clear_cache! # :nodoc:
-        connection_pool.clear_cache!
+        connection.schema_cache.clear!
       end
 
       def attribute_method?(attribute)
@@ -1329,7 +1338,7 @@ MSG
         # Returns the class descending directly from ActiveRecord::Base or an
         # abstract class, if any, in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
-          if klass.superclass == Base || klass.superclass.abstract_class?
+          if klass == Base || klass.superclass == Base || klass.superclass.abstract_class?
             klass
           elsif klass.superclass.nil?
             raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
@@ -1347,9 +1356,9 @@ MSG
           return nil if condition.blank?
 
           case condition
-            when Array; sanitize_sql_array(condition)
-            when Hash;  sanitize_sql_hash_for_conditions(condition, table_name)
-            else        condition
+          when Array; sanitize_sql_array(condition)
+          when Hash;  sanitize_sql_hash_for_conditions(condition, table_name)
+          else        condition
           end
         end
         alias_method :sanitize_sql, :sanitize_sql_for_conditions
@@ -1762,7 +1771,8 @@ MSG
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
-        !_read_attribute(attribute).blank?
+        value = _read_attribute(attribute)
+        !value.nil? || (value.respond_to?(:empty?) && !value.empty?)
       end
 
       # Returns the column object for the named attribute.
@@ -1847,7 +1857,7 @@ MSG
 
         ensure_proper_type
         populate_with_current_scope_attributes
-        clear_timestamp_attributes
+        super
       end
 
       # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
@@ -2111,14 +2121,6 @@ MSG
           send("#{att}=", value) if respond_to?("#{att}=")
         end
       end
-
-      # Clear attributes and changed_attributes
-      def clear_timestamp_attributes
-        all_timestamp_attributes_in_model.each do |attribute_name|
-          self[attribute_name] = nil
-          changed_attributes.delete(attribute_name)
-        end
-      end
   end
 
   Base.class_eval do
@@ -2146,7 +2148,7 @@ MSG
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
     include AutosaveAssociation, NestedAttributes
-    include Aggregations, Transactions, Reflection, Serialization
+    include Aggregations, Transactions, Reflection, Serialization, Store
 
     NilClass.add_whiner(self) if NilClass.respond_to?(:add_whiner)
 

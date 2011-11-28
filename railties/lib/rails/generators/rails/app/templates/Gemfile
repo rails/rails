@@ -10,6 +10,9 @@ source 'http://rubygems.org'
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry %>
 
+# To use ActiveModel has_secure_password
+# gem 'bcrypt-ruby', '~> 3.0.0'
+
 # Use unicorn as the web server
 # gem 'unicorn'
 
@@ -18,5 +21,3 @@ source 'http://rubygems.org'
 
 # To use debugger
 # <%= ruby_debugger_gemfile_entry %>
-
-<%= turn_gemfile_entry -%>

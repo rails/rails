@@ -8,7 +8,7 @@ class Car < ActiveRecord::Base
   has_one :frickinawesome_bulb, :class_name => "Bulb", :conditions => { :frickinawesome => true }
 
   has_many :tyres
-  has_many :engines
+  has_many :engines, :dependent => :destroy
   has_many :wheels, :as => :wheelable
 
   scope :incl_tyres, includes(:tyres)

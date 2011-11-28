@@ -1,4 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'active_record/connection_adapters/statement_pool'
+require 'active_support/core_ext/string/encoding'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
@@ -47,14 +49,47 @@ module ActiveRecord
         end
       end
 
-      def initialize(connection, logger, config)
-        super(connection, logger)
-        @statements = {}
-        @config = config
+      class StatementPool < ConnectionAdapters::StatementPool
+        def initialize(connection, max)
+          super
+          @cache = Hash.new { |h,pid| h[pid] = {} }
+        end
+
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
+
+        def []=(sql, key)
+          while @max <= cache.size
+            dealloc(cache.shift.last[:stmt])
+          end
+          cache[sql] = key
+        end
+
+        def clear
+          cache.values.each do |hash|
+            dealloc hash[:stmt]
+          end
+          cache.clear
+        end
+
+        private
+        def cache
+          @cache[$$]
+        end
+
+        def dealloc(stmt)
+          stmt.close unless stmt.closed?
+        end
       end
 
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::SQLite.new(pool)
+      def initialize(connection, logger, config)
+        super(connection, logger)
+        @statements = StatementPool.new(@connection,
+                                        config.fetch(:statement_limit) { 1000 })
+        @config = config
+        @visitor = Arel::Visitors::SQLite.new self
       end
 
       def adapter_name #:nodoc:
@@ -106,10 +141,6 @@ module ActiveRecord
 
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.values.map { |hash| hash[:stmt] }.each { |stmt|
-          stmt.close unless stmt.closed?
-        }
-
         @statements.clear
       end
 
@@ -121,6 +152,10 @@ module ActiveRecord
       # Returns true if SQLite version is '3.1.0' or greater, false otherwise.
       def supports_autoincrement? #:nodoc:
         sqlite_version >= '3.1.0'
+      end
+
+      def supports_index_sort_order?
+        sqlite_version >= '3.3.0'
       end
 
       def native_database_types #:nodoc:
@@ -161,13 +196,47 @@ module ActiveRecord
         end
       end
 
-      def type_cast(value, column) # :nodoc:
-        return super unless BigDecimal === value
+      if "<3".encoding_aware?
+        def type_cast(value, column) # :nodoc:
+          return value.to_f if BigDecimal === value
+          return super unless String === value
+          return super unless column && value
 
-        value.to_f
+          value = super
+          if column.type == :string && value.encoding == Encoding::ASCII_8BIT
+            @logger.error "Binary data inserted for `string` type on column `#{column.name}`"
+            value.encode! 'utf-8'
+          end
+          value
+        end
+      else
+        def type_cast(value, column) # :nodoc:
+          return super unless BigDecimal === value
+
+          value.to_f
+        end
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def explain(arel)
+        sql = "EXPLAIN QUERY PLAN #{to_sql(arel)}"
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN'))
+      end
+
+      class ExplainPrettyPrinter
+        # Pretty prints the result of a EXPLAIN QUERY PLAN in a way that resembles
+        # the output of the SQLite shell:
+        #
+        #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
+        #   0|1|1|SCAN TABLE posts (~100000 rows)
+        #
+        def pp(result) # :nodoc:
+          result.rows.map do |row|
+            row.join('|')
+          end.join("\n") + "\n"
+        end
+      end
 
       def exec_query(sql, name = nil, binds = [])
         log(sql, name, binds) do
@@ -364,6 +433,8 @@ module ActiveRecord
             self.limit   = options[:limit] if options.include?(:limit)
             self.default = options[:default] if include_default
             self.null    = options[:null] if options.include?(:null)
+            self.precision = options[:precision] if options.include?(:precision)
+            self.scale   = options[:scale] if options.include?(:scale)
           end
         end
       end
@@ -418,6 +489,7 @@ module ActiveRecord
 
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
+                :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
             @definition.primary_key(primary_key(from)) if primary_key(from)

@@ -1,6 +1,3 @@
-require 'active_support/core_ext/object/public_send'
-require 'active_support/core_ext/string/starts_ends_with'
-
 class Module
   # Provides a delegate class method to easily expose contained objects' methods
   # as your own. Pass one or more methods (specified as symbols or strings)
@@ -127,13 +124,12 @@ class Module
 
     methods.each do |method|
       method = method.to_s
-      call   = method.ends_with?('=') ? "public_send(:#{method}, " : "#{method}("
 
       if allow_nil
         module_eval(<<-EOS, file, line - 2)
           def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
             if #{to} || #{to}.respond_to?(:#{method})         #   if client || client.respond_to?(:name)
-              #{to}.#{call}*args, &block)                     #     client.name(*args, &block)
+              #{to}.__send__(:#{method}, *args, &block)       #     client.__send__(:name, *args, &block)
             end                                               #   end
           end                                                 # end
         EOS
@@ -142,7 +138,7 @@ class Module
 
         module_eval(<<-EOS, file, line - 1)
           def #{method_prefix}#{method}(*args, &block)        # def customer_name(*args, &block)
-            #{to}.#{call}*args, &block)                       #   client.name(*args, &block)
+            #{to}.__send__(:#{method}, *args, &block)         #   client.__send__(:name, *args, &block)
           rescue NoMethodError                                # rescue NoMethodError
             if #{to}.nil?                                     #   if client.nil?
               #{exception}                                    #     # add helpful message to the exception

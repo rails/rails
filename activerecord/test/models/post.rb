@@ -172,3 +172,13 @@ class PostWithDefaultInclude < ActiveRecord::Base
   default_scope includes(:comments)
   has_many :comments, :foreign_key => :post_id
 end
+
+class PostWithDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope :order => :title
+end
+
+class SpecialPostWithDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope where(:id => [1, 5,6])
+end

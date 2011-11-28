@@ -27,7 +27,7 @@ module ActionView
   #
   # == The :as and :object options
   #
-  # By default <tt>ActionView::Partials::PartialRenderer</tt> doesn't have any local variables.
+  # By default <tt>ActionView::PartialRenderer</tt> doesn't have any local variables.
   # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
   #
   #   <%= render :partial => "account", :object => @buyer %>
@@ -216,18 +216,15 @@ module ActionView
 
     def render(context, options, block)
       setup(context, options, block)
+      identifier = (@template = find_partial) ? @template.identifier : @path
 
-      wrap_formats(@path) do
-        identifier = ((@template = find_partial) ? @template.identifier : @path)
-
-        if @collection
-          instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
-            render_collection
-          end
-        else
-          instrument(:partial, :identifier => identifier) do
-            render_partial
-          end
+      if @collection
+        instrument(:collection, :identifier => identifier || "collection", :count => @collection.size) do
+          render_collection
+        end
+      else
+        instrument(:partial, :identifier => identifier) do
+          render_partial
         end
       end
     end
@@ -271,6 +268,7 @@ module ActionView
       @options = options
       @locals  = options[:locals] || {}
       @block   = block
+      @details = extract_details(options)
 
       if String === partial
         @object     = options[:object]
@@ -299,6 +297,7 @@ module ActionView
                                 "and is followed by any combinations of letters, numbers, or underscores.")
       end
 
+      extract_format(@path, @details)
       self
     end
 
@@ -326,7 +325,7 @@ module ActionView
 
     def find_template(path=@path, locals=@locals.keys)
       prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
-      @lookup_context.find_template(path, prefixes, true, locals)
+      @lookup_context.find_template(path, prefixes, true, locals, @details)
     end
 
     def collection_with_template
@@ -367,8 +366,13 @@ module ActionView
       path = if object.respond_to?(:to_partial_path)
         object.to_partial_path
       else
-        ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_partial_path directly instead."
-        object.class.model_name.partial_path
+        klass = object.class
+        if klass.respond_to?(:model_name)
+          ActiveSupport::Deprecation.warn "ActiveModel-compatible objects whose classes return a #model_name that responds to #partial_path are deprecated. Please respond to #to_partial_path directly instead."
+          klass.model_name.partial_path
+        else
+          raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object that returns a valid partial path.")
+        end
       end
 
       @partial_names[path] ||= path.dup.tap do |object_path|

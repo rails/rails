@@ -9,7 +9,7 @@ require 'uri'
 module Rails
   module Generators
     class AppBase < Base
-      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db )
+      DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
 
@@ -138,28 +138,33 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :path => '#{Rails::Generators::RAILS_DEV_PATH}'
+            gem 'journey',   :git => 'git://github.com/rails/journey.git'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            gem 'journey',   :git => 'git://github.com/rails/journey.git'
+            gem 'arel',      :git => 'git://github.com/rails/arel.git'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
             gem 'rails', '#{Rails::VERSION::STRING}'
 
             # Bundle edge Rails instead:
-            # gem 'rails',     :git => 'git://github.com/rails/rails.git'
+            # gem 'rails', :git => 'git://github.com/rails/rails.git'
           GEMFILE
         end
       end
 
       def gem_for_database
-        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql jdbcsqlite3 jdbcpostgresql )
+        # %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "oracle"     then "ruby-oci8"
-        when "postgresql" then "pg"
-        when "frontbase"  then "ruby-frontbase"
-        when "mysql"      then "mysql2"
+        when "oracle"         then "ruby-oci8"
+        when "postgresql"     then "pg"
+        when "frontbase"      then "ruby-frontbase"
+        when "mysql"          then "mysql2"
+        when "sqlserver"      then "activerecord-sqlserver-adapter"
         when "jdbcmysql"      then "activerecord-jdbcmysql-adapter"
         when "jdbcsqlite3"    then "activerecord-jdbcsqlite3-adapter"
         when "jdbcpostgresql" then "activerecord-jdbcpostgresql-adapter"
@@ -187,17 +192,6 @@ module Rails
         end
       end
 
-      def turn_gemfile_entry
-        unless RUBY_VERSION < "1.9.2" || options[:skip_test_unit]
-          <<-GEMFILE.strip_heredoc
-            group :test do
-              # Pretty printed test output
-              gem 'turn', :require => false
-            end
-          GEMFILE
-        end
-      end
-
       def assets_gemfile_entry
         <<-GEMFILE.strip_heredoc
           # Gems used only for assets and not required
@@ -205,7 +199,8 @@ module Rails
           group :assets do
             gem 'sass-rails',   :git => 'git://github.com/rails/sass-rails.git'
             gem 'coffee-rails', :git => 'git://github.com/rails/coffee-rails.git'
-            gem 'uglifier'
+            #{"gem 'therubyrhino'\n" if defined?(JRUBY_VERSION)}
+            gem 'uglifier', '>= 1.0.3'
           end
         GEMFILE
       end

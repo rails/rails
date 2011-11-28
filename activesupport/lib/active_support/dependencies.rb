@@ -5,6 +5,7 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/module/qualified_const'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
@@ -229,11 +230,15 @@ module ActiveSupport #:nodoc:
       end
 
       def load(file, *)
-        load_dependency(file) { super }
+        result = false
+        load_dependency(file) { result = super }
+        result
       end
 
       def require(file, *)
-        load_dependency(file) { super }
+        result = false
+        load_dependency(file) { result = super }
+        result
       end
 
       # Mark the given constant as unloadable. Unloadable constants are removed each
@@ -353,12 +358,13 @@ module ActiveSupport #:nodoc:
     end
 
     # Is the provided constant path defined?
-    def qualified_const_defined?(path)
-      names = path.sub(/^::/, '').to_s.split('::')
-
-      names.inject(Object) do |mod, name|
-        return false unless local_const_defined?(mod, name)
-        mod.const_get name
+    if Module.method(:const_defined?).arity == 1
+      def qualified_const_defined?(path)
+        Object.qualified_const_defined?(path.sub(/^::/, ''))
+      end
+    else
+      def qualified_const_defined?(path)
+        Object.qualified_const_defined?(path.sub(/^::/, ''), false)
       end
     end
 
@@ -417,11 +423,12 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      autoload_once_paths.any? { |base| path.starts_with? base }
+      # to_s works around a ruby1.9 issue where #starts_with?(Pathname) will always return false
+      autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
 
     # Attempt to autoload the provided module name by searching for a directory
-    # matching the expect path suffix. If found, the module is created and assigned
+    # matching the expected path suffix. If found, the module is created and assigned
     # to +into+'s constants with the name +const_name+. Provided that the directory
     # was loaded from a reloadable base path, it is added to the set of constants
     # that are to be unloaded.
@@ -520,7 +527,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = Hash.new { |h, k| h[k] = Inflector.constantize(k) }
+        @store = Hash.new
       end
 
       def empty?
@@ -531,23 +538,24 @@ module ActiveSupport #:nodoc:
         @store.key?(key)
       end
 
-      def []=(key, value)
-        return unless key.respond_to?(:name)
-
-        raise(ArgumentError, 'anonymous classes cannot be cached') if key.name.blank?
-
-        @store[key.name] = value
-      end
-
-      def [](key)
+      def get(key)
         key = key.name if key.respond_to?(:name)
-
-        @store[key]
+        @store[key] ||= Inflector.constantize(key)
       end
-      alias :get :[]
+      alias :[] :get
 
-      def store(name)
-        self[name] = name
+      def safe_get(key)
+        key = key.name if key.respond_to?(:name)
+        @store[key] || begin
+          klass = Inflector.safe_constantize(key)
+          @store[key] = klass
+        end
+      end
+
+      def store(klass)
+        return self unless klass.respond_to?(:name)
+        raise(ArgumentError, 'anonymous classes cannot be cached') if klass.name.empty?
+        @store[klass.name] = klass
         self
       end
 
@@ -564,8 +572,15 @@ module ActiveSupport #:nodoc:
     end
 
     # Get the reference for class named +name+.
+    # Raises an exception if referenced class does not exist.
     def constantize(name)
       Reference.get(name)
+    end
+
+    # Get the reference for class named +name+ if one exists.
+    # Otherwise returns nil.
+    def safe_constantize(name)
+      Reference.safe_get(name)
     end
 
     # Determine if the given constant has been automatically loaded.

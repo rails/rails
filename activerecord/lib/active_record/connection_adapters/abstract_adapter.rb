@@ -3,6 +3,7 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_support/deprecation'
+require 'active_record/connection_adapters/schema_cache'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -14,6 +15,7 @@ module ActiveRecord
       autoload :IndexDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
       autoload :ColumnDefinition, 'active_record/connection_adapters/abstract/schema_definitions'
       autoload :TableDefinition,  'active_record/connection_adapters/abstract/schema_definitions'
+      autoload :Table,            'active_record/connection_adapters/abstract/schema_definitions'
 
       autoload :SchemaStatements
       autoload :DatabaseStatements
@@ -50,6 +52,7 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor
+      attr_reader :schema_cache
 
       def initialize(connection, logger = nil) #:nodoc:
         @active = nil
@@ -59,24 +62,7 @@ module ActiveRecord
         @open_transactions = 0
         @instrumenter = ActiveSupport::Notifications.instrumenter
         @visitor = nil
-      end
-
-      # Returns a visitor instance for this adaptor, which conforms to the Arel::ToSql interface
-      def self.visitor_for(pool) # :nodoc:
-        adapter = pool.spec.config[:adapter]
-
-        if Arel::Visitors::VISITORS[adapter]
-          ActiveSupport::Deprecation.warn(
-            "Arel::Visitors::VISITORS is deprecated and will be removed. Database adapters " \
-            "should define a visitor_for method which returns the appropriate visitor for " \
-            "the database. For example, MysqlAdapter.visitor_for(pool) returns " \
-            "Arel::Visitors::MySQL.new(pool)."
-          )
-
-          Arel::Visitors::VISITORS[adapter].new(pool)
-        else
-          Arel::Visitors::ToSql.new(pool)
-        end
+        @schema_cache = SchemaCache.new self
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
@@ -126,6 +112,11 @@ module ActiveRecord
       # is called before each insert to set the record's primary key.
       # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
+        false
+      end
+
+      # Does this adapter support index sort order?
+      def supports_index_sort_order?
         false
       end
 
@@ -235,6 +226,10 @@ module ActiveRecord
 
       def case_sensitive_modifier(node)
         node
+      end
+
+      def case_insensitive_comparison(table, attribute, column, value)
+        table[attribute].lower.eq(table.lower(value))
       end
 
       def current_savepoint_name

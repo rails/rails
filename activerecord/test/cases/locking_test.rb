@@ -125,6 +125,24 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
+  def test_lock_exception_record
+    p1 = Person.new(:first_name => 'mira')
+    assert_equal 0, p1.lock_version
+
+    p1.first_name = 'mira2'
+    p1.save!
+    p2 = Person.find(p1.id)
+    assert_equal 0, p1.lock_version
+    assert_equal 0, p2.lock_version
+
+    p1.first_name = 'mira3'
+    p1.save!
+
+    p2.first_name = 'sue'
+    error = assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
+    assert_equal(error.record.object_id, p2.object_id)
+  end
+
   def test_lock_new_with_nil
     p1 = Person.new(:first_name => 'anika')
     p1.save!
@@ -140,7 +158,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1.touch
     assert_equal 1, p1.lock_version
   end
-
 
   def test_lock_column_name_existing
     t1 = LegacyThing.find(1)

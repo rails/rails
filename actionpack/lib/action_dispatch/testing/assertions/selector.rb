@@ -415,9 +415,9 @@ module ActionDispatch
         assert !deliveries.empty?, "No e-mail in delivery list"
 
         for delivery in deliveries
-          for part in delivery.parts
+          for part in (delivery.parts.empty? ? [delivery] : delivery.parts)
             if part["Content-Type"].to_s =~ /^text\/html\W/
-              root = HTML::Document.new(part.body).root
+              root = HTML::Document.new(part.body.to_s).root
               assert_select root, ":root", &block
             end
           end

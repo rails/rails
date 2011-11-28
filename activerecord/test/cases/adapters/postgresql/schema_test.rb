@@ -10,14 +10,17 @@ class SchemaTest < ActiveRecord::TestCase
   INDEX_A_NAME = 'a_index_things_on_name'
   INDEX_B_NAME = 'b_index_things_on_different_columns_in_each_schema'
   INDEX_C_NAME = 'c_index_full_text_search'
+  INDEX_D_NAME = 'd_index_things_on_description_desc'
   INDEX_A_COLUMN = 'name'
   INDEX_B_COLUMN_S1 = 'email'
   INDEX_B_COLUMN_S2 = 'moment'
   INDEX_C_COLUMN = %q{(to_tsvector('english', coalesce(things.name, '')))}
+  INDEX_D_COLUMN = 'description'
   COLUMNS = [
     'id integer',
     'name character varying(50)',
     'email character varying(50)',
+    'description character varying(100)',
     'moment timestamp without time zone default now()'
   ]
   PK_TABLE_NAME = 'table_with_pk'
@@ -38,6 +41,10 @@ class SchemaTest < ActiveRecord::TestCase
     set_table_name 'test_schema."Things"'
   end
 
+  class Thing5 < ActiveRecord::Base
+    set_table_name 'things'
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
@@ -50,12 +57,22 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
+    @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
   end
 
   def teardown
     @connection.execute "DROP SCHEMA #{SCHEMA2_NAME} CASCADE"
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
+  end
+
+  def test_schema_change_with_prepared_stmt
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+    @connection.exec_query "alter table developers add column zomg int", 'sql', []
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+  ensure
+    @connection.exec_query "alter table developers drop column if exists zomg", 'sql', []
   end
 
   def test_table_exists?
@@ -88,6 +105,12 @@ class SchemaTest < ActiveRecord::TestCase
     with_schema_search_path(SCHEMA_NAME) do
       given = %("#{TABLE_NAME}")
       assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+    end
+  end
+
+  def test_table_exists_quoted_table
+    with_schema_search_path(SCHEMA_NAME) do
+        assert(@connection.table_exists?('"things.table"'), "table should exist")
     end
   end
 
@@ -166,11 +189,15 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_dump_indexes_for_schema_one
-    do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1)
+    do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN)
   end
 
   def test_dump_indexes_for_schema_two
-    do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2)
+    do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2, INDEX_D_COLUMN)
+  end
+
+  def test_dump_indexes_for_schema_multiple_schemas_in_search_path
+    do_dump_index_tests_for_schema("public, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN)
   end
 
   def test_with_uppercase_index_name
@@ -219,21 +246,6 @@ class SchemaTest < ActiveRecord::TestCase
     end
   end
 
-  def test_extract_schema_and_table
-    {
-      %(table_name)            => [nil,'table_name'],
-      %("table.name")          => [nil,'table.name'],
-      %(schema.table_name)     => %w{schema table_name},
-      %("schema".table_name)   => %w{schema table_name},
-      %(schema."table_name")   => %w{schema table_name},
-      %("schema"."table_name") => %w{schema table_name},
-      %("even spaces".table)   => ['even spaces','table'],
-      %(schema."table.name")   => ['schema', 'table.name']
-    }.each do |given, expect|
-      assert_equal expect, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::Utils.extract_schema_and_table(given)
-    end
-  end
-
   def test_current_schema
     {
       %('$user',public)                        => 'public',
@@ -243,6 +255,21 @@ class SchemaTest < ActiveRecord::TestCase
     }.each do |given,expect|
       with_schema_search_path(given) { assert_equal expect, @connection.current_schema }
     end
+  end
+
+  def test_prepared_statements_with_multiple_schemas
+
+    @connection.schema_search_path = SCHEMA_NAME
+    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA_NAME}", :email => "thing1@localhost", :moment => Time.now)
+
+    @connection.schema_search_path = SCHEMA2_NAME
+    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA2_NAME}", :email => "thing1@localhost", :moment => Time.now)
+
+    @connection.schema_search_path = SCHEMA_NAME
+    assert_equal 1, Thing5.count
+
+    @connection.schema_search_path = SCHEMA2_NAME
+    assert_equal 1, Thing5.count
   end
 
   def test_schema_exists?
@@ -270,13 +297,16 @@ class SchemaTest < ActiveRecord::TestCase
       @connection.schema_search_path = "'$user', public"
     end
 
-    def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name)
+    def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
-        assert_equal 2,indexes.size
+        assert_equal 3,indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
+        do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
+
+        assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
       end
     end
 

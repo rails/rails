@@ -60,6 +60,16 @@ class TimestampTest < ActiveRecord::TestCase
     Developer.record_timestamps = true
   end
 
+  def test_saving_when_instance_record_timestamps_is_false_doesnt_update_its_timestamp
+    @developer.record_timestamps = false
+    assert Developer.record_timestamps
+
+    @developer.name = "John Smith"
+    @developer.save!
+
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
   def test_touching_an_attribute_updates_timestamp
     previously_created_at = @developer.created_at
     @developer.touch(:created_at)

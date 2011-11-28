@@ -13,6 +13,7 @@ require 'models/comment'
 require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
+require 'models/toy'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -352,6 +353,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal members(:groucho), sponsor.sponsorable
   end
 
+  def test_dont_find_target_when_foreign_key_is_null
+    tagging = taggings(:thinking_general)
+    queries = assert_sql { tagging.super_tag }
+    assert_equal 0, queries.length
+  end
+
   def test_field_name_same_as_foreign_key
     computer = Computer.find(1)
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up" # '
@@ -689,5 +696,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal nil, comment.reload.parent
     assert_equal 0, comments(:greetings).reload.children_count
+  end
+
+  def test_polymorphic_with_custom_primary_key
+    toy = Toy.create!
+    sponsor = Sponsor.create!(:sponsorable => toy)
+
+    assert_equal toy, sponsor.reload.sponsorable
   end
 end

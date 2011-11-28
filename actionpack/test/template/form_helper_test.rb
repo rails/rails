@@ -27,7 +27,13 @@ class FormHelperTest < ActionView::TestCase
             :body => "Write entire text here",
             :color => {
               :red => "Rojo"
+            },
+            :comments => {
+              :body => "Write body here"
             }
+          },
+          :tag => {
+            :value => "Tag"
           }
         }
       }
@@ -67,6 +73,12 @@ class FormHelperTest < ActionView::TestCase
     @post.body        = "Back to the hill and over it again!"
     @post.secret      = 1
     @post.written_on  = Date.new(2004, 6, 15)
+
+    @post.comments = []
+    @post.comments << @comment
+
+    @post.tags = []
+    @post.tags << Tag.new
 
     @blog_post = Blog::Post.new("And his name will be forty and four.", 44)
   end
@@ -151,6 +163,40 @@ class FormHelperTest < ActionView::TestCase
     I18n.locale = old_locale
   end
 
+  def test_label_with_locales_and_nested_attributes
+    old_locale, I18n.locale = I18n.locale, :label
+    form_for(@post, :html => { :id => 'create-post' }) do |f|
+      f.fields_for(:comments) do |cf|
+        concat cf.label(:body)
+      end
+    end
+
+    expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
+      "<label for=\"post_comments_attributes_0_body\">Write body here</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    I18n.locale = old_locale
+  end
+
+  def test_label_with_locales_fallback_and_nested_attributes
+    old_locale, I18n.locale = I18n.locale, :label
+    form_for(@post, :html => { :id => 'create-post' }) do |f|
+      f.fields_for(:tags) do |cf|
+        concat cf.label(:value)
+      end
+    end
+
+    expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
+      "<label for=\"post_tags_attributes_0_value\">Tag</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    I18n.locale = old_locale
+  end
+
   def test_label_with_for_attribute_as_symbol
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, :for => "my_for"))
   end
@@ -182,6 +228,13 @@ class FormHelperTest < ActionView::TestCase
 
   def test_label_with_block
     assert_dom_equal('<label for="post_title">The title, please:</label>', label(:post, :title) { "The title, please:" })
+  end
+
+  def test_label_with_block_in_erb
+    path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
+    view_paths = ActionView::PathSet.new([path])
+    view = ActionView::Base.new(view_paths)
+    assert_equal "<label for=\"post_message\">\n  Message\n  <input id=\"post_message\" name=\"post[message]\" size=\"30\" type=\"text\" />\n</label>", view.render("test/label_with_block")
   end
 
   def test_text_field
@@ -438,13 +491,17 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_number_field
-    expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
+    expected = %{<input name="order[quantity]" max="9" id="order_quantity" type="number" min="1" />}
     assert_dom_equal(expected, number_field("order", "quantity", :in => 1...10))
+    expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
+    assert_dom_equal(expected, number_field("order", "quantity", :size => 30, :in => 1...10))
   end
 
   def test_range_input
-    expected = %{<input name="hifi[volume]" step="0.1" size="30" max="11" id="hifi_volume" type="range" min="0" />}
+    expected = %{<input name="hifi[volume]" step="0.1" max="11" id="hifi_volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field("hifi", "volume", :in => 0..11, :step => 0.1))
+    expected = %{<input name="hifi[volume]" step="0.1" size="30" max="11" id="hifi_volume" type="range" min="0" />}
+    assert_dom_equal(expected, range_field("hifi", "volume", :size => 30, :in => 0..11, :step => 0.1))
   end
 
   def test_explicit_name
@@ -690,7 +747,7 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_for_with_isolated_namespaced_model
+  def test_form_for_with_model_using_relative_model_naming
     form_for(@blog_post) do |f|
       concat f.text_field :title
       concat f.submit('Edit post')
@@ -698,8 +755,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/44", "edit_post_44" , "edit_post", :method => "put") do
       "<input name='post[title]' size='30' type='text' id='post_title' value='And his name will be forty and four.' />" +
-      "<input name='commit' type='submit' value='Edit post' />" +
-      "</form>"
+      "<input name='commit' type='submit' value='Edit post' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -874,6 +930,82 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[][secret]' type='hidden' value='0' />" +
       "<input name='post[][secret]' checked='checked' type='checkbox' id='post__secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_namespace
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='namespace_post_secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_namespace_with_label
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_two_form_for_with_namespace
+    form_for(@post, :namespace => 'namespace_1') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected_1 = whole_form('/posts/123', 'namespace_1_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_1_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_1_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected_1, output_buffer
+
+    form_for(@post, :namespace => 'namespace_2') do |f|
+      concat f.label(:title)
+      concat f.text_field(:title)
+    end
+
+    expected_2 = whole_form('/posts/123', 'namespace_2_edit_post_123', 'edit_post', 'put') do
+      "<label for='namespace_2_post_title'>Title</label>" +
+      "<input name='post[title]' size='30' type='text' id='namespace_2_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected_2, output_buffer
+  end
+
+  def test_fields_for_with_namespace
+    @comment.body = 'Hello World'
+    form_for(@post, :namespace => 'namespace') do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.fields_for(@comment) { |c|
+        concat c.text_field(:body)
+      }
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', 'put') do
+      "<input name='post[title]' size='30' type='text' id='namespace_post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='namespace_post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[comment][body]' size='30' type='text' id='namespace_post_comment_body' value='Hello World' />"
     end
 
     assert_dom_equal expected, output_buffer

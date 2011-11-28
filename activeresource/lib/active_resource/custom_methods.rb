@@ -23,7 +23,7 @@ module ActiveResource
   #     self.site = "http://37s.sunrise.i:3000"
   #   end
   #
-  #   Person.new(:name => 'Ryan).post(:register)  # POST /people/new/register.json
+  #   Person.new(:name => 'Ryan').post(:register)  # POST /people/new/register.json
   #   # => { :id => 1, :name => 'Ryan' }
   #
   #   Person.find(1).put(:promote, :position => 'Manager') # PUT /people/1/promote.json

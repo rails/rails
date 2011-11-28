@@ -13,7 +13,7 @@ class AssetsGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skipping_assets
-    content = run_generator ["posts", "--no-stylesheets", "--no-javascripts"]
+    run_generator ["posts", "--no-stylesheets", "--no-javascripts"]
     assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end

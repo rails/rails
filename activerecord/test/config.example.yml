@@ -37,11 +37,13 @@ connections:
 
   db2:
     arunit:
+      adapter:  ibm_db
       host:     localhost
       username: arunit
       password: arunit
       database: arunit
     arunit2:
+      adapter:  ibm_db
       host:     localhost
       username: arunit
       password: arunit

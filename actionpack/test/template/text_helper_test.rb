@@ -194,6 +194,10 @@ class TextHelperTest < ActionView::TestCase
       "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
     )
+    assert_equal(
+      "<div>abc <b>div</b></div>",
+      highlight("<div>abc div</div>", "div", :highlighter => '<b>\1</b>')
+    )
   end
 
   def test_excerpt

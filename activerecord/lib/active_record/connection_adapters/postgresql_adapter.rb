@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_support/core_ext/object/blank'
+require 'active_record/connection_adapters/statement_pool'
 
 # Make sure we're using pg high enough for PGResult#values
 gem 'pg', '~> 0.11'
@@ -246,17 +247,75 @@ module ActiveRecord
         true
       end
 
+      def supports_index_sort_order?
+        true
+      end
+
+      class StatementPool < ConnectionAdapters::StatementPool
+        def initialize(connection, max)
+          super
+          @counter = 0
+          @cache   = Hash.new { |h,pid| h[pid] = {} }
+        end
+
+        def each(&block); cache.each(&block); end
+        def key?(key);    cache.key?(key); end
+        def [](key);      cache[key]; end
+        def length;       cache.length; end
+
+        def next_key
+          "a#{@counter + 1}"
+        end
+
+        def []=(sql, key)
+          while @max <= cache.size
+            dealloc(cache.shift.last)
+          end
+          @counter += 1
+          cache[sql] = key
+        end
+
+        def clear
+          cache.each_value do |stmt_key|
+            dealloc stmt_key
+          end
+          cache.clear
+        end
+
+        def delete(sql_key)
+          dealloc cache[sql_key]
+          cache.delete sql_key
+        end
+
+        private
+        def cache
+          @cache[$$]
+        end
+
+        def dealloc(key)
+          @connection.query "DEALLOCATE #{key}" if connection_active?
+        end
+
+        def connection_active?
+          @connection.status == PGconn::CONNECTION_OK
+        rescue PGError
+          false
+        end
+      end
+
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
         @connection_parameters, @config = connection_parameters, config
+        @visitor = Arel::Visitors::PostgreSQL.new self
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
         @table_alias_length = nil
-        @statements = {}
 
         connect
+        @statements = StatementPool.new @connection,
+                                        config.fetch(:statement_limit) { 1000 }
 
         if postgresql_version < 80200
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
@@ -265,15 +324,8 @@ module ActiveRecord
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
       end
 
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::PostgreSQL.new(pool)
-      end
-
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.each_value do |value|
-          @connection.query "DEALLOCATE #{value}"
-        end
         @statements.clear
       end
 
@@ -461,6 +513,48 @@ module ActiveRecord
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def explain(arel)
+        sql = "EXPLAIN #{to_sql(arel)}"
+        ExplainPrettyPrinter.new.pp(exec_query(sql))
+      end
+
+      class ExplainPrettyPrinter # :nodoc:
+        # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
+        # PostgreSQL shell:
+        #
+        #                                     QUERY PLAN
+        #   ------------------------------------------------------------------------------
+        #    Nested Loop Left Join  (cost=0.00..37.24 rows=8 width=0)
+        #      Join Filter: (posts.user_id = users.id)
+        #      ->  Index Scan using users_pkey on users  (cost=0.00..8.27 rows=1 width=4)
+        #            Index Cond: (id = 1)
+        #      ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
+        #            Filter: (posts.user_id = 1)
+        #   (6 rows)
+        #
+        def pp(result)
+          header = result.columns.first
+          lines  = result.rows.map(&:first)
+
+          # We add 2 because there's one char of padding at both sides, note
+          # the extra hyphens in the example above.
+          width = [header, *lines].map(&:length).max + 2
+
+          pp = []
+
+          pp << header.center(width).rstrip
+          pp << '-' * width
+
+          pp += lines.map {|line| " #{line}"}
+
+          nrows = result.rows.length
+          rows_label = nrows == 1 ? 'row' : 'rows'
+          pp << "(#{nrows} #{rows_label})"
+
+          pp.join("\n") + "\n"
+        end
+      end
 
       # Executes a SELECT query and returns an array of rows. Each row is an
       # array of field values.
@@ -683,12 +777,12 @@ module ActiveRecord
         binds << [nil, schema] if schema
 
         exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
-          SELECT COUNT(*)
-          FROM pg_class c
-          LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-          WHERE c.relkind in ('v','r')
-          AND c.relname = $1
-          AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
+            SELECT COUNT(*)
+            FROM pg_class c
+            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind in ('v','r')
+            AND c.relname = $1
+            AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
         SQL
       end
 
@@ -703,16 +797,15 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
-         schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
          result = query(<<-SQL, name)
-           SELECT distinct i.relname, d.indisunique, d.indkey, t.oid
+           SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
            FROM pg_class t
            INNER JOIN pg_index d ON t.oid = d.indrelid
            INNER JOIN pg_class i ON d.indexrelid = i.oid
            WHERE i.relkind = 'i'
              AND d.indisprimary = 'f'
              AND t.relname = '#{table_name}'
-             AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (#{schemas}) )
+             AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
           ORDER BY i.relname
         SQL
 
@@ -721,7 +814,8 @@ module ActiveRecord
           index_name = row[0]
           unique = row[1] == 't'
           indkey = row[2].split(" ")
-          oid = row[3]
+          inddef = row[3]
+          oid = row[4]
 
           columns = Hash[query(<<-SQL, "Columns for index #{row[0]} on #{table_name}")]
           SELECT a.attnum, a.attname
@@ -731,7 +825,12 @@ module ActiveRecord
           SQL
 
           column_names = columns.values_at(*indkey).compact
-          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names)
+
+          # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
+          desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
+          orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
+      
+          column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders)
         end.compact
       end
 
@@ -775,7 +874,7 @@ module ActiveRecord
 
       # Returns the active schema search path.
       def schema_search_path
-        @schema_search_path ||= query('SHOW search_path')[0][0]
+        @schema_search_path ||= query('SHOW search_path', 'SCHEMA')[0][0]
       end
 
       # Returns the current client message level.
@@ -871,12 +970,14 @@ module ActiveRecord
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
+        clear_cache!
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
       end
 
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
+        clear_cache!
         add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         add_column_options!(add_column_sql, options)
 
@@ -885,6 +986,7 @@ module ActiveRecord
 
       # Changes the column of a table.
       def change_column(table_name, column_name, type, options = {})
+        clear_cache!
         quoted_table_name = quote_table_name(table_name)
 
         execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
@@ -895,10 +997,12 @@ module ActiveRecord
 
       # Changes the default value of a table column.
       def change_column_default(table_name, column_name, default)
+        clear_cache!
         execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
       end
 
       def change_column_null(table_name, column_name, null, default = nil)
+        clear_cache!
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -907,6 +1011,7 @@ module ActiveRecord
 
       # Renames a column in a table.
       def rename_column(table_name, column_name, new_column_name)
+        clear_cache!
         execute "ALTER TABLE #{quote_table_name(table_name)} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
       end
 
@@ -954,6 +1059,8 @@ module ActiveRecord
       end
 
       module Utils
+        extend self
+
         # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
         # +schema_name+ is nil if not specified in +name+.
         # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
@@ -964,7 +1071,7 @@ module ActiveRecord
         # * <tt>schema_name.table_name</tt>
         # * <tt>schema_name."table.name"</tt>
         # * <tt>"schema.name"."table name"</tt>
-        def self.extract_schema_and_table(name)
+        def extract_schema_and_table(name)
           table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
           [schema, table]
         end
@@ -988,26 +1095,54 @@ module ActiveRecord
         end
 
       private
+        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
+
         def exec_no_cache(sql, binds)
           @connection.async_exec(sql)
         end
 
         def exec_cache(sql, binds)
-          unless @statements.key? sql
-            nextkey = "a#{@statements.length + 1}"
-            @connection.prepare nextkey, sql
-            @statements[sql] = nextkey
+          begin
+            stmt_key = prepare_statement sql
+
+            # Clear the queue
+            @connection.get_last_result
+            @connection.send_query_prepared(stmt_key, binds.map { |col, val|
+              type_cast(val, col)
+            })
+            @connection.block
+            @connection.get_last_result
+          rescue PGError => e
+            # Get the PG code for the failure.  Annoyingly, the code for
+            # prepared statements whose return value may have changed is
+            # FEATURE_NOT_SUPPORTED.  Check here for more details:
+            # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
+            code = e.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+            if FEATURE_NOT_SUPPORTED == code
+              @statements.delete sql_key(sql)
+              retry
+            else
+              raise e
+            end
           end
+        end
 
-          key = @statements[sql]
+        # Returns the statement identifier for the client side cache
+        # of statements
+        def sql_key(sql)
+          "#{schema_search_path}-#{sql}"
+        end
 
-          # Clear the queue
-          @connection.get_last_result
-          @connection.send_query_prepared(key, binds.map { |col, val|
-            type_cast(val, col)
-          })
-          @connection.block
-          @connection.get_last_result
+        # Prepare the statement if it hasn't been prepared, return
+        # the statement key.
+        def prepare_statement(sql)
+          sql_key = sql_key(sql)
+          unless @statements.key? sql_key
+            nextkey = @statements.next_key
+            @connection.prepare nextkey, sql
+            @statements[sql_key] = nextkey
+          end
+          @statements[sql_key]
         end
 
         # The internal PostgreSQL identifier of the money data type.

@@ -25,22 +25,28 @@ module ActiveSupport
     # Silences the logger for the duration of the block.
     def silence(temporary_level = ERROR)
       if silencer
+        old_logger_level = @tmp_levels[Thread.current]
         begin
-          old_logger_level, self.level = level, temporary_level
+          @tmp_levels[Thread.current] = temporary_level
           yield self
         ensure
-          self.level = old_logger_level
+          if old_logger_level
+            @tmp_levels[Thread.current] = old_logger_level
+          else
+            @tmp_levels.delete(Thread.current)
+          end
         end
       else
         yield self
       end
     end
 
-    attr_accessor :level
+    attr_writer :level
     attr_reader :auto_flushing
 
     def initialize(log, level = DEBUG)
       @level         = level
+      @tmp_levels    = {}
       @buffer        = Hash.new { |h,k| h[k] = [] }
       @auto_flushing = 1
       @guard = Mutex.new
@@ -62,8 +68,12 @@ module ActiveSupport
       end
     end
 
+    def level
+      @tmp_levels[Thread.current] || @level
+    end
+
     def add(severity, message = nil, progname = nil, &block)
-      return if @level > severity
+      return if level > severity
       message = (message || (block && block.call) || progname).to_s
       # If a newline is necessary then create a new message ending with a newline.
       # Ensures that the original message is not mutated.
@@ -84,7 +94,7 @@ module ActiveSupport
         end                                                             # end
 
         def #{severity.downcase}?                                       # def debug?
-          #{severity} >= @level                                         #   DEBUG >= @level
+          #{severity} >= level                                         #   DEBUG >= @level
         end                                                             # end
       EOT
     end
@@ -105,13 +115,15 @@ module ActiveSupport
 
     def flush
       @guard.synchronize do
-        buffer.each do |content|
-          @log.write(content)
-        end
+        write_buffer(buffer)
 
         # Important to do this even if buffer was empty or else @buffer will
         # accumulate empty arrays for each request where nothing was logged.
         clear_buffer
+
+        # Clear buffers associated with dead threads or else spawned threads
+        # that don't call flush will result in a memory leak.
+        flush_dead_buffers
       end
     end
 
@@ -132,6 +144,22 @@ module ActiveSupport
 
       def clear_buffer
         @buffer.delete(Thread.current)
+      end
+
+      # Find buffers created by threads that are no longer alive and flush them to the log
+      # in order to prevent memory leaks from spawned threads.
+      def flush_dead_buffers #:nodoc:
+        @buffer.keys.reject{|thread| thread.alive?}.each do |thread|
+          buffer = @buffer[thread]
+          write_buffer(buffer)
+          @buffer.delete(thread)
+        end
+      end
+
+      def write_buffer(buffer)
+        buffer.each do |content|
+          @log.write(content)
+        end
       end
   end
 end

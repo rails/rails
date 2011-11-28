@@ -116,7 +116,7 @@ module ActionView #:nodoc:
   #       xml.language "en-us"
   #       xml.ttl "40"
   #
-  #       for item in @recent_items
+  #       @recent_items.each do |item|
   #         xml.item do
   #           xml.title(item_title(item))
   #           xml.description(item_description(item)) if item_description(item)
