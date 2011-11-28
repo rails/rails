@@ -128,11 +128,9 @@ module ActiveRecord
 
       # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
-        @reserved_connections.each do |name,conn|
-          checkin conn
-        end
         @reserved_connections = {}
         @connections.each do |conn|
+          checkin conn
           conn.disconnect!
         end
         @connections = []
@@ -140,11 +138,9 @@ module ActiveRecord
 
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
-        @reserved_connections.each do |name, conn|
-          checkin conn
-        end
         @reserved_connections = {}
         @connections.each do |conn|
+          checkin conn
           conn.disconnect! if conn.requires_reloading?
         end
         @connections.delete_if do |conn|
