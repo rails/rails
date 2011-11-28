@@ -32,7 +32,7 @@ module ActiveRecord
       end
 
       def test_url_host_no_db
-        spec = FakeBase.establish_connection 'postgres://foo?encoding=utf8'
+        spec = FakeBase.connection_url_to_hash 'postgres://foo?encoding=utf8'
         assert_equal({
           :adapter  => "postgresql",
           :database => "",
@@ -41,7 +41,7 @@ module ActiveRecord
       end
 
       def test_url_host_db
-        spec = FakeBase.establish_connection 'postgres://foo/bar?encoding=utf8'
+        spec = FakeBase.connection_url_to_hash 'postgres://foo/bar?encoding=utf8'
         assert_equal({
           :adapter  => "postgresql",
           :database => "bar",
@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       def test_url_port
-        spec = FakeBase.establish_connection 'postgres://foo:123?encoding=utf8'
+        spec = FakeBase.connection_url_to_hash 'postgres://foo:123?encoding=utf8'
         assert_equal({
           :adapter  => "postgresql",
           :database => "",
