@@ -84,7 +84,6 @@ module ActiveRecord
         @connections         = []
         @checked_out         = []
         @automatic_reconnect = true
-        @visitor             = nil
       end
 
       # Retrieve the connection associated with the current thread, or call
