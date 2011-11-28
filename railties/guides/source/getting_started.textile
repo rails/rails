@@ -1297,7 +1297,7 @@ So first, we'll wire up the Post show template
 </p>
 
 <h2>Add a comment:</h2>
-<%= form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@post, @post.comment.build]) do |f| %>
   <div class="field">
     <%= f.label :commenter %><br />
     <%= f.text_field :commenter %>
