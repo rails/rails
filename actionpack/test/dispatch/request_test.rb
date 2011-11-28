@@ -762,6 +762,19 @@ class RequestTest < ActiveSupport::TestCase
 
     path = request.original_fullpath
     assert_equal "/foo?bar", path
+
+  end
+  test "invalid utf8 sequences in the query params are replaced with a question mark" do
+    request = stub_request('QUERY_STRING' => "search=%C0%8Afoo%C0%8Abar%C0%8A", 'rack.input' => "")
+    assert_equal "??foo??bar??", request.parameters[:search]
+    assert request.parameters[:search].valid_encoding?, "request parameter has valid encoding"
+  end
+
+  test "invalid utf8 sequences in the post input are replaced with a question mark" do
+    request = stub_request('QUERY_STRING' => "", 'rack.input' => StringIO.new("search=foo%C0%8Abar"),
+                           'REQUEST_METHOD' => "POST", 'CONTENT_TYPE' => "application/x-www-form-urlencoded")
+    assert_equal "foo??bar", request.parameters[:search]
+    assert request.parameters[:search].valid_encoding?, "request parameter has valid encoding"
   end
 
   test "if_none_match_etags none" do

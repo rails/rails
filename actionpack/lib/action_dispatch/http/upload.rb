@@ -70,7 +70,11 @@ module ActionDispatch
 
       def encode_filename(filename)
         # Encode the filename in the utf8 encoding, unless it is nil
-        filename.force_encoding("UTF-8").encode! if filename
+        if filename
+          ActionDispatch::Encoder::encode_to_internal(filename)
+        else
+          filename
+        end
       end
     end
 

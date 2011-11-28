@@ -2,6 +2,7 @@ require 'stringio'
 
 require 'active_support/inflector'
 require 'action_dispatch/http/headers'
+require 'action_dispatch/http/encoder'
 require 'action_controller/metal/exceptions'
 require 'rack/request'
 require 'action_dispatch/http/cache'

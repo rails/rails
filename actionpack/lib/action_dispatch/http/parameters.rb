@@ -50,12 +50,10 @@ module ActionDispatch
 
     private
 
-      # TODO: Validate that the characters are UTF-8. If they aren't,
-      # you'll get a weird error down the road, but our form handling
-      # should really prevent that from happening
+
       def encode_params(params)
         if params.is_a?(String)
-          return params.force_encoding("UTF-8").encode!
+          return ActionDispatch::Encoder::encode_to_internal(params)
         elsif !params.is_a?(Hash)
           return params
         end
