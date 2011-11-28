@@ -56,37 +56,47 @@ module ActiveRecord
     # may be returned on an error.
     def self.establish_connection(spec = ENV["DATABASE_URL"])
       case spec
-        when nil
-          raise AdapterNotSpecified unless defined?(Rails.env)
-          establish_connection(Rails.env)
-        when ConnectionSpecification
-          self.connection_handler.establish_connection(name, spec)
-        when Symbol, String
-          if configuration = configurations[spec.to_s]
-            establish_connection(configuration)
-          elsif spec.is_a?(String) && hash = connection_url_to_hash(spec)
-            establish_connection(hash)
-          else
-            raise AdapterNotSpecified, "#{spec} database is not configured"
-          end
-        else
-          spec = spec.symbolize_keys
-          unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
-
-          begin
-            require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
-          rescue LoadError => e
-            raise "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{e})"
-          end
-
-          adapter_method = "#{spec[:adapter]}_connection"
-          unless respond_to?(adapter_method)
-            raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
-          end
-
-          remove_connection
-          establish_connection(ConnectionSpecification.new(spec, adapter_method))
+      when nil
+        raise AdapterNotSpecified unless defined?(Rails.env)
+        spec = resolve_string_connection Rails.env
+      when Symbol, String
+        spec = resolve_string_connection spec.to_s
+      when Hash
+        spec = resolve_hash_connection spec
       end
+
+      if ConnectionSpecification === spec
+        return self.connection_handler.establish_connection(name, spec)
+      end
+    end
+
+    def self.resolve_string_connection(spec) # :nodoc:
+      if configuration = configurations[spec]
+        spec = resolve_hash_connection(configuration)
+      elsif hash = connection_url_to_hash(spec)
+        spec = resolve_hash_connection(hash)
+      else
+        raise AdapterNotSpecified, "#{spec} database is not configured"
+      end
+    end
+
+    def self.resolve_hash_connection(spec) # :nodoc:
+      spec = spec.symbolize_keys
+      unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
+
+      begin
+        require "active_record/connection_adapters/#{spec[:adapter]}_adapter"
+      rescue LoadError => e
+        raise LoadError, "Please install the #{spec[:adapter]} adapter: `gem install activerecord-#{spec[:adapter]}-adapter` (#{e.message})", e.backtrace
+      end
+
+      adapter_method = "#{spec[:adapter]}_connection"
+      unless respond_to?(adapter_method)
+        raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
+      end
+
+      remove_connection
+      ConnectionSpecification.new(spec, adapter_method)
     end
 
     def self.connection_url_to_hash(url) # :nodoc:
