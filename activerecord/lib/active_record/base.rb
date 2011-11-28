@@ -2135,9 +2135,7 @@ MSG
           send("#{att}=", value) if respond_to?("#{att}=")
         end
       end
-  end
 
-  Base.class_eval do
     include ActiveRecord::Persistence
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
