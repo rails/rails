@@ -124,7 +124,8 @@ module Rails
         "action_dispatch.parameter_filter" => config.filter_parameters,
         "action_dispatch.secret_token" => config.secret_token,
         "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
-        "action_dispatch.logger" => Rails.logger
+        "action_dispatch.logger" => Rails.logger,
+        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner
       })
     end
 

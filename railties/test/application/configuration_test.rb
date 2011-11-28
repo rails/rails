@@ -521,10 +521,11 @@ module ApplicationTests
       make_basic_app
 
       assert_respond_to app, :env_config
-      assert_equal      app.env_config['action_dispatch.parameter_filter'], app.config.filter_parameters
-      assert_equal      app.env_config['action_dispatch.secret_token'],     app.config.secret_token
-      assert_equal      app.env_config['action_dispatch.show_exceptions'],  app.config.action_dispatch.show_exceptions
-      assert_equal      app.env_config['action_dispatch.logger'],           Rails.logger
+      assert_equal      app.env_config['action_dispatch.parameter_filter'],  app.config.filter_parameters
+      assert_equal      app.env_config['action_dispatch.secret_token'],      app.config.secret_token
+      assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
+      assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
+      assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
     end
   end
 end

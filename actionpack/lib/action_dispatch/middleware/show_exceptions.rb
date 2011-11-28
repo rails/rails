@@ -82,9 +82,9 @@ module ActionDispatch
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
           :request => Request.new(env),
           :exception => exception,
-          :application_trace => application_trace(exception),
-          :framework_trace => framework_trace(exception),
-          :full_trace => full_trace(exception)
+          :application_trace => application_trace(env, exception),
+          :framework_trace => framework_trace(env, exception),
+          :full_trace => full_trace(env, exception)
         )
         file = "rescues/#{@@rescue_templates[exception.class.name]}"
         body = template.render(:template => file, :layout => 'rescues/layout')
@@ -130,26 +130,26 @@ module ActionDispatch
         ActiveSupport::Deprecation.silence do
           message = "\n#{exception.class} (#{exception.message}):\n"
           message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-          message << "  " << application_trace(exception).join("\n  ")
+          message << "  " << application_trace(env, exception).join("\n  ")
           logger(env).fatal("#{message}\n\n")
         end
       end
 
-      def application_trace(exception)
-        clean_backtrace(exception, :silent)
+      def application_trace(env, exception)
+        clean_backtrace(env, exception, :silent)
       end
 
-      def framework_trace(exception)
-        clean_backtrace(exception, :noise)
+      def framework_trace(env, exception)
+        clean_backtrace(env, exception, :noise)
       end
 
-      def full_trace(exception)
-        clean_backtrace(exception, :all)
+      def full_trace(env, exception)
+        clean_backtrace(env, exception, :all)
       end
 
-      def clean_backtrace(exception, *args)
-        defined?(Rails) && Rails.respond_to?(:backtrace_cleaner) ?
-          Rails.backtrace_cleaner.clean(exception.backtrace, *args) :
+      def clean_backtrace(env, exception, *args)
+        env['action_dispatch.backtrace_cleaner'] ?
+          env['action_dispatch.backtrace_cleaner'].clean(exception.backtrace, *args) :
           exception.backtrace
       end
 
