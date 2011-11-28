@@ -94,31 +94,31 @@ module ActionDispatch
     end
 
     # Is this a GET (or HEAD) request?
-    # Equivalent to <tt>request.request_method == :get</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :get</tt>.
     def get?
       HTTP_METHOD_LOOKUP[request_method] == :get
     end
 
     # Is this a POST request?
-    # Equivalent to <tt>request.request_method == :post</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :post</tt>.
     def post?
       HTTP_METHOD_LOOKUP[request_method] == :post
     end
 
     # Is this a PUT request?
-    # Equivalent to <tt>request.request_method == :put</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :put</tt>.
     def put?
       HTTP_METHOD_LOOKUP[request_method] == :put
     end
 
     # Is this a DELETE request?
-    # Equivalent to <tt>request.request_method == :delete</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :delete</tt>.
     def delete?
       HTTP_METHOD_LOOKUP[request_method] == :delete
     end
 
     # Is this a HEAD request?
-    # Equivalent to <tt>request.method == :head</tt>.
+    # Equivalent to <tt>request.method_symbol == :head</tt>.
     def head?
       HTTP_METHOD_LOOKUP[method] == :head
     end
