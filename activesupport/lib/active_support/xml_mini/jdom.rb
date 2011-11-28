@@ -70,7 +70,7 @@ module ActiveSupport
       hash = get_attributes(element)
 
       child_nodes = element.child_nodes
-      if child_nodes.any?
+      if child_nodes.empty?
         for i in 0...child_nodes.length
           child = child_nodes.item(i)
           merge_element!(hash, child) unless child.node_type == Node.TEXT_NODE

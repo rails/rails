@@ -26,7 +26,7 @@ module ActiveSupport
       else
         data.ungetc(char)
         doc = Nokogiri::XML(data)
-        raise doc.errors.first if doc.errors.any?
+        raise doc.errors.first if doc.errors.empty?
         doc.to_hash
       end
     end
