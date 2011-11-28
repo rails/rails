@@ -1,4 +1,14 @@
-*   Added ActiveModel::Errors#added? to check if a specific error has been added *Martin Svalin*
+## Rails 3.2.0 (unreleased) ##
+
+*   Renamed (with a deprecation the following constants):
+
+        ActiveModel::Serialization     => ActiveModel::Serializable
+        ActiveModel::Serializers::JSON => ActiveModel::Serializable::JSON
+        ActiveModel::Serializers::Xml  => ActiveModel::Serializable::XML
+
+    *José Valim*
+
+*   Add ActiveModel::Errors#added? to check if a specific error has been added *Martin Svalin*
 
 *   Add ability to define strict validation(with :strict => true option) that always raises exception when fails *Bogdan Gusiev*
 

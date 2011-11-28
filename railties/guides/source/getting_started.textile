@@ -248,7 +248,7 @@ the following:
 $ rails --version
 </shell>
 
-If it says something like "Rails 3.1.1" you are ready to continue.
+If it says something like "Rails 3.1.3" you are ready to continue.
 
 h4. Creating the Blog Application
 
@@ -449,6 +449,8 @@ start a web server on your development machine. You can do this by running:
 <shell>
 $ rails server
 </shell>
+
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. +therubyracer+ and +therubyrhino+ are the commonly used runtimes for Ruby and JRuby respectively. You can also investigate a list of runtimes at "ExecJS":https://github.com/sstephenson/execjs.
 
 This will fire up an instance of the WEBrick web server by default (Rails can
 also use several other web servers). To see your application in action, open a

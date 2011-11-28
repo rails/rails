@@ -362,20 +362,13 @@ When using named routes you only need to supply the +:host+:
 
 Email clients have no web context and so paths have no base URL to form complete web addresses. Thus, when using named routes only the "_url" variant makes sense.
 
-It is also possible to set a default host that will be used in all mailers by setting the +:host+ option in the +ActionMailer::Base.default_url_options+ hash as follows:
+It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt> option as a configuration option in <tt>config/application.rb</tt>:
 
 <ruby>
-class UserMailer < ActionMailer::Base
-  default_url_options[:host] = "example.com"
-
-  def welcome_email(user)
-    @user = user
-    @url  = user_url(@user)
-    mail(:to => user.email,
-         :subject => "Welcome to My Awesome Site")
-  end
-end
+config.action_mailer.default_url_options = { :host => "example.com" }
 </ruby>
+
+If you use this setting, you should pass the <tt>:only_path => false</tt> option when using +url_for+. This will ensure that absolute URLs are generated because the +url_for+ view helper will, by default, generate relative URLs when a <tt>:host</tt> option isn't explicitly provided.
 
 h4. Sending Multipart Emails
 

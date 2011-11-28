@@ -217,6 +217,9 @@ class SprocketsHelperTest < ActionView::TestCase
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application, :debug => true)
 
+    assert_match %r{<script src="/assets/jquery.plugin.js" type="text/javascript"></script>},
+      javascript_include_tag('jquery.plugin', :digest => false)
+
     @config.assets.compile = true
     @config.assets.debug = true
     assert_match %r{<script src="/javascripts/application.js" type="text/javascript"></script>},

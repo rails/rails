@@ -127,10 +127,7 @@ module ActiveRecord
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
-      end
-
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::MySQL.new(pool)
+        @visitor = Arel::Visitors::MySQL.new self
       end
 
       def adapter_name #:nodoc:
@@ -389,11 +386,11 @@ module ActiveRecord
           sql = "SHOW TABLES"
         end
 
-        select_all(sql).map do |table|
+        select_all(sql).map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
           exec_without_stmt(sql).first['Create Table'] + ";\n\n"
-        end.join("")
+        }.join
       end
 
       # Drops the database specified on the +name+ attribute
@@ -576,17 +573,8 @@ module ActiveRecord
 
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
-        sql = <<-SQL
-          SELECT t.constraint_type, k.column_name
-          FROM information_schema.table_constraints t
-          JOIN information_schema.key_column_usage k
-          USING (constraint_name, table_schema, table_name)
-          WHERE t.table_schema = DATABASE()
-            AND t.table_name   = '#{table}'
-        SQL
-
-        execute_and_free(sql, 'SCHEMA') do |result|
-          keys = each_hash(result).select { |row| row[:constraint_type] == 'PRIMARY KEY' }.map { |row| row[:column_name] }
+        execute_and_free("SHOW INDEX FROM #{quote_table_name(table)} WHERE Key_name = 'PRIMARY'", 'SCHEMA') do |result|
+          keys = each_hash(result).map { |row| row[:Column_name] }
           keys.length == 1 ? [keys.first, nil] : nil
         end
       end

@@ -710,21 +710,21 @@ module ActiveRecord #:nodoc:
       # Returns an array of column objects for the table associated with this class.
       def columns
         if defined?(@primary_key)
-          connection_pool.primary_keys[table_name] ||= primary_key
+          connection.schema_cache.primary_keys[table_name] ||= primary_key
         end
 
-        connection_pool.columns[table_name]
+        connection.schema_cache.columns[table_name]
       end
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        connection_pool.columns_hash[table_name]
+        connection.schema_cache.columns_hash[table_name]
       end
 
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        connection_pool.column_defaults[table_name]
+        connection.schema_cache.column_defaults[table_name]
       end
 
       # Returns an array of column names as strings.
@@ -781,14 +781,14 @@ module ActiveRecord #:nodoc:
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection_pool.clear_table_cache!(table_name) if table_exists?
+        connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
         @column_names = @content_columns = @dynamic_methods_hash = @inheritance_column = nil
         @arel_engine = @relation = nil
       end
 
       def clear_cache! # :nodoc:
-        connection_pool.clear_cache!
+        connection.schema_cache.clear!
       end
 
       def attribute_method?(attribute)
@@ -1356,9 +1356,9 @@ MSG
           return nil if condition.blank?
 
           case condition
-            when Array; sanitize_sql_array(condition)
-            when Hash;  sanitize_sql_hash_for_conditions(condition, table_name)
-            else        condition
+          when Array; sanitize_sql_array(condition)
+          when Hash;  sanitize_sql_hash_for_conditions(condition, table_name)
+          else        condition
           end
         end
         alias_method :sanitize_sql, :sanitize_sql_for_conditions

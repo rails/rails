@@ -1,20 +1,27 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Display mounted engine's routes in `rake routes`. *Piotr Sarnacki*
+
+*   Allow to change the loading order of railties with `config.railties_order=` *Piotr Sarnacki*
+
+    Example:
+        config.railties_order = [Blog::Engine, :main_app, :all]
+
 *   Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box. *José Valim*
 
-*   Updated Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications *DHH*
+*   Update Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications *DHH*
 
 *   Default options to `rails new` can be set in ~/.railsrc *Guillermo Iguaran*
 
-*   Added destroy alias to Rails engines. *Guillermo Iguaran*
+*   Add destroy alias to Rails engines *Guillermo Iguaran*
 
-*   Added destroy alias for Rails command line. This allows the following: `rails d model post`. *Andrey Ognevsky*
+*   Add destroy alias for Rails command line. This allows the following: `rails d model post` *Andrey Ognevsky*
 
 *   Attributes on scaffold and model generators default to string. This allows the following: "rails g scaffold Post title body:text author" *José Valim*
 
-*   Removed old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command. *Guillermo Iguaran*
+*   Remove old plugin generator (`rails generate plugin`) in favor of `rails plugin new` command *Guillermo Iguaran*
 
-*   Removed old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API. *Guillermo Iguaran*
+*   Remove old 'config.paths.app.controller' API in favor of 'config.paths["app/controller"]' API *Guillermo Iguaran*
 
 
 *   Rails 3.1.1
@@ -30,6 +37,16 @@
     Plugins developers need to special case their initializers that are
     meant to be run in the assets group by adding :group => :assets.
 
+## Rails 3.1.2 (unreleased) ##
+
+*   Engines: don't blow up if db/seeds.rb is missing.
+
+    *Jeremy Kemper*
+
+*   `rails new foo --skip-test-unit` should not add the `:test` task to the rake default task.
+    *GH 2564*
+
+    *José Valim*
 
 ## Rails 3.1.0 (August 30, 2011) ##
 

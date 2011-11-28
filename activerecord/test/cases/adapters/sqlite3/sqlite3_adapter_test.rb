@@ -158,7 +158,10 @@ module ActiveRecord
         binary.save!
         assert_equal str, binary.data
 
-        DualEncoding.connection.drop_table('dual_encodings')
+      ensure
+        if "<3".respond_to?(:encode)
+          DualEncoding.connection.drop_table('dual_encodings')
+        end
       end
 
       def test_execute

@@ -1,5 +1,9 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Refactor ActionDispatch::ShowExceptions. Controller is responsible for choice to show exceptions. *Sergey Nartimov*
+
+    It's possible to override +show_detailed_exceptions?+ in controllers to specify which requests should provide debugging information on errors.
+
 *   Responders now return 204 No Content for API requests without a response body (as in the new scaffold) *José Valim*
 
 *   Added ActionDispatch::RequestId middleware that'll make a unique X-Request-Id header available to the response and enables the ActionDispatch::Request#uuid method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog *DHH*
@@ -62,7 +66,39 @@
     persistent between requests so if you need to manipulate the environment
     for your test you need to do it before the cookie jar is created.
 
+## Rails 3.1.3 (unreleased) ##
+
+*   Fix using `tranlate` helper with a html translation which uses the `:count` option for
+    pluralization.
+
+    *Jon Leighton*
+
 ## Rails 3.1.2 (unreleased) ##
+
+*   Fix XSS security vulnerability in the `translate` helper method. When using interpolation
+    in combination with HTML-safe translations, the interpolated input would not get HTML
+    escaped. *GH 3664*
+
+    Before:
+
+        translate('foo_html', :something => '<script>') # => "...<script>..."
+
+    After:
+
+        translate('foo_html', :something => '<script>') # => "...&lt;script&gt;..."
+
+    *Sergey Nartimov*
+
+*   Upgrade sprockets dependency to ~> 2.1.0
+
+*   Ensure that the format isn't applied twice to the cache key, else it becomes impossible
+    to target with expire_action.
+
+    *Christopher Meiklejohn*
+
+*   Swallow error when can't unmarshall object from session.
+
+    *Bruno Zanchet*
 
 *   Implement a workaround for a bug in ruby-1.9.3p0 where an error would be raised
     while attempting to convert a template from one encoding to another.
@@ -75,6 +111,8 @@
     1.9.3.
 
     *Jon Leighton*
+
+*   Ensure users upgrading from 3.0.x to 3.1.x will properly upgrade their flash object in session (issues #3298 and #2509)
 
 ## Rails 3.1.1 (unreleased) ##
 

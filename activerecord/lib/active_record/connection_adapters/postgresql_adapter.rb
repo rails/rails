@@ -307,6 +307,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
         @connection_parameters, @config = connection_parameters, config
+        @visitor = Arel::Visitors::PostgreSQL.new self
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
@@ -321,10 +322,6 @@ module ActiveRecord
         end
 
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
-      end
-
-      def self.visitor_for(pool) # :nodoc:
-        Arel::Visitors::PostgreSQL.new(pool)
       end
 
       # Clears the prepared statements cache.

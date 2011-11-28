@@ -12,18 +12,19 @@ if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'ruby' && RUBY_VERSION == '1.9.3' && 
   # able to find it (due to a  bug).
   #
   # However, we don't know what conversions we may need to do a runtime. So we load up a
-  # marshal-dumped structure which contains a pre-generated list of all the possible conversions,
+  # text file which contains a pre-generated list of all the possible conversions,
   # and we load all of them.
   #
   # In my testing this increased the process size by about 3.9 MB (after the conversions array
   # is GC'd) and took around 170ms to run, which seems acceptable for a workaround.
   #
-  # The script to dump the conversions is: https://gist.github.com/1342729
+  # The script to dump the conversions is: https://gist.github.com/1371499
 
-  filename    = File.join(File.dirname(__FILE__), 'data', 'encoding_conversions.dump')
-  conversions = Marshal.load(File.read(filename))
-  conversions.each do |from, to_array|
-    to_array.each do |to|
+  filename    = File.join(File.dirname(__FILE__), 'data', 'encoding_conversions.txt')
+  conversions = File.read(filename)
+  conversions.split("\n").map do |line|
+    from, to_array = line.split(':')
+    to_array.split(',').each do |to|
       Encoding::Converter.new(from, to)
     end
   end

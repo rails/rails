@@ -142,6 +142,13 @@ module RenderTestCases
                                 "and is followed by any combinations of letters, numbers, or underscores.", e.message
   end
 
+  def test_render_partial_with_incompatible_object
+    @view.render(:partial => nil)
+    flunk "Render did not raise ArgumentError"
+  rescue ArgumentError => e
+    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object that returns a valid partial path.", e.message
+  end
+
   def test_render_partial_with_errors
     @view.render(:partial => "test/raise")
     flunk "Render did not raise Template::Error"

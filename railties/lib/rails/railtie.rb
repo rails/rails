@@ -196,7 +196,7 @@ module Rails
     end
 
     def railtie_namespace
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:_railtie) }
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
   end
 end

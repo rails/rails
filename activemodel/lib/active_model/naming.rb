@@ -12,19 +12,22 @@ module ActiveModel
 
     def initialize(klass, namespace = nil, name = nil)
       name ||= klass.name
-      super(name)
-      @unnamespaced = self.sub(/^#{namespace.name}::/, '') if namespace
 
-      @klass = klass
-      @singular = _singularize(self).freeze
-      @plural = ActiveSupport::Inflector.pluralize(@singular).freeze
-      @element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
-      @human = ActiveSupport::Inflector.humanize(@element).freeze
-      @collection = ActiveSupport::Inflector.tableize(self).freeze
+      raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if name.blank?
+
+      super(name)
+
+      @unnamespaced = self.sub(/^#{namespace.name}::/, '') if namespace
+      @klass        = klass
+      @singular     = _singularize(self).freeze
+      @plural       = ActiveSupport::Inflector.pluralize(@singular).freeze
+      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self)).freeze
+      @human        = ActiveSupport::Inflector.humanize(@element).freeze
+      @collection   = ActiveSupport::Inflector.tableize(self).freeze
       @partial_path = "#{@collection}/#{@element}".freeze
-      @param_key = (namespace ? _singularize(@unnamespaced) : @singular).freeze
-      @route_key = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural).freeze
-      @i18n_key = self.underscore.to_sym
+      @param_key    = (namespace ? _singularize(@unnamespaced) : @singular).freeze
+      @route_key    = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural).freeze
+      @i18n_key     = self.underscore.to_sym
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -79,7 +82,9 @@ module ActiveModel
     # used to retrieve all kinds of naming-related information.
     def model_name
       @_model_name ||= begin
-        namespace = self.parents.detect { |n| n.respond_to?(:_railtie) }
+        namespace = self.parents.detect do |n|
+          n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
+        end
         ActiveModel::Name.new(self, namespace)
       end
     end

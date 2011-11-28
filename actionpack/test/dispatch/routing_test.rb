@@ -62,12 +62,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'secure', :to => redirect("/secure/login")
 
       match 'mobile', :to => redirect(:subdomain => 'mobile')
-      match 'documentation', :to => redirect(:domain => 'example-documentation.com', :path => '')
-      match 'new_documentation', :to => redirect(:path => '/documentation/new')
       match 'super_new_documentation', :to => redirect(:host => 'super-docs.com')
-
-      match 'stores/:name',        :to => redirect(:subdomain => 'stores', :path => '/%{name}')
-      match 'stores/:name(*rest)', :to => redirect(:subdomain => 'stores', :path => '/%{name}%{rest}')
 
       match 'youtube_favorites/:youtube_id/:name', :to => redirect(YoutubeFavoritesRedirector)
 
@@ -79,7 +74,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       match 'sign_in' => "sessions#new"
 
       match 'account/modulo/:name', :to => redirect("/%{name}s")
-      match 'account/proc/:name', :to => redirect {|params| "/#{params[:name].pluralize}" }
+      match 'account/proc/:name', :to => redirect {|params, req| "/#{params[:name].pluralize}" }
       match 'account/proc_req' => redirect {|params, req| "/#{req.method}" }
 
       match 'account/google' => redirect('http://www.google.com/', :status => 302)
@@ -711,38 +706,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_redirect_hash_with_domain_and_path
-    with_test_routes do
-      get '/documentation'
-      verify_redirect 'http://www.example-documentation.com'
-    end
-  end
-
-  def test_redirect_hash_with_path
-    with_test_routes do
-      get '/new_documentation'
-      verify_redirect 'http://www.example.com/documentation/new'
-    end
-  end
-
   def test_redirect_hash_with_host
     with_test_routes do
       get '/super_new_documentation?section=top'
       verify_redirect 'http://super-docs.com/super_new_documentation?section=top'
-    end
-  end
-
-  def test_redirect_hash_path_substitution
-    with_test_routes do
-      get '/stores/iernest'
-      verify_redirect 'http://stores.example.com/iernest'
-    end
-  end
-
-  def test_redirect_hash_path_substitution_with_catch_all
-    with_test_routes do
-      get '/stores/iernest/products'
-      verify_redirect 'http://stores.example.com/iernest/products'
     end
   end
 
@@ -2330,6 +2297,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_named_routes_collision_is_avoided_unless_explicitly_given_as
     assert_equal "/c/1", routes_collision_path(1)
     assert_equal "/forced_collision", routes_forced_collision_path
+  end
+
+  def test_redirect_argument_error
+    routes = Class.new { include ActionDispatch::Routing::Redirection }.new
+    assert_raises(ArgumentError) { routes.redirect Object.new }
   end
 
   def test_explicitly_avoiding_the_named_route

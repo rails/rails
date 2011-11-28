@@ -54,13 +54,21 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "logs error if parsing unsuccessful" do
     with_test_routing do
+      output = StringIO.new
+      xml = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{ActiveSupport::Base64.encode64('ABC')}</avatar></pineapple>"
+      post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => Logger.new(output))
+      assert_response :error
+      output.rewind && err = output.read
+      assert err =~ /Error occurred while parsing request parameters/
+    end
+  end
+
+  test "occurring a parse error if parsing unsuccessful" do
+    with_test_routing do
       begin
-        $stderr = StringIO.new
-        xml = "<person><name>David</name><avatar type='file' name='me.jpg' content_type='image/jpg'>#{ActiveSupport::Base64.encode64('ABC')}</avatar></pineapple>"
-        post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => true)
-        assert_response :error
-        $stderr.rewind && err = $stderr.read
-        assert err =~ /Error occurred while parsing request parameters/
+        $stderr = StringIO.new # suppress the log
+        xml = "<person><name>David</name></pineapple>"
+        assert_raise(REXML::ParseException) { post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => false) }
       ensure
         $stderr = STDERR
       end

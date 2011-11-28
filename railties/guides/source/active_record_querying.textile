@@ -1287,6 +1287,7 @@ User.where(:id => 1).joins(:posts).explain
 may yield
 
 <plain>
+EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `posts` ON `posts`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
 <plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
 | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
 <plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
@@ -1302,6 +1303,7 @@ Active Record performs a pretty printing that emulates the one of the database
 shells. So, the same query running with the PostgreSQL adapter would yield instead
 
 <plain>
+EXPLAIN for: SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id" WHERE "users"."id" = 1
                                   QUERY PLAN
 ------------------------------------------------------------------------------
  Nested Loop Left Join  (cost=0.00..37.24 rows=8 width=0)
@@ -1324,12 +1326,15 @@ User.where(:id => 1).includes(:posts).explain
 yields
 
 <plain>
+EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
 <plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
 | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra |
 <plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
 |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |       |
 <plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
 1 row in set (0.00 sec)
+
+EXPLAIN for: SELECT `posts`.* FROM `posts`  WHERE `posts`.`user_id` IN (1)
 <plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
 | id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra       |
 <plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
@@ -1339,3 +1344,14 @@ yields
 </plain>
 
 under MySQL.
+
+h4. Interpreting EXPLAIN
+
+Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
+following pointers may be helpful:
+
+* SQLite3: "EXPLAIN QUERY PLAN":http://www.sqlite.org/eqp.html
+
+* MySQL: "EXPLAIN Output Format":http://dev.mysql.com/doc/refman/5.6/en/explain-output.html
+
+* PostgreSQL: "Using EXPLAIN":http://www.postgresql.org/docs/current/static/using-explain.html

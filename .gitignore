@@ -2,6 +2,7 @@
 # Check out http://help.github.com/ignore-files/ for how to set that up.
 
 debug.log
+.Gemfile
 /.bundle
 /.rbenv-version
 /.rvmrc

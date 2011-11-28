@@ -995,8 +995,16 @@ module ActionView
           label_tag(name_and_id["id"], options, &block)
         else
           content = if text.blank?
+            object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
             method_and_value = tag_value.present? ? "#{method_name}.#{tag_value}" : method_name
-            I18n.t("helpers.label.#{object_name}.#{method_and_value}", :default => "").presence
+
+            if object.respond_to?(:to_model)
+              key = object.class.model_name.i18n_key
+              i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
+            end
+
+            i18n_default ||= ""
+            I18n.t("#{object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
           else
             text.to_s
           end

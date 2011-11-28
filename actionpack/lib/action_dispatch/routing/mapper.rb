@@ -374,10 +374,6 @@ module ActionDispatch
         #     # Matches any request starting with 'path'
         #     match 'path' => 'c#a', :anchor => false
         def match(path, options=nil)
-          mapping = Mapping.new(@set, @scope, path, options || {})
-          app, conditions, requirements, defaults, as, anchor = mapping.to_route
-          @set.add_route(app, conditions, requirements, defaults, as, anchor)
-          self
         end
 
         # Mount a Rack-based application to be used within the application.
@@ -867,8 +863,6 @@ module ActionDispatch
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
-          DEFAULT_ACTIONS = [:index, :create, :new, :show, :update, :destroy, :edit]
-
           attr_reader :controller, :path, :options
 
           def initialize(entities, options = {})
@@ -880,7 +874,7 @@ module ActionDispatch
           end
 
           def default_actions
-            self.class::DEFAULT_ACTIONS
+            [:index, :create, :new, :show, :update, :destroy, :edit]
           end
 
           def actions
@@ -934,14 +928,15 @@ module ActionDispatch
         end
 
         class SingletonResource < Resource #:nodoc:
-          DEFAULT_ACTIONS = [:show, :create, :update, :destroy, :new, :edit]
-
           def initialize(entities, options)
             super
-
             @as         = nil
             @controller = (options[:controller] || plural).to_s
             @as         = options[:as]
+          end
+
+          def default_actions
+            [:show, :create, :update, :destroy, :new, :edit]
           end
 
           def plural
@@ -991,7 +986,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(SingletonResource.new(resources.pop, options)) do
+          resource_scope(:resource, SingletonResource.new(resources.pop, options)) do
             yield if block_given?
 
             collection do
@@ -1122,7 +1117,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(Resource.new(resources.pop, options)) do
+          resource_scope(:resources, Resource.new(resources.pop, options)) do
             yield if block_given?
 
             collection do
@@ -1245,32 +1240,44 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
-        def match(*args)
-          options = args.extract_options!.dup
-          options[:anchor] = true unless options.key?(:anchor)
-
-          if args.length > 1
-            args.each { |path| match(path, options.dup) }
-            return self
+        def match(path, *rest)
+          if rest.empty? && Hash === path
+            options  = path
+            path, to = options.find { |name, value| name.is_a?(String) }
+            options[:to] = to
+            options.delete(path)
+            paths = [path]
+          else
+            options = rest.pop || {}
+            paths = [path] + rest
           end
 
-          on = options.delete(:on)
-          if VALID_ON_OPTIONS.include?(on)
-            args.push(options)
-            return send(on){ match(*args) }
-          elsif on
+          options[:anchor] = true unless options.key?(:anchor)
+
+          if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
           end
 
-          if @scope[:scope_level] == :resources
-            args.push(options)
-            return nested { match(*args) }
-          elsif @scope[:scope_level] == :resource
-            args.push(options)
-            return member { match(*args) }
-          end
+          paths.each { |_path| decomposed_match(_path, options.dup) }
+          self
+        end
 
-          action = args.first
+        def decomposed_match(path, options) # :nodoc:
+          if on = options.delete(:on)
+            send(on) { decomposed_match(path, options) }
+          else
+            case @scope[:scope_level]
+            when :resources
+              nested { decomposed_match(path, options) }
+            when :resource
+              member { decomposed_match(path, options) }
+            else
+              add_route(path, options)
+            end
+          end
+        end
+
+        def add_route(action, options) # :nodoc:
           path = path_for_action(action, options.delete(:path))
 
           if action.to_s =~ /^[\w\/]+$/
@@ -1279,13 +1286,15 @@ module ActionDispatch
             action = nil
           end
 
-          if options.key?(:as) && !options[:as]
+          if !options.fetch(:as) { true }
             options.delete(:as)
           else
             options[:as] = name_for_action(options[:as], action)
           end
 
-          super(path, options)
+          mapping = Mapping.new(@set, @scope, path, options)
+          app, conditions, requirements, defaults, as, anchor = mapping.to_route
+          @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
 
         def root(options={})
@@ -1341,7 +1350,7 @@ module ActionDispatch
           end
 
           def scope_action_options? #:nodoc:
-            @scope[:options].is_a?(Hash) && (@scope[:options][:only] || @scope[:options][:except])
+            @scope[:options] && (@scope[:options][:only] || @scope[:options][:except])
           end
 
           def scope_action_options #:nodoc:
@@ -1349,11 +1358,11 @@ module ActionDispatch
           end
 
           def resource_scope? #:nodoc:
-            @scope[:scope_level].in?([:resource, :resources])
+            [:resource, :resources].include? @scope[:scope_level]
           end
 
           def resource_method_scope? #:nodoc:
-            @scope[:scope_level].in?([:collection, :member, :new])
+            [:collection, :member, :new].include? @scope[:scope_level]
           end
 
           def with_exclusive_scope
@@ -1378,8 +1387,8 @@ module ActionDispatch
             @scope[:scope_level_resource] = old_resource
           end
 
-          def resource_scope(resource) #:nodoc:
-            with_scope_level(resource.is_a?(SingletonResource) ? :resource : :resources, resource) do
+          def resource_scope(kind, resource) #:nodoc:
+            with_scope_level(kind, resource) do
               scope(parent_resource.resource_scope) do
                 yield
               end
@@ -1387,10 +1396,12 @@ module ActionDispatch
           end
 
           def nested_options #:nodoc:
-            {}.tap do |options|
-              options[:as] = parent_resource.member_name
-              options[:constraints] = { "#{parent_resource.singular}_id".to_sym => id_constraint } if id_constraint?
-            end
+            options = { :as => parent_resource.member_name }
+            options[:constraints] = {
+              :"#{parent_resource.singular}_id" => id_constraint
+            } if id_constraint?
+
+            options
           end
 
           def id_constraint? #:nodoc:
@@ -1466,19 +1477,6 @@ module ActionDispatch
           end
       end
 
-      module Shorthand #:nodoc:
-        def match(path, *rest)
-          if rest.empty? && Hash === path
-            options  = path
-            path, to = options.find { |name, value| name.is_a?(String) }
-            options.merge!(:to => to).delete(path)
-            super(path, options)
-          else
-            super
-          end
-        end
-      end
-
       def initialize(set) #:nodoc:
         @set = set
         @scope = { :path_names => @set.resources_path_names }
@@ -1489,7 +1487,6 @@ module ActionDispatch
       include Redirection
       include Scoping
       include Resources
-      include Shorthand
     end
   end
 end

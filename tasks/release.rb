@@ -116,6 +116,7 @@ namespace :all do
 
   task :tag do
     sh "git tag #{tag}"
+    sh "git push --tags"
   end
 
   task :release => %w(ensure_clean_state build commit tag push)

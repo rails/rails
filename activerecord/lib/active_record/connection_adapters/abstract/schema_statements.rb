@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_support/deprecation/reporting'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -154,17 +155,11 @@ module ActiveRecord
       #  )
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, options = {}, &blk)
+      def create_table(table_name, options = {})
         td = table_definition
         td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        if block_given?
-          if blk.arity == 1
-            yield td
-          else
-            td.instance_eval(&blk)
-          end
-        end
+        yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name)
@@ -241,19 +236,14 @@ module ActiveRecord
       #
       # See also Table for details on
       # all of the various column transformation
-      def change_table(table_name, options = {}, &blk)
-        bulk_change = supports_bulk_alter? && options[:bulk]
-        recorder = bulk_change ? ActiveRecord::Migration::CommandRecorder.new(self) : self
-        table = Table.new(table_name, recorder)
-
-        if block_given?
-          if blk.arity == 1
-            yield table
-          else
-            table.instance_eval(&blk)
-          end
+      def change_table(table_name, options = {})
+        if supports_bulk_alter? && options[:bulk]
+          recorder = ActiveRecord::Migration::CommandRecorder.new(self)
+          yield Table.new(table_name, recorder)
+          bulk_change_table(table_name, recorder.commands)
+        else
+          yield Table.new(table_name, self)
         end
-        bulk_change_table(table_name, recorder.commands) if bulk_change
       end
 
       # Renames a table.
@@ -445,6 +435,7 @@ module ActiveRecord
           si_table = Base.table_name_prefix + 'schema_info' + Base.table_name_suffix
 
           if table_exists?(si_table)
+            ActiveRecord::Deprecation.warn "Usage of the schema table `#{si_table}` is deprecated. Please switch to using `schema_migrations` table"
 
             old_version = select_value("SELECT version FROM #{quote_table_name(si_table)}").to_i
             assume_migrated_upto_version(old_version)
