@@ -81,7 +81,7 @@ module ActionView
 
         submit_value = options[:submit_value] || options[:action].gsub(/[^\w]/, '').capitalize
 
-        contents = form_tag({:action => action}, :method =>(options[:method] || 'post'), :enctype => options[:multipart] ? 'multipart/form-data': nil)
+        contents = form_tag(action, :method =>(options[:method] || 'post'), :enctype => options[:multipart] ? 'multipart/form-data': nil)
         contents << hidden_field(record_name, :id) unless record.new_record?
         contents << all_input_tags(record, record_name, options)
         yield contents if block_given?
