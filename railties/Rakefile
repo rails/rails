@@ -22,7 +22,7 @@ namespace :test do
         "#{File.dirname(__FILE__)}/../actionpack/lib",
         "#{File.dirname(__FILE__)}/../activemodel/lib"
       ]
-      ruby "-I#{dash_i.join ':'}", file
+      ruby "-w", "-I#{dash_i.join ':'}", file
     end
   end
 end
