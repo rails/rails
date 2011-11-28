@@ -62,7 +62,7 @@ platforms :ruby do
   group :db do
     gem "pg", ">= 0.11.0" unless ENV['TRAVIS'] # once pg is on travis this can be removed
     gem "mysql", ">= 2.8.1"
-    gem "mysql2", ">= 0.3.6"
+    gem "mysql2", ">= 0.3.10"
   end
 end
 
