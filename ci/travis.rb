@@ -132,7 +132,7 @@ failures = results.select { |key, value| value == false }
 
 if failures.empty?
   puts
-  puts "Rails build finished sucessfully"
+  puts "Rails build finished successfully"
   exit(true)
 else
   puts
