@@ -320,10 +320,12 @@ module ActiveRecord
 
       def initialize(pools = {})
         @connection_pools = pools
+        @class_to_pool    = {}
       end
 
       def establish_connection(name, spec)
-        @connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
+        @connection_pools[spec] ||= ConnectionAdapters::ConnectionPool.new(spec)
+        @class_to_pool[name] = @connection_pools[spec]
       end
 
       # Returns true if there are any active connections among the connection
@@ -374,16 +376,17 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(klass)
-        pool = @connection_pools.delete(klass.name)
+        pool = @class_to_pool.delete(klass.name)
         return nil unless pool
 
+        @connection_pools.delete pool.spec
         pool.automatic_reconnect = false
         pool.disconnect!
         pool.spec.config
       end
 
       def retrieve_connection_pool(klass)
-        pool = @connection_pools[klass.name]
+        pool = @class_to_pool[klass.name]
         return pool if pool
         return nil if ActiveRecord::Base == klass
         retrieve_connection_pool klass.superclass
