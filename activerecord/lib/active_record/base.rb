@@ -586,6 +586,24 @@ module ActiveRecord #:nodoc:
         self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
       end
 
+      def deprecated_property_setter(property, value, block) #:nodoc:
+        if block
+          ActiveSupport::Deprecation.warn(
+            "Calling set_#{property} is deprecated. If you need to lazily evaluate " \
+            "the #{property}, define your own `self.#{property}` class method. You can use `super` " \
+            "to get the default #{property} where you would have called `original_#{property}`."
+          )
+
+          define_attr_method property, value, &block
+        else
+          ActiveSupport::Deprecation.warn(
+            "Calling set_#{property} is deprecated. Please use `self.#{property} = 'the_name'` instead."
+          )
+
+          define_attr_method property, value
+        end
+      end
+
       # Guesses the table name (in forced lower-case) based on the name of the class in the
       # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy
       # looks like: Reply < Message < ActiveRecord::Base, then Message is used
@@ -655,31 +673,17 @@ module ActiveRecord #:nodoc:
       # You can also just define your own <tt>self.table_name</tt> method; see
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
+        @table_name        = value
         @quoted_table_name = nil
         @arel_table        = nil
-        @table_name        = value
         @relation          = Relation.new(self, arel_table)
       end
 
       def set_table_name(value = nil, &block) #:nodoc:
-        if block
-          ActiveSupport::Deprecation.warn(
-            "Calling set_table_name is deprecated. If you need to lazily evaluate " \
-            "the table name, define your own `self.table_name` class method. You can use `super` " \
-            "to get the default table name where you would have called `original_table_name`."
-          )
-
-          @quoted_table_name = nil
-          define_attr_method :table_name, value, &block
-          @arel_table = nil
-          @relation = Relation.new(self, arel_table)
-        else
-          ActiveSupport::Deprecation.warn(
-            "Calling set_table_name is deprecated. Please use `self.table_name = 'the_name'` instead."
-          )
-
-          self.table_name = value
-        end
+        deprecated_property_setter :table_name, value, block
+        @quoted_table_name = nil
+        @arel_table        = nil
+        @relation          = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -717,21 +721,7 @@ module ActiveRecord #:nodoc:
       end
 
       def set_inheritance_column(value = nil, &block) #:nodoc:
-        if block
-          ActiveSupport::Deprecation.warn(
-            "Calling set_inheritance_column is deprecated. If you need to lazily evaluate " \
-            "the inheritance column, define your own `self.inheritance_column` class method. You can use `super` " \
-            "to get the default inheritance column where you would have called `original_inheritance_column`."
-          )
-
-          define_attr_method :inheritance_column, value, &block
-        else
-          ActiveSupport::Deprecation.warn(
-            "Calling set_inheritance_column is deprecated. Please use `self.inheritance_column = 'the_name'` instead."
-          )
-
-          self.inheritance_column = value
-        end
+        deprecated_property_setter :inheritance_column, value, block
       end
 
       def sequence_name
@@ -765,21 +755,7 @@ module ActiveRecord #:nodoc:
       end
 
       def set_sequence_name(value = nil, &block) #:nodoc:
-        if block
-          ActiveSupport::Deprecation.warn(
-            "Calling set_sequence_name is deprecated. If you need to lazily evaluate " \
-            "the sequence name, define your own `self.sequence_name` class method. You can use `super` " \
-            "to get the default sequence name where you would have called `original_sequence_name`."
-          )
-
-          define_attr_method :sequence_name, value, &block
-        else
-          ActiveSupport::Deprecation.warn(
-            "Calling set_sequence_name is deprecated. Please use `self.sequence_name = 'the_name'` instead."
-          )
-
-          self.sequence_name = value
-        end
+        deprecated_property_setter :sequence_name, value, block
       end
 
       # Indicates whether the table associated with this class exists
