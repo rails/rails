@@ -1498,15 +1498,39 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new( ActiveRecord::Base )
     k.primary_key = "foo"
     assert_equal "foo", k.primary_key
-    k.set_primary_key "bar"
+
+    assert_deprecated do
+      k.set_primary_key "bar"
+    end
     assert_equal "bar", k.primary_key
   end
 
   def test_set_primary_key_with_block
     k = Class.new( ActiveRecord::Base )
     k.primary_key = 'id'
-    k.set_primary_key { "sys_" + original_primary_key }
+
+    assert_deprecated do
+      k.set_primary_key { "sys_" + original_primary_key }
+    end
     assert_equal "sys_id", k.primary_key
+  end
+
+  def test_original_primary_key
+    k = Class.new(ActiveRecord::Base)
+    def k.name; "Foo"; end
+    k.primary_key = "bar"
+
+    assert_deprecated do
+      assert_equal "id", k.original_primary_key
+    end
+
+    k = Class.new(ActiveRecord::Base)
+    k.primary_key = "omg"
+    k.primary_key = "wtf"
+
+    assert_deprecated do
+      assert_equal "omg", k.original_primary_key
+    end
   end
 
   def test_set_inheritance_column_with_value
