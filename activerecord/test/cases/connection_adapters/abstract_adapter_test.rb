@@ -33,6 +33,22 @@ module ActiveRecord
         adapter.expire
         assert !adapter.in_use?, 'adapter is in use'
       end
+
+      def test_close
+        pool = ConnectionPool.new(Base::ConnectionSpecification.new({}, nil))
+        pool.connections << adapter
+        adapter.pool = pool
+
+        # Make sure the pool marks the connection in use
+        assert_equal adapter, pool.connection
+        assert adapter.in_use?
+
+        # Close should put the adapter back in the pool
+        adapter.close
+        assert !adapter.in_use?
+
+        assert_equal adapter, pool.connection
+      end
     end
   end
 end

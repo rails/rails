@@ -53,23 +53,25 @@ module ActiveRecord
 
       define_callbacks :checkout, :checkin
 
-      attr_accessor :visitor
+      attr_accessor :visitor, :pool
       attr_reader :schema_cache, :last_use, :in_use
       alias :in_use? :in_use
 
-      def initialize(connection, logger = nil) #:nodoc:
+      def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()
 
-        @active = nil
-        @connection, @logger = connection, logger
+        @active              = nil
+        @connection          = connection
+        @in_use              = false
+        @instrumenter        = ActiveSupport::Notifications.instrumenter
+        @last_use            = false
+        @logger              = logger
+        @open_transactions   = 0
+        @pool                = pool
+        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
         @query_cache_enabled = false
-        @query_cache = Hash.new { |h,sql| h[sql] = {} }
-        @open_transactions = 0
-        @instrumenter = ActiveSupport::Notifications.instrumenter
-        @visitor = nil
-        @schema_cache = SchemaCache.new self
-        @in_use = false
-        @last_use = false
+        @schema_cache        = SchemaCache.new self
+        @visitor             = nil
       end
 
       def lease
@@ -254,6 +256,11 @@ module ActiveRecord
 
       def current_savepoint_name
         "active_record_#{open_transactions}"
+      end
+
+      # Check the connection back in to the connection pool
+      def close
+        pool.checkin self
       end
 
       protected
