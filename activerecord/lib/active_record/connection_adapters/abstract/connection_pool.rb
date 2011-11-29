@@ -1,7 +1,6 @@
 require 'thread'
 require 'monitor'
 require 'set'
-require 'active_support/core_ext/module/synchronization'
 require 'active_support/core_ext/module/deprecation'
 
 module ActiveRecord
@@ -58,6 +57,8 @@ module ActiveRecord
     # * +wait_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
     class ConnectionPool
+      include MonitorMixin
+
       attr_accessor :automatic_reconnect
       attr_reader :spec, :connections
 
@@ -68,14 +69,14 @@ module ActiveRecord
       #
       # The default ConnectionPool maximum size is 5.
       def initialize(spec)
+        super()
+
         @spec = spec
 
         # The cache of reserved connections mapped to threads
         @reserved_connections = {}
 
-        # The mutex used to synchronize pool access
-        @connection_mutex = Monitor.new
-        @queue = @connection_mutex.new_cond
+        @queue = new_cond
         @timeout = spec.config[:wait_timeout] || 5
 
         # default max pool size to 5
@@ -121,37 +122,43 @@ module ActiveRecord
 
       # Returns true if a connection has already been opened.
       def connected?
-        @connections.any?
+        synchronize { @connections.any? }
       end
 
       # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
-        @reserved_connections = {}
-        @connections.each do |conn|
-          checkin conn
-          conn.disconnect!
+        synchronize do
+          @reserved_connections = {}
+          @connections.each do |conn|
+            checkin conn
+            conn.disconnect!
+          end
+          @connections = []
         end
-        @connections = []
       end
 
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
-        @reserved_connections = {}
-        @connections.each do |conn|
-          checkin conn
-          conn.disconnect! if conn.requires_reloading?
-        end
-        @connections.delete_if do |conn|
-          conn.requires_reloading?
+        synchronize do
+          @reserved_connections = {}
+          @connections.each do |conn|
+            checkin conn
+            conn.disconnect! if conn.requires_reloading?
+          end
+          @connections.delete_if do |conn|
+            conn.requires_reloading?
+          end
         end
       end
 
       # Verify active connections and remove and disconnect connections
       # associated with stale threads.
       def verify_active_connections! #:nodoc:
-        clear_stale_cached_connections!
-        @connections.each do |connection|
-          connection.verify!
+        synchronize do
+          clear_stale_cached_connections!
+          @connections.each do |connection|
+            connection.verify!
+          end
         end
       end
 
@@ -219,7 +226,7 @@ connection.  For example: ActiveRecord::Base.connection.close
       #   within the timeout period.
       def checkout
         # Checkout an available connection
-        @connection_mutex.synchronize do
+        synchronize do
           loop do
             conn = @connections.find { |c| c.lease }
 
@@ -256,16 +263,13 @@ connection.  For example: ActiveRecord::Base.connection.close
       # +conn+: an AbstractAdapter object, which was obtained by earlier by
       # calling +checkout+ on this pool.
       def checkin(conn)
-        @connection_mutex.synchronize do
+        synchronize do
           conn.run_callbacks :checkin do
             conn.expire
             @queue.signal
           end
         end
       end
-
-      synchronize :clear_reloadable_connections!, :verify_active_connections!,
-        :connected?, :disconnect!, :with => :@connection_mutex
 
       private
 
