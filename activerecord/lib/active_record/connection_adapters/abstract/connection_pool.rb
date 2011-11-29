@@ -97,7 +97,7 @@ module ActiveRecord
       # Check to see if there is an active connection in this connection
       # pool.
       def active_connection?
-        @reserved_connections.key? current_connection_id
+        active_connections.any?
       end
 
       # Signal that the thread is finished with the current connection.
@@ -113,7 +113,7 @@ module ActiveRecord
       # connection when finished.
       def with_connection
         connection_id = current_connection_id
-        fresh_connection = true unless @reserved_connections[connection_id]
+        fresh_connection = true unless active_connection?
         yield connection
       ensure
         release_connection(connection_id) if fresh_connection
@@ -121,7 +121,7 @@ module ActiveRecord
 
       # Returns true if a connection has already been opened.
       def connected?
-        !@connections.empty?
+        @connections.any?
       end
 
       # Disconnects all connections in the pool, and clears the pool.
