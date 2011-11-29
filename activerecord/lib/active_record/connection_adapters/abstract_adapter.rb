@@ -4,6 +4,7 @@ require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_support/deprecation'
 require 'active_record/connection_adapters/schema_cache'
+require 'monitor'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -48,13 +49,17 @@ module ActiveRecord
       include DatabaseLimits
       include QueryCache
       include ActiveSupport::Callbacks
+      include MonitorMixin
 
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor
-      attr_reader :schema_cache
+      attr_reader :schema_cache, :last_use, :in_use
+      alias :in_use? :in_use
 
       def initialize(connection, logger = nil) #:nodoc:
+        super()
+
         @active = nil
         @connection, @logger = connection, logger
         @query_cache_enabled = false
@@ -63,6 +68,14 @@ module ActiveRecord
         @instrumenter = ActiveSupport::Notifications.instrumenter
         @visitor = nil
         @schema_cache = SchemaCache.new self
+        @in_use = false
+      end
+
+      def lease
+        synchronize do
+          @in_use   = true
+          @last_use = Time.now
+        end
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
