@@ -9,27 +9,27 @@ module ActiveRecord
         end
 
         def test_url_host_no_db
-          spec = resolve 'postgres://foo?encoding=utf8'
+          spec = resolve 'mysql://foo?encoding=utf8'
           assert_equal({
-            :adapter  => "postgresql",
+            :adapter  => "mysql",
             :database => "",
             :host     => "foo",
             :encoding => "utf8" }, spec)
         end
 
         def test_url_host_db
-          spec = resolve 'postgres://foo/bar?encoding=utf8'
+          spec = resolve 'mysql://foo/bar?encoding=utf8'
           assert_equal({
-            :adapter  => "postgresql",
+            :adapter  => "mysql",
             :database => "bar",
             :host     => "foo",
             :encoding => "utf8" }, spec)
         end
 
         def test_url_port
-          spec = resolve 'postgres://foo:123?encoding=utf8'
+          spec = resolve 'mysql://foo:123?encoding=utf8'
           assert_equal({
-            :adapter  => "postgresql",
+            :adapter  => "mysql",
             :database => "",
             :port     => 123,
             :host     => "foo",
