@@ -30,7 +30,7 @@ module ActiveSupport
       @logger.add(severity, "#{tags_text}#{message}", progname, &block)
     end
 
-    %w( fatal error warn info debug unkown ).each do |severity|
+    %w( fatal error warn info debug unknown ).each do |severity|
       eval <<-EOM, nil, __FILE__, __LINE__ + 1
         def #{severity}(progname = nil, &block)
           add(Logger::#{severity.upcase}, progname, &block)
