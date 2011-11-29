@@ -6,4 +6,11 @@ namespace :log do
       f.close
     end
   end
+  desc "Tail the rails environment log file"
+  task :tail, [:lines] => :environment do |t, args|
+    args.with_defaults(:lines => 100)
+    log_file = File.join("#{Rails.root}", "log/#{Rails.env.downcase}.log")
+    puts "\e[0;36mrunning tail -f -n#{args.lines} #{log_file}\e[1;0m"
+    system("tail -f -n#{args.lines} #{log_file}")
+  end
 end
