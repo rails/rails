@@ -20,6 +20,12 @@ module ActiveRecord
         assert adapter.lease, 'should lease adapter'
         assert !adapter.lease, 'should not lease adapter'
       end
+
+      def test_last_use
+        assert !adapter.last_use
+        adapter.lease
+        assert adapter.last_use
+      end
     end
   end
 end
