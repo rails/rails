@@ -734,16 +734,16 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Lazy-set the sequence name to the connection's default. This method
-      # is only ever called once since set_sequence_name overrides it.
-      def sequence_name #:nodoc:
-        reset_sequence_name
+      def sequence_name
+        if superclass == Base
+          @sequence_name ||= reset_sequence_name
+        else
+          (@sequence_name ||= nil) || superclass.sequence_name
+        end
       end
 
       def reset_sequence_name #:nodoc:
-        default = connection.default_sequence_name(table_name, primary_key)
-        set_sequence_name(default)
-        default
+        self.sequence_name = connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -758,12 +758,29 @@ module ActiveRecord #:nodoc:
       # will discover the sequence corresponding to your primary key for you.
       #
       #   class Project < ActiveRecord::Base
-      #     set_sequence_name "projectseq"   # default would have been "project_seq"
+      #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
-      def set_sequence_name(value = nil, &block)
-        define_attr_method :sequence_name, value, &block
+      def sequence_name=(value)
+        @sequence_name = value.to_s
       end
-      alias :sequence_name= :set_sequence_name
+
+      def set_sequence_name(value = nil, &block) #:nodoc:
+        if block
+          ActiveSupport::Deprecation.warn(
+            "Calling set_sequence_name is deprecated. If you need to lazily evaluate " \
+            "the sequence name, define your own `self.sequence_name` class method. You can use `super` " \
+            "to get the default sequence name where you would have called `original_sequence_name`."
+          )
+
+          define_attr_method :sequence_name, value, &block
+        else
+          ActiveSupport::Deprecation.warn(
+            "Calling set_sequence_name is deprecated. Please use `self.sequence_name = 'the_name'` instead."
+          )
+
+          self.sequence_name = value
+        end
+      end
 
       # Indicates whether the table associated with this class exists
       def table_exists?
