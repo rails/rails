@@ -286,12 +286,6 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
   end
 
   def test_model_method_overrides_association_method
-    Post.class_eval <<-"RUBY"
-      has_one :first_comment, :class_name => 'Comment', :order => 'id ASC'
-      def first_comment
-        super.body
-      end
-    RUBY
     assert_equal(comments(:greetings).body, posts(:welcome).first_comment)
   end
 end
