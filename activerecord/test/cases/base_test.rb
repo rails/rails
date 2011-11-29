@@ -1510,6 +1510,28 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "type_id", k.inheritance_column
   end
 
+  def test_set_sequence_name_with_value
+    k = Class.new( ActiveRecord::Base )
+    k.sequence_name = "foo"
+    assert_equal "foo", k.sequence_name
+
+    k.set_sequence_name "bar"
+    assert_equal "bar", k.sequence_name
+  end
+
+  def test_set_sequence_name_with_block
+    k = Class.new( ActiveRecord::Base )
+    k.table_name = "projects"
+    orig_name = k.sequence_name
+
+    if orig_name
+      k.set_sequence_name { original_sequence_name + "_lol" }
+      assert_equal orig_name + "_lol", k.sequence_name
+    else
+      skip "sequences not supported by db"
+    end
+  end
+
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
 
