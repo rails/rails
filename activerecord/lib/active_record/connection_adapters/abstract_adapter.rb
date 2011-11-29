@@ -73,8 +73,10 @@ module ActiveRecord
 
       def lease
         synchronize do
-          @in_use   = true
-          @last_use = Time.now
+          unless in_use
+            @in_use   = true
+            @last_use = Time.now
+          end
         end
       end
 
