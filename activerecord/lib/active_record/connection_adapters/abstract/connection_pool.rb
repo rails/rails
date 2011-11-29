@@ -265,7 +265,7 @@ connection.  For example: ActiveRecord::Base.connection.close
       end
 
       synchronize :clear_reloadable_connections!, :verify_active_connections!,
-        :connected?, :disconnect!, :with => :@connection_mutex
+        :connection, :release_connection, :connected?, :disconnect!, :with => :@connection_mutex
 
       private
 
