@@ -5,7 +5,7 @@ module ActiveRecord
     class ConnectionSpecification
       class ResolverTest < ActiveRecord::TestCase
         def resolve(spec)
-          Resolver.new(spec, ActiveRecord::Base, {}).spec.config
+          Resolver.new(spec, {}).spec.config
         end
 
         def test_url_host_no_db
