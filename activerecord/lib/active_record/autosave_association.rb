@@ -21,6 +21,21 @@ module ActiveRecord
   # Note that <tt>:autosave => false</tt> is not same as not declaring <tt>:autosave</tt>.
   # When the <tt>:autosave</tt> option is not present new associations are saved.
   #
+  # == Validation
+  #
+  # Children records are validated unless <tt>:validate</tt> is +false+.
+  #
+  # == Callbacks
+  #
+  # Association with autosave option defines several callbacks on your
+  # model (before_save, after_create, after_update). Please note that
+  # callbacks are executed in the order they were defined in
+  # model. You should avoid modyfing the association content, before
+  # autosave callbacks are executed. Placing your callbacks after
+  # associations is usually a good practice.
+  #
+  # == Examples
+  #
   # === One-to-one Example
   #
   #   class Post
@@ -109,10 +124,7 @@ module ActiveRecord
   # Now it _is_ removed from the database:
   #
   #   Comment.find_by_id(id).nil? # => true
-  #
-  # === Validation
-  #
-  # Children records are validated unless <tt>:validate</tt> is +false+.
+
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -264,7 +276,7 @@ module ActiveRecord
     # turned on for the association.
     def validate_single_association(reflection)
       association = association_instance_get(reflection.name)
-      record      = association && association.target
+      record      = association && association.reader
       association_valid?(reflection, record) if record
     end
 

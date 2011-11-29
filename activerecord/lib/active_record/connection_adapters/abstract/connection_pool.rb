@@ -84,7 +84,6 @@ module ActiveRecord
         @connections         = []
         @checked_out         = []
         @automatic_reconnect = true
-        @visitor             = nil
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -128,11 +127,9 @@ module ActiveRecord
 
       # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
-        @reserved_connections.each do |name,conn|
-          checkin conn
-        end
         @reserved_connections = {}
         @connections.each do |conn|
+          checkin conn
           conn.disconnect!
         end
         @connections = []
@@ -140,11 +137,9 @@ module ActiveRecord
 
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
-        @reserved_connections.each do |name, conn|
-          checkin conn
-        end
         @reserved_connections = {}
         @connections.each do |conn|
+          checkin conn
           conn.disconnect! if conn.requires_reloading?
         end
         @connections.delete_if do |conn|
@@ -320,10 +315,12 @@ module ActiveRecord
 
       def initialize(pools = {})
         @connection_pools = pools
+        @class_to_pool    = {}
       end
 
       def establish_connection(name, spec)
-        @connection_pools[name] = ConnectionAdapters::ConnectionPool.new(spec)
+        @connection_pools[spec] ||= ConnectionAdapters::ConnectionPool.new(spec)
+        @class_to_pool[name] = @connection_pools[spec]
       end
 
       # Returns true if there are any active connections among the connection
@@ -374,16 +371,17 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(klass)
-        pool = @connection_pools.delete(klass.name)
+        pool = @class_to_pool.delete(klass.name)
         return nil unless pool
 
+        @connection_pools.delete pool.spec
         pool.automatic_reconnect = false
         pool.disconnect!
         pool.spec.config
       end
 
       def retrieve_connection_pool(klass)
-        pool = @connection_pools[klass.name]
+        pool = @class_to_pool[klass.name]
         return pool if pool
         return nil if ActiveRecord::Base == klass
         retrieve_connection_pool klass.superclass
