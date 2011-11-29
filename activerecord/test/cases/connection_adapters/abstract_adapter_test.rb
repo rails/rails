@@ -26,6 +26,13 @@ module ActiveRecord
         adapter.lease
         assert adapter.last_use
       end
+
+      def test_expire_mutates_in_use
+        assert adapter.lease, 'lease adapter'
+        assert adapter.in_use?, 'adapter is in use'
+        adapter.expire
+        assert !adapter.in_use?, 'adapter is in use'
+      end
     end
   end
 end
