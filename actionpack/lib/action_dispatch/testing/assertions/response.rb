@@ -54,14 +54,17 @@ module ActionDispatch
       #   # assert that the redirection was to the url for @customer
       #   assert_redirected_to @customer
       #
+      #   # asserts that the redirection matches the regular expression
+      #   assert_redirected_to %r(^http://example.com)
+      #
       def assert_redirected_to(options = {}, message=nil)
         assert_response(:redirect, message)
-        return true if options == @response.location
+        return true if options === @response.location
 
         redirect_is       = normalize_argument_to_redirection(@response.location)
         redirect_expected = normalize_argument_to_redirection(options)
 
-        if redirect_is != redirect_expected
+        unless redirect_expected === redirect_is
           flunk "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
         end
       end
@@ -73,8 +76,10 @@ module ActionDispatch
         end
 
         def normalize_argument_to_redirection(fragment)
-          case fragment
+          normalized = case fragment
           when %r{^\w[A-Za-z\d+.-]*:.*}
+            fragment
+          when Regexp
             fragment
           when String
             @request.protocol + @request.host_with_port + fragment
@@ -83,7 +88,9 @@ module ActionDispatch
             refer
           else
             @controller.url_for(fragment)
-          end.gsub(/[\r\n]/, '')
+          end
+
+          normalized.respond_to?(:gsub) ? normalized.gsub(/[\r\n]/, '') : normalized
         end
 
         def validate_request!
