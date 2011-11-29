@@ -77,7 +77,7 @@ end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
-           :parrots, :pirates, :treasures, :price_estimates, :tags, :taggings
+           :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings
 
   def setup_data_for_habtm_case
     ActiveRecord::Base.connection.execute('delete from countries_treaties')
@@ -443,6 +443,26 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert david.projects.empty?
     assert david.projects(true).empty?
+  end
+
+  def test_destroy_associations_destroys_multiple_associations
+    george = parrots(:george)
+    assert !george.pirates.empty?
+    assert !george.treasures.empty?
+
+    assert_no_difference "Pirate.count" do
+      assert_no_difference "Treasure.count" do
+        george.destroy_associations
+      end
+    end
+
+    join_records = Parrot.connection.select_all("SELECT * FROM parrots_pirates WHERE parrot_id = #{george.id}")
+    assert join_records.empty?
+    assert george.pirates(true).empty?
+
+    join_records = Parrot.connection.select_all("SELECT * FROM parrots_treasures WHERE parrot_id = #{george.id}")
+    assert join_records.empty?
+    assert george.treasures(true).empty?
   end
 
   def test_deprecated_push_with_attributes_was_removed

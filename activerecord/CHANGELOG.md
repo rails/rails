@@ -1,5 +1,11 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Generated association methods are created within a separate module to allow overriding and
+    composition using `super`. For a class named `MyModel`, the module is named
+    `MyModel::GeneratedFeatureMethods`. It is included into the model class immediately after
+    the `generated_attributes_methods` module defined in ActiveModel, so association methods
+    override attribute methods of the same name. *Josh Susser*
+
 *   Implemented ActiveRecord::Relation#explain. *fxn*
 
 *   Add ActiveRecord::Relation#uniq for generating unique queries.
