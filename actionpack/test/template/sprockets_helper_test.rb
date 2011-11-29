@@ -41,6 +41,10 @@ class SprocketsHelperTest < ActionView::TestCase
     @controller ? @controller.config : @config
   end
 
+  def compute_host(source, request, options = {})
+    raise "Should never get here"
+  end
+
   test "asset_path" do
     assert_match %r{/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
@@ -122,6 +126,10 @@ class SprocketsHelperTest < ActionView::TestCase
     @config.asset_host = Proc.new do |asset, request|
       fail "This should not have been called."
     end
+    assert_raises ActionController::RoutingError do
+      asset_path("logo.png")
+    end
+    @config.asset_host = method :compute_host
     assert_raises ActionController::RoutingError do
       asset_path("logo.png")
     end
