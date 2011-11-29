@@ -719,6 +719,11 @@ ActiveRecord::Schema.define do
     t.string 'a$b'
   end
 
+  create_table :secure_people, :force => true do |t|
+    t.integer :parent_id
+    t.string :name
+  end
+
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, :force => true do |t|
