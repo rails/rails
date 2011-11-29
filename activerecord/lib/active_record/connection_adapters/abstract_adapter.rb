@@ -69,6 +69,7 @@ module ActiveRecord
         @visitor = nil
         @schema_cache = SchemaCache.new self
         @in_use = false
+        @last_use = false
       end
 
       def lease
@@ -78,6 +79,10 @@ module ActiveRecord
             @last_use = Time.now
           end
         end
+      end
+
+      def expire
+        @in_use = false
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
