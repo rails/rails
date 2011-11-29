@@ -49,6 +49,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_chaining_scopes_to_association_proxy_preserves_group_by
+    author = authors(:david)
+    assert_equal (author.grouped_posts.map &:type).size, (author.grouped_posts.limit(Post.all.size).map &:type).size
+  end
+
   def test_create_from_association_should_respect_default_scope
     car = Car.create(:name => 'honda')
     assert_equal 'honda', car.name
