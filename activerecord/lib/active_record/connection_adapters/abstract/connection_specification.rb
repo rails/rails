@@ -11,9 +11,8 @@ module ActiveRecord
       class Resolver # :nodoc:
         attr_reader :config, :klass, :configurations
 
-        def initialize(config, klass, configurations)
+        def initialize(config, configurations)
           @config         = config
-          @klass          = klass
           @configurations = configurations
         end
 
@@ -52,9 +51,6 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
-          unless klass.respond_to?(adapter_method)
-            raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
-          end
 
           ConnectionSpecification.new(spec, adapter_method)
         end
@@ -127,9 +123,15 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
     def self.establish_connection(spec = ENV["DATABASE_URL"])
-      resolver = ConnectionSpecification::Resolver.new spec, self, configurations
+      resolver = ConnectionSpecification::Resolver.new spec, configurations
+      spec = resolver.spec
+
+      unless respond_to?(spec.adapter_method)
+        raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter"
+      end
+
       remove_connection
-      connection_handler.establish_connection name, resolver.spec
+      connection_handler.establish_connection name, spec
     end
 
     class << self
