@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Added new rake task (`rake tail`) to view current 'Rails.env' log. *Scott V. Rosenthal*
+
 *   Display mounted engine's routes in `rake routes`. *Piotr Sarnacki*
 
 *   Allow to change the loading order of railties with `config.railties_order=` *Piotr Sarnacki*
