@@ -6,12 +6,6 @@ module ActiveRecord
       def setup
         connection = ActiveRecord::Base.connection
         @cache     = SchemaCache.new connection
-
-        if in_memory_db?
-          connection.create_table :posts do |t|
-            t.integer :cololumn
-          end
-        end
       end
 
       def test_primary_key
