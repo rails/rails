@@ -702,10 +702,36 @@ module ActiveRecord #:nodoc:
         (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
-      # Defines the column name for use with single table inheritance. Use
-      # <tt>set_inheritance_column</tt> to set a different value.
+      # The name of the column containing the object's class when Single Table Inheritance is used
       def inheritance_column
-        @inheritance_column ||= "type"
+        if self == Base
+          'type'
+        else
+          defined?(@inheritance_column) ? @inheritance_column : superclass.inheritance_column
+        end
+      end
+
+      # Sets the value of inheritance_column
+      def inheritance_column=(value)
+        @inheritance_column = value.to_s
+      end
+
+      def set_inheritance_column(value = nil, &block) #:nodoc:
+        if block
+          ActiveSupport::Deprecation.warn(
+            "Calling set_inheritance_column is deprecated. If you need to lazily evaluate " \
+            "the inheritance column, define your own `self.inheritance_column` class method. You can use `super` " \
+            "to get the default inheritance column where you would have called `original_inheritance_column`."
+          )
+
+          define_attr_method :inheritance_column, value, &block
+        else
+          ActiveSupport::Deprecation.warn(
+            "Calling set_inheritance_column is deprecated. Please use `self.inheritance_column = 'the_name'` instead."
+          )
+
+          self.inheritance_column = value
+        end
       end
 
       # Lazy-set the sequence name to the connection's default. This method
@@ -719,20 +745,6 @@ module ActiveRecord #:nodoc:
         set_sequence_name(default)
         default
       end
-
-      # Sets the name of the inheritance column to use to the given value,
-      # or (if the value # is nil or false) to the value returned by the
-      # given block.
-      #
-      #   class Project < ActiveRecord::Base
-      #     set_inheritance_column do
-      #       original_inheritance_column + "_id"
-      #     end
-      #   end
-      def set_inheritance_column(value = nil, &block)
-        define_attr_method :inheritance_column, value, &block
-      end
-      alias :inheritance_column= :set_inheritance_column
 
       # Sets the name of the sequence to use when generating ids to the given
       # value, or (if the value is nil or false) to the value returned by the
