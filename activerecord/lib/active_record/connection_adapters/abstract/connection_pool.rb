@@ -275,6 +275,7 @@ module ActiveRecord
         raise ConnectionNotEstablished unless @automatic_reconnect
 
         c = new_connection
+        c.pool = self
         @connections << c
         c
       end
