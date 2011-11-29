@@ -1,5 +1,8 @@
 ## Rails 3.2.0 (unreleased) ##
 
+* Module#synchronize is deprecated with no replacement.  Please use `monitor`
+  from ruby's standard library.
+
 *   (Date|DateTime|Time)#beginning_of_week accept an optional argument to
     be able to set the day at which weeks are assumed to start.
 
