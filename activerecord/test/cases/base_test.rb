@@ -1515,7 +1515,9 @@ class BasicsTest < ActiveRecord::TestCase
     k.sequence_name = "foo"
     assert_equal "foo", k.sequence_name
 
-    k.set_sequence_name "bar"
+    assert_deprecated do
+      k.set_sequence_name "bar"
+    end
     assert_equal "bar", k.sequence_name
   end
 
@@ -1525,7 +1527,9 @@ class BasicsTest < ActiveRecord::TestCase
     orig_name = k.sequence_name
 
     if orig_name
-      k.set_sequence_name { original_sequence_name + "_lol" }
+      assert_deprecated do
+        k.set_sequence_name { original_sequence_name + "_lol" }
+      end
       assert_equal orig_name + "_lol", k.sequence_name
     else
       skip "sequences not supported by db"

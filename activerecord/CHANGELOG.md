@@ -4,6 +4,7 @@
 
       * `set_table_name`
       * `set_inheritance_column`
+      * `set_sequence_name`
 
     Use an assignment method instead. For example, instead of `set_table_name`, use `self.table_name=`:
 
