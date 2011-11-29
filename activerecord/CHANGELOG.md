@@ -6,6 +6,7 @@
       * `set_inheritance_column`
       * `set_sequence_name`
       * `set_primary_key`
+      * `set_locking_column`
 
     Use an assignment method instead. For example, instead of `set_table_name`, use `self.table_name=`:
 
