@@ -343,7 +343,10 @@ class HashExtTest < Test::Unit::TestCase
     end
 
     assert_raise(ArgumentError) do
-      { :name => "Phil" }.assert_required_keys(:name, :age)
+      { :name => "Phil" }.assert_required_keys(:name, :age) # required key is not present
+    end
+    
+    assert_raise(ArgumentError) do
       { 'name' => "Phil" }.assert_required_keys(:name) # required symbol, but string key was included instead
     end
   end
