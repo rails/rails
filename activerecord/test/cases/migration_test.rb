@@ -1027,7 +1027,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         t.column :title, :string
       end
       person_klass = Class.new(Person)
-      person_klass.set_table_name 'testings'
+      person_klass.table_name = 'testings'
 
       person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
       person_klass.reset_column_information

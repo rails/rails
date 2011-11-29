@@ -26,23 +26,23 @@ class SchemaTest < ActiveRecord::TestCase
   PK_TABLE_NAME = 'table_with_pk'
 
   class Thing1 < ActiveRecord::Base
-    set_table_name "test_schema.things"
+    self.table_name = "test_schema.things"
   end
 
   class Thing2 < ActiveRecord::Base
-    set_table_name "test_schema2.things"
+    self.table_name = "test_schema2.things"
   end
 
   class Thing3 < ActiveRecord::Base
-    set_table_name 'test_schema."things.table"'
+    self.table_name = 'test_schema."things.table"'
   end
 
   class Thing4 < ActiveRecord::Base
-    set_table_name 'test_schema."Things"'
+    self.table_name = 'test_schema."Things"'
   end
 
   class Thing5 < ActiveRecord::Base
-    set_table_name 'things'
+    self.table_name = 'things'
   end
 
   def setup

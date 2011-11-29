@@ -23,7 +23,7 @@ require 'models/treaty'
 require 'active_support/core_ext/string/conversions'
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
   has_and_belongs_to_many :developers,
     :class_name => "DeveloperForProjectWithAfterCreateHook",
     :join_table => "developers_projects",
@@ -39,7 +39,7 @@ class ProjectWithAfterCreateHook < ActiveRecord::Base
 end
 
 class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
   has_and_belongs_to_many :projects,
     :class_name => "ProjectWithAfterCreateHook",
     :join_table => "developers_projects",
@@ -48,7 +48,7 @@ class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
 end
 
 class ProjectWithSymbolsForKeys < ActiveRecord::Base
-  set_table_name 'projects'
+  self.table_name = 'projects'
   has_and_belongs_to_many :developers,
     :class_name => "DeveloperWithSymbolsForKeys",
     :join_table => :developers_projects,
@@ -57,7 +57,7 @@ class ProjectWithSymbolsForKeys < ActiveRecord::Base
 end
 
 class DeveloperWithSymbolsForKeys < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
   has_and_belongs_to_many :projects,
     :class_name => "ProjectWithSymbolsForKeys",
     :join_table => :developers_projects,
@@ -66,7 +66,7 @@ class DeveloperWithSymbolsForKeys < ActiveRecord::Base
 end
 
 class DeveloperWithCounterSQL < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
   has_and_belongs_to_many :projects,
     :class_name => "DeveloperWithCounterSQL",
     :join_table => "developers_projects",

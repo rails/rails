@@ -1,5 +1,21 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Deprecated `set_table_name`. Use `self.table_name=` instead, or define your own
+    `self.table_name` method:
+
+         class Project < ActiveRecord::Base
+           self.table_name = "project"
+         end
+
+         class Post < ActiveRecord::Base
+           def self.table_name
+             "special_" + super
+           end
+         end
+         Post.table_name # => "special_posts"
+
+    *Jon Leighton*
+
 *   Generated association methods are created within a separate module to allow overriding and
     composition using `super`. For a class named `MyModel`, the module is named
     `MyModel::GeneratedFeatureMethods`. It is included into the model class immediately after

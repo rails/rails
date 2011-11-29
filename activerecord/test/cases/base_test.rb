@@ -1431,16 +1431,19 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new( ActiveRecord::Base )
     k.table_name = "foo"
     assert_equal "foo", k.table_name
-    k.set_table_name "bar"
+
+    assert_deprecated do
+      k.set_table_name "bar"
+    end
     assert_equal "bar", k.table_name
   end
 
   def test_switching_between_table_name
     assert_difference("GoodJoke.count") do
-      Joke.set_table_name "cold_jokes"
+      Joke.table_name = "cold_jokes"
       Joke.create
 
-      Joke.set_table_name "funny_jokes"
+      Joke.table_name = "funny_jokes"
       Joke.create
     end
   end
@@ -1448,19 +1451,29 @@ class BasicsTest < ActiveRecord::TestCase
   def test_quoted_table_name_after_set_table_name
     klass = Class.new(ActiveRecord::Base)
 
-    klass.set_table_name "foo"
+    klass.table_name = "foo"
     assert_equal "foo", klass.table_name
     assert_equal klass.connection.quote_table_name("foo"), klass.quoted_table_name
 
-    klass.set_table_name "bar"
+    klass.table_name = "bar"
     assert_equal "bar", klass.table_name
     assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
   end
 
   def test_set_table_name_with_block
     k = Class.new( ActiveRecord::Base )
-    k.set_table_name { "ks" }
-    assert_equal "ks", k.table_name
+    assert_deprecated do
+      k.set_table_name "foo"
+      k.set_table_name { original_table_name + "ks" }
+    end
+    assert_equal "fooks", k.table_name
+  end
+
+  def test_set_table_name_with_inheritance
+    k = Class.new( ActiveRecord::Base )
+    def k.name; "Foo"; end
+    def k.table_name; super + "ks"; end
+    assert_equal "foosks", k.table_name
   end
 
   def test_set_primary_key_with_value
