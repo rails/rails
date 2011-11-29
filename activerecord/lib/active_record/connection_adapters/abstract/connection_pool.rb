@@ -231,11 +231,11 @@ module ActiveRecord
 
             @queue.wait(@timeout)
 
-            if(checked_out.size < @connections.size)
+            if(active_connections.size < @connections.size)
               next
             else
               clear_stale_cached_connections!
-              if @size == checked_out.size
+              if @size == active_connections.size
                 raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
               end
             end
@@ -286,7 +286,7 @@ module ActiveRecord
         c
       end
 
-      def checked_out
+      def active_connections
         @connections.find_all { |c| c.in_use? }
       end
     end
