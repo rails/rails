@@ -1476,6 +1476,24 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "foosks", k.table_name
   end
 
+  def test_original_table_name
+    k = Class.new(ActiveRecord::Base)
+    def k.name; "Foo"; end
+    k.table_name = "bar"
+
+    assert_deprecated do
+      assert_equal "foos", k.original_table_name
+    end
+
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "omg"
+    k.table_name = "wtf"
+
+    assert_deprecated do
+      assert_equal "omg", k.original_table_name
+    end
+  end
+
   def test_set_primary_key_with_value
     k = Class.new( ActiveRecord::Base )
     k.primary_key = "foo"
@@ -1510,6 +1528,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "type_id", k.inheritance_column
   end
 
+  def test_original_inheritance_column
+    k = Class.new(ActiveRecord::Base)
+    def k.name; "Foo"; end
+    k.inheritance_column = "omg"
+
+    assert_deprecated do
+      assert_equal "type", k.original_inheritance_column
+    end
+  end
+
   def test_set_sequence_name_with_value
     k = Class.new( ActiveRecord::Base )
     k.sequence_name = "foo"
@@ -1525,14 +1553,34 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new( ActiveRecord::Base )
     k.table_name = "projects"
     orig_name = k.sequence_name
+    return skip "sequences not supported by db" unless orig_name
 
-    if orig_name
-      assert_deprecated do
-        k.set_sequence_name { original_sequence_name + "_lol" }
-      end
-      assert_equal orig_name + "_lol", k.sequence_name
-    else
-      skip "sequences not supported by db"
+    assert_deprecated do
+      k.set_sequence_name { original_sequence_name + "_lol" }
+    end
+    assert_equal orig_name + "_lol", k.sequence_name
+  end
+
+  def test_original_sequence_name
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "projects"
+    orig_name = k.sequence_name
+    return skip "sequences not supported by db" unless orig_name
+
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "projects"
+    k.sequence_name = "omg"
+
+    assert_deprecated do
+      assert_equal orig_name, k.original_sequence_name
+    end
+
+    k = Class.new(ActiveRecord::Base)
+    k.table_name = "projects"
+    k.sequence_name = "omg"
+    k.sequence_name = "wtf"
+    assert_deprecated do
+      assert_equal "omg", k.original_sequence_name
     end
   end
 
