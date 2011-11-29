@@ -23,6 +23,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
+require 'active_support/deprecation'
 require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
@@ -624,14 +625,61 @@ module ActiveRecord #:nodoc:
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
       #
-      # You can also overwrite this class method to allow for unguessable
-      # links, such as a Mouse class with a link to a "mice" table. Example:
+      # You can also set your own table name explicitly:
       #
       #   class Mouse < ActiveRecord::Base
-      #     set_table_name "mice"
+      #     self.table_name = "mice"
       #   end
+      #
+      # Alternatively, you can override the table_name method to define your
+      # own computation. (Possibly using <tt>super</tt> to manipulate the default
+      # table name.) Example:
+      #
+      #   class Post < ActiveRecord::Base
+      #     def self.table_name
+      #       "special_" + super
+      #     end
+      #   end
+      #   Post.table_name # => "special_posts"
       def table_name
-        reset_table_name
+        reset_table_name unless defined?(@table_name)
+        @table_name
+      end
+
+      # Sets the table name explicitly. Example:
+      #
+      #   class Project < ActiveRecord::Base
+      #     self.table_name = "project"
+      #   end
+      #
+      # You can also just define your own <tt>self.table_name</tt> method; see
+      # the documentation for ActiveRecord::Base#table_name.
+      def table_name=(value)
+        @quoted_table_name = nil
+        @arel_table        = nil
+        @table_name        = value
+        @relation          = Relation.new(self, arel_table)
+      end
+
+      def set_table_name(value = nil, &block) #:nodoc:
+        if block
+          ActiveSupport::Deprecation.warn(
+            "Calling set_table_name is deprecated. If you need to lazily evaluate " \
+            "the table name, define your own `self.table_name` class method. You can use `super` " \
+            "to get the default table name where you would have called `original_table_name`."
+          )
+
+          @quoted_table_name = nil
+          define_attr_method :table_name, value, &block
+          @arel_table = nil
+          @relation = Relation.new(self, arel_table)
+        else
+          ActiveSupport::Deprecation.warn(
+            "Calling set_table_name is deprecated. Please use `self.table_name = 'the_name'` instead."
+          )
+
+          self.table_name = value
+        end
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -641,9 +689,13 @@ module ActiveRecord #:nodoc:
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        return if abstract_class?
-
-        self.table_name = compute_table_name
+        if superclass.abstract_class?
+          self.table_name = superclass.table_name || compute_table_name
+        elsif abstract_class?
+          self.table_name = superclass == Base ? nil : superclass.table_name
+        else
+          self.table_name = compute_table_name
+        end
       end
 
       def full_table_name_prefix #:nodoc:
@@ -667,21 +719,6 @@ module ActiveRecord #:nodoc:
         set_sequence_name(default)
         default
       end
-
-      # Sets the table name. If the value is nil or false then the value returned by the given
-      # block is used.
-      #
-      #   class Project < ActiveRecord::Base
-      #     set_table_name "project"
-      #   end
-      def set_table_name(value = nil, &block)
-        @quoted_table_name = nil
-        define_attr_method :table_name, value, &block
-        @arel_table = nil
-
-        @relation = Relation.new(self, arel_table)
-      end
-      alias :table_name= :set_table_name
 
       # Sets the name of the inheritance column to use to the given value,
       # or (if the value # is nil or false) to the value returned by the
