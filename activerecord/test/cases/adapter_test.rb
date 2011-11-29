@@ -6,11 +6,17 @@ class AdapterTest < ActiveRecord::TestCase
   end
 
   def test_tables
+    @connection.create_table :temporary_things, :temporary => true do |t|
+      t.string :name
+    end
+
     tables = @connection.tables
     assert tables.include?("accounts")
     assert tables.include?("authors")
     assert tables.include?("tasks")
     assert tables.include?("topics")
+
+    assert tables.include?("temporary_things")
   end
 
   def test_table_exists?

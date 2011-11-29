@@ -326,8 +326,10 @@ module ActiveRecord
 
       def tables(name = 'SCHEMA') #:nodoc:
         sql = <<-SQL
-          SELECT name
-          FROM sqlite_master
+          SELECT name FROM sqlite_master
+          WHERE type = 'table' AND NOT name = 'sqlite_sequence'
+          UNION
+          SELECT name FROM sqlite_temp_master
           WHERE type = 'table' AND NOT name = 'sqlite_sequence'
         SQL
 
