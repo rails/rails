@@ -594,13 +594,13 @@ module ActiveRecord #:nodoc:
             "to get the default #{property} where you would have called `original_#{property}`."
           )
 
-          define_attr_method property, value, &block
+          define_attr_method property, value, false, &block
         else
           ActiveSupport::Deprecation.warn(
             "Calling set_#{property} is deprecated. Please use `self.#{property} = 'the_name'` instead."
           )
 
-          define_attr_method property, value
+          define_attr_method property, value, false
         end
       end
 

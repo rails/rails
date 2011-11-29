@@ -1410,23 +1410,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal dev, dev.reload
   end
 
-  def test_define_attr_method_with_value
-    k = Class.new( ActiveRecord::Base )
-    k.send(:define_attr_method, :table_name, "foo")
-    assert_equal "foo", k.table_name
-  end
-
-  def test_define_attr_method_with_block
-    k = Class.new( ActiveRecord::Base ) do
-      class << self
-        attr_accessor :foo_key
-      end
-    end
-    k.foo_key = "id"
-    k.send(:define_attr_method, :foo_key) { "sys_" + original_foo_key }
-    assert_equal "sys_id", k.foo_key
-  end
-
   def test_set_table_name_with_value
     k = Class.new( ActiveRecord::Base )
     k.table_name = "foo"
@@ -1464,7 +1447,9 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new( ActiveRecord::Base )
     assert_deprecated do
       k.set_table_name "foo"
-      k.set_table_name { original_table_name + "ks" }
+      k.set_table_name do
+        ActiveSupport::Deprecation.silence { original_table_name } + "ks"
+      end
     end
     assert_equal "fooks", k.table_name
   end
@@ -1510,7 +1495,9 @@ class BasicsTest < ActiveRecord::TestCase
     k.primary_key = 'id'
 
     assert_deprecated do
-      k.set_primary_key { "sys_" + original_primary_key }
+      k.set_primary_key do
+        "sys_" + ActiveSupport::Deprecation.silence { original_primary_key }
+      end
     end
     assert_equal "sys_id", k.primary_key
   end
@@ -1547,7 +1534,9 @@ class BasicsTest < ActiveRecord::TestCase
   def test_set_inheritance_column_with_block
     k = Class.new( ActiveRecord::Base )
     assert_deprecated do
-      k.set_inheritance_column { original_inheritance_column + "_id" }
+      k.set_inheritance_column do
+        ActiveSupport::Deprecation.silence { original_inheritance_column } + "_id"
+      end
     end
     assert_equal "type_id", k.inheritance_column
   end
@@ -1580,7 +1569,9 @@ class BasicsTest < ActiveRecord::TestCase
     return skip "sequences not supported by db" unless orig_name
 
     assert_deprecated do
-      k.set_sequence_name { original_sequence_name + "_lol" }
+      k.set_sequence_name do
+        ActiveSupport::Deprecation.silence { original_sequence_name } + "_lol"
+      end
     end
     assert_equal orig_name + "_lol", k.sequence_name
   end

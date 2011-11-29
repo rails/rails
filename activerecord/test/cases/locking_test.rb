@@ -255,7 +255,9 @@ class SetLockingColumnTest < ActiveRecord::TestCase
     k.locking_column = 'foo'
 
     assert_deprecated do
-      k.set_locking_column { "lock_" + original_locking_column }
+      k.set_locking_column do
+        "lock_" + ActiveSupport::Deprecation.silence { original_locking_column }
+      end
     end
     assert_equal "lock_foo", k.locking_column
   end
