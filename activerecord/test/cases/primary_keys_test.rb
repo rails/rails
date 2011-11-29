@@ -142,8 +142,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
-    k.set_primary_key "bar"
-    assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
   end
 end
 
@@ -155,9 +153,8 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
 
     connection = ActiveRecord::Base.remove_connection
 
-    model = Class.new(ActiveRecord::Base) do
-      set_primary_key 'foo'
-    end
+    model = Class.new(ActiveRecord::Base)
+    model.primary_key = 'foo'
 
     assert_equal 'foo', model.primary_key
 

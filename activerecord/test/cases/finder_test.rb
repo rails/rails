@@ -1163,7 +1163,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_one_message_with_custom_primary_key
-    Toy.set_primary_key :name
+    Toy.primary_key = :name
     begin
       Toy.find 'Hello World!'
     rescue ActiveRecord::RecordNotFound => e
