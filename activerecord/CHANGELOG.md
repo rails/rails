@@ -1,11 +1,17 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Deprecated `set_table_name`. Use `self.table_name=` instead, or define your own
-    `self.table_name` method:
+*   Deprecated:
+
+      * `set_table_name`
+      * `set_inheritance_column`
+
+    Use an assignment method instead. For example, instead of `set_table_name`, use `self.table_name=`:
 
          class Project < ActiveRecord::Base
            self.table_name = "project"
          end
+
+    Or define your own `self.table_name` method:
 
          class Post < ActiveRecord::Base
            def self.table_name

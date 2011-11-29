@@ -1495,13 +1495,18 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new( ActiveRecord::Base )
     k.inheritance_column = "foo"
     assert_equal "foo", k.inheritance_column
-    k.set_inheritance_column "bar"
+
+    assert_deprecated do
+      k.set_inheritance_column "bar"
+    end
     assert_equal "bar", k.inheritance_column
   end
 
   def test_set_inheritance_column_with_block
     k = Class.new( ActiveRecord::Base )
-    k.set_inheritance_column { original_inheritance_column + "_id" }
+    assert_deprecated do
+      k.set_inheritance_column { original_inheritance_column + "_id" }
+    end
     assert_equal "type_id", k.inheritance_column
   end
 
