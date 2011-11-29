@@ -82,7 +82,6 @@ module ActiveRecord
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
 
         @connections         = []
-        @checked_out         = []
         @automatic_reconnect = true
       end
 
@@ -216,20 +215,27 @@ module ActiveRecord
         # Checkout an available connection
         @connection_mutex.synchronize do
           loop do
-            conn = if @checked_out.size < @connections.size
-                     checkout_existing_connection
-                   elsif @connections.size < @size
-                     checkout_new_connection
-                   end
-            return conn if conn
+            conn = @connections.find { |c| c.lease }
+
+            unless conn
+              if @connections.size < @size
+                conn = checkout_new_connection
+                conn.lease
+              end
+            end
+
+            if conn
+              checkout_and_verify conn
+              return conn
+            end
 
             @queue.wait(@timeout)
 
-            if(@checked_out.size < @connections.size)
+            if(checked_out.size < @connections.size)
               next
             else
               clear_stale_cached_connections!
-              if @size == @checked_out.size
+              if @size == checked_out.size
                 raise ConnectionTimeoutError, "could not obtain a database connection#{" within #{@timeout} seconds" if @timeout}. The max pool size is currently #{@size}; consider increasing it."
               end
             end
@@ -246,7 +252,7 @@ module ActiveRecord
       def checkin(conn)
         @connection_mutex.synchronize do
           conn.run_callbacks :checkin do
-            @checked_out.delete conn
+            conn.expire
             @queue.signal
           end
         end
@@ -270,20 +276,18 @@ module ActiveRecord
 
         c = new_connection
         @connections << c
-        checkout_and_verify(c)
-      end
-
-      def checkout_existing_connection
-        c = (@connections - @checked_out).first
-        checkout_and_verify(c)
+        c
       end
 
       def checkout_and_verify(c)
         c.run_callbacks :checkout do
           c.verify!
-          @checked_out << c
         end
         c
+      end
+
+      def checked_out
+        @connections.find_all { |c| c.in_use? }
       end
     end
 
