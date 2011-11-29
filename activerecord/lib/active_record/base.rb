@@ -707,7 +707,7 @@ module ActiveRecord #:nodoc:
         if self == Base
           'type'
         else
-          defined?(@inheritance_column) ? @inheritance_column : superclass.inheritance_column
+          (@inheritance_column ||= nil) || superclass.inheritance_column
         end
       end
 
