@@ -604,6 +604,16 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      def deprecated_original_property_getter(property) #:nodoc:
+        ActiveSupport::Deprecation.warn("original_#{property} is deprecated. Define self.#{property} and call super instead.")
+
+        if !instance_variable_defined?("@original_#{property}") && respond_to?("reset_#{property}")
+          send("reset_#{property}")
+        else
+          instance_variable_get("@original_#{property}")
+        end
+      end
+
       # Guesses the table name (in forced lower-case) based on the name of the class in the
       # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy
       # looks like: Reply < Message < ActiveRecord::Base, then Message is used
@@ -664,6 +674,10 @@ module ActiveRecord #:nodoc:
         @table_name
       end
 
+      def original_table_name #:nodoc:
+        deprecated_original_property_getter :table_name
+      end
+
       # Sets the table name explicitly. Example:
       #
       #   class Project < ActiveRecord::Base
@@ -673,10 +687,11 @@ module ActiveRecord #:nodoc:
       # You can also just define your own <tt>self.table_name</tt> method; see
       # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
-        @table_name        = value
-        @quoted_table_name = nil
-        @arel_table        = nil
-        @relation          = Relation.new(self, arel_table)
+        @original_table_name = @table_name if defined?(@table_name)
+        @table_name          = value
+        @quoted_table_name   = nil
+        @arel_table          = nil
+        @relation            = Relation.new(self, arel_table)
       end
 
       def set_table_name(value = nil, &block) #:nodoc:
@@ -715,9 +730,14 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      def original_inheritance_column #:nodoc:
+        deprecated_original_property_getter :inheritance_column
+      end
+
       # Sets the value of inheritance_column
       def inheritance_column=(value)
-        @inheritance_column = value.to_s
+        @original_inheritance_column = inheritance_column
+        @inheritance_column          = value.to_s
       end
 
       def set_inheritance_column(value = nil, &block) #:nodoc:
@@ -730,6 +750,10 @@ module ActiveRecord #:nodoc:
         else
           (@sequence_name ||= nil) || superclass.sequence_name
         end
+      end
+
+      def original_sequence_name #:nodoc:
+        deprecated_original_property_getter :sequence_name
       end
 
       def reset_sequence_name #:nodoc:
@@ -751,7 +775,8 @@ module ActiveRecord #:nodoc:
       #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
       def sequence_name=(value)
-        @sequence_name = value.to_s
+        @original_sequence_name = @sequence_name if defined?(@sequence_name)
+        @sequence_name          = value.to_s
       end
 
       def set_sequence_name(value = nil, &block) #:nodoc:
