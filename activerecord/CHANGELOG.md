@@ -1,5 +1,21 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Automatic closure of connections in threads is deprecated.  For example
+    the following code is deprecated:
+
+    Thread.new { Post.find(1) }.join
+
+    It should be changed to close the database connection at the end of
+    the thread:
+
+    Thread.new {
+      Post.find(1)
+      Post.connection.close
+    }.join
+    
+    Only people who spawn threads in their application code need to worry
+    about this change.
+
 *   Deprecated:
 
       * `set_table_name`

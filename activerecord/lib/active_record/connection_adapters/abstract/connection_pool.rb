@@ -190,7 +190,13 @@ module ActiveRecord
           t.alive?
         }.map { |thread| thread.object_id }
         keys.each do |key|
-          checkin @reserved_connections[key]
+          conn = @reserved_connections[key]
+          ActiveSupport::Deprecation.warn(<<-eowarn) if conn.in_use?
+Database connections will not be closed automatically, please close your
+database connection at the end of the thread by calling `close` on your
+connection.  For example: ActiveRecord::Base.connection.close
+          eowarn
+          checkin conn
           @reserved_connections.delete(key)
         end
       end
