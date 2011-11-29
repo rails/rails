@@ -459,10 +459,11 @@ module ActiveRecord #:nodoc:
       end
 
       def generated_feature_methods
-        unless const_defined?(:GeneratedFeatureMethods, false)
-          include const_set(:GeneratedFeatureMethods, Module.new)
+        @generated_feature_methods ||= begin
+          mod = const_set(:GeneratedFeatureMethods, Module.new)
+          include mod
+          mod
         end
-        const_get(:GeneratedFeatureMethods)
       end
 
       # Executes a custom SQL query against your database and returns all the results. The results will
