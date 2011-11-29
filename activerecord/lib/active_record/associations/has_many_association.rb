@@ -109,14 +109,11 @@ module ActiveRecord
         def construct_scope
           create_scoping = {}
           set_belongs_to_association_for(create_scoping)
-          {
-            :find => { :conditions => @finder_sql,
-                       :readonly => false,
-                       :order => @reflection.options[:order],
-                       :limit => @reflection.options[:limit],
-                       :include => @reflection.options[:include]},
-            :create => create_scoping
-          }
+          { :find => { :conditions => @finder_sql,
+                       :readonly   => false
+                      }.update(
+                        @reflection.options.slice(:select, :readonly, :include, :order, :limit, :joins, :group, :having, :offset) ),
+            :create => create_scoping }
         end
 
         def we_can_set_the_inverse_on_this?(record)
