@@ -449,7 +449,7 @@ module ActiveRecord #:nodoc:
       delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
                :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
                :having, :create_with, :uniq, :to => :scoped
-      delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
+      delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
 
       def inherited(child_class) #:nodoc:
         # force attribute methods to be higher in inheritance hierarchy than other generated methods
