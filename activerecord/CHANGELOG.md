@@ -1,5 +1,14 @@
 ## Rails 3.2.0 (unreleased) ##
 
+
+*   Implemented ActiveRecord::Relation#pluck method
+
+    Method returns Array of column value from table under ActiveRecord model
+        
+        Client.pluck(:id)
+
+    *Bogdan Gusiev*
+
 *   Automatic closure of connections in threads is deprecated.  For example
     the following code is deprecated:
 

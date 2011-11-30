@@ -39,7 +39,7 @@ module ActiveRecord
       instance_methods.each { |m| undef_method m unless m.to_s =~ /^(?:nil\?|send|object_id|to_a)$|^__|^respond_to|proxy_/ }
 
       delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from,
-               :lock, :readonly, :having, :to => :scoped
+               :lock, :readonly, :having, :pluck, :to => :scoped
 
       delegate :target, :load_target, :loaded?, :scoped,
                :to => :@association
