@@ -11,12 +11,6 @@ end
 
 ROUTING = ActionDispatch::Routing
 
-module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
-  end
-end
-
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   include RoutingTestHelpers
