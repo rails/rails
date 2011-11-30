@@ -160,7 +160,7 @@ module ActionView
       #   here a named route directly as well. Defaults to the current action.
       # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
-      #   with underscore on the generate HTML id.
+      #   with underscore on the generated HTML id.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
