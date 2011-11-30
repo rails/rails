@@ -93,7 +93,7 @@ module ActiveModel
          :only => [:before, :around, :after]
       }.merge(options)
 
-      types   = Array.wrap(options.delete(:only))
+      types = Array.wrap(options.delete(:only))
 
       callbacks.each do |callback|
         define_callbacks(callback, options)
