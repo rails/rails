@@ -94,15 +94,15 @@ module ActiveRecord
         value = @attributes[attr_name]
         unless value.nil?
           if column = column_for_attribute(attr_name)
-            type_cast_attribute(column, value)
+            type_cast_attribute(column)
           else
             value
           end
         end
       end
 
-      def type_cast_attribute(column, value) #:nodoc:
-        column.type_cast(value)
+      def type_cast_attribute(column) #:nodoc:
+        column.type_cast(@attributes[column.name])
       end
 
       private

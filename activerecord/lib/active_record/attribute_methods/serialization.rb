@@ -64,7 +64,7 @@ module ActiveRecord
         end
       end
 
-      def type_cast_attribute(column, value)
+      def type_cast_attribute(column)
         coder = self.class.serialized_attributes[column.name]
 
         if column.text? && coder
