@@ -1046,8 +1046,8 @@ module ActionDispatch
         # Takes same options as <tt>Base#match</tt> as well as:
         #
         # [:path_names]
-        #   Allows you to change the paths of the seven default actions.
-        #   Paths not specified are not changed.
+        #   Allows you to change the segment component of the +edit+ and +new+ actions.
+        #   Actions not specified are not changed.
         #
         #     resources :posts, :path_names => { :new => "brand_new" }
         #
