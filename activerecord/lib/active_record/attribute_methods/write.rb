@@ -28,10 +28,8 @@ module ActiveRecord
         @attributes_cache.delete(attr_name)
         column = column_for_attribute(attr_name)
 
-        if column && column.number?
-          @attributes[attr_name] = convert_number_column_value(value)
-        elsif column || @attributes.has_key?(attr_name)
-          @attributes[attr_name] = value
+        if column || @attributes.has_key?(attr_name)
+          @attributes[attr_name] = type_cast_attribute_for_write(column, attr_name, value)
         else
           raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
         end
@@ -42,6 +40,14 @@ module ActiveRecord
         # Handle *= for method_missing.
         def attribute=(attribute_name, value)
           write_attribute(attribute_name, value)
+        end
+
+        def type_cast_attribute_for_write(column, attr_name, value)
+          if column && column.number?
+            convert_number_column_value(value)
+          else
+            value
+          end
         end
     end
   end

@@ -10,6 +10,26 @@ module ActiveRecord
         self.serialized_attributes = {}
       end
 
+      class Attribute < Struct.new(:coder, :value, :state)
+        def unserialized_value
+          state == :serialized ? unserialize : value
+        end
+
+        def serialized_value
+          state == :unserialized ? serialize : value
+        end
+
+        def unserialize
+          self.state = :unserialized
+          self.value = coder.load(value)
+        end
+
+        def serialize
+          self.state = :serialized
+          self.value = coder.dump(value)
+        end
+      end
+
       module ClassMethods
         # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
         # then specify the name of that attribute using this method and it will be handled automatically.
@@ -42,7 +62,7 @@ module ActiveRecord
           if serialized_attributes.include?(attr_name)
             generated_attribute_methods.module_eval(<<-CODE, __FILE__, __LINE__)
               def _#{attr_name}
-                @attributes_cache['#{attr_name}'] ||= @attributes['#{attr_name}']
+                @attributes['#{attr_name}'].unserialized_value
               end
               alias #{attr_name} _#{attr_name}
             CODE
@@ -50,31 +70,27 @@ module ActiveRecord
             super
           end
         end
-
-        def cacheable_column?(column)
-          serialized_attributes.include?(column.name) || super
-        end
       end
 
       def set_serialized_attributes
-        sattrs = self.class.serialized_attributes
-
-        sattrs.each do |key, coder|
-          @attributes[key] = coder.load @attributes[key] if @attributes.key?(key)
+        self.class.serialized_attributes.each do |key, coder|
+          if @attributes.key?(key)
+            @attributes[key] = Attribute.new(coder, @attributes[key], :serialized)
+          end
         end
       end
 
       def type_cast_attribute(column)
-        coder = self.class.serialized_attributes[column.name]
+        if column.text? && self.class.serialized_attributes.include?(column.name)
+          @attributes[column.name].unserialized_value
+        else
+          super
+        end
+      end
 
-        if column.text? && coder
-          unserialized_object = coder.load(@attributes[column.name])
-
-          if @attributes.frozen?
-            unserialized_object
-          else
-            @attributes[column.name] = unserialized_object
-          end
+      def type_cast_attribute_for_write(column, attr_name, value)
+        if column && coder = self.class.serialized_attributes[column.name]
+          Attribute.new(coder, value, :unserialized)
         else
           super
         end

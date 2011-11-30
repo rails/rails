@@ -686,15 +686,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   private
   def cached_columns
-    @cached_columns ||= (time_related_columns_on_topic + serialized_columns_on_topic).map(&:name)
+    @cached_columns ||= time_related_columns_on_topic.map(&:name)
   end
 
   def time_related_columns_on_topic
     Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
-  end
-
-  def serialized_columns_on_topic
-    Topic.columns.select { |c| Topic.serialized_attributes.include?(c.name) }
   end
 
   def in_time_zone(zone)
