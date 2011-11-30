@@ -29,6 +29,10 @@ module ActionController
       info(message)
     end
 
+    def halted_callback(event)
+      info "Filter chain halted as #{event.payload[:filter]} rendered or redirected"
+    end
+
     def send_file(event)
       message = "Sent file %s"
       message << " (%.1fms)"

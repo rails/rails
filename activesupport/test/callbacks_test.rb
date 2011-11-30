@@ -461,7 +461,7 @@ module CallbacksTest
     set_callback :save, :after, :third
 
 
-    attr_reader :history, :saved
+    attr_reader :history, :saved, :halted
     def initialize
       @history = []
     end
@@ -489,6 +489,10 @@ module CallbacksTest
       run_callbacks :save do
         @saved = true
       end
+    end
+
+    def halted_callback_hook(filter)
+      @halted = filter
     end
   end
 
@@ -593,6 +597,12 @@ module CallbacksTest
       terminator = CallbackTerminator.new
       terminator.save
       assert_equal ["first", "second", "third", "second", "first"], terminator.history
+    end
+
+    def test_termination_invokes_hook
+      terminator = CallbackTerminator.new
+      terminator.save
+      assert_equal ":second", terminator.halted
     end
 
     def test_block_never_called_if_terminated
