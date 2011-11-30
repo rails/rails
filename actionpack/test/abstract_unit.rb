@@ -82,6 +82,8 @@ module RenderERBUtils
   end
 
   def render_erb(string)
+    @virtual_path = nil
+
     template = ActionView::Template.new(
       string.strip,
       "test template",
