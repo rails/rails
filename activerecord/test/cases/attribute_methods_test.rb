@@ -35,6 +35,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert !t.attribute_present?("content")
   end
 
+  def test_caching_nil_primary_key
+    Minimalistic.expects(:reset_primary_key).returns(nil).once
+    Minimalistic.create!
+  end
+
   def test_attribute_keys_on_new_instance
     t = Topic.new
     assert_equal nil, t.title, "The topics table has a title column, so it should be nil"

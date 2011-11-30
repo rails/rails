@@ -1,3 +1,9 @@
+## Rails 3.1.4 (unreleased) ##
+
+*   Perf fix: If a table has no primary key, don't repeatedly ask the database for it.
+
+    *Julius de Bruijn*
+
 ## Rails 3.1.3 (unreleased) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
