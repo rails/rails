@@ -1148,11 +1148,26 @@ Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 
 h3. +pluck+
 
-<tt>pluck</tt> can be used to query single column from table under model. It accepts column name as argument and returns Array of values of the specified column with corresponding data type.
+<tt>pluck</tt> can be used to query a single column from the underlying table of a model. It accepts a column name as argument and returns an array of values of the specified column with the corresponding data type.
 
 <ruby>
-Client.where(:active => true).pluck(:id) # SELECT id FROM clients WHERE clients.active
-Client.uniq.pluck(:role) # SELECT DISTINCT role FROM clients
+Client.where(:active => true).pluck(:id)
+# SELECT id FROM clients WHERE active = 1
+
+Client.uniq.pluck(:role)
+# SELECT DISTINCT role FROM clients
+</ruby>
+
++pluck+ makes it possible to replace code like
+
+<ruby>
+Client.select(:id).map { |c| c.id }
+</ruby>
+
+with
+
+<ruby>
+Client.pluck(:id)
 </ruby>
 
 h3. Existence of Objects
