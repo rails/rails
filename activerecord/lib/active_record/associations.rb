@@ -213,7 +213,7 @@ module ActiveRecord
     #
     # If your model class is <tt>Project</tt>, the module is
     # named <tt>Project::GeneratedFeatureMethods</tt>. The GeneratedFeatureMethods module is
-    # is included in the model class immediately after the (anonymous) generated attributes methods
+    # included in the model class immediately after the (anonymous) generated attributes methods
     # module, meaning an association will override the methods for an attribute with the same name.
     #
     # === A word of warning
