@@ -457,6 +457,13 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal '1234', roundtrip.default
   end
 
+  def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
+    hash = HashWithIndifferentAccess.new {|h, k| h[k] = []}
+    hash[:a] << 1
+
+    assert_equal [1], hash[:a]
+  end
+
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
