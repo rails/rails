@@ -3,7 +3,7 @@ require 'active_support/core_ext/hash/conversions'
 
 module ActiveRecord #:nodoc:
   module Serialization
-    include ActiveModel::Serializable::XML
+    include ActiveModel::Serializers::Xml
 
     # Builds an XML document to represent the model. Some configuration is
     # available through +options+. However more complicated cases should
@@ -176,13 +176,13 @@ module ActiveRecord #:nodoc:
     end
   end
 
-  class XmlSerializer < ActiveModel::Serializable::XML::Serializer #:nodoc:
+  class XmlSerializer < ActiveModel::Serializers::Xml::Serializer #:nodoc:
     def initialize(*args)
       super
       options[:except] = Array.wrap(options[:except]) | Array.wrap(@serializable.class.inheritance_column)
     end
 
-    class Attribute < ActiveModel::Serializable::XML::Serializer::Attribute #:nodoc:
+    class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
       def compute_type
         klass = @serializable.class
         type = if klass.serialized_attributes.key?(name)
