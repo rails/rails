@@ -5,7 +5,7 @@ module ActiveRecord
 
       # Returns this record's primary key value wrapped in an Array if one is available
       def to_key
-        key = send(self.class.primary_key)
+        key = self.id
         [key] if key
       end
 
