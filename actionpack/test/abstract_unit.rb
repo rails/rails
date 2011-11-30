@@ -351,3 +351,8 @@ module ActionDispatch
   end
 end
 
+module RoutingTestHelpers
+  def url_for(set, options, recall = nil)
+    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
+  end
+end
