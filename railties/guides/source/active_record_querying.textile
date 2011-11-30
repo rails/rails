@@ -1146,6 +1146,15 @@ h3. +select_all+
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 </ruby>
 
+h3. +pluck+
+
+<tt>pluck</tt> can be used to query single column from table under model. It accepts column name as argument and returns Array of values of the specified column with corresponding data type.
+
+<ruby>
+Client.where(:active => true).pluck(:id) # SELECT id FROM clients WHERE clients.active
+Client.uniq.pluck(:role) # SELECT DISTINCT role FROM clients
+</ruby>
+
 h3. Existence of Objects
 
 If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as +find+, but instead of returning an object or collection of objects it will return either +true+ or +false+.
