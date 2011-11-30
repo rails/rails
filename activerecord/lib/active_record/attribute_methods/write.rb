@@ -29,7 +29,7 @@ module ActiveRecord
         column = column_for_attribute(attr_name)
 
         if column || @attributes.has_key?(attr_name)
-          @attributes[attr_name] = type_cast_attribute_for_write(column, attr_name, value)
+          @attributes[attr_name] = type_cast_attribute_for_write(column, value)
         else
           raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
         end
@@ -42,7 +42,7 @@ module ActiveRecord
           write_attribute(attribute_name, value)
         end
 
-        def type_cast_attribute_for_write(column, attr_name, value)
+        def type_cast_attribute_for_write(column, value)
           if column && column.number?
             convert_number_column_value(value)
           else
