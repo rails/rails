@@ -675,7 +675,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(:id => 5)
     topic.id = 5
 
-    topic.method(:id).owner.send(:remove_method, :id)
+    topic.method(:id).owner.send(:undef_method, :id)
 
     assert_deprecated do
       assert_equal 5, topic.id

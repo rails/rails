@@ -39,10 +39,6 @@ module ActiveRecord
             else
               define_read_method(attr_name, attr_name, columns_hash[attr_name])
             end
-
-            if attr_name == primary_key && attr_name != "id"
-              define_read_method('id', attr_name, columns_hash[attr_name])
-            end
           end
 
         private
