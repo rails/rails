@@ -8,9 +8,6 @@ module ActiveRecord
       included do
         cattr_accessor :attribute_types_cached_by_default, :instance_writer => false
         self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-
-        # Undefine id so it can be used as an attribute name
-        undef_method(:id) if method_defined?(:id)
       end
 
       module ClassMethods
