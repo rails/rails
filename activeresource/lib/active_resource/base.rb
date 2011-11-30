@@ -1477,7 +1477,7 @@ module ActiveResource
     extend ActiveModel::Naming
     include CustomMethods, Observing, Validations
     include ActiveModel::Conversion
-    include ActiveModel::Serializers::JSON
-    include ActiveModel::Serializers::Xml
+    include ActiveModel::Serializable::JSON
+    include ActiveModel::Serializable::XML
   end
 end
