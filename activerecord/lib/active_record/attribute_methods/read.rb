@@ -91,21 +91,21 @@ module ActiveRecord
       def _read_attribute(attr_name)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id'
-        value = @attributes[attr_name]
-        unless value.nil?
-          if column = column_for_attribute(attr_name)
-            type_cast_attribute(column)
+
+        unless @attributes[attr_name].nil?
+          type_cast_attribute(column_for_attribute(attr_name), @attributes[attr_name])
+        end
+      end
+
+      private
+        def type_cast_attribute(column, value)
+          if column
+            column.type_cast(value)
           else
             value
           end
         end
-      end
 
-      def type_cast_attribute(column) #:nodoc:
-        column.type_cast(@attributes[column.name])
-      end
-
-      private
         def attribute(attribute_name)
           read_attribute(attribute_name)
         end
