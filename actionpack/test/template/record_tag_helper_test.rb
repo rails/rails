@@ -22,6 +22,8 @@ class Post
 end
 
 class RecordTagHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::RecordTagHelper
 
   def setup
@@ -58,13 +60,13 @@ class RecordTagHelperTest < ActionView::TestCase
 
   def test_block_works_with_content_tag_for_in_erb
     expected = %(<tr class="post" id="post_45">#{@post.body}</tr>)
-    actual = content_tag_for(:tr, @post) { concat @post.body }
+    actual = render_erb("<%= content_tag_for(:tr, @post) do %><%= @post.body %><% end %>")
     assert_dom_equal expected, actual
   end
 
   def test_div_for_in_erb
     expected = %(<div class="post bar" id="post_45">#{@post.body}</div>)
-    actual = div_for(@post, :class => "bar") { concat @post.body }
+    actual = render_erb("<%= div_for(@post, :class => 'bar') do %><%= @post.body %><% end %>")
     assert_dom_equal expected, actual
   end
 

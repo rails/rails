@@ -3,6 +3,8 @@ require 'controller/fake_models'
 require 'active_support/core_ext/object/inclusion'
 
 class FormHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::FormHelper
 
   def form_for(*)
@@ -231,9 +233,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_block_in_erb
-    path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
-    view_paths = ActionView::PathSet.new([path])
-    view = ActionView::Base.new(view_paths)
     assert_equal "<label for=\"post_message\">\n  Message\n  <input id=\"post_message\" name=\"post[message]\" size=\"30\" type=\"text\" />\n</label>", view.render("test/label_with_block")
   end
 
