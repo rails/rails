@@ -95,7 +95,7 @@ module ActiveSupport #:nodoc:
           next unless mod.is_a?(Module)
 
           # Get a list of the constants that were added
-          new_constants = mod.local_constants - original_constants
+          new_constants = mod.local_constant_names - original_constants
 
           # self[namespace] returns an Array of the constants that are being evaluated
           # for that namespace. For instance, if parent.rb requires child.rb, the first
@@ -123,7 +123,7 @@ module ActiveSupport #:nodoc:
         namespaces.map do |namespace|
           module_name = Dependencies.to_constant_name(namespace)
           original_constants = Dependencies.qualified_const_defined?(module_name) ?
-            Inflector.constantize(module_name).local_constants : []
+            Inflector.constantize(module_name).local_constant_names : []
 
           watching << module_name
           self[module_name] << original_constants
