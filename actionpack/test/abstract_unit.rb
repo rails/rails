@@ -73,6 +73,14 @@ module RackTestUtils
 end
 
 module RenderERBUtils
+  def view
+    @view ||= begin
+      path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
+      view_paths = ActionView::PathSet.new([path])
+      ActionView::Base.new(view_paths)
+    end
+  end
+
   def render_erb(string)
     template = ActionView::Template.new(
       string.strip,
