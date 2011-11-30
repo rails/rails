@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       def type_cast_attribute(column)
-        if column.text? && self.class.serialized_attributes.include?(column.name)
+        if self.class.serialized_attributes.include?(column.name)
           @attributes[column.name].unserialized_value
         else
           super
