@@ -51,6 +51,7 @@ module ActionDispatch
     autoload :BestStandardsSupport
     autoload :Callbacks
     autoload :Cookies
+    autoload :ExceptionWrapper
     autoload :Flash
     autoload :Head
     autoload :ParamsParser

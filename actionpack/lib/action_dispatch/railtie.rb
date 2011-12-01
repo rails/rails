@@ -22,8 +22,8 @@ module ActionDispatch
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
       ActionDispatch::Request.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
 
-      ActionDispatch::ShowExceptions.rescue_responses.merge!(config.action_dispatch.rescue_responses)
-      ActionDispatch::ShowExceptions.rescue_templates.merge!(config.action_dispatch.rescue_templates)
+      ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
+      ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)
 
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
