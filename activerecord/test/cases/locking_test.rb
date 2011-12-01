@@ -332,6 +332,8 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     assert_equal true, p1.frozen?
     assert_raises(ActiveRecord::RecordNotFound) { Person.find(p1.id) }
     assert_raises(ActiveRecord::RecordNotFound) { LegacyThing.find(t.id) }
+  ensure
+    remove_counter_column_from(Person, 'legacy_things_count')
   end
 
   private
@@ -343,8 +345,8 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
     end
 
-    def remove_counter_column_from(model)
-      model.connection.remove_column model.table_name, :test_count
+    def remove_counter_column_from(model, col = :test_count)
+      model.connection.remove_column model.table_name, col
       model.reset_column_information
     end
 
