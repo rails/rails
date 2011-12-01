@@ -13,7 +13,6 @@ module ActiveRecord
       def id
         read_attribute(self.class.primary_key)
       end
-      alias _id id
 
       # Sets the primary key value
       def id=(value)
@@ -27,7 +26,7 @@ module ActiveRecord
 
       module ClassMethods
         def dangerous_attribute_method?(method_name)
-          super && !['id', 'id=', 'id?', '_id'].include?(method_name)
+          super && !['id', 'id=', 'id?'].include?(method_name)
         end
 
         # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the

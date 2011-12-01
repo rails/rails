@@ -2200,6 +2200,7 @@ MSG
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
     include AttributeMethods::Serialization
+    include AttributeMethods::DeprecatedUnderscoreRead
     include ActiveModel::MassAssignmentSecurity
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, NamedScope

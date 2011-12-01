@@ -61,8 +61,6 @@ module ActiveRecord
                 def self.cast_#{attr_name}(v)
                   #{cast_code}
                 end
-
-                alias _#{attr_name} #{attr_name}
               STR
             else
               generated_attribute_methods.module_eval do
@@ -73,8 +71,6 @@ module ActiveRecord
                 singleton_class.send(:define_method, "cast_#{attr_name}") do |v|
                   eval(cast_code)
                 end
-
-                alias_method("_#{attr_name}", attr_name)
               end
             end
           end
