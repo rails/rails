@@ -29,12 +29,12 @@ module ActiveRecord
         end
       end
 
-      def undefine_attribute_methods(*args)
+      def undefine_attribute_methods
         if base_class == self
           super
           @attribute_methods_generated = false
         else
-          base_class.undefine_attribute_methods(*args)
+          base_class.undefine_attribute_methods
         end
       end
 
