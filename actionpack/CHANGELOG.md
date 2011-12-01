@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Allow fresh_when/stale? to take a record instead of an options hash *DHH*
+
 *   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
 *   Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts *José Valim*
