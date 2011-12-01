@@ -12,20 +12,20 @@ Gem::Specification.new do |s|
   s.email             = 'david@loudthinking.com'
   s.homepage          = 'http://www.rubyonrails.org'
 
-  s.files        = Dir['CHANGELOG', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*']
+  s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*']
   s.require_path = 'lib'
   s.requirements << 'none'
 
-  s.add_dependency('activesupport',    version)
-  s.add_dependency('activemodel',      version)
-  s.add_dependency('rack-cache',       '~> 1.0.2')
-  s.add_dependency('builder',          '~> 3.0.0')
-  s.add_dependency('i18n',             '~> 0.6')
-  s.add_dependency('rack',             '~> 1.3.2')
-  s.add_dependency('rack-test',        '~> 0.6.0')
-  s.add_dependency('rack-mount',       '~> 0.8.1')
-  s.add_dependency('sprockets',        '~> 2.0.0.beta.12')
-  s.add_dependency('erubis',           '~> 2.7.0')
+  s.add_dependency('activesupport', version)
+  s.add_dependency('activemodel',   version)
+  s.add_dependency('rack-cache',    '~> 1.1')
+  s.add_dependency('builder',       '~> 3.0.0')
+  s.add_dependency('i18n',          '~> 0.6')
+  s.add_dependency('rack',          '~> 1.3.5')
+  s.add_dependency('rack-test',     '~> 0.6.1')
+  s.add_dependency('journey',       '~> 1.0.0')
+  s.add_dependency('sprockets',     '~> 2.1.2')
+  s.add_dependency('erubis',        '~> 2.7.0')
 
-  s.add_development_dependency('tzinfo',           '~> 0.3.29')
+  s.add_development_dependency('tzinfo', '~> 0.3.29')
 end

@@ -33,7 +33,7 @@ module ActiveRecord
         stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
           arel_table[counter_name] => object.send(association).count
         })
-        connection.update stmt.to_sql
+        connection.update stmt
       end
       return true
     end

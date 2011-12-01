@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/core_ext/kernel/reporting'
 
 class AssertDifferenceTest < ActiveSupport::TestCase
   def setup

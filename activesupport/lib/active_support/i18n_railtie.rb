@@ -1,5 +1,4 @@
 require "active_support"
-require "rails"
 require "active_support/file_update_checker"
 require "active_support/core_ext/array/wrap"
 
@@ -37,6 +36,8 @@ module I18n
     end
 
   protected
+
+    @i18n_inited = false
 
     # Setup i18n configuration
     def self.initialize_i18n(app)

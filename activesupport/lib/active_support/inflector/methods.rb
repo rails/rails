@@ -21,14 +21,7 @@ module ActiveSupport
     #   "words".pluralize            # => "words"
     #   "CamelOctopus".pluralize     # => "CamelOctopi"
     def pluralize(word)
-      result = word.to_s.dup
-
-      if word.empty? || inflections.uncountables.include?(result.downcase)
-        result
-      else
-        inflections.plurals.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
+      apply_inflections(word, inflections.plurals)
     end
 
     # The reverse of +pluralize+, returns the singular form of a word in a string.
@@ -40,14 +33,7 @@ module ActiveSupport
     #   "word".singularize             # => "word"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
     def singularize(word)
-      result = word.to_s.dup
-
-      if inflections.uncountables.any? { |inflection| result =~ /\b(#{inflection})\Z/i }
-        result
-      else
-        inflections.singulars.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
-        result
-      end
+      apply_inflections(word, inflections.singulars)
     end
 
     # By default, +camelize+ converts strings to UpperCamelCase. If the argument to +camelize+
@@ -160,13 +146,32 @@ module ActiveSupport
       underscored_word.gsub(/_/, '-')
     end
 
-    # Removes the module part from the expression in the string.
+    # Removes the module part from the expression in the string:
     #
-    # Examples:
     #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize # => "Inflections"
     #   "Inflections".demodulize                                       # => "Inflections"
-    def demodulize(class_name_in_module)
-      class_name_in_module.to_s.gsub(/^.*::/, '')
+    #
+    # See also +deconstantize+.
+    def demodulize(path)
+      path = path.to_s
+      if i = path.rindex('::')
+        path[(i+2)..-1]
+      else
+        path
+      end
+    end
+
+    # Removes the rightmost segment from the constant expression in the string:
+    #
+    #   "Net::HTTP".deconstantize   # => "Net"
+    #   "::Net::HTTP".deconstantize # => "::Net"
+    #   "String".deconstantize      # => ""
+    #   "::String".deconstantize    # => ""
+    #   "".deconstantize            # => ""
+    #
+    # See also +demodulize+.
+    def deconstantize(path)
+      path.to_s[0...(path.rindex('::') || 0)] # implementation based on the one in facets' Module#spacename
     end
 
     # Creates a foreign key name from a class name.
@@ -224,6 +229,39 @@ module ActiveSupport
       end
     end
 
+    # Tries to find a constant with the name specified in the argument string:
+    #
+    #   "Module".safe_constantize     # => Module
+    #   "Test::Unit".safe_constantize # => Test::Unit
+    #
+    # The name is assumed to be the one of a top-level constant, no matter whether
+    # it starts with "::" or not. No lexical context is taken into account:
+    #
+    #   C = 'outside'
+    #   module M
+    #     C = 'inside'
+    #     C                    # => 'inside'
+    #     "C".safe_constantize # => 'outside', same as ::C
+    #   end
+    #
+    # nil is returned when the name is not in CamelCase or the constant (or part of it) is
+    # unknown.
+    #
+    #   "blargle".safe_constantize  # => nil
+    #   "UnknownModule".safe_constantize  # => nil
+    #   "UnknownModule::Foo::Bar".safe_constantize  # => nil
+    #
+    def safe_constantize(camel_cased_word)
+      begin
+        constantize(camel_cased_word)
+      rescue NameError => e
+        raise unless e.message =~ /uninitialized constant #{const_regexp(camel_cased_word)}$/ ||
+          e.name.to_s == camel_cased_word.to_s
+      rescue ArgumentError => e
+        raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
+      end
+    end
+
     # Turns a number into an ordinal string used to denote the position in an
     # ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
@@ -244,6 +282,35 @@ module ActiveSupport
           when 3; "#{number}rd"
           else    "#{number}th"
         end
+      end
+    end
+
+    private
+
+    # Mount a regular expression that will match part by part of the constant.
+    # For instance, Foo::Bar::Baz will generate Foo(::Bar(::Baz)?)?
+    def const_regexp(camel_cased_word) #:nodoc:
+      parts = camel_cased_word.split("::")
+      last  = parts.pop
+
+      parts.reverse.inject(last) do |acc, part|
+        part.empty? ? acc : "#{part}(::#{acc})?"
+      end
+    end
+
+    # Applies inflection rules for +singularize+ and +pluralize+.
+    #
+    # Examples:
+    #  apply_inflections("post", inflections.plurals) # => "posts"
+    #  apply_inflections("posts", inflections.singulars) # => "post"
+    def apply_inflections(word, rules)
+      result = word.to_s.dup
+
+      if word.empty? || inflections.uncountables.any? { |inflection| result =~ /\b#{inflection}\Z/i }
+        result
+      else
+        rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+        result
       end
     end
   end

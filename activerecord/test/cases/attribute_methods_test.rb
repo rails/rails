@@ -35,6 +35,30 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert !t.attribute_present?("content")
   end
 
+  def test_attribute_present_with_booleans
+    b1 = Boolean.new
+    b1.value = false
+    assert b1.attribute_present?(:value)
+
+    b2 = Boolean.new
+    b2.value = true
+    assert b2.attribute_present?(:value)
+
+    b3 = Boolean.new
+    assert !b3.attribute_present?(:value)
+
+    b4 = Boolean.new
+    b4.value = false
+    b4.save!
+    assert Boolean.find(b4.id).attribute_present?(:value)
+  end
+
+  def test_caching_nil_primary_key
+    klass = Class.new(Minimalistic)
+    klass.expects(:reset_primary_key).returns(nil).once
+    2.times { klass.primary_key }
+  end
+
   def test_attribute_keys_on_new_instance
     t = Topic.new
     assert_equal nil, t.title, "The topics table has a title column, so it should be nil"
@@ -113,6 +137,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   # by inspecting it.
   def test_allocated_object_can_be_inspected
     topic = Topic.allocate
+    topic.instance_eval { @attributes = nil }
     assert_nothing_raised { topic.inspect }
     assert topic.inspect, "#<Topic not initialized>"
   end
@@ -430,30 +455,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert topic.is_test?
   end
 
-  def test_kernel_methods_not_implemented_in_activerecord
-    %w(test name display y).each do |method|
-      assert !ActiveRecord::Base.instance_method_already_implemented?(method), "##{method} is defined"
-    end
-  end
-
-  def test_defined_kernel_methods_implemented_in_model
-    %w(test name display y).each do |method|
-      klass = Class.new ActiveRecord::Base
-      klass.class_eval "def #{method}() 'defined #{method}' end"
-      assert klass.instance_method_already_implemented?(method), "##{method} is not defined"
-    end
-  end
-
-  def test_defined_kernel_methods_implemented_in_model_abstract_subclass
-    %w(test name display y).each do |method|
-      abstract = Class.new ActiveRecord::Base
-      abstract.class_eval "def #{method}() 'defined #{method}' end"
-      abstract.abstract_class = true
-      klass = Class.new abstract
-      assert klass.instance_method_already_implemented?(method), "##{method} is not defined"
-    end
-  end
-
   def test_raises_dangerous_attribute_error_when_defining_activerecord_method_in_model
     %w(save create_or_update).each do |method|
       klass = Class.new ActiveRecord::Base
@@ -607,7 +608,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "The pros and cons of programming naked.")
     assert !topic.respond_to?(:title)
     exception = assert_raise(NoMethodError) { topic.title }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert_equal "I'm private", topic.send(:title)
   end
 
@@ -617,7 +618,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new
     assert !topic.respond_to?(:title=)
     exception = assert_raise(NoMethodError) { topic.title = "Pants"}
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     topic.send(:title=, "Very large pants")
   end
 
@@ -627,7 +628,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => "Isaac Newton's pants")
     assert !topic.respond_to?(:title?)
     exception = assert_raise(NoMethodError) { topic.title? }
-    assert_match %r(^Attempt to call private method), exception.message
+    assert exception.message.include?("private method")
     assert topic.send(:title?)
   end
 
@@ -658,17 +659,44 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal %w(preferences), Contact.serialized_attributes.keys
   end
 
+  def test_instance_method_should_be_defined_on_the_base_class
+    subklass = Class.new(Topic)
+
+    Topic.define_attribute_methods
+
+    instance = subklass.new
+    instance.id = 5
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+
+    Topic.undefine_attribute_methods
+
+    assert_equal 5, instance.id
+    assert subklass.method_defined?(:id), "subklass is missing id method"
+  end
+
+  def test_dispatching_column_attributes_through_method_missing_deprecated
+    Topic.define_attribute_methods
+
+    topic = Topic.new(:id => 5)
+    topic.id = 5
+
+    topic.method(:id).owner.send(:undef_method, :id)
+
+    assert_deprecated do
+      assert_equal 5, topic.id
+    end
+  ensure
+    Topic.undefine_attribute_methods
+  end
+
   private
   def cached_columns
-    @cached_columns ||= (time_related_columns_on_topic + serialized_columns_on_topic).map(&:name)
+    @cached_columns ||= time_related_columns_on_topic.map(&:name)
   end
 
   def time_related_columns_on_topic
     Topic.columns.select { |c| c.type.in?([:time, :date, :datetime, :timestamp]) }
-  end
-
-  def serialized_columns_on_topic
-    Topic.columns.select { |c| Topic.serialized_attributes.include?(c.name) }
   end
 
   def in_time_zone(zone)

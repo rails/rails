@@ -5,6 +5,13 @@ class SanitizerTest < ActionController::TestCase
     @sanitizer = nil # used by assert_sanitizer
   end
 
+  def test_strip_tags_with_quote
+    sanitizer = HTML::FullSanitizer.new
+    string    = '<" <img src="trollface.gif" onload="alert(1)"> hi'
+
+    assert_equal ' hi', sanitizer.sanitize(string)
+  end
+
   def test_strip_tags
     sanitizer = HTML::FullSanitizer.new
     assert_equal("<<<bad html", sanitizer.sanitize("<<<bad html"))

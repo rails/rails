@@ -4,13 +4,12 @@ require 'active_support/core_ext/array/wrap'
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
     def render(context, options)
-      @view = context
-
-      wrap_formats(options[:template] || options[:file]) do
-        template = determine_template(options)
-        freeze_formats(template.formats, true)
-        render_template(template, options[:layout], options[:locals])
-      end
+      @view    = context
+      @details = extract_details(options)
+      extract_format(options[:file] || options[:template], @details)
+      template = determine_template(options)
+      freeze_formats(template.formats, true)
+      render_template(template, options[:layout], options[:locals])
     end
 
     # Determine the template to be rendered using the given options.
@@ -20,13 +19,13 @@ module ActionView
       if options.key?(:text)
         Template::Text.new(options[:text], formats.try(:first))
       elsif options.key?(:file)
-        with_fallbacks { find_template(options[:file], nil, false, keys) }
+        with_fallbacks { find_template(options[:file], nil, false, keys, @details) }
       elsif options.key?(:inline)
         handler = Template.handler_for_extension(options[:type] || "erb")
         Template.new(options[:inline], "inline template", handler, :locals => keys)
       elsif options.key?(:template)
         options[:template].respond_to?(:render) ?
-          options[:template] : find_template(options[:template], options[:prefixes], false, keys)
+          options[:template] : find_template(options[:template], options[:prefixes], false, keys, @details)
       end
     end
 
@@ -62,12 +61,11 @@ module ActionView
       begin
         with_layout_format do
           layout =~ /^\// ?
-            with_fallbacks { find_template(layout, nil, false, keys) } : find_template(layout, nil, false, keys)
+            with_fallbacks { find_template(layout, nil, false, keys, @details) } : find_template(layout, nil, false, keys, @details)
         end
       rescue ActionView::MissingTemplate
-        update_details(:formats => nil) do
-          raise unless template_exists?(layout)
-        end
+        all_details = @details.merge(:formats => @lookup_context.default_formats)
+        raise unless template_exists?(layout, nil, false, keys, all_details)
       end
     end
   end

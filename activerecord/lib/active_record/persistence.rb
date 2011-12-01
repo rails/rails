@@ -114,6 +114,7 @@ module ActiveRecord
       became.instance_variable_set("@attributes_cache", @attributes_cache)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
+      became.instance_variable_set("@errors", errors)
       became.type = klass.name unless self.class.descends_from_active_record?
       became
     end
@@ -304,7 +305,7 @@ module ActiveRecord
       return 0 if attributes_with_values.empty?
       klass = self.class
       stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
-      klass.connection.update stmt.to_sql
+      klass.connection.update stmt
     end
 
     # Creates a record with values matching those of the instance attributes
@@ -314,7 +315,7 @@ module ActiveRecord
 
       new_id = self.class.unscoped.insert attributes_values
 
-      self.id ||= new_id
+      self.id ||= new_id if self.class.primary_key
 
       IdentityMap.add(self) if IdentityMap.enabled?
       @new_record = false

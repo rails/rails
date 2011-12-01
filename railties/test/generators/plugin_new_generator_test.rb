@@ -7,11 +7,13 @@ DEFAULT_PLUGIN_FILES = %w(
   .gitignore
   Gemfile
   Rakefile
+  README.rdoc
   bukkits.gemspec
   MIT-LICENSE
   lib
   lib/bukkits.rb
   lib/tasks/bukkits_tasks.rake
+  lib/bukkits/version.rb
   test/bukkits_test.rb
   test/test_helper.rb
   test/dummy
@@ -25,10 +27,6 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
-  def default_files
-    ::DEFAULT_PLUGIN_FILES
-  end
-
   def test_invalid_plugin_name_raises_an_error
     content = capture(:stderr){ run_generator [File.join(destination_root, "43-things")] }
     assert_equal "Invalid plugin name 43-things. Please give a name which does not start with numbers.\n", content
@@ -37,6 +35,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_invalid_plugin_name_is_fixed
     run_generator [File.join(destination_root, "things-43")]
     assert_file "things-43/lib/things-43.rb", /module Things43/
+  end
+
+  def test_camelcase_plugin_name_underscores_filenames
+    run_generator [File.join(destination_root, "CamelCasedName")]
+    assert_no_file "CamelCasedName/lib/CamelCasedName.rb"
+    assert_file "CamelCasedName/lib/camel_cased_name.rb", /module CamelCasedName/
   end
 
   def test_generating_without_options
@@ -69,13 +73,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_database_entry_is_generated_for_sqlite3_by_default_in_full_mode
     run_generator([destination_root, "--full"])
     assert_file "test/dummy/config/database.yml", /sqlite/
-    assert_file "Gemfile", /^gem\s+["']sqlite3["']$/
+    assert_file "bukkits.gemspec", /sqlite3/
   end
 
   def test_config_another_database
     run_generator([destination_root, "-d", "mysql", "--full"])
     assert_file "test/dummy/config/database.yml", /mysql/
-    assert_file "Gemfile", /^gem\s+["']mysql2["']$/
+    assert_file "bukkits.gemspec", /mysql/
   end
 
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
@@ -117,8 +121,8 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require jquery}, contents
       assert_match %r{^//= require jquery_ujs}, contents
     end
-    assert_file 'Gemfile' do |contents|
-      assert_match(/^gem 'jquery-rails'/, contents)
+    assert_file 'bukkits.gemspec' do |contents|
+      assert_match(/jquery-rails/, contents)
     end
   end
 
@@ -128,8 +132,8 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
       assert_match %r{^//= require prototype}, contents
       assert_match %r{^//= require prototype_ujs}, contents
     end
-    assert_file 'Gemfile' do |contents|
-      assert_match(/^gem 'prototype-rails'/, contents)
+    assert_file 'bukkits.gemspec' do |contents|
+      assert_match(/prototype-rails/, contents)
     end
   end
 
@@ -176,6 +180,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers"
     assert_file "app/views"
     assert_file "app/helpers"
+    assert_file "app/mailers"
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
@@ -198,17 +203,17 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |contents|
       assert_match "<title>Bukkits</title>", contents
-      assert_match /stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents
-      assert_match /javascript_include_tag\s+['"]bukkits\/application['"]/, contents
+      assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
+      assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
     end
   end
 
   def test_creating_gemspec
     run_generator
-    assert_file "bukkits.gemspec", /s.name = "bukkits"/
+    assert_file "bukkits.gemspec", /s.name\s+= "bukkits"/
     assert_file "bukkits.gemspec", /s.files = Dir\["\{app,config,db,lib\}\/\*\*\/\*"\]/
     assert_file "bukkits.gemspec", /s.test_files = Dir\["test\/\*\*\/\*"\]/
-    assert_file "bukkits.gemspec", /s.version = "0.0.1"/
+    assert_file "bukkits.gemspec", /s.version\s+ = Bukkits::VERSION/
   end
 
   def test_usage_of_engine_commands
@@ -237,12 +242,20 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
   end
+  
+  def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
+    FileUtils.cd(Rails.root)
+    run_generator([destination_root, "--dummy_path", "spec/dummy" "--skip-test-unit"])
+    assert_file ".gitignore" do |contents|
+      assert_match(/spec\/dummy/, contents)
+    end
+  end
 
   def test_skipping_test_unit
     run_generator [destination_root, "--skip-test-unit"]
     assert_no_file "test"
     assert_file "bukkits.gemspec" do |contents|
-      assert_no_match /s.test_files = Dir\["test\/\*\*\/\*"\]/, contents
+      assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)
     end
   end
 
@@ -257,6 +270,10 @@ protected
     silence(:stdout){ generator.send(*args, &block) }
   end
 
+protected
+  def default_files
+    ::DEFAULT_PLUGIN_FILES
+  end
 end
 
 class CustomPluginGeneratorTest < Rails::Generators::TestCase

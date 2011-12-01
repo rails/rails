@@ -114,7 +114,7 @@ module ActiveRecord
     def first(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          to_a.first(*args)
+          limit(*args).to_a
         else
           apply_finder_options(args.first).first
         end
@@ -134,7 +134,11 @@ module ActiveRecord
     def last(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          to_a.last(*args)
+          if order_values.empty? && reorder_value.nil?
+            order("#{primary_key} DESC").limit(*args).reverse
+          else
+            to_a.last(*args)
+          end
         else
           apply_finder_options(args.first).last
         end
@@ -180,12 +184,14 @@ module ActiveRecord
     #   Person.exists?(:name => "David")
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
     #   Person.exists?
-    def exists?(id = nil)
+    def exists?(id = false)
+      return false if id.nil?
+
       id = id.id if ActiveRecord::Base === id
 
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
-      relation = relation.except(:select).select("1").limit(1)
+      relation = relation.except(:select, :order).select("1").limit(1)
 
       case id
       when Array, Hash
@@ -193,8 +199,8 @@ module ActiveRecord
       else
         relation = relation.where(table[primary_key].eq(id)) if id
       end
-      
-      connection.select_value(relation.to_sql, "#{name} Exists") ? true : false
+
+      connection.select_value(relation, "#{name} Exists") ? true : false
     end
 
     protected
@@ -202,7 +208,7 @@ module ActiveRecord
     def find_with_associations
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
-      rows = connection.select_all(relation.to_sql, 'SQL', relation.bind_values)
+      rows = connection.select_all(relation, 'SQL', relation.bind_values)
       join_dependency.instantiate(rows)
     rescue ThrowResult
       []

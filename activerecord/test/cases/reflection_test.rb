@@ -18,6 +18,7 @@ require 'models/subscriber'
 require 'models/subscription'
 require 'models/tag'
 require 'models/sponsor'
+require 'models/edge'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -188,8 +189,8 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_of_all_associations
     # FIXME these assertions bust a lot
-    assert_equal 36, Firm.reflect_on_all_associations.size
-    assert_equal 26, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 37, Firm.reflect_on_all_associations.size
+    assert_equal 27, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 10, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end
@@ -244,7 +245,7 @@ class ReflectionTest < ActiveRecord::TestCase
     # Normal association
     assert_equal "id",   Author.reflect_on_association(:posts).association_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).association_primary_key.to_s
-    assert_equal "id",   Tagging.reflect_on_association(:taggable).association_primary_key.to_s
+    assert_equal "name", Essay.reflect_on_association(:writer).association_primary_key.to_s
 
     # Through association (uses the :primary_key option from the source reflection)
     assert_equal "nick", Author.reflect_on_association(:subscribers).association_primary_key.to_s
@@ -252,9 +253,23 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "custom_primary_key", Author.reflect_on_association(:tags_with_primary_key).association_primary_key.to_s # nested
   end
 
+  def test_association_primary_key_raises_when_missing_primary_key
+    reflection = ActiveRecord::Reflection::AssociationReflection.new(:fuu, :edge, {}, Author)
+    assert_raises(ActiveRecord::UnknownPrimaryKey) { reflection.association_primary_key }
+
+    through = ActiveRecord::Reflection::ThroughReflection.new(:fuu, :edge, {}, Author)
+    through.stubs(:source_reflection).returns(stub_everything(:options => {}, :class_name => 'Edge'))
+    assert_raises(ActiveRecord::UnknownPrimaryKey) { through.association_primary_key }
+  end
+
   def test_active_record_primary_key
     assert_equal "nick", Subscriber.reflect_on_association(:subscriptions).active_record_primary_key.to_s
     assert_equal "name", Author.reflect_on_association(:essay).active_record_primary_key.to_s
+  end
+
+  def test_active_record_primary_key_raises_when_missing_primary_key
+    reflection = ActiveRecord::Reflection::AssociationReflection.new(:fuu, :author, {}, Edge)
+    assert_raises(ActiveRecord::UnknownPrimaryKey) { reflection.active_record_primary_key }
   end
 
   def test_foreign_type
@@ -302,6 +317,16 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_foreign_key
     assert_equal "author_id", Author.reflect_on_association(:posts).foreign_key.to_s
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
+  end
+
+  def test_through_reflection_conditions_do_not_modify_other_reflections
+    orig_conds = Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
+    Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
+    assert_equal orig_conds, Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
+  end
+
+  def test_symbol_for_class_name
+    assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
   private

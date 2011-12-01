@@ -179,7 +179,7 @@ module ActiveRecord #:nodoc:
   class XmlSerializer < ActiveModel::Serializers::Xml::Serializer #:nodoc:
     def initialize(*args)
       super
-      options[:except] |= Array.wrap(@serializable.class.inheritance_column)
+      options[:except] = Array.wrap(options[:except]) | Array.wrap(@serializable.class.inheritance_column)
     end
 
     class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:

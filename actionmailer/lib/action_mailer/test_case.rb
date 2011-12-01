@@ -15,9 +15,22 @@ module ActionMailer
 
       include TestHelper
 
+      included do
+        class_attribute :_mailer_class
+        setup :initialize_test_deliveries
+        setup :set_expected_mail
+      end
+
       module ClassMethods
         def tests(mailer)
-          self._mailer_class = mailer
+          case mailer
+          when String, Symbol
+            self._mailer_class = mailer.to_s.camelize.constantize
+          when Module
+            self._mailer_class = mailer
+          else
+            raise NonInferrableMailerError.new(mailer)
+          end
         end
 
         def mailer_class
@@ -34,8 +47,6 @@ module ActionMailer
           raise NonInferrableMailerError.new(name)
         end
       end
-
-      module InstanceMethods
 
       protected
 
@@ -64,16 +75,8 @@ module ActionMailer
         def read_fixture(action)
           IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
         end
-      end
-
-      included do
-        class_attribute :_mailer_class
-        setup :initialize_test_deliveries
-        setup :set_expected_mail
-      end
     end
 
     include Behavior
-
   end
 end

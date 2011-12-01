@@ -30,7 +30,6 @@ Ruby on Rails Guides
 <% content_for :index_section do %>
 <div id="subCol">
   <dl>
-    <dd class="warning">Rails Guides are a result of the ongoing <a href="http://hackfest.rubyonrails.org">Guides hackfest</a>, and a work in progress.</dd>
     <dd class="work-in-progress">Guides marked with this icon are currently being worked on. While they might still be useful to you, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections to the author.</dd>
   </dl>
 </div>
@@ -124,12 +123,16 @@ Ruby on Rails Guides
   <p>This guide covers the basic configuration settings for a Rails application.</p>
 <% end %>
 
-<%= guide("Rails Command Line Tools and Rake tasks", 'command_line.html', :work_in_progress => true) do %>
+<%= guide("Rails Command Line Tools and Rake tasks", 'command_line.html') do %>
   <p>This guide covers the command line tools and rake tasks provided by Rails.</p>
 <% end %>
 
 <%= guide("Caching with Rails", 'caching_with_rails.html', :work_in_progress => true) do %>
   <p>Various caching techniques provided by Rails.</p>
+<% end %>
+
+<%= guide('Asset Pipeline', 'asset_pipeline.html') do %>
+  <p>This guide documents the asset pipeline.</p>
 <% end %>
 </dl>
 
@@ -170,6 +173,10 @@ Ruby on Rails Guides
 <h3>Release Notes</h3>
 
 <dl>
+<%= guide("Ruby on Rails 3.1 Release Notes", '3_1_release_notes.html') do %>
+  <p>Release notes for Rails 3.1.</p>
+<% end %>
+
 <%= guide("Ruby on Rails 3.0 Release Notes", '3_0_release_notes.html') do %>
   <p>Release notes for Rails 3.0.</p>
 <% end %>

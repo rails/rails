@@ -36,6 +36,7 @@ module ActiveRecord
       end
 
       def test_find_by_sess_id_compat
+        Session.reset_column_information
         klass = Class.new(Session) do
           def self.session_id_column
             'sessid'
@@ -53,6 +54,7 @@ module ActiveRecord
         assert_equal session.sessid, found.session_id
       ensure
         klass.drop_table!
+        Session.reset_column_information
       end
 
       def test_find_by_session_id

@@ -8,6 +8,9 @@ class TestERBTemplate < ActiveSupport::TestCase
     def disable_cache
       yield
     end
+
+    def find_template(*args)
+    end
   end
 
   class Context

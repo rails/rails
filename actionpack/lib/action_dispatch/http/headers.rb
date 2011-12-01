@@ -1,5 +1,3 @@
-require 'active_support/memoizable'
-
 module ActionDispatch
   module Http
     class Headers < ::Hash

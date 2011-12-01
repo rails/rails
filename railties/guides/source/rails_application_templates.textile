@@ -60,6 +60,18 @@ Please note that this will NOT install the gems for you and you will have to run
 bundle install
 </ruby>
 
+h4. gem_group(*names, &block)
+
+Wraps gem entries inside a group.
+
+For example, if you want to load +rspec-rails+ only in +development+ and +test+ group:
+
+<ruby>
+gem_group :development, :test do
+  gem "rspec-rails"
+end
+</ruby>
+
 h4. add_source(source, options = {})
 
 Adds the given source to the generated application's +Gemfile+.
@@ -148,7 +160,7 @@ The above creates +lib/tasks/bootstrap.rake+ with a +boot:strap+ rake task.
 
 h4. generate(what, args)
 
-Runs the supplied rails generator with given arguments. For example, I love to scaffold some whenever I’m playing with Rails:
+Runs the supplied rails generator with given arguments.
 
 <ruby>
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
@@ -174,12 +186,6 @@ You can also run rake tasks with a different Rails environment:
 
 <ruby>
 rake "db:migrate", :env => 'production'
-</ruby>
-
-Or even use sudo:
-
-<ruby>
-rake "gems:install", :sudo => true
 </ruby>
 
 h4. route(routing_code)
@@ -232,7 +238,3 @@ git :init
 git :add => "."
 git :commit => "-a -m 'Initial commit'"
 </ruby>
-
-h3. Changelog
-
-* April 29, 2009: Initial version by "Pratik":credits.html#lifo

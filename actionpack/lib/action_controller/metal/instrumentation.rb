@@ -58,13 +58,18 @@ module ActionController
     def redirect_to(*args)
       ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
         result = super
-        payload[:status]   = self.status
-        payload[:location] = self.location
+        payload[:status]   = response.status
+        payload[:location] = response.location
         result
       end
     end
 
-  protected
+  private
+
+    # A hook invoked everytime a before callback is halted.
+    def halted_callback_hook(filter)
+      ActiveSupport::Notifications.instrument("halted_callback.action_controller", :filter => filter)
+    end
 
     # A hook which allows you to clean up any time taken into account in
     # views wrongly, like database querying time.

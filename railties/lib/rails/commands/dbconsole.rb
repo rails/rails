@@ -33,7 +33,7 @@ module Rails
             options['mode'] = mode
         end
 
-        opt.on("-h", "--header") do |h|
+        opt.on("--header") do |h|
           options['header'] = h
         end
 

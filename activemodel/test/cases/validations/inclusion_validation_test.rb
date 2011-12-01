@@ -78,12 +78,12 @@ class InclusionValidationTest < ActiveModel::TestCase
   def test_validates_inclusion_of_with_lambda
     Topic.validates_inclusion_of :title, :in => lambda{ |topic| topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
 
-    p = Topic.new
-    p.title = "wasabi"
-    p.author_name = "sikachu"
-    assert p.invalid?
+    t = Topic.new
+    t.title = "wasabi"
+    t.author_name = "sikachu"
+    assert t.invalid?
 
-    p.title = "elephant"
-    assert p.valid?
+    t.title = "elephant"
+    assert t.valid?
   end
 end

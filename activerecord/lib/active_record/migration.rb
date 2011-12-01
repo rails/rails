@@ -112,12 +112,13 @@ module ActiveRecord
   #   a column but keeps the type and content.
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named
-  #   +column_name+ from the table called +table_name+.
+  # * <tt>remove_column(table_name, column_names)</tt>: Removes the column listed in
+  #   +column_names+ from the table called +table_name+.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
-  #   <tt>:name</tt> and <tt>:unique</tt> (e.g.
-  #   <tt>{ :name => "users_name_index", :unique => true }</tt>).
+  #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
+  #   <tt>{ :name => "users_name_index", :unique => true }</tt>) and <tt>:order</tt>
+  #   (e.g. { :order => {:name => :desc} }</tt>).
   # * <tt>remove_index(table_name, :column => column_name)</tt>: Removes the index
   #   specified by +column_name+.
   # * <tt>remove_index(table_name, :name => index_name)</tt>: Removes the index
@@ -330,6 +331,10 @@ module ActiveRecord
 
     def self.method_missing(name, *args, &block) # :nodoc:
       (delegate || superclass.delegate).send(name, *args, &block)
+    end
+
+    def self.migrate(direction)
+      new.migrate direction
     end
 
     cattr_accessor :verbose
@@ -559,7 +564,7 @@ module ActiveRecord
 
       def get_all_versions
         table = Arel::Table.new(schema_migrations_table_name)
-        Base.connection.select_values(table.project(table['version']).to_sql).map{ |v| v.to_i }.sort
+        Base.connection.select_values(table.project(table['version'])).map{ |v| v.to_i }.sort
       end
 
       def current_version
@@ -716,11 +721,11 @@ module ActiveRecord
         if down?
           @migrated_versions.delete(version)
           stmt = table.where(table["version"].eq(version.to_s)).compile_delete
-          Base.connection.delete stmt.to_sql
+          Base.connection.delete stmt
         else
           @migrated_versions.push(version).sort!
           stmt = table.compile_insert table["version"] => version.to_s
-          Base.connection.insert stmt.to_sql
+          Base.connection.insert stmt
         end
       end
 

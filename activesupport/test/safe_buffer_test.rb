@@ -106,4 +106,10 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "should not fail if the returned object is not a string" do
     assert_kind_of NilClass, @buffer.slice("chipchop")
   end
+
+  test "Should initialize @dirty to false for new instance when sliced" do
+    dirty = @buffer[0,0].send(:dirty?)
+    assert_not_nil dirty
+    assert !dirty
+  end
 end

@@ -88,6 +88,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_button_to_with_remote_and_form_options
+    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"custom-class\" data-remote=\"true\" data-type=\"json\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com", :remote => true, :form => { :class => "custom-class", "data-type" => "json" } )
+  end
+  
   def test_button_to_with_remote_and_javascript_confirm
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
@@ -304,8 +308,8 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "Showing", link_to_if(false, "Showing", url_hash)
   end
 
-  def request_for_url(url)
-    env = Rack::MockRequest.env_for("http://www.example.com#{url}")
+  def request_for_url(url, opts = {})
+    env = Rack::MockRequest.env_for("http://www.example.com#{url}", opts)
     ActionDispatch::Request.new(env)
   end
 
@@ -327,6 +331,12 @@ class UrlHelperTest < ActiveSupport::TestCase
 
     assert current_page?(hash_for([:order, "desc", :page, "1"]))
     assert current_page?("http://www.example.com/?order=desc&page=1")
+  end
+
+  def test_current_page_with_not_get_verb
+    @request = request_for_url("/events", :method => :post)
+
+    assert !current_page?('/events')
   end
 
   def test_link_unless_current

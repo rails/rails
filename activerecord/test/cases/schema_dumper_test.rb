@@ -1,13 +1,22 @@
 require "cases/helper"
-require 'stringio'
 
 
 class SchemaDumperTest < ActiveRecord::TestCase
+  def setup
+    @stream = StringIO.new
+  end
+
   def standard_dump
-    stream = StringIO.new
+    @stream = StringIO.new
     ActiveRecord::SchemaDumper.ignore_tables = []
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
-    stream.string
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, @stream)
+    @stream.string
+  end
+
+  if "string".encoding_aware?
+    def test_magic_comment
+      assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
+    end
   end
 
   def test_schema_dump
@@ -228,5 +237,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_not_nil(match, "goofy_string_id table not found")
     assert_match %r(:id => false), match[1], "no table id not preserved"
     assert_match %r{t.string[[:space:]]+"id",[[:space:]]+:null => false$}, match[2], "non-primary key id column not preserved"
+  end
+
+  def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added
+    output = standard_dump
+    assert_match %r{create_table "subscribers", :id => false}, output
   end
 end

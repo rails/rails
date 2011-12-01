@@ -145,7 +145,7 @@ module ActionController
       end
 
       def encode_credentials(user_name, password)
-        "Basic #{ActiveSupport::Base64.encode64("#{user_name}:#{password}")}"
+        "Basic #{ActiveSupport::Base64.encode64s("#{user_name}:#{password}")}"
       end
 
       def authentication_request(controller, realm)

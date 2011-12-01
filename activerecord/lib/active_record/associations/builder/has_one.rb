@@ -44,18 +44,17 @@ module ActiveRecord::Associations::Builder
       end
 
       def define_destroy_dependency_method
-        model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
-          def #{dependency_method_name}
-            association(#{name.to_sym.inspect}).delete
-          end
-        eoruby
+        name = self.name
+        mixin.redefine_method(dependency_method_name) do
+          association(name).delete
+        end
       end
       alias :define_delete_dependency_method :define_destroy_dependency_method
       alias :define_nullify_dependency_method :define_destroy_dependency_method
 
       def define_restrict_dependency_method
         name = self.name
-        model.redefine_method(dependency_method_name) do
+        mixin.redefine_method(dependency_method_name) do
           raise ActiveRecord::DeleteRestrictionError.new(name) unless send(name).nil?
         end
       end

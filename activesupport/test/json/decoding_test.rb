@@ -2,7 +2,6 @@
 require 'abstract_unit'
 require 'active_support/json'
 require 'active_support/time'
-require 'active_support/core_ext/kernel/reporting'
 
 class TestJSONDecoding < ActiveSupport::TestCase
   TESTS = {

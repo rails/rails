@@ -596,6 +596,8 @@ match "/stories/:name" => redirect {|params| "/posts/#{params[:name].pluralize}"
 match "/stories" => redirect {|p, req| "/posts/#{req.subdomain}" }
 </ruby>
 
+Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
+
 In all of these cases, if you don't provide the leading host (+http://www.example.com+), Rails will take those details from the current request.
 
 h4. Routing to Rack Applications
@@ -618,7 +620,7 @@ You can specify what Rails should route +"/"+ to with the +root+ method:
 root :to => 'pages#main'
 </ruby>
 
-You should put the +root+ route at the end of the file. You also need to delete the +public/index.html+ file for the root route to take effect.
+You should put the +root+ route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the +public/index.html+ file for the root route to take effect.
 
 h3. Customizing Resourceful Routes
 
@@ -881,12 +883,3 @@ The +assert_routing+ assertion checks the route both ways: it tests that the pat
 <ruby>
 assert_routing({ :path => "photos", :method => :post }, { :controller => "photos", :action => "create" })
 </ruby>
-
-h3. Changelog
-
-* April 10, 2010: Updated guide to remove outdated and superfluous information, and to provide information about new features, by "Yehuda Katz":http://www.yehudakatz.com
-* April 2, 2010: Updated guide to match new Routing DSL in Rails 3, by "Rizwan Reza":http://www.rizwanreza.com/
-* February 1, 2010: Modifies the routing documentation to match new routing DSL in Rails 3, by Prem Sichanugrist
-* October 4, 2008: Added additional detail on specifying verbs for resource member/collection routes, by "Mike Gunderloy":credits.html#mgunderloy
-* September 23, 2008: Added section on namespaced controllers and routing, by "Mike Gunderloy":credits.html#mgunderloy
-* September 10, 2008: initial version by "Mike Gunderloy":credits.html#mgunderloy

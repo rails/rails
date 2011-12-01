@@ -1,12 +1,27 @@
-# Provide a simple gemspec so you can easily use your
-# project in your rails apps through git.
+$:.push File.expand_path("../lib", __FILE__)
+
+# Maintain your gem's version:
+require "<%= name %>/version"
+
+# Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name = "<%= name %>"
-  s.summary = "Insert <%= camelized %> summary."
-  s.description = "Insert <%= camelized %> description."
+  s.name        = "<%= name %>"
+  s.version     = <%= camelized %>::VERSION
+  s.authors     = ["TODO: Your name"]
+  s.email       = ["TODO: Your email"]
+  s.homepage    = "TODO"
+  s.summary     = "TODO: Summary of <%= camelized %>."
+  s.description = "TODO: Description of <%= camelized %>."
+
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
 <% unless options.skip_test_unit? -%>
   s.test_files = Dir["test/**/*"]
 <% end -%>
-  s.version = "0.0.1"
+
+  <%= '# ' if options.dev? || options.edge? -%>s.add_dependency "rails", "~> <%= Rails::VERSION::STRING %>"
+<% if full? && !options[:skip_javascript] -%>
+  # s.add_dependency "<%= "#{options[:javascript]}-rails" %>"
+<% end -%>
+
+  s.add_development_dependency "<%= gem_for_database %>"
 end

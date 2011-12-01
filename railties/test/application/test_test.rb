@@ -24,7 +24,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test 'unit/foo_test.rb'
+      run_test_file 'unit/foo_test.rb'
     end
 
     # Run just in Ruby < 1.9
@@ -40,7 +40,7 @@ module ApplicationTests
           end
         RUBY
 
-        run_test 'unit/backtrace_test.rb'
+        run_test_file 'unit/backtrace_test.rb'
       end
     end
 
@@ -66,7 +66,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test 'integration/posts_test.rb'
+      run_test_file 'integration/posts_test.rb'
     end
 
     test "performance test" do
@@ -91,11 +91,11 @@ module ApplicationTests
         end
       RUBY
 
-      run_test 'performance/posts_test.rb'
+      run_test_file 'performance/posts_test.rb'
     end
 
     private
-      def run_test(name)
+      def run_test_file(name)
         result = ruby '-Itest', "#{app_path}/test/#{name}"
         assert_equal 0, $?.to_i, result
       end

@@ -1,4 +1,4 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/Fixtures.html
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
 first_task:
   id: 1
   starting: 2005-03-30t06:30:00.00+01:00

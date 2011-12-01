@@ -306,7 +306,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
     end
@@ -319,7 +319,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
     end
@@ -332,7 +332,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
@@ -345,7 +345,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
@@ -476,7 +476,7 @@ module ApplicationTests
 
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
-        def index
+        def create
           render :text => params[:post].inspect
         end
       end
@@ -521,9 +521,11 @@ module ApplicationTests
       make_basic_app
 
       assert_respond_to app, :env_config
-      assert_equal      app.env_config['action_dispatch.parameter_filter'], app.config.filter_parameters
-      assert_equal      app.env_config['action_dispatch.secret_token'],     app.config.secret_token
-      assert_equal      app.env_config['action_dispatch.show_exceptions'],  app.config.action_dispatch.show_exceptions
+      assert_equal      app.env_config['action_dispatch.parameter_filter'],  app.config.filter_parameters
+      assert_equal      app.env_config['action_dispatch.secret_token'],      app.config.secret_token
+      assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
+      assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
+      assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
     end
   end
 end

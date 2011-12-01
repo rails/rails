@@ -10,8 +10,8 @@ require 'models/string_key_object'
 class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
-  set_table_name :lock_without_defaults_cust
-  set_locking_column :custom_lock_version
+  self.table_name = :lock_without_defaults_cust
+  self.locking_column = :custom_lock_version
 end
 
 class ReadonlyFirstNamePerson < Person
@@ -125,6 +125,24 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
+  def test_lock_exception_record
+    p1 = Person.new(:first_name => 'mira')
+    assert_equal 0, p1.lock_version
+
+    p1.first_name = 'mira2'
+    p1.save!
+    p2 = Person.find(p1.id)
+    assert_equal 0, p1.lock_version
+    assert_equal 0, p2.lock_version
+
+    p1.first_name = 'mira3'
+    p1.save!
+
+    p2.first_name = 'sue'
+    error = assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
+    assert_equal(error.record.object_id, p2.object_id)
+  end
+
   def test_lock_new_with_nil
     p1 = Person.new(:first_name => 'anika')
     p1.save!
@@ -140,7 +158,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1.touch
     assert_equal 1, p1.lock_version
   end
-
 
   def test_lock_column_name_existing
     t1 = LegacyThing.find(1)
@@ -205,6 +222,48 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       p1.save
       p1.reload
       assert_equal lock_version, p1.lock_version
+    end
+  end
+end
+
+class SetLockingColumnTest < ActiveRecord::TestCase
+  def test_set_set_locking_column_with_value
+    k = Class.new( ActiveRecord::Base )
+    k.locking_column = "foo"
+    assert_equal "foo", k.locking_column
+
+    assert_deprecated do
+      k.set_locking_column "bar"
+    end
+    assert_equal "bar", k.locking_column
+  end
+
+  def test_set_locking_column_with_block
+    k = Class.new( ActiveRecord::Base )
+    k.locking_column = 'foo'
+
+    assert_deprecated do
+      k.set_locking_column do
+        "lock_" + ActiveSupport::Deprecation.silence { original_locking_column }
+      end
+    end
+    assert_equal "lock_foo", k.locking_column
+  end
+
+  def test_original_locking_column
+    k = Class.new(ActiveRecord::Base)
+    k.locking_column = "bar"
+
+    assert_deprecated do
+      assert_equal ActiveRecord::Locking::Optimistic::ClassMethods::DEFAULT_LOCKING_COLUMN, k.original_locking_column
+    end
+
+    k = Class.new(ActiveRecord::Base)
+    k.locking_column = "omg"
+    k.locking_column = "wtf"
+
+    assert_deprecated do
+      assert_equal "omg", k.original_locking_column
     end
   end
 end

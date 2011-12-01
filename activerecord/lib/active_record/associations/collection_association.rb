@@ -235,7 +235,7 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if owner.new_record? || (loaded? && !options[:uniq])
+        if !find_target? || (loaded? && !options[:uniq])
           target.size
         elsif !loaded? && options[:group]
           load_target.size
@@ -344,8 +344,12 @@ module ActiveRecord
           if options[:counter_sql]
             interpolate(options[:counter_sql])
           else
-            # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
-            interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
+            # replace the SELECT clause with COUNT(SELECTS), preserving any hints within /* ... */
+            interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) do
+              count_with = $2.to_s
+              count_with = '*' if count_with.blank? || count_with =~ /,/
+              "SELECT #{$1}COUNT(#{count_with}) FROM"
+            end
           end
         end
 

@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'pp'
 require 'active_support/dependencies'
-require 'active_support/core_ext/kernel/reporting'
 
 module ModuleWithMissing
   mattr_accessor :missing_count
@@ -508,6 +507,24 @@ class DependenciesTest < Test::Unit::TestCase
   def test_autoload_once_paths_do_not_add_to_autoloaded_constants
     with_autoloading_fixtures do
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths.dup
+
+      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
+      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
+
+      1 if ModuleFolder::NestedClass # 1 if to avoid warning
+      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
+    end
+  ensure
+    Object.class_eval { remove_const :ModuleFolder }
+    ActiveSupport::Dependencies.autoload_once_paths = []
+  end
+
+  def test_autoload_once_pathnames_do_not_add_to_autoloaded_constants
+    with_autoloading_fixtures do
+      pathnames = ActiveSupport::Dependencies.autoload_paths.collect{|p| Pathname.new(p)}
+      ActiveSupport::Dependencies.autoload_paths = pathnames
+      ActiveSupport::Dependencies.autoload_once_paths = pathnames
 
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
       assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")

@@ -43,14 +43,14 @@ module ActiveModel
         assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end
 
-      # == Responds to <tt>to_path</tt>
+      # == Responds to <tt>to_partial_path</tt>
       #
       # Returns a string giving a relative path.  This is used for looking up
       # partials. For example, a BlogPost model might return "blog_posts/blog_post"
       #
-      def test_to_path
-        assert model.respond_to?(:to_path), "The model should respond to to_path"
-        assert_kind_of String, model.to_path
+      def test_to_partial_path
+        assert model.respond_to?(:to_partial_path), "The model should respond to to_partial_path"
+        assert_kind_of String, model.to_partial_path
       end
 
       # == Responds to <tt>valid?</tt>

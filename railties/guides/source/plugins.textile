@@ -290,7 +290,7 @@ You can then return to the root directory (+cd ../..+) of your plugin and rerun 
 
 </shell>
 
-Getting closer...now we will implement the code of the acts_as_yaffle method to make the tests pass.
+Getting closer... Now we will implement the code of the acts_as_yaffle method to make the tests pass.
 
 <ruby>
 # yaffle/lib/yaffle/acts_as_yaffle.rb
@@ -322,7 +322,7 @@ When you run +rake+ you should see the tests all pass:
 
 h4. Add an Instance Method
 
-This plugin will add a method named 'squawk' to any Active Record objects that call 'acts_as_yaffle'. The 'squawk'
+This plugin will add a method named 'squawk' to any Active Record object that calls 'acts_as_yaffle'. The 'squawk'
 method will simply set the value of one of the fields in the database.
 
 To start out, write a failing test that shows the behavior you'd like:
@@ -347,7 +347,7 @@ class ActsAsYaffleTest < Test::Unit::TestCase
     assert_equal "squawk! Hello World", hickwall.last_squawk
   end
 
-  def test_wickwalls_squawk_should_populate_last_tweeted_at
+  def test_wickwalls_squawk_should_populate_last_tweet
     wickwall = Wickwall.new
     wickwall.squawk("Hello World")
     assert_equal "squawk! Hello World", wickwall.last_tweet
@@ -355,7 +355,7 @@ class ActsAsYaffleTest < Test::Unit::TestCase
 end
 </ruby>
 
-Run the test to make sure the last two tests fail the an error that contains "NoMethodError: undefined method `squawk'",
+Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method `squawk'",
 then update 'acts_as_yaffle.rb' to look like this:
 
 <ruby>
@@ -386,6 +386,7 @@ ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 </ruby>
 
 Run +rake+ one final time and you should see:
+
 <shell>
 	7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
 </shell>
@@ -399,11 +400,11 @@ the creation of generators can be found in the "Generators Guide":generators.htm
 
 h3. Publishing your Gem
 
-Gem plugins in progress can be easily be shared from any Git repository. To share the Yaffle gem with others, simply
-commit the code to a Git repository (like Github) and add a line to the Gemfile of the any application:
+Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
+commit the code to a Git repository (like Github) and add a line to the Gemfile of the application in question:
 
 <ruby>
-gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'	
+gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
 </ruby>
 
 After running +bundle install+, your gem functionality will be available to the application.
@@ -425,11 +426,12 @@ require 'yaffle'
 </ruby>
 
 You can test this by changing to the Rails application that you added the plugin to and starting a rails console. Once in the
-console we can check to see if the String has an instance method of to_squawk.
+console we can check to see if the String has an instance method to_squawk:
+
 <shell>
 $ cd my_app
 $ rails console
-$ String.instance_methods.sort
+$ "Rails plugins are easy!".to_squawk
 </shell>
 
 You can also remove the .gemspec, Gemfile and Gemfile.lock files as they will no longer be needed.
@@ -443,9 +445,9 @@ The first step is to update the README file with detailed information about how 
 * Your name
 * How to install
 * How to add the functionality to the app (several examples of common use cases)
-* Warning, gotchas or tips that might help save users time
+* Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add '#:nodoc:' comments to those parts of the code that are not part of the public api.
+Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add '#:nodoc:' comments to those parts of the code that are not included in the public api.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 
@@ -460,11 +462,3 @@ h4. References
 * "Gemspec Reference":http://docs.rubygems.org/read/chapter/20
 * "GemPlugins":http://www.mbleigh.com/2008/06/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
 * "Keeping init.rb thin":http://daddy.platte.name/2007/05/rails-plugins-keep-initrb-thin.html
-
-h3. Changelog
-
-* March 10, 2011: Minor formatting tweaks.
-* February 13, 2011: Get guide in synch with Rails 3.0.3. Remove information not compatible with Rails 3. Send reader elsewhere
-for information that is covered elsewhere.
-* April 4, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-* November 17, 2008: Major revision by Jeff Dean

@@ -38,7 +38,7 @@ module ActiveSupport
         attr_reader :options
 
         def initialize(options = nil)
-          @options = options
+          @options = options || {}
           @seen = Set.new
         end
 
@@ -50,16 +50,16 @@ module ActiveSupport
         end
 
         # like encode, but only calls as_json, without encoding to string
-        def as_json(value)
+        def as_json(value, use_options = true)
           check_for_circular_references(value) do
-            value.as_json(options_for(value))
+            use_options ? value.as_json(options_for(value)) : value.as_json
           end
         end
 
         def options_for(value)
           if value.is_a?(Array) || value.is_a?(Hash)
             # hashes and arrays need to get encoder in the options, so that they can detect circular references
-            (options || {}).merge(:encoder => self)
+            options.merge(:encoder => self)
           else
             options
           end
@@ -212,7 +212,7 @@ class Array
   def as_json(options = nil) #:nodoc:
     # use encoder as a proxy to call as_json on all elements, to protect from circular references
     encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    map { |v| encoder.as_json(v) }
+    map { |v| encoder.as_json(v, options) }
   end
 
   def encode_json(encoder) #:nodoc:
@@ -239,7 +239,7 @@ class Hash
     # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
     encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
     result = self.is_a?(ActiveSupport::OrderedHash) ? ActiveSupport::OrderedHash : Hash
-    result[subset.map { |k, v| [k.to_s, encoder.as_json(v)] }]
+    result[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
   end
 
   def encode_json(encoder)

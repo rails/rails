@@ -57,6 +57,16 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005,11,28), Date.new(2005,12,04).beginning_of_week #sunday
   end
 
+  def test_monday
+    assert_equal Date.new(2005,11,28), Date.new(2005,11,28).monday
+    assert_equal Date.new(2005,11,28), Date.new(2005,12,01).monday
+  end
+
+  def test_sunday
+    assert_equal Date.new(2008,3,2), Date.new(2008,3,02).sunday
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,29).sunday
+  end
+
   def test_beginning_of_week_in_calendar_reform
     assert_equal Date.new(1582,10,1), Date.new(1582,10,15).beginning_of_week #friday
   end

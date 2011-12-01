@@ -156,7 +156,7 @@ module HTML #:nodoc:
           end
 
           closing = ( scanner.scan(/\//) ? :close : nil )
-          return Text.new(parent, line, pos, content) unless name = scanner.scan(/[\w:-]+/)
+          return Text.new(parent, line, pos, content) unless name = scanner.scan(/[^\s!>\/]+/)
           name.downcase!
 
           unless closing

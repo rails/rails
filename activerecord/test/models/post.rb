@@ -24,6 +24,10 @@ class Post < ActiveRecord::Base
   belongs_to :author_with_posts, :class_name => "Author", :foreign_key => :author_id, :include => :posts
   belongs_to :author_with_address, :class_name => "Author", :foreign_key => :author_id, :include => :author_address
 
+  def first_comment
+    super.body
+  end
+  has_one :first_comment, :class_name => 'Comment', :order => 'id ASC'
   has_one :last_comment, :class_name => 'Comment', :order => 'id desc'
 
   scope :with_special_comments, :joins => :comments, :conditions => {:comments => {:type => 'SpecialComment'} }
@@ -171,4 +175,14 @@ class PostWithDefaultInclude < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope includes(:comments)
   has_many :comments, :foreign_key => :post_id
+end
+
+class PostWithDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope :order => :title
+end
+
+class SpecialPostWithDefaultScope < ActiveRecord::Base
+  self.table_name = 'posts'
+  default_scope where(:id => [1, 5,6])
 end

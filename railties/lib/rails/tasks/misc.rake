@@ -1,5 +1,3 @@
-task :default => :test
-
 task :rails_env do
   # TODO Do we really need this?
   unless defined? RAILS_ENV
@@ -14,7 +12,7 @@ task :secret do
 end
 
 desc 'List versions of all Rails frameworks and the environment'
-task :about do
+task :about => :environment do
   puts Rails::Info
 end
 

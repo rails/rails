@@ -50,6 +50,10 @@ class TestTest < ActionController::TestCase
       render :text => request.query_string
     end
 
+    def test_protocol
+      render :text => request.protocol
+    end
+
     def test_html_output
       render :text => <<HTML
 <html>
@@ -139,6 +143,17 @@ XML
       r.draw do
         match ':controller(/:action(/:id))'
       end
+    end
+  end
+
+  class ViewAssignsController < ActionController::Base
+    def test_assigns
+      @foo = "foo"
+      render :nothing => true
+    end
+
+    def view_assigns
+      { "bar" => "bar" }
     end
   end
 
@@ -250,6 +265,15 @@ XML
     assert_equal "foo", assigns("foo")
     assert_equal "foo", assigns[:foo]
     assert_equal "foo", assigns["foo"]
+  end
+
+  def test_view_assigns
+    @controller = ViewAssignsController.new
+    process :test_assigns
+    assert_equal nil, assigns(:foo)
+    assert_equal nil, assigns[:foo]
+    assert_equal "bar", assigns(:bar)
+    assert_equal "bar", assigns[:bar]
   end
 
   def test_assert_tag_tag
@@ -515,6 +539,12 @@ XML
     )
   end
 
+  def test_params_passing_doesnt_modify_in_place
+    page = {:name => "Page name", :month => 4, :year => 2004, :day => 6}
+    get :test_params, :page => page
+    assert_equal 2004, page[:year]
+  end
+
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
     assert_kind_of String, @request.path_parameters['id']
@@ -590,6 +620,19 @@ XML
     @request.recycle!
     get :test_params
     assert_nil @request.symbolized_path_parameters[:id]
+  end
+
+  def test_request_protocol_is_reset_after_request
+    get :test_protocol
+    assert_equal "http://", @response.body
+
+    @request.env["HTTPS"] = "on"
+    get :test_protocol
+    assert_equal "https://", @response.body
+
+    @request.env.delete("HTTPS")
+    get :test_protocol
+    assert_equal "http://", @response.body
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
@@ -727,6 +770,22 @@ class CrazyNameTest < ActionController::TestCase
   tests ContentController
 
   def test_controller_class_can_be_set_manually_not_just_inferred
+    assert_equal ContentController, self.class.controller_class
+  end
+end
+
+class CrazySymbolNameTest < ActionController::TestCase
+  tests :content
+
+  def test_set_controller_class_using_symbol
+    assert_equal ContentController, self.class.controller_class
+  end
+end
+
+class CrazyStringNameTest < ActionController::TestCase
+  tests 'content'
+
+  def test_set_controller_class_using_string
     assert_equal ContentController, self.class.controller_class
   end
 end

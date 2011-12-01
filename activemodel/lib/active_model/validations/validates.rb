@@ -27,7 +27,7 @@ module ActiveModel
       #
       #   class EmailValidator < ActiveModel::EachValidator
       #     def validate_each(record, attribute, value)
-      #       record.errors[attribute] << (options[:message] || "is not an email") unless
+      #       record.errors.add attribute, (options[:message] || "is not an email") unless
       #         value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
       #     end
       #   end
@@ -48,7 +48,7 @@ module ActiveModel
       #
       #     class TitleValidator < ActiveModel::EachValidator
       #       def validate_each(record, attribute, value)
-      #         record.errors[attribute] << "must start with 'the'" unless value =~ /\Athe/i
+      #         record.errors.add attribute, "must start with 'the'" unless value =~ /\Athe/i
       #       end
       #     end
       #
@@ -57,7 +57,7 @@ module ActiveModel
       #
       # Additionally validator classes may be in another namespace and still used within any class.
       #
-      #   validates :name, :'file/title' => true
+      #   validates :name, :'film/title' => true
       #
       # The validators hash can also handle regular expressions, ranges, 
       # arrays and strings in shortcut form, e.g.
@@ -70,8 +70,8 @@ module ActiveModel
       # validator's initializer as +options[:in]+ while other types including
       # regular expressions and strings are passed as +options[:with]+
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+ and +:allow_nil+ can be given
-      # to one specific validator, as a hash:
+      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+ 
+      # can be given to one specific validator, as a hash:
       #
       #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
       #
@@ -101,12 +101,24 @@ module ActiveModel
         end
       end
 
+      # This method is used to define validation that can not be corrected by end user
+      # and is considered exceptional. 
+      # So each validator defined with bang or <tt>:strict</tt> option set to <tt>true</tt>
+      # will always raise <tt>ActiveModel::InternalValidationFailed</tt> instead of adding error
+      # when validation fails
+      # See <tt>validates</tt> for more information about validation itself.
+      def validates!(*attributes)
+        options = attributes.extract_options!
+        options[:strict] = true
+        validates(*(attributes << options))
+      end
+
     protected
 
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
-        [ :if, :unless, :on, :allow_blank, :allow_nil ]
+        [ :if, :unless, :on, :allow_blank, :allow_nil , :strict]
       end
 
       def _parse_validates_options(options) #:nodoc:

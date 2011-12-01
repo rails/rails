@@ -20,7 +20,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(/[&"><]/) { |special| HTML_ESCAPE[special] }.html_safe
+        s.gsub(/&/, "&amp;").gsub(/\"/, "&quot;").gsub(/>/, "&gt;").gsub(/</, "&lt;").html_safe
       end
     end
 
@@ -75,7 +75,7 @@ end
 
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
-    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase"].freeze
+    UNSAFE_STRING_METHODS = ["capitalize", "chomp", "chop", "delete", "downcase", "gsub", "lstrip", "next", "reverse", "rstrip", "slice", "squeeze", "strip", "sub", "succ", "swapcase", "tr", "tr_s", "upcase", "prepend"].freeze
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -84,6 +84,12 @@ module ActiveSupport #:nodoc:
       def initialize
         super "Could not concatenate to the buffer because it is not html safe."
       end
+    end
+
+    def[](*args)
+      new_safe_buffer = super
+      new_safe_buffer.instance_eval { @dirty = false }
+      new_safe_buffer
     end
 
     def safe_concat(value)
@@ -136,16 +142,18 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
-      class_eval <<-EOT, __FILE__, __LINE__
-        def #{unsafe_method}(*args, &block)       # def gsub(*args, &block)
-          to_str.#{unsafe_method}(*args, &block)  #   to_str.gsub(*args, &block)
-        end                                       # end
+      if 'String'.respond_to?(unsafe_method)
+        class_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
+            to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
+          end                                       # end
 
-        def #{unsafe_method}!(*args)              # def gsub!(*args)
-          @dirty = true                           #   @dirty = true
-          super                                   #   super
-        end                                       # end
-      EOT
+          def #{unsafe_method}!(*args)              # def capitalize!(*args)
+            @dirty = true                           #   @dirty = true
+            super                                   #   super
+          end                                       # end
+        EOT
+      end
     end
 
     protected

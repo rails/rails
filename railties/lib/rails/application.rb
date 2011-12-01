@@ -55,6 +55,11 @@ module Rails
 
     delegate :default_url_options, :default_url_options=, :to => :routes
 
+    def initialize
+      super
+      @initialized = false
+    end
+
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
     # configuration.
@@ -78,7 +83,6 @@ module Rails
       require environment if environment
     end
 
-
     def reload_routes!
       routes_reloader.reload!
     end
@@ -87,9 +91,9 @@ module Rails
       @routes_reloader ||= RoutesReloader.new
     end
 
-    def initialize!
+    def initialize!(group=:default)
       raise "Application has been already initialized." if @initialized
-      run_initializers(self)
+      run_initializers(group, self)
       @initialized = true
       self
     end
@@ -119,8 +123,32 @@ module Rails
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
         "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions
+        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
+        "action_dispatch.logger" => Rails.logger,
+        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner
       })
+    end
+
+    def ordered_railties
+      @ordered_railties ||= begin
+        order = config.railties_order.map do |railtie|
+          if railtie == :main_app
+            self
+          elsif railtie.respond_to?(:instance)
+            railtie.instance
+          else
+            railtie
+          end
+        end
+
+        all = (railties.all - order)
+        all.push(self)   unless all.include?(self)
+        order.push(:all) unless order.include?(:all)
+
+        index = order.index(:all)
+        order[index] = all
+        order.reverse.flatten
+      end
     end
 
     def initializers
@@ -137,6 +165,10 @@ module Rails
       self
     end
 
+    def helpers_paths
+      config.helpers_paths
+    end
+
   protected
 
     alias :build_middleware_stack :app
@@ -150,7 +182,7 @@ module Rails
 
         if config.force_ssl
           require "rack/ssl"
-          middleware.use ::Rack::SSL
+          middleware.use ::Rack::SSL, config.ssl_options
         end
 
         if config.serve_static_assets
@@ -160,8 +192,9 @@ module Rails
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
-        middleware.use ::Rails::Rack::Logger # must come after Rack::MethodOverride to properly log overridden methods
-        middleware.use ::ActionDispatch::ShowExceptions, config.consider_all_requests_local
+        middleware.use ::ActionDispatch::RequestId
+        middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
+        middleware.use ::ActionDispatch::ShowExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
         if config.action_dispatch.x_sendfile_header.present?
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header

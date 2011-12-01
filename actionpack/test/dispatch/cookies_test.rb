@@ -148,6 +148,22 @@ class CookiesTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
+  def test_each
+    request.cookie_jar['foo'] = :bar
+    list = []
+    request.cookie_jar.each do |k,v|
+      list << [k, v]
+    end
+
+    assert_equal [['foo', :bar]], list
+  end
+
+  def test_enumerable
+    request.cookie_jar['foo'] = :bar
+    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
+    assert_equal [['foo', 'bar']], actual
+  end
+
   def test_key_methods
     assert !request.cookie_jar.key?(:foo)
     assert !request.cookie_jar.has_key?("foo")
@@ -194,8 +210,8 @@ class CookiesTest < ActionController::TestCase
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
-  def test_setting_cookie_with_secure_in_development
-    Rails.env.stubs(:development?).returns(true)
+  def test_setting_cookie_with_secure_when_always_write_cookie_is_true
+    ActionDispatch::Cookies::CookieJar.any_instance.stubs(:always_write_cookie).returns(true)
     get :authenticate_with_secure
     assert_cookie_header "user_name=david; path=/; secure"
     assert_equal({"user_name" => "david"}, @response.cookies)

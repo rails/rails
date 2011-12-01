@@ -7,12 +7,13 @@ class SerializationTest < ActiveRecord::TestCase
 
   def setup
     @contact_attributes = {
-      :name        => 'aaron stack',
-      :age         => 25,
-      :avatar      => 'binarydata',
-      :created_at  => Time.utc(2006, 8, 1),
-      :awesome     => false,
-      :preferences => { :gem => '<strong>ruby</strong>' }
+      :name           => 'aaron stack',
+      :age            => 25,
+      :avatar         => 'binarydata',
+      :created_at     => Time.utc(2006, 8, 1),
+      :awesome        => false,
+      :preferences    => { :gem => '<strong>ruby</strong>' },
+      :alternative_id => nil
     }
   end
 

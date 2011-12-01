@@ -91,6 +91,15 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_multiple_resources_with_options
+    expected_options = {:controller => 'threads', :action => 'index'}
+
+    with_restful_routing :messages, :comments, expected_options.slice(:controller) do
+      assert_recognizes(expected_options, :path => 'comments')
+      assert_recognizes(expected_options, :path => 'messages')
+    end
+  end
+
   def test_with_custom_conditions
     with_restful_routing :messages, :conditions => { :subdomain => 'app' } do
       assert @routes.recognize_path("/messages", :method => :get, :subdomain => 'app')
@@ -523,7 +532,7 @@ class ResourcesTest < ActionController::TestCase
       routes.each do |route|
         routes.each do |r|
           next if route === r # skip the comparison instance
-          assert distinct_routes?(route, r), "Duplicate Route: #{route}"
+          assert_not_equal [route.conditions, route.path.spec.to_s], [r.conditions, r.path.spec.to_s]
         end
       end
     end
@@ -1341,14 +1350,5 @@ class ResourcesTest < ActionController::TestCase
       assert_raise ActionController::RoutingError, Assertion do
         assert_recognizes(expected_options, path)
       end
-    end
-
-    def distinct_routes? (r1, r2)
-      if r1.conditions == r2.conditions and r1.constraints == r2.constraints then
-        if r1.segments.collect(&:to_s) == r2.segments.collect(&:to_s) then
-          return false
-        end
-      end
-      true
     end
 end

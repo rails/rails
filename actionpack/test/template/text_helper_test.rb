@@ -48,10 +48,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
 
-  def test_simple_format_should_not_change_the_frozen_text_passed
+  def test_simple_format_should_not_change_the_text_passed
     text = "<b>Ok</b><script>code!</script>"
     text_clone = text.dup
-    simple_format(text.freeze)
+    simple_format(text)
     assert_equal text_clone, text
   end
 
@@ -193,6 +193,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal(
       "<p>This is a <strong class=\"highlight\">beautiful</strong> <a href=\"http://example.com/beautiful#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <strong class=\"highlight\">beautiful</strong> day</p>",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
+    )
+    assert_equal(
+      "<div>abc <b>div</b></div>",
+      highlight("<div>abc div</div>", "div", :highlighter => '<b>\1</b>')
     )
   end
 

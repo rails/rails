@@ -4,11 +4,11 @@ root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
 
-directory "dist"
+directory "pkg"
 
 (FRAMEWORKS + ['rails']).each do |framework|
   namespace framework do
-    gem     = "dist/#{framework}-#{version}.gem"
+    gem     = "pkg/#{framework}-#{version}.gem"
     gemspec = "#{framework}.gemspec"
 
     task :clean do
@@ -26,25 +26,25 @@ directory "dist"
       major, minor, tiny, pre = version.split('.')
       pre = pre ? pre.inspect : "nil"
 
-      ruby.gsub! /^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}"
+      ruby.gsub!(/^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}")
       raise "Could not insert MAJOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}"
+      ruby.gsub!(/^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}")
       raise "Could not insert MINOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}"
+      ruby.gsub!(/^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}")
       raise "Could not insert TINY in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}"
+      ruby.gsub!(/^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}")
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
     end
 
-    task gem => %w(update_version_rb dist) do
+    task gem => %w(update_version_rb pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
-      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/dist/"
+      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 
@@ -66,7 +66,7 @@ namespace :changelog do
     FRAMEWORKS.each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
-      fname = File.join fw, 'CHANGELOG'
+      fname = File.join fw, 'CHANGELOG.md'
 
       contents = File.read(fname).sub(/^([^(]*)\(unreleased\)/, replace)
       File.open(fname, 'wb') { |f| f.write contents }
@@ -76,7 +76,7 @@ namespace :changelog do
   task :release_summary do
     FRAMEWORKS.each do |fw|
       puts "## #{fw}"
-      fname    = File.join fw, 'CHANGELOG'
+      fname    = File.join fw, 'CHANGELOG.md'
       contents = File.readlines fname
       contents.shift
       changes = []
@@ -104,18 +104,19 @@ namespace :all do
   end
 
   task :commit do
-    File.open('dist/commit_message.txt', 'w') do |f|
+    File.open('pkg/commit_message.txt', 'w') do |f|
       f.puts "# Preparing for #{version} release\n"
       f.puts
       f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
     end
 
-    sh "git add . && git commit --verbose --template=dist/commit_message.txt"
-    rm_f "dist/commit_message.txt"
+    sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
+    rm_f "pkg/commit_message.txt"
   end
 
   task :tag do
     sh "git tag #{tag}"
+    sh "git push --tags"
   end
 
   task :release => %w(ensure_clean_state build commit tag push)

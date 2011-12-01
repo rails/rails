@@ -4,6 +4,11 @@ module ActionController
 
     include RackDelegation
 
+    def recycle!
+      @_url_options = nil
+    end
+
+
     # TODO: Clean this up
     def process_with_new_base_test(request, response)
       @_request = request

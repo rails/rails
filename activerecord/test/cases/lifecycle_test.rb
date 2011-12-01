@@ -231,6 +231,18 @@ class LifecycleTest < ActiveRecord::TestCase
     assert_not_nil observer.topic_ids.last
   end
 
+  test "able to disable observers" do
+    observer = DeveloperObserver.instance # activate
+    observer.calls.clear
+
+    ActiveRecord::Base.observers.disable DeveloperObserver do
+      Developer.create! :name => 'Ancestor', :salary => 100000
+      SpecialDeveloper.create! :name => 'Descendent', :salary => 100000
+    end
+
+    assert_equal [], observer.calls
+  end
+
   def test_observer_is_called_once
     observer = DeveloperObserver.instance # activate
     observer.calls.clear

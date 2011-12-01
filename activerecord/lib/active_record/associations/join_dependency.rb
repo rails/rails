@@ -188,13 +188,12 @@ module ActiveRecord
           association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
           set_target_and_inverse(join_part, association, record)
         else
-          return if row[join_part.aliased_primary_key].nil?
-          association = join_part.instantiate(row)
+          association = join_part.instantiate(row) unless row[join_part.aliased_primary_key].nil?
           case macro
           when :has_many, :has_and_belongs_to_many
             other = record.association(join_part.reflection.name)
             other.loaded!
-            other.target.push(association)
+            other.target.push(association) if association
             other.set_inverse_instance(association)
           when :belongs_to
             set_target_and_inverse(join_part, association, record)

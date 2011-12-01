@@ -18,7 +18,7 @@ which can be further narrowed down to one test:
 
 == Dependency on Active Record and database setup
 
-Test cases in the test/controller/active_record/ directory depend on having
+Test cases in the test/active_record/ directory depend on having
 activerecord and sqlite installed. If Active Record is not in
 actionpack/../activerecord directory, or the sqlite rubygem is not installed,
 these tests are skipped.

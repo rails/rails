@@ -30,6 +30,8 @@ class Hash
     omit
   end
 
+  # Removes and returns the key/value pairs matching the given keys.
+  #   {:a => 1, :b => 2, :c => 3, :d => 4}.extract!(:a, :b) # => {:a => 1, :b => 2}
   def extract!(*keys)
     result = {}
     keys.each {|key| result[key] = delete(key) }

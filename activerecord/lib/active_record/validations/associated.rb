@@ -17,15 +17,7 @@ module ActiveRecord
       #     validates_associated :pages, :library
       #   end
       #
-      # Warning: If, after the above definition, you then wrote:
-      #
-      #   class Page < ActiveRecord::Base
-      #     belongs_to :book
-      #
-      #     validates_associated :book
-      #   end
-      #
-      # this would specify a circular dependency and cause infinite recursion.
+      # WARNING: This validation must not be used on both ends of an association. Doing so will lead to a circular dependency and cause infinite recursion.
       #
       # NOTE: This validation will not fail if the association hasn't been assigned. If you want to
       # ensure that the association is both present and guaranteed to be valid, you also need to

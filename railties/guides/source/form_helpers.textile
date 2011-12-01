@@ -229,7 +229,7 @@ The corresponding view +app/views/articles/new.html.erb+ using +form_for+ looks 
 There are a few things to note here:
 
 # +@article+ is the actual object being edited.
-# There is a single hash of options. Routing options are passed in the +:url+ hash, HTML options are passed in the +:html+ hash.
+# There is a single hash of options. Routing options are passed in the +:url+ hash, HTML options are passed in the +:html+ hash. Also you can provide a +:namespace+ option for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
 # The +form_for+ method yields a *form builder* object (the +f+ variable).
 # Methods to create form controls are called *on* the form builder object +f+
 
@@ -341,7 +341,6 @@ output:
 </html>
 
 When parsing POSTed data, Rails will take into account the special +_method+ parameter and acts as if the HTTP method was the one specified inside it ("PUT" in this example).
-
 
 h3. Making Select Boxes with Ease
 
@@ -797,13 +796,3 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 * Eloy Duran's "complex-forms-examples":https://github.com/alloy/complex-form-examples/ application
 * Lance Ivy's "nested_assignment":https://github.com/cainlevy/nested_assignment/tree/master plugin and "sample application":https://github.com/cainlevy/complex-form-examples/tree/cainlevy
 * James Golick's "attribute_fu":https://github.com/jamesgolick/attribute_fu plugin
-
-h3. Changelog
-
-* February 5, 2011: Added 'Forms to external resources' section. Timothy N. Tsvetkov <timothy.tsvetkov@gmail.com>
-* April 6, 2010: Fixed document to validate XHTML 1.0 Strict. "Jaime Iniesta":http://jaimeiniesta.com
-
-h3. Authors
-
-* Mislav Marohnić <mislav.marohnic@gmail.com>
-* "Frederick Cheung":credits.html#fcheung

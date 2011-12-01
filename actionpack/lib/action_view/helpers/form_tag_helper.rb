@@ -56,8 +56,8 @@ module ActionView
       #   form_tag('http://far.away.com/form', :authenticity_token => "cf50faa3fe97702ca1ae")
       #   # form with custom authenticity token
       #
-      def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &block)
-        html_options = html_options_for_form(url_for_options, options, *parameters_for_url)
+      def form_tag(url_for_options = {}, options = {}, &block)
+        html_options = html_options_for_form(url_for_options, options)
         if block_given?
           form_tag_in_block(html_options, &block)
         else
@@ -177,9 +177,12 @@ module ActionView
       #   label_tag 'name', nil, :class => 'small_label'
       #   # => <label for="name" class="small_label">Name</label>
       def label_tag(name = nil, content_or_options = nil, options = nil, &block)
-        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
-        options ||= {}
-        options.stringify_keys!
+        if block_given? && content_or_options.is_a?(Hash)
+          options = content_or_options = content_or_options.stringify_keys
+        else
+          options ||= {}
+          options = options.stringify_keys
+        end
         options["for"] = sanitize_to_id(name) unless name.blank? || options.has_key?("for")
         content_tag :label, content_or_options || name.to_s.humanize, options, &block
       end
@@ -304,7 +307,7 @@ module ActionView
       #   text_area_tag 'comment', nil, :class => 'comment_input'
       #   # => <textarea class="comment_input" id="comment" name="comment"></textarea>
       def text_area_tag(name, content = nil, options = {})
-        options.stringify_keys!
+        options = options.stringify_keys
 
         if size = options.delete("size")
           options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
@@ -407,7 +410,7 @@ module ActionView
       #         data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
-        options.stringify_keys!
+        options = options.stringify_keys
 
         if disable_with = options.delete("disable_with")
           options["data-disable-with"] = disable_with
@@ -417,7 +420,7 @@ module ActionView
           options["data-confirm"] = confirm
         end
 
-        tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
+        tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options)
       end
 
       # Creates a button element that defines a <tt>submit</tt> button,
@@ -458,7 +461,7 @@ module ActionView
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}
-        options.stringify_keys!
+        options = options.stringify_keys
 
         if disable_with = options.delete("disable_with")
           options["data-disable-with"] = disable_with
@@ -497,13 +500,13 @@ module ActionView
       #   image_submit_tag("agree.png", :disabled => true, :class => "agree_disagree_button")
       #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
       def image_submit_tag(source, options = {})
-        options.stringify_keys!
+        options = options.stringify_keys
 
         if confirm = options.delete("confirm")
           options["data-confirm"] = confirm
         end
 
-        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options.stringify_keys)
+        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
       end
 
       # Creates a field set for grouping HTML form elements.
@@ -579,7 +582,7 @@ module ActionView
       #
       # ==== Examples
       #   number_field_tag 'quantity', nil, :in => 1...10
-      #   => <input id="quantity" name="quantity" min="1" max="9" />
+      #   => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
@@ -604,12 +607,12 @@ module ActionView
       end
 
       private
-        def html_options_for_form(url_for_options, options, *parameters_for_url)
+        def html_options_for_form(url_for_options, options)
           options.stringify_keys.tap do |html_options|
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             # The following URL is unescaped, this is just a hash of options, and it is the
             # responsibility of the caller to escape all the values.
-            html_options["action"]  = url_for(url_for_options, *parameters_for_url)
+            html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
             html_options["data-remote"] = true if html_options.delete("remote")
             html_options["authenticity_token"] = html_options.delete("authenticity_token") if html_options.has_key?("authenticity_token")
@@ -653,7 +656,7 @@ module ActionView
           if token == false || !protect_against_forgery?
             ''
           else
-            token = form_authenticity_token if token.nil?
+            token ||= form_authenticity_token
             tag(:input, :type => "hidden", :name => request_forgery_protection_token.to_s, :value => token)
           end
         end

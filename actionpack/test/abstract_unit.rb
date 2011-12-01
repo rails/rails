@@ -73,7 +73,17 @@ module RackTestUtils
 end
 
 module RenderERBUtils
+  def view
+    @view ||= begin
+      path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
+      view_paths = ActionView::PathSet.new([path])
+      ActionView::Base.new(view_paths)
+    end
+  end
+
   def render_erb(string)
+    @virtual_path = nil
+
     template = ActionView::Template.new(
       string.strip,
       "test template",
@@ -333,11 +343,16 @@ module ActionDispatch
         "#{FIXTURE_LOAD_PATH}/public"
       end
 
-      remove_method :logger
+      remove_method :stderr_logger
       # Silence logger
-      def logger
+      def stderr_logger
         nil
       end
   end
 end
 
+module RoutingTestHelpers
+  def url_for(set, options, recall = nil)
+    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
+  end
+end

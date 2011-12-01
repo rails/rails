@@ -28,7 +28,7 @@ module ActiveRecord::Associations::Builder
 
       def define_destroy_dependency_method
         name = self.name
-        model.send(:define_method, dependency_method_name) do
+        mixin.redefine_method(dependency_method_name) do
           send(name).each do |o|
             # No point in executing the counter update since we're going to destroy the parent anyway
             counter_method = ('belongs_to_counter_cache_before_destroy_for_' + self.class.name.downcase).to_sym
@@ -45,7 +45,7 @@ module ActiveRecord::Associations::Builder
 
       def define_delete_all_dependency_method
         name = self.name
-        model.send(:define_method, dependency_method_name) do
+        mixin.redefine_method(dependency_method_name) do
           send(name).delete_all
         end
       end
@@ -53,7 +53,7 @@ module ActiveRecord::Associations::Builder
 
       def define_restrict_dependency_method
         name = self.name
-        model.send(:define_method, dependency_method_name) do
+        mixin.redefine_method(dependency_method_name) do
           raise ActiveRecord::DeleteRestrictionError.new(name) unless send(name).empty?
         end
       end

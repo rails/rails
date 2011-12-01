@@ -29,7 +29,7 @@ module ActiveModel
   #
   #     include ActiveModel::Dirty
   #
-  #     define_attribute_methods = [:name]
+  #     define_attribute_methods [:name]
   #
   #     def name
   #       @name
@@ -98,7 +98,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      !changed_attributes.empty?
+      changed_attributes.any?
     end
 
     # List of attributes with unsaved changes.

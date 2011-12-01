@@ -16,15 +16,15 @@ module ActiveRecord::Associations::Builder
       def define_constructors
         name = self.name
 
-        model.redefine_method("build_#{name}") do |*params, &block|
+        mixin.redefine_method("build_#{name}") do |*params, &block|
           association(name).build(*params, &block)
         end
 
-        model.redefine_method("create_#{name}") do |*params, &block|
+        mixin.redefine_method("create_#{name}") do |*params, &block|
           association(name).create(*params, &block)
         end
 
-        model.redefine_method("create_#{name}!") do |*params, &block|
+        mixin.redefine_method("create_#{name}!") do |*params, &block|
           association(name).create!(*params, &block)
         end
       end

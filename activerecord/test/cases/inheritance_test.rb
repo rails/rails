@@ -236,11 +236,11 @@ class InheritanceTest < ActiveRecord::TestCase
         c.save
       end
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.set_inheritance_column('ruby_type')
+      Company.inheritance_column = 'ruby_type'
     end
     def switch_to_default_inheritance_column
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.set_inheritance_column('type')
+      Company.inheritance_column = 'type'
     end
 end
 
