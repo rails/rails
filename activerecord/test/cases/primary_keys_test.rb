@@ -23,6 +23,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal keyboard.to_key, [keyboard.id]
   end
 
+  def test_read_attribute_with_custom_primary_key
+    keyboard = Keyboard.create!
+    assert_equal keyboard.key_number, keyboard.read_attribute(:id)
+  end
+
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy

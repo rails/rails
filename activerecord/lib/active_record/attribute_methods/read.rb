@@ -58,7 +58,7 @@ module ActiveRecord
                   #{internal}
                 end
 
-                def self.attribute_#{attr_name}(v, attributes_cache, attr_name)
+                def self.attribute_#{attr_name}(v, attributes, attributes_cache, attr_name)
                   #{external}
                 end
               STR
@@ -68,7 +68,7 @@ module ActiveRecord
                   eval(internal)
                 end
 
-                singleton_class.send(:define_method, "attribute_#{attr_name}") do |v, attributes_cache, attr_name|
+                singleton_class.send(:define_method, "attribute_#{attr_name}") do |v, attributes, attributes_cache, attr_name|
                   eval(external)
                 end
               end
@@ -117,8 +117,8 @@ module ActiveRecord
         methods   = self.class.generated_attribute_methods
 
         if methods.respond_to?(accessor)
-          if @attributes.has_key?(attr_name)
-            methods.send(accessor, @attributes[attr_name], @attributes_cache, attr_name)
+          if @attributes.has_key?(attr_name) || attr_name == 'id'
+            methods.send(accessor, @attributes[attr_name], @attributes, @attributes_cache, attr_name)
           end
         elsif !self.class.attribute_methods_generated?
           # If we haven't generated the caster methods yet, do that and
