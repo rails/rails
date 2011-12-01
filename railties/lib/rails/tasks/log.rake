@@ -7,3 +7,16 @@ namespace :log do
     end
   end
 end
+
+desc "Tail the rails environment log file"
+task :tail, [:lines] => :environment do |t, args|
+  args.with_defaults(:lines => 100)
+  log_file = Rails.root.join("log/#{Rails.env.downcase}.log").to_s
+  if system('tail', '-f', "-n #{args.lines}", log_file).nil?
+    if RUBY_PLATFORM =~ /(:?mswin|mingw)/
+      warn "Sorry, rake tail is not available on windows"
+    else
+      warn "Sorry, the tail command may not be available in your operating system"
+    end
+  end
+end
