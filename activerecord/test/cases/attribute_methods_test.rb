@@ -114,6 +114,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert !topic.respond_to?(:nothingness)
   end
 
+  def test_deprecated_underscore_method
+    topic = Topic.find(1)
+    assert_equal topic.title, assert_deprecated { topic._title }
+  end
+
   def test_respond_to_with_custom_primary_key
     keyboard = Keyboard.create
     assert_not_nil keyboard.key_number
