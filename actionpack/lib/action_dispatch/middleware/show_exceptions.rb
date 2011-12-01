@@ -3,8 +3,8 @@ require 'action_dispatch/middleware/exception_wrapper'
 require 'active_support/deprecation'
 
 module ActionDispatch
-  # This middleware rescues any exception returned by the application and renders
-  # nice exception pages if it's being rescued locally.
+  # This middleware rescues any exception returned by the application
+  # and wraps them in a format for the end user.
   class ShowExceptions
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
 
@@ -40,10 +40,17 @@ module ActionDispatch
         raise exception if env['action_dispatch.show_exceptions'] == false
       end
 
-      response ? response : render_exception(env, exception)
+      response ? response : render_exception_with_failsafe(env, exception)
     end
 
     private
+
+    def render_exception_with_failsafe(env, exception)
+      render_exception(env, exception)
+    rescue Exception => failsafe_error
+      $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
+      FAILSAFE_RESPONSE
+    end
 
     def render_exception(env, exception)
       wrapper = ExceptionWrapper.new(env, exception)
@@ -59,13 +66,6 @@ module ActionDispatch
       else
         render(status, '')
       end
-    rescue Exception => failsafe_error
-      render_failsafe(failsafe_error)
-    end
-
-    def render_failsafe(failsafe_error)
-      $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
-      FAILSAFE_RESPONSE
     end
 
     def render(status, body)
@@ -73,7 +73,7 @@ module ActionDispatch
     end
 
     # TODO: Make this a middleware initialization parameter once
-    # we deprecated the second option
+    # we removed the second option (which is deprecated)
     def public_path
       defined?(Rails.public_path) ? Rails.public_path : 'public_path'
     end

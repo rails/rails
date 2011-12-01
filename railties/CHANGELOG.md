@@ -1,6 +1,8 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Display mounted engine's routes in `rake routes`. *Piotr Sarnacki*
+*   Add DebugExceptions middleware which contains features extracted from ShowExceptions middleware *José Valim*
+
+*   Display mounted engine's routes in `rake routes` *Piotr Sarnacki*
 
 *   Added displaying of mounted engine's routes with `rake routes ENGINES=true`. *Piotr Sarnacki*
 
@@ -9,7 +11,7 @@
     Example:
         config.railties_order = [Blog::Engine, :main_app, :all]
 
-*   Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box. *José Valim*
+*   Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box *José Valim*
 
 *   Update Rails::Rack::Logger middleware to apply any tags set in config.log_tags to the newly ActiveSupport::TaggedLogging Rails.logger. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications *DHH*
 
