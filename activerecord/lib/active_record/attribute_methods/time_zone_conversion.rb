@@ -19,14 +19,27 @@ module ActiveRecord
           # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
           # This enhanced read method automatically converts the UTC time stored in the database to the time
           # zone stored in Time.zone.
-          def attribute_access_code(attr_name)
-            if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
+          def internal_attribute_access_code(attr_name)
+            column = columns_hash[attr_name]
+
+            if create_time_zone_conversion_attribute?(attr_name, column)
               <<-CODE
                 cached = @attributes_cache['#{attr_name}']
                 return cached if cached
-                time = _read_attribute('#{attr_name}')
+                v = @attributes['#{attr_name}']
+                time = #{column.type_cast_code('v')}
                 @attributes_cache['#{attr_name}'] = time.acts_like?(:time) ? time.in_time_zone : time
               CODE
+            else
+              super
+            end
+          end
+
+          def external_attribute_access_code(attr_name)
+            column = columns_hash[attr_name]
+
+            if create_time_zone_conversion_attribute?(attr_name, column)
+              "attributes_cache[attr_name] ||= (#{attribute_cast_code(attr_name)})"
             else
               super
             end

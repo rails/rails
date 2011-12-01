@@ -29,6 +29,10 @@ module ActiveRecord
         end
       end
 
+      def generated_attribute_methods
+        @generated_attribute_methods ||= (base_class == self ? super : base_class.generated_attribute_methods)
+      end
+
       def undefine_attribute_methods
         if base_class == self
           super
