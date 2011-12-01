@@ -4,6 +4,8 @@
 
 *   Allow fresh_when/stale? to take a record instead of an options hash *DHH*
 
+*   Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`. Please look at ActiveRecord::Railtie for an example. *José Valim*
+
 *   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
 *   Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts *José Valim*

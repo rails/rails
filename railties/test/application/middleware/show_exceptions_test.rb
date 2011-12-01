@@ -16,6 +16,35 @@ module ApplicationTests
       teardown_app
     end
 
+    test "show exceptions middleware filter backtrace before logging" do
+      my_middleware = Struct.new(:app) do
+        def call(env)
+          raise "Failure"
+        end
+      end
+
+      app.config.middleware.use my_middleware
+
+      stringio = StringIO.new
+      Rails.logger = Logger.new(stringio)
+
+      get "/"
+      assert_no_match(/action_dispatch/, stringio.string)
+    end
+
+    test "renders active record exceptions as 404" do
+      my_middleware = Struct.new(:app) do
+        def call(env)
+          raise ActiveRecord::RecordNotFound
+        end
+      end
+
+      app.config.middleware.use my_middleware
+
+      get "/"
+      assert_equal 404, last_response.status
+    end
+
     test "unspecified route when set action_dispatch.show_exceptions to false" do
       app.config.action_dispatch.show_exceptions = false
 
