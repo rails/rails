@@ -1,3 +1,5 @@
+*   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
+
 ## Rails 3.1.3 (unreleased) ##
 
 *   Downgrade sprockets to ~> 2.0.3. Using 2.1.0 caused regressions.
