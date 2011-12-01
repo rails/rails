@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`. Please look at ActiveRecord::Railtie for an example. *José Valim*
+
 *   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
 *   Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts *José Valim*
