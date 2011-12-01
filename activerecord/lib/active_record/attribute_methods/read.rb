@@ -42,38 +42,34 @@ module ActiveRecord
         end
 
         protected
-          # Where possible, generate the method by evalling a string, as this will result in
-          # faster accesses because it avoids the block eval and then string eval incurred
-          # by the second branch.
+          # We want to generate the methods via module_eval rather than define_method,
+          # because define_method is slower on dispatch and uses more memory (because it
+          # creates a closure).
           #
-          # The second, slower, branch is necessary to support instances where the database
-          # returns columns with extra stuff in (like 'my_column(omg)').
+          # But sometimes the database might return columns with characters that are not
+          # allowed in normal method names (like 'my_column(omg)'. So to work around this
+          # we first define with the __temp__ identifier, and then use alias method to
+          # rename it to what we want.
           def define_method_attribute(attr_name)
             cast_code = attribute_cast_code(attr_name)
             internal  = internal_attribute_access_code(attr_name, cast_code)
             external  = external_attribute_access_code(attr_name, cast_code)
 
-            if attr_name =~ ActiveModel::AttributeMethods::NAME_COMPILABLE_REGEXP
-              generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__
-                def #{attr_name}
-                  #{internal}
-                end
-
-                def self.attribute_#{attr_name}(v, attributes, attributes_cache, attr_name)
-                  #{external}
-                end
-              STR
-            else
-              generated_attribute_methods.module_eval do
-                define_method(attr_name) do
-                  eval(internal)
-                end
-
-                singleton_class.send(:define_method, "attribute_#{attr_name}") do |v, attributes, attributes_cache, attr_name|
-                  eval(external)
-                end
+            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__
+              def __temp__
+                #{internal}
               end
-            end
+              alias_method '#{attr_name}', :__temp__
+              undef_method :__temp__
+            STR
+
+            generated_attribute_methods.singleton_class.module_eval <<-STR, __FILE__, __LINE__
+              def __temp__(v, attributes, attributes_cache, attr_name)
+                #{external}
+              end
+              alias_method 'attribute_#{attr_name}', :__temp__
+              undef_method :__temp__
+            STR
           end
 
         private

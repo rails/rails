@@ -570,10 +570,12 @@ class BasicsTest < ActiveRecord::TestCase
     weird = Weird.create('a$b' => 'value')
     weird.reload
     assert_equal 'value', weird.send('a$b')
+    assert_equal 'value', weird.read_attribute('a$b')
 
     weird.update_column('a$b', 'value2')
     weird.reload
     assert_equal 'value2', weird.send('a$b')
+    assert_equal 'value2', weird.read_attribute('a$b')
   end
 
   def test_multiparameter_attributes_on_date
