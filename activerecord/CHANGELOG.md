@@ -1,5 +1,6 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Added ActiveRecord::Base#last_modified to work with the new fresh_when/stale? conditional get methods from Action Pack *DHH*
 
 *   Implemented ActiveRecord::Relation#pluck method
 

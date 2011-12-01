@@ -1702,6 +1702,13 @@ MSG
         end
       end
 
+      # By default returns the value of the updated_at attribute, but can be overwritten to 
+      # provide another indicator of when this record was last updated. This is used by
+      # ActionControllers conditional get fresh_when/stale? methods.
+      def last_modified
+        self[:updated_at]
+      end
+
       def quoted_id #:nodoc:
         quote_value(id, column_for_attribute(self.class.primary_key))
       end

@@ -51,7 +51,7 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello_with_record
-    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+    record = Struct.new(:last_modified, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
     
     if stale?(record)
       render :action => 'hello_world'
@@ -65,7 +65,7 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello_with_public_header_with_record
-    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+    record = Struct.new(:last_modified, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
 
     if stale?(record, :public => true)
       render :action => 'hello_world'

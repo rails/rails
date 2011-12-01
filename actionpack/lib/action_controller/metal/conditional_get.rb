@@ -23,7 +23,7 @@ module ActionController
     # This will render the show template if the request isn't sending a matching etag or
     # If-Modified-Since header and just a <tt>304 Not Modified</tt> response if there's a match.
     #
-    # You can also just pass a record where last_modified will be set by calling updated_at and the etag by passing the object itself. Example:
+    # You can also just pass a record where last_modified will be set by calling last_modified and the etag by passing the object itself. Example:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -42,7 +42,7 @@ module ActionController
         options.assert_valid_keys(:etag, :last_modified, :public)
       else
         record  = record_or_options
-        options = { :etag => record, :last_modified => record.try(:updated_at) }.merge(additional_options)
+        options = { :etag => record, :last_modified => record.try(:last_modified) }.merge(additional_options)
       end
 
       response.etag          = options[:etag]          if options[:etag]
