@@ -33,6 +33,7 @@ module ApplicationTests
         "ActionDispatch::RequestId",
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
+        "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
         "Rack::Sendfile",
         "ActionDispatch::Reloader",
@@ -104,10 +105,11 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
-    test "includes show exceptions even if action_dispatch.show_exceptions is disabled" do
+    test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
       assert middleware.include?("ActionDispatch::ShowExceptions")
+      assert middleware.include?("ActionDispatch::DebugExceptions")
     end
 
     test "removes ActionDispatch::Reloader if cache_classes is true" do

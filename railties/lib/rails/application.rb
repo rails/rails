@@ -195,10 +195,13 @@ module Rails
         middleware.use ::ActionDispatch::RequestId
         middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions
+        middleware.use ::ActionDispatch::DebugExceptions
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
+
         if config.action_dispatch.x_sendfile_header.present?
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
         end
+
         middleware.use ::ActionDispatch::Reloader unless config.cache_classes
         middleware.use ::ActionDispatch::Callbacks
         middleware.use ::ActionDispatch::Cookies
