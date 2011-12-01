@@ -1,7 +1,6 @@
-require 'active_support/core_ext/exception'
 require 'action_controller/metal/exceptions'
-require 'active_support/notifications'
 require 'action_dispatch/http/request'
+require 'action_dispatch/middleware/exception_wrapper'
 require 'active_support/deprecation'
 
 module ActionDispatch
@@ -9,25 +8,6 @@ module ActionDispatch
   # nice exception pages if it's being rescued locally.
   class ShowExceptions
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
-
-    cattr_accessor :rescue_responses
-    @@rescue_responses = Hash.new(:internal_server_error)
-    @@rescue_responses.merge!(
-      'ActionController::RoutingError'             => :not_found,
-      'AbstractController::ActionNotFound'         => :not_found,
-      'ActionController::MethodNotAllowed'         => :method_not_allowed,
-      'ActionController::NotImplemented'           => :not_implemented,
-      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity
-    )
-
-    cattr_accessor :rescue_templates
-    @@rescue_templates = Hash.new('diagnostics')
-    @@rescue_templates.merge!(
-      'ActionView::MissingTemplate'         => 'missing_template',
-      'ActionController::RoutingError'      => 'routing_error',
-      'AbstractController::ActionNotFound'  => 'unknown_action',
-      'ActionView::Template::Error'         => 'template_error'
-    )
 
     FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
       ["<html><body><h1>500 Internal Server Error</h1>" <<
@@ -59,13 +39,13 @@ module ActionDispatch
 
     private
       def render_exception(env, exception)
-        log_error(env, exception)
-        exception = original_exception(exception)
+        wrapper = ExceptionWrapper.new(env, exception)
+        log_error(env, wrapper)
 
         if env['action_dispatch.show_detailed_exceptions'] == true
-          rescue_action_diagnostics(env, exception)
+          rescue_action_diagnostics(wrapper)
         else
-          rescue_action_error_page(exception)
+          rescue_action_error_page(wrapper)
         end
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
@@ -74,17 +54,17 @@ module ActionDispatch
 
       # Render detailed diagnostics for unhandled exceptions rescued from
       # a controller action.
-      def rescue_action_diagnostics(env, exception)
+      def rescue_action_diagnostics(wrapper)
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
-          :request => Request.new(env),
-          :exception => exception,
-          :application_trace => application_trace(env, exception),
-          :framework_trace => framework_trace(env, exception),
-          :full_trace => full_trace(env, exception)
+          :request => Request.new(wrapper.env),
+          :exception => wrapper.exception,
+          :application_trace => wrapper.application_trace,
+          :framework_trace => wrapper.framework_trace,
+          :full_trace => wrapper.full_trace
         )
-        file = "rescues/#{@@rescue_templates[exception.class.name]}"
+        file = "rescues/#{wrapper.rescue_template}"
         body = template.render(:template => file, :layout => 'rescues/layout')
-        render(status_code(exception), body)
+        render(wrapper.status_code, body)
       end
 
       # Attempts to render a static error page based on the
@@ -94,8 +74,8 @@ module ActionDispatch
       # it will first attempt to render the file at <tt>public/500.da.html</tt>
       # then attempt to render <tt>public/500.html</tt>. If none of them exist,
       # the body of the response will be left empty.
-      def rescue_action_error_page(exception)
-        status = status_code(exception)
+      def rescue_action_error_page(wrapper)
+        status = wrapper.status_code
         locale_path = "#{public_path}/#{status}.#{I18n.locale}.html" if I18n.locale
         path = "#{public_path}/#{status}.html"
 
@@ -108,10 +88,6 @@ module ActionDispatch
         end
       end
 
-      def status_code(exception)
-        Rack::Utils.status_code(@@rescue_responses[exception.class.name])
-      end
-
       def render(status, body)
         [status, {'Content-Type' => "text/html; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
       end
@@ -120,33 +96,18 @@ module ActionDispatch
         defined?(Rails.public_path) ? Rails.public_path : 'public_path'
       end
 
-      def log_error(env, exception)
-        return unless logger(env)
+      def log_error(env, wrapper)
+        logger = logger(env)
+        return unless logger
+
+        exception = wrapper.exception
 
         ActiveSupport::Deprecation.silence do
           message = "\n#{exception.class} (#{exception.message}):\n"
           message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-          message << "  " << application_trace(env, exception).join("\n  ")
-          logger(env).fatal("#{message}\n\n")
+          message << "  " << wrapper.application_trace.join("\n  ")
+          logger.fatal("#{message}\n\n")
         end
-      end
-
-      def application_trace(env, exception)
-        clean_backtrace(env, exception, :silent)
-      end
-
-      def framework_trace(env, exception)
-        clean_backtrace(env, exception, :noise)
-      end
-
-      def full_trace(env, exception)
-        clean_backtrace(env, exception, :all)
-      end
-
-      def clean_backtrace(env, exception, *args)
-        env['action_dispatch.backtrace_cleaner'] ?
-          env['action_dispatch.backtrace_cleaner'].clean(exception.backtrace, *args) :
-          exception.backtrace
       end
 
       def logger(env)
@@ -154,19 +115,7 @@ module ActionDispatch
       end
 
       def stderr_logger
-        Logger.new($stderr)
+        @stderr_logger ||= Logger.new($stderr)
       end
-
-    def original_exception(exception)
-      if registered_original_exception?(exception)
-        exception.original_exception
-      else
-        exception
-      end
-    end
-
-    def registered_original_exception?(exception)
-      exception.respond_to?(:original_exception) && @@rescue_responses.has_key?(exception.original_exception.class.name)
-    end
   end
 end
