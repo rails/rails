@@ -25,6 +25,20 @@ module ActiveRecord
       end
 
       module ClassMethods
+        def define_method_attribute(attr_name)
+          super
+
+          if attr_name == primary_key && attr_name != 'id'
+            generated_attribute_methods.send(:alias_method, :id, primary_key)
+            generated_attribute_methods.module_eval <<-CODE, __FILE__, __LINE__
+              def self.attribute_id(v, attributes, attributes_cache, attr_name)
+                attr_name = '#{primary_key}'
+                send(:'attribute_#{attr_name}', attributes[attr_name], attributes, attributes_cache, attr_name)
+              end
+            CODE
+          end
+        end
+
         def dangerous_attribute_method?(method_name)
           super && !['id', 'id=', 'id?'].include?(method_name)
         end
