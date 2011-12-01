@@ -2,6 +2,8 @@
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
+*   Allow fresh_when/stale? to take a record instead of an options hash *DHH*
+
 *   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
 *   Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts *José Valim*

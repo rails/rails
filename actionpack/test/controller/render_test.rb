@@ -50,8 +50,24 @@ class TestController < ActionController::Base
     end
   end
 
+  def conditional_hello_with_record
+    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+    
+    if stale?(record)
+      render :action => 'hello_world'
+    end
+  end
+
   def conditional_hello_with_public_header
     if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
+      render :action => 'hello_world'
+    end
+  end
+
+  def conditional_hello_with_public_header_with_record
+    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
+
+    if stale?(record, :public => true)
       render :action => 'hello_world'
     end
   end
@@ -1439,6 +1455,36 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_present @response.body
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
+
+
+  def test_responds_with_last_modified_with_record
+    get :conditional_hello_with_record
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_with_record
+    @request.if_modified_since = @last_modified
+    get :conditional_hello_with_record
+    assert_equal 304, @response.status.to_i
+    assert_blank @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_but_etag_differs_with_record
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = "234"
+    get :conditional_hello_with_record
+    assert_response :success
+  end
+
+  def test_request_modified_with_record
+    @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    get :conditional_hello_with_record
+    assert_equal 200, @response.status.to_i
+    assert_present @response.body
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
 
   def test_request_with_bang_gets_last_modified
     get :conditional_hello_with_bangs
