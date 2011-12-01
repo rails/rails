@@ -58,14 +58,11 @@ module ActiveRecord
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
         end
 
-        def define_method_attribute(attr_name)
+        private
+
+        def attribute_cast_code(attr_name)
           if serialized_attributes.include?(attr_name)
-            generated_attribute_methods.module_eval(<<-CODE, __FILE__, __LINE__)
-              def _#{attr_name}
-                @attributes['#{attr_name}'].unserialized_value
-              end
-              alias #{attr_name} _#{attr_name}
-            CODE
+            "v.unserialized_value"
           else
             super
           end
