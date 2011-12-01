@@ -33,7 +33,7 @@ module ActiveRecord
           if base_class == self
             generated_attribute_methods.module_eval do
               public_methods(false).each do |m|
-                singleton_class.send(:undef_method, m) if m.to_s =~ /^cast_/
+                singleton_class.send(:undef_method, m) if m.to_s =~ /^attribute_/
               end
             end
           end
@@ -49,27 +49,27 @@ module ActiveRecord
           # The second, slower, branch is necessary to support instances where the database
           # returns columns with extra stuff in (like 'my_column(omg)').
           def define_method_attribute(attr_name)
-            access_code = attribute_access_code(attr_name)
-            cast_code   = "v && (#{attribute_cast_code(attr_name)})"
+            internal = internal_attribute_access_code(attr_name)
+            external = external_attribute_access_code(attr_name)
 
             if attr_name =~ ActiveModel::AttributeMethods::NAME_COMPILABLE_REGEXP
               generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__
                 def #{attr_name}
-                  #{access_code}
+                  #{internal}
                 end
 
-                def self.cast_#{attr_name}(v)
-                  #{cast_code}
+                def self.attribute_#{attr_name}(v, attributes_cache, attr_name)
+                  #{external}
                 end
               STR
             else
               generated_attribute_methods.module_eval do
                 define_method(attr_name) do
-                  eval(access_code)
+                  eval(internal)
                 end
 
-                singleton_class.send(:define_method, "cast_#{attr_name}") do |v|
-                  eval(cast_code)
+                singleton_class.send(:define_method, "attribute_#{attr_name}") do |v, attributes_cache, attr_name|
+                  eval(external)
                 end
               end
             end
@@ -80,7 +80,7 @@ module ActiveRecord
             attribute_types_cached_by_default.include?(column.type)
           end
 
-          def attribute_access_code(attr_name)
+          def internal_attribute_access_code(attr_name)
             access_code = "(v=@attributes['#{attr_name}']) && #{attribute_cast_code(attr_name)}"
 
             unless attr_name == self.primary_key
@@ -89,6 +89,16 @@ module ActiveRecord
 
             if cache_attribute?(attr_name)
               access_code = "@attributes_cache['#{attr_name}'] ||= (#{access_code})"
+            end
+
+            access_code
+          end
+
+          def external_attribute_access_code(attr_name)
+            access_code = "v && #{attribute_cast_code(attr_name)}"
+
+            if cache_attribute?(attr_name)
+              access_code = "attributes_cache[attr_name] ||= (#{access_code})"
             end
 
             access_code
@@ -103,36 +113,26 @@ module ActiveRecord
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         attr_name = attr_name.to_s
-        caster    = "cast_#{attr_name}"
+        accessor  = "attribute_#{attr_name}"
         methods   = self.class.generated_attribute_methods
 
-        if methods.respond_to?(caster)
+        if methods.respond_to?(accessor)
           if @attributes.has_key?(attr_name)
-            @attributes_cache[attr_name] || methods.send(caster, @attributes[attr_name])
+            methods.send(accessor, @attributes[attr_name], @attributes_cache, attr_name)
           end
+        elsif !self.class.attribute_methods_generated?
+          # If we haven't generated the caster methods yet, do that and
+          # then try again
+          self.class.define_attribute_methods
+          read_attribute(attr_name)
         else
-          _read_attribute attr_name
-        end
-      end
-
-      def _read_attribute(attr_name)
-        attr_name = attr_name.to_s
-        attr_name = self.class.primary_key if attr_name == 'id'
-
-        unless @attributes[attr_name].nil?
-          type_cast_attribute(column_for_attribute(attr_name), @attributes[attr_name])
+          # If we get here, the attribute has no associated DB column, so
+          # just return it verbatim.
+          @attributes[attr_name]
         end
       end
 
       private
-        def type_cast_attribute(column, value)
-          if column
-            column.type_cast(value)
-          else
-            value
-          end
-        end
-
         def attribute(attribute_name)
           read_attribute(attribute_name)
         end

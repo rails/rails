@@ -77,14 +77,6 @@ module ActiveRecord
         end
       end
 
-      def type_cast_attribute(column, value)
-        if column && self.class.serialized_attributes[column.name]
-          value.unserialized_value
-        else
-          super
-        end
-      end
-
       def type_cast_attribute_for_write(column, value)
         if column && coder = self.class.serialized_attributes[column.name]
           Attribute.new(coder, value, :unserialized)
