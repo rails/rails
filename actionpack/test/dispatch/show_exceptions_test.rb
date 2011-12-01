@@ -3,12 +3,7 @@ require 'abstract_unit'
 class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
   class Boomer
-    def initialize(detailed  = false)
-      @detailed = detailed
-    end
-
     def call(env)
-      env['action_dispatch.show_detailed_exceptions'] = @detailed
       req = ActionDispatch::Request.new(env)
       case req.path
       when "/not_found"
@@ -23,7 +18,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  ProductionApp = ActionDispatch::ShowExceptions.new((Boomer.new(false)))
+  ProductionApp = ActionDispatch::ShowExceptions.new(Boomer.new)
 
   test 'skip diagnosis if not showing exceptions' do
     @app = ProductionApp
