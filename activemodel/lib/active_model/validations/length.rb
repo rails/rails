@@ -23,7 +23,7 @@ module ActiveModel
         keys = CHECKS.keys & options.keys
 
         if keys.empty?
-          raise ArgumentError, 'Range unspecified. Specify the :within, :maximum, :minimum, or :is option.'
+          raise ArgumentError, 'Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option.'
         end
 
         keys.each do |key|
