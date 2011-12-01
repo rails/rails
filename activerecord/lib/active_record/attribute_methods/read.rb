@@ -49,8 +49,9 @@ module ActiveRecord
           # The second, slower, branch is necessary to support instances where the database
           # returns columns with extra stuff in (like 'my_column(omg)').
           def define_method_attribute(attr_name)
-            internal = internal_attribute_access_code(attr_name)
-            external = external_attribute_access_code(attr_name)
+            cast_code = attribute_cast_code(attr_name)
+            internal  = internal_attribute_access_code(attr_name, cast_code)
+            external  = external_attribute_access_code(attr_name, cast_code)
 
             if attr_name =~ ActiveModel::AttributeMethods::NAME_COMPILABLE_REGEXP
               generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__
@@ -80,10 +81,10 @@ module ActiveRecord
             attribute_types_cached_by_default.include?(column.type)
           end
 
-          def internal_attribute_access_code(attr_name)
-            access_code = "(v=@attributes['#{attr_name}']) && #{attribute_cast_code(attr_name)}"
+          def internal_attribute_access_code(attr_name, cast_code)
+            access_code = "(v=@attributes['#{attr_name}']) && #{cast_code}"
 
-            unless attr_name == self.primary_key
+            unless attr_name == primary_key
               access_code.insert(0, "missing_attribute('#{attr_name}', caller) unless @attributes.has_key?('#{attr_name}'); ")
             end
 
@@ -94,8 +95,8 @@ module ActiveRecord
             access_code
           end
 
-          def external_attribute_access_code(attr_name)
-            access_code = "v && #{attribute_cast_code(attr_name)}"
+          def external_attribute_access_code(attr_name, cast_code)
+            access_code = "v && #{cast_code}"
 
             if cache_attribute?(attr_name)
               access_code = "attributes_cache[attr_name] ||= (#{access_code})"
