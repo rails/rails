@@ -29,8 +29,8 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  ProductionApp = ActionDispatch::ShowExceptions.new(Boomer.new(false))
-  DevelopmentApp = ActionDispatch::ShowExceptions.new(Boomer.new(true))
+  ProductionApp  = ActionDispatch::ShowExceptions.new(ActionDispatch::DebugExceptions.new(Boomer.new(false)))
+  DevelopmentApp = ActionDispatch::ShowExceptions.new(ActionDispatch::DebugExceptions.new(Boomer.new(true)))
 
   test "rescue with error page when show_exceptions is false" do
     @app = ProductionApp

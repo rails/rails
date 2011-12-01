@@ -1,4 +1,3 @@
-require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
 require 'action_dispatch/middleware/exception_wrapper'
 require 'active_support/deprecation'
@@ -36,100 +35,47 @@ module ActionDispatch
 
     def call(env)
       begin
-        status, headers, body = @app.call(env)
-        exception = nil
-
-        # Only this middleware cares about RoutingError. So, let's just raise
-        # it here.
-        if headers['X-Cascade'] == 'pass'
-           raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
-        end
+        response  = @app.call(env)
       rescue Exception => exception
         raise exception if env['action_dispatch.show_exceptions'] == false
       end
 
-      exception ? render_exception(env, exception) : [status, headers, body]
+      response ? response : render_exception(env, exception)
     end
 
     private
-      def render_exception(env, exception)
-        wrapper = ExceptionWrapper.new(env, exception)
-        log_error(env, wrapper)
 
-        if env['action_dispatch.show_detailed_exceptions'] == true
-          rescue_action_diagnostics(wrapper)
-        else
-          rescue_action_error_page(wrapper)
-        end
-      rescue Exception => failsafe_error
-        $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
-        FAILSAFE_RESPONSE
+    def render_exception(env, exception)
+      wrapper = ExceptionWrapper.new(env, exception)
+
+      status      = wrapper.status_code
+      locale_path = "#{public_path}/#{status}.#{I18n.locale}.html" if I18n.locale
+      path        = "#{public_path}/#{status}.html"
+
+      if locale_path && File.exist?(locale_path)
+        render(status, File.read(locale_path))
+      elsif File.exist?(path)
+        render(status, File.read(path))
+      else
+        render(status, '')
       end
+    rescue Exception => failsafe_error
+      render_failsafe(failsafe_error)
+    end
 
-      # Render detailed diagnostics for unhandled exceptions rescued from
-      # a controller action.
-      def rescue_action_diagnostics(wrapper)
-        template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
-          :request => Request.new(wrapper.env),
-          :exception => wrapper.exception,
-          :application_trace => wrapper.application_trace,
-          :framework_trace => wrapper.framework_trace,
-          :full_trace => wrapper.full_trace
-        )
-        file = "rescues/#{wrapper.rescue_template}"
-        body = template.render(:template => file, :layout => 'rescues/layout')
-        render(wrapper.status_code, body)
-      end
+    def render_failsafe(failsafe_error)
+      $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
+      FAILSAFE_RESPONSE
+    end
 
-      # Attempts to render a static error page based on the
-      # <tt>status_code</tt> thrown, or just return headers if no such file
-      # exists. At first, it will try to render a localized static page.
-      # For example, if a 500 error is being handled Rails and locale is :da,
-      # it will first attempt to render the file at <tt>public/500.da.html</tt>
-      # then attempt to render <tt>public/500.html</tt>. If none of them exist,
-      # the body of the response will be left empty.
-      def rescue_action_error_page(wrapper)
-        status = wrapper.status_code
-        locale_path = "#{public_path}/#{status}.#{I18n.locale}.html" if I18n.locale
-        path = "#{public_path}/#{status}.html"
+    def render(status, body)
+      [status, {'Content-Type' => "text/html; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
+    end
 
-        if locale_path && File.exist?(locale_path)
-          render(status, File.read(locale_path))
-        elsif File.exist?(path)
-          render(status, File.read(path))
-        else
-          render(status, '')
-        end
-      end
-
-      def render(status, body)
-        [status, {'Content-Type' => "text/html; charset=#{Response.default_charset}", 'Content-Length' => body.bytesize.to_s}, [body]]
-      end
-
-      def public_path
-        defined?(Rails.public_path) ? Rails.public_path : 'public_path'
-      end
-
-      def log_error(env, wrapper)
-        logger = logger(env)
-        return unless logger
-
-        exception = wrapper.exception
-
-        ActiveSupport::Deprecation.silence do
-          message = "\n#{exception.class} (#{exception.message}):\n"
-          message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-          message << "  " << wrapper.application_trace.join("\n  ")
-          logger.fatal("#{message}\n\n")
-        end
-      end
-
-      def logger(env)
-        env['action_dispatch.logger'] || stderr_logger
-      end
-
-      def stderr_logger
-        @stderr_logger ||= Logger.new($stderr)
-      end
+    # TODO: Make this a middleware initialization parameter once
+    # we deprecated the second option
+    def public_path
+      defined?(Rails.public_path) ? Rails.public_path : 'public_path'
+    end
   end
 end
