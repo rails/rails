@@ -80,6 +80,17 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_equal expected, base.exec_explain(sqls, binds)
     end
 
+    def test_silence_auto_explain
+      base.expects(:collecting_sqls_for_explain).never
+      base.logger.expects(:warn).never
+
+      [base, cars(:honda)].each do |target|
+        target.silence_auto_explain do
+          with_threshold(0) { Car.all }
+        end
+      end
+    end
+
     def with_threshold(threshold)
       current_threshold = base.auto_explain_threshold_in_seconds
       base.auto_explain_threshold_in_seconds = threshold
