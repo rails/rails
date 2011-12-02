@@ -71,6 +71,10 @@ class ActionPackAssertionsController < ActionController::Base
     render :text => "Hello!", :content_type => Mime::RSS
   end
 
+  def render_with_layout
+    render "test/hello_world", :layout => "layouts/standard"
+  end
+
   def session_stuffing
     session['xmas'] = 'turkey'
     render :text => "ho ho ho"
@@ -469,6 +473,18 @@ class AssertTemplateTest < ActionController::TestCase
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :hello_planet
     end
+  end
+
+  def test_fails_with_wrong_layout
+    get :render_with_layout
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :layout => "application"
+    end
+  end
+
+  def test_passes_with_correct_layout
+    get :render_with_layout
+    assert_template :layout => "layouts/standard"
   end
 
   def test_assert_template_reset_between_requests
