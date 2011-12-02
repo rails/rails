@@ -45,6 +45,11 @@ module ActionDispatch
 
     private
 
+    # Define this method because some plugins were monkey patching it.
+    # Remove this after 3.2 is out with the other deprecations in this class.
+    def status_code(*)
+    end
+
     def render_exception_with_failsafe(env, exception)
       render_exception(env, exception)
     rescue Exception => failsafe_error
