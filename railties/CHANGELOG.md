@@ -5,7 +5,7 @@
     configuration files. With a value of 0.5 in development.rb, and commented
     out in production.rb. No mention in test.rb. *fxn*
 
-*   Display mounted engine's routes in `rake routes`. *Piotr Sarnacki*
+*   Add DebugExceptions middleware which contains features extracted from ShowExceptions middleware *José Valim*
 
 *   Display mounted engine's routes in `rake routes` *Piotr Sarnacki*
 

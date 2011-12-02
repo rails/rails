@@ -1,5 +1,5 @@
 module ActiveRecord
-  module Explain # :nodoc
+  module Explain # :nodoc:
     # logging_query_plan calls could appear nested in the call stack. In
     # particular this happens when a relation fetches its records, since
     # that results in find_by_sql calls downwards.
@@ -31,7 +31,7 @@ module ActiveRecord
 
     # SCHEMA queries cannot be EXPLAINed, also we do not want to run EXPLAIN on
     # our own EXPLAINs now matter how loopingly beautiful that would be.
-    SKIP_EXPLAIN_FOR = %(SCHEMA EXPLAIN)
+    SKIP_EXPLAIN_FOR = %w(SCHEMA EXPLAIN)
     def ignore_explain_notification?(payload)
       payload[:exception] || SKIP_EXPLAIN_FOR.include?(payload[:name])
     end
