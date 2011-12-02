@@ -2213,7 +2213,7 @@ MSG
     include Associations, NamedScope
     include IdentityMap
     include ActiveModel::SecurePassword
-    extend Explain
+    include Explain
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
