@@ -31,9 +31,9 @@ module ActiveRecord
           if attr_name == primary_key && attr_name != 'id'
             generated_attribute_methods.send(:alias_method, :id, primary_key)
             generated_attribute_methods.module_eval <<-CODE, __FILE__, __LINE__
-              def self.id(v, attributes, attributes_cache, attr_name)
+              def self.attribute_id(v, attributes, attributes_cache, attr_name)
                 attr_name = '#{primary_key}'
-                send(attr_name, attributes[attr_name], attributes, attributes_cache, attr_name)
+                send(:'attribute_#{attr_name}', attributes[attr_name], attributes, attributes_cache, attr_name)
               end
             CODE
           end
