@@ -85,7 +85,7 @@ module ActiveRecord
       # the threshold is set to 0.
       #
       # As the name of the method suggests this only applies to automatic
-      # EXPLAINs, manual calls to +ActiveRecord::Relation#explain' run.
+      # EXPLAINs, manual calls to +ActiveRecord::Relation#explain+ run.
       def silence_auto_explain
         # Implemented as a flag rather that setting the threshold to nil
         # because we should not depend on a value that may be changed
