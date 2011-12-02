@@ -1,7 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
 *   New applications get a flag
-    `config.active_record.auto_explain_threshold_in_seconds` in the evironments
+    `config.active_record.auto_explain_threshold_in_seconds` in the environments
     configuration files. With a value of 0.5 in development.rb, and commented
     out in production.rb. No mention in test.rb. *fxn*
 
