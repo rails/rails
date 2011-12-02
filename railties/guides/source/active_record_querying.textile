@@ -1400,7 +1400,7 @@ silence_auto_explain do
 end
 </ruby>
 
-That may be useful for queries you know are slow but fine, like a heavyweigth
+That may be useful for queries you know are slow but fine, like a heavyweight
 report of an admin interface.
 
 As its name suggests, +silence_auto_explain+ only silences automatic EXPLAINs.
