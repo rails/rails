@@ -2055,7 +2055,7 @@ NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
 h4. +pluck+
 
-Plucks the value of the passed method for each element and returns the result as an array
+The +pluck+ method collects the value of the passed method for each element and returns the result as an array.
 
 <ruby>
 people.pluck(:name) # => [ "David Heinemeier Hansson", "Jamie Heinemeier Hansson" ]
