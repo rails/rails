@@ -336,6 +336,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generated_environments_file_for_auto_explain
+    run_generator [destination_root, "--skip-active-record"]
+    %w(development test production).each do |env|
+      assert_file "config/environments/#{env}.rb" do |file|
+        assert_no_match %r(auto_explain_threshold_in_seconds), file
+      end
+    end
+  end
+
 protected
 
   def action(*args, &block)

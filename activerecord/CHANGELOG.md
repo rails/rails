@@ -1,5 +1,16 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Implements automatic EXPLAIN logging for slow queries.
+
+    A new configuration parameter `config.active_record.auto_explain_threshold_in_seconds`
+    determines what's to be considered a slow query. Setting that to `nil` disables
+    this feature. Defaults are 0.5 in development mode, and `nil` in test and production
+    modes.
+
+    As of this writing there's support for SQLite, MySQL (mysql2 adapter), and
+    PostgreSQL.
+
+    *fxn*
 
 *   Implemented ActiveRecord::Relation#pluck method
 

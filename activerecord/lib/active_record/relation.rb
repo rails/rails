@@ -10,11 +10,12 @@ module ActiveRecord
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reorder, :reverse_order, :uniq]
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain
 
     # These are explicitly delegated to improve performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to => :to_a
-    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key, :connection, :column_hash,:to => :klass
+    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
+             :connection, :column_hash, :auto_explain_threshold_in_seconds, :to => :klass
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions, :default_scoped
@@ -144,23 +145,35 @@ module ActiveRecord
         super
     end
 
-    def explain
-      queries = []
-      callback = lambda do |*args|
-        payload = args.last
-        queries << payload[:sql] unless payload[:exception] || %w(SCHEMA EXPLAIN).include?(payload[:name])
-      end
-
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-        to_a
-      end
-
-      queries.map do |sql|
-        "EXPLAIN for: #{sql}\n#{@klass.connection.explain(sql)}"
-      end.join("\n")
+    # Runs EXPLAIN on the query or queries triggered by this relation and
+    # returns the result as a string. The string is formatted imitating the
+    # ones printed by the database shell.
+    #
+    # Note that this method actually runs the queries, since the results of some
+    # are needed by the next ones when eager loading is going on.
+    #
+    # Please see further details in the
+    # {Active Record Query Interface guide}[http://edgeguides.rubyonrails.org/active_record_querying.html#running-explain].
+   def explain
+      results, sqls, binds = collecting_sqls_for_explain { exec_query }
+      exec_explain(sqls, binds)
     end
 
     def to_a
+      # We monitor here the entire execution rather than individual SELECTs
+      # because from the point of view of the user fetching the records of a
+      # relation is a single unit of work. You want to know if this call takes
+      # too long, not if the individual queries take too long.
+      #
+      # It could be the case that none of the queries involved surpass the
+      # threshold, and at the same time the sum of them all does. The user
+      # should get a query plan logged in that case.
+      logging_query_plan do
+        exec_query
+      end
+    end
+
+    def exec_query
       return @records if loaded?
 
       default_scoped = with_default_scope
@@ -191,6 +204,7 @@ module ActiveRecord
       @loaded = true
       @records
     end
+    private :exec_query
 
     def as_json(options = nil) #:nodoc:
       to_a.as_json(options)
@@ -543,6 +557,5 @@ module ActiveRecord
       # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
       string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map{ |s| s.downcase }.uniq - ['raw_sql_']
     end
-
   end
 end

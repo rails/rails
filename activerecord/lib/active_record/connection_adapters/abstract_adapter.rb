@@ -142,6 +142,12 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support explain? As of this writing sqlite3,
+      # mysql2, and postgresql are the only ones that do.
+      def supports_explain?
+        false
+      end
+
       # QUOTING ==================================================
 
       # Override to return the quoted table name. Defaults to column quoting.

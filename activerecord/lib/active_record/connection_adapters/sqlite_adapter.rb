@@ -122,6 +122,11 @@ module ActiveRecord
         true
       end
 
+      # Returns true.
+      def supports_explain?
+        true
+      end
+
       def requires_reloading?
         true
       end
@@ -219,9 +224,9 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def explain(arel)
+      def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel)}"
-        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN'))
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
       end
 
       class ExplainPrettyPrinter

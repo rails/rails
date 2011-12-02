@@ -433,6 +433,11 @@ module ActiveRecord #:nodoc:
     class_attribute :default_scopes, :instance_writer => false
     self.default_scopes = []
 
+    # If a query takes longer than these many seconds we log its query plan
+    # automatically. nil disables this feature.
+    class_attribute :auto_explain_threshold_in_seconds, :instance_writer => false
+    self.auto_explain_threshold_in_seconds = nil
+
     class_attribute :_attr_readonly, :instance_writer => false
     self._attr_readonly = []
 
@@ -484,7 +489,9 @@ module ActiveRecord #:nodoc:
       #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql, binds = [])
-        connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        logging_query_plan do
+          connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        end
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -2206,6 +2213,7 @@ MSG
     include Associations, NamedScope
     include IdentityMap
     include ActiveModel::SecurePassword
+    extend Explain
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.
