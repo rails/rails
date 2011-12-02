@@ -30,9 +30,11 @@ module ActiveRecord
         end
 
         def undefine_attribute_methods
-          if base_class == self && attribute_methods_generated?
-            column_names.each do |name|
-              generated_attribute_methods.singleton_class.send(:undef_method, name)
+          if base_class == self
+            generated_attribute_methods.module_eval do
+              public_methods(false).each do |m|
+                singleton_class.send(:undef_method, m) if m.to_s =~ /^attribute_/
+              end
             end
           end
 
@@ -65,7 +67,7 @@ module ActiveRecord
               def __temp__(v, attributes, attributes_cache, attr_name)
                 #{external}
               end
-              alias_method '#{attr_name}', :__temp__
+              alias_method 'attribute_#{attr_name}', :__temp__
               undef_method :__temp__
             STR
           end
@@ -108,11 +110,12 @@ module ActiveRecord
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         attr_name = attr_name.to_s
+        accessor  = "attribute_#{attr_name}"
         methods   = self.class.generated_attribute_methods
 
-        if methods.respond_to?(attr_name)
+        if methods.respond_to?(accessor)
           if @attributes.has_key?(attr_name) || attr_name == 'id'
-            methods.send(attr_name, @attributes[attr_name], @attributes, @attributes_cache, attr_name)
+            methods.send(accessor, @attributes[attr_name], @attributes, @attributes_cache, attr_name)
           end
         elsif !self.class.attribute_methods_generated?
           # If we haven't generated the caster methods yet, do that and
