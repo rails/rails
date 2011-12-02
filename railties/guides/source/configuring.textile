@@ -268,7 +268,7 @@ h4. Configuring Active Record
 
 * +config.active_record.identity_map+ controls whether the identity map is enabled, and is false by default.
 
-* +config.active_record.auto_explain_threshold_in_seconds+ configures the threshold for automatic EXPLAINs (+nil+ disables this feature). Queries taking more than those many seconds get their query plan logged. Default is 0.5 in development mode.
+* +config.active_record.auto_explain_threshold_in_seconds+ configures the threshold for automatic EXPLAINs (+nil+ disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
 
 The MySQL adapter adds one additional configuration option:
 
