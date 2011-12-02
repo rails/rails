@@ -433,7 +433,7 @@ module ActiveRecord #:nodoc:
     class_attribute :default_scopes, :instance_writer => false
     self.default_scopes = []
 
-    # If a query takes longer than these many seconds we log its query plan
+    # If a query takes longer than this many seconds we log its query plan
     # automatically. nil disables this feature.
     class_attribute :auto_explain_threshold_in_seconds, :instance_writer => false
     self.auto_explain_threshold_in_seconds = nil
