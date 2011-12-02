@@ -29,7 +29,7 @@ module ActiveRecord
             Thread.current[LOGGING_QUERY_PLAN] = false
           end
         else
-          block.call
+          yield
         end
       end
 
@@ -43,7 +43,7 @@ module ActiveRecord
       # Collects all queries executed while the passed block runs. Returns an
       # array with three elements, the result of the block, the strings with the
       # queries, and their respective bindings.
-      def collecting_sqls_for_explain(&block) # :nodoc:
+      def collecting_sqls_for_explain # :nodoc:
         sqls  = []
         binds = []
         callback = lambda do |*args|
@@ -56,7 +56,7 @@ module ActiveRecord
 
         result = nil
         ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-          result = block.call
+          result = yield
         end
 
         [result, sqls, binds]
