@@ -1396,7 +1396,7 @@ is a class and instance method of +ActiveRecord::Base+:
 
 <ruby>
 silence_auto_explain do
-   # no automatic EXPLAIN is triggered here
+  # no automatic EXPLAIN is triggered here
 end
 </ruby>
 
