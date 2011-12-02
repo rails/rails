@@ -44,16 +44,10 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded? || options[:finder_sql]
-          load_target.map do |record|
-            record.send(reflection.association_primary_key)
-          end
+          load_target
         else
-          column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-
-          scoped.select(column).map! do |record|
-            record.send(reflection.association_primary_key)
-          end
-        end
+          scoped.select("#{reflection.quoted_table_name}.#{reflection.association_primary_key}").to_a
+        end.pluck(reflection.association_primary_key)
       end
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
