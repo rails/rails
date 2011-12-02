@@ -1,6 +1,11 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Add DebugExceptions middleware which contains features extracted from ShowExceptions middleware *José Valim*
+*   New applications get a flag
+    `config.active_record.auto_explain_threshold_in_seconds` in the evironments
+    configuration files. With a value of 0.5 in development.rb, and commented
+    out in production.rb. No mention in test.rb. *fxn*
+
+*   Display mounted engine's routes in `rake routes`. *Piotr Sarnacki*
 
 *   Display mounted engine's routes in `rake routes` *Piotr Sarnacki*
 
