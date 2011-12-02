@@ -151,7 +151,7 @@ Performance tests can be run in two modes: Benchmarking and Profiling.
 
 h5. Benchmarking
 
-Benchmarking makes it easy to quickly gather a few metrics about each test tun. By default, each test case is run *4 times* in benchmarking mode.
+Benchmarking makes it easy to quickly gather a few metrics about each test run. By default, each test case is run *4 times* in benchmarking mode.
 
 To run performance tests in benchmarking mode:
 

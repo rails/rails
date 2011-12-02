@@ -1301,7 +1301,7 @@ NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
 
 h5. Transformation
 
-As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +donwcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
+As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +downcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
 
 In the case of in-place transformations like +gsub!+ the receiver itself becomes unsafe.
 
@@ -2049,6 +2049,16 @@ The method +ActiveRecord::Observer#observed_subclasses+ for example is implement
 def observed_subclasses
   observed_classes.sum([]) { |klass| klass.send(:subclasses) }
 end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
+
+h4. +pluck+
+
+Plucks the value of the passed method for each element and returns the result as an array
+
+<ruby>
+people.pluck(:name) # => [ "David Heinemeier Hansson", "Jamie Heinemeier Hansson" ]
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
