@@ -40,7 +40,7 @@ module ActionDispatch
         raise exception if env['action_dispatch.show_exceptions'] == false
       end
 
-      response ? response : render_exception_with_failsafe(env, exception)
+      response || render_exception_with_failsafe(env, exception)
     end
 
     private
