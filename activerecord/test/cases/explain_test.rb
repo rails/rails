@@ -24,7 +24,7 @@ if ActiveRecord::Base.connection.supports_explain?
       end
     end
 
-    def test_collecting_sqls_for_explain
+    def test_collect_sql_for_explain
       base.auto_explain_threshold_in_seconds = nil
       honda = cars(:honda)
 
@@ -40,6 +40,18 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_equal [], binds
     ensure
       Thread.current[:available_queries_for_explain] = nil
+    end
+
+    def test_collecting_sqls_for_explain
+      result, values = ActiveRecord::Base.collecting_sqls_for_explain do
+        Car.where(:name => 'honda').all
+      end
+
+      sql, binds = values[0]
+      assert_match "SELECT", sql
+      assert_match "honda", sql
+      assert_equal [], binds
+      assert_equal [cars(:honda)], result
     end
 
     def test_exec_explain_with_no_binds

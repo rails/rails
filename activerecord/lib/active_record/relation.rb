@@ -155,8 +155,8 @@ module ActiveRecord
     # Please see further details in the
     # {Active Record Query Interface guide}[http://edgeguides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
-      _, sqls, binds = collecting_sqls_for_explain { exec_query }
-      exec_explain(sqls, binds)
+      _, values = collecting_sqls_for_explain { exec_query }
+      exec_explain(values)
     end
 
     def to_a

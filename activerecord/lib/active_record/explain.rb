@@ -40,6 +40,14 @@ module ActiveRecord
         end
       end
 
+      def collecting_sqls_for_explain
+        current, value = Thread.current, []
+        original, current[:available_queries_for_explain] = current[:available_queries_for_explain], value
+        return yield, value
+      ensure
+        current[:available_queries_for_explain] = original
+      end
+
       # SCHEMA queries cannot be EXPLAINed, also we do not want to run EXPLAIN on
       # our own EXPLAINs now matter how loopingly beautiful that would be.
       SKIP_EXPLAIN_FOR = %w(SCHEMA EXPLAIN)
