@@ -29,6 +29,13 @@ module ActiveSupport
       #     post :create, :article => {...}
       #   end
       #
+      # An array of values corresponding to each expression in an expression array can
+      # also be passed
+      #
+      #   assert_difference [ 'Article.count', 'Post.count' ], [+2, +1] do
+      #     post :create, :article => {...}
+      #   end
+      #
       # A lambda or a list of lambdas can be passed in and evaluated:
       #
       #   assert_difference lambda { Article.count }, 2 do
@@ -46,6 +53,7 @@ module ActiveSupport
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
         expressions = Array.wrap expression
+        differences = Array.wrap difference
 
         exps = expressions.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
@@ -54,10 +62,11 @@ module ActiveSupport
 
         yield
 
-        expressions.zip(exps).each_with_index do |(code, e), i|
+        expressions.zip(exps, differences).each_with_index do |(code, e, diff), i|
+          diff = diff.nil? ? differences.first : diff
           error  = "#{code.inspect} didn't change by #{difference}"
           error  = "#{message}.\n#{error}" if message
-          assert_equal(before[i] + difference, e.call, error)
+          assert_equal(before[i] + diff, e.call, error)
         end
       end
 
