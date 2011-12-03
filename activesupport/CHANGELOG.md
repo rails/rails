@@ -2,15 +2,13 @@
 
 *   Added Enumerable#pluck to wrap the common pattern of collect(&:method) *DHH*
 
-*   Module#synchronize is deprecated with no replacement.  Please use `monitor`
+*   Module#synchronize is deprecated with no replacement. Please use `monitor`
     from ruby's standard library.
 
 *   (Date|DateTime|Time)#beginning_of_week accept an optional argument to
     be able to set the day at which weeks are assumed to start.
 
 *   Deprecated ActiveSupport::MessageEncryptor#encrypt and decrypt. *José Valim*
-
-*   ActiveSupport::Notifications.subscribed provides subscriptions to events while a block runs. *fxn*
 
 *   Module#qualified_const_(defined?|get|set) are analogous to the corresponding methods
     in the standard API, but accept qualified constant names. *fxn*
