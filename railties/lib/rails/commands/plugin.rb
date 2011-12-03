@@ -148,13 +148,17 @@ class Plugin
       method = :git    if git_url?
     end
 
-    uninstall if installed? and options[:force]
+    if send.("has_#{method}_cmd?")
+      uninstall if installed? and options[:force]
 
-    unless installed?
-      send("install_using_#{method}", options)
-      run_install_hook
+      unless installed?
+        send("install_using_#{method}", options)
+        run_install_hook
+      else
+        puts "already installed: #{name} (#{uri}).  pass --force to reinstall"
+      end
     else
-      puts "already installed: #{name} (#{uri}).  pass --force to reinstall"
+      puts "Cannot install using #{program_name(method)} because `#{program_name(method)}' cannot be found in your PATH"
     end
   end
 
@@ -269,6 +273,26 @@ class Plugin
 
     def rails_env
       @rails_env || RailsEnvironment.default
+    end
+
+    def has_http_cmd?; true; end
+
+    def has_git_cmd?
+      `which git`
+      !$?.nil? && $?.success?
+    end
+
+    def svn_installed?
+      `which svn`
+      !$?.nil? && $?.success?
+    end
+    alias :has_export_cmd?     :svn_installed?
+    alias :has_checkout_cmd?   :svn_installed?
+    alias :has_externals_cmd?  :svn_installed?
+
+    def program_name(method)
+      return 'svn' if %w(export checkout externals).include?(method)
+      'git'
     end
 end
 
