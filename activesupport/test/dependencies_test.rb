@@ -305,6 +305,22 @@ class DependenciesTest < Test::Unit::TestCase
     $:.replace(original_path)
   end
 
+  def test_load_returns_true_when_file_found
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading('autoloading_fixtures/load_path') do
+      assert_equal true, load('loaded_constant.rb')
+      assert_equal true, load('loaded_constant.rb')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
   def failing_test_access_thru_and_upwards_fails
     with_autoloading_fixtures do
       assert ! defined?(ModuleFolder)
