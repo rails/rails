@@ -63,26 +63,7 @@ module ActiveSupport
   # and even pass no argument to +subscribe+, in which case you are subscribing
   # to all events.
   #
-  # == Temporary Subscriptions
-  #
-  # Sometimes you do not want to subscribe to an event for the entire life of
-  # the application. There are two ways to unsubscribe.
-  #
-  # === Subscribe While a Block Runs
-  #
-  # You can subscribe to some event temporarily while some block runs. For
-  # example, in
-  #
-  #   callback = lambda {|*args| ... }
-  #   ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-  #     ...
-  #   end
-  #
-  # the callback will be called for all "sql.active_record" events instrumented
-  # during the execution of the block. The callback is unsubscribed automatically
-  # after that.
-  #
-  # === Manual Unsubscription
+  # == Manual Unsubscription
   #
   # The +subscribe+ method returns a subscriber object:
   #
@@ -126,13 +107,6 @@ module ActiveSupport
         notifier.subscribe(*args, &block).tap do
           @instrumenters.clear
         end
-      end
-
-      def subscribed(callback, *args, &block)
-        subscriber = subscribe(*args, &callback)
-        yield
-      ensure
-        unsubscribe(subscriber)
       end
 
       def unsubscribe(args)

@@ -19,16 +19,19 @@ module ActiveRecord
     end
 
     def sql(event)
-      self.class.runtime += event.duration
-      return unless logger.debug?
-
+      # Notify explain
       payload = event.payload
+      ActiveRecord::Base.collect_sql_for_explain(event.payload)
 
+      # Increase runtime counter
+      self.class.runtime += event.duration
+
+      return unless logger.debug?
       return if 'SCHEMA' == payload[:name]
 
-      name    = '%s (%.1fms)' % [payload[:name], event.duration]
-      sql     = payload[:sql].squeeze(' ')
-      binds   = nil
+      name  = '%s (%.1fms)' % [payload[:name], event.duration]
+      sql   = payload[:sql].squeeze(' ')
+      binds = nil
 
       unless (payload[:binds] || []).empty?
         binds = "  " + payload[:binds].map { |col,v|

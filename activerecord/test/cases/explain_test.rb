@@ -28,37 +28,28 @@ if ActiveRecord::Base.connection.supports_explain?
       base.auto_explain_threshold_in_seconds = nil
       honda = cars(:honda)
 
-      expected_sqls  = []
-      expected_binds = []
-      callback = lambda do |*args|
-        payload = args.last
-        unless base.ignore_explain_notification?(payload)
-          expected_sqls  << payload[:sql]
-          expected_binds << payload[:binds]
-        end
+      values = Thread.current[:available_queries_for_explain] = []
+
+      with_threshold(0) do
+        Car.where(:name => 'honda').all
       end
 
-      result = sqls = binds = nil
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-        with_threshold(0) do
-          result, sqls, binds = base.collecting_sqls_for_explain {
-            Car.where(:name => 'honda').all
-          }
-        end
-      end
-
-      assert_equal result, [honda]
-      assert_equal expected_sqls, sqls
-      assert_equal expected_binds, binds
+      sql, binds = values[0]
+      assert_match "SELECT", sql
+      assert_match "honda", sql
+      assert_equal [], binds
+    ensure
+      Thread.current[:available_queries_for_explain] = nil
     end
 
     def test_exec_explain_with_no_binds
-      sqls  = %w(foo bar)
-      binds = [[], []]
+      sqls   = %w(foo bar)
+      binds  = [[], []]
+      values = sqls.zip(binds)
 
       connection.stubs(:explain).returns('query plan foo', 'query plan bar')
       expected = sqls.map {|sql| "EXPLAIN for: #{sql}\nquery plan #{sql}"}.join("\n")
-      assert_equal expected, base.exec_explain(sqls, binds)
+      assert_equal expected, base.exec_explain(values)
     end
 
     def test_exec_explain_with_binds
@@ -66,8 +57,9 @@ if ActiveRecord::Base.connection.supports_explain?
       cols[0].expects(:name).returns('wadus')
       cols[1].expects(:name).returns('chaflan')
 
-      sqls  = %w(foo bar)
-      binds = [[[cols[0], 1]], [[cols[1], 2]]]
+      sqls   = %w(foo bar)
+      binds  = [[[cols[0], 1]], [[cols[1], 2]]]
+      values = sqls.zip(binds)
 
       connection.stubs(:explain).returns("query plan foo\n", "query plan bar\n")
       expected = <<-SQL.strip_heredoc
@@ -77,7 +69,7 @@ if ActiveRecord::Base.connection.supports_explain?
         EXPLAIN for: #{sqls[1]} [["chaflan", 2]]
         query plan bar
       SQL
-      assert_equal expected, base.exec_explain(sqls, binds)
+      assert_equal expected, base.exec_explain(values)
     end
 
     def test_silence_auto_explain
