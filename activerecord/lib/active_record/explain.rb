@@ -2,15 +2,15 @@ module ActiveRecord
   module Explain
     extend ActiveSupport::Concern
 
-    module ClassMethods
-      # logging_query_plan calls could appear nested in the call stack. In
-      # particular this happens when a relation fetches its records, since
-      # that results in find_by_sql calls downwards.
-      #
-      # This flag allows nested calls to detect this situation and bypass
-      # it, thus preventing repeated EXPLAINs.
-      LOGGING_QUERY_PLAN = :logging_query_plan
+    # available_queries_for_explain collects the queries available for
+    # explain. If the value is nil, it means queries are not being
+    # currently collected. A false value indicates collecting is turned
+    # off. Otherwise it is an array of queries.
+    def self.available_queries_for_explain
+      Thread.current[:available_queries_for_explain]
+    end
 
+    module ClassMethods
       # If auto explain is enabled, this method triggers EXPLAIN logging for the
       # queries triggered by the block if it takes more than the threshold as a
       # whole. That is, the threshold is not checked against each individual
@@ -18,15 +18,16 @@ module ActiveRecord
       # convenient for relations.
       def logging_query_plan(&block) # :nodoc:
         threshold = auto_explain_threshold_in_seconds
-        if threshold && !Thread.current[LOGGING_QUERY_PLAN] && !Thread.current[SILENCED]
+        current   = Thread.current
+        if threshold && current[:available_queries_for_explain].nil?
           begin
-            Thread.current[LOGGING_QUERY_PLAN] = true
+            current[:available_queries_for_explain] = []
             start = Time.now
             result, sqls, binds = collecting_sqls_for_explain(&block)
             logger.warn(exec_explain(sqls, binds)) if Time.now - start > threshold
             result
           ensure
-            Thread.current[LOGGING_QUERY_PLAN] = false
+            current[:available_queries_for_explain] = nil
           end
         else
           yield
@@ -77,8 +78,6 @@ module ActiveRecord
         end.join("\n")
       end
 
-      SILENCED = :silence_explain
-
       # Silences automatic EXPLAIN logging for the duration of the block.
       #
       # This has high priority, no EXPLAINs will be run even if downwards
@@ -87,13 +86,11 @@ module ActiveRecord
       # As the name of the method suggests this only applies to automatic
       # EXPLAINs, manual calls to +ActiveRecord::Relation#explain+ run.
       def silence_auto_explain
-        # Implemented as a flag rather that setting the threshold to nil
-        # because we should not depend on a value that may be changed
-        # downwards.
-        Thread.current[SILENCED] = true
+        current = Thread.current
+        original, current[:available_queries_for_explain] = current[:available_queries_for_explain], false
         yield
       ensure
-        Thread.current[SILENCED] = false
+        current[:available_queries_for_explain] = original
       end
     end
 
