@@ -60,7 +60,7 @@ platforms :ruby do
   gem "sqlite3", "~> 1.3.4"
 
   group :db do
-    gem "pg", ">= 0.11.0" unless ENV['TRAVIS'] # once pg is on travis this can be removed
+    gem "pg", ">= 0.11.0"
     gem "mysql", ">= 2.8.1"
     gem "mysql2", ">= 0.3.10"
   end
