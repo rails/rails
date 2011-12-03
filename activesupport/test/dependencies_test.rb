@@ -258,6 +258,53 @@ class DependenciesTest < Test::Unit::TestCase
     $:.replace(original_path)
   end
 
+  def test_require_returns_true_when_file_not_yet_required
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading('autoloading_fixtures/load_path') do
+      assert_equal true, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_returns_true_when_file_not_yet_required_even_when_no_new_constants_added
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading('autoloading_fixtures/load_path') do
+      Object.module_eval "module LoadedConstant; end"
+      assert_equal true, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_returns_false_when_file_already_required
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading('autoloading_fixtures/load_path') do
+      require 'loaded_constant'
+      assert_equal false, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
   def failing_test_access_thru_and_upwards_fails
     with_autoloading_fixtures do
       assert ! defined?(ModuleFolder)
