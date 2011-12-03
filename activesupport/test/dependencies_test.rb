@@ -306,6 +306,14 @@ class DependenciesTest < Test::Unit::TestCase
     $:.replace(original_path)
   end
 
+  def test_require_raises_load_error_when_file_not_found
+    with_loading do
+      assert_raise(LoadError) { require 'this_file_dont_exist_dude' }
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+  end
+
   def test_load_returns_true_when_file_found
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
@@ -320,6 +328,14 @@ class DependenciesTest < Test::Unit::TestCase
     remove_constants(:LoadedConstant)
     $".replace(original_features)
     $:.replace(original_path)
+  end
+
+  def test_load_raises_load_error_when_file_not_found
+    with_loading do
+      assert_raise(LoadError) { load 'this_file_dont_exist_dude.rb' }
+    end
+  ensure
+    remove_constants(:LoadedConstant)
   end
 
   def failing_test_access_thru_and_upwards_fails
