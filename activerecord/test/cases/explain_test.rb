@@ -83,11 +83,8 @@ if ActiveRecord::Base.connection.supports_explain?
     def test_silence_auto_explain
       base.expects(:collecting_sqls_for_explain).never
       base.logger.expects(:warn).never
-
-      [base, cars(:honda)].each do |target|
-        target.silence_auto_explain do
-          with_threshold(0) { Car.all }
-        end
+      base.silence_auto_explain do
+        with_threshold(0) { Car.all }
       end
     end
 
