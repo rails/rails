@@ -1391,11 +1391,10 @@ production modes.
 
 h5. Disabling Automatic EXPLAIN
 
-Automatic EXPLAIN can be selectively silenced with +silence_auto_explain+, which
-is a class and instance method of +ActiveRecord::Base+:
+Automatic EXPLAIN can be selectively silenced with +ActiveRecord::Base.silence_auto_explain+:
 
 <ruby>
-silence_auto_explain do
+ActiveRecord::Base.silence_auto_explain do
   # no automatic EXPLAIN is triggered here
 end
 </ruby>

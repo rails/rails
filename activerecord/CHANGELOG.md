@@ -1,7 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
-*   Implements `silence_auto_explain`. This method allows the user to selectively disable
-    automatic EXPLAINs within a block. *fxn*
+*   Implements `AR::Base.silence_auto_explain`. This method allows the user to
+    selectively disable automatic EXPLAINs within a block. *fxn*
 
 *   Implements automatic EXPLAIN logging for slow queries.
 
