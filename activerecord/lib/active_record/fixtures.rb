@@ -391,7 +391,7 @@ module ActiveRecord
 
     @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
 
-    def self.find_table_name(table_name) # :nodoc:
+    def self.default_table_class_name(table_name) # :nodoc:
       ActiveRecord::Base.pluralize_table_names ?
         table_name.to_s.singularize.camelize :
         table_name.to_s.camelize
@@ -445,7 +445,10 @@ module ActiveRecord
     def self.create_fixtures(fixtures_directory, table_names, class_names = {})
       table_names = [table_names].flatten.map { |n| n.to_s }
       table_names.each { |n|
-        class_names[n.tr('/', '_').to_sym] = n.classify if n.include?('/')
+        if n.include?('/')
+          key = n.tr('/', '_').to_sym
+          class_names[key] = n.classify unless class_names.has_key?(key)
+        end
       }
 
       # FIXME: Apparently JK uses this.
@@ -735,7 +738,7 @@ module ActiveRecord
       self.pre_loaded_fixtures = false
 
       self.fixture_class_names = Hash.new do |h, table_name|
-        h[table_name] = ActiveRecord::Fixtures.find_table_name(table_name)
+        h[table_name] = ActiveRecord::Fixtures.default_table_class_name(table_name)
       end
     end
 
