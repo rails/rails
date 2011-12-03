@@ -553,6 +553,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_setting_time_zone_aware_read_attribute
+    utc_time = Time.utc(2008, 1, 1)
+    cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.create(:written_on => cst_time).reload
+      assert_equal utc_time, record[:written_on]
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record[:written_on].time_zone
+      assert_equal Time.utc(2007, 12, 31, 16), record[:written_on].time
+    end
+  end
+
   def test_setting_time_zone_aware_attribute_with_string
     utc_time = Time.utc(2008, 1, 1)
     (-11..13).each do |timezone_offset|
@@ -572,6 +583,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record   = @target.new
       record.written_on = ' '
       assert_nil record.written_on
+      assert_nil record[:written_on]
     end
   end
 
