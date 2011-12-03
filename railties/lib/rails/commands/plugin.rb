@@ -148,7 +148,7 @@ class Plugin
       method = :git    if git_url?
     end
 
-    if send.("has_#{method}_cmd?")
+    if send("has_#{method}_cmd?")
       uninstall if installed? and options[:force]
 
       unless installed?
