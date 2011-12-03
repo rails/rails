@@ -9,11 +9,11 @@ module ActiveRecord
       # query, but against the duration of the entire block. This approach is
       # convenient for relations.
       #
-      # available_queries_for_explain collects the queries available for
-      # explain. If the value is nil, it means queries are not being
+      # The available_queries_for_explain thread variable collects the queries
+      # to be explained. If the value is nil, it means queries are not being
       # currently collected. A false value indicates collecting is turned
       # off. Otherwise it is an array of queries.
-      def logging_query_plan(&block) # :nodoc:
+      def logging_query_plan # :nodoc:
         threshold = auto_explain_threshold_in_seconds
         current   = Thread.current
         if threshold && current[:available_queries_for_explain].nil?
