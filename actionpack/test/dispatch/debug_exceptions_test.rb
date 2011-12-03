@@ -11,6 +11,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       env['action_dispatch.show_detailed_exceptions'] = @detailed
       req = ActionDispatch::Request.new(env)
       case req.path
+      when "/pass"
+        [404, { "X-Cascade" => "pass" }, []]
       when "/not_found"
         raise ActionController::UnknownAction
       when "/runtime_error"
@@ -43,6 +45,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = DevelopmentApp
     assert_raise RuntimeError do
       get "/", {}, {'action_dispatch.show_exceptions' => false}
+    end
+  end
+
+  test 'raise an exception on cascade pass' do
+    @app = ProductionApp
+    assert_raise ActionController::RoutingError do
+      get "/pass", {}, {'action_dispatch.show_exceptions' => true}
     end
   end
 

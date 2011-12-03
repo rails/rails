@@ -15,6 +15,7 @@ module ActionDispatch
       begin
         response = @app.call(env)
 
+        # TODO: Maybe this should be in the router itself
         if response[1]['X-Cascade'] == 'pass'
           raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
         end
@@ -22,7 +23,7 @@ module ActionDispatch
         raise exception if env['action_dispatch.show_exceptions'] == false
       end
 
-      response ? response : render_exception(env, exception)
+      exception ? render_exception(env, exception) : response
     end
 
     private
