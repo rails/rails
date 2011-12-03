@@ -715,3 +715,32 @@ class FixtureLoadingTest < ActiveRecord::TestCase
     ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
   end
 end
+
+class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
+  require File.expand_path('../../models/randomly_named_c1', __FILE__)
+  require File.expand_path('../../models/admin/randomly_named_c1', __FILE__)
+
+  ActiveRecord::Fixtures.reset_cache
+
+  set_fixture_class :randomly_named_a9         =>
+                        ClassNameThatDoesNotFollowCONVENTIONS,
+                    :'admin/randomly_named_a9' =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                    'admin/randomly_named_b0'  =>
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS
+
+  fixtures :randomly_named_a9, 'admin/randomly_named_a9',
+           :'admin/randomly_named_b0'
+
+  def test_named_accessor_for_randomly_named_fixture_and_class
+    assert_kind_of ClassNameThatDoesNotFollowCONVENTIONS,
+                   randomly_named_a9(:first_instance)
+  end
+
+  def test_named_accessor_for_randomly_named_namespaced_fixture_and_class
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_a9(:first_instance)
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                   admin_randomly_named_b0(:second_instance)
+  end
+end
