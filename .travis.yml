@@ -9,6 +9,7 @@ env:
   - "GEM=ar:mysql"
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"
+  - "GEM=ar:postgresql"
 notifications:
   email: false
   irc:
