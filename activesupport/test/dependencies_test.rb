@@ -265,7 +265,7 @@ class DependenciesTest < Test::Unit::TestCase
     original_features = $".dup
     $:.push(path)
 
-    with_loading('autoloading_fixtures/load_path') do
+    with_loading do
       assert_equal true, require('loaded_constant')
     end
   ensure
@@ -280,7 +280,7 @@ class DependenciesTest < Test::Unit::TestCase
     original_features = $".dup
     $:.push(path)
 
-    with_loading('autoloading_fixtures/load_path') do
+    with_loading do
       Object.module_eval "module LoadedConstant; end"
       assert_equal true, require('loaded_constant')
     end
@@ -296,7 +296,7 @@ class DependenciesTest < Test::Unit::TestCase
     original_features = $".dup
     $:.push(path)
 
-    with_loading('autoloading_fixtures/load_path') do
+    with_loading do
       require 'loaded_constant'
       assert_equal false, require('loaded_constant')
     end
@@ -320,7 +320,7 @@ class DependenciesTest < Test::Unit::TestCase
     original_features = $".dup
     $:.push(path)
 
-    with_loading('autoloading_fixtures/load_path') do
+    with_loading do
       assert_equal true, load('loaded_constant.rb')
       assert_equal true, load('loaded_constant.rb')
     end
