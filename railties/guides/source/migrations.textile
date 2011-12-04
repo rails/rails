@@ -551,8 +551,9 @@ $ rake db:migrate VERSION=20080906120000
 
 If version 20080906120000 is greater than the current version (i.e., it is
 migrating upwards), this will run the +up+ method on all migrations up to and
-including 20080906120000. If migrating downwards, this will run the +down+
-method on all the migrations down to, but not including, 20080906120000.
+including 20080906120000, and will not execute any later migrations. If 
+migrating downwards, this will run the +down+ method on all the migrations 
+down to, but not including, 20080906120000.
 
 h4. Rolling Back
 
