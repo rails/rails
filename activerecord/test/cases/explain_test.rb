@@ -15,8 +15,8 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_logging_query_plan
-      base.logger.expects(:warn).with do |value|
-        value.starts_with?('EXPLAIN for:')
+      base.logger.expects(:warn).with do |message|
+        message.starts_with?('EXPLAIN for:')
       end
 
       with_threshold(0) do
@@ -24,41 +24,42 @@ if ActiveRecord::Base.connection.supports_explain?
       end
     end
 
-    def test_collecting_sqls_for_explain
+    def test_collect_queries_for_explain
       base.auto_explain_threshold_in_seconds = nil
-      honda = cars(:honda)
+      queries = Thread.current[:available_queries_for_explain] = []
 
-      expected_sqls  = []
-      expected_binds = []
-      callback = lambda do |*args|
-        payload = args.last
-        unless base.ignore_explain_notification?(payload)
-          expected_sqls  << payload[:sql]
-          expected_binds << payload[:binds]
-        end
+      with_threshold(0) do
+        Car.where(:name => 'honda').all
       end
 
-      result = sqls = binds = nil
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-        with_threshold(0) do
-          result, sqls, binds = base.collecting_sqls_for_explain {
-            Car.where(:name => 'honda').all
-          }
-        end
+      sql, binds = queries[0]
+      assert_match "SELECT", sql
+      assert_match "honda", sql
+      assert_equal [], binds
+    ensure
+      Thread.current[:available_queries_for_explain] = nil
+    end
+
+    def test_collecting_queries_for_explain
+      result, queries = ActiveRecord::Base.collecting_queries_for_explain do
+        Car.where(:name => 'honda').all
       end
 
-      assert_equal result, [honda]
-      assert_equal expected_sqls, sqls
-      assert_equal expected_binds, binds
+      sql, binds = queries[0]
+      assert_match "SELECT", sql
+      assert_match "honda", sql
+      assert_equal [], binds
+      assert_equal [cars(:honda)], result
     end
 
     def test_exec_explain_with_no_binds
-      sqls  = %w(foo bar)
-      binds = [[], []]
+      sqls    = %w(foo bar)
+      binds   = [[], []]
+      queries = sqls.zip(binds)
 
       connection.stubs(:explain).returns('query plan foo', 'query plan bar')
       expected = sqls.map {|sql| "EXPLAIN for: #{sql}\nquery plan #{sql}"}.join("\n")
-      assert_equal expected, base.exec_explain(sqls, binds)
+      assert_equal expected, base.exec_explain(queries)
     end
 
     def test_exec_explain_with_binds
@@ -66,8 +67,9 @@ if ActiveRecord::Base.connection.supports_explain?
       cols[0].expects(:name).returns('wadus')
       cols[1].expects(:name).returns('chaflan')
 
-      sqls  = %w(foo bar)
-      binds = [[[cols[0], 1]], [[cols[1], 2]]]
+      sqls    = %w(foo bar)
+      binds   = [[[cols[0], 1]], [[cols[1], 2]]]
+      queries = sqls.zip(binds)
 
       connection.stubs(:explain).returns("query plan foo\n", "query plan bar\n")
       expected = <<-SQL.strip_heredoc
@@ -77,7 +79,7 @@ if ActiveRecord::Base.connection.supports_explain?
         EXPLAIN for: #{sqls[1]} [["chaflan", 2]]
         query plan bar
       SQL
-      assert_equal expected, base.exec_explain(sqls, binds)
+      assert_equal expected, base.exec_explain(queries)
     end
 
     def test_silence_auto_explain
