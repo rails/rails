@@ -594,7 +594,7 @@ current schema into it.
 NOTE: This is not the same as running all the migrations - see the section on
 "schema.rb":#schema-dumping-and-you.
 
-h4. Being Specific
+h4. Running specific migrations
 
 If you need to run a specific migration up or down, the +db:migrate:up+ and
 +db:migrate:down+ tasks will do that. Just specify the appropriate version and
