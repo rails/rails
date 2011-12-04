@@ -387,8 +387,8 @@ module ActionView
         as = options[:as]
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
         options[:html].reverse_merge!(
-          :class  => as ? "#{as}_#{action}" : dom_class(object, action),
-          :id     => as ? "#{as}_#{action}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,
+          :class  => as ? "#{action}_#{as}" : dom_class(object, action),
+          :id     => as ? "#{action}_#{as}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,
           :method => method
         )
 

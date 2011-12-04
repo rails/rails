@@ -1,5 +1,17 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   form_for with +:as+ option uses "#{action}_#{as}" as css class and id:
+
+    Before:
+
+        form_for(@user, :as => 'client') # => "<form class="client_new">..."
+
+    Now:
+
+        form_for(@user, :as => 'client') # => "<form class="new_client">..."
+
+    *Vasiliy Ermolovich*
+
 *   Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`. Please look at ActiveRecord::Railtie for an example *José Valim*
 
 *   Allow fresh_when/stale? to take a record instead of an options hash *DHH*
