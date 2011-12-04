@@ -479,8 +479,8 @@ the +change+ method supports only these migration definitions:
 * +rename_index+
 * +rename_table+
 
-If you're going to use other methods, you'll have to write the +up+ and +down+
-methods normally.
+If you're going to need to use any other methods, you'll have to write the 
++up+ and +down+ methods instead of using the change method.
 
 h4. Writing Your +down+ Method
 
