@@ -20,9 +20,9 @@ SQLite3 in development, but MySQL in production.
 
 In this guide, you'll learn all about migrations including:
 
-* The generators you can use to create them 
-* The methods Active Record provides to manipulate your database 
-* The Rake tasks that manipulate them 
+* The generators you can use to create them
+* The methods Active Record provides to manipulate your database
+* The Rake tasks that manipulate them
 * How they relate to +schema.rb+
 
 endprologue.
@@ -35,7 +35,7 @@ sorts of things you can do:
 <ruby>
 class CreateProducts < ActiveRecord::Migration
   def up
-    create_table :products do |t| 
+    create_table :products do |t|
       t.string :name
       t.text :description
 
@@ -62,7 +62,7 @@ bad data in the database or populate new fields:
 <ruby>
 class AddReceiveNewsletterToUsers < ActiveRecord::Migration
   def up
-    change_table :users do |t| 
+    change_table :users do |t|
       t.boolean :receive_newsletter, :default => false
     end
     User.update_all ["receive_newsletter = ?", true]
@@ -90,7 +90,7 @@ the migration is rolled back without the need to write a separate +down+ method.
 <ruby>
 class CreateProducts < ActiveRecord::Migration
   def change
-    create_table :products do |t| 
+    create_table :products do |t|
       t.string :name
       t.text :description
 
@@ -113,7 +113,7 @@ database independent way (you'll read about them in detail later):
 * +add_index+
 * +change_column+
 * +change_table+
-* +create_table+ 
+* +create_table+
 * +drop_table+
 * +remove_column+
 * +remove_index+
@@ -134,11 +134,11 @@ the changes that were made by hand.
 
 h4. What's in a Name
 
-Migrations are stored as files in the +db/migrate+ directory, one for each 
-migration class. The name of the file is of the form 
-+YYYYMMDDHHMMSS_create_products.rb+, that is to say a UTC timestamp 
-identifying the migration followed by an underscore followed by the name 
-of the migration. The name of the migration class (CamelCased version) 
+Migrations are stored as files in the +db/migrate+ directory, one for each
+migration class. The name of the file is of the form
++YYYYMMDDHHMMSS_create_products.rb+, that is to say a UTC timestamp
+identifying the migration followed by an underscore followed by the name
+of the migration. The name of the migration class (CamelCased version)
 should match the latter part of the file name. For example
 +20080906120000_create_products.rb+ should define class +CreateProducts+ and
 +20080906120001_add_details_to_products.rb+ should define
@@ -150,7 +150,7 @@ Internally Rails only uses the migration's number (the timestamp) to identify
 them. Prior to Rails 2.1 the migration number started at 1 and was incremented
 each time a migration was generated. With multiple developers it was easy for
 these to clash requiring you to rollback migrations and renumber them. With
-Rails 2.1+ this is largely avoided by using the creation time of the migration 
+Rails 2.1+ this is largely avoided by using the creation time of the migration
 to identify them. You can revert to the old numbering scheme by adding the
 following line to +config/application.rb+.
 
@@ -163,9 +163,8 @@ allows Rails to handle common situations that occur with multiple developers.
 
 For example Alice adds migrations +20080906120000+ and +20080906123000+ and Bob
 adds +20080906124500+ and runs it. Alice finishes her changes and checks in her
-migrations and Bob pulls down the latest changes. When Bob runs +rake 
-db:migrate+, Rails knows that it has not run Alice's two migrations so it 
-executes the +up+ method for each migration.  
+migrations and Bob pulls down the latest changes. When Bob runs +rake db:migrate+,
+Rails knows that it has not run Alice's two migrations so it executes the +up+ method for each migration.
 
 Of course this is no substitution for communication within the team. For
 example, if Alice's migration removed a table that Bob's migration assumed to
@@ -177,8 +176,7 @@ Occasionally you will make a mistake when writing a migration. If you have
 already run the migration then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
 nothing when you run +rake db:migrate+. You must rollback the migration (for
-example with +rake db:rollback+), edit your migration and then run +rake
-db:migrate+ to run the corrected version.
+example with +rake db:rollback+), edit your migration and then run +rake db:migrate+ to run the corrected version.
 
 In general editing existing migrations is not a good idea: you will be creating
 extra work for yourself and your co-workers and cause major headaches if the
@@ -246,9 +244,9 @@ class CreateProducts < ActiveRecord::Migration
 end
 </ruby>
 
-You can append as many column name/type pairs as you want. By default, the 
-generated migration will include +t.timestamps+ (which creates the 
-+updated_at+ and +created_at+ columns that are automatically populated 
+You can append as many column name/type pairs as you want. By default, the
+generated migration will include +t.timestamps+ (which creates the
++updated_at+ and +created_at+ columns that are automatically populated
 by Active Record).
 
 h4. Creating a Standalone Migration
@@ -256,7 +254,7 @@ h4. Creating a Standalone Migration
 If you are creating migrations for other purposes (for example to add a column
 to an existing table) then you can also use the migration generator:
 
-<shell> 
+<shell>
 $ rails generate migration AddPartNumberToProducts
 </shell>
 
@@ -325,8 +323,8 @@ end
 </ruby>
 
 As always, what has been generated for you is just a starting point. You can add
-or remove from it as you see fit by editing the 
-db/migrate/YYMMDDHHMMSS_add_details_to_products.rb file.
+or remove from it as you see fit by editing the
+db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb file.
 
 NOTE: The generated migration file for destructive migrations will still be
 old-style using the +up+ and +down+ methods. This is because Rails needs to know
@@ -374,7 +372,7 @@ By default, +create_table+ will create a primary key called +id+. You can change
 the name of the primary key with the +:primary_key+ option (don't forget to
 update the corresponding model) or, if you don't want a primary key at all (for
 example for a HABTM join table), you can pass the option +:id => false+. If you
-need to pass database specific options you can place a SQL fragment in the
+need to pass database specific options you can place an SQL fragment in the
 +:options+ option. For example,
 
 <ruby>
@@ -401,8 +399,8 @@ change_table :products do |t|
 end
 </ruby>
 
-removes the +description+ and +name+ columns, creates a +part_number+ string 
-column and adds an index on it. Finally it renames the +upccode+ column. 
+removes the +description+ and +name+ columns, creates a +part_number+ string
+column and adds an index on it. Finally it renames the +upccode+ column.
 
 h4. Special Helpers
 
@@ -427,7 +425,7 @@ end
 adds those columns to an existing table.
 
 Another helper is called +references+ (also available as +belongs_to+). In its
-simplest form it just adds some readability
+simplest form it just adds some readability.
 
 <ruby>
 create_table :products do |t|
@@ -446,7 +444,7 @@ create_table :products do |t|
 end
 </ruby>
 
-will add an +attachment_id+ column and a string +attachment_type+ column with 
+will add an +attachment_id+ column and a string +attachment_type+ column with
 a default value of 'Photo'.
 
 NOTE: The +references+ helper does not actually create foreign key constraints
@@ -481,8 +479,8 @@ the +change+ method supports only these migration definitions:
 * +rename_index+
 * +rename_table+
 
-If you're going to need to use any other methods, you'll have to write the 
-+up+ and +down+ methods instead of using the change method.
+If you're going to need to use any other methods, you'll have to write the
++up+ and +down+ methods instead of using the +change+ method.
 
 h4. Using the +up+/+down+ Methods
 
@@ -531,9 +529,9 @@ can't be done.
 h3. Running Migrations
 
 Rails provides a set of rake tasks to work with migrations which boil down to
-running certain sets of migrations. 
+running certain sets of migrations.
 
-The very first migration related rake task you will use will probably be 
+The very first migration related rake task you will use will probably be
 +rake db:migrate+. In its most basic form it just runs the +up+ or +change+
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
@@ -543,8 +541,8 @@ Note that running the +db:migrate+ also invokes the +db:schema:dump+ task, which
 will update your db/schema.rb file to match the structure of your database.
 
 If you specify a target version, Active Record will run the required migrations
-(up or down or change) until it has reached the specified version. The version 
-is the numerical prefix on the migration's filename. For example, to migrate 
+(up or down or change) until it has reached the specified version. The version
+is the numerical prefix on the migration's filename. For example, to migrate
 to version 20080906120000 run
 
 <shell>
@@ -553,8 +551,8 @@ $ rake db:migrate VERSION=20080906120000
 
 If version 20080906120000 is greater than the current version (i.e., it is
 migrating upwards), this will run the +up+ method on all migrations up to and
-including 20080906120000, and will not execute any later migrations. If 
-migrating downwards, this will run the +down+ method on all the migrations 
+including 20080906120000, and will not execute any later migrations. If
+migrating downwards, this will run the +down+ method on all the migrations
 down to, but not including, 20080906120000.
 
 h4. Rolling Back
@@ -627,13 +625,13 @@ A migration creating a table and adding an index might produce output like this
 Several methods are provided in migrations that allow you to control all this:
 
 |_.Method             |_.Purpose|
-|suppress_messages    |takes a block as an argument and suppresses any output
+|suppress_messages    |Takes a block as an argument and suppresses any output
                        generated by the block.|
 |say                  |Takes a message argument and outputs it as is. A second
                        boolean argument can be passed to specify whether to
                        indent or not.|
 |say_with_time        |Outputs text along with how long it took to run its
-                       block. If the block returns an integer it assumes it 
+                       block. If the block returns an integer it assumes it
                        is the number of rows affected.|
 
 For example, this migration
@@ -771,7 +769,7 @@ If Alice had done this instead, there would have been no problem:
 <ruby>
 # db/migrate/20100513121110_add_flag_to_product.rb
 
-class AddFlagToProduct < ActiveRecord::Migration 
+class AddFlagToProduct < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
 
@@ -791,7 +789,7 @@ end
 class AddFuzzToProduct < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
-  
+
   def change
     add_column :products, :fuzz, :string
     Product.reset_column_information
@@ -807,7 +805,7 @@ h3. Schema Dumping and You
 h4. What are Schema Files for?
 
 Migrations, mighty as they may be, are not the authoritative source for your
-database schema. That role falls to either +db/schema.rb+ or a SQL file which
+database schema. That role falls to either +db/schema.rb+ or an SQL file which
 Active Record generates by examining the database. They are not designed to be
 edited, they just represent the current state of the database.
 
@@ -821,10 +819,10 @@ loaded into the test database.
 
 Schema files are also useful if you want a quick look at what attributes an
 Active Record object has. This information is not in the model's code and is
-frequently spread across several migrations, but the information is nicely 
-summed up in the schema file. The 
-"annotate_models":https://github.com/ctran/annotate_models gem automatically 
-adds and updates comments at the top of each model summarizing the schema if 
+frequently spread across several migrations, but the information is nicely
+summed up in the schema file. The
+"annotate_models":https://github.com/ctran/annotate_models gem automatically
+adds and updates comments at the top of each model summarizing the schema if
 you desire that functionality.
 
 h4. Types of Schema Dumps
@@ -867,8 +865,8 @@ reconstitute those statements from the database. If you are using features like
 this, then you should set the schema format to +:sql+.
 
 Instead of using Active Record's schema dumper, the database's structure will be
-dumped using a tool specific to the database (via the +db:structure:dump+ Rake
-task) into +db/structure.sql+. For example, for the PostgreSQL RDBMS, the
+dumped using a tool specific to the database (via the +db:structure:dump+ Rake task)
+into +db/structure.sql+. For example, for the PostgreSQL RDBMS, the
 +pg_dump+ utility is used. For MySQL, this file will contain the output of +SHOW
 CREATE TABLE+ for the various tables. Loading these schemas is simply a question
 of executing the SQL statements they contain. By definition, this will create a
