@@ -305,6 +305,7 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration
     add_column :products, :part_number, :string
   end
 end
+</ruby>
 
 You are not limited to one magically generated column, for example
 
