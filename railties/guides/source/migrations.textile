@@ -246,9 +246,10 @@ class CreateProducts < ActiveRecord::Migration
 end
 </ruby>
 
-You can append as many column name/type pairs as you want. By default
-+t.timestamps+ (which creates the +updated_at+ and +created_at+ columns that are
-automatically populated by Active Record) will be added for you.
+You can append as many column name/type pairs as you want. By default, the 
+generated migration will include +t.timestamps+ (which creates the 
++updated_at+ and +created_at+ columns that are automatically populated 
+by Active Record).
 
 h4. Creating a Standalone Migration
 
