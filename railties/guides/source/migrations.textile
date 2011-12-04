@@ -417,7 +417,6 @@ end
 will create a new products table with those two columns (plus the +id+ column)
 whereas
 
-The other helper is called +references+ (also available as +belongs_to+). In its
 <ruby>
 change_table :products do |t|
   t.timestamps
@@ -425,6 +424,7 @@ end
 </ruby>
 adds those columns to an existing table.
 
+Another helper is called +references+ (also available as +belongs_to+). In its
 simplest form it just adds some readability
 
 <ruby>
