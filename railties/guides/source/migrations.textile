@@ -819,10 +819,11 @@ loaded into the test database.
 
 Schema files are also useful if you want a quick look at what attributes an
 Active Record object has. This information is not in the model's code and is
-frequently spread across several migrations, but is summed up in the schema
-file. The "annotate_models":https://github.com/ctran/annotate_models gem
-automatically adds and updates comments at the top of each model summarizing the
-schema if you desire that functionality.
+frequently spread across several migrations, but the information is nicely 
+summed up in the schema file. The 
+"annotate_models":https://github.com/ctran/annotate_models gem automatically 
+adds and updates comments at the top of each model summarizing the schema if 
+you desire that functionality.
 
 h4. Types of Schema Dumps
 
