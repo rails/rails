@@ -722,10 +722,10 @@ module ActiveRecord #:nodoc:
       end
 
       def sequence_name
-        if superclass == Base
+        if base_class == self
           @sequence_name ||= reset_sequence_name
         else
-          (@sequence_name ||= nil) || superclass.sequence_name
+          (@sequence_name ||= nil) || base_class.sequence_name
         end
       end
 
