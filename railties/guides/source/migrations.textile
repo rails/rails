@@ -610,7 +610,7 @@ check whether the migration has already run, so for example +db:migrate:up
 VERSION=20080906120000+ will do nothing if Active Record believes that
 20080906120000 has already been run.
 
-h4. Being Talkative
+h4. Changing the output of running migrations
 
 By default migrations tell you exactly what they're doing and how long it took.
 A migration creating a table and adding an index might produce output like this
