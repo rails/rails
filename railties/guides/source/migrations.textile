@@ -163,10 +163,9 @@ allows Rails to handle common situations that occur with multiple developers.
 
 For example Alice adds migrations +20080906120000+ and +20080906123000+ and Bob
 adds +20080906124500+ and runs it. Alice finishes her changes and checks in her
-migrations and Bob pulls down the latest changes. Rails knows that it has not
-run Alice's two migrations so +rake db:migrate+ would run them (even though
-Bob's migration with a later timestamp has been run), and similarly migrating
-down would not run their +down+ methods.
+migrations and Bob pulls down the latest changes. When Bob runs +rake 
+db:migrate+, Rails knows that it has not run Alice's two migrations so it 
+executes the +up+ method for each migration.  
 
 Of course this is no substitution for communication within the team. For
 example, if Alice's migration removed a table that Bob's migration assumed to
