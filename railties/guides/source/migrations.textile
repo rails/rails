@@ -586,7 +586,9 @@ Neither of these Rake tasks do anything you could not do with +db:migrate+. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
-Lastly, the +db:reset+ task will drop the database, recreate it and load the
+h4. Resetting the database
+
+The +rake db:reset+ task will drop the database, recreate it and load the
 current schema into it.
 
 NOTE: This is not the same as running all the migrations - see the section on
