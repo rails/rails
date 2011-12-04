@@ -109,8 +109,15 @@ them).
 Active Record provides methods that perform common data definition tasks in a
 database independent way (you'll read about them in detail later):
 
-* +create_table+ +change_table+ +drop_table+ +add_column+ +change_column+
-* +rename_column+ +remove_column+ +add_index+ +remove_index+
+* +add_column+
+* +add_index+
+* +change_column+
+* +change_table+
+* +create_table+ 
+* +drop_table+
+* +remove_column+
+* +remove_index+
+* +rename_column+
 
 If you need to perform tasks specific to your database (for example create a
 "foreign key":#active-record-and-referential-integrity constraint) then the
@@ -184,10 +191,20 @@ development machine) is relatively harmless.
 
 h4. Supported Types
 
-Active Record supports the following types:
+Active Record supports the following database column types:
 
-* +:primary_key+ +:string+ +:text+ +:integer+ +:float+ +:decimal+ +:datetime+
-* +:timestamp+ +:time+ +:date+ +:binary+ +:boolean+
+* +:binary+
+* +:boolean+
+* +:date+
+* +:datetime+
+* +:decimal+
+* +:float+
+* +:integer+
+* +:primary_key+
+* +:string+
+* +:text+
+* +:time+
+* +:timestamp+
 
 These will be mapped onto an appropriate underlying database type. For example,
 with MySQL the type +:string+ is mapped to +VARCHAR(255)+. You can create
@@ -455,8 +472,14 @@ The +change+ method removes the need to write both +up+ and +down+ methods in
 those cases that Rails know how to revert the changes automatically. Currently,
 the +change+ method supports only these migration definitions:
 
-* +add_column+ +add_index+ +add_timestamps+ +create_table+ +remove_timestamps+
-* +rename_column+ +rename_index+ +rename_table+
+* +add_column+
+* +add_index+
+* +add_timestamps+
+* +create_table+
+* +remove_timestamps+
+* +rename_column+
+* +rename_index+
+* +rename_table+
 
 If you're going to use other methods, you'll have to write the +up+ and +down+
 methods normally.
