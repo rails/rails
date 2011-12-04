@@ -605,8 +605,8 @@ example,
 $ rake db:migrate:up VERSION=20080906120000
 </shell>
 
-will run the +up+ method from the 20080906120000 migration. These tasks check
-whether the migration has already run, so for example +db:migrate:up
+will run the +up+ method from the 20080906120000 migration. These tasks still
+check whether the migration has already run, so for example +db:migrate:up
 VERSION=20080906120000+ will do nothing if Active Record believes that
 20080906120000 has already been run.
 
