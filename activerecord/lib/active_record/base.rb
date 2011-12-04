@@ -27,6 +27,7 @@ require 'active_support/deprecation'
 require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
+require 'active_record/explain_subscriber'
 
 module ActiveRecord #:nodoc:
   # = Active Record

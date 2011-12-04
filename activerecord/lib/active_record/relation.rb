@@ -155,8 +155,8 @@ module ActiveRecord
     # Please see further details in the
     # {Active Record Query Interface guide}[http://edgeguides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
-      _, sqls, binds = collecting_sqls_for_explain { exec_query }
-      exec_explain(sqls, binds)
+      _, queries = collecting_queries_for_explain { exec_queries }
+      exec_explain(queries)
     end
 
     def to_a
@@ -169,11 +169,11 @@ module ActiveRecord
       # threshold, and at the same time the sum of them all does. The user
       # should get a query plan logged in that case.
       logging_query_plan do
-        exec_query
+        exec_queries
       end
     end
 
-    def exec_query
+    def exec_queries
       return @records if loaded?
 
       default_scoped = with_default_scope
@@ -204,7 +204,7 @@ module ActiveRecord
       @loaded = true
       @records
     end
-    private :exec_query
+    private :exec_queries
 
     def as_json(options = nil) #:nodoc:
       to_a.as_json(options)
