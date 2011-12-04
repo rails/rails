@@ -372,7 +372,7 @@ By default, +create_table+ will create a primary key called +id+. You can change
 the name of the primary key with the +:primary_key+ option (don't forget to
 update the corresponding model) or, if you don't want a primary key at all (for
 example for a HABTM join table), you can pass the option +:id => false+. If you
-need to pass database specific options you can place an SQL fragment in the
+need to pass database specific options you can place a SQL fragment in the
 +:options+ option. For example,
 
 <ruby>
@@ -797,7 +797,7 @@ h3. Schema Dumping and You
 h4. What are Schema Files for?
 
 Migrations, mighty as they may be, are not the authoritative source for your
-database schema. That role falls to either +db/schema.rb+ or an SQL file which
+database schema. That role falls to either +db/schema.rb+ or a SQL file which
 Active Record generates by examining the database. They are not designed to be
 edited, they just represent the current state of the database.
 
