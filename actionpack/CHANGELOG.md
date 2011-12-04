@@ -2,6 +2,20 @@
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
+*   form_for with +:as+ option uses "#{action}_#{as}" as css class and id:
+
+    Before:
+
+        form_for(@user, :as => 'client') # => "<form class="client_new">..."
+
+    Now:
+
+        form_for(@user, :as => 'client') # => "<form class="new_client">..."
+
+    *Vasiliy Ermolovich*
+
+*   Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`. Please look at ActiveRecord::Railtie for an example *José Valim*
+
 *   Allow fresh_when/stale? to take a record instead of an options hash *DHH*
 
 *   Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`. Please look at ActiveRecord::Railtie for an example. *José Valim*

@@ -768,7 +768,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit('Create post')
     end
 
-    expected =  whole_form("/posts/123", "create-post", "other_name_edit", :method => "put") do
+    expected =  whole_form("/posts/123", "create-post", "edit_other_name", :method => "put") do
       "<label for='other_name_title' class='post_title'>Title</label>" +
       "<input name='other_name[title]' size='30' id='other_name_title' value='Hello World' type='text' />" +
       "<textarea name='other_name[body]' id='other_name_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -905,7 +905,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.check_box(:secret)
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<label for='post_123_title'>Title</label>" +
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
       "<textarea name='post[123][body]' id='post_123_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
@@ -923,7 +923,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.check_box(:secret)
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[][title]' size='30' type='text' id='post__title' value='Hello World' />" +
       "<textarea name='post[][body]' id='post__body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[][secret]' type='hidden' value='0' />" +
@@ -1065,7 +1065,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.submit
     end
 
-    expected = whole_form('/posts/123', 'another_post_edit', 'another_post_edit', :method => 'put') do
+    expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', :method => 'put') do
       "<input name='commit' type='submit' value='Update your Post' />"
     end
 
@@ -1097,7 +1097,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][title]' size='30' type='text' id='post_123_title' value='Hello World' />" +
       "<input name='post[123][comment][][name]' size='30' type='text' id='post_123_comment__name' value='new comment' />"
     end
@@ -1156,7 +1156,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][comment][title]' size='30' type='text' id='post_123_comment_title' value='Hello World' />"
     end
 
@@ -1184,7 +1184,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][comment][123][title]' size='30' type='text' id='post_123_comment_123_title' value='Hello World' />"
     end
 
@@ -1204,9 +1204,9 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'post[]_edit', 'post[]_edit', 'put') do
+    expected = whole_form('/posts/123', 'edit_post[]', 'edit_post[]', 'put') do
       "<input name='post[123][comment][5][title]' size='30' type='text' id='post_123_comment_5_title' value='Hello World' />"
-    end + whole_form('/posts/123', 'post_edit', 'post_edit', 'put') do
+    end + whole_form('/posts/123', 'edit_post', 'edit_post', 'put') do
       "<input name='post[1][comment][123][title]' size='30' type='text' id='post_1_comment_123_title' value='Hello World' />"
     end
 
@@ -1859,7 +1859,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'create-post', 'post_edit', :method => 'put') do
+    expected = whole_form('/posts/123', 'create-post', 'edit_post', :method => 'put') do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='parent_post[secret]' type='hidden' value='0' />" +
@@ -1879,7 +1879,7 @@ class FormHelperTest < ActionView::TestCase
       }
     end
 
-    expected = whole_form('/posts/123', 'create-post', 'post_edit', :method => 'put') do
+    expected = whole_form('/posts/123', 'create-post', 'edit_post', :method => 'put') do
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[comment][name]' type='text' id='post_comment_name' value='new comment' size='30' />"
