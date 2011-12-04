@@ -529,10 +529,13 @@ can't be done.
 h3. Running Migrations
 
 Rails provides a set of rake tasks to work with migrations which boil down to
-running certain sets of migrations. The very first migration related rake task
-you will use will probably be +db:migrate+. In its most basic form it just runs
-the +up+ method for all the migrations that have not yet been run. If there are
-no such migrations, it exits.
+running certain sets of migrations. 
+
+The very first migration related rake task you will use will probably be 
++rake db:migrate+. In its most basic form it just runs the +up+ or +change+
+method for all the migrations that have not yet been run. If there are
+no such migrations, it exits. It will run these migrations in order based
+on the date of the migration.
 
 Note that running the +db:migrate+ also invokes the +db:schema:dump+ task, which
 will update your db/schema.rb file to match the structure of your database.
