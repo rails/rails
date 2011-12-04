@@ -2028,7 +2028,7 @@ MSG
         attribute_names.each do |name|
           if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
 
-            if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
+            if include_readonly_attributes || !self.class.readonly_attributes.include?(name)
 
               value = if klass.serialized_attributes.include?(name)
                         @attributes[name].serialized_value
@@ -2043,6 +2043,7 @@ MSG
             end
           end
         end
+
         attrs
       end
 
