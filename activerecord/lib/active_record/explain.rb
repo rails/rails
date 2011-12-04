@@ -28,16 +28,6 @@ module ActiveRecord
       end
     end
 
-    # This method receives payloads from the explain subscriber and is
-    # responsible for collecting or ignoring them.
-    def collect_queries_for_explain(payload) # :nodoc:
-      if queries = Thread.current[:available_queries_for_explain]
-        unless ignore_payload_for_explain?(payload)
-          queries << payload.values_at(:sql, :binds)
-        end
-      end
-    end
-
     # Relation#explain needs to be able to collect the queries regardless of
     # whether auto explain is enabled. This method serves that purpose.
     def collecting_queries_for_explain # :nodoc:
@@ -47,13 +37,6 @@ module ActiveRecord
     ensure
       # Note that the return value above does not depend on this assigment.
       current[:available_queries_for_explain] = original
-    end
-
-    # SCHEMA queries cannot be EXPLAINed, also we do not want to run EXPLAIN on
-    # our own EXPLAINs now matter how loopingly beautiful that would be.
-    SKIP_EXPLAIN_FOR = %w(SCHEMA EXPLAIN)
-    def ignore_payload_for_explain?(payload) # :nodoc:
-      payload[:exception] || SKIP_EXPLAIN_FOR.include?(payload[:name])
     end
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
