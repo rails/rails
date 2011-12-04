@@ -129,7 +129,7 @@ existing records (if necessary using your models).
 On databases that support transactions with statements that change the schema
 (such as PostgreSQL or SQLite3), migrations are wrapped in a transaction. If the
 database does not support this (for example MySQL) then when a migration fails
-the parts of it that succeeded will not be rolled back. You will have to unpick
+the parts of it that succeeded will not be rolled back. You will have to rollback
 the changes that were made by hand.
 
 h4. What's in a Name
