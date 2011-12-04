@@ -61,6 +61,16 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert r.valid?
   end
 
+  def test_validates_associated_marked_for_destruction
+    Topic.validates_associated(:replies)
+    Reply.validates_presence_of(:content)
+    t = Topic.new
+    t.replies << Reply.new
+    assert t.invalid?
+    t.replies.first.mark_for_destruction
+    assert t.valid?
+  end
+
   def test_validates_associated_with_custom_message_using_quotes
     Reply.validates_associated :topic, :message=> "This string contains 'single' and \"double\" quotes"
     Topic.validates_presence_of :content
