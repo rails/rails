@@ -57,7 +57,7 @@ platforms :ruby do
   gem "nokogiri", ">= 1.4.5"
 
   # AR
-  gem "sqlite3", "~> 1.3.4"
+  gem "sqlite3", "~> 1.3.5"
 
   group :db do
     gem "pg", ">= 0.11.0"
