@@ -399,10 +399,8 @@ change_table :products do |t|
 end
 </ruby>
 
-You don't have to keep repeating the table name and it groups all the statements
-related to modifying one particular table. The individual transformation names
-are also shorter, for example +remove_column+ becomes just +remove+ and
-+add_index+ becomes just +index+.
+removes the +description+ and +name+ columns, creates a +part_number+ string 
+column and adds an index on it. Finally it renames the +upccode+ column. 
 
 h4. Special Helpers
 
