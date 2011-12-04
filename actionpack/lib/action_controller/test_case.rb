@@ -86,7 +86,9 @@ module ActionController
         assert_block(msg) do
           case options
           when String
-            rendered.any? { |t,num| t.end_with?(options) }
+            rendered.any? do |t, num|
+              (options.split(File::SEPARATOR) - t.split(File::SEPARATOR)).empty?
+            end
           when Regexp
             rendered.any? { |t,num| t.match(options) }
           when NilClass

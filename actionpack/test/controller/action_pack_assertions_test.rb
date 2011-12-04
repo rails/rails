@@ -495,6 +495,13 @@ class AssertTemplateTest < ActionController::TestCase
     get :nothing
     assert_template nil
   end
+
+  def test_fails_with_partial_name_matching_string
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'world'
+    end
+  end
 end
 
 class ActionPackHeaderTest < ActionController::TestCase
