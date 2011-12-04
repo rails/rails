@@ -254,7 +254,7 @@ by Active Record).
 h4. Creating a Standalone Migration
 
 If you are creating migrations for other purposes (for example to add a column
-to an existing table) then you can use the migration generator:
+to an existing table) then you can also use the migration generator:
 
 <shell> 
 $ rails generate migration AddPartNumberToProducts
