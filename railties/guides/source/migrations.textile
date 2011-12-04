@@ -669,7 +669,7 @@ generates the following output
 ==  CreateProducts: migrated (10.0054s) =======================================
 </shell>
 
-If you just want Active Record to shut up, then running +rake db:migrate
+If you want Active Record to not output anything, then running +rake db:migrate
 VERBOSE=false+ will suppress all output.
 
 h3. Using Models in Your Migrations
