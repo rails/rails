@@ -18,11 +18,12 @@ is database independent: you don't need to worry about the precise syntax of
 drop down to raw SQL for database specific features). For example you could use
 SQLite3 in development, but MySQL in production.
 
-You'll learn all about migrations including:
+In this guide, you'll learn all about migrations including:
 
-* The generators you can use to create them The methods Active Record provides
-* to manipulate your database The Rake tasks that manipulate them How they
-* relate to +schema.rb+
+* The generators you can use to create them 
+* The methods Active Record provides to manipulate your database 
+* The Rake tasks that manipulate them 
+* How they relate to +schema.rb+
 
 endprologue.
 
