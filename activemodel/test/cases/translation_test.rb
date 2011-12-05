@@ -56,6 +56,16 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal 'person gender attribute', Person::Gender.human_attribute_name('attribute')
   end
 
+  def test_translated_nested_model_attributes
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:"addresses/street" => 'Street'}}}
+    assert_equal 'Street', Person.human_attribute_name('addresses.street')
+  end
+
+  def test_translated_nested_model_attributes_with_deprecated_lookup_style
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:addresses => {:street => 'Street'}}}}
+    assert_equal 'Street', Person.human_attribute_name('addresses.street')
+  end
+
   def test_translated_model_names
     I18n.backend.store_translations 'en', :activemodel => {:models => {:person => 'person model'} }
     assert_equal 'person model', Person.model_name.human
