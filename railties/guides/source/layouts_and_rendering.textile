@@ -744,7 +744,7 @@ And use them by referencing them exactly like +:defaults+:
 <%= javascript_include_tag :projects %>
 </erb>
 
-When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at then end.
+When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at the end.
 
 Also, if the Asset Pipeline is disabled, the +:all+ expansion loads every JavaScript file in +public/javascripts+:
 
@@ -777,19 +777,23 @@ You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to CSS Files with the +stylesheet_link_tag+
 
-The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.css+:
+The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided.
+
+If you are using Rails with the "Asset Pipeline" enabled, this helper will generate a link to +/assets/stylesheets/+. This link is then processed by the Sprockets gem. A stylesheet file can be stored in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+.
+
+You can specify a full path relative to the document root, or a URL. For example, to link to a stylesheet file that is inside a directory called +stylesheets+ inside of one of +app/assets+, +lib/assets+ or +vendor/assets+, you would do this:
 
 <erb>
 <%= stylesheet_link_tag "main" %>
 </erb>
 
-To include +public/stylesheets/main.css+ and +public/stylesheets/columns.css+:
+To include +app/assets/stylesheets/main.css+ and +app/assets/stylesheets/columns.css+:
 
 <erb>
 <%= stylesheet_link_tag "main", "columns" %>
 </erb>
 
-To include +public/stylesheets/main.css+ and +public/photos/columns.css+:
+To include +vendor/assets/stylesheets/main.css+ and +lib/assets/stylesheets/photos/columns.css+:
 
 <erb>
 <%= stylesheet_link_tag "main", "/photos/columns" %>
@@ -807,7 +811,7 @@ By default, the +stylesheet_link_tag+ creates links with +media="screen" rel="st
 <%= stylesheet_link_tag "main_print", :media => "print" %>
 </erb>
 
-The +all+ option links every CSS file in +public/stylesheets+:
+If the Asset Pipeline is disabled, the +all+ option links every CSS file in +public/stylesheets+:
 
 <erb>
 <%= stylesheet_link_tag :all %>
