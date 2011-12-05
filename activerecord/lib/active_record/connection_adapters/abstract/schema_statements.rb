@@ -23,7 +23,12 @@ module ActiveRecord
       # === Example
       #   table_exists?(:developers)
       def table_exists?(table_name)
-        tables.include?(table_name.to_s)
+        begin
+          select_value("SELECT 1 FROM #{table_name.to_s} where 1=0")
+          true
+        rescue
+          false
+        end
       end
 
       # Returns an array of indexes for the given table.
