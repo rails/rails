@@ -63,6 +63,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_encrypted_cookie
+      cookies.encrypted[:treasure_map] = "X marks the spot"
+      head :ok
+    end
+
     def raise_data_overflow
       cookies.signed[:foo] = 'bye!' * 1024
       head :ok
@@ -74,8 +79,19 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def tampered_encrypted_cookies
+      cookies[:tampered_encrypted] = "BAhJIlBzZGZhc2YxeUd2NmFJZTluZUVpdFZVck1BZDV0KytnS1JJVXBsU0RXUmpBTDdIRms9LS02ZGczb04vRGpsMyswN0xnWjJmeExRPT0GOgZFVA%3D%3D--637b89be586e940f9c3e25ef51f1e6d0dc9f6251"
+      cookies.encrypted[:tampered_encrypted]
+      head :ok
+    end
+
     def set_permanent_signed_cookie
       cookies.permanent.signed[:remember_me] = 100
+      head :ok
+    end
+
+    def set_permanent_encrypted_cookie
+      cookies.permanent.encrypted[:buried_tresure] = "Gold!!!"
       head :ok
     end
 
@@ -261,15 +277,31 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
   end
 
+  def test_encrypted_cookie
+    get :set_encrypted_cookie
+    assert_equal "X marks the spot", @controller.send(:cookies).encrypted[:treasure_map]
+  end
+
   def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
+  end
+
+  def test_accessing_nonexistant_encrypted_cookie_should_not_raise_an_invalid_signature
+    get :set_encrypted_cookie
+    assert_nil @controller.send(:cookies).encrypted[:non_existant_attribute]
   end
 
   def test_permanent_signed_cookie
     get :set_permanent_signed_cookie
     assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
     assert_equal 100, @controller.send(:cookies).signed[:remember_me]
+  end
+
+  def test_permanent_encrypted_cookie
+    get :set_permanent_encrypted_cookie
+    assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
+    assert_equal "Gold!!!", @controller.send(:cookies).encrypted[:buried_tresure]
   end
 
   def test_delete_and_set_cookie
@@ -287,6 +319,13 @@ class CookiesTest < ActionController::TestCase
   def test_tampered_cookies
     assert_nothing_raised do
       get :tampered_cookies
+      assert_response :success
+    end
+  end
+
+  def test_tampered_encrypted_cookies
+    assert_nothing_raised do
+      get :tampered_encrypted_cookies
       assert_response :success
     end
   end
@@ -634,6 +673,25 @@ class CookiesIntegrationTest < ActionDispatch::IntegrationTest
       get '/dont_set_cookies'
       assert_raise(ActionDispatch::ClosedError) {
         request.cookie_jar.signed['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_encrypted_cookies_raises_after_stream_back_to_client
+    with_test_route_set do
+      get '/set_cookies'
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar.encrypted['alert'] = 'alert'
+        cookies['alert'] = 'alert'
+      }
+    end
+  end
+
+  def test_setting_encrypted_cookies_raises_after_stream_back_to_client_even_without_cookies
+    with_test_route_set do
+      get '/dont_set_cookies'
+      assert_raise(ActionDispatch::ClosedError) {
+        request.cookie_jar.encrypted['alert'] = 'alert'
       }
     end
   end
