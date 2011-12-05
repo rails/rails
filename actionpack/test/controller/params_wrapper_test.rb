@@ -285,3 +285,38 @@ class AnonymousControllerParamsWrapperTest < ActionController::TestCase
     end
   end
 end
+
+class IrregularInflectionParamsWrapperTest < ActionController::TestCase
+  include ParamsWrapperTestHelp
+
+  class ParamswrappernewsItem
+    def self.attribute_names
+      ['test_attr']
+    end
+  end
+
+  class ParamswrappernewsController < ActionController::Base
+    class << self
+      attr_accessor :last_parameters
+    end
+
+    def parse
+      self.class.last_parameters = request.params.except(:controller, :action)
+      head :ok
+    end
+  end
+
+  tests ParamswrappernewsController
+
+  def test_uses_model_attribute_names_with_irregular_inflection
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.irregular 'paramswrappernews_item', 'paramswrappernews'
+    end
+
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'test_attr' => 'test_value' }
+      assert_parameters({ 'username' => 'sikachu', 'test_attr' => 'test_value', 'paramswrappernews_item' => { 'test_attr' => 'test_value' }})
+    end
+  end
+end
