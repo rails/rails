@@ -43,8 +43,10 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
+      nested, attribute = attribute.to_s.split('.') if attribute.to_s.include?('.')
+
       defaults = lookup_ancestors.map do |klass|
-        :"#{self.i18n_scope}.attributes.#{klass.model_name.i18n_key}.#{attribute}"
+        :"#{self.i18n_scope}.attributes.#{[klass.model_name.i18n_key, nested].compact.join("/")}.#{attribute}"
       end
 
       defaults << :"attributes.#{attribute}"
