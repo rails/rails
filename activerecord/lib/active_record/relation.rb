@@ -154,12 +154,16 @@ module ActiveRecord
     #
     # Please see further details in the
     # {Active Record Query Interface guide}[http://edgeguides.rubyonrails.org/active_record_querying.html#running-explain].
-    def explain
-      _, queries = collecting_queries_for_explain { exec_queries }
+    def explain(with_preload = true)
+      _, queries = collecting_queries_for_explain { exec_queries(with_preload) }
       exec_explain(queries)
     end
 
     def to_a
+      to_array
+    end
+
+    def to_array(with_preload = true)
       # We monitor here the entire execution rather than individual SELECTs
       # because from the point of view of the user fetching the records of a
       # relation is a single unit of work. You want to know if this call takes
@@ -169,11 +173,11 @@ module ActiveRecord
       # threshold, and at the same time the sum of them all does. The user
       # should get a query plan logged in that case.
       logging_query_plan do
-        exec_queries
+        exec_queries(with_preload)
       end
     end
 
-    def exec_queries
+    def exec_queries(with_preload = true)
       return @records if loaded?
 
       default_scoped = with_default_scope
@@ -187,10 +191,12 @@ module ActiveRecord
           end
         end
 
-        preload = @preload_values
-        preload +=  @includes_values unless eager_loading?
-        preload.each do |associations|
-          ActiveRecord::Associations::Preloader.new(@records, associations).run
+        if with_preload
+          preload = @preload_values
+          preload +=  @includes_values unless eager_loading?
+          preload.each do |associations|
+            ActiveRecord::Associations::Preloader.new(@records, associations).run
+          end
         end
 
         # @readonly_value is true only if set explicitly. @implicit_readonly is true if there

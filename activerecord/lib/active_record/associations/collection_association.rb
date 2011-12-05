@@ -50,7 +50,7 @@ module ActiveRecord
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
 
-          scoped.select(column).map! do |record|
+          scoped.select(column).to_array(false).map! do |record|
             record.send(reflection.association_primary_key)
           end
         end
