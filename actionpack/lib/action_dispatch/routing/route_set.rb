@@ -356,7 +356,7 @@ module ActionDispatch
         conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
-        named_routes[name] = route if name
+        named_routes[name] = route if name && !named_routes[name]
         route
       end
 
