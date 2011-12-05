@@ -713,12 +713,12 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal set.routes.first, set.named_routes[:hello]
   end
 
-  def test_later_named_routes_take_precedence
+  def test_earlier_named_routes_take_precedence
     set.draw do
       match '/hello/world' => 'a#b', :as => 'hello'
       match '/hello'       => 'a#b', :as => 'hello'
     end
-    assert_equal set.routes.last, set.named_routes[:hello]
+    assert_equal set.routes.first, set.named_routes[:hello]
   end
 
   def setup_named_route_test
