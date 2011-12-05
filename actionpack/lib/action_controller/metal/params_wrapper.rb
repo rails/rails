@@ -141,7 +141,7 @@ module ActionController
       # try to find Foo::Bar::User, Foo::User and finally User.
       def _default_wrap_model #:nodoc:
         return nil if self.anonymous?
-        model_name = self.name.sub(/Controller$/, '').singularize
+        model_name = self.name.sub(/Controller$/, '').classify
 
         begin
           if model_klass = model_name.safe_constantize
