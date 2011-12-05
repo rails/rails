@@ -94,10 +94,10 @@ module ActionView #:nodoc:
   #
   # Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
   #
-  #   xml.div {
+  #   xml.div do
   #     xml.h1(@person.name)
   #     xml.p(@person.bio)
-  #   }
+  #   end
   #
   # would produce something like:
   #
