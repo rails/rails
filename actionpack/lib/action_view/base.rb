@@ -9,8 +9,8 @@ require 'active_support/core_ext/module/deprecation'
 module ActionView #:nodoc:
   # = Action View Base
   #
-  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> (or <tt>.rhtml</tt>) extension then it uses a mixture of ERb
-  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> (or <tt>.rxml</tt>) extension then Jim Weirich's Builder::XmlMarkup library is used.
+  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> extension then it uses a mixture of ERb
+  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> extension then Jim Weirich's Builder::XmlMarkup library is used.
   #
   # == ERB
   #
