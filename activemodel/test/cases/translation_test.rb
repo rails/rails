@@ -57,13 +57,13 @@ class ActiveModelI18nTests < ActiveModel::TestCase
   end
 
   def test_translated_nested_model_attributes
-    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:"addresses/street" => 'Street'}}}
-    assert_equal 'Street', Person.human_attribute_name('addresses.street')
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:"person/addresses" => {:street => 'Person Address Street'}}}
+    assert_equal 'Person Address Street', Person.human_attribute_name('addresses.street')
   end
 
-  def test_translated_nested_model_attributes_with_deprecated_lookup_style
-    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:addresses => {:street => 'Street'}}}}
-    assert_equal 'Street', Person.human_attribute_name('addresses.street')
+  def test_translated_nested_model_attributes_with_namespace_fallback
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:addresses => {:street => 'Cool Address Street'}}}
+    assert_equal 'Cool Address Street', Person.human_attribute_name('addresses.street')
   end
 
   def test_translated_model_names
