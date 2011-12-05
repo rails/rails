@@ -6,7 +6,6 @@ module ActiveModel
       MESSAGES  = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
       CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
-      DEFAULT_TOKENIZER = lambda { |value| value.split(//) }
       RESERVED_OPTIONS  = [:minimum, :maximum, :within, :is, :tokenizer, :too_short, :too_long]
 
       def initialize(options)
@@ -36,7 +35,7 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        value = (options[:tokenizer] || DEFAULT_TOKENIZER).call(value) if value.kind_of?(String)
+        value = options[:tokenizer].call(value) if value.kind_of?(String) && options[:tokenizer].present?
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
