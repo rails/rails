@@ -331,8 +331,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, people(:michael).jobs.size
   end
 
-  def test_get_ids_for_belongs_to_source
-    assert_sql(/DISTINCT/) { assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort }
+  def test_get_ids
+    assert_equal [posts(:welcome).id, posts(:authorless).id].sort, people(:michael).post_ids.sort
   end
 
   def test_get_ids_for_has_many_source
@@ -353,6 +353,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert !person.posts.loaded?
     assert_equal [posts(:welcome).id, posts(:authorless).id].sort, person.post_ids.sort
     assert !person.posts.loaded?
+  end
+
+  def test_get_ids_for_has_many_through_with_conditions
+    Tagging.create!(:taggable_type => 'Post', :taggable_id => posts(:welcome).id, :tag => tags(:misc))
+    assert_equal posts(:welcome).misc_tag_ids,posts(:welcome).misc_tags.map! {|r| r.send(:id)}
+  end
+
+  def test_get_ids_for_has_many_through_with_include_and_conditions
+    assert_equal [posts(:authorless).id], people(:michael).posts_with_no_comment_ids
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
