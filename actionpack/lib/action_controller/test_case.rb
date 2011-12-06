@@ -80,7 +80,7 @@ module ActionController
                 options, rendered.keys.join(', '))
         assert_block(msg) do
           if options
-            rendered.any? { |t,num| t.match(options) }
+            rendered.any? { |t,num| t.match(options + "$") }
           else
             @templates.blank?
           end
