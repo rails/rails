@@ -443,6 +443,7 @@ module ActiveRecord
       say_with_time "#{method}(#{arg_list})" do
         unless arguments.empty? || method == :execute
           arguments[0] = Migrator.proper_table_name(arguments.first)
+          arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
         end
         return super unless connection.respond_to?(method)
         connection.send(method, *arguments, &block)
