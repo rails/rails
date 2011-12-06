@@ -236,13 +236,13 @@ module ActiveSupport #:nodoc:
         raise
       end
 
-      def load(file, *)
+      def load(file, wrap = false)
         result = false
         load_dependency(file) { result = super }
         result
       end
 
-      def require(file, *)
+      def require(file)
         result = false
         load_dependency(file) { result = super }
         result
