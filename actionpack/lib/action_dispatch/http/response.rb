@@ -69,7 +69,7 @@ module ActionDispatch # :nodoc:
       if content_type = self["Content-Type"]
         type, charset = content_type.split(/;\s*charset=/)
         @content_type = Mime::Type.lookup(type)
-        @charset = charset || "UTF-8"
+        @charset = charset || self.class.default_charset
       end
 
       prepare_cache_control!
