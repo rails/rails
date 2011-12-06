@@ -227,7 +227,7 @@ module ActiveSupport #:nodoc:
 
       def load_dependency(file)
         if Dependencies.load?
-          Dependencies.new_constants_in(Object) { yield }.presence
+          Dependencies.new_constants_in(Object) { yield }
         else
           yield
         end
