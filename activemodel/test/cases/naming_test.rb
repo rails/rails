@@ -34,6 +34,10 @@ class NamingTest < ActiveModel::TestCase
   def test_human
     assert_equal 'Track back', @model_name.human
   end
+
+  def test_i18n_key
+    assert_equal :"post/track_back", @model_name.i18n_key
+  end
 end
 
 class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
@@ -73,6 +77,10 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
 
   def test_param_key
     assert_equal 'post', @model_name.param_key
+  end
+
+  def test_i18n_key
+    assert_equal :"blog/post", @model_name.i18n_key
   end
 end
 
@@ -114,6 +122,10 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
   def test_param_key
     assert_equal 'blog_post', @model_name.param_key
   end
+
+  def test_i18n_key
+    assert_equal :"blog/post", @model_name.i18n_key
+  end
 end
 
 class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
@@ -154,6 +166,10 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
   def test_param_key
     assert_equal 'article', @model_name.param_key
   end
+
+  def test_i18n_key
+    assert_equal :"article", @model_name.i18n_key
+  end
 end
 
 class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
@@ -187,6 +203,10 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
 
   def test_param_key
     assert_equal 'post', @model_name.param_key
+  end
+
+  def test_i18n_key
+    assert_equal :"blog/post", @model_name.i18n_key
   end
 end
 
