@@ -103,11 +103,6 @@ module ActionView
       include FormTagHelper
       include UrlHelper
 
-      # Converts the given object to an ActiveModel compliant one.
-      def convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
-      end
-
       # Creates a form and a scope around a specific model object that is used
       # as a base for questioning about values for the fields.
       #
@@ -382,7 +377,7 @@ module ActionView
 
       def apply_form_for_options!(object_or_array, options) #:nodoc:
         object = object_or_array.is_a?(Array) ? object_or_array.last : object_or_array
-        object = convert_to_model(object)
+        object = ActiveModel::Naming.convert_to_model(object)
 
         as = options[:as]
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :put] : [:new, :post]
@@ -1231,7 +1226,7 @@ module ActionView
     class FormBuilder
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = FormHelper.instance_method_names - %w(form_for convert_to_model)
+      self.field_helpers = FormHelper.instance_method_names - %w(form_for)
 
       attr_accessor :object_name, :object, :options
 
@@ -1374,7 +1369,7 @@ module ActionView
         end
 
         def submit_default_value
-          object = convert_to_model(@object)
+          object = ActiveModel::Naming.convert_to_model(@object)
           key    = object ? (object.persisted? ? :update : :create) : :submit
 
           model = if object.class.respond_to?(:model_name)
@@ -1397,7 +1392,7 @@ module ActionView
 
         def fields_for_with_nested_attributes(association_name, association, options, block)
           name = "#{object_name}[#{association_name}_attributes]"
-          association = convert_to_model(association)
+          association = ActiveModel::Naming.convert_to_model(association)
 
           if association.respond_to?(:persisted?)
             association = [association] if @object.send(association_name).is_a?(Array)
@@ -1418,7 +1413,7 @@ module ActionView
         end
 
         def fields_for_nested_model(name, object, options, block)
-          object = convert_to_model(object)
+          object = ActiveModel::Naming.convert_to_model(object)
 
           parent_include_id = self.options.fetch(:include_id, true)
           include_id = options.fetch(:include_id, parent_include_id)
@@ -1429,10 +1424,6 @@ module ActionView
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
-        end
-
-        def convert_to_model(object)
-          object.respond_to?(:to_model) ? object.to_model : object
         end
     end
   end
