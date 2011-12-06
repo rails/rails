@@ -87,6 +87,10 @@ module ActiveSupport #:nodoc:
         @stack.each(&block)
       end
 
+      def watching?
+        !@watching.empty?
+      end
+
       # return a list of new constants found since the last call to watch_namespaces
       def new_constants
         constants = []
@@ -226,7 +230,7 @@ module ActiveSupport #:nodoc:
       end
 
       def load_dependency(file)
-        if Dependencies.load?
+        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
           Dependencies.new_constants_in(Object) { yield }
         else
           yield
