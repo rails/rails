@@ -1,3 +1,6 @@
+*   Allow to use asset_path on named_routes aliasing RailsHelper's
+    asset_path to path_to_asset *Adrian Pike*
+
 *   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
 
 ## Rails 3.1.3 (unreleased) ##
