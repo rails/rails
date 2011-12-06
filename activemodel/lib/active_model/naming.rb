@@ -71,8 +71,8 @@ module ActiveModel
   #   BookCover.model_name        # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
   #
-  #   BookCover.model_name.i18n_key              # => "book_cover"
-  #   BookModule::BookCover.model_name.i18n_key  # => "book_module.book_cover"
+  #   BookCover.model_name.i18n_key              # => :book_cover
+  #   BookModule::BookCover.model_name.i18n_key  # => :"book_module/book_cover"
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test. So either extending the provided
