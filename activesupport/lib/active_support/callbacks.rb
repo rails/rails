@@ -81,6 +81,8 @@ module ActiveSupport
       send("_run_#{kind}_callbacks", *args, &block)
     end
 
+    def log_callback(callback_name, callback_type) end
+
     class Callback #:nodoc:#
       @@_callback_sequence = 0
 
@@ -177,6 +179,7 @@ module ActiveSupport
               # remove the `result` variable, but apparently some other
               # generated code is depending on this variable being set sometimes
               # and sometimes not.
+              log_callback('#{@filter}', '#{@kind}')
               result = result = #{@filter}
               halted = (#{chain.config[:terminator]})
             end
@@ -201,6 +204,7 @@ module ActiveSupport
           @klass.class_eval <<-RUBY_EVAL,  __FILE__, __LINE__ + 1
              def #{name}(halted)
               if #{@compiled_options} && !halted
+                log_callback('#{@filter}', '#{@kind}')
                 #{@filter} do
                   yield self
                 end
@@ -223,6 +227,7 @@ module ActiveSupport
           # after_save :filter_name, :if => :condition
           <<-RUBY_EVAL
           if #{@compiled_options}
+            log_callback('#{@filter}', '#{@kind}')
             #{@filter}
           end
           RUBY_EVAL
