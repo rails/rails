@@ -336,7 +336,7 @@ It’s pretty likely that other changes to master have happened while you were w
 
 <shell>
 $ git checkout master
-$ git pull
+$ git pull --rebase
 </shell>
 
 Now reapply your patch on top of the latest changes:
