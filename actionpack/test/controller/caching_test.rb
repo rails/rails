@@ -251,6 +251,11 @@ class ActionCachingTestController < CachingController
     expire_action :controller => 'action_caching_test', :action => 'index', :format => 'xml'
     render :nothing => true
   end
+
+  def expire_custom_path
+    expire_action("http://test.host/custom/show")
+    render :nothing => true
+  end
 end
 
 class MockTime < Time
@@ -443,6 +448,30 @@ class ActionCacheTest < ActionController::TestCase
     get :index
     assert_response :success
     assert_not_equal cached_time, @response.body
+  end
+
+  def test_cache_expiration_with_custom_cache_path
+    get :show
+    assert_response :success
+    cached_time = content_to_cache
+    reset!
+
+    get :show
+    assert_response :success
+    assert_equal cached_time, @response.body
+
+    get :expire_custom_path
+    assert_response :success
+    reset!
+
+    get :show
+    assert_response :success
+    new_cached_time = content_to_cache
+    assert_not_equal cached_time, @response.body
+
+    get :show
+    assert_response :success
+    assert_equal new_cached_time, @response.body
   end
 
   def test_cache_is_scoped_by_subdomain
