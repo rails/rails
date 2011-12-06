@@ -48,7 +48,6 @@ module ActiveRecord
             record.send(reflection.association_primary_key)
           end
         else
-          column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
           relation = scoped
 
           including = (relation.eager_load_values + relation.includes_values).uniq
@@ -60,7 +59,7 @@ module ActiveRecord
             end
           end
 
-          relation.uniq.pluck(column)
+          relation.uniq.select_column(reflection.association_primary_key)
         end
       end
 

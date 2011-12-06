@@ -1,5 +1,21 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Added `ActiveRecord::Base#select_column` and `ActiveRecord::Base#select_columns`
+
+    Returns an array (or an array of arrays, in the case of `select_columns`) of
+    type-cast values for a class or relation, without instantiating AR::Base
+    objects.
+        
+      Client.where(:active => true).select_column(:id)
+
+    is the same as
+
+        Client.where(:active => true).select(:id).map(&:id)
+
+    but doesn't require instantiation of multiple Client objects.
+
+    *Ernie Miller*
+
 *   Added ability to run migrations only for given scope, which allows
     to run migrations only from one engine (for example to revert changes
     from engine that you want to remove).
@@ -26,14 +42,6 @@
     PostgreSQL.
 
     *fxn*
-
-*   Implemented ActiveRecord::Relation#pluck method
-
-    Method returns Array of column value from table under ActiveRecord model
-        
-        Client.pluck(:id)
-
-    *Bogdan Gusiev*
 
 *   Automatic closure of connections in threads is deprecated.  For example
     the following code is deprecated:
@@ -233,7 +241,7 @@
 
 *   LRU cache in mysql and sqlite are now per-process caches.
 
-    * lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache  	  keys are per process id.
+    * lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache     keys are per process id.
     * lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
     *Aaron Patterson*
 

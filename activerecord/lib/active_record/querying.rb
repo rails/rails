@@ -9,7 +9,7 @@ module ActiveRecord
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
              :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
              :having, :create_with, :uniq, :to => :scoped
-    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
+    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -54,5 +54,71 @@ module ActiveRecord
       sql = sanitize_conditions(sql)
       connection.select_value(sql, "#{name} Count").to_i
     end
+    
+    # Returns an <tt>Array</tt> containing the type-cast values of a single
+    # attribute of all records of this class. This is identical to the
+    # idiom:
+    #
+    #   Person.select(:id).map(&:id)
+    #
+    # but without the overhead of instantiating each ActiveRecord::Base
+    # object.
+    #
+    # Examples:
+    #
+    #   Person.select_column(:id) # SELECT people.id FROM people
+    def select_column(attr_name)
+      attr_name = attr_name.to_s
+      attr_name = primary_key if attr_name == 'id'
+
+      column = columns_hash[attr_name]
+      coder  = serialized_attributes[attr_name]
+
+      connection.select_rows(
+        except(:select).select(arel_table[attr_name]).to_sql
+      ).map! do |values|
+        type_cast_for_select_column(values[0], column, coder)
+      end
+    end
+
+    # Returns an <tt>Array</tt> which contains an <tt>Array</tt> for each
+    # record of this class. Each internal array contains the type-cast
+    # values of the attributes given as parameters. Like <tt>select_column</tt>,
+    # this avoids the overhead of instantiating each ActiveRecord::Base
+    # object, but it also allows for the following syntax:
+    #
+    #   Person.select_columns(:name, :email) do |name, email|
+    #     puts "#{name}'s e-mail address is #{email}"
+    #   end
+    def select_columns(*attr_names)
+      attr_names.map! do |attr_name|
+        attr_name = attr_name.to_s
+        attr_name == 'id' ? primary_key : attr_name
+      end
+
+      columns = attr_names.map {|n| columns_hash[n]}
+      coders  = attr_names.map {|n| serialized_attributes[n]}
+
+      connection.select_rows(
+        except(:select).select(attr_names.map {|n| arel_table[n]}).to_sql
+      ).map! do |values|
+        values.each_with_index do |value, index|
+          values[index] = type_cast_for_select_column(value, columns[index], coders[index])
+        end
+      end
+    end
+
+    # Given a value, a column definition, and a coder, type-cast or
+    # decode the value.
+    def type_cast_for_select_column(value, column, coder)
+      if value.nil? || !column
+        value
+      elsif coder
+        coder.load(value)
+      else
+        column.type_cast(value)
+      end
+    end
+    
   end
 end
