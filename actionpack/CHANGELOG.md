@@ -100,6 +100,14 @@
     persistent between requests so if you need to manipulate the environment
     for your test you need to do it before the cookie jar is created.
 
+## Rails 3.1.4 (unreleased) ##
+
+*   Allow to use asset_path on named_routes aliasing RailsHelper's
+    asset_path to path_to_asset *Adrian Pike*
+
+*   Assets should use the request protocol by default or default to
+    relative if no request is available *Jonathan del Strother*
+
 ## Rails 3.1.3 (unreleased) ##
 
 *   Fix using `tranlate` helper with a html translation which uses the `:count` option for
