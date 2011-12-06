@@ -1555,7 +1555,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "hello world", Thing.find(:first).content
 
       RenameThings.up
-      Thing.set_table_name("prefix_awesome_things_suffix")
+      Thing.table_name = "prefix_awesome_things_suffix"
 
       assert_equal "hello world", Thing.find(:first).content
     ensure
