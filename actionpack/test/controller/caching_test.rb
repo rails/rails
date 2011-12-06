@@ -251,6 +251,11 @@ class ActionCachingTestController < CachingController
     expire_action :controller => 'action_caching_test', :action => 'index', :format => 'xml'
     render :nothing => true
   end
+
+  def expire_with_url_string
+    expire_action url_for(:controller => 'action_caching_test', :action => 'index')
+    render :nothing => true
+  end
 end
 
 class MockTime < Time
@@ -437,6 +442,21 @@ class ActionCacheTest < ActionController::TestCase
 
     @request.request_uri = "/action_caching_test/expire.xml"
     get :expire, :format => :xml
+    assert_response :success
+    reset!
+
+    get :index
+    assert_response :success
+    assert_not_equal cached_time, @response.body
+  end
+
+  def test_cache_expiration_with_url_string
+    get :index
+    cached_time = content_to_cache
+    reset!
+
+    @request.request_uri = "/action_caching_test/expire_with_url_string"
+    get :expire_with_url_string
     assert_response :success
     reset!
 
