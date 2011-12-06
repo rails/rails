@@ -1,3 +1,5 @@
+require "active_support/core_ext/string/encoding"
+
 module ActiveModel
 
   # == Active Model Length Validator
@@ -35,14 +37,11 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        value = options[:tokenizer].call(value) if value.kind_of?(String) && options[:tokenizer].present?
+        value = tokenize(value)
+        value_length = value.respond_to?(:length) ? value.length : value.to_s.length
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
-
-          value ||= [] if key == :maximum
-
-          value_length = value.respond_to?(:length) ? value.length : value.to_s.length
           next if value_length.send(validity_check, check_value)
 
           errors_options = options.except(*RESERVED_OPTIONS)
@@ -53,6 +52,18 @@ module ActiveModel
 
           record.errors.add(attribute, MESSAGES[key], errors_options)
         end
+      end
+
+      private
+
+      def tokenize(value)
+        if value.kind_of?(String)
+          if options[:tokenizer]
+            options[:tokenizer].call(value)
+          elsif !value.encoding_aware?
+            value.mb_chars
+          end
+        end || value
       end
     end
 
@@ -95,7 +106,7 @@ module ActiveModel
       # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string. (e.g. <tt>:tokenizer => lambda {|str| str.scan(/\w+/)}</tt> to
       #   count words as in above example.)
       #   Defaults to <tt>lambda{ |value| value.split(//) }</tt> which counts individual characters.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
