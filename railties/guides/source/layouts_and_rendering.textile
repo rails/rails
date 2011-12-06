@@ -673,9 +673,9 @@ h5. Linking to JavaScript Files with the +javascript_include_tag+
 
 The +javascript_include_tag+ helper returns an HTML +script+ tag for each source provided.
 
-If you are using Rails with the "Asset Pipeline":http://guides.rubyonrails.org/asset_pipeline.html enabled, this helper will generate a link to +/assets/javascripts/+ rather than +public/javascripts+ which was used in earlier versions of Rails. This link is then served by the Sprockets gem, which was introduced in Rails 3.1.
+If you are using Rails with the "Asset Pipeline":asset_pipeline.html enabled, this helper will generate a link to +/assets/javascripts/+ rather than +public/javascripts+ which was used in earlier versions of Rails. This link is then served by the Sprockets gem, which was introduced in Rails 3.1.
 
-A JavaScript file within a Rails application or Rails engine goes in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+. These locations are explained in detail in the "Asset Organisation section in the Asset Pipeline Guide":http://guides.rubyonrails.org/asset_pipeline.html#asset-organization
+A JavaScript file within a Rails application or Rails engine goes in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+. These locations are explained in detail in the "Asset Organization section in the Asset Pipeline Guide":asset_pipeline.html#asset-organization
 
 You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file that is inside a directory called +javascripts+ inside of one of +app/assets+, +lib/assets+ or +vendor/assets+, you would do this:
 
@@ -724,7 +724,7 @@ Outputting +script+ tags such as this:
 
 These two files for jQuery, +jquery.js+ and +jquery_ujs.js+ must be placed inside +public/javascripts+ if the application doesn't use the asset pipeline. These files can be downloaded from the "jquery-rails repository on GitHub":https://github.com/indirect/jquery-rails/tree/master/vendor/assets/javascripts
 
-WARNING: If you are using the Asset Pipeline, this tag will render a +script+ tag for an asset called +defaults.js+, which would not exist in your application unless you've explicitly defined it to be.
+WARNING: If you are using the asset pipeline, this tag will render a +script+ tag for an asset called +defaults.js+, which would not exist in your application unless you've explicitly defined it to be.
 
 And you can in any case override the +:defaults+ expansion in <tt>config/application.rb</tt>:
 
@@ -744,9 +744,9 @@ And use them by referencing them exactly like +:defaults+:
 <%= javascript_include_tag :projects %>
 </erb>
 
-When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at then end.
+When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at the end.
 
-Also, if the Asset Pipeline is disabled, the +:all+ expansion loads every JavaScript file in +public/javascripts+:
+Also, if the asset pipeline is disabled, the +:all+ expansion loads every JavaScript file in +public/javascripts+:
 
 <erb>
 <%= javascript_include_tag :all %>
@@ -777,19 +777,23 @@ You can even use dynamic paths such as +cache/#{current_site}/main/display+.
 
 h5. Linking to CSS Files with the +stylesheet_link_tag+
 
-The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided. Rails looks in +public/stylesheets+ for these files by default, but you can specify a full path relative to the document root, or a URL, if you prefer. For example, to include +public/stylesheets/main.css+:
+The +stylesheet_link_tag+ helper returns an HTML +&lt;link&gt;+ tag for each source provided.
+
+If you are using Rails with the "Asset Pipeline" enabled, this helper will generate a link to +/assets/stylesheets/+. This link is then processed by the Sprockets gem. A stylesheet file can be stored in one of three locations: +app/assets+, +lib/assets+ or +vendor/assets+.
+
+You can specify a full path relative to the document root, or a URL. For example, to link to a stylesheet file that is inside a directory called +stylesheets+ inside of one of +app/assets+, +lib/assets+ or +vendor/assets+, you would do this:
 
 <erb>
 <%= stylesheet_link_tag "main" %>
 </erb>
 
-To include +public/stylesheets/main.css+ and +public/stylesheets/columns.css+:
+To include +app/assets/stylesheets/main.css+ and +app/assets/stylesheets/columns.css+:
 
 <erb>
 <%= stylesheet_link_tag "main", "columns" %>
 </erb>
 
-To include +public/stylesheets/main.css+ and +public/photos/columns.css+:
+To include +app/assets/stylesheets/main.css+ and +app/assets/stylesheets/photos/columns.css+:
 
 <erb>
 <%= stylesheet_link_tag "main", "/photos/columns" %>
@@ -807,7 +811,7 @@ By default, the +stylesheet_link_tag+ creates links with +media="screen" rel="st
 <%= stylesheet_link_tag "main_print", :media => "print" %>
 </erb>
 
-The +all+ option links every CSS file in +public/stylesheets+:
+If the asset pipeline is disabled, the +all+ option links every CSS file in +public/stylesheets+:
 
 <erb>
 <%= stylesheet_link_tag :all %>
