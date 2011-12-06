@@ -420,7 +420,7 @@ The +doc:+ namespace has the tools to generate documentation for your app, API d
 
 h4. +notes+
 
-+rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is only done in files with extension +.builder+, +.rb+, +.rxml+, +.rhtml+ and +.erb+ for both default and custom annotations.
++rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is only done in files with extension +.builder+, +.rb+ and +.erb+ for both default and custom annotations.
 
 <shell>
 $ rake notes
