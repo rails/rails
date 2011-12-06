@@ -60,7 +60,7 @@ REST uses HTTP, but unlike "typical" web applications, it makes use of all the v
 * PUT requests are used to update existing resources.
 * DELETE requests are used to delete resources.
 
-For more information on how this protocol works with Active Resource, see the ActiveResource::Base documentation here[link:/rails/rails/blob/master/activerecord/lib/active_record/base.rb];
+For more information on how this protocol works with Active Resource, see the ActiveResource::Base documentation here[link:/rails/rails/blob/master/activeresource/lib/active_resource/base.rb];
 for more general information on REST web services, see the article here[http://en.wikipedia.org/wiki/Representational_State_Transfer].
 
 ==== Find
