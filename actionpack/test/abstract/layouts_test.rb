@@ -141,6 +141,30 @@ module AbstractControllerTests
       end
     end
 
+    class WithOnlyConditional < WithStringImpliedChild
+      layout "overwrite", :only => :show
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello index!")
+      end
+
+      def show
+        render :template => ActionView::Template::Text.new("Hello show!")
+      end
+    end
+
+    class WithExceptConditional < WithStringImpliedChild
+      layout "overwrite", :except => :show
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello index!")
+      end
+
+      def show
+        render :template => ActionView::Template::Text.new("Hello show!")
+      end
+    end
+
     class TestBase < ActiveSupport::TestCase
       test "when no layout is specified, and no default is available, render without a layout" do
         controller = Blank.new
@@ -259,6 +283,30 @@ module AbstractControllerTests
             end
           end
         end
+      end
+
+      test "when specify an :only option which match current action name" do
+        controller = WithOnlyConditional.new
+        controller.process(:show)
+        assert_equal "Overwrite Hello show!", controller.response_body
+      end
+
+      test "when specify an :only option which does not match current action name" do
+        controller = WithOnlyConditional.new
+        controller.process(:index)
+        assert_equal "With Implied Hello index!", controller.response_body
+      end
+
+      test "when specify an :except option which match current action name" do
+        controller = WithExceptConditional.new
+        controller.process(:show)
+        assert_equal "With Implied Hello show!", controller.response_body
+      end
+
+      test "when specify an :except option which does not match current action name" do
+        controller = WithExceptConditional.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello index!", controller.response_body
       end
     end
   end

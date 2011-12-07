@@ -1,5 +1,15 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Rails will now use your default layout (such as "layouts/application") when you specify a layout with `:only` and `:except` condition, and those conditions fail. *Prem Sichanugrist*
+
+    For example, consider this snippet:
+
+        class CarsController
+          layout 'single_car', :only => :show
+        end
+
+    Rails will use 'layouts/single_car' when a request comes in `:show` action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
+
 *   form_for with +:as+ option uses "#{action}_#{as}" as css class and id:
 
     Before:
