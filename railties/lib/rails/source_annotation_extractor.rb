@@ -55,7 +55,7 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dir+ (recursively) to arrays
   # with their annotations. Only files with annotations are included, and only
-  # those with extension +.builder+, +.rb+, and +.erb+
+  # those with extension +.builder+, +.rb+, +.erb+, +.haml+ and +.slim+
   # are taken into account.
   def find_in(dir)
     results = {}
@@ -69,6 +69,10 @@ class SourceAnnotationExtractor
         results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
       elsif item =~ /\.erb$/
         results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
+      elsif item =~ /\.haml$/
+        results.update(extract_annotations_from(item, /-\s*#\s*(#{tag}):?\s*(.*)$/))
+      elsif item =~ /\.slim$/
+        results.update(extract_annotations_from(item, /\/\s*\s*(#{tag}):?\s*(.*)$/))
       end
     end
 
