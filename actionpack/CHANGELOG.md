@@ -2,6 +2,16 @@
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
+*   Rails will now use your default layout (such as "layouts/application") when you specify a layout with `:only` and `:except` condition, and those conditions fail. *Prem Sichanugrist*
+
+    For example, consider this snippet:
+
+        class CarsController
+          layout 'single_car', :only => :show
+        end
+
+    Rails will use 'layouts/single_car' when a request comes in `:show` action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
+
 *   form_for with +:as+ option uses "#{action}_#{as}" as css class and id:
 
     Before:
