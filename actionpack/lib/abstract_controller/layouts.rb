@@ -244,42 +244,51 @@ module AbstractController
       def _write_layout_method
         remove_possible_method(:_layout)
 
-        case defined?(@_layout) ? @_layout : nil
-        when String
-          self.class_eval %{def _layout; #{@_layout.inspect} end}, __FILE__, __LINE__
-        when Symbol
-          self.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def _layout
+        prefixes = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        layout_definition = case defined?(@_layout) ? @_layout : nil
+          when String
+            @_layout.inspect
+          when Symbol
+            <<-RUBY
               #{@_layout}.tap do |layout|
                 unless layout.is_a?(String) || !layout
                   raise ArgumentError, "Your layout method :#{@_layout} returned \#{layout}. It " \
                     "should have returned a String, false, or nil"
                 end
               end
-            end
-          ruby_eval
-        when Proc
-          define_method :_layout_from_proc, &@_layout
-          self.class_eval %{def _layout; _layout_from_proc(self) end}, __FILE__, __LINE__
-        when false
-          self.class_eval %{def _layout; end}, __FILE__, __LINE__
-        when true
-          raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
-        when nil
-          if name
-            _prefixes = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
-
-            self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _layout
-                if template_exists?("#{_implied_layout_name}", #{_prefixes.inspect})
+            RUBY
+          when Proc
+            define_method :_layout_from_proc, &@_layout
+            "_layout_from_proc(self)"
+          when false
+            nil
+          when true
+            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+          when nil
+            if name
+              <<-RUBY
+                if template_exists?("#{_implied_layout_name}", #{prefixes.inspect})
                   "#{_implied_layout_name}"
                 else
                   super
                 end
-              end
-            RUBY
+              RUBY
+            end
           end
-        end
+
+        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def _layout
+            if action_has_layout?
+              #{layout_definition}
+            elsif self.class.name
+              if template_exists?("#{_implied_layout_name}", #{prefixes.inspect})
+                  "#{_implied_layout_name}"
+              else
+                super
+              end
+            end
+          end
+        RUBY
         self.class_eval { private :_layout }
       end
     end
@@ -337,7 +346,7 @@ module AbstractController
     # * <tt>template</tt> - The template object for the default layout (or nil)
     def _default_layout(require_layout = false)
       begin
-        layout_name = _layout if action_has_layout?
+        layout_name = _layout
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end

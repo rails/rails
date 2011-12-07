@@ -167,7 +167,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_is_picked_from_the_controller_instances_view_path
     @controller = PrependsViewPathController.new
     get :hello
-    assert_template :layout => /layouts\/alt\.\w+/
+    assert_template :layout => /layouts\/alt/
   end
 
   def test_absolute_pathed_layout

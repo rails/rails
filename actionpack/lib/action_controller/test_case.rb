@@ -86,6 +86,21 @@ module ActionController
           end
         end
       when Hash
+        if expected_layout = options[:layout]
+          msg = build_message(message,
+                  "expecting layout <?> but action rendered <?>",
+                  expected_layout, @layouts.keys)
+
+          case expected_layout
+          when String
+            assert(@layouts.keys.include?(expected_layout), msg)
+          when Regexp
+            assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
+          when nil
+            assert(@layouts.empty?, msg)
+          end
+        end
+
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
             actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
@@ -98,19 +113,6 @@ module ActionController
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
-          elsif options.key?(:layout)
-            msg = build_message(message,
-                    "expecting layout <?> but action rendered <?>",
-                    expected_layout, @layouts.keys)
-
-            case layout = options[:layout]
-            when String
-              assert(@layouts.include?(expected_layout), msg)
-            when Regexp
-              assert(@layouts.any? {|l| l =~ layout }, msg)
-            when nil
-              assert(@layouts.empty?, msg)
-            end
           else
             msg = build_message(message,
                     "expecting partial <?> but action rendered <?>",
