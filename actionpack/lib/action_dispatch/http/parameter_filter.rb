@@ -20,7 +20,7 @@ module ActionDispatch
         @filters.present?
       end
 
-      FILTERED = '[FILTERED]'.freeze
+      FILTERED = '[FILTERED]'
 
       def compiled_filter
         @compiled_filter ||= begin
