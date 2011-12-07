@@ -86,7 +86,8 @@ module ActiveRecord
 
       # Returns a ColumnDefinition for the column with name +name+.
       def [](name)
-        @columns.find {|column| column.name.to_s == name.to_s}
+        name = name.to_s
+        @columns.find { |column| column.name == name }
       end
 
       # Instantiates a new column for the table.
@@ -224,7 +225,7 @@ module ActiveRecord
       #     t.references :taggable, :polymorphic => { :default => 'Photo' }
       #   end
       def column(name, type, options = {})
-        column = self[name] || ColumnDefinition.new(@base, name, type)
+        column = self[name] || ColumnDefinition.new(@base, name.to_s, type)
         if options[:limit]
           column.limit = options[:limit]
         elsif native[type.to_sym].is_a?(Hash)
@@ -455,7 +456,7 @@ module ActiveRecord
             column_names = args                                              #   column_names = args
                                                                              #
             column_names.each do |name|                                      #   column_names.each do |name|
-              column = ColumnDefinition.new(@base, name, '#{column_type}')   #     column = ColumnDefinition.new(@base, name, 'string')
+              column = ColumnDefinition.new(@base, name.to_s, '#{column_type}')   #     column = ColumnDefinition.new(@base, name, 'string')
               if options[:limit]                                             #     if options[:limit]
                 column.limit = options[:limit]                               #       column.limit = options[:limit]
               elsif native['#{column_type}'.to_sym].is_a?(Hash)              #     elsif native['string'.to_sym].is_a?(Hash)
