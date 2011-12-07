@@ -53,8 +53,10 @@ module ActionDispatch # :nodoc:
     # information.
     attr_accessor :charset, :content_type
 
-    CONTENT_TYPE = "Content-Type"
-
+    CONTENT_TYPE = "Content-Type".freeze
+    SET_COOKIE   = "Set-Cookie".freeze
+    LOCATION     = "Location".freeze
+ 
     cattr_accessor(:default_charset) { "utf-8" }
 
     include Rack::Response::Helpers
@@ -66,7 +68,7 @@ module ActionDispatch # :nodoc:
       @sending_file = false
       @blank = false
 
-      if content_type = self["Content-Type"]
+      if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
         @content_type = Mime::Type.lookup(type)
         @charset = charset || self.class.default_charset
@@ -142,12 +144,12 @@ module ActionDispatch # :nodoc:
     end
 
     def location
-      headers['Location']
+      headers[LOCATION]
     end
     alias_method :redirect_url, :location
 
     def location=(url)
-      headers['Location'] = url
+      headers[LOCATION] = url
     end
 
     def close
@@ -158,10 +160,10 @@ module ActionDispatch # :nodoc:
       assign_default_content_type_and_charset!
       handle_conditional_get!
 
-      @header["Set-Cookie"] = @header["Set-Cookie"].join("\n") if @header["Set-Cookie"].respond_to?(:join)
+      @header[SET_COOKIE] = @header[SET_COOKIE].join("\n") if @header[SET_COOKIE].respond_to?(:join)
 
       if [204, 304].include?(@status)
-        @header.delete "Content-Type"
+        @header.delete CONTENT_TYPE
         [@status, @header, []]
       else
         [@status, @header, self]
@@ -175,7 +177,7 @@ module ActionDispatch # :nodoc:
     #   assert_equal 'AuthorOfNewPage', r.cookies['author']
     def cookies
       cookies = {}
-      if header = self["Set-Cookie"]
+      if header = self[SET_COOKIE]
         header = header.split("\n") if header.respond_to?(:to_str)
         header.each do |cookie|
           if pair = cookie.split(';').first
