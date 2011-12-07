@@ -10,6 +10,9 @@ end
 
 gem "bcrypt-ruby", "~> 3.0.0"
 gem "jquery-rails"
+# Uncomment next line for backbone.js/underscore.js support using https://github.com/codebrew/backbone-rails
+# gem "rails-backbone"
+
 
 if ENV['JOURNEY']
   gem "journey", :path => ENV['JOURNEY']
