@@ -205,7 +205,7 @@ module ActionView
   #       Deadline: <%= user.deadline %>
   #     <%- end -%>
   #   <% end %>
-  class PartialRenderer < AbstractRenderer #:nodoc:
+  class PartialRenderer < AbstractRenderer
     PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
 
     def initialize(*)
