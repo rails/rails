@@ -47,11 +47,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
       def encoding
-        if @connection.respond_to?(:encoding)
-          @connection.encoding.to_s
-        else
-          @connection.execute('PRAGMA encoding')[0]['encoding']
-        end
+        @connection.encoding.to_s
       end
 
     end
