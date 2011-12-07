@@ -69,6 +69,10 @@ class SourceAnnotationExtractor
         results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
       elsif item =~ /\.erb$/
         results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
+      elsif item =~ /\.haml$/
+        results.update(extract_annotations_from(item, /-\s*#\s*(#{tag}):?\s*(.*)$/))
+      elsif item =~ /\.slim$/
+        results.update(extract_annotations_from(item, /\/\s*\s*(#{tag}):?\s*(.*)$/))
       end
     end
 
