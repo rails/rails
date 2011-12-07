@@ -302,7 +302,7 @@ module ActiveRecord
   #
   #   class TenderloveMigration < ActiveRecord::Migration
   #     def change
-  #       create_table(:horses) do
+  #       create_table(:horses) do |t|
   #         t.column :content, :text
   #         t.column :remind_at, :datetime
   #       end
