@@ -24,7 +24,7 @@ module ActionView
       end
     end
 
-    class_attribute :caching
+    cattr_accessor :caching
     self.caching = true
 
     class << self
