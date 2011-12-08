@@ -189,7 +189,7 @@ end
 #
 desc 'Publishes docs, run this AFTER a new stable tag has been pushed'
 task :publish_docs do
-  Net::HTTP.new('rails-hooks.hashref.com').start do |http|
+  Net::HTTP.new('api.rubyonrails.org', 8080).start do |http|
     request  = Net::HTTP::Post.new('/rails-master-hook')
     response = http.request(request)
     puts response.body
