@@ -168,10 +168,11 @@ module AbstractController
     included do
       class_attribute :_layout_conditions
       remove_possible_method :_layout_conditions
-      delegate :_layout_conditions, :to => :'self.class'
       self._layout_conditions = {}
       _write_layout_method
     end
+
+    delegate :_layout_conditions, :to => "self.class"
 
     module ClassMethods
       def inherited(klass)
@@ -188,7 +189,7 @@ module AbstractController
         #
         # ==== Returns
         # * <tt> Boolean</tt> - True if the action has a layout, false otherwise.
-        def action_has_layout?
+        def conditional_layout?
           return unless super
 
           conditions = _layout_conditions
@@ -244,7 +245,13 @@ module AbstractController
       def _write_layout_method
         remove_possible_method(:_layout)
 
-        prefixes = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        name_clause = if name
+          <<-RUBY
+            lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
+          RUBY
+        end
+
         layout_definition = case defined?(@_layout) ? @_layout : nil
           when String
             @_layout.inspect
@@ -265,27 +272,15 @@ module AbstractController
           when true
             raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
           when nil
-            if name
-              <<-RUBY
-                if template_exists?("#{_implied_layout_name}", #{prefixes.inspect})
-                  "#{_implied_layout_name}"
-                else
-                  super
-                end
-              RUBY
-            end
+            name_clause
           end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout
-            if action_has_layout?
+            if conditional_layout?
               #{layout_definition}
-            elsif self.class.name
-              if template_exists?("#{_implied_layout_name}", #{prefixes.inspect})
-                  "#{_implied_layout_name}"
-              else
-                super
-              end
+            else
+              #{name_clause}
             end
           end
         RUBY
@@ -298,8 +293,7 @@ module AbstractController
 
       if _include_layout?(options)
         layout = options.key?(:layout) ? options.delete(:layout) : :default
-        value = _layout_for_option(layout)
-        options[:layout] = (value =~ /\blayouts/ ? value : "layouts/#{value}") if value
+        options[:layout] = Proc.new { _normalize_layout(_layout_for_option(layout)) }
       end
     end
 
@@ -312,6 +306,10 @@ module AbstractController
 
     def action_has_layout?
       @_action_has_layout
+    end
+
+    def conditional_layout?
+      true
     end
 
   private
@@ -335,6 +333,10 @@ module AbstractController
       end
     end
 
+    def _normalize_layout(value)
+      value.is_a?(String) && value !~ /\blayouts/ ? "layouts/#{value}" : value
+    end
+
     # Returns the default layout for this controller.
     # Optionally raises an exception if the layout could not be found.
     #
@@ -346,17 +348,17 @@ module AbstractController
     # * <tt>template</tt> - The template object for the default layout (or nil)
     def _default_layout(require_layout = false)
       begin
-        layout_name = _layout
+        value = _layout if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end
 
-      if require_layout && action_has_layout? && !layout_name
+      if require_layout && action_has_layout? && !value
         raise ArgumentError,
           "There was no default layout for #{self.class} in #{view_paths.inspect}"
       end
 
-      layout_name
+      value
     end
 
     def _include_layout?(options)

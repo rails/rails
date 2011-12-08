@@ -227,7 +227,6 @@ module ActionView
     end
 
     # A method which only uses the first format in the formats array for layout lookup.
-    # This method plays straight with instance variables for performance reasons.
     def with_layout_format
       if formats.size == 1
         yield
