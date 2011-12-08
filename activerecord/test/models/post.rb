@@ -44,6 +44,10 @@ class Post < ActiveRecord::Base
     def newest
       created.last
     end
+
+    def the_association
+      proxy_association
+    end
   end
 
   has_many :author_favorites, :through => :author

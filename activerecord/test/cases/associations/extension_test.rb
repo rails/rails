@@ -71,6 +71,12 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', extension_name(MyApplication::Business::Developer)
   end
 
+  def test_proxy_association_after_scoped
+    post = posts(:welcome)
+    assert_equal post.association(:comments), post.comments.the_association
+    assert_equal post.association(:comments), post.comments.scoped.the_association
+  end
+
   private
 
     def extension_name(model)
