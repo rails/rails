@@ -58,14 +58,21 @@ module ActionView
     # context object. If no layout is found, it checks if at least a layout with
     # the given name exists across all details before raising the error.
     def find_layout(layout, keys)
-      begin
-        with_layout_format do
-          layout =~ /^\// ?
-            with_fallbacks { find_template(layout, nil, false, keys, @details) } : find_template(layout, nil, false, keys, @details)
+      with_layout_format { resolve_layout(layout, keys) }
+    end
+
+    def resolve_layout(layout, keys)
+      case layout
+      when String
+        if layout =~ /^\//
+          with_fallbacks { find_template(layout, nil, false, keys, @details) }
+        else
+          find_template(layout, nil, false, keys, @details)
         end
-      rescue ActionView::MissingTemplate
-        all_details = @details.merge(:formats => @lookup_context.default_formats)
-        raise unless template_exists?(layout, nil, false, keys, all_details)
+      when Proc
+        resolve_layout(layout.call, keys)
+      else
+        layout
       end
     end
   end
