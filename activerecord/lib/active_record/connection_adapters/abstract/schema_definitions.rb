@@ -66,6 +66,7 @@ module ActiveRecord
 
       def initialize(base)
         @columns = []
+        @columns_hash = {}
         @base = base
       end
 
@@ -86,8 +87,7 @@ module ActiveRecord
 
       # Returns a ColumnDefinition for the column with name +name+.
       def [](name)
-        name = name.to_s
-        @columns.find { |column| column.name == name }
+        @columns_hash[name.to_s]
       end
 
       # Instantiates a new column for the table.
@@ -283,6 +283,7 @@ module ActiveRecord
       def new_column_definition(base, name, type)
         definition = ColumnDefinition.new base, name, type
         @columns << definition
+        @columns_hash[name] = definition
         definition
       end
 
