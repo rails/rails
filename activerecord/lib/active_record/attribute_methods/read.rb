@@ -55,7 +55,7 @@ module ActiveRecord
             internal  = internal_attribute_access_code(attr_name, cast_code)
             external  = external_attribute_access_code(attr_name, cast_code)
 
-            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__
+            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
               def __temp__
                 #{internal}
               end
@@ -63,7 +63,7 @@ module ActiveRecord
               undef_method :__temp__
             STR
 
-            generated_attribute_methods.singleton_class.module_eval <<-STR, __FILE__, __LINE__
+            generated_attribute_methods.singleton_class.module_eval <<-STR, __FILE__, __LINE__ + 1
               def __temp__(v, attributes, attributes_cache, attr_name)
                 #{external}
               end
