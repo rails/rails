@@ -13,6 +13,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     @old_logger = ActiveRecord::Base.logger
     @using_identity_map = ActiveRecord::IdentityMap.enabled?
     ActiveRecord::IdentityMap.enabled = false
+    Developer.primary_key
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
