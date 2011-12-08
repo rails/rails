@@ -225,17 +225,20 @@ module ActiveRecord
       #     t.references :taggable, :polymorphic => { :default => 'Photo' }
       #   end
       def column(name, type, options = {})
-        column = self[name] || ColumnDefinition.new(@base, name.to_s, type)
-        if options[:limit]
-          column.limit = options[:limit]
-        elsif native[type.to_sym].is_a?(Hash)
-          column.limit = native[type.to_sym][:limit]
+        name = name.to_s
+        type = type.to_sym
+
+        column = self[name] || new_column_definition(@base, name, type)
+
+        limit = options.fetch(:limit) do
+          native[type][:limit] if native[type].is_a?(Hash)
         end
+
+        column.limit     = limit
         column.precision = options[:precision]
-        column.scale = options[:scale]
-        column.default = options[:default]
-        column.null = options[:null]
-        @columns << column unless @columns.include? column
+        column.scale     = options[:scale]
+        column.default   = options[:default]
+        column.null      = options[:null]
         self
       end
 
@@ -276,9 +279,15 @@ module ActiveRecord
       end
 
       private
-        def native
-          @base.native_database_types
-        end
+      def new_column_definition(base, name, type)
+        definition = ColumnDefinition.new base, name, type
+        @columns << definition
+        definition
+      end
+
+      def native
+        @base.native_database_types
+      end
     end
 
     # Represents an SQL table in an abstract way for updating a table.
