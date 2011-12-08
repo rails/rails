@@ -27,7 +27,6 @@ module InflectorTestCases
     "index"       => "indices",
 
     "wife"        => "wives",
-    "safe"        => "saves",
     "half"        => "halves",
 
     "move"        => "moves",
@@ -298,5 +297,6 @@ module InflectorTestCases
     'child'  => 'children',
     'sex'    => 'sexes',
     'move'   => 'moves',
+    'save'   => 'saves'
   }
 end
