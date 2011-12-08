@@ -20,7 +20,7 @@ module ActionView
 
     def self.register_detail(name, options = {}, &block)
       self.registered_details << name
-      initialize = registered_details.map { |n| "self.#{n} = details[:#{n}]" }
+      initialize = registered_details.map { |n| "@details[:#{n}] = details[:#{n}] || default_#{n}" }
 
       Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -29,7 +29,7 @@ module ActionView
         end
 
         def #{name}=(value)
-          value = Array.wrap(value.presence || default_#{name})
+          value = value.present? ? Array.wrap(value) : default_#{name}
           _set_detail(:#{name}, value) if value != @details[:#{name}]
         end
 
@@ -153,14 +153,14 @@ module ActionView
           ""
         end
 
-        parts = name.split('/')
-        name  = parts.pop
+        prefixes = nil if prefixes.blank?
+        parts    = name.split('/')
+        name     = parts.pop
 
-        prefixes = if prefixes.blank?
-          [parts.join('/')]
-        else
-          prefixes.map { |prefix| [prefix, *parts].compact.join('/') }
-        end
+        return name, prefixes || [""] if parts.empty?
+
+        parts    = parts.join('/')
+        prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
       end
