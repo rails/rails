@@ -1108,6 +1108,23 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
   end
 
+  def test_select_pair
+    assert_equal({ "Client" => "4", "Firm" => "2", "DependentFirm" => "1", "ExclusivelyDependentFirm" => "1", nil => "2" },
+      Company.connection.select_pair("SELECT type, COUNT(id) FROM companies GROUP BY type"))
+  end
+
+  def test_select_pair_empty_result
+    assert_equal({}, Company.connection.select_pair("SELECT type, COUNT(id) FROM companies WHERE 1=0 GROUP BY type"))
+  end
+
+  def test_select_pair_missing_column
+    assert_raise(ActiveRecord::StatementInvalid){ Company.connection.select_pair("SELECT COUNT(id) FROM companies GROUP BY type") }
+  end
+
+  def test_select_pair_excess_column
+    assert_raise(ActiveRecord::StatementInvalid){ Company.connection.select_pair("SELECT type, COUNT(id), id FROM companies GROUP BY type, id") }
+  end
+
   def test_select_rows
     assert_equal(
       [["1", "1", nil, "37signals"],
