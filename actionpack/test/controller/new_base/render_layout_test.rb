@@ -82,7 +82,7 @@ module ControllerLayouts
 
   class MismatchFormatTest < Rack::TestCase
     testing ControllerLayouts::MismatchFormatController
-    
+
     XML_INSTRUCT = %Q(<?xml version="1.0" encoding="UTF-8"?>\n)
 
     test "if XML is selected, an HTML template is not also selected" do
@@ -97,6 +97,30 @@ module ControllerLayouts
 
     test "a layout for JS is ignored even if explicitly provided for HTML" do
       get :explicit, { :format => "js" }
+      assert_response "alert('foo');"
+    end
+  end
+
+  class FalseLayoutMethodController < ::ApplicationController
+    self.view_paths = [ActionView::FixtureResolver.new(
+      "controller_layouts/false_layout_method/index.js.erb" => "alert('foo');"
+    )]
+
+    layout :which_layout?
+
+    def which_layout?
+      false
+    end
+
+    def index
+    end
+  end
+
+  class FalseLayoutMethodTest < Rack::TestCase
+    testing ControllerLayouts::FalseLayoutMethodController
+
+    test "access false layout returned by a method/proc" do
+      get :index, :format => "js"
       assert_response "alert('foo');"
     end
   end
