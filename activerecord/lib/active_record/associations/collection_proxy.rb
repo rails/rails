@@ -48,8 +48,7 @@ module ActiveRecord
       delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from,
                :lock, :readonly, :having, :to => :scoped
 
-      delegate :target, :load_target, :loaded?, :scoped,
-               :to => :@association
+      delegate :target, :load_target, :loaded?, :to => :@association
 
       delegate :select, :find, :first, :last,
                :build, :create, :create!,
@@ -67,6 +66,13 @@ module ActiveRecord
 
       def proxy_association
         @association
+      end
+
+      def scoped
+        association = @association
+        association.scoped.extending do
+          define_method(:proxy_association) { association }
+        end
       end
 
       def respond_to?(name, include_private = false)

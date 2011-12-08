@@ -1,5 +1,12 @@
 ## Rails 3.1.4 (unreleased) ##
 
+*   Fix accessing `proxy_association` method from an association extension
+    where the calls are chained. *GH #3890*
+
+    (E.g. `post.comments.where(bla).my_proxy_method`)
+
+    *Jon Leighton*
+
 *   Perf fix: MySQL primary key lookup was still slow for very large
     tables. *GH 3678*
 

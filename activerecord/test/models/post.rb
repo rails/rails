@@ -36,6 +36,10 @@ class Post < ActiveRecord::Base
     def find_most_recent
       find(:first, :order => "id DESC")
     end
+
+    def the_association
+      proxy_association
+    end
   end
 
   has_many :author_favorites, :through => :author
