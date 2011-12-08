@@ -1,6 +1,8 @@
 require 'abstract_unit'
 
 class TagHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::TagHelper
 
   def test_tag
@@ -44,12 +46,12 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_block_in_erb
-    buffer = content_tag(:div) { concat "Hello world!" }
+    buffer = render_erb("<%= content_tag(:div) do %>Hello world!<% end %>")
     assert_dom_equal "<div>Hello world!</div>", buffer
   end
 
   def test_content_tag_with_block_and_options_in_erb
-    buffer = content_tag(:div, :class => "green") { concat "Hello world!" }
+    buffer = render_erb("<%= content_tag(:div, :class => 'green') do %>Hello world!<% end %>")
     assert_dom_equal %(<div class="green">Hello world!</div>), buffer
   end
 
@@ -68,10 +70,8 @@ class TagHelperTest < ActionView::TestCase
                  output_buffer
   end
 
-  # TAG TODO: Move this into a real template
   def test_content_tag_nested_in_content_tag_in_erb
-    buffer = content_tag("p") { concat content_tag("b", "Hello") }
-    assert_equal '<p><b>Hello</b></p>', buffer
+    assert_equal "<p>\n  <b>Hello</b>\n</p>", view.render("test/content_tag_nested_in_content_tag")
   end
 
   def test_content_tag_with_escaped_array_class

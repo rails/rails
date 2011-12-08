@@ -23,9 +23,11 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/object/blank'
+require 'active_support/deprecation'
 require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
+require 'active_record/explain_subscriber'
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -432,10 +434,10 @@ module ActiveRecord #:nodoc:
     class_attribute :default_scopes, :instance_writer => false
     self.default_scopes = []
 
-    # Returns a hash of all the attributes that have been specified for serialization as
-    # keys and their class restriction as values.
-    class_attribute :serialized_attributes
-    self.serialized_attributes = {}
+    # If a query takes longer than these many seconds we log its query plan
+    # automatically. nil disables this feature.
+    class_attribute :auto_explain_threshold_in_seconds, :instance_writer => false
+    self.auto_explain_threshold_in_seconds = nil
 
     class_attribute :_attr_readonly, :instance_writer => false
     self._attr_readonly = []
@@ -448,7 +450,22 @@ module ActiveRecord #:nodoc:
       delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
                :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
                :having, :create_with, :uniq, :to => :scoped
-      delegate :count, :average, :minimum, :maximum, :sum, :calculate, :to => :scoped
+      delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
+
+      def inherited(child_class) #:nodoc:
+        # force attribute methods to be higher in inheritance hierarchy than other generated methods
+        child_class.generated_attribute_methods
+        child_class.generated_feature_methods
+        super
+      end
+
+      def generated_feature_methods
+        @generated_feature_methods ||= begin
+          mod = const_set(:GeneratedFeatureMethods, Module.new)
+          include mod
+          mod
+        end
+      end
 
       # Executes a custom SQL query against your database and returns all the results. The results will
       # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -473,7 +490,9 @@ module ActiveRecord #:nodoc:
       #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
       def find_by_sql(sql, binds = [])
-        connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        logging_query_plan do
+          connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        end
       end
 
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -544,31 +563,32 @@ module ActiveRecord #:nodoc:
         self._attr_readonly
       end
 
-      # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
-      # then specify the name of that attribute using this method and it will be handled automatically.
-      # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
-      # class on retrieval or SerializationTypeMismatch will be raised.
-      #
-      # ==== Parameters
-      #
-      # * +attr_name+ - The field name that should be serialized.
-      # * +class_name+ - Optional, class name that the object type should be equal to.
-      #
-      # ==== Example
-      #   # Serialize a preferences attribute
-      #   class User < ActiveRecord::Base
-      #     serialize :preferences
-      #   end
-      def serialize(attr_name, class_name = Object)
-        coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
-                  class_name
-                else
-                  Coders::YAMLColumn.new(class_name)
-                end
+      def deprecated_property_setter(property, value, block) #:nodoc:
+        if block
+          ActiveSupport::Deprecation.warn(
+            "Calling set_#{property} is deprecated. If you need to lazily evaluate " \
+            "the #{property}, define your own `self.#{property}` class method. You can use `super` " \
+            "to get the default #{property} where you would have called `original_#{property}`."
+          )
 
-        # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
-        # has its own hash of own serialized attributes
-        self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
+          define_attr_method property, value, false, &block
+        else
+          ActiveSupport::Deprecation.warn(
+            "Calling set_#{property} is deprecated. Please use `self.#{property} = 'the_name'` instead."
+          )
+
+          define_attr_method property, value, false
+        end
+      end
+
+      def deprecated_original_property_getter(property) #:nodoc:
+        ActiveSupport::Deprecation.warn("original_#{property} is deprecated. Define self.#{property} and call super instead.")
+
+        if !instance_variable_defined?("@original_#{property}") && respond_to?("reset_#{property}")
+          send("reset_#{property}")
+        else
+          instance_variable_get("@original_#{property}")
+        end
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -610,14 +630,52 @@ module ActiveRecord #:nodoc:
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
       #
-      # You can also overwrite this class method to allow for unguessable
-      # links, such as a Mouse class with a link to a "mice" table. Example:
+      # You can also set your own table name explicitly:
       #
       #   class Mouse < ActiveRecord::Base
-      #     set_table_name "mice"
+      #     self.table_name = "mice"
       #   end
+      #
+      # Alternatively, you can override the table_name method to define your
+      # own computation. (Possibly using <tt>super</tt> to manipulate the default
+      # table name.) Example:
+      #
+      #   class Post < ActiveRecord::Base
+      #     def self.table_name
+      #       "special_" + super
+      #     end
+      #   end
+      #   Post.table_name # => "special_posts"
       def table_name
-        reset_table_name
+        reset_table_name unless defined?(@table_name)
+        @table_name
+      end
+
+      def original_table_name #:nodoc:
+        deprecated_original_property_getter :table_name
+      end
+
+      # Sets the table name explicitly. Example:
+      #
+      #   class Project < ActiveRecord::Base
+      #     self.table_name = "project"
+      #   end
+      #
+      # You can also just define your own <tt>self.table_name</tt> method; see
+      # the documentation for ActiveRecord::Base#table_name.
+      def table_name=(value)
+        @original_table_name = @table_name if defined?(@table_name)
+        @table_name          = value
+        @quoted_table_name   = nil
+        @arel_table          = nil
+        @relation            = Relation.new(self, arel_table)
+      end
+
+      def set_table_name(value = nil, &block) #:nodoc:
+        deprecated_property_setter :table_name, value, block
+        @quoted_table_name = nil
+        @arel_table        = nil
+        @relation          = Relation.new(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -627,61 +685,57 @@ module ActiveRecord #:nodoc:
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
-        return if abstract_class?
-
-        self.table_name = compute_table_name
+        if superclass.abstract_class?
+          self.table_name = superclass.table_name || compute_table_name
+        elsif abstract_class?
+          self.table_name = superclass == Base ? nil : superclass.table_name
+        else
+          self.table_name = compute_table_name
+        end
       end
 
       def full_table_name_prefix #:nodoc:
         (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
-      # Defines the column name for use with single table inheritance. Use
-      # <tt>set_inheritance_column</tt> to set a different value.
+      # The name of the column containing the object's class when Single Table Inheritance is used
       def inheritance_column
-        @inheritance_column ||= "type"
+        if self == Base
+          'type'
+        else
+          (@inheritance_column ||= nil) || superclass.inheritance_column
+        end
       end
 
-      # Lazy-set the sequence name to the connection's default. This method
-      # is only ever called once since set_sequence_name overrides it.
-      def sequence_name #:nodoc:
-        reset_sequence_name
+      def original_inheritance_column #:nodoc:
+        deprecated_original_property_getter :inheritance_column
+      end
+
+      # Sets the value of inheritance_column
+      def inheritance_column=(value)
+        @original_inheritance_column = inheritance_column
+        @inheritance_column          = value.to_s
+      end
+
+      def set_inheritance_column(value = nil, &block) #:nodoc:
+        deprecated_property_setter :inheritance_column, value, block
+      end
+
+      def sequence_name
+        if base_class == self
+          @sequence_name ||= reset_sequence_name
+        else
+          (@sequence_name ||= nil) || base_class.sequence_name
+        end
+      end
+
+      def original_sequence_name #:nodoc:
+        deprecated_original_property_getter :sequence_name
       end
 
       def reset_sequence_name #:nodoc:
-        default = connection.default_sequence_name(table_name, primary_key)
-        set_sequence_name(default)
-        default
+        self.sequence_name = connection.default_sequence_name(table_name, primary_key)
       end
-
-      # Sets the table name. If the value is nil or false then the value returned by the given
-      # block is used.
-      #
-      #   class Project < ActiveRecord::Base
-      #     set_table_name "project"
-      #   end
-      def set_table_name(value = nil, &block)
-        @quoted_table_name = nil
-        define_attr_method :table_name, value, &block
-        @arel_table = nil
-
-        @relation = Relation.new(self, arel_table)
-      end
-      alias :table_name= :set_table_name
-
-      # Sets the name of the inheritance column to use to the given value,
-      # or (if the value # is nil or false) to the value returned by the
-      # given block.
-      #
-      #   class Project < ActiveRecord::Base
-      #     set_inheritance_column do
-      #       original_inheritance_column + "_id"
-      #     end
-      #   end
-      def set_inheritance_column(value = nil, &block)
-        define_attr_method :inheritance_column, value, &block
-      end
-      alias :inheritance_column= :set_inheritance_column
 
       # Sets the name of the sequence to use when generating ids to the given
       # value, or (if the value is nil or false) to the value returned by the
@@ -695,12 +749,16 @@ module ActiveRecord #:nodoc:
       # will discover the sequence corresponding to your primary key for you.
       #
       #   class Project < ActiveRecord::Base
-      #     set_sequence_name "projectseq"   # default would have been "project_seq"
+      #     self.sequence_name = "projectseq"   # default would have been "project_seq"
       #   end
-      def set_sequence_name(value = nil, &block)
-        define_attr_method :sequence_name, value, &block
+      def sequence_name=(value)
+        @original_sequence_name = @sequence_name if defined?(@sequence_name)
+        @sequence_name          = value.to_s
       end
-      alias :sequence_name= :set_sequence_name
+
+      def set_sequence_name(value = nil, &block) #:nodoc:
+        deprecated_property_setter :sequence_name, value, block
+      end
 
       # Indicates whether the table associated with this class exists
       def table_exists?
@@ -1771,7 +1829,7 @@ MSG
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
-        value = _read_attribute(attribute)
+        value = read_attribute(attribute)
         !value.nil? || (value.respond_to?(:empty?) && !value.empty?)
       end
 
@@ -1885,6 +1943,26 @@ MSG
         "#<#{self.class} #{inspection}>"
       end
 
+      # Hackery to accomodate Syck. Remove for 4.0.
+      def to_yaml(opts = {}) #:nodoc:
+        if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
+          super
+        else
+          coder = {}
+          encode_with(coder)
+          YAML.quick_emit(self, opts) do |out|
+            out.map(taguri, to_yaml_style) do |map|
+              coder.each { |k, v| map.add(k, v) }
+            end
+          end
+        end
+      end
+
+      # Hackery to accomodate Syck. Remove for 4.0.
+      def yaml_initialize(tag, coder) #:nodoc:
+        init_with(coder)
+      end
+
     protected
       def clone_attributes(reader_method = :read_attribute, attributes = {})
         attribute_names.each do |name|
@@ -1922,14 +2000,6 @@ MSG
         nil
       end
 
-      def set_serialized_attributes
-        sattrs = self.class.serialized_attributes
-
-        sattrs.each do |key, coder|
-          @attributes[key] = coder.load @attributes[key] if @attributes.key?(key)
-        end
-      end
-
       # Sets the attribute used for single table inheritance to this class name if this is not the
       # ActiveRecord::Base descendant.
       # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
@@ -1959,10 +2029,10 @@ MSG
         attribute_names.each do |name|
           if (column = column_for_attribute(name)) && (include_primary_key || !column.primary)
 
-            if include_readonly_attributes || (!include_readonly_attributes && !self.class.readonly_attributes.include?(name))
+            if include_readonly_attributes || !self.class.readonly_attributes.include?(name)
 
-              value = if coder = klass.serialized_attributes[name]
-                        coder.dump @attributes[name]
+              value = if klass.serialized_attributes.include?(name)
+                        @attributes[name].serialized_value
                       else
                         # FIXME: we need @attributes to be used consistently.
                         # If the values stored in @attributes were already type
@@ -1974,6 +2044,7 @@ MSG
             end
           end
         end
+
         attrs
       end
 
@@ -2121,9 +2192,7 @@ MSG
           send("#{att}=", value) if respond_to?("#{att}=")
         end
       end
-  end
 
-  Base.class_eval do
     include ActiveRecord::Persistence
     extend ActiveModel::Naming
     extend QueryCache::ClassMethods
@@ -2139,11 +2208,14 @@ MSG
     include AttributeMethods::PrimaryKey
     include AttributeMethods::TimeZoneConversion
     include AttributeMethods::Dirty
+    include AttributeMethods::Serialization
+    include AttributeMethods::DeprecatedUnderscoreRead
     include ActiveModel::MassAssignmentSecurity
     include Callbacks, ActiveModel::Observing, Timestamp
     include Associations, NamedScope
     include IdentityMap
     include ActiveModel::SecurePassword
+    extend Explain
 
     # AutosaveAssociation needs to be included before Transactions, because we want
     # #save_with_autosave_associations to be wrapped inside a transaction.

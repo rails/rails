@@ -229,7 +229,7 @@ The corresponding view +app/views/articles/new.html.erb+ using +form_for+ looks 
 There are a few things to note here:
 
 # +@article+ is the actual object being edited.
-# There is a single hash of options. Routing options are passed in the +:url+ hash, HTML options are passed in the +:html+ hash.
+# There is a single hash of options. Routing options are passed in the +:url+ hash, HTML options are passed in the +:html+ hash. Also you can provide a +:namespace+ option for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
 # The +form_for+ method yields a *form builder* object (the +f+ variable).
 # Methods to create form controls are called *on* the form builder object +f+
 

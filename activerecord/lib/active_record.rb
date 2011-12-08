@@ -50,6 +50,7 @@ module ActiveRecord
       autoload :PredicateBuilder
       autoload :SpawnMethods
       autoload :Batches
+      autoload :Explain
     end
 
     autoload :Base
@@ -75,6 +76,7 @@ module ActiveRecord
     autoload :Transactions
     autoload :Validations
     autoload :IdentityMap
+    autoload :Explain
   end
 
   module Coders
@@ -92,6 +94,8 @@ module ActiveRecord
       autoload :Read
       autoload :TimeZoneConversion
       autoload :Write
+      autoload :Serialization
+      autoload :DeprecatedUnderscoreRead
     end
   end
 

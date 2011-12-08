@@ -166,6 +166,23 @@ module ActiveRecord
       0
     end
 
+    # This method is designed to perform select by a single column as direct SQL query
+    # Returns <tt>Array</tt> with values of the specified column name
+    # The values has same data type as column. 
+    #
+    # Examples:
+    #
+    #   Person.pluck(:id) # SELECT people.id FROM people
+    #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
+    #   Person.where(:confirmed => true).limit(5).pluck(:id)
+    #
+    def pluck(column_name)
+      scope = self.select(column_name)
+      self.connection.select_values(scope.to_sql).map! do |value|
+        type_cast_using_column(value, column_for(column_name))
+      end
+    end
+
     private
 
     def perform_calculation(operation, column_name, options = {})

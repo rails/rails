@@ -17,7 +17,7 @@ As of Rails 3, +script/server+ has become +rails server+. This was done to centr
 
 h4. +bin/rails+
 
-The actual +rails+ command is kept in _bin/rails_ at the and goes like this:
+The actual +rails+ command is kept in _bin/rails_:
 
 <ruby>
 #!/usr/bin/env ruby
@@ -31,7 +31,7 @@ rescue LoadError
 end
 </ruby>
 
-This file will attempt to load +rails/cli+ and if it cannot find it then add the +railties/lib+ path to the load path (+$:+) and will then try to require it again.
+This file will attempt to load +rails/cli+. If it cannot find it then +railties/lib+ is added to the load path (+$:+) before retrying.
 
 h4. +railties/lib/rails/cli.rb+
 
@@ -56,7 +56,7 @@ else
 end
 </ruby>
 
-The +rbconfig+ file here is out of Ruby's standard library and provides us with the +RbConfig+ class which contains useful information dependent on how Ruby was compiled. We'll see this in use in +railties/lib/rails/script_rails_loader+.
+The +rbconfig+ file from the Ruby standard library provides us with the +RbConfig+ class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see this in use in +railties/lib/rails/script_rails_loader+.
 
 <ruby>
 require 'pathname'
@@ -71,7 +71,7 @@ module Rails
 end
 </ruby>
 
-The +rails/script_rails_loader+ file uses +RbConfig::Config+ to gather up the +bin_dir+ and +ruby_install_name+ values for the configuration which will result in a path such as +/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby+, which is the default path on Mac OS X. If you're running Windows the path may be something such as +C:/Ruby192/bin/ruby+. Anyway, the path on your system may be different, but the point of this is that it will point at the known ruby executable location for your install. The +RbConfig::CONFIG["EXEEXT"]+ will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in +exec_script_rails!+. As for the +SCRIPT_RAILS+ constant, we'll see that when we get to the +in_rails_application?+ method.
+The +rails/script_rails_loader+ file uses +RbConfig::Config+ to obtain the +bin_dir+ and +ruby_install_name+ values for the configuration which together form the path to the Ruby interpreter. The +RbConfig::CONFIG["EXEEXT"]+ will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in +exec_script_rails!+. As for the +SCRIPT_RAILS+ constant, we'll see that when we get to the +in_rails_application?+ method.
 
 Back in +rails/cli+, the next line is this:
 
@@ -79,7 +79,7 @@ Back in +rails/cli+, the next line is this:
 Rails::ScriptRailsLoader.exec_script_rails!
 </ruby>
 
-This method is defined in +rails/script_rails_loader+ like this:
+This method is defined in +rails/script_rails_loader+:
 
 <ruby>
 def self.exec_script_rails!
@@ -96,7 +96,7 @@ rescue SystemCallError
 end
 </ruby>
 
-This method will first check if the current working directory (+cwd+) is a Rails application or is a subdirectory of one. The way to determine this is defined in the +in_rails_application?+ method like this:
+This method will first check if the current working directory (+cwd+) is a Rails application or a subdirectory of one. This is determined by the +in_rails_application?+ method:
 
 <ruby>
 def self.in_rails_application?
@@ -104,7 +104,7 @@ def self.in_rails_application?
 end
 </ruby>
 
-The +SCRIPT_RAILS+ constant defined earlier is used here, with +File.exists?+ checking for its presence in the current directory. If this method returns +false+, then +in_rails_application_subdirectory?+ will be used:
+The +SCRIPT_RAILS+ constant defined earlier is used here, with +File.exists?+ checking for its presence in the current directory. If this method returns +false+ then +in_rails_application_subdirectory?+ will be used:
 
 <ruby>
 def self.in_rails_application_subdirectory?(path = Pathname.new(Dir.pwd))
@@ -112,17 +112,17 @@ def self.in_rails_application_subdirectory?(path = Pathname.new(Dir.pwd))
 end
 </ruby>
 
-This climbs the directory tree until it reaches a path which contains a +script/rails+ file. If a directory is reached which contains this file then this line will run:
+This climbs the directory tree until it reaches a path which contains a +script/rails+ file. If a directory containing this file is reached then this line will run:
 
 <ruby>
 exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
 </ruby>
 
-This is effectively the same as doing +ruby script/rails [arguments]+. Where +[arguments]+ at this point in time is simply "server".
+This is effectively the same as running +ruby script/rails [arguments]+, where +[arguments]+ at this point in time is simply "server".
 
 h4. +script/rails+
 
-This file looks like this:
+This file is as follows:
 
 <ruby>
 APP_PATH = File.expand_path('../../config/application',  __FILE__)
@@ -130,7 +130,7 @@ require File.expand_path('../../config/boot',  __FILE__)
 require 'rails/commands'
 </ruby>
 
-The +APP_PATH+ constant here will be used later in +rails/commands+. The +config/boot+ file that +script/rails+ references is the +config/boot.rb+ file in our application which is responsible for loading Bundler and setting it up.
+The +APP_PATH+ constant will be used later in +rails/commands+. The +config/boot+ file referenced here is the +config/boot.rb+ file in our application which is responsible for loading Bundler and setting it up.
 
 h4. +config/boot.rb+
 

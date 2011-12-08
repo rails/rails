@@ -32,13 +32,21 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "logs error if parsing unsuccessful" do
     with_test_routing do
+      output = StringIO.new
+      json = "[\"person]\": {\"name\": \"David\"}}"
+      post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => Logger.new(output)}
+      assert_response :error
+      output.rewind && err = output.read
+      assert err =~ /Error occurred while parsing request parameters/
+    end
+  end
+
+  test "occurring a parse error if parsing unsuccessful" do
+    with_test_routing do
       begin
-        $stderr = StringIO.new
+        $stderr = StringIO.new # suppress the log
         json = "[\"person]\": {\"name\": \"David\"}}"
-        post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true}
-        assert_response :error
-        $stderr.rewind && err = $stderr.read
-        assert err =~ /Error occurred while parsing request parameters/
+        assert_raise(MultiJson::DecodeError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
       ensure
         $stderr = STDERR
       end

@@ -63,6 +63,13 @@ module Enumerable
     end
   end
 
+  # Plucks the value of the passed method for each element and returns the result as an array. Example:
+  #
+  #   people.pluck(:name) # => [ "David Heinemeier Hansson", "Jamie Heinemeier Hansson" ]
+  def pluck(method)
+    collect { |element| element.send(method) }
+  end
+
   # Iterates over a collection, passing the current element *and* the
   # +memo+ to the block. Handy for building up hashes or
   # reducing collections down to one object. Examples:

@@ -196,6 +196,26 @@ module ActiveRecord
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
     #   <tt>Project#categories.delete(category1)</tt>
     #
+    # === Overriding generated methods
+    #
+    # Association methods are generated in a module that is included into the model class,
+    # which allows you to easily override with your own methods and call the original
+    # generated method with +super+. For example:
+    #
+    #   class Car < ActiveRecord::Base
+    #     belongs_to :owner
+    #     belongs_to :old_owner
+    #     def owner=(new_owner)
+    #       self.old_owner = self.owner
+    #       super
+    #     end
+    #   end
+    #
+    # If your model class is <tt>Project</tt>, the module is
+    # named <tt>Project::GeneratedFeatureMethods</tt>. The GeneratedFeatureMethods module is
+    # included in the model class immediately after the (anonymous) generated attributes methods
+    # module, meaning an association will override the methods for an attribute with the same name.
+    #
     # === A word of warning
     #
     # Don't create associations that have the same name as instance methods of

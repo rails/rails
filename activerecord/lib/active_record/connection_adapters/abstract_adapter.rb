@@ -4,6 +4,7 @@ require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_support/deprecation'
 require 'active_record/connection_adapters/schema_cache'
+require 'monitor'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -48,21 +49,42 @@ module ActiveRecord
       include DatabaseLimits
       include QueryCache
       include ActiveSupport::Callbacks
+      include MonitorMixin
 
       define_callbacks :checkout, :checkin
 
-      attr_accessor :visitor
-      attr_reader :schema_cache
+      attr_accessor :visitor, :pool
+      attr_reader :schema_cache, :last_use, :in_use
+      alias :in_use? :in_use
 
-      def initialize(connection, logger = nil) #:nodoc:
-        @active = nil
-        @connection, @logger = connection, logger
+      def initialize(connection, logger = nil, pool = nil) #:nodoc:
+        super()
+
+        @active              = nil
+        @connection          = connection
+        @in_use              = false
+        @instrumenter        = ActiveSupport::Notifications.instrumenter
+        @last_use            = false
+        @logger              = logger
+        @open_transactions   = 0
+        @pool                = pool
+        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
         @query_cache_enabled = false
-        @query_cache = Hash.new { |h,sql| h[sql] = {} }
-        @open_transactions = 0
-        @instrumenter = ActiveSupport::Notifications.instrumenter
-        @visitor = nil
-        @schema_cache = SchemaCache.new self
+        @schema_cache        = SchemaCache.new self
+        @visitor             = nil
+      end
+
+      def lease
+        synchronize do
+          unless in_use
+            @in_use   = true
+            @last_use = Time.now
+          end
+        end
+      end
+
+      def expire
+        @in_use = false
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
@@ -117,6 +139,12 @@ module ActiveRecord
 
       # Does this adapter support index sort order?
       def supports_index_sort_order?
+        false
+      end
+
+      # Does this adapter support explain? As of this writing sqlite3,
+      # mysql2, and postgresql are the only ones that do.
+      def supports_explain?
         false
       end
 
@@ -234,6 +262,11 @@ module ActiveRecord
 
       def current_savepoint_name
         "active_record_#{open_transactions}"
+      end
+
+      # Check the connection back in to the connection pool
+      def close
+        pool.checkin self
       end
 
       protected

@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/sqlite_adapter'
 
-gem 'sqlite3', '~> 1.3.4'
+gem 'sqlite3', '~> 1.3.5'
 require 'sqlite3'
 
 module ActiveRecord
@@ -47,11 +47,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
       def encoding
-        if @connection.respond_to?(:encoding)
-          @connection.encoding.to_s
-        else
-          @connection.execute('PRAGMA encoding')[0]['encoding']
-        end
+        @connection.encoding.to_s
       end
 
     end

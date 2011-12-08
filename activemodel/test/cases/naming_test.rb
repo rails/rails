@@ -34,6 +34,10 @@ class NamingTest < ActiveModel::TestCase
   def test_human
     assert_equal 'Track back', @model_name.human
   end
+
+  def test_i18n_key
+    assert_equal :"post/track_back", @model_name.i18n_key
+  end
 end
 
 class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
@@ -75,8 +79,8 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
     assert_equal 'post', @model_name.param_key
   end
 
-  def test_recognizing_namespace
-    assert_equal 'Post', Blog::Post.model_name.instance_variable_get("@unnamespaced")
+  def test_i18n_key
+    assert_equal :"blog/post", @model_name.i18n_key
   end
 end
 
@@ -118,6 +122,10 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
   def test_param_key
     assert_equal 'blog_post', @model_name.param_key
   end
+
+  def test_i18n_key
+    assert_equal :"blog/post", @model_name.i18n_key
+  end
 end
 
 class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
@@ -157,6 +165,48 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
 
   def test_param_key
     assert_equal 'article', @model_name.param_key
+  end
+
+  def test_i18n_key
+    assert_equal :"article", @model_name.i18n_key
+  end
+end
+
+class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
+  def setup
+    @model_name = Blog::Post.model_name
+  end
+
+  def test_singular
+    assert_equal 'blog_post', @model_name.singular
+  end
+
+  def test_plural
+    assert_equal 'blog_posts', @model_name.plural
+  end
+
+  def test_element
+    assert_equal 'post', @model_name.element
+  end
+
+  def test_collection
+    assert_equal 'blog/posts', @model_name.collection
+  end
+
+  def test_human
+    assert_equal 'Post', @model_name.human
+  end
+
+  def test_route_key
+    assert_equal 'posts', @model_name.route_key
+  end
+
+  def test_param_key
+    assert_equal 'post', @model_name.param_key
+  end
+
+  def test_i18n_key
+    assert_equal :"blog/post", @model_name.i18n_key
   end
 end
 
@@ -216,4 +266,17 @@ class NamingHelpersTest < Test::Unit::TestCase
     def method_missing(method, *args)
       ActiveModel::Naming.send(method, *args)
     end
+end
+
+class NameWithAnonymousClassTest < Test::Unit::TestCase
+  def test_anonymous_class_without_name_argument
+    assert_raises(ArgumentError) do
+      ActiveModel::Name.new(Class.new)
+    end
+  end
+
+  def test_anonymous_class_with_name_argument
+    model_name = ActiveModel::Name.new(Class.new, nil, "Anonymous")
+    assert_equal "Anonymous", model_name
+  end
 end

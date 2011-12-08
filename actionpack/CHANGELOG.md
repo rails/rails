@@ -1,5 +1,49 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Rails will now use your default layout (such as "layouts/application") when you specify a layout with `:only` and `:except` condition, and those conditions fail. *Prem Sichanugrist*
+
+    For example, consider this snippet:
+
+        class CarsController
+          layout 'single_car', :only => :show
+        end
+
+    Rails will use 'layouts/single_car' when a request comes in `:show` action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
+
+*   form_for with +:as+ option uses "#{action}_#{as}" as css class and id:
+
+    Before:
+
+        form_for(@user, :as => 'client') # => "<form class="client_new">..."
+
+    Now:
+
+        form_for(@user, :as => 'client') # => "<form class="new_client">..."
+
+    *Vasiliy Ermolovich*
+
+*   Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`. Please look at ActiveRecord::Railtie for an example *José Valim*
+
+*   Allow fresh_when/stale? to take a record instead of an options hash *DHH*
+
+*   Assets should use the request protocol by default or default to relative if no request is available *Jonathan del Strother*
+
+*   Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts *José Valim*
+
+*   You can provide a namespace for your form to ensure uniqueness of id attributes on form elements.
+    The namespace attribute will be prefixed with underscore on the generate HTML id. *Vasiliy Ermolovich*
+
+    Example:
+
+        <%= form_for(@offer, :namespace => 'namespace') do |f| %>
+          <%= f.label :version, 'Version' %>:
+          <%= f.text_field :version %>
+        <% end %>
+
+*   Refactor ActionDispatch::ShowExceptions. Controller is responsible for choice to show exceptions. *Sergey Nartimov*
+
+    It's possible to override +show_detailed_exceptions?+ in controllers to specify which requests should provide debugging information on errors.
+
 *   Responders now return 204 No Content for API requests without a response body (as in the new scaffold) *José Valim*
 
 *   Added ActionDispatch::RequestId middleware that'll make a unique X-Request-Id header available to the response and enables the ActionDispatch::Request#uuid method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog *DHH*
@@ -61,6 +105,19 @@
     We now no longer write out HTTP_COOKIE and the cookie jar is
     persistent between requests so if you need to manipulate the environment
     for your test you need to do it before the cookie jar is created.
+
+*   ActionController::ParamsWrapper on ActiveRecord models now only wrap
+    attr_accessible attributes if they were set, if not, only the attributes
+    returned by the class method attribute_names will be wrapped. This fixes
+    the wrapping of nested attributes by adding them to attr_accessible.
+
+## Rails 3.1.4 (unreleased) ##
+
+*   Allow to use asset_path on named_routes aliasing RailsHelper's
+    asset_path to path_to_asset *Adrian Pike*
+
+*   Assets should use the request protocol by default or default to
+    relative if no request is available *Jonathan del Strother*
 
 ## Rails 3.1.3 (unreleased) ##
 

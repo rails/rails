@@ -41,6 +41,10 @@ class SprocketsHelperTest < ActionView::TestCase
     @controller ? @controller.config : @config
   end
 
+  def compute_host(source, request, options = {})
+    raise "Should never get here"
+  end
+
   test "asset_path" do
     assert_match %r{/assets/logo-[0-9a-f]+.png},
       asset_path("logo.png")
@@ -122,6 +126,10 @@ class SprocketsHelperTest < ActionView::TestCase
     @config.asset_host = Proc.new do |asset, request|
       fail "This should not have been called."
     end
+    assert_raises ActionController::RoutingError do
+      asset_path("logo.png")
+    end
+    @config.asset_host = method :compute_host
     assert_raises ActionController::RoutingError do
       asset_path("logo.png")
     end
@@ -216,6 +224,9 @@ class SprocketsHelperTest < ActionView::TestCase
 
     assert_match %r{<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\n<script src="/assets/application-[0-9a-f]+.js\?body=1" type="text/javascript"></script>},
       javascript_include_tag(:application, :debug => true)
+
+    assert_match %r{<script src="/assets/jquery.plugin.js" type="text/javascript"></script>},
+      javascript_include_tag('jquery.plugin', :digest => false)
 
     @config.assets.compile = true
     @config.assets.debug = true

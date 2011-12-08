@@ -33,35 +33,45 @@ module ActiveResource
 
   # 3xx Redirection
   class Redirection < ConnectionError # :nodoc:
-    def to_s; response['Location'] ? "#{super} => #{response['Location']}" : super; end
+    def to_s
+      response['Location'] ? "#{super} => #{response['Location']}" : super
+    end
   end
 
-  # Raised when ...
-  class MissingPrefixParam < ArgumentError; end # :nodoc:
+  class MissingPrefixParam < ArgumentError # :nodoc:
+  end
 
   # 4xx Client Error
-  class ClientError < ConnectionError; end # :nodoc:
+  class ClientError < ConnectionError # :nodoc:
+  end
 
   # 400 Bad Request
-  class BadRequest < ClientError; end # :nodoc
+  class BadRequest < ClientError # :nodoc:
+  end
 
   # 401 Unauthorized
-  class UnauthorizedAccess < ClientError; end # :nodoc
+  class UnauthorizedAccess < ClientError # :nodoc:
+  end
 
   # 403 Forbidden
-  class ForbiddenAccess < ClientError; end # :nodoc
+  class ForbiddenAccess < ClientError # :nodoc:
+  end
 
   # 404 Not Found
-  class ResourceNotFound < ClientError; end # :nodoc:
+  class ResourceNotFound < ClientError # :nodoc:
+  end
 
   # 409 Conflict
-  class ResourceConflict < ClientError; end # :nodoc:
+  class ResourceConflict < ClientError # :nodoc:
+  end
 
   # 410 Gone
-  class ResourceGone < ClientError; end # :nodoc:
+  class ResourceGone < ClientError # :nodoc:
+  end
 
   # 5xx Server Error
-  class ServerError < ConnectionError; end # :nodoc:
+  class ServerError < ConnectionError # :nodoc:
+  end
 
   # 405 Method Not Allowed
   class MethodNotAllowed < ClientError # :nodoc:

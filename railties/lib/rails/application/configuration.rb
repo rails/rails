@@ -10,8 +10,8 @@ module Rails
                     :dependency_loading, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
                     :reload_plugins, :secret_token, :serve_static_assets,
-                    :ssl_options, :static_cache_control, :session_options, 
-                    :time_zone, :whiny_nils
+                    :ssl_options, :static_cache_control, :session_options,
+                    :time_zone, :whiny_nils, :railties_order
 
       attr_writer :log_level
       attr_reader :encoding
@@ -35,6 +35,7 @@ module Rails
         @middleware                  = app_middleware
         @generators                  = app_generators
         @cache_store                 = [ :file_store, "#{root}/tmp/cache/" ]
+        @railties_order              = [:all]
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false

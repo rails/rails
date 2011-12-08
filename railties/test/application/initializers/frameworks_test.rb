@@ -136,6 +136,12 @@ module ApplicationTests
       assert_equal 2, ActionDispatch::Http::URL.tld_length
     end
 
+    test "assignment config.encoding to default_charset" do
+      add_to_config "config.encoding = 'Shift_JIS'"
+      require "#{app_path}/config/environment"
+      assert_equal 'Shift_JIS', ActionDispatch::Response.default_charset
+    end
+
     # AS
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []

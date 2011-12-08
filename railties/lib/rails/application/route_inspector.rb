@@ -4,12 +4,23 @@ module Rails
     # This class is just used for displaying route information when someone
     # executes `rake routes`.  People should not use this class.
     class RouteInspector # :nodoc:
+      def initialize
+        @engines = ActiveSupport::OrderedHash.new
+      end
+
       def format all_routes, filter = nil
         if filter
           all_routes = all_routes.select{ |route| route.defaults[:controller] == filter }
         end
 
-        routes = all_routes.collect do |route|
+        routes = collect_routes(all_routes)
+
+        formatted_routes(routes) +
+          formatted_routes_for_engines
+      end
+
+      def collect_routes(routes)
+        routes = routes.collect do |route|
           route_reqs = route.requirements
 
           rack_app = route.app unless route.app.class.name.to_s =~ /^ActionDispatch::Routing/
@@ -25,12 +36,32 @@ module Rails
 
           verb = route.verb.source.gsub(/[$^]/, '')
 
-          {:name => route.name.to_s, :verb => verb, :path => route.path.spec.to_s, :reqs => reqs}
+          collect_engine_routes(reqs, rack_app)
+
+          {:name => route.name.to_s, :verb => verb, :path => route.path.spec.to_s, :reqs => reqs }
         end
 
         # Skip the route if it's internal info route
-        routes.reject! { |r| r[:path] =~ %r{/rails/info/properties|^/assets} }
+        routes.reject { |r| r[:path] =~ %r{/rails/info/properties|^/assets} }
+      end
 
+      def collect_engine_routes(name, rack_app)
+        return unless rack_app && rack_app.respond_to?(:routes)
+        return if @engines[name]
+
+        routes = rack_app.routes
+        if routes.is_a?(ActionDispatch::Routing::RouteSet)
+          @engines[name] = collect_routes(routes.routes)
+        end
+      end
+
+      def formatted_routes_for_engines
+        @engines.map do |name, routes|
+          ["\nRoutes for #{name}:"] + formatted_routes(routes)
+        end.flatten
+      end
+
+      def formatted_routes(routes)
         name_width = routes.map{ |r| r[:name].length }.max
         verb_width = routes.map{ |r| r[:verb].length }.max
         path_width = routes.map{ |r| r[:path].length }.max

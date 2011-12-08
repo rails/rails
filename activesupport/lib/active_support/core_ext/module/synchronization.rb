@@ -1,6 +1,7 @@
 require 'thread'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/module/deprecation'
 
 class Module
   # Synchronize access around a method, delegating synchronization to a
@@ -40,4 +41,5 @@ class Module
       alias_method_chain method, :synchronization
     end
   end
+  deprecate :synchronize
 end

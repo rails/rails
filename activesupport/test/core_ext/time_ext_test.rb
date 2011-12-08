@@ -59,7 +59,27 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,11,28), Time.local(2005,12,02,0,0,0).beginning_of_week #friday
     assert_equal Time.local(2005,11,28), Time.local(2005,12,03,0,0,0).beginning_of_week #saturday
     assert_equal Time.local(2005,11,28), Time.local(2005,12,04,0,0,0).beginning_of_week #sunday
+
   end
+
+  def test_days_to_week_start
+    assert_equal 0, Time.local(2011,11,01,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 1, Time.local(2011,11,02,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 2, Time.local(2011,11,03,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 4, Time.local(2011,11,05,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 5, Time.local(2011,11,06,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 6, Time.local(2011,11,07,0,0,0).days_to_week_start(:tuesday)
+
+    assert_equal 3, Time.local(2011,11,03,0,0,0).days_to_week_start(:monday)
+    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
+    assert_equal 3, Time.local(2011,11,05,0,0,0).days_to_week_start(:wednesday)
+    assert_equal 3, Time.local(2011,11,06,0,0,0).days_to_week_start(:thursday)
+    assert_equal 3, Time.local(2011,11,07,0,0,0).days_to_week_start(:friday)
+    assert_equal 3, Time.local(2011,11,8,0,0,0).days_to_week_start(:saturday)
+    assert_equal 3, Time.local(2011,11,9,0,0,0).days_to_week_start(:sunday)
+  end
+
 
   def test_beginning_of_day
     assert_equal Time.local(2005,2,4,0,0,0), Time.local(2005,2,4,10,10,10).beginning_of_day
@@ -742,6 +762,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal  1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone['UTC'] )
     assert_equal  0, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC'] )
     assert_equal(-1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
+  end
+
+  def test_eql?
+    assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']) )
+    assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )
+    assert_equal false,Time.utc(2000, 1, 1, 0, 0, 1).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']) )
   end
 
   def test_minus_with_time_with_zone

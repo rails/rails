@@ -51,10 +51,6 @@ module ActiveRecord
       included do
         cattr_accessor :lock_optimistically, :instance_writer => false
         self.lock_optimistically = true
-
-        class << self
-          alias_method :locking_column=, :set_locking_column
-        end
       end
 
       def locking_enabled? #:nodoc:
@@ -148,15 +144,24 @@ module ActiveRecord
           lock_optimistically && columns_hash[locking_column]
         end
 
+        def locking_column=(value)
+          @original_locking_column = @locking_column if defined?(@locking_column)
+          @locking_column          = value.to_s
+        end
+
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def set_locking_column(value = nil, &block)
-          define_attr_method :locking_column, value, &block
-          value
+          deprecated_property_setter :locking_column, value, block
         end
 
         # The version column used for optimistic locking. Defaults to +lock_version+.
         def locking_column
-          reset_locking_column
+          reset_locking_column unless defined?(@locking_column)
+          @locking_column
+        end
+
+        def original_locking_column #:nodoc:
+          deprecated_original_property_getter :locking_column
         end
 
         # Quote the column name used for optimistic locking.
@@ -166,7 +171,7 @@ module ActiveRecord
 
         # Reset the column used for optimistic locking back to the +lock_version+ default.
         def reset_locking_column
-          set_locking_column DEFAULT_LOCKING_COLUMN
+          self.locking_column = DEFAULT_LOCKING_COLUMN
         end
 
         # Make sure the lock version column gets updated when counters are

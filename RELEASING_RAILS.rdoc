@@ -100,8 +100,8 @@ branch.
 Run `rake install` to generate the gems and install them locally. Then try
 generating a new app and ensure that nothing explodes.
 
-This will stop you looking silly when you push an RC to rubygems.org and then
-realise it is broken.
+This will stop you from looking silly when you push an RC to rubygems.org and
+then realise it is broken.
 
 === Release the gem.
 
@@ -209,13 +209,13 @@ Repeat these steps until the CI is green.
 === Manually trigger docs generation
 
 We have a post-receive hook in GitHub that calls the docs server on pushes.
-Triggers generation and publication of edge docs, updates the contrib app,
+It triggers generation and publication of edge docs, updates the contrib app,
 and generates and publishes stable docs if a new stable tag is detected.
 
 The hook unfortunately is not invoked by tag pushing, so once the new stable
 tag has been pushed to origin, please run
 
-    curl -X POST -d '' http://rails-hooks.hashref.com/rails-master-hook
+    rake publish_docs
 
 You should see something like this:
 

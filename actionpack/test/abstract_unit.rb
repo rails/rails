@@ -73,7 +73,17 @@ module RackTestUtils
 end
 
 module RenderERBUtils
+  def view
+    @view ||= begin
+      path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
+      view_paths = ActionView::PathSet.new([path])
+      ActionView::Base.new(view_paths)
+    end
+  end
+
   def render_erb(string)
+    @virtual_path = nil
+
     template = ActionView::Template.new(
       string.strip,
       "test template",
@@ -165,6 +175,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use "ActionDispatch::ShowExceptions"
+      middleware.use "ActionDispatch::DebugExceptions"
       middleware.use "ActionDispatch::Callbacks"
       middleware.use "ActionDispatch::ParamsParser"
       middleware.use "ActionDispatch::Cookies"
@@ -328,16 +339,24 @@ end
 module ActionDispatch
   class ShowExceptions
     private
-      remove_method :public_path
-      def public_path
-        "#{FIXTURE_LOAD_PATH}/public"
-      end
+    remove_method :public_path
+    def public_path
+      "#{FIXTURE_LOAD_PATH}/public"
+    end
+  end
 
-      remove_method :logger
-      # Silence logger
-      def logger
-        nil
-      end
+  class DebugExceptions
+    private
+    remove_method :stderr_logger
+    # Silence logger
+    def stderr_logger
+      nil
+    end
   end
 end
 
+module RoutingTestHelpers
+  def url_for(set, options, recall = nil)
+    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
+  end
+end

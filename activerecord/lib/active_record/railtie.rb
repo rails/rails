@@ -22,6 +22,13 @@ module ActiveRecord
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",
       "ActiveRecord::ConnectionAdapters::ConnectionManagement"
 
+    config.action_dispatch.rescue_responses.merge!(
+      'ActiveRecord::RecordNotFound'   => :not_found,
+      'ActiveRecord::StaleObjectError' => :conflict,
+      'ActiveRecord::RecordInvalid'    => :unprocessable_entity,
+      'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
+    )
+
     rake_tasks do
       load "active_record/railties/databases.rake"
     end

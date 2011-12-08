@@ -23,6 +23,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal keyboard.to_key, [keyboard.id]
   end
 
+  def test_read_attribute_with_custom_primary_key
+    keyboard = Keyboard.create!
+    assert_equal keyboard.key_number, keyboard.read_attribute(:id)
+  end
+
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy
@@ -142,8 +147,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
-    k.set_primary_key "bar"
-    assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
   end
 end
 
@@ -155,9 +158,8 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
 
     connection = ActiveRecord::Base.remove_connection
 
-    model = Class.new(ActiveRecord::Base) do
-      set_primary_key 'foo'
-    end
+    model = Class.new(ActiveRecord::Base)
+    model.primary_key = 'foo'
 
     assert_equal 'foo', model.primary_key
 

@@ -11,12 +11,6 @@ end
 
 ROUTING = ActionDispatch::Routing
 
-module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_path_segments => recall))
-  end
-end
-
 # See RFC 3986, section 3.3 for allowed path characters.
 class UriReservedCharactersRoutingTest < Test::Unit::TestCase
   include RoutingTestHelpers
@@ -719,12 +713,12 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal set.routes.first, set.named_routes[:hello]
   end
 
-  def test_later_named_routes_take_precedence
+  def test_earlier_named_routes_take_precedence
     set.draw do
       match '/hello/world' => 'a#b', :as => 'hello'
       match '/hello'       => 'a#b', :as => 'hello'
     end
-    assert_equal set.routes.last, set.named_routes[:hello]
+    assert_equal set.routes.first, set.named_routes[:hello]
   end
 
   def setup_named_route_test

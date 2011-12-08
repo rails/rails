@@ -130,6 +130,17 @@ class ResponseTest < ActiveSupport::TestCase
 
     assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
   end
+
+  test "read content type without charset" do
+    original = ActionDispatch::Response.default_charset
+    begin
+      ActionDispatch::Response.default_charset = 'utf-16'
+      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      assert_equal('utf-16', resp.charset)
+    ensure
+      ActionDispatch::Response.default_charset = original
+    end
+  end
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest

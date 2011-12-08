@@ -16,6 +16,10 @@ module ActiveRecord::Associations::Builder
       @model, @name, @options = model, name, options
     end
 
+    def mixin
+      @model.generated_feature_methods
+    end
+
     def build
       validate_options
       reflection = model.create_reflection(self.class.macro, name, options, model)
@@ -36,16 +40,14 @@ module ActiveRecord::Associations::Builder
 
       def define_readers
         name = self.name
-
-        model.redefine_method(name) do |*params|
+        mixin.redefine_method(name) do |*params|
           association(name).reader(*params)
         end
       end
 
       def define_writers
         name = self.name
-
-        model.redefine_method("#{name}=") do |value|
+        mixin.redefine_method("#{name}=") do |value|
           association(name).writer(value)
         end
       end

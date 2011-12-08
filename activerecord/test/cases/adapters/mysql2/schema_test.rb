@@ -14,7 +14,7 @@ module ActiveRecord
         @db_name    = db
 
         @omgpost = Class.new(ActiveRecord::Base) do
-          set_table_name "#{db}.#{table}"
+          self.table_name = "#{db}.#{table}"
           def self.name; 'Post'; end
         end
       end

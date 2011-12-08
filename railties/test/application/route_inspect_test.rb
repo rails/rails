@@ -1,12 +1,38 @@
 require 'test/unit'
 require 'rails/application/route_inspector'
 require 'action_controller'
+require 'rails/engine'
 
 module ApplicationTests
   class RouteInspectTest < Test::Unit::TestCase
     def setup
       @set = ActionDispatch::Routing::RouteSet.new
       @inspector = Rails::Application::RouteInspector.new
+    end
+
+    def test_displaying_routes_for_engines
+      engine = Class.new(Rails::Engine) do
+        def self.to_s
+          "Blog::Engine"
+        end
+      end
+      engine.routes.draw do
+        get '/cart', :to => 'cart#show'
+      end
+
+      @set.draw do
+        get '/custom/assets', :to => 'custom_assets#show'
+        mount engine => "/blog", :as => "blog"
+      end
+
+      output = @inspector.format @set.routes
+      expected = [
+        "custom_assets GET /custom/assets(.:format) custom_assets#show",
+        "         blog     /blog                    Blog::Engine",
+        "\nRoutes for Blog::Engine:",
+        "cart GET /cart(.:format) cart#show"
+      ]
+      assert_equal expected, output
     end
 
     def test_cart_inspect

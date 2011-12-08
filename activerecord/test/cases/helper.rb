@@ -68,14 +68,19 @@ module ActiveRecord
     cattr_accessor :log
     self.log = []
 
+    attr_reader :ignore
+
+    def initialize(ignore = Regexp.union(self.class.ignored_sql))
+      @ignore = ignore
+    end
+
     def call(name, start, finish, message_id, values)
       sql = values[:sql]
 
       # FIXME: this seems bad. we should probably have a better way to indicate
       # the query was cached
-      unless 'CACHE' == values[:name]
-        self.class.log << sql unless self.class.ignored_sql.any? { |r| sql =~ r }
-      end
+      return if 'CACHE' == values[:name] || ignore =~ sql
+      self.class.log << sql
     end
   end
 

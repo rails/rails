@@ -440,14 +440,16 @@ NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
 h4. +in?+
 
-The predicate +in?+ tests if an object is included in another object. An +ArgumentError+ exception will be raised if the argument passed does not respond to +include?+.
+The predicate +in?+ tests if an object is included in another object or a list of objects. An +ArgumentError+ exception will be raised if a single argument is passed and it does not respond to +include?+.
 
 Examples of +in?+:
 
 <ruby>
+1.in?(1,2)          # => true
 1.in?([1,2])        # => true
 "lo".in?("hello")   # => true
 25.in?(30..50)      # => false
+1.in?(1)            # => ArgumentError
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
@@ -571,7 +573,7 @@ NOTE: Defined in +active_support/core_ext/module/attr_accessor_with_default.rb+.
 
 h5. Internal Attributes
 
-When you are defining an attribute in a class that is meant to be subclassed name collisions are a risk. That's remarkably important for libraries.
+When you are defining an attribute in a class that is meant to be subclassed, name collisions are a risk. That's remarkably important for libraries.
 
 Active Support defines the macros +attr_internal_reader+, +attr_internal_writer+, and +attr_internal_accessor+. They behave like their Ruby built-in +attr_*+ counterparts, except they name the underlying instance variable in a way that makes collisions less likely.
 
@@ -1299,7 +1301,7 @@ NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
 
 h5. Transformation
 
-As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +donwcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
+As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +downcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
 
 In the case of in-place transformations like +gsub!+ the receiver itself becomes unsafe.
 
@@ -2047,6 +2049,16 @@ The method +ActiveRecord::Observer#observed_subclasses+ for example is implement
 def observed_subclasses
   observed_classes.sum([]) { |klass| klass.send(:subclasses) }
 end
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/enumerable.rb+.
+
+h4. +pluck+
+
+The +pluck+ method collects the value of the passed method for each element and returns the result as an array.
+
+<ruby>
+people.pluck(:name) # => [ "David Heinemeier Hansson", "Jamie Heinemeier Hansson" ]
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
@@ -3039,15 +3051,30 @@ Active Support defines these methods as well for Ruby 1.8.
 
 h6. +beginning_of_week+, +end_of_week+
 
-The methods +beginning_of_week+ and +end_of_week+ return the dates for the beginning and end of week, assuming weeks start on Monday:
+The methods +beginning_of_week+ and +end_of_week+ return the dates for the
+beginning and end of the week, respectively. Weeks are assumed to start on
+Monday, but that can be changed passing an argument.
 
 <ruby>
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.beginning_of_week      # => Mon, 03 May 2010
-d.end_of_week            # => Sun, 09 May 2010
+d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
+d.beginning_of_week          # => Mon, 03 May 2010
+d.beginning_of_week(:sunday) # => Sun, 02 May 2010
+d.end_of_week                # => Sun, 09 May 2010
+d.end_of_week(:sunday)       # => Sat, 08 May 2010
 </ruby>
 
-+beginning_of_week+ is aliased to +monday+ and +at_beginning_of_week+. +end_of_week+ is aliased to +sunday+ and +at_end_of_week+.
++beginning_of_week+ is aliased to +at_beginning_of_week+ and +end_of_week+ is aliased to +at_end_of_week+.
+
+h6. +monday+, +sunday+
+
+The methods +monday+ and +sunday+ return the dates for the beginning and
+end of the week, respectively. Weeks are assumed to start on Monday.
+
+<ruby>
+d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
+d.monday                     # => Mon, 03 May 2010
+d.sunday                     # => Sun, 09 May 2010
+</ruby>
 
 h6. +prev_week+, +next_week+
 
@@ -3272,8 +3299,10 @@ The class +DateTime+ is a subclass of +Date+ so by loading +active_support/core_
 <ruby>
 yesterday
 tomorrow
-beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+beginning_of_week (at_beginning_of_week)
+end_of_week (at_end_of_week)
+monday
+sunday
 weeks_ago
 prev_week
 next_week
@@ -3446,8 +3475,10 @@ ago
 since (in)
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
-beginning_of_week (monday, at_beginning_of_week)
-end_on_week (at_end_of_week)
+beginning_of_week (at_beginning_of_week)
+end_of_week (at_end_of_week)
+monday
+sunday
 weeks_ago
 prev_week
 next_week

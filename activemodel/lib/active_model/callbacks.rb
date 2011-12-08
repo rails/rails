@@ -41,7 +41,7 @@ module ActiveModel
   # You can choose not to have all three callbacks by passing a hash to the
   # define_model_callbacks method.
   #
-  #   define_model_callbacks :create, :only => :after, :before
+  #   define_model_callbacks :create, :only => [:after, :before]
   #
   # Would only create the after_create and before_create callback methods in your
   # class.
@@ -93,7 +93,7 @@ module ActiveModel
          :only => [:before, :around, :after]
       }.merge(options)
 
-      types   = Array.wrap(options.delete(:only))
+      types = Array.wrap(options.delete(:only))
 
       callbacks.each do |callback|
         define_callbacks(callback, options)

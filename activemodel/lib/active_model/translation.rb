@@ -43,13 +43,25 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
-      defaults = lookup_ancestors.map do |klass|
-        :"#{self.i18n_scope}.attributes.#{klass.model_name.i18n_key}.#{attribute}"
+      defaults  = []
+      parts     = attribute.to_s.split(".", 2)
+      attribute = parts.pop
+      namespace = parts.pop
+
+      if namespace
+        lookup_ancestors.each do |klass|
+          defaults << :"#{self.i18n_scope}.attributes.#{klass.model_name.i18n_key}/#{namespace}.#{attribute}"
+        end
+        defaults << :"#{self.i18n_scope}.attributes.#{namespace}.#{attribute}"
+      else
+        lookup_ancestors.each do |klass|
+          defaults << :"#{self.i18n_scope}.attributes.#{klass.model_name.i18n_key}.#{attribute}"
+        end
       end
 
       defaults << :"attributes.#{attribute}"
       defaults << options.delete(:default) if options[:default]
-      defaults << attribute.to_s.humanize
+      defaults << attribute.humanize
 
       options.reverse_merge! :count => 1, :default => defaults
       I18n.translate(defaults.shift, options)

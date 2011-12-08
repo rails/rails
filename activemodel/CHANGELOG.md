@@ -1,4 +1,11 @@
-*   Added ActiveModel::Errors#added? to check if a specific error has been added *Martin Svalin*
+## Rails 3.2.0 (unreleased) ##
+
+*   Deprecated `define_attr_method` in `ActiveModel::AttributeMethods`, because this only existed to
+    support methods like `set_table_name` in Active Record, which are themselves being deprecated.
+
+    *Jon Leighton*
+
+*   Add ActiveModel::Errors#added? to check if a specific error has been added *Martin Svalin*
 
 *   Add ability to define strict validation(with :strict => true option) that always raises exception when fails *Bogdan Gusiev*
 

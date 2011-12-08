@@ -55,6 +55,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb", /javascript_include_tag\s+"application"/
     assert_file "app/assets/stylesheets/application.css"
     assert_file "config/application.rb", /config\.assets\.enabled = true/
+    assert_file "public/index.html", /url\("assets\/rails.png"\);/
   end
 
   def test_invalid_application_name_raises_an_error
@@ -328,9 +329,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generated_environments_file_for_sanitizer
     run_generator [destination_root, "--skip-active-record"]
-    ["config/environments/development.rb", "config/environments/test.rb"].each do |env_file|
-      assert_file env_file do |file|
+    %w(development test).each do |env|
+      assert_file "config/environments/#{env}.rb" do |file|
         assert_no_match(/config.active_record.mass_assignment_sanitizer = :strict/, file)
+      end
+    end
+  end
+
+  def test_generated_environments_file_for_auto_explain
+    run_generator [destination_root, "--skip-active-record"]
+    %w(development production).each do |env|
+      assert_file "config/environments/#{env}.rb" do |file|
+        assert_no_match %r(auto_explain_threshold_in_seconds), file
       end
     end
   end
