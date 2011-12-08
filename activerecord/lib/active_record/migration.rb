@@ -461,11 +461,11 @@ module ActiveRecord
         source_migrations = ActiveRecord::Migrator.migrations(path)
 
         source_migrations.each do |migration|
-          source = File.read(migration.filename)
+          source = File.read(migration.filename).chomp
           source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
-            options[:on_skip].call(name, migration) if File.read(duplicate.filename) != source && options[:on_skip]
+            options[:on_skip].call(name, migration) if File.read(duplicate.filename).chomp != source && options[:on_skip]
             next
           end
 
@@ -474,7 +474,7 @@ module ActiveRecord
           old_path, migration.filename = migration.filename, new_path
           last = migration
 
-          FileUtils.cp(old_path, migration.filename)
+          File.open(migration.filename, "w") { |f| f.write source }
           copied << migration
           options[:on_copy].call(name, migration, old_path) if options[:on_copy]
           destination_migrations << migration
