@@ -35,14 +35,6 @@ module ActionDispatch
       METHOD
     end
 
-    def self.new(env)
-      if request = env["action_dispatch.request"] && request.instance_of?(self)
-        return request
-      end
-
-      super
-    end
-
     def key?(key)
       @env.key?(key)
     end
