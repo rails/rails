@@ -71,7 +71,8 @@ module ControllerLayouts
     self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/application.html.erb" => "<html><%= yield %></html>",
       "controller_layouts/mismatch_format/index.xml.builder" => "xml.instruct!",
-      "controller_layouts/mismatch_format/implicit.builder" => "xml.instruct!"
+      "controller_layouts/mismatch_format/implicit.builder" => "xml.instruct!",
+      "controller_layouts/mismatch_format/explicit.js.erb" => "alert('foo');"
     )]
 
     def explicit
@@ -94,10 +95,9 @@ module ControllerLayouts
       assert_response XML_INSTRUCT
     end
 
-    test "if an HTML template is explicitly provides for a JS template, an error is raised" do
-      assert_raises ActionView::MissingTemplate do
-        get :explicit, {}, "action_dispatch.show_exceptions" => false
-      end
+    test "a layout for JS is ignored even if explicitly provided for HTML" do
+      get :explicit, { :format => "js" }
+      assert_response "alert('foo');"
     end
   end
 end
