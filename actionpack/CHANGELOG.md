@@ -106,6 +106,11 @@
     persistent between requests so if you need to manipulate the environment
     for your test you need to do it before the cookie jar is created.
 
+*   ActionController::ParamsWrapper on ActiveRecord models now only wrap
+    attr_accessible attributes if they were set, if not, only the attributes
+    returned by the class method attribute_names will be wrapped. This fixes
+    the wrapping of nested attributes by adding them to attr_accessible.
+
 ## Rails 3.1.4 (unreleased) ##
 
 *   Allow to use asset_path on named_routes aliasing RailsHelper's
