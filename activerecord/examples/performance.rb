@@ -1,6 +1,6 @@
 TIMES = (ENV['N'] || 10000).to_i
 
-require 'rubygems'
+require File.expand_path('../../../load_paths', __FILE__)
 require "active_record"
 
 conn = { :adapter => 'sqlite3', :database => ':memory:' }
