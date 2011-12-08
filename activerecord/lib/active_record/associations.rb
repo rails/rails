@@ -70,7 +70,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc
+  class HasManyThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc:
     def initialize(owner, reflection)
       super("Cannot modify association '#{owner.class.name}##{reflection.name}' because it goes through more than one other association.")
     end

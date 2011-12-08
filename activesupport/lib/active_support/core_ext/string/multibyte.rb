@@ -44,7 +44,7 @@ class String
       end
     end
 
-    def is_utf8? #:nodoc
+    def is_utf8?
       case encoding
       when Encoding::UTF_8
         valid_encoding?
