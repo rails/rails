@@ -159,6 +159,7 @@ class NamingHelpersTest < Test::Unit::TestCase
     @singular = 'contact'
     @plural = 'contacts'
     @uncountable = Sheep
+    @singular_route_key = 'contact'
     @route_key = 'contacts'
     @param_key = 'contact'
   end
@@ -185,10 +186,12 @@ class NamingHelpersTest < Test::Unit::TestCase
 
   def test_route_key
     assert_equal @route_key, route_key(@record)
+    assert_equal @singular_route_key, singular_route_key(@record)
   end
 
   def test_route_key_for_class
     assert_equal @route_key, route_key(@klass)
+    assert_equal @singular_route_key, singular_route_key(@klass)
   end
 
   def test_param_key
@@ -202,6 +205,11 @@ class NamingHelpersTest < Test::Unit::TestCase
   def test_uncountable
     assert uncountable?(@uncountable), "Expected 'sheep' to be uncoutable"
     assert !uncountable?(@klass), "Expected 'contact' to be countable"
+  end
+
+  def test_uncountable_route_key
+    assert_equal "sheep", singular_route_key(@uncountable)
+    assert_equal "sheep_index", route_key(@uncountable)
   end
 
   private
