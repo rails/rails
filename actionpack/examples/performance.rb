@@ -1,5 +1,4 @@
 ENV['RAILS_ENV'] ||= 'production'
-ENV['NO_RELOAD'] ||= '1'
 
 require File.expand_path('../../../load_paths', __FILE__)
 require 'action_pack'
@@ -76,6 +75,10 @@ class Runner
     puts content
   end
 end
+
+ActionController::Base.logger = nil
+ActionController::Base.config.compile_methods!
+ActionView::Resolver.caching = ENV["RAILS_ENV"] == "production"
 
 class BasePostController < ActionController::Base
   append_view_path "#{File.dirname(__FILE__)}/views"

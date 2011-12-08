@@ -66,12 +66,7 @@ module AbstractController
     end
 
     def view_context_class
-      @_view_context_class || self.class.view_context_class
-    end
-
-    def initialize(*)
-      @_view_context_class = nil
-      super
+      @_view_context_class ||= self.class.view_context_class
     end
 
     # An instance of a view class. The default view class is ActionView::Base
