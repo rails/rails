@@ -64,10 +64,15 @@ module ActionView
     def resolve_layout(layout, keys)
       case layout
       when String
-        if layout =~ /^\//
-          with_fallbacks { find_template(layout, nil, false, keys, @details) }
-        else
-          find_template(layout, nil, false, keys, @details)
+        begin
+          if layout =~ /^\//
+            with_fallbacks { find_template(layout, nil, false, keys, @details) }
+          else
+            find_template(layout, nil, false, keys, @details)
+          end
+        rescue ActionView::MissingTemplate
+          all_details = @details.merge(:formats => @lookup_context.default_formats)
+          raise unless template_exists?(layout, nil, false, keys, all_details)
         end
       when Proc
         resolve_layout(layout.call, keys)
