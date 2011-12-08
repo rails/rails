@@ -17,7 +17,11 @@ gem "mocha", ">= 0.9.8"
 
 group :doc do
   gem "rdoc",  "~> 3.4"
-  gem "sdoc",  "~> 0.3"
+  # The current sdoc cannot generate GitHub links due
+  # to a bug, but the PR that fixes it has been there
+  # for some weeks unapplied. As a temporary solution
+  # this is our own fork with the fix.
+  gem "sdoc",  :git => 'git://github.com/fxn/sdoc.git'
   gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
   gem "w3c_validators"
 end
