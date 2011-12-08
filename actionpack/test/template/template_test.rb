@@ -123,6 +123,7 @@ class TestERBTemplate < ActiveSupport::TestCase
 
     def with_external_encoding(encoding)
       old = Encoding.default_external
+      Encoding::Converter.new old, encoding
       silence_warnings { Encoding.default_external = encoding }
       yield
     ensure
