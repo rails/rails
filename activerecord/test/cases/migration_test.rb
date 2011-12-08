@@ -2103,6 +2103,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert File.exists?(@migrations_path + "/5_people_have_descriptions.rb")
       assert_equal [@migrations_path + "/4_people_have_hobbies.rb", @migrations_path + "/5_people_have_descriptions.rb"], copied.map(&:filename)
 
+      expected = "# This migration comes from bukkits (originally 1)"
+      assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.rb")[0].chomp
+
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
@@ -2209,6 +2212,24 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       assert_equal 2, skipped.length
       assert_equal ["bukkits PeopleHaveHobbies", "bukkits PeopleHaveDescriptions"], skipped
+    ensure
+      clear
+    end
+
+    def test_skip_is_not_called_if_migrations_are_identical
+      @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+
+      skipped = []
+      on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
+      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+      ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+
+      assert_equal 2, copied.length
+      assert_equal 0, skipped.length
     ensure
       clear
     end
