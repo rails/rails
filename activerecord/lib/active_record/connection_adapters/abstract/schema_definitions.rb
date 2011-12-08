@@ -244,12 +244,13 @@ module ActiveRecord
 
       %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{column_type}(*args)                                               # def string(*args)
-            options = args.extract_options!                                       #   options = args.extract_options!
-            column_names = args                                                   #   column_names = args
-                                                                                  #
-            column_names.each { |name| column(name, '#{column_type}', options) }  #   column_names.each { |name| column(name, 'string', options) }
-          end                                                                     # end
+          def #{column_type}(*args)                                   # def string(*args)
+            options = args.extract_options!                           #   options = args.extract_options!
+            column_names = args                                       #   column_names = args
+            type = :'#{column_type}'
+                                                                      #
+            column_names.each { |name| column(name, type, options) }  #   column_names.each { |name| column(name, type, options) }
+          end                                                         # end
         EOV
       end
 
@@ -463,13 +464,14 @@ module ActiveRecord
           def #{column_type}(*args)                                          # def string(*args)
             options = args.extract_options!                                  #   options = args.extract_options!
             column_names = args                                              #   column_names = args
+            type = :'#{column_type}'
                                                                              #
             column_names.each do |name|                                      #   column_names.each do |name|
-              column = ColumnDefinition.new(@base, name.to_s, '#{column_type}')   #     column = ColumnDefinition.new(@base, name, 'string')
+              column = ColumnDefinition.new(@base, name.to_s, type)          #     column = ColumnDefinition.new(@base, name, type)
               if options[:limit]                                             #     if options[:limit]
                 column.limit = options[:limit]                               #       column.limit = options[:limit]
-              elsif native['#{column_type}'.to_sym].is_a?(Hash)              #     elsif native['string'.to_sym].is_a?(Hash)
-                column.limit = native['#{column_type}'.to_sym][:limit]       #       column.limit = native['string'.to_sym][:limit]
+              elsif native[type].is_a?(Hash)                                 #     elsif native[type].is_a?(Hash)
+                column.limit = native[type][:limit]                          #       column.limit = native[type][:limit]
               end                                                            #     end
               column.precision = options[:precision]                         #     column.precision = options[:precision]
               column.scale = options[:scale]                                 #     column.scale = options[:scale]
