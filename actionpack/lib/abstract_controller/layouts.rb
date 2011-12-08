@@ -293,7 +293,7 @@ module AbstractController
 
       if _include_layout?(options)
         layout = options.key?(:layout) ? options.delete(:layout) : :default
-        options[:layout] = Proc.new { _normalize_layout(_layout_for_option(layout)) }
+        options[:layout] = _layout_for_option(layout)
       end
     end
 
@@ -323,9 +323,10 @@ module AbstractController
     # * <tt>name</tt> - The name of the template
     def _layout_for_option(name)
       case name
-      when String     then name
-      when true       then _default_layout(true)
-      when :default   then _default_layout(false)
+      when String     then _normalize_layout(name)
+      when Proc       then name
+      when true       then Proc.new { _default_layout(true)  }
+      when :default   then Proc.new { _default_layout(false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -358,7 +359,7 @@ module AbstractController
           "There was no default layout for #{self.class} in #{view_paths.inspect}"
       end
 
-      value
+      _normalize_layout(value)
     end
 
     def _include_layout?(options)
