@@ -53,9 +53,9 @@ module ActionDispatch # :nodoc:
     # information.
     attr_accessor :charset, :content_type
 
-    CONTENT_TYPE = "Content-Type".freeze
-    SET_COOKIE   = "Set-Cookie".freeze
-    LOCATION     = "Location".freeze
+    CONTENT_TYPE = "Content-Type"
+    SET_COOKIE   = "Set-Cookie"
+    LOCATION     = "Location"
  
     cattr_accessor(:default_charset) { "utf-8" }
 

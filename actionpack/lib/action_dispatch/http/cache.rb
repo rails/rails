@@ -4,9 +4,8 @@ module ActionDispatch
   module Http
     module Cache
       module Request
-
-        HTTP_IF_MODIFIED_SINCE = 'HTTP_IF_MODIFIED_SINCE'.freeze
-        HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH'.freeze
+        HTTP_IF_MODIFIED_SINCE = 'HTTP_IF_MODIFIED_SINCE'
+        HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH'
 
         def if_modified_since
           if since = env[HTTP_IF_MODIFIED_SINCE]
@@ -67,9 +66,9 @@ module ActionDispatch
 
       private
 
-        LAST_MODIFIED = "Last-Modified".freeze
-        ETAG          = "ETag".freeze
-        CACHE_CONTROL = "Cache-Control".freeze
+        LAST_MODIFIED = "Last-Modified"
+        ETAG          = "ETag"
+        CACHE_CONTROL = "Cache-Control"
 
         def prepare_cache_control!
           @cache_control = {}
@@ -89,11 +88,11 @@ module ActionDispatch
           end
         end
 
-        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
-        NO_CACHE              = "no-cache".freeze
-        PUBLIC                = "public".freeze
-        PRIVATE               = "private".freeze
-        MUST_REVALIDATE       = "must-revalidate".freeze
+        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
+        NO_CACHE              = "no-cache"
+        PUBLIC                = "public"
+        PRIVATE               = "private"
+        MUST_REVALIDATE       = "must-revalidate"
 
         def set_conditional_cache_control!
           return if self[CACHE_CONTROL].present?
