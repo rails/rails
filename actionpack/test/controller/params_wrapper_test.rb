@@ -26,7 +26,7 @@ class ParamsWrapperTest < ActionController::TestCase
       self.class.last_parameters = request.params.except(:controller, :action)
       head :ok
     end
-end
+  end
 
   class User; end
   class Person; end
