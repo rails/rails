@@ -215,7 +215,7 @@ and generates and publishes stable docs if a new stable tag is detected.
 The hook unfortunately is not invoked by tag pushing, so once the new stable
 tag has been pushed to origin, please run
 
-    curl -X POST -d '' http://rails-hooks.hashref.com/rails-master-hook
+    curl -X POST -d '' http://api.rubyonrails.org:8080/rails-master-hook
 
 You should see something like this:
 
