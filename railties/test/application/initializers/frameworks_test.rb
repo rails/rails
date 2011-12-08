@@ -137,9 +137,10 @@ module ApplicationTests
     end
 
     test "assignment config.encoding to default_charset" do
-      add_to_config "config.encoding = 'Shift_JIS'"
+      charset = "ruby".respond_to?(:force_encoding) ? 'Shift_JIS' : 'UTF8'
+      add_to_config "config.encoding = '#{charset}'"
       require "#{app_path}/config/environment"
-      assert_equal 'Shift_JIS', ActionDispatch::Response.default_charset
+      assert_equal charset, ActionDispatch::Response.default_charset
     end
 
     # AS
