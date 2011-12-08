@@ -37,6 +37,25 @@ module ActiveRecord
         result.map { |v| v[0] }
       end
 
+      # Return a hash using the first column in a select as a key and the
+      # second column as a value:
+      #
+      #   Company.connection.select_pair("SELECT group, COUNT(*) FROM users GROUP BY group")
+      #   # => { "admin" => "2", "moderator" => "5", "user" => "3" }
+      #
+      # This method will raise an <tt>ActiveRecord::StatementInvalid</tt>
+      # if the select query doesn't return exactly 2 columns.
+      def select_pair(arel, name = nil)
+        result = select_rows(to_sql(arel), name)
+        if result.present? && result.first.length != 2
+          raise ActiveRecord::StatementInvalid,
+            "Expecting 2 columns returned in the result set, got #{result.first.length} column(s)."
+        end
+
+        # Make sure we always return values as a String to fix inconsistency between adapters
+        Hash[result.each{ |row| [0,1].each{ |index| row[index] = row[index].to_s if row[index] } }]
+      end
+
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
       def select_rows(sql, name = nil)

@@ -1,5 +1,17 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Implements `AR::Base.connection.select_pair`, which will return a hash.
+    The first column of your result set will be used as a key, and the second
+    column will be used as a value. This is useful in an scenario where you
+    want to map your data with an aggregated function.
+
+    For example:
+
+        Company.connection.select_pair("SELECT group, COUNT(*) FROM users GROUP BY group")
+        # => { "admin" => "2", "moderator" => "5", "user" => "3" }
+
+    *Prem Sichanugrist*
+
 *   Implements `AR::Base.silence_auto_explain`. This method allows the user to
     selectively disable automatic EXPLAINs within a block. *fxn*
 
