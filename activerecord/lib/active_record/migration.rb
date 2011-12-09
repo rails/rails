@@ -457,28 +457,28 @@ module ActiveRecord
 
       destination_migrations = ActiveRecord::Migrator.migrations(destination)
       last = destination_migrations.last
-      sources.each do |name, path|
+      sources.each do |scope, path|
         source_migrations = ActiveRecord::Migrator.migrations(path)
 
         source_migrations.each do |migration|
           source = File.read(migration.filename)
-          source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
+          source = "# This migration comes from #{scope} (originally #{migration.version})\n#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
-            if options[:on_skip] && !migrations_identical?(File.read(duplicate.filename), source)
-              options[:on_skip].call(name, migration)
+            if options[:on_skip] && duplicate.scope != scope.to_s
+              options[:on_skip].call(scope, migration)
             end
             next
           end
 
           migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
-          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{name}.rb")
+          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
           old_path, migration.filename = migration.filename, new_path
           last = migration
 
           File.open(migration.filename, "w") { |f| f.write source }
           copied << migration
-          options[:on_copy].call(name, migration, old_path) if options[:on_copy]
+          options[:on_copy].call(scope, migration, old_path) if options[:on_copy]
           destination_migrations << migration
         end
       end
@@ -493,22 +493,6 @@ module ActiveRecord
         "%.3d" % number
       end
     end
-
-    def migrations_identical?(a, b)
-      # Due to a bug some of the migrations copied may not have origin comment,
-      # so we need to ignore it.
-      remove_origin_comment(a.chomp) == remove_origin_comment(b.chomp)
-    end
-    private :migrations_identical?
-
-    def remove_origin_comment(migration_source)
-      if migration_source =~ /^# This migration comes from/
-        migration_source = migration_source.lines.to_a[1..-1].join
-      end
-
-      migration_source
-    end
-    private :remove_origin_comment
   end
 
   # MigrationProxy is used to defer loading of the actual migration classes

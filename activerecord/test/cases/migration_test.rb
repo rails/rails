@@ -2226,7 +2226,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       clear
     end
 
-    def test_skip_is_not_called_if_migrations_are_identical
+    def test_skip_is_not_called_if_migrations_are_from_the_same_plugin
       @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
@@ -2236,31 +2236,6 @@ if ActiveRecord::Base.connection.supports_migrations?
       skipped = []
       on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
       copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
-      ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
-
-      assert_equal 2, copied.length
-      assert_equal 0, skipped.length
-    ensure
-      clear
-    end
-
-    def test_skip_ignores_origin_comment
-      ActiveRecord::Base.timestamped_migrations = false
-      @migrations_path = MIGRATIONS_ROOT + "/valid"
-      @existing_migrations = Dir[@migrations_path + "/*.rb"]
-
-      sources = ActiveSupport::OrderedHash.new
-      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
-
-      skipped = []
-      on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
-      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
-
-      # remove origin comment
-      migration = @migrations_path + "/4_people_have_hobbies.bukkits.rb"
-      migration_source = File.read(migration).lines.to_a[1..-1].join
-      File.open(migration, "w") { |f| f.write migration_source }
-
       ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
 
       assert_equal 2, copied.length
