@@ -7,7 +7,7 @@ module AbstractController
 
     included do
       config_accessor :logger
-      extend ActiveSupport::Benchmarkable
+      include ActiveSupport::Benchmarkable
     end
   end
 end
