@@ -258,7 +258,7 @@ module AbstractControllerTests
 
       test "when a child controller has an implied layout, use that layout and not the parent controller layout" do
         controller = WithStringImpliedChild.new
-        controller.process(:index)
+        assert_deprecated { controller.process(:index) }
         assert_equal "With Implied Hello string!", controller.response_body
       end
 
@@ -271,7 +271,7 @@ module AbstractControllerTests
       test "when a grandchild has no layout specified, the child has an implied layout, and the " \
         "parent has specified a layout, use the child controller layout" do
           controller = WithChildOfImplied.new
-          controller.process(:index)
+          assert_deprecated { controller.process(:index) }
           assert_equal "With Implied Hello string!", controller.response_body
       end
 

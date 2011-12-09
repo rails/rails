@@ -66,27 +66,40 @@ module AbstractController
   # == Inheritance Examples
   #
   #   class BankController < ActionController::Base
-  #     layout "bank_standard"
+  #     # bank.html.erb exists
+  #
+  #   class ExchangeController < BankController
+  #     # exchange.html.erb exists
+  #
+  #   class CurrencyController < BankController
   #
   #   class InformationController < BankController
+  #     layout "information"
   #
-  #   class TellerController < BankController
+  #   class TellerController < InformationController
   #     # teller.html.erb exists
   #
-  #   class TillController < TellerController
+  #   class EmployeeController < InformationController
+  #     # employee.html.erb exists
+  #     layout nil
   #
   #   class VaultController < BankController
   #     layout :access_level_layout
   #
-  #   class EmployeeController < BankController
-  #     layout nil
+  #   class TillController < BankController
+  #     layout false
   #
-  # In these examples:
-  # * The InformationController uses the "bank_standard" layout, inherited from BankController.
-  # * The TellerController follows convention and uses +app/views/layouts/teller.html.erb+.
-  # * The TillController inherits the layout from TellerController and uses +teller.html.erb+ as well.
+  # In these examples, we have three implicit lookup scenrios:
+  # * The BankController uses the "bank" layout.
+  # * The ExchangeController uses the "exchange" layout.
+  # * The CurrencyController inherits the layout from BankController.
+  #
+  # However, when a layout is explicitly set, the explicitly set layout wins:
+  # * The InformationController uses the "information" layout, explicitly set.
+  # * The TellerController also uses the "information" layout, because the parent explicitly set it.
+  # * The EmployeeController uses the "employee" layout, because it set the layout to nil, resetting the parent configuration.
   # * The VaultController chooses a layout dynamically by calling the <tt>access_level_layout</tt> method.
-  # * The EmployeeController does not use a layout at all.
+  # * The TillController does not use a layout at all.
   #
   # == Types of layouts
   #
@@ -125,6 +138,22 @@ module AbstractController
   #
   # If no directory is specified for the template name, the template will by default be looked for in <tt>app/views/layouts/</tt>.
   # Otherwise, it will be looked up relative to the template root.
+  #
+  # Setting the layout to nil forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
+  # Setting it to nil is useful to re-enable template lookup overriding a previous configuration set in the parent:
+  #
+  #     class ApplicationController < ActionController::Base
+  #       layout "application"
+  #     end
+  #
+  #     class PostsController < ApplicationController
+  #       # Will use "application" layout
+  #     end
+  #
+  #     class CommentsController < ApplicationController
+  #       # Will search for "comments" layout and fallback "application" layout
+  #       layout nil
+  #     end
   #
   # == Conditional layouts
   #
@@ -252,28 +281,53 @@ module AbstractController
           RUBY
         end
 
-        layout_definition = case defined?(@_layout) ? @_layout : nil
-          when String
-            @_layout.inspect
-          when Symbol
-            <<-RUBY
-              #{@_layout}.tap do |layout|
-                unless layout.is_a?(String) || !layout
-                  raise ArgumentError, "Your layout method :#{@_layout} returned \#{layout}. It " \
-                    "should have returned a String, false, or nil"
+        if defined?(@_layout)
+          layout_definition = case @_layout
+            when String
+              @_layout.inspect
+            when Symbol
+              <<-RUBY
+                #{@_layout}.tap do |layout|
+                  unless layout.is_a?(String) || !layout
+                    raise ArgumentError, "Your layout method :#{@_layout} returned \#{layout}. It " \
+                      "should have returned a String, false, or nil"
+                  end
                 end
-              end
-            RUBY
-          when Proc
-            define_method :_layout_from_proc, &@_layout
-            "_layout_from_proc(self)"
-          when false
-            nil
-          when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
-          when nil
-            name_clause
-          end
+              RUBY
+            when Proc
+              define_method :_layout_from_proc, &@_layout
+              "_layout_from_proc(self)"
+            when false
+              nil
+            when true
+              raise ArgumentError, "Layouts must be specified as a String, Symbol, false, or nil"
+            when nil
+              name_clause
+            end
+        else
+          # Add a deprecation if the parent layout was explicitly set and the child
+          # still does a dynamic lookup. In next Rails release, we should @_layout
+          # to be inheritable so we can skip the child lookup if the parent explicitly
+          # set the layout.
+          parent   = self.superclass.instance_variable_get(:@_layout)
+          @_layout = nil
+          inspect  = parent.is_a?(Proc) ? parent.inspect : parent
+
+          layout_definition = if parent.nil?
+              name_clause
+            elsif name
+              <<-RUBY
+                if template = lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first
+                  ActiveSupport::Deprecation.warn 'Layout found at "#{_implied_layout_name}" for #{name} but parent controller ' \
+                    'set layout to #{inspect.inspect}. Please explicitly set your layout to "#{_implied_layout_name}" ' \
+                    'or set it to nil to force a dynamic lookup.'
+                  template
+                else
+                  super
+                end
+              RUBY
+            end
+        end
 
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout
@@ -283,8 +337,8 @@ module AbstractController
               #{name_clause}
             end
           end
+          private :_layout
         RUBY
-        self.class_eval { private :_layout }
       end
     end
 
