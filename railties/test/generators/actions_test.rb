@@ -114,7 +114,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem_group, :test do
       gem 'fakeweb'
     end
-    
+
     assert_file 'Gemfile', /\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend/
   end
 
@@ -233,14 +233,14 @@ class ActionsTest < Rails::Generators::TestCase
   def test_readme
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_match(/Welcome to Rails/, action(:readme, "README"))
+    assert_match(/Welcome to Rails/, action(:readme, "README.rdoc"))
   end
 
   def test_readme_with_quiet
     generator(default_arguments, :quiet => true)
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
-    assert_no_match(/Welcome to Rails/, action(:readme, "README"))
+    assert_no_match(/Welcome to Rails/, action(:readme, "README.rdoc"))
   end
 
   def test_log

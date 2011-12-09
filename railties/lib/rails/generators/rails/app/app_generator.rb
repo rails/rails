@@ -38,7 +38,7 @@ module Rails
     end
 
     def readme
-      copy_file "README"
+      copy_file "README", "README.rdoc"
     end
 
     def gemfile
