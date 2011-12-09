@@ -472,7 +472,7 @@ module ActiveRecord
           end
 
           migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
-          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.rb")
+          new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{name}.rb")
           old_path, migration.filename = migration.filename, new_path
           last = migration
 
@@ -513,9 +513,9 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy < Struct.new(:name, :version, :filename)
+  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
 
-    def initialize(name, version, filename)
+    def initialize(name, version, filename, scope)
       super
       @migration = nil
     end
@@ -619,7 +619,7 @@ module ActiveRecord
         seen = Hash.new false
 
         migrations = files.map do |file|
-          version, name = file.scan(/([0-9]+)_([_a-z0-9]*).rb/).first
+          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
@@ -630,7 +630,7 @@ module ActiveRecord
 
           seen[version] = seen[name] = true
 
-          MigrationProxy.new(name, version, file)
+          MigrationProxy.new(name, version, file, scope)
         end
 
         migrations.sort_by(&:version)
