@@ -42,10 +42,7 @@ module ActiveRecord
       def table_exists?(name)
         return @tables[name] if @tables.key? name
 
-        connection.tables.each { |table| @tables[table] = true }
-        @tables[name] = connection.table_exists?(name) if !@tables.key?(name)
-
-        @tables[name]
+        @tables[name] = connection.table_exists?(name)
       end
 
       # Clears out internal caches:
@@ -66,6 +63,7 @@ module ActiveRecord
         @columns_hash.delete table_name
         @column_defaults.delete table_name
         @primary_keys.delete table_name
+        @tables.delete table_name
       end
     end
   end
