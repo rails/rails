@@ -1346,6 +1346,15 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_finds_migrations_in_subdirectories
+      migrations = ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid_with_subdirectories").migrations
+
+      [[1, 'ValidPeopleHaveLastNames'], [2, 'WeNeedReminders'], [3, 'InnocentJointable']].each_with_index do |pair, i|
+        assert_equal migrations[i].version, pair.first
+        assert_equal migrations[i].name, pair.last
+      end
+    end
+
     def test_finds_migrations_from_two_directories
       directories = [MIGRATIONS_ROOT + '/valid_with_timestamps', MIGRATIONS_ROOT + '/to_copy_with_timestamps']
       migrations = ActiveRecord::Migrator.new(:up, directories).migrations

@@ -610,10 +610,11 @@ module ActiveRecord
         migrations_paths.first
       end
 
-      def migrations(paths)
+      def migrations(paths, subdirectories = true)
         paths = Array.wrap(paths)
 
-        files = Dir[*paths.map { |p| "#{p}/[0-9]*_*.rb" }]
+        glob = subdirectories ? "**/" : ""
+        files = Dir[*paths.map { |p| "#{p}/#{glob}[0-9]*_*.rb" }]
 
         seen = Hash.new false
 
