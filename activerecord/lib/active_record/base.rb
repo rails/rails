@@ -762,7 +762,7 @@ module ActiveRecord #:nodoc:
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.table_exists?(table_name)
+        connection.schema_cache.table_exists?(table_name)
       end
 
       # Returns an array of column objects for the table associated with this class.

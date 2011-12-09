@@ -9,6 +9,7 @@ module ActiveRecord
 
       def setup
         super
+        ActiveRecord::Base.connection.schema_cache.clear!
         Session.drop_table! if Session.table_exists?
       end
 
