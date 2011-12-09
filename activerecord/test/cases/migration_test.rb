@@ -1235,6 +1235,24 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
 
+    def test_filtering_migrations
+      assert !Person.column_methods_hash.include?(:last_name)
+      assert !Reminder.table_exists?
+
+      name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", &name_filter)
+
+      Person.reset_column_information
+      assert Person.column_methods_hash.include?(:last_name)
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+
+      ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
+
+      Person.reset_column_information
+      assert !Person.column_methods_hash.include?(:last_name)
+      assert_raise(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    end
+
     class MockMigration < ActiveRecord::Migration
       attr_reader :went_up, :went_down
       def initialize

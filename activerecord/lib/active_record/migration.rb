@@ -528,16 +528,16 @@ module ActiveRecord
       attr_writer :migrations_paths
       alias :migrations_path= :migrations_paths=
 
-      def migrate(migrations_paths, target_version = nil)
+      def migrate(migrations_paths, target_version = nil, &block)
         case
           when target_version.nil?
-            up(migrations_paths, target_version)
+            up(migrations_paths, target_version, &block)
           when current_version == 0 && target_version == 0
             []
           when current_version > target_version
-            down(migrations_paths, target_version)
+            down(migrations_paths, target_version, &block)
           else
-            up(migrations_paths, target_version)
+            up(migrations_paths, target_version, &block)
         end
       end
 
@@ -549,12 +549,12 @@ module ActiveRecord
         move(:up, migrations_paths, steps)
       end
 
-      def up(migrations_paths, target_version = nil)
-        self.new(:up, migrations_paths, target_version).migrate
+      def up(migrations_paths, target_version = nil, &block)
+        self.new(:up, migrations_paths, target_version).migrate(&block)
       end
 
-      def down(migrations_paths, target_version = nil)
-        self.new(:down, migrations_paths, target_version).migrate
+      def down(migrations_paths, target_version = nil, &block)
+        self.new(:down, migrations_paths, target_version).migrate(&block)
       end
 
       def run(direction, migrations_paths, target_version)
@@ -657,7 +657,7 @@ module ActiveRecord
       end
     end
 
-    def migrate
+    def migrate(&block)
       current = migrations.detect { |m| m.version == current_version }
       target = migrations.detect { |m| m.version == @target_version }
 
@@ -674,6 +674,10 @@ module ActiveRecord
 
       ran = []
       runnable.each do |migration|
+        if block && !block.call(migration)
+          next
+        end
+
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         seen = migrated.include?(migration.version.to_i)
