@@ -1334,6 +1334,27 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         Person.reset_column_information
         assert !Person.column_methods_hash.include?(:last_name)
+      ensure
+        ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/broken", 98)
+      end
+
+      def test_migrator_two_up_with_exception_and_rollback
+        ActiveRecord::Migrator.bulk_migration = true
+        assert !Person.column_methods_hash.include?(:phone)
+        assert !Person.column_methods_hash.include?(:last_name)
+
+        e = assert_raise(StandardError) do
+          ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/broken", 100)
+        end
+
+
+        Person.reset_column_information
+        assert !Person.column_methods_hash.include?(:last_name)
+        assert !Person.column_methods_hash.include?(:phone)
+        assert_equal "An error has occurred, all migrations canceled:\n\nSomething broke", e.message
+      ensure
+        ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/broken", 98)
+        ActiveRecord::Migrator.bulk_migration = false
       end
     end
 

@@ -322,6 +322,17 @@ module ActiveRecord
   #
   # For a list of commands that are reversible, please see
   # <tt>ActiveRecord::Migration::CommandRecorder</tt>.
+  #
+  # == DDL transactions
+  #
+  # If your database supports DDL transaction migrations will be run in transaction.
+  # <tt>ActiveRecord::Migrator.bulk_migration</tt> option can be used to specify
+  # whether you want to apply all migrations under one transaction or each migration under separated transaction.
+  # This option is suppose to be <tt>true</tt> in production environment where you want to rollback all DB changes
+  # in case of failure.
+  #
+  # This option is <tt>false</tt> by default.
+  #
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
@@ -524,6 +535,9 @@ module ActiveRecord
   end
 
   class Migrator#:nodoc:
+
+    class_attribute :bulk_migration
+
     class << self
       attr_writer :migrations_paths
       alias :migrations_path= :migrations_paths=
@@ -673,29 +687,33 @@ module ActiveRecord
       runnable.pop if down? && target
 
       ran = []
-      runnable.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+      ddl_transaction(self.bulk_migration) do
+        runnable.each do |migration|
+          Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
-        seen = migrated.include?(migration.version.to_i)
+          seen = migrated.include?(migration.version.to_i)
 
-        # On our way up, we skip migrating the ones we've already migrated
-        next if up? && seen
+          # On our way up, we skip migrating the ones we've already migrated
+          next if up? && seen
 
-        # On our way down, we skip reverting the ones we've never migrated
-        if down? && !seen
-          migration.announce 'never migrated, skipping'; migration.write
-          next
-        end
-
-        begin
-          ddl_transaction do
-            migration.migrate(@direction)
-            record_version_state_after_migrating(migration.version)
+          # On our way down, we skip reverting the ones we've never migrated
+          if down? && !seen
+            migration.announce 'never migrated, skipping'; migration.write
+            next
           end
-          ran << migration
-        rescue => e
-          canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
-          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
+
+          begin
+            ddl_transaction(!self.bulk_migration) do
+              migration.migrate(@direction)
+              record_version_state_after_migrating(migration.version)
+            end
+            ran << migration
+          rescue => e
+            canceled_msg_prefix = Base.connection.supports_ddl_transactions? && !self.bulk_migration ? "this and " : ""
+            canceled_msg_suffix = Base.connection.supports_ddl_transactions? && self.bulk_migration ? "" : "later "
+
+            raise StandardError, "An error has occurred, #{canceled_msg_prefix}all #{canceled_msg_suffix}migrations canceled:\n\n#{e}", e.backtrace
+          end
         end
       end
       ran
@@ -742,8 +760,8 @@ module ActiveRecord
       end
 
       # Wrap the migration in a transaction only if supported by the adapter.
-      def ddl_transaction(&block)
-        if Base.connection.supports_ddl_transactions?
+      def ddl_transaction(perform, &block)
+        if perform && Base.connection.supports_ddl_transactions?
           Base.transaction { block.call }
         else
           block.call
