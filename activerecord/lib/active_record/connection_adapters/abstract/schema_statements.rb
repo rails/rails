@@ -24,7 +24,7 @@ module ActiveRecord
       #   table_exists?(:developers)
       def table_exists?(table_name)
         begin
-          select_value("SELECT 1 FROM #{quote_table_name(table_name)} where 1=0")
+          select_value("SELECT 1 FROM #{quote_table_name(table_name)} where 1=0", 'SCHEMA')
           true
         rescue
           false
