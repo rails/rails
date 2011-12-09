@@ -375,23 +375,23 @@ module ActionView
         end
       end
 
-      @partial_names[path] ||= path.dup.tap do |object_path|
-        merge_prefix_into_object_path(@context_prefix, object_path)
-      end
+      @partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
     end
 
     def merge_prefix_into_object_path(prefix, object_path)
       if prefix.include?(?/) && object_path.include?(?/)
-        overlap = []
+        prefixes = []
         prefix_array = File.dirname(prefix).split('/')
         object_path_array = object_path.split('/')[0..-3] # skip model dir & partial
 
         prefix_array.each_with_index do |dir, index|
-          overlap << dir if dir == object_path_array[index]
+          break if dir == object_path_array[index]
+          prefixes << dir
         end
 
-        object_path.gsub!(/^#{overlap.join('/')}\//,'')
-        object_path.insert(0, "#{File.dirname(prefix)}/")
+        (prefixes << object_path).join("/")
+      else
+        object_path
       end
     end
 
