@@ -56,6 +56,8 @@ module RailtiesTest
 
       app_file "db/migrate/1_create_sessions.rb", <<-RUBY
         class CreateSessions < ActiveRecord::Migration
+          def up
+          end
         end
       RUBY
 
