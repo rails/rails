@@ -12,6 +12,30 @@ module ApplicationTests
       def teardown
         teardown_app
       end
+
+      test 'running migrations with given scope' do
+        Dir.chdir(app_path) do
+          `rails generate model user username:string password:string`
+        end
+        app_file "db/migrate/01_a_migration.bukkits.rb", <<-MIGRATION
+          class AMigration < ActiveRecord::Migration
+          end
+        MIGRATION
+
+        output = Dir.chdir(app_path) { `rake db:migrate SCOPE=bukkits` }
+        assert_no_match(/create_table\(:users\)/, output)
+        assert_no_match(/CreateUsers/, output)
+        assert_no_match(/add_column\(:users, :email, :string\)/, output)
+
+        assert_match(/AMigration: migrated/, output)
+
+        output = Dir.chdir(app_path) { `rake db:migrate SCOPE=bukkits VERSION=0` }
+        assert_no_match(/drop_table\(:users\)/, output)
+        assert_no_match(/CreateUsers/, output)
+        assert_no_match(/remove_column\(:users, :email\)/, output)
+
+        assert_match(/AMigration: reverted/, output)
+      end
       
       test 'model and migration generator with change syntax' do
          Dir.chdir(app_path) do
