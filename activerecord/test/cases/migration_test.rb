@@ -2258,7 +2258,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       # remove origin comment
       migration = @migrations_path + "/4_people_have_hobbies.rb"
-      migration_source = File.read(migration).to_a[1..-1].join
+      migration_source = File.read(migration).lines.to_a[1..-1].join
       File.open(migration, "w") { |f| f.write migration_source }
 
       ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)

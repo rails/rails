@@ -503,7 +503,7 @@ module ActiveRecord
 
     def remove_origin_comment(migration_source)
       if migration_source =~ /^# This migration comes from/
-        migration_source = migration_source.to_a[1..-1].join
+        migration_source = migration_source.lines.to_a[1..-1].join
       end
 
       migration_source
