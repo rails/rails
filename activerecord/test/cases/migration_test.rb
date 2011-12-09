@@ -2203,15 +2203,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
       sources = ActiveSupport::OrderedHash.new
-      sources[:bukkits] = sources[:omg] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
+      sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_name_collision"
 
       skipped = []
       on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
       copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
       assert_equal 2, copied.length
 
-      assert_equal 2, skipped.length
-      assert_equal ["bukkits PeopleHaveHobbies", "bukkits PeopleHaveDescriptions"], skipped
+      assert_equal 1, skipped.length
+      assert_equal ["omg PeopleHaveHobbies"], skipped
     ensure
       clear
     end
@@ -2226,6 +2227,31 @@ if ActiveRecord::Base.connection.supports_migrations?
       skipped = []
       on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
       copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+      ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+
+      assert_equal 2, copied.length
+      assert_equal 0, skipped.length
+    ensure
+      clear
+    end
+
+    def test_skip_ignores_origin_comment
+      ActiveRecord::Base.timestamped_migrations = false
+      @migrations_path = MIGRATIONS_ROOT + "/valid"
+      @existing_migrations = Dir[@migrations_path + "/*.rb"]
+
+      sources = ActiveSupport::OrderedHash.new
+      sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
+
+      skipped = []
+      on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
+      copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+
+      # remove origin comment
+      migration = @migrations_path + "/4_people_have_hobbies.rb"
+      migration_source = File.read(migration).to_a[1..-1].join
+      File.open(migration, "w") { |f| f.write migration_source }
+
       ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
 
       assert_equal 2, copied.length

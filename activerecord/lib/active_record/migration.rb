@@ -461,11 +461,13 @@ module ActiveRecord
         source_migrations = ActiveRecord::Migrator.migrations(path)
 
         source_migrations.each do |migration|
-          source = File.read(migration.filename).chomp
+          source = File.read(migration.filename)
           source = "# This migration comes from #{name} (originally #{migration.version})\n#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
-            options[:on_skip].call(name, migration) if File.read(duplicate.filename).chomp != source && options[:on_skip]
+            if options[:on_skip] && !migrations_identical?(File.read(duplicate.filename), source)
+              options[:on_skip].call(name, migration)
+            end
             next
           end
 
@@ -491,6 +493,22 @@ module ActiveRecord
         "%.3d" % number
       end
     end
+
+    def migrations_identical?(a, b)
+      # Due to a bug some of the migrations copied may not have origin comment,
+      # so we need to ignore it.
+      remove_origin_comment(a.chomp) == remove_origin_comment(b.chomp)
+    end
+    private :migrations_identical?
+
+    def remove_origin_comment(migration_source)
+      if migration_source =~ /^# This migration comes from/
+        migration_source = migration_source.to_a[1..-1].join
+      end
+
+      migration_source
+    end
+    private :remove_origin_comment
   end
 
   # MigrationProxy is used to defer loading of the actual migration classes
