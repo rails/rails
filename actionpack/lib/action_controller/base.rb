@@ -208,8 +208,6 @@ module ActionController
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
 
-      ActiveSupport::Benchmarkable,
-
       # Before callbacks should also be executed the earliest as possible, so
       # also include them at the bottom.
       AbstractController::Callbacks,
