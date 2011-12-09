@@ -1,5 +1,7 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Make ActiveSupport::Benchmarkable a default module for ActionController::Base, so the #benchmark method is once again available in the controller context like it used to be *DHH*
+
 *   Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
 
         class ApplicationController
