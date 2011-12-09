@@ -2,6 +2,19 @@
 *   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. 
     This is a behavior change, previously the hidden tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
+*   Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
+
+        class ApplicationController
+          layout "application"
+        end
+
+        class PostsController < ApplicationController
+        end
+
+    In the example above, Posts controller will no longer automatically look up for a posts layout.
+
+    If you need this functionality you could either remove `layout "application"` from ApplicationController or explicitly set it to nil in PostsController. *José Valim*
+
 *   Rails will now use your default layout (such as "layouts/application") when you specify a layout with `:only` and `:except` condition, and those conditions fail. *Prem Sichanugrist*
 
     For example, consider this snippet:
