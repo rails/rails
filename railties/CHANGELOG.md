@@ -1,8 +1,16 @@
-## Rails 3.1.3 (unreleased) ##
+## Rails 3.1.4 (unreleased) ##
+
+*   Add therubyrhino to Gemfile in new applications when running under JRuby.
+
+    *Guillermo Iguaran*
+
+
+## Rails 3.1.3 (November 20, 2011) ##
 
 *   New apps should be generated with a sass-rails dependency of 3.1.5, not 3.1.5.rc.2
 
-## Rails 3.1.2 (unreleased) ##
+
+## Rails 3.1.2 (November 18, 2011) ##
 
 *   Engines: don't blow up if db/seeds.rb is missing.
 
@@ -12,6 +20,7 @@
     *GH 2564*
 
     *José Valim*
+
 
 ## Rails 3.1.1 (October 7, 2011) ##
 
