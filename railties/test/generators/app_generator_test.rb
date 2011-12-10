@@ -210,9 +210,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_inclusion_of_therubyrhino_under_jruby
+    run_generator([destination_root])
     if defined?(JRUBY_VERSION)
-      run_generator([destination_root])
       assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
+    else
+      assert_file "Gemfile" do |content|
+        assert_no_match(/gem\s+["']therubyrhino["']$/, content)
+      end
     end
   end
 
