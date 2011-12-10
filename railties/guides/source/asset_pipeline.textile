@@ -369,10 +369,10 @@ It is important that this folder is shared between deployments so that remotely 
 
 NOTE. If you are precompiling your assets locally, you can use +bundle install --without assets+ on the server to avoid installing the assets gems (the gems in the assets group in the Gemfile).
 
-The default matcher for compiling files includes +application.js+, +application.css+ and all files that do not end in +js+ or +css+:
+The default matcher for compiling files includes +application.js+, +application.css+ and all non-JS/CSS files (ie. +.coffee+ and +.scss+ files are *not* automatically included as they compile to JS/CSS):
 
 <ruby>
-[ /\w<plus>\.(?!js|css).<plus>/, /application.(css|js)$/ ]
+[ Proc.new{ |path| !File.extname(path).in?(['.js', '.css']) }, /application.(css|js)$/ ]
 </ruby>
 
 If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the +precompile+ array:
