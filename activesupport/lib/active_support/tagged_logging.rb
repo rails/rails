@@ -38,9 +38,8 @@ module ActiveSupport
       EOM
     end
 
-    def flush(*args)
+    def flush
       @tags.delete(Thread.current)
-      @logger.flush(*args) if @logger.respond_to?(:flush)
     end
 
     def method_missing(method, *args)

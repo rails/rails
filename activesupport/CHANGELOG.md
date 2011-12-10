@@ -47,6 +47,28 @@
 *   ActiveSupport::OrderedHash now has different behavior for #each and
     \#each_pair when given a block accepting its parameters with a splat. *Andrew Radev*
 
+*   ActiveSupport::BufferedLogger#silence is deprecated.  If you want to squelch
+    logs for a certain block, change the log level for that block.
+
+*   ActiveSupport::BufferedLogger#open_log is deprecated.  This method should
+    not have been public in the first place.
+
+*   ActiveSupport::BufferedLogger's behavior of automatically creating the
+    directory for your log file is deprecated.  Please make sure to create the
+    directory for your log file before instantiating.
+
+*   ActiveSupport::BufferedLogger#auto_flushing is deprecated.  Either set the
+    sync level on the underlying file handle like this:
+
+        f = File.open('foo.log', 'w')
+        f.sync = true
+        ActiveSupport::BufferedLogger.new f
+
+    Or tune your filesystem.  The FS cache is now what controls flushing.
+
+*   ActiveSupport::BufferedLogger#flush is deprecated.  Set sync on your
+    filehandle, or tune your filesystem.
+
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   ActiveSupport::Dependencies#load and ActiveSupport::Dependencies#require now
