@@ -382,11 +382,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:exist?, name) do |payload|
           entry = read_entry(namespaced_key(name, options), options)
-          if entry && !entry.expired?
-            true
-          else
-            false
-          end
+          !!entry && !entry.expired?
         end
       end
 
@@ -441,7 +437,7 @@ module ActiveSupport
         # Implementations that support delete_matched should call this method to translate
         # a pattern that matches names into one that matches namespaced keys.
         def key_matcher(pattern, options)
-          prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
+          prefix = prefix_with_delimiter(options[:namespace])
           if prefix
             source = pattern.source
             if source.start_with?('^')
@@ -449,7 +445,7 @@ module ActiveSupport
             else
               source = ".*#{source[0, source.length]}"
             end
-            Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+            Regexp.new("^#{Regexp.escape(prefix)}#{source}", pattern.options)
           else
             pattern
           end
@@ -503,10 +499,13 @@ module ActiveSupport
         # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
         def namespaced_key(key, options)
           key = expanded_key(key)
-          namespace = options[:namespace] if options
-          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
-          key = "#{prefix}:#{key}" if prefix
+          key = "#{prefix_with_delimiter(options[:namespace])}#{key}" if options
           key
+        end
+
+        def prefix_with_delimiter(namespace)
+          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
+          prefix ? "#{prefix}:" : nil
         end
 
         def instrument(operation, key, options = nil)
@@ -608,18 +607,14 @@ module ActiveSupport
       # Returns the size of the cached value. This could be less than value.size
       # if the data is compressed.
       def size
-        if @value.nil?
-          0
-        else
-          @value.bytesize
-        end
+        @value.nil? ? 0 : @value.bytesize
       end
 
       private
         def should_compress?(serialized_value, options)
           if options[:compress]
             compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
-            return true if serialized_value.size >= compress_threshold
+            return true if serialized_value.bytesize >= compress_threshold
           end
           false
         end

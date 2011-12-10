@@ -95,39 +95,23 @@ module ActiveSupport
 
         def increment(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          update_local_cache(name, value, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          update_local_cache(name, value, options)
           value
         end
 
         protected
           def read_entry(key, options) # :nodoc:
-            if local_cache
-              entry = local_cache.read_entry(key, options)
+            if cache = local_cache
+              entry = cache.read_entry(key, options)
               unless entry
                 entry = super
-                local_cache.write_entry(key, entry, options)
+                cache.write_entry(key, entry, options)
               end
               entry
             else
@@ -161,6 +145,18 @@ module ActiveSupport
               yield
             ensure
               Thread.current[thread_local_key] = save_cache
+            end
+          end
+
+          def update_local_cache(name, value, options)
+            if cache = local_cache
+              cache.mute do
+                if value
+                  cache.write(name, value, options)
+                else
+                  cache.delete(name, options)
+                end
+              end
             end
           end
       end

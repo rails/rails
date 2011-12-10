@@ -50,17 +50,7 @@ module ActiveSupport
       end
 
       def decrement(name, amount = 1, options = nil)
-        file_name = key_file_path(namespaced_key(name, options))
-        lock_file(file_name) do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i - amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        increment(name, -1 * amount, options)
       end
 
       def delete_matched(matcher, options = nil)
