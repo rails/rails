@@ -40,6 +40,7 @@ module ActiveSupport
 
     def flush
       @tags.delete(Thread.current)
+      @logger.flush if @logger.respond_to?(:flush)
     end
 
     def method_missing(method, *args)

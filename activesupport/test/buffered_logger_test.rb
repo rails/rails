@@ -43,6 +43,7 @@ class BufferedLoggerTest < Test::Unit::TestCase
 
   def test_write_binary_data_create_file
     fname = File.join Dir.tmpdir, 'lol', 'rofl.log'
+    FileUtils.mkdir_p File.dirname(fname)
     f = File.open(fname, 'w')
     f.binmode
 
