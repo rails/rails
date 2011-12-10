@@ -179,7 +179,7 @@ class FixturesTest < ActiveRecord::TestCase
     #sanity check to make sure that this file never exists
     assert Dir[nonexistent_fixture_path+"*"].empty?
 
-    assert_raise(FixturesFileNotFound) do
+    assert_raise(Errno::ENOENT) do
       ActiveRecord::Fixtures.new( Account.connection, "companies", 'Company', nonexistent_fixture_path)
     end
   end
