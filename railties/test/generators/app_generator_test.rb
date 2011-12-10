@@ -206,6 +206,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
       assert_no_match(/config\.assets\.enabled = true/, content)
     end
+    assert_file "Gemfile" do |content|
+      assert_no_match(/sass-rails/, content)
+      assert_no_match(/coffee-rails/, content)
+      assert_no_match(/uglifier/, content)
+    end
     assert_file "test/performance/browsing_test.rb"
   end
 
