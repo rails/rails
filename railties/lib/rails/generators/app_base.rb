@@ -193,6 +193,7 @@ module Rails
       end
 
       def assets_gemfile_entry
+        return if options[:skip_sprockets]
         <<-GEMFILE.strip_heredoc
           # Gems used only for assets and not required
           # in production environments by default.
