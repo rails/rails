@@ -183,6 +183,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "test/performance/browsing_test.rb"
   end
 
+  def test_inclusion_of_therubyrhino_under_jruby
+    run_generator([destination_root])
+    if defined?(JRUBY_VERSION)
+      assert_file "Gemfile", /gem\s+["']therubyrhino["']$/
+    else
+      assert_file "Gemfile" do |content|
+        assert_no_match(/gem\s+["']therubyrhino["']$/, content)
+      end
+    end
+  end
+
   def test_creation_of_a_test_directory
     run_generator
     assert_file 'test'
