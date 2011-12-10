@@ -2,6 +2,7 @@ require 'cases/helper'
 require 'models/user'
 require 'models/visitor'
 require 'models/administrator'
+require 'models/customer'
 
 class SecurePasswordTest < ActiveModel::TestCase
 
@@ -52,5 +53,23 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert active_authorizer.kind_of?(ActiveModel::MassAssignmentSecurity::WhiteList)
     assert !active_authorizer.include?(:password_digest)
     assert active_authorizer.include?(:name)
+  end
+
+  test "Customer#password should not be blank" do
+    @customer = Customer.new
+    @customer.password = ''
+    assert !@customer.valid?, 'customer should be invalid'
+  end
+
+  test "Customer#password can be nil" do
+    @customer = Customer.new
+    @customer.password = nil
+    assert @customer.valid?
+  end
+
+  test "can't be authenticated if password_digest is nil" do
+    @customer = Customer.new
+    assert !@customer.authenticate("")
+    assert !@customer.authenticate(nil)
   end
 end
