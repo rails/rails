@@ -6,6 +6,7 @@ module InflectorTestCases
     "switch"      => "switches",
     "fix"         => "fixes",
     "box"         => "boxes",
+    "sex"         => "sexes",
     "process"     => "processes",
     "address"     => "addresses",
     "case"        => "cases",
@@ -23,6 +24,7 @@ module InflectorTestCases
     "movie"       => "movies",
 
     "archive"     => "archives",
+    "move"        => "moves",
 
     "index"       => "indices",
 
@@ -105,6 +107,9 @@ module InflectorTestCases
 
     "cow"         => "kine",
     "database"    => "databases",
+    
+    "cookie"      => "cookies",
+    "cache"       => "caches",
 
     # regression tests against improper inflection regexes
     "|ice"        => "|ices",
@@ -296,7 +301,5 @@ module InflectorTestCases
     'person' => 'people',
     'man'    => 'men',
     'child'  => 'children',
-    'sex'    => 'sexes',
-    'move'   => 'moves',
   }
 end
