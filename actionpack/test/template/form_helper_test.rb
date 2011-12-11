@@ -688,6 +688,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.text_area(:body)
       concat f.check_box(:secret)
       concat f.submit('Create post')
+      concat f.button('Create post')
     end
 
     expected = whole_form("/posts/123", "create-post" , "edit_post", :method => "put") do
@@ -696,7 +697,8 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
-      "<input name='commit' type='submit' value='Create post' />"
+      "<input name='commit' type='submit' value='Create post' />" +
+      "<button name='button' type='submit'>Create post</button>"
     end
 
     assert_dom_equal expected, output_buffer
