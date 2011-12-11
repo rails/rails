@@ -51,9 +51,13 @@ module ActiveSupport
       #   assert_difference 'Article.count', -1, "An Article should be destroyed" do
       #     post :delete, :id => ...
       #   end
-      def assert_difference(expression, difference = 1, message = nil, &block)
+      def assert_difference(expression, differences = 1, message = nil, &block)
         expressions = Array.wrap expression
-        differences = Array.wrap difference
+        differences = Array.wrap differences
+
+        unless differences.size == 1 || differences.size == expressions.count
+          raise "The number of differences passed should either be one, or equal to the number of expressions you passed. You passed #{differences.count}."
+        end
 
         exps = expressions.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
@@ -62,11 +66,11 @@ module ActiveSupport
 
         yield
 
-        expressions.zip(exps, differences).each_with_index do |(code, e, diff), i|
-          diff = diff.nil? ? differences.first : diff
+        expressions.zip(exps, differences).each_with_index do |(code, e, difference), i|
+          difference = difference.nil? ? differences.first : difference
           error  = "#{code.inspect} didn't change by #{difference}"
           error  = "#{message}.\n#{error}" if message
-          assert_equal(before[i] + diff, e.call, error)
+          assert_equal(before[i] + difference, e.call, error)
         end
       end
 
