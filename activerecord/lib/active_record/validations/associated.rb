@@ -1,9 +1,17 @@
 module ActiveRecord
   module Validations
     class AssociatedValidator < ActiveModel::EachValidator
-      def validate_each(record, attribute, value)
+      def validate_each(record, attribute, value) 
         if Array.wrap(value).reject {|r| r.marked_for_destruction? || r.valid?}.any?
-          record.errors.add(attribute, :invalid, options.merge(:value => value))
+          if options[:include_errors]
+            err_msgs = []
+            Array.wrap(value).collect {|r| err_msgs += r.errors.full_messages if r.invalid? && !r.marked_for_destruction?}
+            err_msgs.uniq.each do |msg| 
+              record.errors[:base] << [attribute.to_s.singularize.titleize,msg].join(' ')
+            end
+          else
+            record.errors.add(attribute, :invalid, options.merge(:value => value))
+          end
         end
       end
     end
@@ -35,6 +43,7 @@ module ActiveRecord
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
+      # * <tt>:include_errors</tt> - If set to true, includes associated models error messages also (default is +false+).     
       def validates_associated(*attr_names)
         validates_with AssociatedValidator, _merge_attributes(attr_names)
       end
