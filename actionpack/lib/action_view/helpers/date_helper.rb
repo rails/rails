@@ -736,7 +736,7 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_day]
           build_hidden(:day, day)
         else
-          build_options_and_select(:day, day, :start => 1, :end => 31, :leading_zeros => false)
+          build_options_and_select(:day, day, :start => 1, :end => 31, :leading_zeros => false, :use_two_digit_numbers => @options[:use_two_digit_numbers])
         end
       end
 
@@ -822,6 +822,8 @@ module ActionView
         def month_name(number)
           if @options[:use_month_numbers]
             number
+          elsif @options[:use_two_digit_numbers]
+            sprintf "%02d", number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
           else
@@ -857,7 +859,7 @@ module ActionView
           start         = options.delete(:start) || 0
           stop          = options.delete(:end) || 59
           step          = options.delete(:step) || 1
-          options.reverse_merge!({:leading_zeros => true, :ampm => false})
+          options.reverse_merge!({:leading_zeros => true, :ampm => false, :use_two_digit_numbers => false})
           leading_zeros = options.delete(:leading_zeros)
 
           select_options = []
@@ -865,7 +867,8 @@ module ActionView
             value = leading_zeros ? sprintf("%02d", i) : i
             tag_options = { :value => value }
             tag_options[:selected] = "selected" if selected == i
-            text = options[:ampm] ? AMPM_TRANSLATION[i] : value
+            text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
+            text = options[:ampm] ? AMPM_TRANSLATION[i] : text            
             select_options << content_tag(:option, text, tag_options)
           end
           (select_options.join("\n") + "\n").html_safe
