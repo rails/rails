@@ -1364,6 +1364,39 @@ module ActionView
         @template.submit_tag(value, options)
       end
 
+      # Add the submit button for the given form. When no value is given, it checks
+      # if the object is a new resource or not to create the proper label:
+      #
+      #   <%= form_for @post do |f| %>
+      #     <%= f.button %>
+      #   <% end %>
+      #
+      # In the example above, if @post is a new record, it will use "Create Post" as
+      # submit button label, otherwise, it uses "Update Post".
+      #
+      # Those labels can be customized using I18n, under the helpers.submit key and accept
+      # the %{model} as translation interpolation:
+      #
+      #   en:
+      #     helpers:
+      #       button:
+      #         create: "Create a %{model}"
+      #         update: "Confirm changes to %{model}"
+      #
+      # It also searches for a key specific for the given object:
+      #
+      #   en:
+      #     helpers:
+      #       button:
+      #         post:
+      #           create: "Add %{model}"
+      #
+      def button(value=nil, options={})
+        value, options = nil, value if value.is_a?(Hash)
+        value ||= submit_default_value
+        @template.button_tag(value, options)
+      end
+
       def emitted_hidden_id?
         @emitted_hidden_id ||= nil
       end

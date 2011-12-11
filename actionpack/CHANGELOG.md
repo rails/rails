@@ -1,5 +1,15 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   Add `button_tag` support to ActionView::Helpers::FormBuilder.
+
+    This support mimics the default behavior of `submit_tag`.
+
+    Example:
+
+        <%= form_for @post do |f| %>
+          <%= f.button %>
+        <% end %>
+
 *   Make ActiveSupport::Benchmarkable a default module for ActionController::Base, so the #benchmark method is once again available in the controller context like it used to be *DHH*
 
 *   Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
