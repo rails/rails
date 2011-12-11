@@ -107,6 +107,11 @@ Automatic directory creation for '#{log}' is deprecated.  Please make sure the d
     end
     deprecate :flush
 
+    def respond_to?(method, include_private = false)
+      return false if method.to_s == "flush"
+      super
+    end
+
     def close
       @log.close
     end
