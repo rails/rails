@@ -31,9 +31,11 @@
   config.active_record.auto_explain_threshold_in_seconds = 0.5
   <%- end -%>
 
+  <%- unless options.skip_sprockets? -%>
   # Do not compress assets
   config.assets.compress = false
 
   # Expands the lines which load the assets
   config.assets.debug = true
+  <%- end -%>
 end
