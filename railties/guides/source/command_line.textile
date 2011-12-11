@@ -36,7 +36,7 @@ WARNING: You can install the rails gem by typing +gem install rails+, if you don
 <shell>
 $ rails new commandsapp
      create
-     create  README
+     create  README.rdoc
      create  .gitignore
      create  Rakefile
      create  config.ru
@@ -509,8 +509,8 @@ $ rails new . --git --database=postgresql
       create  tmp/pids
       create  Rakefile
 add 'Rakefile'
-      create  README
-add 'README'
+      create  README.rdoc
+add 'README.rdoc'
       create  app/controllers/application_controller.rb
 add 'app/controllers/application_controller.rb'
       create  app/helpers/application_helper.rb
