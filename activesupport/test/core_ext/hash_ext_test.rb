@@ -121,6 +121,9 @@ class HashExtTest < Test::Unit::TestCase
 
     foo = { "foo" => NonIndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
     assert_kind_of NonIndifferentHash, foo["foo"]
+
+    foo = { "foo" => IndifferentHash.new.tap { |h| h["bar"] = "baz" } }.with_indifferent_access
+    assert_kind_of IndifferentHash, foo["foo"]
   end
 
   def test_indifferent_assorted

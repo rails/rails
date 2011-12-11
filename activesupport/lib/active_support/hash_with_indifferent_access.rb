@@ -16,6 +16,10 @@ module ActiveSupport
       dup
     end
 
+    def nested_under_indifferent_access
+      self
+    end
+
     def initialize(constructor = {})
       if constructor.is_a?(Hash)
         super()
