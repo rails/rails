@@ -6,21 +6,42 @@ class ERB
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
 
-    # A utility method for escaping HTML tag characters.
-    # This method is also aliased as <tt>h</tt>.
-    #
-    # In your ERB templates, use this method to escape any unsafe content. For example:
-    #   <%=h @person.name %>
-    #
-    # ==== Example:
-    #   puts html_escape("is a > 0 & a < 10?")
-    #   # => is a &gt; 0 &amp; a &lt; 10?
-    def html_escape(s)
-      s = s.to_s
-      if s.html_safe?
-        s
-      else
-        s.gsub(/[&"><]/n) { |special| HTML_ESCAPE[special] }.html_safe
+    # Detect whether 1.9 can transcode with XML escaping.
+    if '"&gt;&lt;&amp;&quot;"' == ('><&"'.encode('utf-8', :xml => :attr) rescue false)
+      # A utility method for escaping HTML tag characters.
+      # This method is also aliased as <tt>h</tt>.
+      #
+      # In your ERB templates, use this method to escape any unsafe content. For example:
+      #   <%=h @person.name %>
+      #
+      # ==== Example:
+      #   puts html_escape("is a > 0 & a < 10?")
+      #   # => is a &gt; 0 &amp; a &lt; 10?
+      def html_escape(s)
+        s = s.to_s
+        if s.html_safe?
+          s
+        else
+          s.encode(s.encoding, :xml => :attr)[1...-1].html_safe
+        end
+      end
+    else
+      # A utility method for escaping HTML tag characters.
+      # This method is also aliased as <tt>h</tt>.
+      #
+      # In your ERB templates, use this method to escape any unsafe content. For example:
+      #   <%=h @person.name %>
+      #
+      # ==== Example:
+      #   puts html_escape("is a > 0 & a < 10?")
+      #   # => is a &gt; 0 &amp; a &lt; 10?
+      def html_escape(s)
+        s = s.to_s
+        if s.html_safe?
+          s
+        else
+          s.gsub(/[&"><]/n) { |special| HTML_ESCAPE[special] }.html_safe
+        end
       end
     end
 
