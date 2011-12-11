@@ -164,6 +164,15 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_day(nil, :include_blank => true)
   end
 
+  def test_select_day_with_two_digit_numbers
+    expected = %(<select id="date_day" name="date[day]">\n)
+    expected << %(<option value="1">01</option>\n<option selected="selected" value="2">02</option>\n<option value="3">03</option>\n<option value="4">04</option>\n<option value="5">05</option>\n<option value="6">06</option>\n<option value="7">07</option>\n<option value="8">08</option>\n<option value="9">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_day(Time.mktime(2011, 8, 2), :use_two_digit_numbers => true)
+    assert_dom_equal expected, select_day(2, :use_two_digit_numbers => true)
+  end
+
   def test_select_day_with_html_options
     expected = %(<select id="date_day" name="date[day]" class="selector">\n)
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
@@ -196,6 +205,15 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16))
     assert_dom_equal expected, select_month(8)
+  end
+
+  def test_select_month_with_two_digit_numbers
+    expected = %(<select id="date_month" name="date[month]">\n)
+    expected << %(<option value="1">01</option>\n<option value="2">02</option>\n<option value="3">03</option>\n<option value="4">04</option>\n<option value="5">05</option>\n<option value="6">06</option>\n<option value="7">07</option>\n<option value="8" selected="selected">08</option>\n<option value="9">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_month(Time.mktime(2011, 8, 16), :use_two_digit_numbers => true)
+    assert_dom_equal expected, select_month(8, :use_two_digit_numbers => true)
   end
 
   def test_select_month_with_disabled
@@ -985,7 +1003,6 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_datetime(Time.mktime(2003, 8, 16, 8, 4, 18), :start_year => 2003, :end_year => 2005, :prefix => "date[first]", :ampm => true)
   end
-
 
   def test_select_datetime_with_separators
     expected =  %(<select id="date_first_year" name="date[first][year]">\n)
