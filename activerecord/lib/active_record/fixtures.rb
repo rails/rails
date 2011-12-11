@@ -822,6 +822,7 @@ module ActiveRecord
       end
 
       @fixture_cache = {}
+      @fixture_connections = []
       @@already_loaded_fixtures ||= {}
 
       # Load fixtures once and begin transaction.
