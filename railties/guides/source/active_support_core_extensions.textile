@@ -2236,14 +2236,14 @@ The method +to_sentence+ turns an array into a string containing a sentence that
 %w().to_sentence                # => ""
 %w(Earth).to_sentence           # => "Earth"
 %w(Earth Wind).to_sentence      # => "Earth and Wind"
-%w(Earth Wind Fire).to_sentence # => "Earth, Wind, and Fire"
+%w(Earth Wind Fire).to_sentence # => "Earth, Wind and Fire"
 </ruby>
 
 This method accepts three options:
 
 * <tt>:two_words_connector</tt>: What is used for arrays of length 2. Default is " and ".
 * <tt>:words_connector</tt>: What is used to join the elements of arrays with 3 or more elements, except for the last two. Default is ", ".
-* <tt>:last_word_connector</tt>: What is used to join the last items of an array with 3 or more elements. Default is ", and ".
+* <tt>:last_word_connector</tt>: What is used to join the last items of an array with 3 or more elements. Default is " and ".
 
 The defaults for these options can be localised, their keys are:
 

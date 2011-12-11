@@ -88,7 +88,7 @@ class I18nTest < Test::Unit::TestCase
   def test_to_sentence
     default_two_words_connector = I18n.translate(:'support.array.two_words_connector')
     default_last_word_connector = I18n.translate(:'support.array.last_word_connector')
-    assert_equal 'a, b, and c', %w[a b c].to_sentence
+    assert_equal 'a, b and c', %w[a b c].to_sentence
     I18n.backend.store_translations 'en', :support => { :array => { :two_words_connector => ' & ' } }
     assert_equal 'a & b', %w[a b].to_sentence
     I18n.backend.store_translations 'en', :support => { :array => { :last_word_connector => ' and ' } }

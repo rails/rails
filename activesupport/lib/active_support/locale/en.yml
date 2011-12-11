@@ -33,4 +33,4 @@ en:
     array:
       words_connector: ", "
       two_words_connector: " and "
-      last_word_connector: ", and "
+      last_word_connector: " and "
