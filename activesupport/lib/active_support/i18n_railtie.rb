@@ -17,7 +17,8 @@ module I18n
     # point, no path was added to the reloader, I18n.reload! is not triggered
     # on to_prepare callbacks. This will only happen on the config.after_initialize
     # callback below.
-    initializer "i18n.callbacks" do
+    initializer "i18n.callbacks" do |app|
+      app.reloaders << I18n::Railtie.reloader
       ActionDispatch::Reloader.to_prepare do
         I18n::Railtie.reloader.execute_if_updated
       end

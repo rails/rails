@@ -129,6 +129,15 @@ class ReloaderTest < Test::Unit::TestCase
     assert cleaned
   end
 
+  def test_prepend_prepare_callback
+    i = 10
+    Reloader.to_prepare { i += 1 }
+    Reloader.to_prepare(:prepend => true) { i = 0 }
+
+    Reloader.prepare!
+    assert_equal 1, i
+  end
+
   def test_cleanup_callbacks_are_called_on_exceptions
     cleaned = false
     Reloader.to_cleanup { cleaned  = true }
