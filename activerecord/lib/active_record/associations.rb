@@ -1185,7 +1185,7 @@ module ActiveRecord
       #   has_many :subscribers, :through => :subscriptions, :source => :user
       #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
       #       %Q{
-      #         SELECT DISTINCT p.*
+      #         SELECT DISTINCT *
       #         FROM people p, post_subscriptions ps
       #         WHERE ps.post_id = #{id} AND ps.person_id = p.id
       #         ORDER BY p.first_name
