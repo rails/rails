@@ -146,6 +146,10 @@
     during :reject_if => :all_blank (fixes #2937)
 
     *Aaron Christy*
+    
+*   Add ActiveSupport::Cache::NullStore for use in development and testing.
+
+    *Brian Durand*
 
 ## Rails 3.1.3 (unreleased) ##
 
