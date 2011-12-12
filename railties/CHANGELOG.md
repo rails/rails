@@ -1,5 +1,8 @@
 ## Rails 3.2.0 (unreleased) ##
 
+*   New applications enforce whitelist mode for mass assignment using `config.active_record.whitelist_attributes`
+    turned on by default in `config/application.rb`. *Sergey Nartimov*
+
 *   New applications get a flag
     `config.active_record.auto_explain_threshold_in_seconds` in the environments
     configuration files. With a value of 0.5 in development.rb, and commented

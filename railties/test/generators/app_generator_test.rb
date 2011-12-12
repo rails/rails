@@ -193,7 +193,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_file "config/database.yml"
-    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "config/application.rb" do |content|
+      assert_match(/#\s+require\s+["']active_record\/railtie["']/, content)
+      assert_no_match(/config.active_record.whitelist_attributes = true/, content)
+    end
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
@@ -219,6 +222,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.compress = true/, content)
     end
     assert_file "test/performance/browsing_test.rb"
+  end
+
+  def test_inclusion_of_activerecord_whitelist_attributes
+    run_generator([destination_root])
+    assert_file "config/application.rb", /config.active_record.whitelist_attributes = true/
   end
 
   def test_inclusion_of_therubyrhino_under_jruby
