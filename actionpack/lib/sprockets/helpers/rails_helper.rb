@@ -54,6 +54,7 @@ module Sprockets
       def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
         path = asset_paths.compute_public_path(source, asset_prefix, options.merge(:body => true))
+        path = ENV['RAILS_RELATIVE_URL_ROOT'] + path if ENV['RAILS_RELATIVE_URL_ROOT'] && config.relative_url_root.nil?
         options[:body] ? "#{path}?body=1" : path
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
