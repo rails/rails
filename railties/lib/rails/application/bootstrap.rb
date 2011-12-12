@@ -59,13 +59,6 @@ module Rails
         end
       end
 
-      initializer :set_clear_dependencies_hook, :group => :all do
-        ActionDispatch::Reloader.to_cleanup do
-          ActiveSupport::DescendantsTracker.clear
-          ActiveSupport::Dependencies.clear
-        end
-      end
-
       # Sets the dependency loading mechanism.
       # TODO: Remove files from the $" and always use require.
       initializer :initialize_dependency_mechanism, :group => :all do
