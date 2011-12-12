@@ -9,7 +9,7 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local,
                     :dependency_loading, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_tags, :preload_frameworks,
-                    :reload_plugins, :secret_token, :serve_static_assets,
+                    :relative_url_root, :reload_plugins, :secret_token, :serve_static_assets,
                     :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :whiny_nils, :railties_order, :all_initializers
 
@@ -37,6 +37,7 @@ module Rails
         @cache_store                 = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order              = [:all]
         @all_initializers            = []
+        @relative_url_root           = ENV["RAILS_RELATIVE_URL_ROOT"]
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false

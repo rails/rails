@@ -478,6 +478,15 @@ module ApplicationTests
       assert_match 'src="//example.com/assets/rails.png"', File.read("#{app_path}/public/assets/image_loader.js")
     end
 
+    test "asset paths should use RAILS_RELATIVE_URL_ROOT by default" do
+      ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
+
+      app_file "app/assets/javascripts/app.js.erb", 'var src="<%= image_path("rails.png") %>";'
+      add_to_config "config.assets.precompile = %w{app.js}"
+      precompile!
+
+      assert_match 'src="/sub/uri/assets/rails.png"', File.read("#{app_path}/public/assets/app.js")
+    end
 
     private
 
