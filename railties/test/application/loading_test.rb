@@ -19,6 +19,7 @@ class LoadingTest < Test::Unit::TestCase
   def test_constants_in_app_are_autoloaded
     app_file "app/models/post.rb", <<-MODEL
       class Post < ActiveRecord::Base
+        attr_accessible :title
         validates_acceptance_of :title, :accept => "omg"
       end
     MODEL
