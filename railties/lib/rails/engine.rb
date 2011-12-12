@@ -583,10 +583,8 @@ module Rails
       end
     end
 
-    initializer :load_config_initializers do
-      config.paths["config/initializers"].existent.sort.each do |initializer|
-        load(initializer)
-      end
+    initializer :append_config_initializers do |app|
+      app.config.all_initializers.concat config.paths["config/initializers"].existent.sort
     end
 
     initializer :engines_blank_point do

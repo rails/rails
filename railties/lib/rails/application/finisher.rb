@@ -4,6 +4,10 @@ module Rails
       include Initializable
       $rails_rake_task = nil
 
+      initializer :load_config_initializers do
+        config.all_initializers.each { |init| load(init) }
+      end
+
       initializer :add_generator_templates do
         config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
