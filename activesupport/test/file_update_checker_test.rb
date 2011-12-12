@@ -42,19 +42,18 @@ module FileUpdateCheckerSuite
 
   def test_should_not_invoke_the_block_if_no_file_has_changed
     i = 0
-    checker = ActiveSupport::FileUpdateChecker.new(args){ i += 1 }
-    5.times { checker.execute_if_updated }
-    assert_equal 1, i
+    checker = ActiveSupport::FileUpdateChecker.new(args, true){ i += 1 }
+    5.times { assert !checker.execute_if_updated }
+    assert_equal 0, i
   end
 
   def test_should_invoke_the_block_if_a_file_has_changed
     i = 0
-    checker = ActiveSupport::FileUpdateChecker.new(args){ i += 1 }
-    checker.execute_if_updated
+    checker = ActiveSupport::FileUpdateChecker.new(args, true){ i += 1 }
     sleep(1)
     FileUtils.touch(FILES)
-    checker.execute_if_updated
-    assert_equal 2, i
+    assert checker.execute_if_updated
+    assert_equal 1, i
   end
 end
 
